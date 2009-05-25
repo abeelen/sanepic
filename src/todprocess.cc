@@ -15,18 +15,18 @@ using namespace std;
 
 //arrays init
 void init1D_double(double *A, long im, long n, double val){
-  
+
   long ii;
-  
+
   for (ii=im;ii<n+im;ii++)
     A[ii] = val;
 
 }
 
 void init1D_long(long *A, long im, long n, long val){
-  
+
   long ii;
-  
+
   for (ii=im;ii<n+im;ii++)
     A[ii] = val;
 
@@ -59,63 +59,63 @@ void init2D_long(long **A, long im, long jm, long nx, long ny, long val){
 
 // matrix init
 double ** dma(int nrl, int nrh, int ncl, int nch) {
- 
+
   int i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
   double ** m;
- 
+
   m = new double* [nrow+NR_END];
   m += NR_END;
   m-=nrl;
- 
+
   m[nrl]= new double[(long)nrow*ncol+NR_END];
   m[nrl] += NR_END;
   m[nrl]-=ncl;
- 
+
   for (i=nrl+1;i<=nrh;i++) m[i]=m[i-1]+ncol;
- 
+
   return m;
- 
+
 }
 
 
 
 long ** lma(int nrl, int nrh, int ncl, int nch) {
- 
+
   int i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
   long ** m;
- 
+
   m = new long* [nrow+NR_END];
   m += NR_END;
   m-=nrl;
- 
+
   m[nrl]= new long[(long)nrow*ncol+NR_END];
   m[nrl] += NR_END;
   m[nrl]-=ncl;
- 
+
   for (i=nrl+1;i<=nrh;i++) m[i]=m[i-1]+ncol;
- 
+
   return m;
- 
+
 }
 
 
 char ** charma(int nrl, int nrh, int ncl, int nch) {
- 
+
   int i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
   char ** m;
- 
+
   m = new char* [nrow+NR_END];
   m += NR_END;
   m-=nrl;
- 
+
   m[nrl]= new char[(long)nrow*ncol+NR_END];
   m[nrl] += NR_END;
   m[nrl]-=ncl;
- 
+
   for (i=nrl+1;i<=nrh;i++) m[i]=m[i-1]+ncol;
- 
+
   return m;
- 
+
 }
 
 
@@ -207,7 +207,7 @@ void dcovsrt(double **covar, int ma, int ia[], int mfit)
 {
         int i,j,k;
         double swap;
- 
+
         for (i=mfit+1;i<=ma;i++)
                 for (j=1;j<=i;j++) covar[i][j]=covar[j][i]=0.0;
         k=mfit;
@@ -239,7 +239,7 @@ void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int
       k++;
     }
   }
-  
+
   for(k = 1; k < ndata; k++) {
     if ((flag == NULL || flag[k] == 0) && (isnan(data[k]) == 0)){
       if(data[k] < *min){
@@ -538,7 +538,7 @@ void dmrqcof(double x[], double y[], double sig[], int ndata, double a[], int ia
 	*chisq=0.0;
 	for (i=1;i<=ndata;i++) {
 
-                temp = dyda+1; 
+                temp = dyda+1;
 		(*funcs)(x[i],a+1,&ymod,temp,ma);
 		dyda=temp-1; //// to match indices ...
 
@@ -584,7 +584,7 @@ void dgaussj(double **a, int n, double **b, int m)
 		    irow=j;
 		    icol=k;
 		  }
-		} else if (ipiv[k] > 1) printf("gaussj: Singular Matrix-1 /n");
+		} else if (ipiv[k] > 1) printf("gaussj: Singular Matrix-1 \n");
 	      }
 	  ++(ipiv[icol]);
 	  if (irow != icol) {
@@ -593,7 +593,7 @@ void dgaussj(double **a, int n, double **b, int m)
 						      }
 	  indxr[i]=irow;
 	  indxc[i]=icol;
-	  if (a[icol][icol] == 0.0) printf("gaussj: Singular Matrix-2 /n");
+	  if (a[icol][icol] == 0.0) printf("gaussj: Singular Matrix-2 \n");
 	  pivinv=1.0/a[icol][icol];
 	  a[icol][icol]=1.0;
 	  for (l=1;l<=n;l++) a[icol][l] *= pivinv;
@@ -624,7 +624,7 @@ void dgaussj(double **a, int n, double **b, int m)
 void polynomia(double x, double y[], int dma)
 {
   int i;
-  
+
   for(i=1;i<=dma;i++){
     y[i] = pow(x,i-1);
   }
@@ -641,8 +641,8 @@ void dpolyfit(double x[], double y[], int ndata, int norder, double *a)
   int *ia;
   double** covar;
 
-  ma = norder+1;  
-  
+  ma = norder+1;
+
   sig = new double[ndata];
   ia  = new int[ma];
   covar = dma(1,ma,1,ma);
@@ -655,7 +655,7 @@ void dpolyfit(double x[], double y[], int ndata, int norder, double *a)
   for (i=0;i<ma;i++){
     ia[i]  = 1;
   }
-  
+
   b=a-1;
   dlfit(x-1,y-1,sig-1,ndata,b,ia-1,ma,covar,&chisq,polynomia);
   a = b+1;
@@ -698,7 +698,7 @@ void remove_poly(double y[], int ndata, int norder, double* yout, unsigned char*
   delete(sx);
   delete(sy);
   delete(a);
-  
+
 }
 
 
@@ -735,9 +735,9 @@ double dgaussfit(double y[], double *a, int *ia, double rms, int ndata, int ma, 
   // unalocate memory for static arrays defined by dmrqmin
   alamda = 0.0;
   dmrqmin(x-1,y2-1,sig-1,nfdata,b,ia-1,ma,covar,alpha,&chisq,gausspoly,&alamda);
-  
+
   a = b+1;
-  
+
   delete(sig);
   delete(x);
   delete(y2);
@@ -745,7 +745,7 @@ double dgaussfit(double y[], double *a, int *ia, double rms, int ndata, int ma, 
   free_dmatrix(alpha,1,ma,1,ma);
 
   return chisq;
-  
+
 }
 
 
@@ -860,10 +860,10 @@ int dludcmp(double **a, int n, int *indx, double *d)
 
 void dcholdc(double **a, long n, double p[])
 {
-  
+
   long i,j,k;
   double sum;
-  
+
   for (i=0;i<n;i++) {
     for (j=i;j<n;j++) {
       for (sum=a[i][j],k=i-1;k>=0;k--) sum -= a[i][k]*a[j][k];
@@ -878,10 +878,10 @@ void dcholdc(double **a, long n, double p[])
 
 void dcholsl(double **a, long n, double p[], double b[], double x[])
 {
-  
+
   long i,k;
   double sum;
-  
+
   for (i=0;i<n;i++) {
     for (sum=b[i],k=i-1;k>=0;k--) sum -= a[i][k]*x[k];
     x[i]=sum/p[i];
@@ -896,7 +896,7 @@ void dcholsl(double **a, long n, double p[], double b[], double x[])
 
 
 
-void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout, 
+void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 		 double *bfilter, bool apodize, int napod, bool overwrite)
 {
 
@@ -905,7 +905,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
   fftw_complex  *fdata;
   fftw_plan fftplan;
-  
+
   //fftw_complex fdata[ns/2+1];
   fdata = new fftw_complex[ndata/2+1];
 
@@ -924,7 +924,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
     fftplan = fftw_plan_dft_r2c_1d(ndata, y, fdata, FFTW_ESTIMATE);
   }
 
-  
+
   fftw_execute(fftplan);
   fftw_destroy_plan(fftplan);
 
@@ -934,7 +934,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
     fdata[ii][0] = fdata[ii][0]*bfilter[ii]/ndata;
     fdata[ii][1] = fdata[ii][1]*bfilter[ii]/ndata;
   }
-  
+
   if (overwrite){
     fftplan = fftw_plan_dft_c2r_1d(ndata, fdata, y, FFTW_ESTIMATE);
   }else{
@@ -952,12 +952,12 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 double* apodwindow(int ns, int nn)
 {
-  
+
   int ii;
   double *apodis;
 
   apodis = new double[ns];
-  
+
   for (ii=0;ii<ns;ii++){
     apodis[ii] = 1.0;
   }
@@ -970,7 +970,7 @@ double* apodwindow(int ns, int nn)
       apodis[ii] = (sin(double(ns-ii-1)/(nn-1.0)*M_PI - M_PI/2.0) + 1.0)/2.0;
     }
   }
-  
+
   return apodis;
 
 }
@@ -1025,11 +1025,11 @@ void memcof(double data[], int n, int m, double d[])
       wk2[j] = wk2[j + 1] - wkm[k] * wk1[j + 1];
     }
   }
-  
+
   free_dvector(wk1,1,n+1);
   free_dvector(wk2,1,n+1);
   free_dvector(wkm,1,m+1);
-  
+
 
 }
 
@@ -1127,27 +1127,27 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
       }
       //apply filter
       Nk[k] *= pow(bfilter[k],2);
-      
+
     }
     Nk[0] = Nk[1];
 
 
-  
+
     f_lp = 0;
     while (bfilter[f_lp] <= 0.5) f_lp++;
     f_lp++;
-    
-    
+
+
     //give a lower limit to the spectrum
     for (k=0;k<f_lp;k++) if (Nk[k] < Nk[f_lp]) Nk[k] = Nk[f_lp];
     //for (k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
 
     // suppress effect of aafilter on the Noise Sp
     for (k=0;k<ns/2+1;k++) if (Nk[k] < Nk[ns/5]) Nk[k] = Nk[ns/5];
-    
 
 
-    
+
+
   } else {////// compute noise power spectrum for a given mode
     while (*mode > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 	counttemp++;
@@ -1171,7 +1171,7 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 
     if (*mode < f_lp){
-      
+
       counttemp = 0;
       while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 	counttemp++;
@@ -1187,12 +1187,12 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
       }
       N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
       N_flp *= pow(bfilter[f_lp],2);
-      
-      
-      
+
+
+
       //give a lower limit to the spectrum
       if (*Nk < N_flp) *Nk = N_flp;
-      
+
       // suppress effect of aafilter on the Noise Sp
       for (k=0;k<ns/2+1;k++) if (Nk[k] < Nk[ns/5]) Nk[k] = Nk[ns/5];
     }
@@ -1242,21 +1242,21 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
       }
       //apply filter
       Nk[k] *= pow(bfilter[k],2);
-      
+
     }
     Nk[0] = Nk[1];
-    
 
-    
+
+
     f_lp = 0;
     while (bfilter[f_lp] <= 0.5) f_lp++;
     f_lp++;
-    
+
     //give a lower limit to the spectrum
     //for (k=0;k<f_lp;k++) if (Nk[k] < Nk[f_lp]) Nk[k] = Nk[f_lp];
     for (k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
 
-    
+
   } else {////// compute noise power spectrum for a given mode
     while (*mode > ell[counttemp]*ns/fsamp && counttemp < nbins){
       counttemp++;
@@ -1272,7 +1272,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
     f_lp++;
 
     if (*mode < f_lp){
-      
+
       counttemp = 0;
       while (f_lp > ell[counttemp]*ns/fsamp && counttemp < nbins){
 	counttemp++;
@@ -1283,12 +1283,12 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	N_flp = SpN[0]/double(ns);
       }
       N_flp *= pow(bfilter[f_lp],2);
-      
-      
-      
+
+
+
       //give a lower limit to the spectrum
       if (*Nk < N_flp) *Nk = N_flp;
-      
+
     }
   }
 
@@ -1301,11 +1301,11 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
   ellm = new double[nbins];
   logSpN = new double[nbins];
 
-  
+
   for (ii=0;ii<nbins;ii++)
     ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
 
-  
+
   counttemp = 0;
   ellmin = ellm[0];
   ellmax = ellm[1];
@@ -1313,19 +1313,19 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
   kmax = ellmax*ns/fsamp;
   lkmin = log(kmin);
   lkmax = log(kmax);
-  
+
 
   if (mode == NULL){
 
 
-    
+
     for (k=1;k<=(long)kmin;k++){
-      
+
       Nk[k] = SpN[0]/double(ns);
-      
+
     }
-    
-    
+
+
 
 
     if (0){
@@ -1359,7 +1359,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	  }
 	  //apply filter
 	  Nk[k] *= pow(bfilter[k],2);
-	  
+
 	}
       }
     }
@@ -1383,45 +1383,44 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
       }
       for (k=long(kmin+1);k<=long(kmax);k++){
 	Nk[k] = (a*((double)k-kmin)+b);
-	
+
 	//apply filter
 	Nk[k] *= pow(bfilter[k],2);
-	
+
       }
     }
-    
+
 
 
 
     for (k=long(kmax);k<ns/2+1;k++){
-      
+
       Nk[k] = SpN[nbins-1]*pow(bfilter[k],2)/double(ns);
-      
+
     }
 
 
     Nk[0] = Nk[1];
-    
 
 
 
-    
 
-        
-  
+
+
+
+
     f_lp = 0;
     while (bfilter[f_lp] > 2.0) f_lp++;
     f_lp++;
 
-    
-    
+
+
     //give a lower limit to the spectrum
     //for (k=0;k<f_lp;k++) if (Nk[k] < Nk[f_lp]) Nk[k] = Nk[f_lp];
     for (k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
 
     // suppress effect of aafilter on the Noise Sp
     for (k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
-    
 
 
 
@@ -1434,7 +1433,8 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 
-    
+
+
   } else {////// compute noise power spectrum for a given mode
     while (*mode > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 	counttemp++;
@@ -1458,7 +1458,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
     if (*mode < f_lp){
-      
+
       counttemp = 0;
       while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 	counttemp++;
@@ -1474,19 +1474,19 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
       }
       N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
       N_flp *= pow(bfilter[f_lp],2);
-      
-      
-      
+
+
+
       //give a lower limit to the spectrum
       if (*Nk < N_flp) *Nk = N_flp;
-      
+
       // suppress effect of aafilter on the Noise Sp
       //for (k=0;k<ns/2+1;k++) if (Nk[k] < Nk[ns/100]) Nk[k] = Nk[ns/100];
     }
   }
 
-  
-  
+
+
 
 
   delete [] ellm;
@@ -1514,39 +1514,39 @@ void deconv_antialias(double y[], int ndata, double f_lp, double* yout, bool apo
   double omega_lp = 2.0*M_PI*f_lp;
   double omega_max = omega_lp + 0.2*omega_nyquist;
 
-  const double stage[] = {208.0/ADC_CLK, 175.0/ADC_CLK, 
+  const double stage[] = {208.0/ADC_CLK, 175.0/ADC_CLK,
 			 147.0/ADC_CLK, 123.0/ADC_CLK};
 
   Vector v(0, ndata-1, 0.0);
 
   for(j = 0; j <= ndata-1; j++) {
     v[j] = y[j];
-    
+
     // apodize with a Hanning window function
     if(apodize) v[j] *= 1.0 - cos(2.0*M_PI * (double)j/(double)ndata);
   }
-  
+
   FFT(v);
-  
+
   // Filter here
   for (ofilter = 1.0,  k = 0; k <= ndata/2 ; k++) {
     omega = 2.0*(double)k/double(ndata) * omega_nyquist;
-    
+
     if (omega < omega_lp) {
-      for(filter = 1.0, j = 0; j < 4; j++) { 
+      for(filter = 1.0, j = 0; j < 4; j++) {
 	if (omega != 0) filter /= sin(0.5*omega*stage[j])/(0.5*omega*stage[j]);
       }
       ofilter = filter;
-      
-      
+
+
     } else if (omega < omega_max){
       // Low pass filter
-      filter = ofilter * 
-	(0.5 + 0.5*cos(M_PI*(omega - omega_lp)/(omega_max - omega_lp))); 
+      filter = ofilter *
+	(0.5 + 0.5*cos(M_PI*(omega - omega_lp)/(omega_max - omega_lp)));
     } else {
       filter = 0.0;
     }
-    
+
 
     // negative frequency treatment
     if(k == 0 || k == ndata/2) {
@@ -1635,7 +1635,7 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
     // apodize
     yout[j] *= apodwind[j];
   }
-  
+
   delete[] apodwind;
 
 
@@ -1650,7 +1650,7 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
 
   fftw_complex  *fdata;
   fftw_plan fftplan;
-  
+
   //fftw_complex fdata[ns/2+1];
   fdata = new fftw_complex[ndata/2+1];
 
@@ -1686,28 +1686,28 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
 
     for (j=0;j<nzone;j++)
       youtsort[j] = yout[j+xzone];
-    
+
     qsort(youtsort,ndata,sizeof(double),compare_doubles);
     hmean  = youtsort[ndata/2];
     hsigma = youtsort[int((double)ndata*0.84)]-hmean;
     hvariance= pow(hsigma,2);
-    
 
-  
+
+
 
   //despike
   for(k=0;k<nzone;k++)
     if(fabs(yout[k])>GAIN*hsigma)
-      
-      
+
+
       for (j=-5;j<30;j++)
 	if (k+j >= 0 && k+j < ndata)
 	  flag[k+j] |= 1;
 
   xzone += nzone-1000;
-  
+
   }
-  
+
    */
 
 
@@ -1730,25 +1730,25 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
 
   for (j=2;j<ndata-2;j++)
     yfilt[j] = y[j] - 0.8*y[j-1] - 0.8*y[j+1] + 0.3*y[j-2] + 0.3*y[j+2];
-  
-  
 
- 
+
+
+
   youttemp = new double[nzone];
   youttemp2 = new double[nzone];
-  
+
   for (ii=0;ii<ndata/nzone*2-2;ii++){
-    
+
     k = ii*nzone/2;
-    
+
     cutdata(yfilt,k,k+nzone-1,youttemp);
     for (j=0;j<nzone;j++)
       youttemp2[j] = youttemp[j];
     qsort(youttemp2,nzone,sizeof(double),compare_doubles);
-    
+
     hmu  = youttemp2[nzone/2];
     hsig = youttemp2[int((double)nzone*0.84)]-hmu;
-    
+
     for (j=0;j<nzone;j++)
       if (fabs(youttemp[j]) > critring*hsig)
 	for (l=-nc;l<nc;l++)
@@ -1756,7 +1756,7 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
 	    flag[j+k+l] |= 2;
 
   }
-  
+
 
   for (j=0;j<ndata;j++)
     yout[j] = yfilt[j];
@@ -1766,7 +1766,7 @@ void filter_despike(double y[], int ndata, double* yout, unsigned char *flag)
   delete [] yfilt;
   delete [] youttemp;
   delete [] youttemp2;
-  
+
 }
 
 
@@ -1785,7 +1785,7 @@ double* CR_tf(int ndata)
 
   int i;
 
-  const double stage[] = {208.0/ADC_CLK, 175.0/ADC_CLK, 
+  const double stage[] = {208.0/ADC_CLK, 175.0/ADC_CLK,
 			 147.0/ADC_CLK, 123.0/ADC_CLK};
 
   int nn = ndata*200;
@@ -1799,7 +1799,7 @@ double* CR_tf(int ndata)
   f2 = new double[nn];
   f3 = new double[nn];
   f4 = new double[nn];
-  
+
   //simulate a spike
   for (i=0;i<nn;i++)
     data[i] = 0.0;
@@ -1810,14 +1810,14 @@ double* CR_tf(int ndata)
     f3[i] = 0.0;
     f4[i] = 0.0;
   }
-  
+
   for (i=int(stage[0]*20000.0);i<nn;i++){
     f1[i] = f1[i-1] + data[i] - data[i-int(stage[0]*20000.0)];
     f2[i] = f2[i-1] + f1[i] - f1[i-int(stage[1]*20000.0)];
     f3[i] = f3[i-1] + f2[i] - f2[i-int(stage[2]*20000.0)];
     f4[i] = f4[i-1] + f3[i] - f3[i-int(stage[3]*20000.0)];
   }
-  
+
   delete[] f1;
   delete[] f2;
   delete[] f3;
@@ -1825,7 +1825,7 @@ double* CR_tf(int ndata)
 
   aa = f4[0];
   for (i=1;i<nn;i++)
-    if (aa < f4[i]) 
+    if (aa < f4[i])
       aa = f4[i];
 
   for (i=0;i<ndata;i++){
@@ -1844,7 +1844,7 @@ double* CR_tf(int ndata)
 void cutdata(double y[], int indm, int indp, double *yout)
 {
   int i;
-  
+
   for (i=indm;i<=indp;i++){
     yout[i-indm] = y[i];
   }
@@ -1854,7 +1854,7 @@ void cutdata(double y[], int indm, int indp, double *yout)
 void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout)
 {
   int i;
-  
+
   for (i=indm;i<=indp;i++){
     yout[i-indm] = y[i];
   }
@@ -1869,7 +1869,7 @@ void mergedata(double y1[], int ndata1, double y2[], int ndata2, double *yout)
     yout[i] = y1[i];
   for (i=0;i<ndata2;i++)
     yout[i+ndata1] = y2[i];
-  
+
 }
 
 
@@ -1879,7 +1879,7 @@ void dindgen(int nn, double *y)
 
   for (i=0;i<nn;i++)
     y[i]=(double)i;
-  
+
 }
 
 
@@ -1888,7 +1888,7 @@ void sort(double y[], int nn, double *yout, int *nrel, unsigned char *flag)
 
   int i, j;
   double temp;
-  
+
   if (flag != NULL){
     *nrel=0;
     for (i=0;i<nn;i++){
@@ -1902,8 +1902,8 @@ void sort(double y[], int nn, double *yout, int *nrel, unsigned char *flag)
     *nrel=nn;
     for (i=0;i<nn;i++) yout[i]=y[i];
   }
-  
-  
+
+
   for (i=0;i<*nrel;i++){
     for (j=1;j<*nrel;j++){
       if (yout[j-1] > yout[j]){
@@ -1999,11 +1999,11 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
     hsigall[i] = 1.16993e-05;
 
   while ((xorig+npb+npb/2) < ndata){
-    
+
     cutdata(y2,xorig,xorig+npb-1,tempdata);
     cutdata(flag,xorig,xorig+npb-1,smflag);
     remove_poly(tempdata,npb,1,smdata,smflag);
-    
+
     minmax(smdata,npb,&valmin,&valmax,&posmin,&posmax,smflag);
 
     if (abs(valmin) > abs(valmax)) posmm = posmin;
@@ -2013,7 +2013,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
     if ((xorig > npb/2-posmm) && (posmm < npb-int(4.0*sigbeam))){
 
       xorig = xorig-npb/2+posmm;
-      
+
       cutdata(y2,xorig,xorig+npb-1,tempdata);
       cutdata(flag,xorig,xorig+npb-1,smflag);
       remove_poly(tempdata,npb,1,smdata,smflag);
@@ -2041,7 +2041,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 	if (abs(smdata[npb/2]-hmean) > critspike*hsig && abs(smdata[npb/2+1]-hmean) < 4.0*hsig && abs(smdata[npb/2-1]-hmean) <4.0*hsig){
 	    xspike[countspike] = xorig+npb/2;
 	    countspike++;
-	    
+
 	    //yout[xorig+npb/2] = (yout[xorig+npb/2+1]+yout[xorig+npb/2-1])/2.0;
 	    if ((flag[xorig+npb/2] & 1) == 0){
 	      flag[xorig+npb/2] += 1;
@@ -2056,7 +2056,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 
 	    ////////// if group of pixels ////////////
 	else{
-	    
+
 	    // first guess of parameters for Gaussian fit
 	    params[0]=double(npb/2);
 	    params[1]=sigbeam;
@@ -2069,7 +2069,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 
 
 	    chisq = dgaussfit(smdata,params,wparams,hsig,npb,4,smflag,1);
- 
+
 	      //fp = fopen("/home/patanch/test.txt","w");
 	      //for (i=0;i<npb;i++)
 	      //fprintf(fp,"%15.10g \n",smdata[i]);
@@ -2097,7 +2097,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 	      for (i=xorig+npb/2-margcut_m;i<xorig+npb/2+margcut_p;i++)
 		flag[i] = flag[i] | 64;
 	      pflag[xorig+npb/2] = pflag[xorig+npb/2] | 64;
-	      
+
 
 	      /// should recompute minmax within 4.0*sigbeam
 
@@ -2107,9 +2107,9 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 	      params[2]=smdata[npb/2]-hmean;
 	      wparams[0]=0;
 	      wparams[2]=0;
-	      
+
 	      chisq = dgaussfit(smdata,params,wparams,hsig,npb,4,smflag,1);
-	      
+
 	    }
 
 
@@ -2128,7 +2128,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 	      for (i=0;i<ntr;i++){
 		arrfilter[i][0] = 1.0;
 		arrfilter[i][1] = transfer[i];
-	      }	
+	      }
 
 	      temppar = paramscr-1;
 	      dlinfit(smsmdata-1,tempsig-1,ntr,temppar,wpcr-1,2,tempcovar,&tempvar,arrfilter);
@@ -2142,7 +2142,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 	    //// if !nrt sigma Gauss should be smaller than sigbeam
 
 	    if (((ntr && abs(paramscr[1]) > criterion*hsig  && !(params[1] > sigbeam && -params[2] > criterion*hsig)) || !ntr && params[1] < sigbeam) && abs(params[0]-double(npb/2)) < 4.0*sigbeam){
-	      
+
 	      pos[count] = xorig+int(params[0]);
 	      chisqs[count] = chisq;
 	      count++;
@@ -2189,7 +2189,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 		if ((flag[i] & 128) == 0)
 		  flag[i] += 128;
 	    }
-	    
+
 
 	    ////3rd test: source??
 	    if ((params[1] > sigbeam | abs(params[0]-double(npb/2)) > 4.0*sigbeam) && abs(params[2]) > critsource*hsig){
@@ -2199,7 +2199,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
 		pplanet[pl_count][i] = params[i];
 	      pplanet[pl_count][0] = params[0]+double(xorig);
 	      pl_count++;
-	      
+
 	      //if (params[2] <= 25) intervcut = 2.0*params[2];
 	      if (1 || params[2] > 25 ) intervcut = 50.0;
 	      for (i=xorig+int(params[0]-intervcut);i<xorig+(int(params[0])+intervcut);i++){
@@ -2232,7 +2232,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
     else{
       xorig += npb/2-int(4.0*sigbeam);
       balt = 1;
-    } 
+    }
   }
 
   pplanet[pl_count][0] = -1;
@@ -2255,7 +2255,7 @@ void findspike(double y[], int ndata, double transfer[], const int ntr, double* 
   delete(tempdata);
   delete(strval);
   delete(smflag);
-  
+
   delete(params);
   delete(wparams);
   delete(a);
@@ -2289,10 +2289,10 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 
   double *xx, *yy, *seriep, *seriem, *tempdata1, *tempdata2, *xx2;
   double *a;
-  double *valtemp; 
- 
+  double *valtemp;
+
   a = new double[2];
-  
+
 
   //init random generator
   valtemp = randg(1,0);
@@ -2301,14 +2301,15 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
   ////copy data
   for (i=0;i<ndata;i++)
     yout[i] = y[i];
-    
+
   count = 0;
   sp = 0;
   countm = 0;
   while ((countm<margfit) && (flag[countm] & 0))
     countm++;
-  
-  
+
+  //  cout << "coutm : " << countm << endl;
+
   for (i=0;i<ndata;i++){
     if (flag[i] & 1){
       count++;
@@ -2317,18 +2318,21 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
     else{
       sp = 1;
     }
-    
+
+
+    //    cout << "i : " << i << " sp : " << sp << " count : " << count << endl;
+
     if (sp && count){
       countp = 0;
-      while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] & 1) == 0){	
+      while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] & 1) == 0){
 	countp++;
 	if (i+countp >= ndata) printf("SDHFIDF\n");
       }
-      
+
       xx = new double[countp+countm];
       yy = new double[countp+countm];
       xx2 = new double[count];
-      
+
       if (countm > 0){
 	seriem = new double[countm];
 	tempdata1 = new double[countm];
@@ -2341,7 +2345,7 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 	dindgen(countp,seriep);
 	cutdata(y,i,i+countp-1,tempdata2);
       }
-      
+
 
 
       if (countm && countp){
@@ -2361,16 +2365,21 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 	  }
 	}
       }
-      
-      
+
+
       if (countp){
 	for (j=0;j<countp;j++){
 	  xx[countm+j] += double(countm+count);
 	}
       }
 
+      //      cout << "before dpoly" << endl;
+      //      cout << "size : " << countp+countm << endl;
+
       dpolyfit(xx,yy,countp+countm,1,a);
 
+
+      //      cout << "after dpoly" << endl;
 
       dindgen(count,xx2);
       for (j=0;j<count;j++){
@@ -2403,7 +2412,7 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 
     }
   }
-  
+
   delete[] a;
 
 }
@@ -2435,12 +2444,12 @@ foffset* read_mapoffsets(string fname, float *scoffsets, int *nfoff)
     // extract 6 fields from line
     i = 0;
     while (i < 6) {
-      // find beginning of word 
+      // find beginning of word
       s0 = line.find_first_not_of(" \t", s0);
 
       // find end of word
       s1 = line.find_first_of(" \t", s0);
-      
+
       // get and storeword
       word = line.substr(s0, s1-s0);
       scoffsets[i++] = atof(word.c_str());
@@ -2448,24 +2457,24 @@ foffset* read_mapoffsets(string fname, float *scoffsets, int *nfoff)
       // shift placeholder
       s0 = s1;
     }
-	
+
     break;
   }
-	
+
   // find "Begin" tag
   while (! FILE.eof()) {
     FILE.getline(buffer, 255);
     line = buffer;
-   
+
     if (line.substr(0,6) == "Begin:") break;
   }
-	
+
   // count frame lines
   fcount = 0;
   while (! FILE.eof()) {
     FILE.getline(buffer, 255);
     line = buffer;
-   
+
     if (line[0] == '#') continue;
     if (line.substr(0,4) == "End:") break;
 
@@ -2483,28 +2492,28 @@ foffset* read_mapoffsets(string fname, float *scoffsets, int *nfoff)
   while (! FILE.eof()) {
     FILE.getline(buffer, 255);
     line = buffer;
-   
+
     if (line.substr(0,6) == "Begin:") break;
   }
-  
+
   // store data
   fcount = 0;
   while (! FILE.eof()) {
     FILE.getline(buffer, 255);
     line = buffer;
-    
+
     if (line[0] == '#') continue;
     if (line.substr(0,4) == "End:") break;
-    
+
     sscanf(line.c_str(), "%d%f%f",  &f, &p, &y);
-    
+
     (foffsets[fcount]).frame = f;
     (foffsets[fcount]).pitch = p;
     (foffsets[fcount]).yaw   = y;
-    
+
     fcount++;
   }
-  
+
   return(foffsets);
 }
 
@@ -2524,7 +2533,7 @@ int formatdata(string dir, int ns, char *namefield, double *data, unsigned int *
    double fact1, scal1;
 
    formatname = dir+string("format");
-   
+
    fpformat = fopen(formatname.c_str(),"r");
 
    while (string(lineformat) != string(namefield) && getc(fpformat) != EOF){
@@ -2534,12 +2543,12 @@ int formatdata(string dir, int ns, char *namefield, double *data, unsigned int *
      printf("ERROR: field does not exist in the format file");
      return 0;
    }
-   
+
    fscanf(fpformat,"%s",lineformat);
    fscanf(fpformat,"%s",tempchar);
    fscanf(fpformat,"%s",boloname);
    fscanf(fpformat,"%lf%lf",&fact1,&scal1);
-   
+
    // conversion
    for (ii=0;ii<ns;ii++)
      data_out[ii] = (unsigned int)((data[ii]-scal1)/fact1+0.5);
@@ -2552,36 +2561,36 @@ int formatdata(string dir, int ns, char *namefield, double *data, unsigned int *
 
 
 
-int read_data(string fname, int frame, int fs, int ns,
-              void* data, string field, char type)
-{
-  int error_code, nread;
+// int read_data(string fname, int frame, int fs, int ns,
+//               void* data, string field, char type)
+// {
+//   int error_code, nread;
 
-  char ffname[100];
-  strcpy(ffname,fname.c_str());
+//   char ffname[100];
+//   strcpy(ffname,fname.c_str());
 
-  nread = GetData(ffname, field.c_str(),
-                    frame,fs, /* 1st sframe, 1st samp */
-                    0, ns, /* num sframes, num samps */
-                    type, data,
-                    &error_code);
+//   nread = GetData(ffname, field.c_str(),
+//                     frame,fs, /* 1st sframe, 1st samp */
+//                     0, ns, /* num sframes, num samps */
+//                     type, data,
+//                     &error_code);
 
-  if (error_code != GD_E_OK) {
-    cerr << "    GetData Error while reading "<< field 
-	 << " from " << fname <<":\n";
-    cerr << GD_ERROR_CODES[error_code] << "\n";
-    cerr << " Frame: " << frame << "\n";
+//   if (error_code != GD_E_OK) {
+//     cerr << "    GetData Error while reading "<< field
+// 	 << " from " << fname <<":\n";
+//     cerr << GD_ERROR_CODES[error_code] << "\n";
+//     cerr << " Frame: " << frame << "\n";
 
-    //exit(0);
-  }
+//     //exit(0);
+//   }
 
-  if(nread == 0) {
-    cerr << "Warning: nread = 0\n";
-    //exit(0);
-  }
+//   if(nread == 0) {
+//     cerr << "Warning: nread = 0\n";
+//     //exit(0);
+//   }
 
-  return nread;
-}
+//   return nread;
+// }
 
 
 
@@ -2590,25 +2599,32 @@ int read_data_std(string fname, int frame, int fs, int ns,
               void* data, string field, char type)
 {
 
+//   cout << "fname : " << fname << endl;
+//   cout << "frame : " << frame << endl;
+//   cout << "fs    : " << fs << endl;
+//   cout << "ns    : " << ns << endl;
+//   cout << "field : " << field << endl;
+//   cout << "type  : " << type << endl;
+
   int sizetype;
   char test[2];
   test[0] = type;
   test[1] = '\0';
   string typestr = string(test);
-  printf("type = %s\n",test);
+  //  printf("type = %s\n",test);
 
 
   FILE *fp;
 
   if (typestr == "d") sizetype = 8;
   if (typestr == "c") sizetype = 1;
-  
+
   string filename = fname + field;
   fp = fopen(filename.c_str(),"r");
   fseek(fp,(20*frame+fs)*sizetype,SEEK_SET);
   fread(data,sizetype,ns,fp);
   fclose(fp);
-  
+
   return 1;
 }
 
@@ -2618,7 +2634,7 @@ int write_data(string& fname, int frame, int fs, int ns, void* data, string& fie
 
 {
   int file;
-  int offs;  
+  int offs;
   size_t size = 0;
   size_t s_type;
   string out_file;
@@ -2649,19 +2665,19 @@ int write_data(string& fname, int frame, int fs, int ns, void* data, string& fie
   }
 
   out_file = fname + "/" + field;
-  
+
   file = open(out_file.c_str(),  O_RDWR | O_CREAT, 00644);
   if (file < 0) {
-    cerr << "Write() : Error opening file " << out_file << endl; 
-    return 0; 
+    cerr << "Write() : Error opening file " << out_file << endl;
+    return 0;
   }
-  
+
   offs = (frame * samples_per_frame + fs) * s_type;
   lseek(file, offs, SEEK_SET);
-  
+
   size = ns * s_type;
   ns = write(file, data, size);
-  
+
   close(file);
 
   return  ns;
@@ -2672,7 +2688,7 @@ int write_data(string& fname, int frame, int fs, int ns, void* data, string& fie
 
 
 double* randg(long nombre, int seedpass) {
- 
+
   double* nombre_hasard;
   time_t temps;
   temps = time(NULL);
@@ -2684,27 +2700,27 @@ double* randg(long nombre, int seedpass) {
   if (seedpass != -1) srandom(seed);
 
   nombre_hasard= new double[nombre];
-                                                                                
+
   for (long i=0;i<nombre/2;i++) {
     double t1 = (double(rand())/RAND_MAX);
     double t2 = (double(rand())/RAND_MAX);
     nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
     nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
   }
-   
+
   if (nombre/2!=nombre/2.) {
     double t1 = (double(rand())/RAND_MAX);
     double t2 = (double(rand())/RAND_MAX);
     nombre_hasard[nombre-1]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
   }
- 
- 
+
+
   return nombre_hasard;
 }
- 
+
 
 double* rand(long nombre, int seed) {
- 
+
   double* nombre_hasard;
   time_t temps;
   temps = time(NULL);
@@ -2712,10 +2728,10 @@ double* rand(long nombre, int seed) {
   if (seed != -1) srandom(seed);
 
   nombre_hasard= new double[nombre];
- 
+
   for (long i=0;i<nombre;i++) nombre_hasard[i]=(double(rand())/RAND_MAX);
- 
+
   return nombre_hasard;
 }
 
-
+

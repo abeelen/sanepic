@@ -25,18 +25,18 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
                 double *ra, double *dec );
 
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
-			 double *offsets, int ns, int *xx, int *yy, int *nn, 
+			 double *offsets, int ns, int *xx, int *yy, int *nn,
 			 double *coordscorner, double *tancoord, double *tanpix,
 			 bool fixcoord, double radius, double *offmap, double *radecsrc = NULL);
 
-void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map, 
-		    double **count, int nn, unsigned char *flag, 
+void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
+		    double **count, int nn, unsigned char *flag,
 		    double **map_f, double **count_f );
 
 
 void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
 		   long *indpix, long *samptopix, int npix, double *PNd);
-  
+
 
 void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 			long ndata, long marge, int *xx, int *yy, int nn,
@@ -53,7 +53,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
 		  long marge, int *xx, int *yy, int nn, long *indpix,
 		       int npix, double f_lppix, double *PtNP, int nfrac, int ifrac);
-  
+
 
 void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *rejectsamp2,
 		       unsigned char *binsamp1, unsigned char *binsamp2,
@@ -82,11 +82,11 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 
 void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 			      unsigned char *binsamp, long ndata, long marge,
-			      int *xx, int *yy, int nn, long *indpix, int npix, int npixmap, 
+			      int *xx, int *yy, int nn, long *indpix, int npix, int npixmap,
 			      double f_lppix, double *dPtNP, long *countreject);
 
 
-	
+
 
 void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int marge, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN,
@@ -94,10 +94,10 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
 
 
 
-void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint, 
+void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 		     long ns, long napod, long marge, int *xx, int *yy, int nn, double errarcsec,
 		     bool NOFILLGAP, unsigned char *rejectsamp);
-  
+
 
 void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp,
 			double *bfilter, double *Nell, double *Nk);
@@ -144,4 +144,4 @@ void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rej
 int compare_global_array_long (const void *a, const void *b);
 
 
-#endif
+#endif

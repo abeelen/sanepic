@@ -1,10 +1,12 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include "todprocess.h"
 #include "map_making.h"
+#include "sane_io.h"
 #include <time.h>
 #include <fftw3.h>
-#include <getdata.h>
+//#include <getdata.h>
 //#include "/global/software/pgi-6.0/linux86/6.0/include/mpi.h"
 #include <fcntl.h>
 #include <unistd.h>
@@ -14,13 +16,6 @@
 
 
 #include "mpi.h"
-
-
-
-extern "C" {
-#include <fitsio.h>
-}
-
 
 
 using namespace std;
@@ -81,191 +76,12 @@ void usage(char *name)
 
 
 
-
-void print_fits_error(int status){
-  if(status){
-    fits_report_error(stderr, status); /* print error report */
-    exit(status);    /* terminate the program, returning error status */
-  }
-  return;
-}
-
-
-
-void write_fits(string fname, double pixsize, long nx, long ny, 
-		double *tancoord, double *tanpix, int coordsyst, char dtype, void *data)
-{
-  // all angles in degrees
-  // coordcenter is a 2-element array containing RA/DEC (or l/b) of the central pixel 
-
-  fitsfile *fp;
-  int fits_status = 0;
-
-  long naxis = 2;           // number of dimensions
-  long naxes[] = {nx, ny};  // size of dimensions
-  long fpixel[] = {1, 1};   // index for write_pix
-  long ndata = nx * ny;     // number of data points
-  
-  double dtmp;
-  char *strx, *stry;
-
-
-  // create fits file
-  if ( fits_create_file(&fp, fname.c_str(), &fits_status) ) 
-    print_fits_error(fits_status);
-
-  // create fits image (switch on data type)
-  switch (dtype) {
-  case 'd':    // double
-    if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
-      print_fits_error(fits_status);
-    break;
-  case 'l':    // long
-    if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
-      print_fits_error(fits_status);
-    break;
-  default:
-    cerr << "write_fits: data type '" << dtype << "' not supported. Exiting.\n";
-    exit(1);
-  }
-
-  // write date to file
-  if ( fits_write_date(fp, &fits_status) )
-    print_fits_error(fits_status);
-
-  // write map parameters (keywords)
-  if ( fits_write_key(fp, TLONG, "NROW", &nx, "Number of rows", &fits_status) )
-    print_fits_error(fits_status);
-    
-  if ( fits_write_key(fp, TLONG, "NCOL", &ny, "Number of columns", &fits_status) )
-    print_fits_error(fits_status);
-    
-  if ( fits_write_key(fp, TDOUBLE, "PIXSIZE", &pixsize, "Size of pixels (deg)", &fits_status) )
-    print_fits_error(fits_status);
-
-  if ( fits_write_comment(fp, "Galactic coordinates",  &fits_status) )
-    print_fits_error(fits_status);
-
-  dtmp = (tanpix[0]); // 0-based index to 1
-  if ( fits_write_key(fp, TDOUBLE, "CRPIX1", &dtmp, "X PIXEL OF TANGENT POINT", &fits_status) )
-    print_fits_error(fits_status);
-
-  dtmp = (tanpix[1]); // 0-based index to 1
-  if ( fits_write_key(fp, TDOUBLE, "CRPIX2", &dtmp, "Y PIXEL OF TANGENT POINT", &fits_status) )
-    print_fits_error(fits_status);
-
-  dtmp = -pixsize;
-  if ( fits_write_key(fp, TDOUBLE, "CDELT1", &dtmp, "COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS", 
-		      &fits_status) )
-    print_fits_error(fits_status);
-
-  if ( fits_write_key(fp, TDOUBLE, "CDELT2", &pixsize, "COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS", 
-		      &fits_status) )
-    print_fits_error(fits_status);
-
-  if (coordsyst == 2){
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL1", tancoord, "GLON AT TANGENT POINT (DEG)", &fits_status) )
-      print_fits_error(fits_status);
-    
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "GLAT AT TANGENT POINT (DEG)", &fits_status) )
-      print_fits_error(fits_status);
-    
-    strx = "GLON-TAN";
-    stry = "GLAT-TAN";
-    
-  } else {
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL1", tancoord, "RA AT TANGENT POINT (DEG)", &fits_status) )
-      print_fits_error(fits_status);
-    
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "DEC AT TANGENT POINT (DEG)", &fits_status) )
-      print_fits_error(fits_status);
-
-    strx = "RA---TAN";
-    stry = "DEC--TAN";
-    
-  }
-  
-  if ( fits_write_key(fp, TSTRING, "CTYPE1", strx, "TANGENT PLANE PROJECTION", &fits_status) )
-    print_fits_error(fits_status);
-  
-  if ( fits_write_key(fp, TSTRING, "CTYPE2", stry, "TANGENT PLANE PROJECTION", &fits_status) )
-    print_fits_error(fits_status);
-
-
-  // write map data
-  switch (dtype) {
-  case 'd':    // double
-    if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) )
-      print_fits_error(fits_status);
-    break;
-  case 'l':    // long
-    if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) )
-      print_fits_error(fits_status);
-    break;
-  }
-  
-  // close file
-  if(fits_close_file(fp, &fits_status))
-    print_fits_error(fits_status);
-
-}
-
-
-
-void write_vector(char *filename, void *data, int typesize, long nn) {
-
-  FILE *fp;
-
-  fp = fopen(filename,"w");
-  fwrite(data,typesize, nn, fp);
-  fclose(fp);
-
-}
-
-
-void read_vector(char *filename, void *data, int typesize, long nn) {
-
-  FILE *fp;
-
-  fp = fopen(filename,"r");
-  fread(data,typesize, nn, fp);
-  fclose(fp);
-
-}
-
-
-
-void read_bolofile(string fname, list<string>& bolos) {
-  char buff[256];
-  string line;
-  
-  ifstream BOLO (fname.c_str());
-  if (! BOLO.is_open()) {
-    cerr << "Error opening bolometer file '" << fname << "'. Exiting.\n";
-    exit(1);
-  }
-
-  while (! BOLO.eof()) {
-    BOLO.getline(buff,255);
-    line = buff;
-
-    line.erase(0, line.find_first_not_of(" \t"));       // remove leading white space
-    if (line.empty() || line[0] == '#') continue;       // skip if empty or commented
-    line = line.substr(0, line.find_first_of(" \t"));   // pick out first word
-    
-    bolos.push_back(line);
-  }
- 
-  BOLO.close();
-}
-
-                                                                                
 template<class T> void list2array(list<T> l, T* a)
 {
   // copy list of type T to array of type T
   typename list<T>::iterator iter;
   int i;
-                                                                                
+
   for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
     a[i] = *iter;
   }
@@ -274,56 +90,13 @@ template<class T> void list2array(list<T> l, T* a)
 
 
 
-void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, double *offsets){
-
-
-  double lel, xel;
-  long temp1, temp2, temp3;
-  int nobolo = 1;
-
-  char boloname[100];
-  FILE *fp;
-
-
-  if ((fp = fopen(file_BoloOffsets.c_str(),"r")) == NULL){
-    cerr << "ERROR: Can't find offset file. Exiting. \n";
-    exit(1);
-  }
-  while (fscanf(fp, "%s%ld%ld%ld%lf%lf\n", boloname, &temp1, &temp2, &temp3, &lel, &xel) != EOF) {
-    if (field == boloname) {
-      nobolo = 0;
-      if (temp3 == 250){
-	offsets[0] = xel/60.0/60.0 - scoffsets[1];
-	offsets[1] = lel/60.0/60.0 + scoffsets[0];
-      }
-      if (temp3 == 350){
-	offsets[0] = xel/60.0/60.0 - scoffsets[3];
-	offsets[1] = lel/60.0/60.0 + scoffsets[2];
-      }
-      if (temp3 == 500){
-	offsets[0] = xel/60.0/60.0 - scoffsets[5];
-	offsets[1] = lel/60.0/60.0 + scoffsets[4];
-      }
-    }
-  }
-  fclose (fp);
-  
-	
-  if (nobolo){
-    cerr << "Bolometer name not found in offset list" << endl;
-    exit(1);
-  }
-
-
-}
-
 
 
 double *dat_compare;
 
 
 int compare_array_double (const void *a, const void *b)
-{ 
+{
 
   const long *da = (const long *) a;
   const long *db = (const long *) b;
@@ -351,7 +124,7 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
 
   for (ii=0;ii<ntotscan;ii++)
     ntot += ns[ii];
-  
+
   maxproc = new double[nessai];
   std = new double[nessai];
   ns_order = new long[ntotscan];
@@ -371,15 +144,15 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
     for (kk=0;kk<ntotscan;kk++){
       valtemp = randg(1,-1);
       dat_compare[kk] = valtemp[0];
-    }    
+    }
 
     for (ii=0;ii<ntotscan;ii++)
       ns_order[ii] = ns[ii];
     for (ii=0;ii<ntotscan;ii++)
       pos[ii] = ii;
-    
+
     qsort(pos,ntotscan,sizeof(long),compare_array_double);
-        
+
     for (ii=0;ii<ntotscan;ii++)
       ns_order[ii] = ns[pos[ii]];
 
@@ -405,7 +178,7 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
     for (kk=frnum[count];kk<ntotscan;kk++)
       sizeperproc[count] += double(ns_order[kk]);
 
-   
+
     //*********** check values
     minmax(sizeperproc,ntotscan,&temp,&maxproctmp,&tmpposmin,&tmpposmax);
     maxproc[jj] = maxproctmp;
@@ -414,21 +187,21 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
     for(kk=0;kk<ntotscan;kk++)
       if (sizeperproc[kk] > 0.5)
 	std[jj] += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
-   
+
 
   }
-  
-  
+
+
   minmax(maxproc,nessai,&valmin,&temp,&tmpposmin,&tmpposmax);
- 
+
   stdmin = double(ntot*ntot);
   for (ii=0;ii<nessai;ii++)
     if (long(valmin) == long(maxproc[ii]))
       if (std[ii] < stdmin)
 	stdmin = std[ii];
-  
-    
-  
+
+
+
   valtmp = 2.0*valmin;
   stdtmp = 2.0*stdmin;
   while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
@@ -443,9 +216,9 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
       ns_order[ii] = ns[ii];
     for (ii=0;ii<ntotscan;ii++)
       pos[ii] = ii;
-    
+
     qsort(pos,ntotscan,sizeof(long),compare_array_double);
-        
+
     for (ii=0;ii<ntotscan;ii++)
       ns_order[ii] = ns[pos[ii]];
 
@@ -479,9 +252,9 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, int ntotscan, int 
     for(kk=0;kk<ntotscan;kk++)
       if (sizeperproc[kk] > 0.5)
 	stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
-    
+
   }
-  
+
   printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 
 
@@ -497,7 +270,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	     string dir, string prefixe, string termin, string *bolonames,
 	     double f_lppix, double fsamp, long ff, long ns, long marge, long ndet, int size,
 	     int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits);
-      
+
 
 
 
@@ -527,7 +300,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		    int fillg, long ff, long ns, long marge, long napod, long ndet, int size,
 		    int rank, long *indpix, long *indpsrc, long nn, long npix, long npixsrc,
 		    bool NORMLIN, bool NOFILLGAP, long iframe, double *S);
- 
+
 
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
@@ -569,7 +342,7 @@ int main(int argc, char *argv[])
   int rank, rank_det;
   int tag = 10;
   MPI_Status status;
-  
+
 
   // setup MPI
   MPI_Init(&argc, &argv);
@@ -586,7 +359,7 @@ int main(int argc, char *argv[])
   bool projgaps = 0; //1: data flagged are put in a single pixel
                      //   (assume no signal in this pixel),
                      //0: data flagged are not reprojected
-  
+
   //default value of the data to pointing shift
   int shift_data_to_point = 0;
 
@@ -594,7 +367,7 @@ int main(int argc, char *argv[])
   //DEFAULT PARAMETERS
   long napod = 0;
   long marge = 0;
-  double fsamp = 100.0;
+  double fsamp = 25.0;
   double errarcsec = 15.0;
 
 
@@ -641,10 +414,11 @@ int main(int argc, char *argv[])
 
   int nn, npix;
   double ra_min, ra_max, dec_min, dec_max;
+  double gra_min, gra_max, gdec_min, gdec_max;
   double *offsets, *froffsets, *offmap;
   double *tancoord;
   double *tanpix;
-  
+
   //internal data params
   long ns, ff;
   double f_lp, f_lp_Nk, f_lppix, f_lppix_Nk;
@@ -661,7 +435,7 @@ int main(int argc, char *argv[])
   unsigned char *flag, *flpoint, *rejectsamp, *mask;
   double *PNd, *PNdtot;
   long *indpix, *indpsrc;
-  
+
   int *xx, *yy;
   long *pixon;
   long *samptopix;
@@ -689,7 +463,7 @@ int main(int argc, char *argv[])
   string prefixe;
 
   string MixMatfile = "NOFILE";
-
+  int doInitPS = 0;
 
   /* DEFAULT PARAMETERS */
   int coordsyst = 1; /// Default is RA/DEC
@@ -707,7 +481,7 @@ int main(int argc, char *argv[])
   list<long> ff_in, nf_in, xxi_in, xxf_in, yyi_in, yyf_in;
   list<double> fcut_in;
   list<string> extentnoiseSp_list;
-  
+
 
   time_t t1, t2, t3, t4, t5, dt;
 
@@ -716,10 +490,10 @@ int main(int argc, char *argv[])
   f_lp = 0.0;
   f_lp_Nk = 0.0;
   pixdeg = -1.0;
-  
+
 
   // Parse command line options
-  while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:m:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:")) != -1) {
+  while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:m:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
     switch (retval) {
     case 'F':
       dirfile = optarg;
@@ -792,7 +566,7 @@ int main(int argc, char *argv[])
       break;
     case 'C':
       read_bolofile(optarg, channel);
-      cerr << "num ch: "<< channel.size() << endl;
+      //      cerr << "num ch: "<< channel.size() << endl;
       break;
     case 'o':
       outdir = optarg;
@@ -831,7 +605,7 @@ int main(int argc, char *argv[])
     case 'T':
       srccoord[1] = atof(optarg);
       tmpcount2 += 1;
-      break;      
+      break;
     case 'u':
       coordscorner[0] = atof(optarg);
       tmpcount += 1;
@@ -839,7 +613,7 @@ int main(int argc, char *argv[])
     case 'U':
       coordscorner[1] = atof(optarg);
       tmpcount += 1;
-      break;      
+      break;
     case 'v':
       coordscorner[2] = atof(optarg);
       tmpcount += 1;
@@ -847,7 +621,7 @@ int main(int argc, char *argv[])
     case 'V':
       coordscorner[3] = atof(optarg);
       tmpcount += 1;
-      break;   
+      break;
     case 'c':
       coordsyst = atoi(optarg);
       break;
@@ -882,6 +656,9 @@ int main(int argc, char *argv[])
     case 'a':
       MixMatfile = optarg;
       break;
+    case 'i':
+      doInitPS = atoi(optarg);
+      break;
     default:
       cerr << "Option '" << (char)retval << "' not valid. Exiting.\n\n";
       usage(argv[0]);
@@ -890,18 +667,17 @@ int main(int argc, char *argv[])
 
 
 
-  sprintf(testfile,"%s%s%s","/scratch/patanch/test",termin.c_str(),".txt");
-  fp = fopen(testfile,"w");
-  fprintf(fp,"%10.15g\n",f_lp);
-  fprintf(fp,"%10.15g\n",f_lp_Nk);
-  fclose(fp);
-  
+//   sprintf(testfile,"%s%s%s","/scratch/patanch/test",termin.c_str(),".txt");
+//   fp = fopen(testfile,"w");
+//   fprintf(fp,"%10.15g\n",f_lp);
+//   fprintf(fp,"%10.15g\n",f_lp_Nk);
+//   fclose(fp);
 
 
 
 
-  if (CORRon) printf("CORRELATIONS BETWEEN DETECTORS INCLUDED\n");
-  if (!CORRon) printf("NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n");
+  if (CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
+  if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
 
 
   // Set default parameter values
@@ -934,38 +710,36 @@ int main(int argc, char *argv[])
     cerr << "ERROR: None or all the following keywords must be set: -t -T -N. Exiting. \n";
     exit(1);
   }
-     
+
 
   if (f_lp_Nk == 0.0)
     f_lp_Nk = f_lp;
 
   if (napod){
-    printf("Data are apodized\n");
+    printf("[%2.2i] Data are apodized\n", rank);
   } else {
-    printf("Data are not apodized\n");
+    printf("[%2.2i] Data are not apodized\n", rank);
   }
   if (marge){
-    printf("Data are extrapolated using a linear predictor\n");
+    printf("[%2.2i] Data are extrapolated using a linear predictor\n", rank);
   } else {
-    printf("Data are not extrapolated outside the edges\n");
+    printf("[%2.2i] Data are not extrapolated outside the edges\n", rank);
   }
 
   if (pixdeg < 0){
     cerr << "ERROR: enter pixel size -p keyword\n";
     exit(1);
   }
-  
-
 
   ntotscan = ff_in.size();
   ndet = channel.size();
-  
+
   nnf = extentnoiseSp_list.size();
   if (nnf != 1 && nnf != ntotscan){
     cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
     exit(1);
   }
-  printf("%d\n",nnf);
+  //  printf("%d\n",nnf);
 
 
   // convert lists to regular arrays
@@ -987,9 +761,9 @@ int main(int argc, char *argv[])
   if (nnf == 1 && ntotscan > 1)
     for (ii=1;ii<ntotscan;ii++)
       extentnoiseSp_all[ii] = extentnoiseSp_all[0];
-  
 
-  printf("xxi_in.size() = %d\n",xxi_in.size());  
+
+  //  printf("xxi_in.size() = %d\n",xxi_in.size());
 
 
   if (xxi_in.size() != 0){
@@ -1002,11 +776,11 @@ int main(int argc, char *argv[])
     list2array(yyi_in, yyi_boxes);
     list2array(yyf_in, yyf_boxes);
   }
-  
 
-  
+
+
   for (int ii=0; ii<ntotscan; ii++) {
-    nsamples[ii] *= 20;      // convert nframes to nsamples 
+    nsamples[ii] *= 20;      // convert nframes to nsamples
   }
 
   if (tmpcount == 4)
@@ -1023,7 +797,7 @@ int main(int argc, char *argv[])
     coordscorner[2] = srccoord[1];
     coordscorner[3] = srccoord[1];
   }
-  
+
   if (coordsyst != 3){
     srccoord[0] = -1000;
     srccoord[1] = -1000;
@@ -1044,27 +818,27 @@ int main(int argc, char *argv[])
     ra_field = "L"+pextension;
     dec_field = "B"+pextension;
     phi_field = "PHIG"+pextension;
-    printf("Coordinate system: Galactic\n");
+    printf("[%2.2i] Coordinate system: Galactic\n",rank );
   }else{
     ra_field = "RA"+pextension;
     dec_field = "DEC"+pextension;
     phi_field = "PHI"+pextension;
     if (coordsyst == 3){
-      printf("Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n");
+      printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
     } else {
-      printf("Coordinate system: RA/DEC (J2000)\n");
+      printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
     }
   }
 
 
   if (NORMLIN)
     printf("NO BASELINE REMOVED\n");
-  
+
 
   if (projgaps)
     printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
 
-  
+
   // map offsets
   float scoffsets[6];
   int nfoff;
@@ -1072,7 +846,7 @@ int main(int argc, char *argv[])
   if (file_frame_offsets != "NOOFFS")
     foffsets = read_mapoffsets(file_frame_offsets, scoffsets, &nfoff);
   else {
-    printf("No offsets between visits\n");
+    printf("[%2.2i] No offsets between visits\n", rank);
     nfoff = 2;
     ff = fframes[0];
     for (ii=0;ii<ntotscan;ii++) if (fframes[ii] > ff) ff = fframes[ii];
@@ -1092,10 +866,9 @@ int main(int argc, char *argv[])
   if (pPath != NULL){
     poutdir = pPath;
   } else {
-    //poutdir = outdir;
-    poutdir = "/scratch/patanch/";
+    poutdir = outdir;
   }
-  printf("Data written in %s\n",poutdir.c_str());
+  printf("[%2.2i] Data written in %s\n",rank, poutdir.c_str());
 
 
 
@@ -1104,10 +877,10 @@ int main(int argc, char *argv[])
   /********************* Define parallelization scheme   *******/
 
   if (parallel_frames && (rank == 0)){
-    
+
     // reorder nsamples
     find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-    
+
     for (ii=0;ii<ntotscan;ii++){
       nsamplesorder[ii] = nsamples[ruleorder[ii]];
       fframesorder[ii] = fframes[ruleorder[ii]];
@@ -1119,7 +892,7 @@ int main(int argc, char *argv[])
       extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
       //printf("frnum[%d] = %d\n",ii,frnum[ii]);
     }
-    
+
   }
 
 
@@ -1138,7 +911,7 @@ int main(int argc, char *argv[])
 
 
 
-  if (parallel_frames){  
+  if (parallel_frames){
     MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
     MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
     MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
@@ -1152,9 +925,10 @@ int main(int argc, char *argv[])
     rank_det = rank;
     size_det = size;
   }
-  /*************************************************************/  
-  
-  
+  /*************************************************************/
+
+    printf("[%2.2i] iframe_min %i\tiframe_max %i \n",rank,iframe_min,iframe_max);
+
   if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > ntotscan){
     cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
     exit(1);
@@ -1165,12 +939,14 @@ int main(int argc, char *argv[])
   /* END PARAMETER PROCESSING */
 
 
- 
-  
+
+
   /********** Alocate memory ***********/
+  printf("[%2.2i] Allocating Memory\n",rank);
+
   ns = nsamples[0];
   for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
-  
+
   ra = new double[2*ns];
   dec = new double[2*ns];
   phi = new double[2*ns];
@@ -1189,7 +965,7 @@ int main(int argc, char *argv[])
 
   offmap = new double[2];
 
- 
+
   // init some mapmaking variables
   ra_min  = 1000.0;
   ra_max  = -1000.0;
@@ -1198,7 +974,7 @@ int main(int argc, char *argv[])
 
   offmap[0] = 0.0;
   offmap[1] = 0.0;
-  
+
 
 
 
@@ -1208,79 +984,91 @@ int main(int argc, char *argv[])
   //*************  find coordinates of pixels in the map
   //********************************************************************************
 
+  printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
+
   coordsyst2 = coordsyst;
   if (coordsyst2 != 4){
-    
+
     for (idet=0;idet<ndet;idet++){
-      
+
 
       field = bolonames[idet];
       bolofield = field+bextension;
 
       //printf("%s\n",bolofield.c_str());
 
-      if (cextension != "NOCALP") 
+      if (cextension != "NOCALP")
 	calfield  = field+cextension;
-      if (fextension != "NOFLAG") 
+      if (fextension != "NOFLAG")
 	flagfield = field+fextension;
-      
+
       //read bolometer offsets
       read_bolo_offsets(field,file_offsets,scoffsets,offsets);
 
 
-      for (iframe=0;iframe<ntotscan;iframe++){
+      for (iframe=iframe_min;iframe<iframe_max;iframe++){
+
+	//	cout << "[" << rank << "] " << idet << "/" << ndet << " " << iframe << "/" << ntotscan << endl;
+
 	// read pointing files
 	ns = nsamples[iframe];
 	ff = fframes[iframe];
-	
-	read_data(dirfile, ff, 0, ns, ra,   ra_field,  type);
-	read_data(dirfile, ff, 0, ns, dec,  dec_field, type);
-	read_data(dirfile, ff, 0, ns, phi,  phi_field, type);
-	read_data(dirfile, ff, 0, ns, scerr, scerr_field, type);
-	read_data(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+
+
+	read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
+	read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+	read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+	read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+	read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
 	for (ii=0;ii<ns;ii++)
 	  if (isnan(ra[ii]) || isnan(dec[ii]) || isnan(phi[ii]))
 	    flpoint[ii] = 1;
-	    
-	    
+
+
 
 	// find offset based on frame range
 	correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
-	
 
-	
-	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner, 
+
+
+	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
 			    tancoord, tanpix, bfixc, radius, offmap, srccoord);
 	if (coordscorner[0] < ra_min) ra_min = coordscorner[0];
 	if (coordscorner[1] > ra_max) ra_max = coordscorner[1];
 	if (coordscorner[2] < dec_min) dec_min = coordscorner[2];
 	if (coordscorner[3] > dec_max) dec_max = coordscorner[3];
-	
+
       }
-      
-    }//// end of idet loop
-    
-    
+
+    } //// end of idet loop
+
+    MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+    MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+    MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+    MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
     //set coordinates
-    coordscorner[0] = ra_min;
-    coordscorner[1] = ra_max;
-    coordscorner[2] = dec_min;
-    coordscorner[3] = dec_max;
+    coordscorner[0] = gra_min;
+    coordscorner[1] = gra_max;
+    coordscorner[2] = gdec_min;
+    coordscorner[3] = gdec_max;
+
+    if (rank == 0) {
+      printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
+      printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
+    }
 
     /// just to set nn in order to compute map-making matrices and vectors
-    sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner, 
-			tancoord, tanpix, 1, radius, offmap, srccoord); 
-
-    
+    sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+			tancoord, tanpix, 1, radius, offmap, srccoord);
 
 
-    
-    printf("inside main: ra_min  = %lf\n",ra_min );
-    printf("inside main: ra_max  = %lf\n",ra_max );
-    printf("inside main: dec_min = %lf\n",dec_min);
-    printf("inside main: dec_max = %lf\n",dec_max);
-    
-    
 
     sprintf(testfile,"%s%s%s%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),".txt");
     fp = fopen(testfile,"w");
@@ -1292,7 +1080,7 @@ int main(int argc, char *argv[])
     fprintf(fp,"%lf\n",tancoord[1]);
     fclose(fp);
 
- 
+
   } else {
 
     sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_",rank,".txt");
@@ -1320,7 +1108,7 @@ int main(int argc, char *argv[])
   mask = new unsigned char[nn*nn];
   for (ii=0;ii<nn*nn;ii++)
     mask[ii] = 1;
-  
+
 
   if (xxi_in.size() != 0){
     for (ib = 0;ib < xxi_in.size(); ib++){
@@ -1336,8 +1124,8 @@ int main(int argc, char *argv[])
   //for (ii=328;ii<371;ii++)
   // for (jj=663;jj<718;jj++)
   //   mask[jj*nn + ii] = 0;
-  
-  
+
+
   long npixsrc = 0;
   indpsrc = new long[nn*nn];
   for (ii=0;ii<nn*nn;ii++){
@@ -1349,7 +1137,7 @@ int main(int argc, char *argv[])
     }
   }
   long addnpix = ntotscan*npixsrc;
-  
+
   //******************************************
 
 
@@ -1360,22 +1148,19 @@ int main(int argc, char *argv[])
 
     int factdupl = 1;
     if (flgdupl) factdupl = 2;
-  
+
 
     //pixon indicates pixels that are seen
     pixon = new long[factdupl*nn*nn+2 + addnpix];   // last pixel is for flagged samples
     init1D_long(pixon,0,factdupl*nn*nn+2 + addnpix,0);
 
-   
 
-
-    printf("nn=%ld\n",nn);
 
 
     //**********************************************************************************
     //loop to get coordinates of pixels that are seen
     //**********************************************************************************
-    
+
     /// loop again on detectors
     //for (idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
     for (idet=0;idet<ndet;idet++){
@@ -1386,43 +1171,43 @@ int main(int argc, char *argv[])
       bolofield = field+bextension;
       calfield  = field+cextension;
       flagfield = field+fextension;
-      
-      
+
+
       // read bolometer offsets
       read_bolo_offsets(field,file_offsets,scoffsets,offsets);
 
 
-      
+
       //loop to get coordinates of pixels that are seen
       for (iframe=0;iframe<ntotscan;iframe++){
 	ns = nsamples[iframe];
 	ff = fframes[iframe];
-	
-	read_data(dirfile, ff, 0, ns, ra,   ra_field,  type);
-	read_data(dirfile, ff, 0, ns, dec,  dec_field, type);
-	read_data(dirfile, ff, 0, ns, phi,  phi_field, type);
-	read_data(dirfile, ff, 0, ns, scerr, scerr_field, type);
-	read_data(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+
+	read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
+	read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+	read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+	read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+	read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
 	for (ii=0;ii<ns;ii++)
 	  if (isnan(ra[ii]) || isnan(dec[ii]))
 	    flpoint[ii] = 1;
 	if (fextension != "NOFLAG"){
-	  read_data(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
+	  read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
 	} else {
 	  for (ii=0;ii<ns;ii++)
 	    flag[ii] = 0;
 	}
 
 
-	
+
 	// find offset based on frame range
 	correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
-	
 
 
-	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner, 
+
+	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
 			    tancoord, tanpix, 1, radius, offmap, srccoord);
-	
+
 
 
 
@@ -1439,7 +1224,7 @@ int main(int argc, char *argv[])
 	    samptopix[ii] = factdupl*nn*nn + addnpix;
 
 
-	    printf("PIXEL OUT, ii = %ld, xx = %ld, yy = %ld\n",ii,xx[ii],yy[ii]);
+	    printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %ld, yy = %ld\n",rank, ii,xx[ii],yy[ii]);
 
 	  }
 	  if (rejectsamp[ii] == 0) {
@@ -1470,23 +1255,23 @@ int main(int argc, char *argv[])
 	    samptopix[ii] = factdupl*nn*nn+1 + addnpix;
 	  }
 	}
-	
+
 	pixon[factdupl*nn*nn + addnpix] += 2*marge;
 
 
 	//printf("pixon[nn*nn] = %d/n",pixon[nn*nn]);
-	
+
 
 	//if (rank == 0){
-	  
+
 	  sprintf(testfile,"%s%s%ld%s%ld%s%s%s",poutdir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 	  fp = fopen(testfile,"w");
 	  fwrite(samptopix,sizeof(long), ns, fp);
 	  fclose(fp);
 	  //}
-	
+
       }
-      
+
     }//end of idet loop
 
 
@@ -1500,6 +1285,8 @@ int main(int argc, char *argv[])
 
   //************** init mapmaking variables *************//
 
+    printf("[%2.2i] Init map making variables\n",rank);
+
   ns = nsamples[0];
   for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
 
@@ -1509,7 +1296,7 @@ int main(int argc, char *argv[])
   init1D_long(indpix,0,factdupl*nn*nn+2 + addnpix,-1);
 
 
-  
+
   ll=0;
   for (ii=0;ii<factdupl*nn*nn+2 + addnpix;ii++){
       if (pixon[ii] != 0){
@@ -1523,9 +1310,9 @@ int main(int argc, char *argv[])
   delete [] pixon;
 
 
-  printf("indpix[nn*nn] = %d\n",indpix[nn*nn]);
+  //  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-  
+
 
   PNd = new double[npix];
   PNdtot = new double[npix];
@@ -1536,13 +1323,11 @@ int main(int argc, char *argv[])
 
   if (pixout)
     printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
-  printf("TOTAL NUMBER OF DETECTORS: %d\n",(int)ndet);
-  printf("TOTAL NUMBER OF SCANS: %d\n", (int)ntotscan);
-  printf("SIZE OF THE MAP: %d * %d\n",nn,nn);
-  printf("TOTAL NUMBER OF FILLED PIXELS: %d\n",npix);
+  printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
+  printf("[%2.2i] Size of the map : %d x %d\t Total Number of filled pixels : %d\n",rank, nn,nn, npix);
 
 
-
+  MPI_Barrier(MPI_COMM_WORLD);
 
 
   //************************************************************************//
@@ -1553,45 +1338,48 @@ int main(int argc, char *argv[])
 
 
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  printf("[%2.2i] Pre-processing of the data\n",rank);
 
-  
+
 
 
   for (iframe=iframe_min;iframe<iframe_max;iframe++){
-    
+
     ns = nsamples[iframe];
     ff = fframes[iframe];
     f_lppix = f_lp*double(ns+2*marge)/fsamp;
     f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
     prefixe = "fdata";
-    
 
-    if (CORRon){    
+
+    cout << "[" << rank << "] " << iframe << "/" << iframe_max ;
+    cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
+
+    if (CORRon){
       write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 			  poutdir,termin,errarcsec,dirfile,scerr_field,flpoint_field,bolonames,
 			  bextension,fextension,cextension,shift_data_to_point,f_lppix,ff,ns,
 			  marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);
-      
+
       do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
 	      fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
     } else {
-      
+
       do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
 		     scerr_field,flpoint_field,bolonames,bextension,fextension,
 		     cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 		     flgdupl,factdupl,2,ff,ns,marge,napod,ndet,size_det,rank_det,indpix,indpsrc,
-		     nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,NULL);      
-      
-    }    
+		     nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,NULL);
 
-    
+    }
+
+
   } // end of iframe loop
-  
-  
+
+  //  cout << "[" << rank << "] end of iframe loop" << endl;
 
   MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  
+
 
   if (rank == 0){
     sprintf(testfile,"%s%s%s%s",outdir.c_str(),"PNdCorr_",termin.c_str(),".bi");
@@ -1599,10 +1387,10 @@ int main(int argc, char *argv[])
     fwrite(PNdtot,sizeof(double),npix,fp);
     fclose(fp);
   }
-  
-  
-  
-  
+
+
+
+
   //******************************************************************//
   //******************************************************************//
   //**********************  End of init loop *************************//
@@ -1610,7 +1398,7 @@ int main(int argc, char *argv[])
   //******************************************************************//
 
 
-
+  //  cout << "[" << rank << "] End of Init Loop" << endl;
 
 
   //************************************************************************//
@@ -1619,6 +1407,7 @@ int main(int argc, char *argv[])
   //************************************************************************//
   //************************************************************************//
 
+  printf("[%2.2i] Main Conjugate gradient loop\n",rank);
 
   int npixeff, iter, idupl;
   double var0, var_n, delta0, delta_n, delta_o, rtq, alpha, beta;
@@ -1626,7 +1415,7 @@ int main(int argc, char *argv[])
   double *S, *PtNPmatS,  *PtNPmatStot, *r, *q, *qtot, *d, *Mp, *Mptot, *s;
   long *hits, *hitstot;
 
-  
+
   S = new double[npix];
   r = new double[npix];
   q = new double[npix];
@@ -1658,23 +1447,12 @@ int main(int argc, char *argv[])
 
 
   for (ii=0;ii<npix;ii++) S[ii] = 0.0;//PNd[ii];
-  
 
+  if (doInitPS == 1){
 
-  if (0){
-  sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-  fp = fopen(testfile,"a");
-  fprintf(fp,"MixMatfile = %s\n",MixMatfile.c_str());
-  fclose(fp);
-    
   if (MixMatfile != "NOFILE"){
 
-    sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-    fp = fopen(testfile,"a");
-    fprintf(fp,"MixMatfile = %s\n",MixMatfile.c_str());
-    fclose(fp);
-    
-    for (iframe=iframe_min;iframe<iframe_max;iframe++){  
+    for (iframe=iframe_min;iframe<iframe_max;iframe++){
       ns = nsamples[iframe];
       ff = fframes[iframe];
       extentnoiseSp = extentnoiseSp_all[iframe];
@@ -1682,12 +1460,17 @@ int main(int argc, char *argv[])
       EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,
 			S,MixMatfile,bolonames,dirfile,bextension,fextension,cextension,
 			shift_data_to_point,poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,
-			extentnoiseSp,outdir);  
+			extentnoiseSp,outdir);
     }
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  cout << "exit after first EstimPowerSpectra" << endl;
+  exit(0);
+
   }
-   
- 
+
+
 
 
   //Conjugate gradien Inversion
@@ -1700,7 +1483,7 @@ int main(int argc, char *argv[])
 
 
 
-  printf("npix = %d, npixeff = %d\n", npix, npixeff);
+  printf("[%2.2i] npix = %d, npixeff = %d\n", rank, npix, npixeff);
 
 
   t1 = time(0);
@@ -1709,77 +1492,79 @@ int main(int argc, char *argv[])
   init1D_double(PtNPmatS,0,npix,0.0);
   init1D_double(PtNPmatStot,0,npix,0.0);
   init1D_double(Mp,0,npix,0.0);
-  init1D_double(Mptot,0,npix,0.0);  
+  init1D_double(Mptot,0,npix,0.0);
   init1D_long(hits,0,npix,0);
   init1D_long(hitstot,0,npix,0);
- 
 
-    
-  for (iframe=iframe_min;iframe<iframe_max;iframe++){  
+
+
+  for (iframe=iframe_min;iframe<iframe_max;iframe++){
     ns = nsamples[iframe];
     ff = fframes[iframe];
     f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
     prefixe = "fPs";
 
+    //    cout << "[" << rank << "] " << iframe << "/" << iframe_max << endl;
+
     if (CORRon){
       write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
-      
-      
+
+
       do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,
-	      f_lppix_Nk,fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,Mp,hits);  
+	      f_lppix_Nk,fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,Mp,hits);
     } else {
-      
+
       do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
 		      f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,indpix,
 		      nn,npix,iframe,PtNPmatS,Mp,hits);
-    }  
+    }
 
   } // end of iframe loop
 
 
 
 
-  
+
   MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
-  
+
 
   if (rank == 0) {
 
-    t2 = time(0);
-    printf("temps de calcul: %ld\n",t2-t1);    
-    
+//     t2 = time(0);
+//     printf("temps de calcul: %ld\n",t2-t1);
+
     for (ii=0;ii<npixeff;ii++)
       if (Mptot[ii] == 0)
 	printf("ERROR: Mp[%d] has elements = 0\n",ii);
-        
-    
+
+
     for (ii=0;ii<npixeff;ii++)
       Mptot[ii] = 1.0/Mptot[ii];
-        
-    
+
+
     for (ii=0;ii<npixeff;ii++)
       r[ii] = PNdtot[ii] - PtNPmatStot[ii];
-    
+
     for (ii=0;ii<npixeff;ii++)
       d[ii] =  Mptot[ii] * r[ii];
-    
-    
+
+
     delta_n = 0.0;
     for (ii=0;ii<npixeff;ii++)
       delta_n += r[ii]*d[ii];
-    
+
     var_n = 0.0;
     for (ii=0;ii<npixeff;ii++)
       var_n += r[ii]*r[ii];
-    
-    
+
+
     delta0 = delta_n;
     var0 = var_n;
-    printf("var0 = %lf\n",var0);
-      
+    printf("[%2.2i] var0 = %lf\n",rank, var0);
+
   }
 
 
@@ -1787,44 +1572,45 @@ int main(int argc, char *argv[])
   MPI_Bcast(&var0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  
 
 
+  printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
-  //start loop  
+
+  //start loop
   iter = 0;
   while(iter < 2000 && var_n/var0 > 1e-10 && (idupl || !flgdupl) || !idupl && var_n/var0 > 1e-4){
-    
+
     init1D_double(q,0,npixeff,0.0);
     init1D_double(qtot,0,npixeff,0.0);
-    
-    
+
+
     //t1 = time(0);
     //sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Timing_",termin.c_str(),".txt");
     //fp = fopen(testfile,"a");
     //fprintf(fp,"starting while loop: t = %ld\n",t1);
     //fclose(fp);
-    
 
-    for (iframe=iframe_min;iframe<iframe_max;iframe++){  
+
+    for (iframe=iframe_min;iframe<iframe_max;iframe++){
       ns = nsamples[iframe];
       ff = fframes[iframe];
       f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
       prefixe = "fPs";
-     
+
       if (CORRon){
 	write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
-	
+
 	do_PtNd(q,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
 		fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
       } else {
-	
+
 	do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
 			f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,indpix,
 			nn,npix,iframe,q,NULL,NULL);
       }
     } // end of iframe loop
-   
+
 
 
 
@@ -1837,11 +1623,11 @@ int main(int argc, char *argv[])
     if (rank == 0){
       rtq= 0.0;
       for (ii=0;ii<npixeff;ii++)
-	rtq += qtot[ii] * d[ii]; 
-      
+	rtq += qtot[ii] * d[ii];
+
       alpha = delta_n/rtq;
-      
-      
+
+
       for (ii=0;ii<npixeff;ii++)
 	S[ii] += alpha*d[ii];
     }
@@ -1849,25 +1635,25 @@ int main(int argc, char *argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
- 
+
 
 
 
     if ((iter % 10) == 0){
       init1D_double(PtNPmatS,0,npixeff,0.0);
       init1D_double(PtNPmatStot,0,npixeff,0.0);
-      
-      
-      for (iframe=iframe_min;iframe<iframe_max;iframe++){  
+
+
+      for (iframe=iframe_min;iframe<iframe_max;iframe++){
 	ns = nsamples[iframe];
 	ff = fframes[iframe];
 	f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
 	prefixe = "fPs";
 
-	if (CORRon){	
+	if (CORRon){
 	  write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
-	  
-	  
+
+
 	  do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,
 		  f_lppix_Nk,fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,
 		  NULL,NULL);
@@ -1875,63 +1661,66 @@ int main(int argc, char *argv[])
 	  do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
 			  f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,
 			  indpix,nn,npix,iframe,PtNPmatS,NULL,NULL);
-	}	
+	}
       } // end of iframe loop
-      
+
 
 
 
       MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
-      
+
 
       if (rank == 0){
 	for (ii=0;ii<npixeff;ii++)
 	  r[ii] = PNdtot[ii] - PtNPmatStot[ii];
       }
-      
-      
+
+
     } else {
-      
+
       if (rank == 0){
 	for (ii=0;ii<npixeff;ii++)
 	  r[ii] -= alpha*qtot[ii];
       }
     }
-    
-    
 
- 
+
+
+
 
     if (rank == 0){
-      
+
       for (ii=0;ii<npixeff;ii++)
 	s[ii] = Mptot[ii]*r[ii];
-      
-      
+
+
       delta_o = delta_n;
-      
+
       delta_n = 0.0;
       for (ii=0;ii<npixeff;ii++)
-	delta_n += r[ii]*s[ii];    
-      
+	delta_n += r[ii]*s[ii];
+
       var_n = 0.0;
       for (ii=0;ii<npixeff;ii++)
-	var_n += r[ii]*r[ii];    
-      
+	var_n += r[ii]*r[ii];
 
-      
+
+
       beta = delta_n/delta_o;
       for (ii=0;ii<npixeff;ii++)
 	d[ii] = s[ii] + beta*d[ii];
 
 
-      printf("iter = %d, crit = %10.15g, crit2 = %10.15g     \n",iter,var_n/var0,delta_n/delta0);
+      cout << "iter = " << iter;
+      cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
+      cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
+      cout << "\r " << flush;
 
-  
+      //      printf("[%2.2i] iter = %d, crit = %10.15g, crit2 = %10.15g     \n",rank, iter,var_n/var0,delta_n/delta0);
 
 
-	
+
       if (iter == 0){
 	for (ii=0; ii<nn; ii++) {
 	  for (jj=0; jj<nn; jj++) {
@@ -1943,10 +1732,10 @@ int main(int argc, char *argv[])
 	    }
 	  }
 	}
-	
+
 	fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits";
 	write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-	
+
 
 	for (ii=0; ii<nn ; ii++){
 	  for (jj=0; jj<nn; jj++){
@@ -1962,7 +1751,7 @@ int main(int argc, char *argv[])
 	write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-	
+
 	for (ii=0; ii<nn; ii++) {
 	  for (jj=0; jj<nn; jj++) {
 	    mi = jj*nn + ii;
@@ -1988,7 +1777,7 @@ int main(int argc, char *argv[])
 
 	fname = '!' + outdir + "optimMap_" + termin + "_hits.fits";
 	write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-	
+
 
 	for (ii=0; ii<nn; ii++) {
 	  for (jj=0; jj<nn; jj++) {
@@ -1996,7 +1785,7 @@ int main(int argc, char *argv[])
 	    map1d[mi] = 0.0;
 	  }
 	}
-		
+
 	if (addnpix){
 	  for (iframe = 0;iframe<ntotscan;iframe++){
 	    for (ii=0; ii<nn; ii++) {
@@ -2007,16 +1796,16 @@ int main(int argc, char *argv[])
 	      }
 	    }
 	  }
-	  
+
 	  fname = '!' + outdir + "optimMap_" + termin + "_invnoisevaruncpix.fits";
 	  write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 	}
-	
+
       }
-      
-      
+
+
       if (iterw && (iter % iterw) == 0){
-	
+
 	// make the map
 	for (ii=0; ii<nn; ii++) {
 	  for (jj=0; jj<nn; jj++) {
@@ -2028,13 +1817,13 @@ int main(int argc, char *argv[])
 	    }
 	  }
 	}
-	
+
 	sprintf(iterchar,"%d",iter);
 	iterstr = iterchar;
 	fname = '!' + outdir + "optimMap_" + termin + "_flux" + iterstr + "b.fits";
 	write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-	
-	
+
+
 	if (flgdupl){
 	  for (ii=0; ii<nn; ii++) {
 	    for (jj=0; jj<nn; jj++) {
@@ -2046,8 +1835,8 @@ int main(int argc, char *argv[])
 	      }
 	    }
 	  }
-	  
-	  
+
+
 	  sprintf(iterchar,"%d",iter);
 	  iterstr = iterchar;
 	  fname = '!' + outdir + "optimMap_" + termin + "_fluxflags" + iterstr + "b.fits";
@@ -2070,44 +1859,44 @@ int main(int argc, char *argv[])
 	      }
 	    }
 	  }
-	  
-	  
+
+
 	  sprintf(iterchar,"%d",iter);
 	  iterstr = iterchar;
 	  fname = '!' + outdir + "optimMap_" + termin + "_fluxuncpix_" + iterstr + "b.fits";
 	  write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-	  
+
 	}
       }
-      
-      
-      
+
+
+
       sprintf(testfile,"%s%s%s%s",outdir.c_str(),"ConvFile_",termin.c_str(),".txt");
       fp = fopen(testfile,"a");
       fprintf(fp,"iter = %d, crit = %10.15g, crit2 = %10.15g\n",iter,var_n/var0, delta_n/delta0);
       fclose(fp);
-      
+
     }
-    
-    
+
+
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(d ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    
-    
+
+
     iter++;
-    
+
   }
   printf("\n");
-  
-  
-    
 
-    sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-    fp = fopen(testfile,"a");
-    fprintf(fp,"test en sortie de la boucle while \n");
-    fclose(fp);
-  
+
+
+
+  sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
+  fp = fopen(testfile,"a");
+  fprintf(fp,"test en sortie de la boucle while \n");
+  fclose(fp);
+
 
 
 
@@ -2115,24 +1904,24 @@ int main(int argc, char *argv[])
   if  ((projgaps || (flgdupl)) && !idupl){
 
     init1D_double(PNd,0,npix,0.0);
-    init1D_double(PNdtot,0,npix,0.0);  
+    init1D_double(PNdtot,0,npix,0.0);
 
-    
+
     for (iframe=iframe_min;iframe<iframe_max;iframe++){
-      
+
       ns = nsamples[iframe];
       ff = fframes[iframe];
       f_lppix = f_lp*double(ns+2*marge)/fsamp;
       f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
       prefixe = "fdata";
- 
+
       if (CORRon){
 
 	write_ftrProcesdata(S,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 			    poutdir,termin,errarcsec,dirfile,scerr_field,flpoint_field,bolonames,
 			    bextension,fextension,cextension,shift_data_to_point,f_lppix,ff,ns,
 			    marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);
-	
+
 	do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
 		fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
       } else {
@@ -2142,24 +1931,24 @@ int main(int argc, char *argv[])
 		       cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 		       flgdupl,factdupl,2,ff,ns,marge,napod,ndet,size_det,rank_det,indpix,indpsrc,
 		       nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,S);
-      }	      
+      }
     } // end of iframe loop
-    
-    
 
-    
+
+
+
 
     MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
- 
-  }
-
 
   }
 
 
+  }
 
 
-   
+
+
+
     MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -2167,11 +1956,11 @@ int main(int argc, char *argv[])
     fp = fopen(testfile,"a");
     fprintf(fp,"test avant ecriture \n");
     fclose(fp);
-  
 
 
 
-    
+
+
   //******************************  write final map in file ********************************
 
 
@@ -2179,11 +1968,11 @@ int main(int argc, char *argv[])
   if (rank == 0){
 
     printf(" after CC INVERSION %d\n",npix*(npix+1)/2);
-    
+
 
 
     bool fru;
-    
+
     for (ii=0; ii<nn; ii++) {
       for (jj=0; jj<nn; jj++) {
 	mi = jj*nn + ii;
@@ -2194,12 +1983,12 @@ int main(int argc, char *argv[])
 	}
       }
     }
-    
+
 
     fname = '!' + outdir + "optimMap_" + termin + "_flux.fits";
     write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-    
-    
+
+
     for (ii=0; ii<nn; ii++) {
       for (jj=0; jj<nn; jj++) {
 	mi = jj*nn + ii;
@@ -2210,11 +1999,11 @@ int main(int argc, char *argv[])
 	}
       }
     }
-    
-    
+
+
     fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits";
     write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-    
+
     if (addnpix){
       for (iframe = 0;iframe<ntotscan;iframe++){
 	fru = 0;
@@ -2229,15 +2018,15 @@ int main(int argc, char *argv[])
 	    }
 	  }
 	}
-	
-	
+
+
 	if (fru){
 	  sprintf(iframechar,"%ld",iframe);
 	  iframestr = iframechar;
 	  fname = '!' + outdir + "optimMap_" + termin + "_flux_fr" + iframestr + ".fits";
 	  write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-	  
-	  
+
+
 	  for (ii=0; ii<nn; ii++) {
 	    for (jj=0; jj<nn; jj++) {
 	      mi = jj*nn + ii;
@@ -2248,7 +2037,7 @@ int main(int argc, char *argv[])
 	      }
 	    }
 	  }
-	  
+
 	  fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
 	  write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 	}
@@ -2265,7 +2054,7 @@ int main(int argc, char *argv[])
   printf("%s\n",MixMatfile.c_str());
 
   if (MixMatfile != "NOFILE"){
-    for (iframe=iframe_min;iframe<iframe_max;iframe++){  
+    for (iframe=iframe_min;iframe<iframe_max;iframe++){
       ns = nsamples[iframe];
       ff = fframes[iframe];
       extentnoiseSp = extentnoiseSp_all[iframe];
@@ -2273,12 +2062,12 @@ int main(int argc, char *argv[])
       EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,S,
 			MixMatfile,bolonames,dirfile,bextension,fextension,cextension,shift_data_to_point,
 			poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,extentnoiseSp,outdir);
-      
+
     }
   }
 
-  
-  
+
+
 
   //******************************************************************//
   //******************************************************************//
@@ -2310,8 +2099,8 @@ int main(int argc, char *argv[])
     fprintf(fp,"%ld\n",indpix[ii]);
   fclose(fp);
 
-  
-  
+
+
   //write command line in a file
   sprintf(testfile,"%s%s%s%s",outdir.c_str(),"CommandLine_",termin.c_str(),".txt");
   fp = fopen(testfile,"w");
@@ -2327,7 +2116,7 @@ int main(int argc, char *argv[])
   MPI_Barrier(MPI_COMM_WORLD);
 
 
-  
+
   // clean up
   delete [] ra;
   delete [] dec;
@@ -2340,10 +2129,10 @@ int main(int argc, char *argv[])
   delete [] samptopix;
   delete [] flpoint;
   delete [] mask;
-  
 
 
-  
+
+
 
   MPI_Finalize();
 
@@ -2358,14 +2147,14 @@ int main(int argc, char *argv[])
 
 void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl, string dir, string termin, long ff, long ns, long marge, long ndet, long iframe){
 
-  
+
   long idet1;
   long ndata = ns+2*marge;
-  
+
   FILE *fp;
   char testfile[100];
 
-  double *Ps; 
+  double *Ps;
   long *samptopix;
 
   fftw_plan fftplan;
@@ -2376,27 +2165,27 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
   fdata = new fftw_complex[ndata/2+1];
 
 
-  //for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){  
-  for (idet1=0;idet1<ndet;idet1++){ 	  
-    
-    //Read pointing data	
+  //for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
+  for (idet1=0;idet1<ndet;idet1++){
+
+    //Read pointing data
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
-    
+
     deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
-    
+
     //Fourier transform of the data
     fftplan = fftw_plan_dft_r2c_1d(ndata, Ps, fdata, FFTW_ESTIMATE);
     fftw_execute(fftplan);
     fftw_destroy_plan(fftplan);
-    
+
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"w");
     fwrite(fdata,sizeof(double), (ndata/2+1)*2, fp);
     fclose(fp);
-    
+
   }
 
   delete[] samptopix;
@@ -2453,50 +2242,52 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
   for (idet1=0;idet1<ndet;idet1++){
-    
-    field1 = bolonames[idet1];
 
-    if (S != NULL){    
-      read_data(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-      read_data(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+    field1 = bolonames[idet1];
+//     cout << "Inside write_ftrProcessdata " << endl;
+//     cout << " field 1 : " << field1 << endl;
+
+    if (S != NULL){
+      read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
+      read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
     }
 
-    read_data(dirfile, ff, shift_data_to_point, ns, data, field1+bextension, 'd');
-    
-    if (fextension != "NOFLAG"){	  
-      read_data(dirfile, ff, shift_data_to_point, ns, flag, field1+fextension,  'c');
+    read_data_std(dirfile, ff, shift_data_to_point, ns, data, field1+bextension, 'd');
+
+    if (fextension != "NOFLAG"){
+      read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field1+fextension,  'c');
     } else {
-      printf("NOFLAG\n");
+      //      printf("NOFLAG\n");
       for (ii=0;ii<ns;ii++)
 	flag[ii] = 0;
-    }    
-    
+    }
+
     if (cextension != "NOCALP"){
-      read_data(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd');
+      read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd');
     } else {
-      printf("NOCALP\n");
+      //      printf("NOCALP\n");
       for (ii=0;ii<ns/20;ii++)
 	calp[ii] = 1.0;
     }
-    
 
 
-    if (S != NULL){    
+
+    if (S != NULL){
       //// Read pointing
       sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
       fp = fopen(testfile,"r");
       fread(samptopix,sizeof(long),ns,fp);
       fclose(fp);
-      
+
       if (addnpix){
 	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
       } else {
 	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
-      }	
-      
+      }
+
       for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
       for (ii=0;ii<ns;ii++)
-	if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0) 
+	if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0)
 	  rejectsamp[ii] = 1;
     }
 
@@ -2508,20 +2299,20 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
     }
     else {
       MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
-			   NORMLIN,NOFILLGAP);  
+			   NORMLIN,NOFILLGAP);
     }
-    
+
     //Fourier transform of the data
     fftplan = fftw_plan_dft_r2c_1d(ndata, data_lp, fdata, FFTW_ESTIMATE);
     fftw_execute(fftplan);
     fftw_destroy_plan(fftplan);
-    
-    
+
+
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"w");
     fwrite(fdata,sizeof(double), (ndata/2+1)*2, fp);
     fclose(fp);
-    
+
   }
 
 
@@ -2543,12 +2334,12 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 
-  
+
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	     string dir, string prefixe, string termin, string *bolonames,
 	     double f_lppix, double fsamp, long ff, long ns, long marge, long ndet, int size,
 	     int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits){
-      
+
 
   long ii, jj, idet1, idet2, nbins;
   double dnbins;
@@ -2580,17 +2371,17 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 
 
-  
+
   for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
     field1 = bolonames[idet1];
-    
-    //Read pointing data	
+
+    //Read pointing data
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
-    
-    
+
+
     //**************************************** Noise power spectrum
     extentnoiseSp = extentnoiseSp_all[iframe];
     sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
@@ -2606,68 +2397,69 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
     fread(ell,sizeof(double), nbins+1, fp);
     fread(*SpN_all,sizeof(double), nbins*ndet, fp);
     fclose(fp);
-    //*****************************************	
-    
+    //*****************************************
+
     for (ii=0;ii<ndata/2+1;ii++)
       bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
     for (ii=0;ii<ndata/2+1;ii++)
       bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
-    
-    
+
+
     //Init N-1d
     for (ii=0;ii<ndata/2+1;ii++){
       Ndf[ii][0] = 0;
       Ndf[ii][1] = 0;
     }
-	
 
-	
+
+
     for (idet2=0;idet2<ndet;idet2++){
       field2 = bolonames[idet2];
-	  
-      //read Fourier transform of the data      
+
+      //read Fourier transform of the data
       sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
       fp = fopen(testfile,"r");
       fread(fdata,sizeof(double), (ndata/2+1)*2, fp);
       fclose(fp);
-	
-	  
+
+
       //****************** Cross power spectrum of the noise  ***************//
       for (ii=0;ii<nbins;ii++)
 	SpN[ii] = SpN_all[idet2][ii];
-      
-      
+
+
       // interpolate logarithmically the noise power spectrum
       InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ndata,fsamp,Nk);
-      
+
 
       for (jj=0;jj<ndata/2+1;jj++)
-	if (isnan(Nk[jj]))
+	if (isnan(Nk[jj])) {
 	  printf("Ca ne va pas fr %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
-      
-      
+          exit(1);
+	}
+
       //********************************* compute N^-1 d  ***********************//
       for (ii=0;ii<ndata/2+1;ii++){
 	Ndf[ii][0] += fdata[ii][0]*Nk[ii];
 	Ndf[ii][1] += fdata[ii][1]*Nk[ii];
       }
-      
+
 
 
       //Compute weight map for preconditioner
       if ((Mp != NULL) && (idet2 == idet1))
 	compute_diagPtNPCorr(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
 
-      
+
     }// end of idet2 loop
-    
-    
+
+
     fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
     fftw_execute(fftplan);
     fftw_destroy_plan(fftplan);
-    
-    
-    
+
+
+
     for (ii=-marge;ii<ndata-marge;ii++){
       if ((ii < 0) || (ii >= ndata-2*marge)){
 	PNd[npix-2] += Nd[ii+marge];
@@ -2675,19 +2467,19 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	PNd[indpix[samptopix[ii]]] += Nd[ii+marge];
       }
     }
-    
+
     //compute hit counts
     if (hits != NULL){
       for (ii=0;ii<ndata-2*marge;ii++){
 	hits[indpix[samptopix[ii]]] += 1;
       }
     }
-    
+
 
     delete[] ell;
     delete[] SpN;
     free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
-    
+
   }// end of idet1 loop
 
 
@@ -2714,7 +2506,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		    int fillg, long ff, long ns, long marge, long napod, long ndet,
 		    int size, int rank, long *indpix, long *indpsrc, long nn, long npix,
 		    long npixsrc, bool NORMLIN, bool NOFILLGAP, long iframe, double *S){
-      
+
 
 
   long ii, idet;
@@ -2747,58 +2539,58 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
   FILE *fp;
 
 
-  
+
   for (idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-     
+
     field = bolonames[idet];
 
 
 
-    if (S != NULL){    
-      read_data(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-      read_data(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+    if (S != NULL){
+      read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
+      read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
     }
 
-    read_data(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
-    
-    if (fextension != "NOFLAG"){	  
-      read_data(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
+    read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
+
+    if (fextension != "NOFLAG"){
+      read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
     } else {
-      printf("NOFLAG\n");
+      //      printf("NOFLAG\n");
       for (ii=0;ii<ns;ii++)
 	flag[ii] = 0;
-    }    
-    
+    }
+
     if (cextension != "NOCALP"){
-      read_data(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
+      read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
     } else {
-      printf("NOCALP\n");
+      //      printf("NOCALP\n");
       for (ii=0;ii<ns/20;ii++)
 	calp[ii] = 1.0;
     }
-    
+
 
     //// Read pointing
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
-    
- 
-    if (S != NULL){    
-     
+
+
+    if (S != NULL){
+
       if (addnpix){
 	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
       } else {
 	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
-      }	
-      
+      }
+
       for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
       for (ii=0;ii<ns;ii++)
-	if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0) 
+	if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0)
 	  rejectsamp[ii] = 1;
     }
-    
+
 
     if (S != NULL){
       //********************  pre-processing of data ********************//
@@ -2807,27 +2599,27 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
     }
     else {
       MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
-			   NORMLIN,NOFILLGAP);  
+			   NORMLIN,NOFILLGAP);
     }
-    
-    
+
+
     for (ii=0;ii<ndata/2+1;ii++)
       bfilter[ii] = pow(double(ii)/f_lppix_Nk, 16) /(1.0+pow(double(ii)/f_lppix_Nk, 16));
 
 
-    
+
     //****************** Compute (or read) input power spectrum of the NOISE  ***************//
     extentnoiseSp = extentnoiseSp_all[iframe];
     sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
     readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
-    
-    
+
+
     //********************** compute P^t N-1 d ************************//
     compute_PtNmd(data_lp,Nk,ns+2*marge,marge,nn,indpix,samptopix,npix,PNd);
-		
+
 
   }// end of idet loop
-    
+
 
   delete[] samptopix;
   delete[] bfilter;
@@ -2853,7 +2645,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 		double fsamp, bool flgdupl, int factdupl, long ff, long ns, long marge,
 		long ndet, int size, int rank, long *indpix, long nn, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
-  
+
 
 
   long ii, idet;
@@ -2876,57 +2668,56 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
   FILE *fp;
 
 
- 
+
   for (idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-    
+
     field = bolonames[idet];
 
-    
+
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
-    
-    
+
+
     // AS
     deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
-    
-    
+
+
     extentnoiseSp = extentnoiseSp_all[iframe];
     sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
     for (ii=0;ii<(ns+2*marge)/2+1;ii++)
       bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
     readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
-    
-    
+
+
     //AtN-1A AS (espensive part)
     compute_PtNmd(Ps,Nk,ns+2*marge,marge,nn,indpix,samptopix,npix,PtNPmatS);
-        
-   
+
+
     //Compute weight map for preconditioner
     if ((Mp != NULL))
       compute_diagPtNP(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
-    
-    
+
+
     //compute hit counts
     if (hits != NULL){
       for (ii=0;ii<ndata-2*marge;ii++){
 	hits[indpix[samptopix[ii]]] += 1;
       }
     }
-        
-    
+
+
   } // end of idet loop
-    
-  
+
+
   delete[] samptopix;
   delete[] bfilter;
   delete[] Nk;
   delete[] Ps;
-  
-  
-}
 
+
+}
 
 
 
@@ -2945,15 +2736,15 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 
-  double fcut = 3.0;
-  long ncomp = 3;
+  double fcut = 12;
+  long ncomp = 1;
 
   long ii, jj, kk, ll, idet, idet1, idet2, ib;
-  long ncomp2;
+  long ncomp2 = 0;
   int nbins = 500;
   int nbins2;
   double tmpsign, mm, sign0, factapod;
-  
+
   double dnbins, dummy1;
 
   double *data, *data_lp, *Ps, *calp, *apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
@@ -2972,28 +2763,18 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
   FILE *fp;
 
+  double *data1d;
+
+
   char testfile[100];
-  char nameSpfile[200];
+  char nameSpfile[100];
 
   string field;
   string tempstr1;
   string tempstr2;
 
 
-
-
-
-
-    sprintf(testfile,"%s%s%s%s",outdirSpN.c_str(),"testfile_",termin.c_str(),".txt");
-    fp = fopen(testfile,"a");
-    fprintf(fp,"Inside EstimPowerSpectra just at the beginning\n");
-    fclose(fp);
-    
-
-
-
-
-
+  printf("Inside EstimPowerSpectra just at the beginning\n");
 
 
   data = new double[ns];
@@ -3008,7 +2789,8 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   bfilter = new double[ns/2+1];
   fdata1 = new fftw_complex[ns/2+1];
   fdata2 = new fftw_complex[ns/2+1];
-	
+
+
   Nell = new double[nbins];
   SPref = new double[nbins];
   P = dma(0,ncomp-1,0,nbins-1);
@@ -3016,7 +2798,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   Rellexp = dma(0,ndet*ndet-1,0,nbins-1);
   Rellth = dma(0,ndet*ndet-1,0,nbins-1);
   aa = dma(0,ndet-1,0,20);
-  
+
   sign = new double[ndet];
 
   Cov = dma(0,ncomp-1,0,ncomp-1);
@@ -3051,18 +2833,20 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   // read mixing parameters
   if ((fp = fopen(MixMatfile.c_str(),"r")) == NULL){
     cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
-    return;
+    exit(1);
   }
   fscanf(fp,"%d",&ncomp2);
+
   for (ii=0;ii<ndet;ii++){
     for (jj=0;jj<ncomp2;jj++){
       fscanf(fp,"%lf",&dummy1);
       aa[ii][jj] = dummy1;
     }
   }
+  fclose(fp);
 
   if (ncomp2 < ncomp) ncomp = ncomp2;
-  
+
 
 
 
@@ -3075,66 +2859,63 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
   // loop over detectors
   for (idet=0;idet<ndet;idet++){
-    
+
     field = bolonames[idet];
-    
-    
-    read_data(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
-    
-    if (fextension != "NOFLAG"){	  
-      read_data(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
+
+
+    read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
+
+    if (fextension != "NOFLAG"){
+      read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
     } else {
-      printf("NOFLAG\n");
+      //      printf("NOFLAG\n");
       for (ii=0;ii<ns;ii++)
 	flag[ii] = 0;
-    }    
-    
+    }
+
     if (cextension != "NOCALP"){
-      read_data(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
+      read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
     } else {
-      printf("NOCALP\n");
+      //      printf("NOCALP\n");
       for (ii=0;ii<ns/20;ii++)
 	calp[ii] = 1.0;
     }
-    
 
-    
+
     //******************************* subtract signal
-    
-    //Read pointing data	
+
+    //Read pointing data
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
 
+
     deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
 
 
-    data[ii] = data[ii] - Ps[marge+ii];    
-
+    data[ii] = data[ii] - Ps[marge+ii];
 
     MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
-			 NORMLIN,NOFILLGAP);  
-    
-        
+			 NORMLIN,NOFILLGAP);
+
     for (ii=0;ii<ns;ii++)
       data[ii] = data_lp[ii]*apodwind[ii];
 
 
-
-
-    // compute fft and save data to disk for later    
+    // compute fft and save data to disk for later
     fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
     fftw_execute(fftplan);
     fftw_destroy_plan(fftplan);
 
-    sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",idet,"_",ff,"_",termin.c_str(),".bi");
+
+    sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"w");
     fwrite(fdata1,sizeof(double), (ns/2+1)*2, fp);
     fclose(fp);
 
 
-    
+
     /// compute sigma of the noise
     mm = 0.0;
     for (ii=ns/2;ii<ns/2+500;ii++) mm += data[ii];
@@ -3146,15 +2927,21 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     if (idet == 0) sign0 = sign[0];
     sign[idet] = sign[idet]/sign0;
 
-    
-    
+
+
     for (jj=0;jj<ncomp;jj++)
       for (ii=0;ii<ns;ii++)
 	commonm[jj][ii] += aa[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
 
   }
-  
+
+  for (jj=0; jj<ncomp; jj++)
+    for (ii= 0 ;ii<ns;ii++)
+      if ( isnan(commonm[jj][ii]) || isinf(commonm[jj][ii]) )
+	cout << "Something went wrong in the computation of the common mode " << ncomp << endl;
+
+
   //***************************************************************************
 
 
@@ -3163,7 +2950,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     for (kk=0;kk<ncomp;kk++)
       for (ii=0;ii<ndet;ii++)
 	Cov[jj][kk] += aa[ii][jj] * aa[ii][kk]/sign[ii]/sign[ii];
-  
+
 
   // invert AtN-1A
   dcholdc(Cov,ncomp,p);
@@ -3176,14 +2963,14 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
       iCov[ii][jj] = ivec[jj];
   }
 
-  
+
   for (ii=0;ii<ns;ii++)
     for (jj=0;jj<ncomp;jj++)
       for (kk=0;kk<ncomp;kk++)
 	commonm2[jj][ii] += iCov[jj][kk] * commonm[kk][ii];
-  
 
-  
+
+
   factapod = 0.0;
   for (ii=0;ii<ns;ii++)
     factapod += apodwind[ii]*apodwind[ii]/ns;
@@ -3198,7 +2985,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     for (jj=0;jj<ns;jj++)
       common_f[ii][jj] = commontmp[jj];                         //// - commonm_f[jj];
   }
-  
+
 
 
   //**************************************** Read pre-estimated power spectrum for reference
@@ -3217,113 +3004,97 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   fread(*SpN_all,sizeof(double), nbins*ndet, fp);
   fclose(fp);
   delete [] SpN;
-  //*****************************************	
- 
+  //*****************************************
+
+  //    printf("Inside EstimPowerSpectra after 1st step\n");
 
 
 
+//   ///////////////////////////////////// 2nd step: reestimate mixing matrix
 
-    sprintf(testfile,"%s%s%s%s",outdirSpN.c_str(),"testfile_",termin.c_str(),".txt");
-    fp = fopen(testfile,"a");
-    fprintf(fp,"Inside EstimPowerSpectra after 1st step\n");
-    fclose(fp);
-    
+//   for (ii=0;ii<ncomp;ii++)
+//     for (jj=0;jj<ncomp;jj++)
+//       Cov[ii][jj] = 0.0;
 
+//   for (ii=0;ii<ncomp;ii++)
+//     for (jj=0;jj<ndet;jj++)
+//       vect[ii][jj] = 0.0;
 
+//   for (idet=0;idet<ndet;idet++){
 
+//     // read data from disk
+//     field = bolonames[idet];
+//     read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
 
-
-  /*
-  ///////////////////////////////////// 2nd step: reestimate mixing matrix
-
-  for (ii=0;ii<ncomp;ii++)
-    for (jj=0;jj<ncomp;jj++)
-      Cov[ii][jj] = 0.0;
-
-  for (ii=0;ii<ncomp;ii++)
-    for (jj=0;jj<ndet;jj++)
-      vect[ii][jj] = 0.0;
+//     for (ii=0;ii<ncomp;ii++)
+//       for (jj=0;jj<ns;jj++)
+// 	vect[ii][idet] += common_f[ii][jj] * data[jj]*apodwind[jj];
 
 
-
-  for (idet=0;idet<ndet;idet++){
-
-    // read data from disk    
-    sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"data_",idet,"_",ff,"_",termin.c_str(),".bi");
-    fp = fopen(testfile,"r");
-    fread(data,sizeof(double), ns, fp);
-    fclose(fp);
-    
-    for (ii=0;ii<ncomp;ii++)
-      for (jj=0;jj<ns;jj++)
-	vect[ii][idet] += common_f[ii][jj] * data[jj]*apodwind[jj];
-  
-  
-    ///// measure power spectrum
-    noisepectrum_estim(data,ns,ell,nbins,fsamp,NULL,Nell,Nk);
-    
-      
-    ///// write power spectrum to disk
-    tempstr2 = bolonames[idet];
-    sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr2.c_str(),"-",tempstr2.c_str(),"_",ff,"exp.psd");
-    fp = fopen(nameSpfile,"w");
-    fprintf(fp,"%d\n",nbins);
-    for (ii=0;ii<nbins;ii++){
-      fprintf(fp,"%g\t",ell[ii]);
-      fprintf(fp,"%10.15g\n",Nell[ii]);
-    }
-    fprintf(fp,"%g\n",ell[nbins]);
-    fprintf(fp,"\n");
-    fclose(fp);
-
-    
-  }
-
-  
-  for (ii=0;ii<ncomp;ii++)
-    for (jj=0;jj<ncomp;jj++)
-      for (kk=0;kk<ns;kk++)
-	Cov[ii][jj] += common_f[ii][kk] * common_f[jj][kk];
-  
-
-  // invert AtN-1A
-  dcholdc(Cov,ncomp,p);
-  for (ii=0;ii<ncomp;ii++){
-    for (jj=0;jj<ncomp;jj++)
-      uvec[jj] = 0.0;
-    uvec[ii] = 1.0;
-    dcholsl(Cov,ncomp,p,uvec,ivec);
-    for (jj=0;jj<ncomp;jj++)
-      iCov2[ii][jj] = ivec[jj];
-  }
+//     ///// measure power spectrum
+//     noisepectrum_estim(data,ns,ell,nbins,fsamp,NULL,Nell,Nk);
 
 
-  //update mixing matrix
-  
-  for (ii=0;ii<ndet;ii++){
-    for (jj=0;jj<ncomp;jj++){
-      aa[ii][jj] = 0.0;
-      for (kk=0;kk<ncomp;kk++)
-	aa[ii][jj] += iCov2[jj][kk] * vect[kk][ii];
-    }
-  }
-  
+//     ///// write power spectrum to disk
+//     tempstr2 = bolonames[idet];
+//     sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr2.c_str(),"-",tempstr2.c_str(),"_",ff,"exp.psd");
+//     fp = fopen(nameSpfile,"w");
+//     fprintf(fp,"%d\n",nbins);
+//     for (ii=0;ii<nbins;ii++){
+//       fprintf(fp,"%g\t",ell[ii]);
+//       fprintf(fp,"%10.15g\n",Nell[ii]);
+//     }
+//     fprintf(fp,"%g\n",ell[nbins]);
+//     fprintf(fp,"\n");
+//     fclose(fp);
 
 
-  //////////////////////////////////////
-  // write new mixing parameters to disk
-  sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"MixMat_",ff,termin.c_str(),".txt");
-  fp = fopen(testfile,"w");
-  fprintf(fp,"%d \n",ncomp);
-  for (ii=0;ii<ndet;ii++){
-    for (jj=0;jj<ncomp;jj++){
-      fprintf(fp,"%lf \t",aa[ii][jj]);
-    }
-    fprintf(fp,"\n");
-  }
+//   }
+
+//   for (ii=0;ii<ncomp;ii++)
+//     for (jj=0;jj<ncomp;jj++)
+//       for (kk=0;kk<ns;kk++)
+// 	Cov[ii][jj] += common_f[ii][kk] * common_f[jj][kk];
 
 
-  */
+//   // invert AtN-1A
+//   dcholdc(Cov,ncomp,p);
+//   for (ii=0;ii<ncomp;ii++){
+//     for (jj=0;jj<ncomp;jj++)
+//       uvec[jj] = 0.0;
+//     uvec[ii] = 1.0;
+//     dcholsl(Cov,ncomp,p,uvec,ivec);
+//     for (jj=0;jj<ncomp;jj++)
+//       iCov2[ii][jj] = ivec[jj];
+//   }
+
+
+//   //update mixing matrix
+
+//   for (ii=0;ii<ndet;ii++){
+//     for (jj=0;jj<ncomp;jj++){
+//       aa[ii][jj] = 0.0;
+//       for (kk=0;kk<ncomp;kk++)
+// 	aa[ii][jj] += iCov2[jj][kk] * vect[kk][ii];
+//     }
+//   }
+
+
+
+//   //////////////////////////////////////
+//   // write new mixing parameters to disk
+//   sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"MixMat_",ff,termin.c_str(),".txt");
+//   fp = fopen(testfile,"w");
+//   fprintf(fp,"%d \n",ncomp);
+//   for (ii=0;ii<ndet;ii++){
+//     for (jj=0;jj<ncomp;jj++){
+//       fprintf(fp,"%lf \t",aa[ii][jj]);
+//     }
+//     fprintf(fp,"\n");
+//   }
+
+
+
 
 
 
@@ -3333,83 +3104,78 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   //************************************************************************//
   // second part: -- data - common mode
   //              -- estimate noise power spectra
-  
+
 
   /////////////////////////////////////// loop again over detectors
   for (idet=0;idet<ndet;idet++){
-    
+
     field = bolonames[idet];
-    
-    
-    read_data(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
-    
-    if (fextension != "NOFLAG"){	  
-      read_data(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
+
+
+    read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
+
+    if (fextension != "NOFLAG"){
+      read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
     } else {
-      printf("NOFLAG\n");
+      //      printf("NOFLAG\n");
       for (ii=0;ii<ns;ii++)
 	flag[ii] = 0;
-    }    
-    
+    }
+
     if (cextension != "NOCALP"){
-      read_data(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
+      read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
     } else {
-      printf("NOCALP\n");
+      //      printf("NOCALP\n");
       for (ii=0;ii<ns/20;ii++)
 	calp[ii] = 1.0;
     }
-    
 
-    
-    //******************************* subtract signal      
 
-    //Read pointing data	
+
+    //******************************* subtract signal
+
+    //Read pointing data
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
-    
+
     deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
-      
-
-    data[ii] = data[ii] - Ps[marge+ii];    
 
 
+    data[ii] = data[ii] - Ps[marge+ii];
 
-    
+
+
+
     MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
-			 NORMLIN,NOFILLGAP);  
-    
-    
-    
+			 NORMLIN,NOFILLGAP);
+
+
+
     for (ii=0;ii<ns;ii++)
       data[ii] = data_lp[ii] * apodwind[ii];
-    
-    
-    
+
+
     // Subtract components
     for (ii=0;ii<ns;ii++)
       for (jj=0;jj<ncomp;jj++)
 	data[ii] -= aa[idet][jj]*common_f[jj][ii];
-    
 
-    
-    //Noise power spectra  
-    
+
+    //Noise power spectra
+
     ///// measure power spectrum of the uncorrelated part of the noise
     noisepectrum_estim(data,ns,ell,nbins,fsamp,NULL,Nell,Nk);
-    
-    
-    
+
+
     for (ii=0;ii<nbins;ii++){
       Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod;
       N[idet][ii] = Nell[ii]/factapod;
     }
-    
-    
   }
-  
-  
+
+
 
 
   ////*********************** Component power spectra
@@ -3420,7 +3186,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     noisepectrum_estim(commontmp,ns,ell,nbins,fsamp,NULL,Nell,Nk);
     for (jj=0;jj<nbins;jj++)
       P[ii][jj] = Nell[jj]/factapod;
-    
+
     // subtract a factor to correct from noise
     //for (jj=0;jj<nbins;jj++)
     //  P[ii][jj] -= iCov[ii][ii]*sign0*sign0;
@@ -3429,21 +3195,21 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     //	P[ii][jj] = 0.0;
 
 
-    printf("iCov[%d] = %10.15g\n",ii,iCov[ii][ii]*sign0*sign0);    
+    printf("iCov[%d] = %10.15g\n",ii,iCov[ii][ii]*sign0*sign0);
 
-    
+
     sprintf(testfile,"%s%s%ld%s%ld%s%s%s",outdirSpN.c_str(),"Nellc_",ii,"_",ff,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"w");
     fwrite(Nell,sizeof(double), nbins, fp);
     fclose(fp);
-    
-    
+
+
   }
   printf("noise var det 0 =  %10.15g\n",sign0*sign0);
 
 
 
- 
+
   for (ii=0;ii<ndet;ii++)
     for (kk=0;kk<ndet;kk++)
       for (ll=0;ll<ncomp;ll++)
@@ -3458,46 +3224,49 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
   //************************************************************************//
   // third part: -- estimate the covariance matrix of the data R_exp
-  // 
+  //
 
-  
+
 
   /////////////////////////////////////// loop again over detectors
   for (idet1=0;idet1<ndet;idet1++){
 
-    // read data from disk    
-    sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",idet1,"_",ff,"_",termin.c_str(),".bi");
+    // read data from disk
+    sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet1,"_",termin.c_str(),".bi");
     fp = fopen(testfile,"r");
     fread(fdata1,sizeof(double), (ns/2+1)*2, fp);
     fclose(fp);
-    
-    
+
+
     for (idet2=0;idet2<ndet;idet2++) {
-      
-      // read data from disk    
-      sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",idet2,"_",ff,"_",termin.c_str(),".bi");
+
+      // read data from disk
+      sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet2,"_",termin.c_str(),".bi");
       fp = fopen(testfile,"r");
       fread(fdata2,sizeof(double), (ns/2+1)*2, fp);
       fclose(fp);
-    
+
 
       noisecrosspectrum_estim(fdata1,fdata2,ns,ell,nbins,fsamp,NULL,Nell,Nk);
 
 
       for (ii=0;ii<nbins;ii++)
 	Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod;
-    
+
     }
 
-    printf("Computing Rellexp, idet = %d\n",idet1);
+    cout << "Computing Rellexp :" << idet1*100./ndet << "%\r" << flush ;
 
   }
-
-
 
   ////// normalize to the first detector power spectrum in order to avoid numerical problems
   for (ii=0;ii<nbins;ii++)
     SPref[ii] = Rellexp[0][ii];
+
+  for (ii=0;ii<nbins;ii++)
+    if ( isnan(SPref[ii]) || isinf(SPref[ii]))
+      cout << " Problem in the first detector power spectrum\n";
+
   for (idet1=0;idet1<ndet;idet1++)
     for (idet2=0;idet2<ndet;idet2++)
       for (ii=0;ii<nbins;ii++)
@@ -3508,23 +3277,11 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   for (jj=0;jj<ndet;jj++)
     for (ii=0;ii<nbins;ii++)
       N[jj][ii] = N[jj][ii]/SPref[ii];
-  
-  
 
 
 
 
-
-
-
-    sprintf(testfile,"%s%s%s%s",outdirSpN.c_str(),"testfile_",termin.c_str(),".txt");
-    fp = fopen(testfile,"a");
-    fprintf(fp,"Before saving data to disk\n");
-    fclose(fp);
-    
-
-
-
+    printf("Before saving data to disk\n");
 
 
 
@@ -3537,36 +3294,46 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]);
   fprintf(fp,"\n");
   fclose(fp);
-  
-  sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ninit_",ff,termin.c_str(),".txt");
+
+  sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),ff,termin.c_str());
   fp = fopen(testfile,"w");
-  for (ii=0;ii<ndet;ii++)
+  for (ii=0;ii<ndet;ii++){
     for (jj=0;jj<nbins;jj++)
       fprintf(fp,"%10.15g \t",N[ii][jj]);
-  fprintf(fp,"\n");
-   fclose(fp);
+    fprintf(fp,"\n");
+  }
+  fclose(fp);
 
- 
-  
+  data1d = new double[ndet*nbins];
+  for (long i=0; i< ndet; i++)
+    for (long j=0; j<nbins; j++)
+      data1d[i*nbins+j] = N[i][j];
+
+  sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),ff,termin.c_str());
+  write_psd_tofits(testfile,ndet,nbins,'d', data1d);
+  delete [] data1d;
+
+
   sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",ff,termin.c_str(),".txt");
   fp = fopen(testfile,"w");
   for (ii=0;ii<ncomp;ii++)
     for (jj=0;jj<nbins;jj++)
-      fprintf(fp,"%10.15g \t",P[ii][jj]);  
+      fprintf(fp,"%10.15g \t",P[ii][jj]);
   fprintf(fp,"\n");
   fclose(fp);
-  
+
 
   sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",ff,termin.c_str(),".txt");
   fp = fopen(testfile,"w");
   for (ii=0;ii<ndet;ii++)
-    for (jj=0;jj<ncomp;jj++)
+    for (jj=0;jj<ncomp;jj++){
       fprintf(fp,"%10.15g \t",aa[ii][jj]);
-  fprintf(fp,"\n");
+      fprintf(fp,"\n");
+    }
   fclose(fp);
 
-  
-  
+
+
 
 
 
@@ -3575,7 +3342,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
   //***** Fourth part
   //*********************** fit component and noise power spectra, and mixing matrix *************//
-  //********* Using Expectation/Maximization algorithm   
+  //********* Using Expectation/Maximization algorithm
   long nbiter = 500;
   long iter;
 
@@ -3593,11 +3360,11 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     nbins2 = ib+1;
     ib++;
   }
-  
+
   /////// to be removed:
   //nbins2 = nbins;
 
-  printf("nbins2 = %d\n",nbins2);
+  printf("nbins2 = %d                \n",nbins2);
 
 
 
@@ -3636,14 +3403,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   fprintf(fp,"\n");
   fclose(fp);
 
-  
 
   f = fdsf(Rellexp,w,aa,P,N,ndet,ncomp,nbins2) ;
   printf("Pre em:   obj: %10.15g\n", f) ;
-  
-  
-  for (iter=1;iter<=nbiter;iter++){      
-    
+
+
+  for (iter=1;iter<=nbiter;iter++){
+
     init1D_double(iN,0,ndet,0.0);
     init1D_double(Pr,0,ncomp,0.0);
     init2D_double(Rxs,0,0,ndet,ncomp,0.0);
@@ -3666,9 +3432,9 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	iN[idet] = 1.0/N[idet][ib];
 
       for (idet1=0;idet1<ndet;idet1++)
-	for (idet2=0;idet2<ndet;idet2++)    
+	for (idet2=0;idet2<ndet;idet2++)
 	  Rxxq[idet1][idet2] = Rellexp[idet1*ndet + idet2][ib];
-      
+
       // Robust wrt Pq=0
       for (ii=0;ii<ncomp;ii++)
 	Pr[ii] = sqrt(P[ii][ib]);
@@ -3683,16 +3449,16 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (idet=0;idet<ndet;idet++)
 	    AiNA[ii][jj] += aa[idet][jj] * aa[idet][ii] * iN[idet];
 	}
-      
+
       for (ii=0;ii<ncomp;ii++){
 	for (jj=0;jj<ncomp;jj++)
 	  Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
 	Cov[ii][ii] += 1.0;
       }
 
-      
       // invert matrix
       dcholdc(Cov,ncomp,p);
+
       for (ii=0;ii<ncomp;ii++){
 	for (jj=0;jj<ncomp;jj++)
 	  uvec[jj] = 0.0;
@@ -3706,12 +3472,12 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
       for (ii=0;ii<ncomp;ii++)
 	for (jj=0;jj<ncomp;jj++)
 	  Cq[ii][jj] = Pr2[ii][jj] * iCov[ii][jj];
-      
+
       for (idet=0;idet<ndet;idet++)
 	for (ii=0;ii<ncomp;ii++){
-	  Wq[idet][ii] = 0.0; 
+	  Wq[idet][ii] = 0.0;
 	  for (jj=0;jj<ncomp;jj++)
-	    Wq[idet][ii] += aa[idet][jj] * iN[idet] *Cq[jj][ii] ;                              
+	    Wq[idet][ii] += aa[idet][jj] * iN[idet] *Cq[jj][ii] ;
 	}
       for (idet=0;idet<ndet;idet++)
 	for (ii=0;ii<ncomp;ii++){
@@ -3719,7 +3485,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (jj=0;jj<ndet;jj++)
 	    Rxsq[idet][ii] += Rxxq[idet][jj] * Wq[jj][ii];
 	}
-      
+
       for (kk=0;kk<ncomp;kk++)
 	for (ii=0;ii<ncomp;ii++){
 	  Rssq[kk][ii] = Cq[kk][ii];
@@ -3732,47 +3498,47 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  Rssq[ii][kk] = 0.5*(Rssq[ii][kk]+Rssq[kk][ii]);
 	  Rssq[kk][ii] = Rssq[ii][kk];
 	}
-      
-      
+
+
      // update power spectra
      for (ii=0;ii<ncomp;ii++)
        P[ii][ib] = abs(Rssq[ii][ii]);
-     
+
 
 
      for (ii=0;ii<ndet;ii++)
        for (jj=0;jj<ncomp;jj++)
 	 RnRxsb[ii][jj] += w[ib] * iN[ii]*Rxsq[ii][jj];
-     
+
 
 
      for (kk=0;kk<ncomp;kk++)
        for (ii=0;ii<ndet;ii++)
 	 for (jj=0;jj<ncomp;jj++)
-	   RnRssb[kk][jj+ii*ncomp] = RnRssb[kk][jj+ii*ncomp] + w[ib] * iN[ii] * Rssq[kk][jj] ;     
+	   RnRssb[kk][jj+ii*ncomp] = RnRssb[kk][jj+ii*ncomp] + w[ib] * iN[ii] * Rssq[kk][jj] ;
 
     }
 
 
 
-    // update mixing matrix           
+    // update mixing matrix
     for (idet=0;idet<ndet;idet++){
-      
+
       for (ii=0;ii<ncomp;ii++){
 	uvec[ii] = RnRxsb[idet][ii];
 	for (jj=0;jj<ncomp;jj++)
 	  Cov[ii][jj] = RnRssb[ii][jj+idet*ncomp];
       }
-      
-      // solving the linear system 
+
+      // solving the linear system
       dcholdc(Cov,ncomp,p);
       dcholsl(Cov,ncomp,p,uvec,ivec);
       for (ii=0;ii<ncomp;ii++)
-	aa[idet][ii] = ivec[ii]; 
+	aa[idet][ii] = ivec[ii];
     }
 
 
-       
+
     // EM Step with respect to N, with the new values of A and P
     for (ib=0;ib<nbins2;ib++){
 
@@ -3780,9 +3546,9 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	iN[idet] = 1.0/N[idet][ib];
 
       for (idet1=0;idet1<ndet;idet1++)
-	for (idet2=0;idet2<ndet;idet2++)    
+	for (idet2=0;idet2<ndet;idet2++)
 	  Rxxq[idet1][idet2] = Rellexp[idet1*ndet + idet2][ib];
-      
+
       // Robust wrt Pq=0
       for (ii=0;ii<ncomp;ii++)
 	Pr[ii] = sqrt(P[ii][ib]);
@@ -3797,13 +3563,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (idet=0;idet<ndet;idet++)
 	    AiNA[ii][jj] += aa[idet][jj] * aa[idet][ii] * iN[idet];
 	}
-      
+
       for (ii=0;ii<ncomp;ii++){
 	for (jj=0;jj<ncomp;jj++)
 	  Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
 	Cov[ii][ii] += 1.0;
-      }  
-      
+      }
+
 
 
       // invert matrix
@@ -3817,7 +3583,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  iCov[ii][jj] = ivec[jj];
       }
 
-      
+
       for (ii=0;ii<ncomp;ii++)
 	for (jj=0;jj<ncomp;jj++)
 	  Cq[ii][jj] = Pr2[ii][jj] * iCov[ii][jj];
@@ -3828,7 +3594,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (jj=0;jj<ncomp;jj++)
 	    ACq[idet][ii] += aa[idet][jj]*Cq[jj][ii];
 	}
-      
+
       for (idet=0;idet<ndet;idet++)
 	for (jj=0;jj<ndet;jj++){
 	  ImDR[jj][idet] = 0.0;
@@ -3837,7 +3603,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (ii=0;ii<ncomp;ii++)
 	    ImDR[jj][idet] -= ACq[jj][ii]*iN[idet]*aa[idet][ii] ;
 	}
-      
+
 
       for (idet=0;idet<ndet;idet++)
 	for (ii=0;ii<ndet;ii++){
@@ -3845,7 +3611,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	  for (jj=0;jj<ndet;jj++)
 	    Mattmp[idet][ii] += Rellexp[idet+jj*ndet][ib] * ImDR[ii][jj];
 	}
-      
+
       for (idet=0;idet<ndet;idet++){
 	N[idet][ib] = 0.0;
 	for (ii=0;ii<ndet;ii++)
@@ -3859,11 +3625,11 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	}
 	N[idet][ib] = abs(N[idet][ib]);
       }
-      
-      
+
+
     }
-    
-    
+
+
     tottest = 0.0;
     for (ib=0;ib<nbins2;ib++){
       for (idet=0;idet<ndet;idet++)
@@ -3872,51 +3638,55 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	if (N[idet][ib] < tottest*1e-8)
 	  N[idet][ib] = tottest*1e-8;
     }
-    
-   
-    
-    
-    //printf("A[1][2] =  %10.15g\n", aa[1][2]) ;    
+
+
+
+
+    //printf("A[1][2] =  %10.15g\n", aa[1][2]) ;
     //printf("N[2][3] =  %10.15g\n", N[2][3]) ;
     //printf("P[2][3] =  %10.15g\n", P[2][3]) ;
 
- 
-    // Fixing the indeterminacies.  Is it useful here?  
-    //rescaleAP(aa, P, ndet, ncomp, nbins2) ; 
-    
-    
-    
+
+    // Fixing the indeterminacies.  Is it useful here?
+    //    rescaleAP(aa, P, ndet, ncomp, nbins2) ;
+
+
+
     ///// here is the problem
 
     f = fdsf(Rellexp,w,aa,P,N,ndet,ncomp,nbins2) ;
-    printf("em->iter: %5ld   obj: %10.15g\n", iter, f) ;
-    
-    
+    cout << "em->iter: " << iter*100./nbiter << " %\r" << flush;
+    if (isnan(f) || isinf(f)) {
+      cout << "Nan........." << endl;
+      exit(1);
+    }
+
+
   }
-  
-  
-  // Fixing the indeterminacies.  Is it useful here?  
-  rescaleAP(aa, P, ndet, ncomp, nbins2) ; 
-  
+
+
+  // Fixing the indeterminacies.  Is it useful here?
+  rescaleAP(aa, P, ndet, ncomp, nbins2) ;
+
 
 
 
   //****************************** Compute covariance matrix from the fitted model
 
-  
+
   printf("EM step completed\n");
 
 
   for (jj=0;jj<nbins;jj++)
     for (ii=0;ii<ndet*ndet;ii++)
       Rellth[ii][jj] = 0.0;
-  
+
   for (jj=0;jj<nbins2;jj++){
     for (idet=0;idet<ndet;idet++){
       Rellth[idet*ndet+idet][jj] += N[idet][jj]*SPref[jj];
       for (ii=0;ii<ndet;ii++)
 	for (ll=0;ll<ncomp;ll++)
-	  Rellth[idet*ndet+ii][jj] += aa[idet][ll] * aa[ii][ll] * P[ll][jj]*SPref[jj];      
+	  Rellth[idet*ndet+ii][jj] += aa[idet][ll] * aa[ii][ll] * P[ll][jj]*SPref[jj];
     }
   }
 
@@ -3925,17 +3695,17 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     for (jj=nbins2;jj<nbins;jj++)
       for (idet=0;idet<ndet;idet++)
 	Rellth[idet*ndet+idet][jj] = Rellexp[idet*ndet+idet][jj]*SPref[jj];
-  
-							   
+
+
 
   //*****************  Write power spectra to disk  ********************//
 
 
-  sprintf(nameSpfile,"%s%s%s%s",outdirSpN.c_str(),"BoloPS",termin.c_str(),".psd");
-  fp = fopen(nameSpfile,"w");  
+  sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",ff,termin.c_str(),".psd");
+  fp = fopen(nameSpfile,"w");
   for (idet1=0;idet1<ndet;idet1++){
     for (idet2=0;idet2<ndet;idet2++){
-      
+
       ///// write power spectrum to disk
       tempstr1 = bolonames[idet1];
       tempstr2 = bolonames[idet2];
@@ -3954,15 +3724,34 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   }
   fclose(fp);
 
+  // New format for output of power spectra
+
+  sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",ff,termin.c_str(),"_binary.psd");
+  fp = fopen(nameSpfile,"w");
+  fwrite(&ndet,sizeof(long),1,fp);
+  fwrite(&nbins,sizeof(long),1,fp);
+  fwrite(ell,sizeof(double),nbins+1,fp);
+  for (idet1=0;idet1<ndet;idet1++)
+    for (idet2=0;idet2<ndet;idet2++)
+      for (ii=0;ii<nbins; ii++)
+	fwrite(&Rellth[idet1*ndet+idet2][ii],sizeof(double),1,fp);
+  fclose(fp);
+
+  // write ell
+  sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ell_",ff,termin.c_str(),".psd");
+  fp = fopen(nameSpfile,"w");
+  for (ii=0;ii<nbins;ii++){
+    fprintf(fp,"%g\n",ell[ii]);
+  }
+  fclose(fp);
 
 
-  
-  sprintf(nameSpfile,"%s%s%s%s",outdirSpN.c_str(),"BoloPS",termin.c_str(),"_exp.psd");
-  fp = fopen(nameSpfile,"w");  
-  
+  sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",ff,termin.c_str(),"_exp.psd");
+  fp = fopen(nameSpfile,"w");
+
   for (idet1=0;idet1<ndet;idet1++){
     for (idet2=0;idet2<ndet;idet2++){
-      
+
       ///// write power spectrum to disk
       tempstr1 = bolonames[idet1];
       tempstr2 = bolonames[idet2];
@@ -3991,7 +3780,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   fprintf(fp,"\n");
   fclose(fp);
 
-  
+
 
   //**************** Write component power spectra to disk
   for (idet1=0;idet1<ndet;idet1++){
@@ -4008,8 +3797,20 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     fprintf(fp,"\n");
     fclose(fp);
   }
+
+  data1d = new double[ndet*nbins];
+  for (long i=0; i< ndet; i++)
+    for (long j=0; j<nbins; j++)
+      data1d[i*nbins+j] = N[i][j]*SPref[j];
+
+  sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),ff,termin.c_str());
+  write_psd_tofits(testfile,nbins,ndet,'d',data1d);
+  delete [] data1d;
+
+
+
   for (jj=0;jj<ncomp;jj++){
-    
+
     sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
     fp = fopen(nameSpfile,"w");
     //fprintf(fp,"%d\n",nbins);
@@ -4021,11 +3822,19 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     fprintf(fp,"\n");
     fclose(fp);
   }
-  
-  
-  
 
-  
+  data1d = new double[ncomp*nbins];
+  for (long i=0; i< ncomp; i++)
+    for (long j=0; j<nbins; j++)
+      data1d[i*nbins+j] = P[i][j]*SPref[j];
+
+  sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),ff,termin.c_str());
+  write_psd_tofits(testfile,nbins,ncomp,'d',data1d);
+  delete [] data1d;
+
+
+
+
   delete [] data;
   delete [] data_lp;
   delete [] fdata1;
@@ -4055,7 +3864,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
   free_dmatrix(vect,0,ncomp-1,0,ndet-1);
   delete [] Nk;
   delete [] ell;
-  free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);  
+  free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
   free_dmatrix(P,0,ncomp-1,0,nbins-1);
   free_dmatrix(N,0,ndet-1,0,nbins-1);
   delete [] iN;
@@ -4089,7 +3898,7 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
   double f;
 
   long ib, ii, jj, kk;
-  double triRhR, detiR;
+  double triRhR, logdetiR;
 
   double *p, *uvec, *ivec;
   double *Pl, *Pnl;
@@ -4098,16 +3907,16 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
   p = new double[ndet];
   uvec = new double[ndet];
   ivec = new double[ndet];
-  
+
   Pl   = new double[ncomp] ;
-  Pnl  = new double[ndet] ;  
+  Pnl  = new double[ndet] ;
   R  = dma(0,ndet-1,0,ndet-1);
   hR = dma(0,ndet-1,0,ndet-1);
   eR = dma(0,ndet-1,0,ndet-1);
   iR = dma(0,ndet-1,0,ndet-1);
   iRhR = dma(0,ndet-1,0,ndet-1);
-  
-  
+
+
   init2D_double(R,0,0,ndet,ndet,0.0);
   init2D_double(hR,0,0,ndet,ndet,0.0);
   init2D_double(eR,0,0,ndet,ndet,0.0);
@@ -4115,11 +3924,11 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
   init1D_double(Pl,0,ncomp,0.0);
   init1D_double(Pnl,0,ndet,0.0);
   init2D_double(iRhR,0,0,ndet,ndet,0.0);
-  
-  
+
+
   // init
   f   = 0. ;
-  
+
   for (ib=0;ib<nbins;ib++){
 
     //// reading Rexp
@@ -4142,7 +3951,7 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
       }
 
 
-    //printf("ib=%d\n",ib);    
+    //printf("ib=%d\n",ib);
     /// inverting Rth
     for (ii=0;ii<ndet;ii++)
       for (jj=0;jj<ndet;jj++)
@@ -4156,7 +3965,7 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
       for (jj=0;jj<ndet;jj++)
 	iR[ii][jj] = ivec[jj];
     }
-    // printf("ib=%d\n",ib);    
+    // printf("ib=%d\n",ib);
 
 
     /// computing mismatch from Rexp and Rth
@@ -4166,18 +3975,19 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	for (kk=0;kk<ndet;kk++)
 	  iRhR[ii][jj] += iR[ii][kk]*hR[kk][jj] ;
       }
-    
+
+
     triRhR = 0.0;
-    detiR = 1.0;
+    logdetiR = 0;
     for (ii=0;ii<ndet;ii++){
+      //      cout << ii << " " << iRhR[ii][ii] << " , " << p[ii] << " : " << triRhR << " , " << detiR << endl;
       triRhR += iRhR[ii][ii];
-      detiR *= 1./(p[ii]*p[ii]);
+      logdetiR -= log(p[ii]*p[ii]);
     }
 
 
   //f   +=  w[ib] * ( triRhR - log(det(iRhR)) - ndet ) ;
-    f   +=  w[ib] * (triRhR - log(detiR) - ndet ) ; //pb when hR non inversible
-
+    f   +=  w[ib] * (triRhR - logdetiR - ndet ) ; //pb when hR non inversible
 
   }
 
@@ -4186,14 +3996,14 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
   delete [] uvec;
   delete [] ivec;
   delete [] Pl;
-  delete [] Pnl;  
-  
+  delete [] Pnl;
+
   free_dmatrix(R,0,ndet-1,0,ndet-1);
   free_dmatrix(hR,0,ndet-1,0,ndet-1);
   free_dmatrix(eR,0,ndet-1,0,ndet-1);
   free_dmatrix(iR,0,ndet-1,0,ndet-1);
   free_dmatrix(iRhR,0,ndet-1,0,ndet-1);
- 
+
 
   return f;
 
@@ -4206,20 +4016,20 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 
 void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
-  
+
   long ii, jj, ib;
   double *norm2ratio;
-  
+
   norm2ratio = new double[ncomp];
-  
+
   init1D_double(norm2ratio,0,ncomp,0.0);
-  
+
   for (ii=0;ii<ncomp;ii++){
     for (jj=0;jj<ndet;jj++)
       norm2ratio[ii] += A[jj][ii] * A[jj][ii];
     norm2ratio[ii] = 1.0/norm2ratio[ii];
   }
-  
+
   for (ii=0;ii<ncomp;ii++){
     for (jj=0;jj<ndet;jj++)
       A[jj][ii] = A[jj][ii] * sqrt(norm2ratio[ii]) ;
@@ -4229,4 +4039,4 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 
   delete [] norm2ratio;
 
-}
+}

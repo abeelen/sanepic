@@ -5,7 +5,7 @@
 #include <cmath>
 #include <string>
 //#include <matpack/matpack.h>
-#include <getdata.h>
+// #include <getdata.h>
 //#include "/fir_data/patanch/numrec/inc/nrutil.h"
 
 #include <fcntl.h>
@@ -127,4 +127,4 @@ void minmax(double* data, int ndata, double *min, double *max, int *posmin, int 
 
 
 
-#endif
+#endif

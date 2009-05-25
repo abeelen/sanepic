@@ -149,7 +149,7 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
 
 
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
-			 double *offsets, int ns, int *xx, int *yy, int *nn, 
+			 double *offsets, int ns, int *xx, int *yy, int *nn,
 			 double *coordscorner, double *tancoord, double *tanpix,
 			 bool fixcoord, double radius, double *offmap, double *radecsrc)
 {
@@ -163,7 +163,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
   double offxx, offyy, ra0, dec0, ra00, dec00;
   int temp1, temp2;
   double dummy1, dummy2;
- 
+
 
   double degtorad =  M_PI/180.0;
 
@@ -185,22 +185,22 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
       - sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[1] + offmap[0];
     offyy = sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[0]
       + cos((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[1] + offmap[1];
-    
+
     xm = offxx/pixdeg;
     ym = offyy/pixdeg;
-    
+
     slaDtp2s ( -xm*dl_rad, ym*dl_rad, ra[ii]/12.0*M_PI, dec[ii]/180.0*M_PI, &ra_rad, &dec_rad );
     ra_bolo[ii] = ra_rad*12.0/M_PI;
     dec_bolo[ii] = dec_rad*180.0/M_PI;
   }
 
 
-  
+
   // find coordinates min and max
   minmax(ra_bolo, ns, &ra_min, &ra_max, &temp1, &temp2, NULL);
   minmax(dec_bolo, ns, &dec_min, &dec_max, &temp1, &temp2, NULL);
 
- 
+
 
   /// add a small interval of 2 arcmin
   ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
@@ -208,7 +208,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
   dec_min = dec_min - 2.0/60.0;
   dec_max = dec_max + 2.0/60.0;
 
-  
+
 
   ///////// save or read coordinates of the box
   if ((coordscorner != NULL) && (fixcoord == 0)){
@@ -217,19 +217,19 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
     coordscorner[2] = dec_min;
     coordscorner[3] = dec_max;
   }
-  
+
   if (fixcoord){
     ra_min = coordscorner[0];
     ra_max = coordscorner[1];
     dec_min = coordscorner[2];
     dec_max = coordscorner[3];
-  } 
+  }
 
-  
-  // define tangent point 
+
+  // define tangent point
   dec_mean = (dec_max+dec_min)/2.0/180.0 * M_PI;
   ra_mean = (ra_max+ra_min)/2.0/12.0 * M_PI;
-  
+
 
 
   // calculate the size of the map if necessary
@@ -239,7 +239,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
     for (ii=int(ra_min/12.0*180.0/stepb);ii<int(ra_max/12.0*180.0/stepb);ii++){
       for (jj=int(dec_min/stepb);jj<int(dec_max/stepb);jj++){
 	slaDs2tp ((double)ii/180.0*M_PI*stepb,(double)jj/180.0*M_PI*stepb,ra_mean,dec_mean,&ix   ,&iy  ,&j);
-	
+
 	if (fabs(ix)/dl_rad > nnf/2.0)
 	  nnf = (2.0*fabs(ix))/dl_rad;
 	if (fabs(iy)/dl_rad > nnf/2.0)
@@ -251,7 +251,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
   } else {
     *nn = int(radius*2.0/pixdeg) + 1;
   }
-  
+
 
 
   ///// in case telescope coordinates
@@ -270,7 +270,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
     tanpix[1] = (int)pixsrc[1] + 1;// + 0.5;
 
   }
- 
+
 
 
   ////////////////////////////////////////////////////////////////////
@@ -279,7 +279,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 
 
  for (ii=0;ii<ns;ii++){
-    
+
     ra_rad = ra[ii]/12.0 * M_PI;
     dec_rad = dec[ii]/180.0 * M_PI;
 
@@ -288,7 +288,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
     sinphi = sin(phi[ii]*degtorad);
     cosphi_phas = cos((phi[ii]-ang_sc2array)*degtorad);
     sinphi_phas = sin((phi[ii]-ang_sc2array)*degtorad);
-    
+
     offxx = cosphi_phas*offsets[0] - sinphi_phas*offsets[1] + offmap[0];
     offyy = sinphi_phas*offsets[0] + cosphi_phas*offsets[1] + offmap[1];
 
@@ -326,8 +326,8 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
   slaDtp2s (0.0, double(*nn)*dl_rad - dummy1, ra_mean, dec_mean, &ra00, &dec00 );
   slaDtp2s (-dummy1,0.0, ra_mean, dec_mean, &ra0, &dummy2 );
   slaDtp2s (double(*nn)*dl_rad - dummy1,0.0, ra_mean, dec_mean, &ra00, &dummy2 );
- 
-  
+
+
   ra0 = ra0*12.0/M_PI;
   dec0 = dec0*180.0/M_PI;
   ra00 = ra00*12.0/M_PI;
@@ -343,7 +343,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
     tanpix[0] = (int)(double(*nn)/2.0) + 1;// + 0.5;
     tanpix[1] = tanpix[0];
   }
-  
+
 
 
 
@@ -352,7 +352,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
   delete[] ra_bolo;
   delete[] dec_bolo;
   delete[] pixsrc;
-  
+
 }
 
 
@@ -378,7 +378,7 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
   }
 
   // cerr << "reproj here1?\n";
-  
+
   for (ii=0;ii<ns;ii++){
     if (ii == 137909) cerr << ii << ", " << ns << endl;
     if ((flag == NULL) || ((flag[ii] & 1) == 0)){
@@ -395,12 +395,12 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
     }
   }
   //cerr << "reproj here2?\n";
-  
+
   for (ii=0;ii<nn;ii++){
     for (jj=0;jj<nn;jj++){
       if (count[ii][jj]-0.5 > 0)
 	map[ii][jj] = -map[ii][jj]/count[ii][jj];
-      if (count_f[ii][jj]-0.5 > 0)      
+      if (count_f[ii][jj]-0.5 > 0)
 	map_f[ii][jj] = -map_f[ii][jj]/count_f[ii][jj];
     }
   }
@@ -416,9 +416,9 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
 		   long *indpix, long *samptopix, int npix, double *PNd){
-  
+
   long ii, k, ll;
-  
+
   double *Nd;
   fftw_complex  *fdata, *Ndf;
   fftw_plan fftplan;
@@ -439,12 +439,12 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
     Ndf[k][0] = fdata[k][0]/Nk[k]/(double)ndata/(double)ndata;
     Ndf[k][1] = fdata[k][1]/Nk[k]/(double)ndata/(double)ndata;
   }
-  
+
 
   fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
   fftw_execute(fftplan);
   fftw_destroy_plan(fftplan);
-    
+
 
 
   //for (ii=-marge;ii<ndata-marge;ii++){
@@ -470,7 +470,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
   //   }
   // }
   //}
-  
+
 
 
 
@@ -481,7 +481,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
       PNd[indpix[samptopix[ii]]] += Nd[ii+marge];
     }
   }
-  
+
 
 
 
@@ -489,7 +489,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
   delete [] fdata;
   delete [] Nd;
 
-  
+
 }
 
 
@@ -501,36 +501,36 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
 void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 		   long ndata, long marge, int *xx, int *yy, int nn,
 		   long *indpix, int npix, double *PNd){
-  
+
   long ii, k, ll;
-  
+
   double *Nd;
   fftw_complex  *fdata, *Ndf;
   fftw_plan fftplan;
-  
+
   fdata = new fftw_complex[ndata/2+1];
   Ndf = new fftw_complex[ndata/2+1];
   Nd = new double[ndata];
 
 
-  
+
   //Fourier transform of the data
   fftplan = fftw_plan_dft_r2c_1d(ndata, data, fdata, FFTW_ESTIMATE);
   fftw_execute(fftplan);
   fftw_destroy_plan(fftplan);
-    
-  
+
+
   for (k=0;k<ndata/2+1;k++){
     Ndf[k][0] = fdata[k][0]*Nk[k];
     Ndf[k][1] = fdata[k][1]*Nk[k];
   }
-  
+
   fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
   fftw_execute(fftplan);
   fftw_destroy_plan(fftplan);
-  
-  
-  
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       PNd[npix-2] += Nd[ii+marge];
@@ -538,7 +538,7 @@ void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, uns
       if (rejectsamp[ii] == 0){
 	if (binsamp[ii] == 1){
 	  PNd[npix-2] += Nd[ii+marge];
-	} else {	
+	} else {
 	  ll = indpix[yy[ii]*nn + xx[ii]];
 	  PNd[ll] += Nd[ii+marge];
 	}
@@ -547,12 +547,12 @@ void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, uns
       }
     }
   }
-  
+
   delete [] Ndf;
   delete [] fdata;
   delete [] Nd;
 
-  
+
 }
 
 
@@ -563,9 +563,9 @@ void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, uns
 void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 		   long ndata, long marge, int *xx, int *yy, int nn,
 		   long *indpix, int npix, double *PNd){
-  
+
   long ii, k, ll;
-  
+
   double *Nd;
   fftw_complex *Ndf;
   fftw_plan fftplan;
@@ -574,19 +574,19 @@ void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejec
   Ndf = new fftw_complex[ndata/2+1];
   Nd = new double[ndata];
 
-  
+
   for (k=0;k<ndata/2+1;k++){
     Ndf[k][0] = fdata[k][0]*Nk[k];
     Ndf[k][1] = fdata[k][1]*Nk[k];
   }
-  
+
   fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
   fftw_execute(fftplan);
   fftw_destroy_plan(fftplan);
-  
-  
 
-  
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       PNd[npix-2] += Nd[ii+marge];
@@ -594,7 +594,7 @@ void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejec
       if (rejectsamp[ii] == 0){
 	if (binsamp[ii] == 1){
 	  PNd[npix-2] += Nd[ii+marge];
-	} else {	
+	} else {
 	  ll = indpix[yy[ii]*nn + xx[ii]];
 	  PNd[ll] += Nd[ii+marge];
 	}
@@ -603,11 +603,11 @@ void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejec
       }
     }
   }
-  
+
   delete [] Ndf;
   delete [] Nd;
 
-  
+
 }
 
 
@@ -620,24 +620,24 @@ void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejec
 void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
 		  long marge, int *xx, int *yy, int nn, long *indpix,
 		  int npix, double f_lppix, double *PtNP){
-  
-  
+
+
   long ii, k, jj, kk, ll, ll2, indPtNP;
   int *pixpos;
   long *jj_sqr;
-  
 
-  //fft stuff  
+
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new int[ndata];
   jj_sqr = new long[npix];
-  
-  
+
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = 1.0/Nk[k]/(double)ndata/(double)ndata;
@@ -645,10 +645,10 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
 
-  
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       pixpos[ii+marge] = npix-2;
@@ -665,13 +665,13 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
       }
     }
   }
-  
-  
+
+
   for (ii=0;ii<npix;ii++)
     jj_sqr[ii] = ii*(ii+1)/2;
-  
 
-  
+
+
   for (ii=0;ii<ndata;ii++){
     ll = pixpos[ii];
     ll2 = ll*(ll+1)/2;
@@ -683,7 +683,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 	  indPtNP = jj*(jj+1)/2 + ll;
 	  //indPtNP = jj_sqr[jj] + ll;
 	}else{
-	  indPtNP = ll2 + jj;	
+	  indPtNP = ll2 + jj;
 	}
 	PtNP[indPtNP] += N_[ii-kk];
 	//if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
@@ -693,8 +693,8 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
     if ((ii % 20000) == 0)
       printf("%lf \n",pow((double)ii/double(ndata),2));
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -702,9 +702,9 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
-  
+
+
+
 }
 
 
@@ -716,8 +716,8 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
 		  long marge, int *xx, int *yy, int nn, long *indpix,
 		  int npix, double f_lppix, double *PtNP, int nfrac, int ifrac){
-  
-  
+
+
   long ii, k, jj, kk, ll, ii2, indPtNP;
   long *pixpos;
   long *jj_sqr;
@@ -730,18 +730,18 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
   long indmax = (ifrac+1)*npix/nfrac;
 
 
-  //fft stuff  
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
-  jj_sqr = new long[npix];    
+  jj_sqr = new long[npix];
   pixtosamp_select = new long[ndata];
 
-  
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = 1.0/Nk[k]/(double)ndata/(double)ndata;
@@ -749,12 +749,12 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
 
- 
 
-  
+
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       pixpos[ii+marge] = npix-2;
@@ -771,11 +771,11 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
       }
     }
   }
-  
-  
+
+
   for (ii=0;ii<npix;ii++)
     jj_sqr[ii] = ii*(ii+1)/2;
-  
+
 
 
 
@@ -787,28 +787,28 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
       count++;
     }
   }
-  
 
-  
+
+
   ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
-  
+
   for (ii=0;ii<count;ii++){
     ii2 = pixtosamp_select[ii];
     ll = pixpos[ii2]-indmin;
     if (ll > indmax-indmin)
       printf("ALERT ll = %ld\n",ll);
-    for (kk=MAX(ii2-ndataf,0);kk<MIN(ii2+ndataf,ndata);kk++){ //MIN(ii2+(ndata)/MAX(2,int(f_lppix+0.5)),ndata);kk++){   
+    for (kk=MAX(ii2-ndataf,0);kk<MIN(ii2+ndataf,ndata);kk++){ //MIN(ii2+(ndata)/MAX(2,int(f_lppix+0.5)),ndata);kk++){
       jj = pixpos[kk];
       indPtNP = ll*npix + jj;
       PtNP[indPtNP] += N_[abs(ii2-kk)];
     }
-    
+
     if ((int((double)ii/(double)count*(double)ndata) % 20000) == 0)
       printf("%lf \n",(double)ii/double(count));
   }
-  
-  
-  
+
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -818,8 +818,8 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
+
+
 
 }
 
@@ -833,25 +833,25 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
 void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 		      long marge, int nn, long *indpix,
 		      int npix, double f_lppix, double *dPtNP){
-  
-  
+
+
   long ii, k, kk, kk2, ipix, ii2, ndataf;
   long *pixpos;
   long count, count_;
   long *pixtosamp;
 
 
-  //fft stuff  
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
   //pixtosamp = new long[ndata];
 
-  
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = 1.0/abs(Nk[k])/(double)ndata/(double)ndata;
@@ -859,8 +859,8 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
+
+
 
 
 
@@ -871,7 +871,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
       pixpos[ii+marge] = indpix[samptopix[ii]];
     }
   }
-  
+
 
 
   data_compare = new long[ndata];
@@ -881,7 +881,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
   for (ii=0;ii<ndata;ii++)
     pixtosamp[ii] = ii;
-  
+
   for (ii=0;ii<ndata;ii++)
     data_compare[ii] = pixpos[ii];
 
@@ -891,18 +891,18 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
   qsort(data_compare,ndata,sizeof(long),compare_long);
 
 
-  
+
   ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
   count = 0;
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
- 
+
     if (count-count_ > 0){
       for (ii=count_;ii<count;ii++){
 	ii2 = pixtosamp[ii];
@@ -915,12 +915,12 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 	    if (abs(kk2-ii2) < ndataf)
 	      dPtNP[ipix] += N_[abs(ii2-kk2)];
 	  }
-	}	
+	}
       }
     }
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -930,8 +930,8 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
+
+
 }
 
 
@@ -942,25 +942,25 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 			  long marge, int nn, long *indpix,
 			  int npix, double f_lppix, double *dPtNP){
-  
-  
+
+
   long ii, k, kk, kk2, ipix, ii2, ndataf;
   long *pixpos;
   long count, count_;
   long *pixtosamp;
 
 
-  //fft stuff  
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
 
 
-  
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = abs(Nk[k]);
@@ -968,7 +968,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
+
 
 
 
@@ -979,9 +979,9 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
       pixpos[ii+marge] = indpix[samptopix[ii]];
     }
   }
-  
 
-  
+
+
 
   data_compare = new long[ndata];
   pixtosamp = new long[ndata];
@@ -990,7 +990,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
   for (ii=0;ii<ndata;ii++)
     pixtosamp[ii] = ii;
-  
+
   for (ii=0;ii<ndata;ii++)
     data_compare[ii] = pixpos[ii];
 
@@ -1000,18 +1000,18 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
   qsort(data_compare,ndata,sizeof(long),compare_long);
 
 
-  
+
   ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
   count = 0;
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
- 
+
     if (count-count_ > 0){
       for (ii=count_;ii<count;ii++){
 	ii2 = pixtosamp[ii];
@@ -1024,12 +1024,12 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 	    if (abs(kk2-ii2) < ndataf)
 	      dPtNP[ipix] += N_[abs(ii2-kk2)];
 	  }
-	}	
+	}
       }
     }
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -1039,8 +1039,8 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
+
+
 }
 
 
@@ -1050,25 +1050,25 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 			      unsigned char *rejectsamp, unsigned char *binsamp,
 			      long ndata, long marge, int *xx, int *yy, int nn,
 			      long *indpix, int npix, double f_lppix, double *dPtNP){
-  
-  
+
+
   long ii, k, kk, kk2, ipix, ii2, ndataf;
   long *pixpos;
   long count, count_;
   long *pixtosamp;
 
 
-  //fft stuff  
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
   //pixtosamp = new long[ndata];
 
-  
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = abs(Nk[k]);
@@ -1076,12 +1076,12 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
 
- 
 
-  
+
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       pixpos[ii+marge] = npix-2;
@@ -1103,7 +1103,7 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
       }
     }
   }
-  
+
 
   data_compare = new long[ndata];
   pixtosamp = new long[ndata];
@@ -1112,7 +1112,7 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 
   for (ii=0;ii<ndata;ii++)
     pixtosamp[ii] = ii;
-  
+
   for (ii=0;ii<ndata;ii++)
     data_compare[ii] = pixpos[ii];
 
@@ -1122,7 +1122,7 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
   qsort(data_compare,ndata,sizeof(long),compare_long);
 
 
-  
+
   ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
   count = 0;
@@ -1133,12 +1133,12 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
- 
+
     if (count-count_ > 0){
       for (ii=count_;ii<count;ii++){
 	ii2 = pixtosamp[ii];
@@ -1151,12 +1151,12 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 	    if (abs(kk2-ii2) < ndataf)
 	      dPtNP[ipix] += N_[abs(ii2-kk2)];
 	  }
-	}	
+	}
       }
     }
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -1166,15 +1166,15 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
+
+
 }
 
 
 
 
-	
-	
+
+
 
 
 
@@ -1183,25 +1183,25 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 			      unsigned char *binsamp, long ndata,
 			      long marge, int *xx, int *yy, int nn, long *indpix,
 			      int npix, int npixmap, double f_lppix, double *dPtNP, long *countreject){
-  
-  
+
+
   long ii, k, kk, kk2, ipix, ii2, ndataf;
   long *pixpos;
   long count, count_;
   long *pixtosamp;
 
 
-  //fft stuff  
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
   //pixtosamp = new long[ndata];
 
-  
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = abs(Nk[k]);
@@ -1209,12 +1209,12 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
 
- 
 
-  
+
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       pixpos[ii+marge] = npix-2;
@@ -1232,7 +1232,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
       }
     }
   }
-  
+
 
   data_compare = new long[ndata];
   pixtosamp = new long[ndata];
@@ -1241,7 +1241,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
   for (ii=0;ii<ndata;ii++)
     pixtosamp[ii] = ii;
-  
+
   for (ii=0;ii<ndata;ii++)
     data_compare[ii] = pixpos[ii];
 
@@ -1251,18 +1251,18 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
   qsort(data_compare,ndata,sizeof(long),compare_long);
 
 
-  
+
   ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
   count = 0;
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
- 
+
     if (count-count_ > 0){
       for (ii=count_;ii<count;ii++){
 	ii2 = pixtosamp[ii];
@@ -1275,12 +1275,12 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 	    if (abs(kk2-ii2) < ndataf)
 	      dPtNP[ipix] += N_[abs(ii2-kk2)];
 	  }
-	}	
+	}
       }
     }
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos;
@@ -1290,43 +1290,43 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
+
+
 }
 
 
 
 
-	
 
 
 
-      
+
+
 
 void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *rejectsamp2,
 		       unsigned char *binsamp1, unsigned char *binsamp2,
 		       long ndata, long marge, int *xx1, int *yy1, int *xx2, int *yy2,
 		       int nn, long *indpix, int npix, double f_lppix, double *PtNP){
-	
 
 
 
- 
+
+
   long ii, k, jj, kk, ll, ll2, indPtNP;
   int *pixpos1, *pixpos2;
-  
-  //fft stuff  
+
+  //fft stuff
   fftw_complex  *Nk_;
   double *N_;
   fftw_plan fftplan;
-  
+
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos1 = new int[ndata];
   pixpos2 = new int[ndata];
-  
-  
-  
+
+
+
   // N^-1
   for (k=0;k<ndata/2+1;k++){
 	Nk_[k][0] = Nk[k];
@@ -1335,10 +1335,10 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
   }
   fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
   fftw_execute(fftplan);
-  
-  
 
-  
+
+
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       pixpos1[ii+marge] = npix-2;
@@ -1366,11 +1366,11 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
       }
     }
   }
-  
 
 
 
-  
+
+
   for (ii=0;ii<ndata;ii++){
     ll = pixpos1[ii];
     ll2 = ll*(ll+1)/2;
@@ -1380,7 +1380,7 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
       if (ll < jj){
 	indPtNP = jj*(jj+1)/2 + ll;
       }else{
-	indPtNP = ll2 + jj;	
+	indPtNP = ll2 + jj;
       }
       PtNP[indPtNP] += N_[ii-kk];
       if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
@@ -1388,8 +1388,8 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
     if ((ii % 20000) == 0)
       printf("%lf \n",pow((double)ii/double(ndata),2));
   }
-  
-  
+
+
   delete[] N_;
   delete[] Nk_;
   delete[] pixpos1;
@@ -1397,9 +1397,9 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
   //clean up
   fftw_destroy_plan(fftplan);
-  
-  
-  
+
+
+
 
 
 }
@@ -1412,25 +1412,25 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 
-void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint, 
+void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 		     long ns, long napod, long marge, int *xx, int *yy, int nn, double errarcsec,
 		     bool NOFILLGAP, unsigned char *rejectsamp){
-  
+
 
   // define the rules for bad samples
 
 
-  
+
   long ii;
   unsigned char *flagtmp;
   double *scerrtmp;
   unsigned char *flpointtmp;
-  
+
   flagtmp = new unsigned char[ns];
   scerrtmp = new double[ns];
   flpointtmp = new unsigned char[ns];
 
-  
+
   if (NOFILLGAP){
     for (ii=0;ii<ns;ii++){
       flagtmp[ii] = 0;
@@ -1444,11 +1444,11 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
       flpointtmp[ii] = flpoint[ii];
     }
   }
-  
 
 
 
-  
+
+
   for (ii=0;ii<ns;ii++){
     rejectsamp[ii] = 0;
     if ((flagtmp[ii] & 1) != 0 || (scerrtmp[ii] > errarcsec) || (flpointtmp[ii] & 1) != 0)
@@ -1456,9 +1456,9 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
     if ((ii < napod-marge) || (ii >= ns-napod+marge))
       rejectsamp[ii] = 3;
   }
-  
-  
-  
+
+
+
   for (ii=0;ii<ns;ii++){
     if ((xx[ii] < 0) || (yy[ii] < 0) || (xx[ii] >= nn) || (yy[ii] >= nn) || (NOFILLGAP && (flag[ii] & 1))){
       rejectsamp[ii] = 2;
@@ -1466,7 +1466,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 	rejectsamp[ii] = 3;
     }
   }
-  
+
   delete [] flagtmp;
   delete [] scerrtmp;
   delete [] flpointtmp;
@@ -1483,7 +1483,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int marge, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP, double *Ps){
-  
+
 
   long ii;
   double aa, bb;
@@ -1495,32 +1495,38 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
 
 
   //*********************************************************************
-  
+
+
+  //  cout << "fill gap" << endl;
   if (NOFILLGAP == 0){
-    //fill gaps with straight line
+    //fill 5Bgaps with straight line
     fillgaps(data,ns,data_out,flag,0);
     for (ii=0;ii<ns;ii++)
       data[ii] = data_out[ii];
   }
-  
-  
+
+
+  //  cout << "remove polynom" << endl;
   //remove polynomia
   remove_poly(data,ns,orderpoly,data_out,0);
 
-  
+
+  //  cout << "varying calibration " << endl;
   //correct from time varying calibration
   for (ii=0;ii<ns;ii++)
     data[ii] = data_out[ii]*calp[ii/20];
-  
 
 
+
+  //  cout << "linear prediction" << endl;
   //linear prediction
   for (ii=0;ii<ns;ii++)
     data_lp[ii+marge] = data[ii];
   if (marge) Pad(data_lp,marge,ns,ns+2*marge);
-  
 
-  
+
+
+  //  cout << "baselining" << endl;
   if (NORMLIN == 0){
     /// remove a baseline
     aa = (data_lp[ns+2*marge-1]-data[0])/double(ns+2*marge);
@@ -1528,9 +1534,10 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
     for (ii=0;ii<ns+2*marge;ii++)
       data_lp[ii] -= aa*(double)ii+bb;
   }
-  
-  
 
+
+
+  //  cout << "butterworth filter" << endl;
   //Butterworth filter (if necessary)
   if (f_lppix > 0.0){
     butterworth(data_lp,ns+2*marge,f_lppix,8,data_out_lp,bfilter,1,napod,0);
@@ -1540,13 +1547,14 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
     for (ii=0;ii<(ns+2*marge)/2+1;ii++)
       bfilter[ii] = 1.0;
   }
-  
+
 
 
   if (Ps != NULL)
     for (ii=marge;ii<ns+marge;ii++)
       data_lp[ii] = data_lp[ii] - Ps[ii];
-  
+
+  //  cout << "fill gap" << endl;
   //******************* process gaps
   if (NOFILLGAP == 0){
     for (ii=0;ii<ns;ii++)
@@ -1558,21 +1566,22 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
 
 
   if (Ps != NULL){
+    //    cout << "linear predidction " << endl;
     //linear prediction
     if (marge) Pad(data_lp,marge,ns,ns+2*marge);
-  
+
     for (ii=marge;ii<ns+marge;ii++)
       //if (flag[ii-marge] == 0)
 	data_lp[ii] = data_lp[ii] + Ps[ii];
   }
-  
-  
-  
+
+
+
   delete [] data_out;
   delete [] data_out_lp;
 
-  
-  
+
+
 }
 
 
@@ -1604,10 +1613,11 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
   for (ii=0;ii<ns;ii++)
     datatemp[ii] = datatemp2[ii]*apodwind[ii];
 
-  
   //Fourier transform the data
   fftplan = fftw_plan_dft_r2c_1d(ns, datatemp, fdata, FFTW_ESTIMATE);
   fftw_execute(fftplan);
+
+
 
 
   totapod = 0.0;
@@ -1623,13 +1633,12 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 
 
-
   //bin power spectrum
   for (q=0;q<nbins;q++){
     Nell[q] = 0.0;
     count[q] = 0;
   }
-      
+
 
   q=0;
   for (k=0;k<ns/2+1;k++){
@@ -1639,7 +1648,7 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
     Nell[q] += Nk[k];
     count[q] += 1;
   }
-  
+
 
   for (q=0;q<nbins;q++)
     Nell[q] /= double(count[q]);
@@ -1653,7 +1662,7 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
       bfiltertemp[ii] = bfilter[ii];
     }
   }
-  
+
 
   // interpol logarithmically the spectrum and filter
   binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
@@ -1702,7 +1711,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
     Nell[q] = 0.0;
     count[q] = 0;
   }
-      
+
 
   q=0;
   for (k=0;k<ns/2+1;k++){
@@ -1712,7 +1721,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
     Nell[q] += Nk[k];
     count[q] += 1;
   }
-  
+
 
   for (q=0;q<nbins;q++)
     Nell[q] /= double(count[q]);
@@ -1726,7 +1735,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
       bfiltertemp[ii] = bfilter[ii];
     }
   }
-  
+
 
   // interpol logarithmically the spectrum and filter
   binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
@@ -1736,7 +1745,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
   //clean up
   delete [] count;
   delete [] bfiltertemp;
-  
+
 }
 
 
@@ -1753,10 +1762,10 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, long marge, doubl
   int nbins;
   long ii;
   double dummy1, dummy2;
-  
+
   double *SpN;
   double *ell;
-  
+
 
 
   if ((fp = fopen(nameSpfile,"r")) == NULL){
@@ -1764,11 +1773,11 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, long marge, doubl
     exit(1);
   }
   fscanf(fp,"%d",&nbins);
-  
-  
+
+
   SpN = new double[nbins];
   ell = new double[nbins+1];
-  
+
   for (ii=0;ii<nbins;ii++){
     fscanf(fp,"%lf %lf",&dummy1,&dummy2);
     ell[ii] = dummy1;
@@ -1777,18 +1786,18 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, long marge, doubl
   fscanf(fp,"%lf",&dummy1);
   ell[nbins] = dummy1;
   fclose(fp);
-  
-  
+
+
   // interpolate logarithmically the noise power spectrum
   binnedSpectrum2log_interpol(ell,SpN,bfilter,nbins,ns+2*marge,fsamp,Nk);
-  
-  
-  
+
+
+
   delete[] SpN;
   delete[] ell;
-  
 
-  
+
+
 }
 
 
@@ -1817,31 +1826,31 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 
-  if (cextension != "NOCALP") 
+  if (cextension != "NOCALP")
     calfield  = field+cextension;
-  if (fextension != "NOFLAG") 
+  if (fextension != "NOFLAG")
     flagfield = field+fextension;
-  
 
 
-  read_data(dirfile, ff, shift_data_to_point, ns, data, bolofield,     type);
+
+  read_data_std(dirfile, ff, shift_data_to_point, ns, data, bolofield,     type);
   if (cextension != "NOCALP"){
-    read_data(dirfile, ff, 0, ns/20, calp, calfield, type);
+    read_data_std(dirfile, ff, 0, ns/20, calp, calfield, type);
   } else {
     //printf("NOCALP\n");
     for (ii=0;ii<ns/20;ii++)
       calp[ii] = 1.0;
   }
-  read_data(dirfile, ff, 0, ns, ra,   ra_field,  type);
-  read_data(dirfile, ff, 0, ns, dec,  dec_field, type);
-  read_data(dirfile, ff, 0, ns, phi,  phi_field, type);
-  read_data(dirfile, ff, 0, ns, scerr, scerr_field, type);
-  read_data(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+  read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
+  read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+  read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+  read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+  read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
   for (ii=0;ii<ns;ii++)
     if (isnan(ra[ii]) || isnan(dec[ii]))
       flpoint[ii] = 1;
   if (fextension != "NOFLAG"){
-    read_data(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
+    read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
   } else {
     //printf("NOFLAG\n");
     for (ii=0;ii<ns;ii++)
@@ -1861,7 +1870,7 @@ void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets,
   for (find=0; find<nfoff-1; find++) {
     if (ff < (foffsets[find+1]).frame) break;
   }
-  
+
   froffsets[0] = offsets[0] - (foffsets[find]).yaw;
   froffsets[1] = offsets[1] + (foffsets[find]).pitch;
 
@@ -1871,7 +1880,7 @@ void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets,
 
 
 void deproject(double *S, long *indpix, long *samptopix, long ndata, long marge, long nn, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
-  
+
   long ii, ll, iframe;
   double a, b;
 
@@ -1903,19 +1912,19 @@ void deproject(double *S, long *indpix, long *samptopix, long ndata, long marge,
 	  if (b > 0.5)
 	    Ps[ii+marge] = a/b;
 	}
-      } 
+      }
     }
   }
-  
 
-      
-      
-      
+
+
+
+
 
       //      if (rejectsamp[ii] == 0){
       //	if (binsamp[ii] == 1){
       //	  Ps[ii+marge] = S[npix-2];
-      //	} else {	
+      //	} else {
       //	  ll = indpix[yy[ii]*nn + xx[ii]];
       //	  Ps[ii+marge] = S[ll];
       //	}
@@ -1934,19 +1943,19 @@ void deproject(double *S, long *indpix, long *samptopix, long ndata, long marge,
       //	}
       //      }
       //    }
-    
+
       //  }
-  
+
  }
 
-  
-  
+
+
 
 
 void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long iframe, double *Ps){
 
   long ii, ll;
-  
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       Ps[ii+marge] = S[npix-2];
@@ -1960,7 +1969,7 @@ void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *y
 	    Ps[ii+marge] = S[ll];
 	  } else {
 	    ll = indpix[(iframe + 1) * nn*nn + (yy[ii]*nn + xx[ii])];
-	    Ps[ii+marge] = S[ll];		
+	    Ps[ii+marge] = S[ll];
 	  }
 	}
       } else {
@@ -1980,7 +1989,7 @@ void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *y
 void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long npixmap, double *Ps, long *countreject){
 
   long ii, ll;
-  
+
   for (ii=-marge;ii<ndata-marge;ii++){
     if ((ii < 0) || (ii >= ndata-2*marge)){
       Ps[ii+marge] = S[npix-1];
@@ -1988,7 +1997,7 @@ void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rej
       if (rejectsamp[ii] == 0){
 	if (binsamp[ii] == 1){
 	  Ps[ii+marge] = S[npix-1];
-	} else {	
+	} else {
 	  ll = indpix[yy[ii]*nn + xx[ii]];
 	  Ps[ii+marge] = S[ll];
 	}
@@ -2008,7 +2017,7 @@ void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rej
 
 
 int compare_global_array_long (const void *a, const void *b)
-{ 
+{
 
   const long *da = (const long *) a;
   const long *db = (const long *) b;
@@ -2016,4 +2025,4 @@ int compare_global_array_long (const void *a, const void *b)
   return (data_compare[*da] > data_compare[*db]) - (data_compare[*da] < data_compare[*db]);
 }
 
-
+
