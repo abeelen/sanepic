@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-#include "mpi.h"
-
+#ifdef USE_MPI
+	#include "mpi.h"
+#endif
 
 using namespace std;
 
@@ -338,17 +338,22 @@ int main(int argc, char *argv[])
 {
 
 
+
   int size, size_det;
   int rank, rank_det;
-  int tag = 10;
+#ifdef USE_MPI
+ // int tag = 10;
   MPI_Status status;
-
 
   // setup MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD,&size);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+#else
+  size = 0;
+  rank = 0;
+#endif
 
   char * pPath;
   pPath = getenv ("TMPBATCH");
@@ -912,9 +917,12 @@ int main(int argc, char *argv[])
 
 
   if (parallel_frames){
+#ifdef USE_MPI
+
     MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
     MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
     MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+#endif
     iframe_min = frnum[rank];
     iframe_max = frnum[rank+1];
     rank_det = 0;
@@ -1042,6 +1050,7 @@ int main(int argc, char *argv[])
 
     } //// end of idet loop
 
+#ifdef USE_MPI
     MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
     MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
     MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -1052,6 +1061,8 @@ int main(int argc, char *argv[])
     MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+#endif
 
     //set coordinates
     coordscorner[0] = gra_min;
@@ -1327,8 +1338,9 @@ int main(int argc, char *argv[])
   printf("[%2.2i] Size of the map : %d x %d\t Total Number of filled pixels : %d\n",rank, nn,nn, npix);
 
 
+#ifdef USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
-
+#endif
 
   //************************************************************************//
   //************************************************************************//
@@ -1378,8 +1390,9 @@ int main(int argc, char *argv[])
 
   //  cout << "[" << rank << "] end of iframe loop" << endl;
 
+#ifdef USE_MPI
   MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+#endif
 
   if (rank == 0){
     sprintf(testfile,"%s%s%s%s",outdir.c_str(),"PNdCorr_",termin.c_str(),".bi");
@@ -1464,7 +1477,9 @@ int main(int argc, char *argv[])
     }
   }
 
+#ifdef USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
+#endif
   cout << "exit after first EstimPowerSpectra" << endl;
   exit(0);
 
@@ -1524,11 +1539,11 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
   MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+#endif
 
 
   if (rank == 0) {
@@ -1567,12 +1582,12 @@ int main(int argc, char *argv[])
 
   }
 
-
+#ifdef USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Bcast(&var0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
+#endif
 
   printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
@@ -1614,9 +1629,9 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
     MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+#endif
 
 
 
@@ -1632,10 +1647,10 @@ int main(int argc, char *argv[])
 	S[ii] += alpha*d[ii];
     }
 
-
+#ifdef USE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
+#endif
 
 
 
@@ -1666,9 +1681,9 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
       MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+#endif
 
 
       if (rank == 0){
@@ -1878,11 +1893,11 @@ int main(int argc, char *argv[])
 
     }
 
-
+#ifdef USE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(d ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
+#endif
 
     iter++;
 
@@ -1937,9 +1952,9 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
     MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-
+#endif
   }
 
 
@@ -1948,9 +1963,9 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
-
+#endif
 
     sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
     fp = fopen(testfile,"a");
@@ -2112,9 +2127,9 @@ int main(int argc, char *argv[])
 
   }
 
-
+#ifdef USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
-
+#endif
 
 
   // clean up
@@ -2133,9 +2148,9 @@ int main(int argc, char *argv[])
 
 
 
-
+#ifdef USE_MPI
   MPI_Finalize();
-
+#endif
 
 
 

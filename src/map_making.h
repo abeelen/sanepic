@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include <string>
 #include <fftw3.h>
 
@@ -144,4 +145,4 @@ void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rej
 int compare_global_array_long (const void *a, const void *b);
 
 
-#endif
+#endif
