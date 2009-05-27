@@ -488,7 +488,7 @@ int main(int argc, char *argv[])
   list<string> extentnoiseSp_list;
 
 
-  time_t t1, t2, t3, t4, t5, dt;
+ // time_t t1, t2, t3, t4, t5, dt;
 
 
 
