@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
@@ -1065,7 +1066,7 @@ if(samples_per_frames>1){
 			fclose(fp);
 			//}
 
-		}
+		} // end of iframe loop
 
 	}//end of idet loop
 
@@ -1083,11 +1084,11 @@ if(samples_per_frames>1){
 	printf("[%2.2i] Init map making variables\n",rank);
 
 	// useless
-	ns = nsamples[0];
-	for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
+	//ns = nsamples[0];
+	//for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
+	// a supprimer
 
-
-
+	// pixel indices
 	indpix = new long[factdupl*nn*nn+2 + addnpix];
 	init1D_long(indpix,0,factdupl*nn*nn+2 + addnpix,-1);
 
@@ -1096,11 +1097,11 @@ if(samples_per_frames>1){
 	ll=0;
 	for (ii=0;ii<factdupl*nn*nn+2 + addnpix;ii++){
 		if (pixon[ii] != 0){
-			indpix[ii] = ll;
+			indpix[ii] = ll; // pixel indice : 0 -> number of seen pixels
 			ll++;
 		}
 	}
-	npix = ll;
+	npix = ll;  // npix = number of filled pixels
 
 
 	delete [] pixon;
@@ -1141,26 +1142,83 @@ if(samples_per_frames>1){
 
 	prefixe = "fdata";
 
+	// loop over the scans
 	for (iframe=iframe_min;iframe<iframe_max;iframe++){
 
-		ns = nsamples[iframe];
-		ff = fframes[iframe];
-		f_lppix = f_lp*double(ns+2*marge)/fsamp;
-		f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
-		//prefixe = "fdata";
+		ns = nsamples[iframe]; // number of samples for this scan
+		ff = fframes[iframe]; //first frame of this scan
+		f_lppix = f_lp*double(ns+2*marge)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
+		f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp; // noise PS threshold freq, in terms of samples
+		//prefixe = "fdata"; => now outside the loop
 
 
 		cout << "[" << rank << "] " << iframe << "/" << iframe_max ;
 		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
 
+		// if there is correlation between detectors
 		if (CORRon){
+			// var double *S =  NULL
+			    // indpix = pixel indice
+			    // indpsrc = box crossing constraint removal pixel indice
+			    // nn = size of map
+			    // npix = number of pixels that are seen
+			    // npixsrc = number of pixels in box CCRemoval
+			    // ntotscan = total number of scans
+			    // addnpix = number of added pixels in the map
+			    // flgdupl = flaggued pixels are in a duplicate map : 1/0
+			    // factdupl = duplication de la map : 2/1
+			    // fillg =2 ????
+			    // poutdir = outpout dir or current path (default)
+			    // termin = output file suffix
+			    // errarcsec = pointing error threshold
+			    // dirfile = data directory
+			    // scerr_field = "ERR" + pextension (_def for example)
+			    // flpoint_field = "FLPOINTING"
+			    // bolonames = bolo names array
+			    // bextension = -B option : "_data" for example
+			    // fextension = "NOFLAG" or -G option ("_flag" for example)
+			    // cextension = "NOCALP" or -R option ("_calp" for example)
+			    // shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
+			    // f_lppix = filter freq in term of sample
+			    // ff = first frame number of this scan
+			    // ns = number of sample for this scan
+			    // marge = number of samples extrapolated before and after data -m option
+			    // napod = number of samples to apodize -A option
+			    // ndet = bolo total number
+			    // NORMLIN = baseline is remove from the data, default =0, option -L
+			    // NOFILLGAP = fill the gap ? default yes => 0
+			    // iframe = scan number : 0=> ntotscan
 			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 					poutdir,termin,errarcsec,dirfile,scerr_field,flpoint_field,bolonames,
 					bextension,fextension,cextension,shift_data_to_point,f_lppix,ff,ns,
-					marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);
+					marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);// fillgaps + butterworth filter + fourier transform
+			// "fdata_" files generation (fourier transform of the data)
 
 			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
 					fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+			// PNd = npix dimension, initialised to 0.0
+				// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
+				// noiseSppreffile = noise power spectrum file suffix = path
+				// poutdir = outpout dir or current path (default)
+				// prefixe = "fdata"; => prefixe de lecture/sauvegarde des données
+				// termin = output file suffix
+				// bolonames = bolo names array
+				// f_lppix_Nk = freq threshold noise en terme de sample
+				// fsamp = freq echantillonage des data
+				// ff = n° premier sample du scan
+				// ns = nombre de sample ds le scan
+				// marge = nombre de sample dans la marge // inutilisé
+				// ndet = nombre de bolo
+				// size = 1 // cf mpi
+				// rank = 0 // cf mpi
+				// indpix = pixel indice double[nn*nn]
+				// nn = taille de la carte (1 coté)
+				// npix = total number of filled pixels (pixel dont on a les data correspondantes)
+				// iframe = indice du scan
+				// *Mp = Null : la map ???
+				// *Hits = Null
+
+				// return Pnd = At N-1 d
 		} else {
 
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
@@ -1187,7 +1245,8 @@ if(samples_per_frames>1){
 		fclose(fp);
 	}
 
-
+/* ----------------------------------------------------------------------------------------------*/
+	// Noise Power spectra	estimation loop
 	double *S;
 	S = new double[npix];
 
@@ -1203,10 +1262,40 @@ if(samples_per_frames>1){
 				ff = fframes[iframe];
 				extentnoiseSp = extentnoiseSp_all[iframe];
 
+				// estimate noise power spectra from data
 				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,
 						S,MixMatfile,bolonames,dirfile,bextension,fextension,cextension,
 						shift_data_to_point,poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,
 						extentnoiseSp,outdir);
+				// fsamp = bolometers sampling freq
+				// ns = number of samples in the "iframe" scan
+				// ff = first sample number
+				// ndet = total number of detectors
+				// nn = side of the map
+				// npix = total number of filled pixels
+				// napod = number of border pixels used to apodize data
+				//marge = to BE REMOVED §
+				// iframe == scan number
+				// flgdupl = flagged data map duplication indicator
+				// factdupl = duplication factor (1 or 2)
+				// indpix = pixels index
+				// S = Pnd
+				// MixMatfile = this file contains the number of components that interviene in the common-mode component of the noise
+				// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
+				// bolonames = detectors names
+				// dirfile = data directory
+				// bextension = -B option : "_data" for example
+				// fextension = "NOFLAG" or -G option ("_flag" for example)
+				// cextension = "NOCALP" or -R option ("_calp" for example)
+				// shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
+				// poutdir = outpout dir or current path (default)
+				// termin = output file suffix
+				// NORMLIN = baseline is remove from the data, default =0, option -L
+				// NOFILLGAP = fill the gap ? default yes => 0
+				// noiseSppreffile = noise power spectrum file suffix = path
+				// extentnoiseSp = noise file
+				// outdir = output directory
+
 			}
 		}
 
@@ -1218,7 +1307,11 @@ if(samples_per_frames>1){
 
 	}
 
+/* ---------------------------------------------------------------------------------------------*/
+
 	/*
+// Close MPI process
+
 
 #ifdef USE_MPI
   MPI_Finalize();
@@ -1285,7 +1378,7 @@ if(samples_per_frames>1){
 
 
 
-	// liste des variables a donné :
+	// liste des variables a donner :
 	// npix, nn, indpix, projgaps, flagon, iframemax,
 
 	// relancer le mpi et faire un best frame order
@@ -1406,13 +1499,13 @@ if(samples_per_frames>1){
 		init1D_long(hits,0,npix,0);
 		init1D_long(hitstot,0,npix,0);
 
-
+		prefixe = "fPs";
 
 		for (iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
 			f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
-			prefixe = "fPs";
+			//prefixe = "fPs"; now outside of the loop
 
 			//    cout << "[" << rank << "] " << iframe << "/" << iframe_max << endl;
 
@@ -1796,7 +1889,7 @@ if(samples_per_frames>1){
 
 			iter++;
 
-		}
+		} // end of while loop
 		printf("\n");
 
 
@@ -1816,6 +1909,7 @@ if(samples_per_frames>1){
 			init1D_double(PNd,0,npix,0.0);
 			init1D_double(PNdtot,0,npix,0.0);
 
+			prefixe = "fdata";
 
 			for (iframe=iframe_min;iframe<iframe_max;iframe++){
 
@@ -1823,7 +1917,7 @@ if(samples_per_frames>1){
 				ff = fframes[iframe];
 				f_lppix = f_lp*double(ns+2*marge)/fsamp;
 				f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
-				prefixe = "fdata";
+				//prefixe = "fdata"; now out of loop
 
 				if (CORRon){
 
