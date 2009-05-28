@@ -19,7 +19,7 @@ using namespace std;
 void read_bolofile(string fname, list<string>& bolos) {
   char buff[256];
   string line;
-  
+
   ifstream BOLO (fname.c_str());
   if (! BOLO.is_open()) {
     cerr << "Error opening bolometer file '" << fname << "'. Exiting.\n";
@@ -33,10 +33,10 @@ void read_bolofile(string fname, list<string>& bolos) {
     line.erase(0, line.find_first_not_of(" \t"));       // remove leading white space
     if (line.empty() || line[0] == '#') continue;       // skip if empty or commented
     line = line.substr(0, line.find_first_of(" \t"));   // pick out first word
-    
+
     bolos.push_back(line);
   }
- 
+
   BOLO.close();
 }
 
@@ -78,23 +78,23 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN, l
       Spfile.getline(buff,255);
       line = buff;
       ell[*nbins] = atof(line.c_str());
-      
+
     }
 
   }
 
   Spfile.close();
-  
+
 }
 
 
-                                                                             
+
 template<class T> void list2array(list<T> l, T* a)
 {
   // copy list of type T to array of type T
   typename list<T>::iterator iter;
   int i;
-                                                                                
+
   for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
     a[i] = *iter;
   }
@@ -175,13 +175,13 @@ int main(int argc, char *argv[])
 
   nbins = 500;
 
-  
-  
-  
-  Mat_k = dma(0,ndet-1,0,ndet-1);
-  iMat_k = dma(0,ndet-1,0,ndet-1);
-  Rellth  = dma(0,ndet-1,0,ndet*nbins-1);
-  iRellth = dma(0,ndet-1,0,ndet*nbins-1);
+
+
+
+  Mat_k = dmatrix(0,ndet-1,0,ndet-1);
+  iMat_k = dmatrix(0,ndet-1,0,ndet-1);
+  Rellth  = dmatrix(0,ndet-1,0,ndet*nbins-1);
+  iRellth = dmatrix(0,ndet-1,0,ndet*nbins-1);
   p = new double[ndet];
   uvec = new double[ndet];
   ivec = new double[ndet];
@@ -194,9 +194,9 @@ int main(int argc, char *argv[])
   // Read covariance matrix from disk
   for (idet1=0;idet1<ndet;idet1++){
     field1 = bolonames[idet1];
-    
+
     for (idet2=0;idet2<ndet;idet2++){
-      
+
       field2 = bolonames[idet2];
       field = field1+"-"+field2;
 
@@ -212,11 +212,11 @@ int main(int argc, char *argv[])
     }
     printf("%d\n",idet1);
 
-  }	
-  
+  }
 
 
-  
+
+
 
 
 
@@ -238,8 +238,8 @@ int main(int argc, char *argv[])
       }
     }
 
-    
-    
+
+
     // invert the covariance matrix per mode
     dcholdc(Mat_k,ndet,p);
     for (idet1=0;idet1<ndet;idet1++){
@@ -250,22 +250,22 @@ int main(int argc, char *argv[])
       for (idet2=0;idet2<ndet;idet2++)
     	iMat_k[idet1][idet2] = ivec[idet2];
     }
-    
+
     for (idet1=0;idet1<ndet;idet1++)
       for (idet2=0;idet2<ndet;idet2++)
 	iRellth[idet1][idet2*nbins + ibin] = iMat_k[idet1][idet2];
-    
+
   }
-    
-    
+
+
   /// write inverse covariance matrix to disk
-  
-  
+
+
   temparray[0] = double(nbins);
   for (ii=0;ii<=nbins;ii++)
     temparray[ii+1] = ell1[ii];
-  
-  
+
+
   for (idet1=0;idet1<ndet;idet1++){
     field1 = bolonames[idet1];
     sprintf(nameSpfile,"%s%s%s%s",noiseSp_dir_output.c_str(),field1.c_str(),"-all_Inv",extentnoiseSp.c_str());
@@ -275,9 +275,9 @@ int main(int argc, char *argv[])
     fwrite(temparray,sizeof(double), ndet*nbins+nbins+2, fpw);
     fclose(fpw);
   }
-  
-  
- 
+
+
+
   //******************************************************************//
   //******************************************************************//
   //************************  End of loop ****************************//
@@ -285,6 +285,6 @@ int main(int argc, char *argv[])
   //******************************************************************//
 
 
-  
+
   return 0;
 }

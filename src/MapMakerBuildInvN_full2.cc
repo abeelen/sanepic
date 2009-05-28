@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
   //  printf("%d bins\n",(int)nbins);
 
   ell1 = new double[nbins+1];
-  RellthOrig  = dma(0,ndetOrig*ndetOrig-1,0,nbins-1);
+  RellthOrig  = dmatrix(0,ndetOrig*ndetOrig-1,0,nbins-1);
 
   for (ii=0; ii<nbins+1; ii++)
     Spfile.read(reinterpret_cast<char *>(&ell1[ii]), sizeof(double));
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
 
   // Take subsample of the RellthOrig
-  Rellth = dma(0,ndet-1,0,ndet*nbins-1);
+  Rellth = dmatrix(0,ndet-1,0,ndet*nbins-1);
 
   // find indexes of input bolo file corresponding to the output bolo file
   indexIn.resize(channelOut.size(),-1);
@@ -235,9 +235,9 @@ int main(int argc, char *argv[])
   }
 
 
-  Mat_k = dma(0,ndet-1,0,ndet-1);
-  iMat_k = dma(0,ndet-1,0,ndet-1);
-  iRellth = dma(0,ndet-1,0,ndet*nbins-1);
+  Mat_k = dmatrix(0,ndet-1,0,ndet-1);
+  iMat_k = dmatrix(0,ndet-1,0,ndet-1);
+  iRellth = dmatrix(0,ndet-1,0,ndet*nbins-1);
   p = new double[ndet];
   uvec = new double[ndet];
   ivec = new double[ndet];

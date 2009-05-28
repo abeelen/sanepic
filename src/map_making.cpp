@@ -149,7 +149,7 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
 
 
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
-			 double *offsets, int ns, int *xx, int *yy, int *nn, 
+			 double *offsets, int ns, int *xx, int *yy, int *nn,
 			 double *coordscorner, double *tancoord, double *tanpix,
 			 bool fixcoord, double radius, double *offmap, double *radecsrc)
 {
@@ -400,7 +400,7 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
     for (jj=0;jj<nn;jj++){
       if (count[ii][jj]-0.5 > 0)
 	map[ii][jj] = -map[ii][jj]/count[ii][jj];
-      if (count_f[ii][jj]-0.5 > 0)      
+      if (count_f[ii][jj]-0.5 > 0)
 	map_f[ii][jj] = -map_f[ii][jj]/count_f[ii][jj];
     }
   }
@@ -417,7 +417,8 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
 		   long *indpix, long *samptopix, int npix, double *PNd){
 
-  long ii, k, ll;
+  long ii, k;
+  //long ll;
 
   double *Nd;
   fftw_complex  *fdata, *Ndf;
@@ -683,7 +684,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 	  indPtNP = jj*(jj+1)/2 + ll;
 	  //indPtNP = jj_sqr[jj] + ll;
 	}else{
-	  indPtNP = ll2 + jj;	
+	  indPtNP = ll2 + jj;
 	}
 	PtNP[indPtNP] += N_[ii-kk];
 	//if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
@@ -738,7 +739,7 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
   Nk_ = new fftw_complex[ndata/2+1];
   N_ = new double[ndata];
   pixpos = new long[ndata];
-  jj_sqr = new long[npix];    
+  jj_sqr = new long[npix];
   pixtosamp_select = new long[ndata];
 
 
@@ -797,7 +798,7 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
     ll = pixpos[ii2]-indmin;
     if (ll > indmax-indmin)
       printf("ALERT ll = %ld\n",ll);
-    for (kk=MAX(ii2-ndataf,0);kk<MIN(ii2+ndataf,ndata);kk++){ //MIN(ii2+(ndata)/MAX(2,int(f_lppix+0.5)),ndata);kk++){   
+    for (kk=MAX(ii2-ndataf,0);kk<MIN(ii2+ndataf,ndata);kk++){ //MIN(ii2+(ndata)/MAX(2,int(f_lppix+0.5)),ndata);kk++){
       jj = pixpos[kk];
       indPtNP = ll*npix + jj;
       PtNP[indPtNP] += N_[abs(ii2-kk)];
@@ -897,8 +898,8 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
   count = 0;
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
@@ -1006,8 +1007,8 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
   count = 0;
 
   for (ipix=data_compare[0];ipix<npix;ipix++){
-    
-    count_ = count;    
+
+    count_ = count;
 
     while((count < ndata) && (data_compare[count] == ipix))
       count++;
@@ -1380,7 +1381,7 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
       if (ll < jj){
 	indPtNP = jj*(jj+1)/2 + ll;
       }else{
-	indPtNP = ll2 + jj;	
+	indPtNP = ll2 + jj;
       }
       PtNP[indPtNP] += N_[ii-kk];
       if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
@@ -1517,7 +1518,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
   //linear prediction
   for (ii=0;ii<ns;ii++)
     data_lp[ii+marge] = data[ii];
-  if (marge) Pad(data_lp,marge,ns,ns+2*marge);
+  //if (marge) Pad(data_lp,marge,ns,ns+2*marge);
 
 
 
@@ -1558,7 +1559,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
 
   if (Ps != NULL){
     //linear prediction
-    if (marge) Pad(data_lp,marge,ns,ns+2*marge);
+   // if (marge) Pad(data_lp,marge,ns,ns+2*marge);
 
     for (ii=marge;ii<ns+marge;ii++)
       //if (flag[ii-marge] == 0)
@@ -1701,7 +1702,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
     Nell[q] = 0.0;
     count[q] = 0;
   }
-      
+
 
   q=0;
   for (k=0;k<ns/2+1;k++){
@@ -1711,7 +1712,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
     Nell[q] += Nk[k];
     count[q] += 1;
   }
-  
+
 
   for (q=0;q<nbins;q++)
     Nell[q] /= double(count[q]);
@@ -1725,7 +1726,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
       bfiltertemp[ii] = bfilter[ii];
     }
   }
-  
+
 
   // interpol logarithmically the spectrum and filter
   binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
@@ -1735,7 +1736,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
   //clean up
   delete [] count;
   delete [] bfiltertemp;
-  
+
 }
 
 
@@ -1816,9 +1817,9 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 
-  if (cextension != "NOCALP") 
+  if (cextension != "NOCALP")
     calfield  = field+cextension;
-  if (fextension != "NOFLAG") 
+  if (fextension != "NOFLAG")
     flagfield = field+fextension;
 
 
@@ -1860,7 +1861,7 @@ void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets,
   for (find=0; find<nfoff-1; find++) {
     if (ff < (foffsets[find+1]).frame) break;
   }
-  
+
   froffsets[0] = offsets[0] - (foffsets[find]).yaw;
   froffsets[1] = offsets[1] + (foffsets[find]).pitch;
 
@@ -1870,10 +1871,10 @@ void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets,
 
 
 void deproject(double *S, long *indpix, long *samptopix, long ndata, long marge, long nn, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
-  
-  long ii, ll, iframe;
-  double a, b;
 
+  long ii,iframe;
+  double a, b;
+  //long ll;
 
 
 
@@ -1959,7 +1960,7 @@ void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *y
 	    Ps[ii+marge] = S[ll];
 	  } else {
 	    ll = indpix[(iframe + 1) * nn*nn + (yy[ii]*nn + xx[ii])];
-	    Ps[ii+marge] = S[ll];		
+	    Ps[ii+marge] = S[ll];
 	  }
 	}
       } else {
