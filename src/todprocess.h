@@ -9,14 +9,12 @@
 
 extern "C" {
 #include "../nrutil/nrutil.h"
+#include "../nrutil/nrcode.h"
 }
 
 
 
 
-#define SWAP(a,b) {swap=(a);(a)=(b);(b)=swap;}
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
 
 
 //#define BLAST_MAIN_CLK (32.0E6) // Hz
@@ -62,19 +60,11 @@ void free_dvector(double *v, long nl, long nh); // NR
 */
 
 
-void dlfit(double x[], double y[], double sig[], int ndat, double a[], int ia[],
-	   int ma, double **covar, double *chisq, void (*funcs)(double, double [], int)); // NR
 
-
-void dcovsrt(double **covar, int ma, int ia[], int mfit); //NR a verifier
-void dgaussj(double **a, int n, double **b, int m); //NR a verifier
 void polynomia(double x, double y[], int dma); // on peut garder
-void dpolyfit(double x[], double y[], int ndata, int norder, double *a); // Nr a verifier
 void remove_poly(double y[], int ndata, int norder, double* yout, unsigned char *flag = NULL); // je pense pas que ca vient de NR
+void dpolyfit(double x[], double y[], int ndata, int norder, double *a); // Nr a verifier
 
-
-void dcholdc(double **a, long n, double p[]); // cholesky decomposition : NR
-void dcholsl(double **a, long n, double p[], double b[], double x[]); // solve cholesky linear system : NR
 
 void cutdata(double y[], int indm, int indp, double *yout); // on peut garder
 void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout); // on peut garder
