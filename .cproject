@@ -19,7 +19,12 @@
 <folderInfo id="cdt.managedbuild.config.gnu.exe.debug.2121570035." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1656800038" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.1372965597" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
-<builder buildPath="${workspace_loc:/sanepic/Debug}" id="cdt.managedbuild.target.gnu.builder.exe.debug.2103541242" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
+<builder buildPath="${workspace_loc:/sanepic/Debug}" id="cdt.managedbuild.target.gnu.builder.exe.debug.2103541242" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug">
+<outputEntries>
+<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Debug"/>
+<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Release"/>
+</outputEntries>
+</builder>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1961892642" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 <option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1584067493" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -32,6 +37,9 @@
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1891346893" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1229105264" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.exe.debug.option.debugging.level.520800626" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+<option id="gnu.c.compiler.option.include.paths.420697937" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanepic_nonMPI/nr/src}&quot;"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1024706921" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1311424529" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -50,14 +58,16 @@
 </inputType>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1212388989" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
+<option id="gnu.both.asm.option.include.paths.658694909" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanepic_nonMPI/nr/src}&quot;"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.613445933" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 </tool>
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="nrutil|nrutils|RCW_120_M|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="nrutil"/>
-<entry excluding="MapMakerBuildInvN_full.cc|MainSanepicCorr.cc|MapMakerBuildInvN_full2.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="RCW_120_M|nrutils|nrutil|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="MainSanepicCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -905,7 +915,7 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.191188051" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.768142306" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
-<option id="gnu.cpp.link.option.libs.108681724" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<option id="gnu.cpp.link.option.libs.108681724" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
@@ -921,7 +931,6 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="nrutil"/>
 <entry excluding="nrutil|nrutils|RCW_120_M|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 <entry excluding="MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc|MainSanepicCorr.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
