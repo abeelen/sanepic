@@ -8,7 +8,7 @@
 #include <fcntl.h>
 
 extern "C" {
-#include "../nrutils/nrutil.h"
+#include "../nrutil/nrutil.h"
 }
 
 
