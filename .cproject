@@ -24,6 +24,9 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 <option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1584067493" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1560873665" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.458953551" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1891346893" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -34,8 +37,12 @@
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1311424529" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.859488601" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.1235981317" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
+</option>
+<option id="gnu.cpp.link.option.paths.265886019" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.255527790" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -47,17 +54,6 @@
 </tool>
 </toolChain>
 </folderInfo>
-<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.2121570035.676212805" name="nrutil.h" rcbsApplicability="disable" resourcePath="nrutil/nrutil.h" toolsToInvoke="">
-<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1361825587" name="Resource Custom Build Step">
-<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.453091146" name="Resource Custom Build Step Input Type">
-<additionalInput kind="additionalinputdependency" paths=""/>
-</inputType>
-<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1686929544" name="Resource Custom Build Step Output Type"/>
-</tool>
-</fileInfo>
-<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.2121570035.1881733807" name="MapMakerBuildInvN_full.cc" rcbsApplicability="disable" resourcePath="src/MapMakerBuildInvN_full.cc" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1179496467">
-<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1179496467" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995"/>
-</fileInfo>
 <sourceEntries>
 <entry excluding="nrutil|nrutils|RCW_120_M|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="nrutil"/>
@@ -909,6 +905,11 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.191188051" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.768142306" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
+<option id="gnu.cpp.link.option.libs.108681724" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="fftw3"/>
+<listOptionValue builtIn="false" value="cfitsio"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.300463303" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>

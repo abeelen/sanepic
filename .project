@@ -3,6 +3,7 @@
 	<name>sanepic_nonMPI</name>
 	<comment></comment>
 	<projects>
+		<project>nr</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

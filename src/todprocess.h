@@ -8,14 +8,9 @@
 #include <fcntl.h>
 
 extern "C" {
-#include "../nrutil/nrutil.h"
-#include "../nrutil/nrcode.h"
+#include "nrutil.h"
+#include "nrcode.h"
 }
-
-
-
-
-
 
 //#define BLAST_MAIN_CLK (32.0E6) // Hz
 //#define ADC_CLK        (BLAST_MAIN_CLK/3072.0)
