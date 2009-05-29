@@ -16,14 +16,14 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		string bextension, string fextension, string cextension,
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, long ff, long ns, long marge, long napod, long ndet,
+		int fillg, long ff, long ns, long napod, long ndet,
 		int size, int rank, long *indpix, long *indpsrc, long nn, long npix,
 		long npixsrc, bool NORMLIN, bool NOFILLGAP, long iframe, double *S){
 
 
 
 	long ii, idet;
-	long ndata = ns+2*marge;
+	//long ndata = ns+2*marge;
 	string field;
 	string extentnoiseSp;
 
@@ -36,17 +36,17 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 	samptopix = new long[ns];
-	bfilter = new double[ndata/2+1];
-	Nk = new double[ndata/2+1];
+	bfilter = new double[ns/2+1];
+	Nk = new double[ns/2+1];
 
-	scerr = new double[ndata];
-	data =  new double[ndata];
-	data_lp = new double[ndata];
-	calp =  new double[ndata];
-	flag =  new unsigned char[ndata];
-	flpoint = new unsigned char[ndata];
-	rejectsamp = new unsigned char[ndata];
-	Ps = new double[ndata];
+	scerr = new double[ns];
+	data =  new double[ns];
+	data_lp = new double[ns];
+	calp =  new double[ns];
+	flag =  new unsigned char[ns];
+	flpoint = new unsigned char[ns];
+	rejectsamp = new unsigned char[ns];
+	Ps = new double[ns];
 
 
 	FILE *fp;
@@ -93,9 +93,9 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		if (S != NULL){
 
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
 			}
 
 			for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -107,16 +107,16 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP);
 		}
 
 
-		for (ii=0;ii<ndata/2+1;ii++)
+		for (ii=0;ii<ns/2+1;ii++)
 			bfilter[ii] = pow(double(ii)/f_lppix_Nk, 16) /(1.0+pow(double(ii)/f_lppix_Nk, 16));
 
 
@@ -124,11 +124,11 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		//****************** Compute (or read) input power spectrum of the NOISE  ***************//
 		extentnoiseSp = extentnoiseSp_all[iframe];
 		sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
-		readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
+		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
 
 		//********************** compute P^t N-1 d ************************//
-		compute_PtNmd(data_lp,Nk,ns+2*marge,marge,nn,indpix,samptopix,npix,PNd);
+		compute_PtNmd(data_lp,Nk,ns,nn,indpix,samptopix,npix,PNd);
 
 
 	}// end of idet loop
@@ -155,14 +155,14 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
 		string termin, string dirfile, string *bolonames, double f_lppix,
-		double fsamp, bool flgdupl, int factdupl, long ff, long ns, long marge,
+		double fsamp, bool flgdupl, int factdupl, long ff, long ns,
 		long ndet, int size, int rank, long *indpix, long nn, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
 
 
 
 	long ii, idet;
-	long ndata = ns+2*marge;
+	long ndata = ns;
 	string field;
 	string extentnoiseSp;
 
@@ -194,28 +194,28 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 
 
 		// AS
-		deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ndata,nn,npix,Ps,flgdupl,factdupl);
 
 
 		extentnoiseSp = extentnoiseSp_all[iframe];
 		sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
-		for (ii=0;ii<(ns+2*marge)/2+1;ii++)
+		for (ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
-		readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
+		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
 
 		//AtN-1A AS (espensive part)
-		compute_PtNmd(Ps,Nk,ns+2*marge,marge,nn,indpix,samptopix,npix,PtNPmatS);
+		compute_PtNmd(Ps,Nk,ns,nn,indpix,samptopix,npix,PtNPmatS);
 
 
 		//Compute weight map for preconditioner
 		if ((Mp != NULL))
-			compute_diagPtNP(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
+			compute_diagPtNP(Nk,samptopix,ndata,nn,indpix,npix,f_lppix,Mp);
 
 
 		//compute hit counts
 		if (hits != NULL){
-			for (ii=0;ii<ndata-2*marge;ii++){
+			for (ii=0;ii<ndata;ii++){
 				hits[indpix[samptopix[ii]]] += 1;
 			}
 		}

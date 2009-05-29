@@ -35,46 +35,46 @@ void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
 		    double **map_f, double **count_f );
 
 
-void compute_PtNmd(double *data, double *Nk, long ndata, long marge, int nn,
+void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 		   long *indpix, long *samptopix, int npix, double *PNd);
 
 
-void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
-			long ndata, long marge, int *xx, int *yy, int nn,
-			long *indpix, int npix, double *PNd);
+/*void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
+			long ndata, int *xx, int *yy, int nn,
+			long *indpix, int npix, double *PNd);*/
 
-void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
+/*void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 		   long ndata, long marge, int *xx, int *yy, int nn,
-			   long *indpix, int npix, double *PNd);
-
+			   long *indpix, int npix, double *PNd);*/
+/*
 void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
-		  long marge, int *xx, int *yy, int nn, long *indpix,
-		  int npix, double f_lppix, double *PtNP);
-
+		  int *xx, int *yy, int nn, long *indpix,
+		  int npix, double f_lppix, double *PtNP);*/
+/*
 void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
-		  long marge, int *xx, int *yy, int nn, long *indpix,
-		       int npix, double f_lppix, double *PtNP, int nfrac, int ifrac);
+		   int *xx, int *yy, int nn, long *indpix,
+		       int npix, double f_lppix, double *PtNP, int nfrac, int ifrac);*/
 
-
+/*
 void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *rejectsamp2,
 		       unsigned char *binsamp1, unsigned char *binsamp2,
-		       long ndata, long marge, int *xx1, int *yy1, int *xx2, int *yy2,
-		       int nn, long *indpix, int npix, double f_lppix, double *PtNP);
+		       long ndata, int *xx1, int *yy1, int *xx2, int *yy2,
+		       int nn, long *indpix, int npix, double f_lppix, double *PtNP);*/
 
 
 
 void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
-		      long marge, int nn, long *indpix,
+		      int nn, long *indpix,
 		      int npix, double f_lppix, double *dPtNP);
 
 
 
 void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
-			  long marge, int nn, long *indpix,
+			  int nn, long *indpix,
 			  int npix, double f_lppix, double *dPtNP);
 
 
-
+/*
 void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 			      unsigned char *rejectsamp, unsigned char *binsamp,
 			      long ndata, long marge, int *xx, int *yy, int nn,
@@ -84,19 +84,19 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 			      unsigned char *binsamp, long ndata, long marge,
 			      int *xx, int *yy, int nn, long *indpix, int npix, int npixmap,
-			      double f_lppix, double *dPtNP, long *countreject);
+			      double f_lppix, double *dPtNP, long *countreject);*/
 
 
 
 
-void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int marge, int napod,
+void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN,
 			  bool NOFILLGAP, double *Ps = NULL);
 
 
 
 void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
-		     long ns, long napod, long marge, int *xx, int *yy, int nn, double errarcsec,
+		     long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
 		     bool NOFILLGAP, unsigned char *rejectsamp);
 
 
@@ -113,7 +113,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 
-void readNSpectrum(char *nameSpfile, double *bfilter, long ns, long marge, double fsamp, double *Nk);
+void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
 
 
 
@@ -130,15 +130,15 @@ void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets,
 
 
 
-void deproject(double *S, long *indpix, long *samptopix, long ndata, long marge, long nn,
+void deproject(double *S, long *indpix, long *samptopix, long ndata, long nn,
 	       long npix, double *Ps, int flgdupl, int factdupl, long ntotscan = 0,
 	       long *indpsrc = NULL, long npixsrc = 0);
 
 
-void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long iframe, double *Ps);
+//void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long iframe, double *Ps);
 
 
-void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long npixmap, double *Ps, long *countreject);
+//void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long npixmap, double *Ps, long *countreject);
 
 
 

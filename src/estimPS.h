@@ -16,7 +16,7 @@
 
 
 void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long npix, long napod,
-		long marge, long iframe, bool flgdupl, int factdupl, long *indpix,
+		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, string *bolonames, string dirfile, string bextension,
 		string fextension, string cextension, int shift_data_to_point, string dir,
 		string termin, bool NORMLIN, bool NOFILLGAP, string noiseSppreffile,

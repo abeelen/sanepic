@@ -5,7 +5,6 @@
 #include <time.h>
 #include <fftw3.h>
 #include <getdata.h>
-//#include "/global/software/pgi-6.0/linux86/6.0/include/mpi.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <list>

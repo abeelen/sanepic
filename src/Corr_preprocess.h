@@ -16,7 +16,7 @@
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, string termin, string *bolonames,
-		double f_lppix, double fsamp, long ff, long ns, long marge, long ndet, int size,
+		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
 		int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits);
 
 
@@ -28,12 +28,12 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		string scerr_field, string flpoint_field, string *bolonames,
 		string bextension, string fextension, string cextension,
 		int shift_data_to_point, double f_lppix, long ff, long ns,
-		long marge, long napod, long ndet, bool NORMLIN, bool NOFILLGAP,
+		long napod, long ndet, bool NORMLIN, bool NOFILLGAP,
 		long iframe);
 
 
 
 void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl,
-		string dir, string termin, long ff, long ns, long marge, long ndet, long iframe);
+		string dir, string termin, long ff, long ns, long ndet, long iframe);
 
 #endif /* CORR_PREPROCESS_H_ */

@@ -5,7 +5,6 @@
 #include <time.h>
 #include <fftw3.h>
 #include <getdata.h>
-//#include "/global/software/pgi-6.0/linux86/6.0/include/mpi.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <list>
@@ -350,7 +349,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		    string bextension, string fextension, string cextension,
 		    int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		    double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		    int fillg, long ff, long ns, long marge, long napod, long ndet,
+		    int fillg, long ff, long ns, long napod, long ndet,
 		    int size, int rank, long *indpix, long *indpsrc, long nn, long npix,
 		    long npixsrc, bool NORMLIN, bool NOFILLGAP, long iframe, double *S);
 
@@ -359,7 +358,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
 		     string termin, string dirfile, string *bolonames, double f_lppix,
-		     double fsamp, bool flgdupl, int factdupl, long ff, long ns, long marge,
+		     double fsamp, bool flgdupl, int factdupl, long ff, long ns,
 		     long ndet, int size, int rank, long *indpix, long nn, long npix,
 		     long iframe, double *PtNPmatS, double *Mp, long *hits);
 
@@ -1332,7 +1331,7 @@ int main(int argc, char *argv[])
 	do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
 		       scerr_field,flpoint_field,bolonames,bextension,fextension,
 		       cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-		       flgdupl,factdupl,2,ff,ns,marge,napod,ndet,1,0,indpix,indpsrc,
+		       flgdupl,factdupl,2,ff,ns,napod,ndet,1,0,indpix,indpsrc,
 		       nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,NULL);
 
       }
@@ -1435,7 +1434,7 @@ int main(int argc, char *argv[])
 	      f_lppix_Nk,fsamp,ff,ns,marge,ndet,1,0,indpix,nn,npix,iframe,Mp,hits);
     } else {
       do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-		      f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,1,0,indpix,nn,npix,
+		      f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,1,0,indpix,nn,npix,
 		      iframe,PtNPmatS,Mp,hits);
     }
   } // end of iframe loop
@@ -1501,7 +1500,7 @@ int main(int argc, char *argv[])
       } else {
 
 	do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-			f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,1,0,indpix,nn,npix,
+			f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,1,0,indpix,nn,npix,
 			iframe,q,NULL,NULL);
       }
     } // end of iframe loop
@@ -1539,7 +1538,7 @@ int main(int argc, char *argv[])
 		  f_lppix_Nk,fsamp,ff,ns,marge,ndet,1,0,indpix,nn,npix,iframe,NULL,NULL);
 	} else {
 	  do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-			  f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,1,0,indpix,nn,npix,
+			  f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,1,0,indpix,nn,npix,
 			  iframe,PtNPmatS,NULL,NULL);
 	}
       } // end of iframe loop
@@ -1782,7 +1781,7 @@ int main(int argc, char *argv[])
 	do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
 		       scerr_field,flpoint_field,bolonames,bextension,fextension,
 		       cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-		       flgdupl,factdupl,2,ff,ns,marge,napod,ndet,1,0,indpix,indpsrc,
+		       flgdupl,factdupl,2,ff,ns,napod,ndet,1,0,indpix,indpsrc,
 		       nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,S);
       }
     } // end of iframe loop
@@ -1999,7 +1998,7 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
 
-    deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
+    deproject(S,indpix,samptopix,ndata,nn,npix,Ps,flgdupl,factdupl);
 
     //Fourier transform of the data
     fftplan = fftw_plan_dft_r2c_1d(ndata, Ps, fdata, FFTW_ESTIMATE);
@@ -2103,9 +2102,9 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
       fclose(fp);
 
       if (addnpix){
-	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+	deproject(S,indpix,samptopix,ns,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
       } else {
-	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
+	deproject(S,indpix,samptopix,ns,marge,nn,npix,Ps,fillg,factdupl);
       }
 
       for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -2117,11 +2116,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
     if (S != NULL){
       //********************  pre-processing of data ********************//
-      MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+      MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 			   NORMLIN,NOFILLGAP,Ps);
     }
     else {
-      MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+      MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 			   NORMLIN,NOFILLGAP);
     }
 
@@ -2271,7 +2270,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
       //Compute weight map for preconditioner
       if ((Mp != NULL) && (idet2 == idet1))
-	compute_diagPtNPCorr(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
+	compute_diagPtNPCorr(Nk,samptopix,ndata,nn,indpix,npix,f_lppix,Mp);
 
 
     }// end of idet2 loop
@@ -2326,7 +2325,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		    string bextension, string fextension, string cextension,
 		    int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		    double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		    int fillg, long ff, long ns, long marge, long napod, long ndet,
+		    int fillg, long ff, long ns, long napod, long ndet,
 		    int size, int rank, long *indpix, long *indpsrc, long nn, long npix,
 		    long npixsrc, bool NORMLIN, bool NOFILLGAP, long iframe, double *S){
 
@@ -2403,9 +2402,9 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
     if (S != NULL){
 
       if (addnpix){
-	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+	deproject(S,indpix,samptopix,ns+2*marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
       } else {
-	deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
+	deproject(S,indpix,samptopix,ns+2*marge,nn,npix,Ps,fillg,factdupl);
       }
 
       for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -2417,11 +2416,11 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
     if (S != NULL){
       //********************  pre-processing of data ********************//
-      MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+      MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 			   NORMLIN,NOFILLGAP,Ps);
     }
     else {
-      MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+      MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 			   NORMLIN,NOFILLGAP);
     }
 
@@ -2434,7 +2433,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
     //****************** Compute (or read) input power spectrum of the NOISE  ***************//
     extentnoiseSp = extentnoiseSp_all[iframe];
     sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
-    readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
+    readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
 
     //********************** compute P^t N-1 d ************************//
@@ -2465,7 +2464,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
 		string termin, string dirfile, string *bolonames, double f_lppix,
-		double fsamp, bool flgdupl, int factdupl, long ff, long ns, long marge,
+		double fsamp, bool flgdupl, int factdupl, long ff, long ns,
 		long ndet, int size, int rank, long *indpix, long nn, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
 
@@ -2504,26 +2503,26 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 
 
     // AS
-    deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
+    deproject(S,indpix,samptopix,ndata,nn,npix,Ps,flgdupl,factdupl);
 
 
     extentnoiseSp = extentnoiseSp_all[iframe];
     sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
     for (ii=0;ii<(ns+2*marge)/2+1;ii++)
       bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
-    readNSpectrum(nameSpfile,bfilter,ns,marge,fsamp,Nk);
+    readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
 
 
 
 
     //AtN-1A AS (espensive part)
-    compute_PtNmd(Ps,Nk,ns+2*marge,marge,nn,indpix,samptopix,npix,PtNPmatS);
+    compute_PtNmd(Ps,Nk,ns,nn,indpix,samptopix,npix,PtNPmatS);
 
 
     //Compute weight map for preconditioner
     if ((Mp != NULL))
-      compute_diagPtNP(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
+      compute_diagPtNP(Nk,samptopix,ndata,nn,indpix,npix,f_lppix,Mp);
 
 
     //compute hit counts
@@ -2707,13 +2706,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
 
-    deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
+    deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
 
-    data[ii] = data[ii] - Ps[marge+ii]/calp[ii/20];
+    data[ii] = data[ii] - Ps[ii]/calp[ii/20];
 
 
-    MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
+    MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
 			 NORMLIN,NOFILLGAP);
 
 
@@ -2870,13 +2869,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
     fread(samptopix,sizeof(long),ns,fp);
     fclose(fp);
 
-    deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
+    deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
 
     data[ii] = data[ii] - Ps[marge+ii]/calp[ii/20];
 
 
-    MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
+    MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
 			 NORMLIN,NOFILLGAP);
 
 

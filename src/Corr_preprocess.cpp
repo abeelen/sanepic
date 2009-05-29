@@ -10,11 +10,11 @@
 using namespace std;
 
 
-void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl, string dir, string termin, long ff, long ns, long marge, long ndet, long iframe){
+void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl, string dir, string termin, long ff, long ns, long ndet, long iframe){
 
 
 	long idet1;
-	long ndata = ns+2*marge;
+	//long ndata = ns+2*marge;
 
 	FILE *fp;
 	char testfile[100];
@@ -26,8 +26,8 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 	fftw_complex *fdata;
 
 	samptopix = new long[ns];
-	Ps = new double[ndata];
-	fdata = new fftw_complex[ndata/2+1];
+	Ps = new double[ns];
+	fdata = new fftw_complex[ns/2+1];
 
 
 	//for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
@@ -39,16 +39,16 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 		fread(samptopix,sizeof(long),ns,fp);
 		fclose(fp);
 
-		deproject(S,indpix,samptopix,ndata,marge,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ndata, Ps, fdata, FFTW_ESTIMATE);
+		fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
 		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
-		fwrite(fdata,sizeof(double), (ndata/2+1)*2, fp);
+		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
 		fclose(fp);
 
 	}
@@ -70,12 +70,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		string scerr_field, string flpoint_field, string *bolonames,
 		string bextension, string fextension, string cextension,
 		int shift_data_to_point, double f_lppix, long ff, long ns,
-		long marge, long napod, long ndet, bool NORMLIN, bool NOFILLGAP,
-		long iframe){
+		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, long iframe){
 
 
 	long ii, idet1;
-	long ndata = ns+2*marge;
+	//long ndata = ns+2*marge;
 
 	double *scerr, *data, *calp, *bfilter, *data_lp, *Ps;
 	unsigned char *flpoint, *flag, *rejectsamp;
@@ -90,18 +89,18 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 	FILE *fp;
 
-	scerr = new double[ndata];
-	data =  new double[ndata];
-	data_lp = new double[ndata];
-	calp =  new double[ndata];
-	flag =  new unsigned char[ndata];
-	flpoint = new unsigned char[ndata];
-	rejectsamp = new unsigned char[ndata];
+	scerr = new double[ns];
+	data =  new double[ns];
+	data_lp = new double[ns];
+	calp =  new double[ns];
+	flag =  new unsigned char[ns];
+	flpoint = new unsigned char[ns];
+	rejectsamp = new unsigned char[ns];
 
 	samptopix = new long[ns];
-	Ps = new double[ndata];
-	bfilter = new double[ndata/2+1];
-	fdata = new fftw_complex[ndata/2+1];
+	Ps = new double[ns];
+	bfilter = new double[ns/2+1];
+	fdata = new fftw_complex[ns/2+1];
 
 
 
@@ -127,10 +126,12 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		}
 
 		if (cextension != "NOCALP"){
-			read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd');
+			read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
+			//read_data_std(dirfile, ff, 0, ns/samples_per_frame, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
 		} else {
 			//      printf("NOCALP\n");
 			for (ii=0;ii<ns/20;ii++)
+			//for (ii=0;ii<ns/samples_per_frame;ii++) // attention 20 avant
 				calp[ii] = 1.0;
 		}
 
@@ -144,9 +145,9 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 			fclose(fp);
 
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
 			}
 
 			for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -158,23 +159,23 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP);
 		}
 
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ndata, data_lp, fdata, FFTW_ESTIMATE);
+		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
 
 		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
-		fwrite(fdata,sizeof(double), (ndata/2+1)*2, fp);
+		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
 		fclose(fp);
 
 	}
@@ -200,13 +201,13 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, string termin, string *bolonames,
-		double f_lppix, double fsamp, long ff, long ns, long marge, long ndet, int size,
+		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
 		int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits){
 
 
 	long ii, jj, idet1, idet2, nbins;
 	double dnbins;
-	long ndata = ns+2*marge;
+	//long ndata = ns+2*marge;
 	string field1, field2;
 	string extentnoiseSp;
 
@@ -221,12 +222,12 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 
 	samptopix = new long[ns];
-	Nd = new double[ndata];
-	bfilter = new double[ndata/2+1];
-	bfilter_ = new double[ndata/2+1];
-	Nk = new double[ndata/2+1];
-	fdata = new fftw_complex[ndata/2+1];
-	Ndf = new fftw_complex[ndata/2+1];
+	Nd = new double[ns];
+	bfilter = new double[ns/2+1];
+	bfilter_ = new double[ns/2+1];
+	Nk = new double[ns/2+1];
+	fdata = new fftw_complex[ns/2+1];
+	Ndf = new fftw_complex[ns/2+1];
 
 	double **SpN_all;
 
@@ -262,14 +263,14 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		fclose(fp);
 		//*****************************************
 
-		for (ii=0;ii<ndata/2+1;ii++)
+		for (ii=0;ii<ns/2+1;ii++)
 			bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
-		for (ii=0;ii<ndata/2+1;ii++)
+		for (ii=0;ii<ns/2+1;ii++)
 			bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
 
 
 		//Init N-1d
-		for (ii=0;ii<ndata/2+1;ii++){
+		for (ii=0;ii<ns/2+1;ii++){
 			Ndf[ii][0] = 0;
 			Ndf[ii][1] = 0;
 		}
@@ -282,7 +283,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 			//read Fourier transform of the data
 			sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
-			fread(fdata,sizeof(double), (ndata/2+1)*2, fp);
+			fread(fdata,sizeof(double), (ns/2+1)*2, fp);
 			fclose(fp);
 
 
@@ -292,17 +293,17 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 
 			// interpolate logarithmically the noise power spectrum
-			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ndata,fsamp,Nk);
+			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 
 
-			for (jj=0;jj<ndata/2+1;jj++)
+			for (jj=0;jj<ns/2+1;jj++)
 				if (isnan(Nk[jj])) {
 					printf("Ca ne va pas fr %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 					exit(1);
 				}
 
 			//********************************* compute N^-1 d  ***********************//
-			for (ii=0;ii<ndata/2+1;ii++){
+			for (ii=0;ii<ns/2+1;ii++){
 				Ndf[ii][0] += fdata[ii][0]*Nk[ii];
 				Ndf[ii][1] += fdata[ii][1]*Nk[ii];
 			}
@@ -311,29 +312,29 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 			//Compute weight map for preconditioner
 			if ((Mp != NULL) && (idet2 == idet1))
-				compute_diagPtNPCorr(Nk,samptopix,ndata,marge,nn,indpix,npix,f_lppix,Mp);
+				compute_diagPtNPCorr(Nk,samptopix,ns,nn,indpix,npix,f_lppix,Mp);
 
 
 		}// end of idet2 loop
 
 
-		fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
+		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
 
 
-		for (ii=-marge;ii<ndata-marge;ii++){
-			if ((ii < 0) || (ii >= ndata-2*marge)){
-				PNd[npix-2] += Nd[ii+marge];
+		for (ii=0;ii<ns;ii++){
+			if ((ii < 0) || (ii >= ns)){
+				PNd[npix-2] += Nd[ii];
 			} else {
-				PNd[indpix[samptopix[ii]]] += Nd[ii+marge];
+				PNd[indpix[samptopix[ii]]] += Nd[ii];
 			}
 		}
 
 		//compute hit counts
 		if (hits != NULL){
-			for (ii=0;ii<ndata-2*marge;ii++){
+			for (ii=0;ii<ns;ii++){
 				hits[indpix[samptopix[ii]]] += 1;
 			}
 		}

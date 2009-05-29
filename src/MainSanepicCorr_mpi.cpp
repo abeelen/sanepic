@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
 
 	//DEFAULT PARAMETERS
 	long napod = 0; // number of samples to apodize
-	long marge = 0; // number of samples extrapolated before and after data => to remove
 	double fsamp = 25.0; // sampling frequency : BLAST Specific
 	double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
 	// source error
@@ -154,7 +153,7 @@ int main(int argc, char *argv[])
 	int flagon = 0; // if rejectsample [ii]==3, flagon=1
 	int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
 	bool bfixc = 0; // indicates that 4 corners are given for the cross corelation removal box
-	bool pixout = 0; // indicate that at least one pixel has been flagged and is out
+	bool pixout = 0; // indicates that at least one pixel has been flagged and is out
 	bool NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
 	bool NOFILLGAP = 0; // fill the gap ? default is YES
 	bool PND_ready = 0; // PNd precomputed ? read on disk if =1
@@ -280,7 +279,7 @@ int main(int argc, char *argv[])
 
 
 	// Parse command line options
-	while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:m:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
+	while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
 		switch (retval) {
 		case 'F':
 			dirfile = optarg;
@@ -345,9 +344,6 @@ int main(int argc, char *argv[])
 		case 'A':
 			napod = atoi(optarg);
 			break;
-			/*case 'm':
-      marge = atoi(optarg);
-      break;*/
 		case 'y':
 			channel.push_back(optarg);
 			break;
@@ -498,11 +494,7 @@ int main(int argc, char *argv[])
 	} else {
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
-	/*if (marge){
-    printf("[%2.2i] Data are extrapolated using a linear predictor\n", rank);
-  } else {
-    printf("[%2.2i] Data are not extrapolated outside the edges\n", rank);
-  }*/
+
 
 	if (pixdeg < 0){
 		cerr << "ERROR: enter pixel size -p keyword\n";
@@ -733,19 +725,19 @@ if(samples_per_frames>1){
 	dec = new double[2*ns]; // DEc du bolo de ref
 	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
 	scerr = new double[2*ns]; // BLAST SPECIFIC : mesure l'erreur de pointage, si trop grande on flag la donnée
-	xx = new int[2*ns];
-	yy = new int[2*ns];
-	samptopix = new long[2*ns];
+	xx = new int[2*ns]; // sample column coordinates in the map
+	yy = new int[2*ns]; // sample row coordinates in the map
+	samptopix = new long[2*ns]; // sample to pixel conversion index
 	flag = new unsigned char[2*ns]; // flag data => =1
 	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
 	flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
-	tancoord = new double[2];
-	tanpix = new double[2];
-	offsets = new double[2];
-	froffsets = new double[2];
+	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
+	tanpix = new double[2]; // coordinates in the map of the tangent point
+	offsets = new double[2]; //
+	froffsets = new double[2]; //
 
 
-	offmap = new double[2];
+	offmap = new double[2]; // map offsets
 
 
 	// init some mapmaking variables
@@ -998,12 +990,13 @@ if(samples_per_frames>1){
 					// flag
 					// scerr = pointing error : BLASPEC
 					// flpoint = do we consider those data at time t
-					// marge = number of samples extrapolated before/after data
 					// napod = number of samples to apodize
 					// errarcsec critere de flag, default = 15.0, BLAST specific : pointing error threshold
 					// NOFILLGAP = fill the gap ? default = yes
 					// rejectsamples: rejected samples array, rejectsample value =0,1,2 or 3
-			flag_conditions(flag,scerr,flpoint,ns,napod,marge,xx,yy,nn,errarcsec,NOFILLGAP,rejectsamp);
+			flag_conditions(flag,scerr,flpoint,ns,napod,xx,yy,nn,errarcsec,NOFILLGAP,rejectsamp);
+			//flag_conditions(flag,scerr,flpoint,ns,napod,xx,yy,nn,errarcsec,NOFILLGAP,rejectsamp);
+
 			// returns rejectsamp
 
 
@@ -1044,7 +1037,7 @@ if(samples_per_frames>1){
 						samptopix[ii] = nn*nn+1 + addnpix;
 					}
 				}
-				// pixel dans la marge //a suppr
+				// pixel dans la zone d'apodisation //a suppr
 				if (rejectsamp[ii] == 3){
 					pixon[factdupl*nn*nn+1 + addnpix] += 1;
 					flagon = 1;
@@ -1052,7 +1045,6 @@ if(samples_per_frames>1){
 				}
 			}
 
-			pixon[factdupl*nn*nn + addnpix] += 2*marge; // a suppr
 
 
 			//printf("pixon[nn*nn] = %d/n",pixon[nn*nn]);
@@ -1147,8 +1139,8 @@ if(samples_per_frames>1){
 
 		ns = nsamples[iframe]; // number of samples for this scan
 		ff = fframes[iframe]; //first frame of this scan
-		f_lppix = f_lp*double(ns+2*marge)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp; // noise PS threshold freq, in terms of samples
+		f_lppix = f_lp*double(ns)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
+		f_lppix_Nk = f_lp_Nk*double(ns)/fsamp; // noise PS threshold freq, in terms of samples
 		//prefixe = "fdata"; => now outside the loop
 
 
@@ -1182,7 +1174,6 @@ if(samples_per_frames>1){
 			    // f_lppix = filter freq in term of sample
 			    // ff = first frame number of this scan
 			    // ns = number of sample for this scan
-			    // marge = number of samples extrapolated before and after data -m option
 			    // napod = number of samples to apodize -A option
 			    // ndet = bolo total number
 			    // NORMLIN = baseline is remove from the data, default =0, option -L
@@ -1191,11 +1182,13 @@ if(samples_per_frames>1){
 			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 					poutdir,termin,errarcsec,dirfile,scerr_field,flpoint_field,bolonames,
 					bextension,fextension,cextension,shift_data_to_point,f_lppix,ff,ns,
-					marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);// fillgaps + butterworth filter + fourier transform
+					napod,ndet,NORMLIN,NOFILLGAP,iframe);// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
+
 			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
-					fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+								fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+
 			// PNd = npix dimension, initialised to 0.0
 				// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
 				// noiseSppreffile = noise power spectrum file suffix = path
@@ -1207,7 +1200,6 @@ if(samples_per_frames>1){
 				// fsamp = freq echantillonage des data
 				// ff = n° premier sample du scan
 				// ns = nombre de sample ds le scan
-				// marge = nombre de sample dans la marge // inutilisé
 				// ndet = nombre de bolo
 				// size = 1 // cf mpi
 				// rank = 0 // cf mpi
@@ -1224,7 +1216,7 @@ if(samples_per_frames>1){
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
 					scerr_field,flpoint_field,bolonames,bextension,fextension,
 					cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-					flgdupl,factdupl,2,ff,ns,marge,napod,ndet,size_det,rank_det,indpix,indpsrc,
+					flgdupl,factdupl,2,ff,ns,napod,ndet,size_det,rank_det,indpix,indpsrc,
 					nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,NULL);
 
 		}
@@ -1263,10 +1255,11 @@ if(samples_per_frames>1){
 				extentnoiseSp = extentnoiseSp_all[iframe];
 
 				// estimate noise power spectra from data
-				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,
+				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,
 						S,MixMatfile,bolonames,dirfile,bextension,fextension,cextension,
 						shift_data_to_point,poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,
 						extentnoiseSp,outdir);
+
 				// fsamp = bolometers sampling freq
 				// ns = number of samples in the "iframe" scan
 				// ff = first sample number
@@ -1274,7 +1267,6 @@ if(samples_per_frames>1){
 				// nn = side of the map
 				// npix = total number of filled pixels
 				// napod = number of border pixels used to apodize data
-				//marge = to BE REMOVED §
 				// iframe == scan number
 				// flgdupl = flagged data map duplication indicator
 				// factdupl = duplication factor (1 or 2)
@@ -1460,7 +1452,7 @@ if(samples_per_frames>1){
 					ff = fframes[iframe];
 					extentnoiseSp = extentnoiseSp_all[iframe];
 
-					EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,
+					EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,
 							S,MixMatfile,bolonames,dirfile,bextension,fextension,cextension,
 							shift_data_to_point,poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,
 							extentnoiseSp,outdir);
@@ -1504,21 +1496,20 @@ if(samples_per_frames>1){
 		for (iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
-			f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
+			f_lppix_Nk = f_lp_Nk*double(ns)/fsamp;
 			//prefixe = "fPs"; now outside of the loop
 
 			//    cout << "[" << rank << "] " << iframe << "/" << iframe_max << endl;
 
 			if (CORRon){
-				write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
-
+				write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,ndet,iframe);
 
 				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,
-						f_lppix_Nk,fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,Mp,hits);
+						f_lppix_Nk,fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,Mp,hits);
 			} else {
 
 				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,indpix,
+						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,indpix,
 						nn,npix,iframe,PtNPmatS,Mp,hits);
 			}
 
@@ -1594,22 +1585,23 @@ if(samples_per_frames>1){
 			//fprintf(fp,"starting while loop: t = %ld\n",t1);
 			//fclose(fp);
 
+			prefixe = "fPs";
 
 			for (iframe=iframe_min;iframe<iframe_max;iframe++){
 				ns = nsamples[iframe];
 				ff = fframes[iframe];
-				f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
-				prefixe = "fPs";
+				f_lppix_Nk = f_lp_Nk*double(ns)/fsamp;
+				//prefixe = "fPs";
 
 				if (CORRon){
-					write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
+					write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,ndet,iframe);
 
 					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+							fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
 				} else {
 
 					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,indpix,
+							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,indpix,
 							nn,npix,iframe,q,NULL,NULL);
 				}
 			} // end of iframe loop
@@ -1646,23 +1638,24 @@ if(samples_per_frames>1){
 				init1D_double(PtNPmatS,0,npixeff,0.0);
 				init1D_double(PtNPmatStot,0,npixeff,0.0);
 
+				prefixe = "fPs";
 
 				for (iframe=iframe_min;iframe<iframe_max;iframe++){
 					ns = nsamples[iframe];
 					ff = fframes[iframe];
-					f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
-					prefixe = "fPs";
+					f_lppix_Nk = f_lp_Nk*double(ns)/fsamp;
+					//prefixe = "fPs";
 
 					if (CORRon){
-						write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,marge,ndet,iframe);
-
+						write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, poutdir,termin,ff,ns,ndet,iframe);
 
 						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,
-								f_lppix_Nk,fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,
+								f_lppix_Nk,fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,
 								NULL,NULL);
 					} else {
+
 						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,poutdir,termin,dirfile,bolonames,
-								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,marge,ndet,size_det,rank_det,
+								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,
 								indpix,nn,npix,iframe,PtNPmatS,NULL,NULL);
 					}
 				} // end of iframe loop
@@ -1915,8 +1908,8 @@ if(samples_per_frames>1){
 
 				ns = nsamples[iframe];
 				ff = fframes[iframe];
-				f_lppix = f_lp*double(ns+2*marge)/fsamp;
-				f_lppix_Nk = f_lp_Nk*double(ns+2*marge)/fsamp;
+				f_lppix = f_lp*double(ns)/fsamp;
+				f_lppix_Nk = f_lp_Nk*double(ns)/fsamp;
 				//prefixe = "fdata"; now out of loop
 
 				if (CORRon){
@@ -1924,17 +1917,17 @@ if(samples_per_frames>1){
 					write_ftrProcesdata(S,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 							poutdir,termin,errarcsec,dirfile,scerr_field,flpoint_field,bolonames,
 							bextension,fextension,cextension,shift_data_to_point,f_lppix,ff,ns,
-							marge,napod,ndet,NORMLIN,NOFILLGAP,iframe);
+							napod,ndet,NORMLIN,NOFILLGAP,iframe);
 
 					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,prefixe,termin,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,marge,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+												fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
 				} else {
 
 					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
-							scerr_field,flpoint_field,bolonames,bextension,fextension,
-							cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-							flgdupl,factdupl,2,ff,ns,marge,napod,ndet,size_det,rank_det,indpix,indpsrc,
-							nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,S);
+												scerr_field,flpoint_field,bolonames,bextension,fextension,
+												cextension,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
+												flgdupl,factdupl,2,ff,ns,napod,ndet,size_det,rank_det,indpix,indpsrc,
+												nn,npix,npixsrc,NORMLIN,NOFILLGAP,iframe,S);
 				}
 			} // end of iframe loop
 
@@ -2063,7 +2056,7 @@ if(samples_per_frames>1){
 			ff = fframes[iframe];
 			extentnoiseSp = extentnoiseSp_all[iframe];
 
-			EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,marge,iframe,flgdupl,factdupl,indpix,S,
+			EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
 					MixMatfile,bolonames,dirfile,bextension,fextension,cextension,shift_data_to_point,
 					poutdir,termin,NORMLIN,NOFILLGAP,noiseSppreffile,extentnoiseSp,outdir);
 

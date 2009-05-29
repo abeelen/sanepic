@@ -11,7 +11,7 @@ using namespace std;
 
 
 void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long npix, long napod,
-		long marge, long iframe, bool flgdupl, int factdupl, long *indpix,
+		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, string *bolonames, string dirfile, string bextension,
 		string fextension, string cextension, int shift_data_to_point, string dir,
 		string termin, bool NORMLIN, bool NOFILLGAP, string noiseSppreffile,
@@ -175,12 +175,12 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		fclose(fp);
 
 
-		deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
 
-		data[ii] = data[ii] - Ps[marge+ii];
+		data[ii] = data[ii] - Ps[ii];
 
-		MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP);
 
 		for (ii=0;ii<ns;ii++)
@@ -424,15 +424,15 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		fread(samptopix,sizeof(long),ns,fp);
 		fclose(fp);
 
-		deproject(S,indpix,samptopix,ns+2*marge,marge,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
 
-		data[ii] = data[ii] - Ps[marge+ii];
+		data[ii] = data[ii] - Ps[ii];
 
 
 
 
-		MapMakPreProcessData(data,flag,calp,ns,marge,napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP);
 
 
