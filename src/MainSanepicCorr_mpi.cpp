@@ -654,12 +654,12 @@ if(samples_per_frames>1){
 		for (ii=0;ii<ntotscan;ii++){
 			nsamplesorder[ii] = nsamples[ruleorder[ii]];
 			fframesorder[ii] = fframes[ruleorder[ii]];
-			extentnoiseSp_allorder[ii] = extentnoiseSp_all[ii];
+			//extentnoiseSp_allorder[ii] = extentnoiseSp_all[ii];
 		}
 		for (ii=0;ii<ntotscan;ii++){
 			nsamples[ii] = nsamplesorder[ii];
 			fframes[ii] = fframesorder[ii];
-			extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
+			//extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
 			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
 		}
 
@@ -673,13 +673,21 @@ if(samples_per_frames>1){
 		fp = fopen(testfile,"a");
 		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
 		fclose(fp);
+
+
+	// write parallel schema in a file
+		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".txt");
+		if ((fp = fopen(testfile,"w"))!=NULL){
+		//fprintf(fp,"%d\n",size);
+		fwrite(&size,sizeof(int), 1, fp);
+		fwrite(ruleorder,sizeof(long),ntotscan,fp);
+		fwrite(frnum,sizeof(long),ntotscan,fp);
+		fclose(fp);
+		}else{
+			cerr << "Error : couldn't open file to write parallel options. Exiting" << endl;
+			exit(1);
+		}
 	}
-
-
-
-
-
-
 
 	if (parallel_frames){
 #ifdef USE_MPI
@@ -761,7 +769,7 @@ if(samples_per_frames>1){
 	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
 	coordsyst2 = coordsyst;
-	if (coordsyst2 != 4){
+	if (coordsyst2 != 4){ // coordsyst never = 4 => debug mode => delete
 		// ndet = number of channels
 		for (idet=0;idet<ndet;idet++){
 
@@ -831,6 +839,11 @@ if(samples_per_frames>1){
 		MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 		MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
+#else
+		gra_min=ra_min;
+		gra_max=ra_max;
+		gdec_min=dec_min;
+		gdec_max=dec_max;
 #endif
 
 		//set coordinates
@@ -1098,6 +1111,13 @@ if(samples_per_frames>1){
 
 	delete [] pixon;
 
+	// write in a file for conjugate gradient step // ajout Mat 02/06
+	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Indpix_for_conj_grad_",termin.c_str(),".txt");
+			fp = fopen(testfile,"w");
+		//	long indpix_size = factdupl*nn*nn+2 + addnpix;
+		//	fwrite(&indpix_size,sizeof(long),1,fp);
+			fwrite(indpix,sizeof(long), factdupl*nn*nn+2 + addnpix, fp);
+			fclose(fp);
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
@@ -1228,11 +1248,15 @@ if(samples_per_frames>1){
 
 #ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+#else
+	PNdtot=PNd;
 #endif
+
 
 	if (rank == 0){
 		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"PNdCorr_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
+		fwrite(&npix,sizeof(int),1,fp); // ajout Mat 02/06
 		fwrite(PNdtot,sizeof(double),npix,fp);
 		fclose(fp);
 	}
