@@ -123,9 +123,9 @@ int main(int argc, char *argv[])
 	cout << rank << endl;
 
 #else
-	size = 0;
+	size = 1;
 	rank = 0;
-	cout << "pas de mpi" << endl;
+	cout << "Mpi is not used for this step" << endl;
 #endif
 
 	char * pPath;
@@ -676,7 +676,7 @@ if(samples_per_frames>1){
 
 
 	// write parallel schema in a file
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".txt");
+		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".bi");
 		if ((fp = fopen(testfile,"w"))!=NULL){
 		//fprintf(fp,"%d\n",size);
 		fwrite(&size,sizeof(int), 1, fp);
@@ -1112,7 +1112,7 @@ if(samples_per_frames>1){
 	delete [] pixon;
 
 	// write in a file for conjugate gradient step // ajout Mat 02/06
-	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Indpix_for_conj_grad_",termin.c_str(),".txt");
+	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Indpix_for_conj_grad_",termin.c_str(),".bi");
 			fp = fopen(testfile,"w");
 		//	long indpix_size = factdupl*nn*nn+2 + addnpix;
 		//	fwrite(&indpix_size,sizeof(long),1,fp);
@@ -1163,8 +1163,8 @@ if(samples_per_frames>1){
 		f_lppix_Nk = f_lp_Nk*double(ns)/fsamp; // noise PS threshold freq, in terms of samples
 		//prefixe = "fdata"; => now outside the loop
 
-
-		cout << "[" << rank << "] " << iframe << "/" << iframe_max ;
+		printf("[%2.2i] iframe : %ld/%ld",rank,iframe,iframe_max);
+		//cout << "[" << rank << "] " << iframe << "/" << iframe_max ;
 		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
 
 		// if there is correlation between detectors
@@ -1231,6 +1231,7 @@ if(samples_per_frames>1){
 				// *Hits = Null
 
 				// return Pnd = At N-1 d
+
 		} else {
 
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,poutdir,termin,errarcsec,dirfile,
@@ -1246,6 +1247,8 @@ if(samples_per_frames>1){
 
 	//  cout << "[" << rank << "] end of iframe loop" << endl;
 
+	printf("[%2.2i] End of Pre-Processing\n",rank);
+
 #ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
@@ -1255,10 +1258,14 @@ if(samples_per_frames>1){
 
 	if (rank == 0){
 		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"PNdCorr_",termin.c_str(),".bi");
-		fp = fopen(testfile,"w");
+		if((fp = fopen(testfile,"w"))!=NULL){
 		fwrite(&npix,sizeof(int),1,fp); // ajout Mat 02/06
 		fwrite(PNdtot,sizeof(double),npix,fp);
 		fclose(fp);
+		}else{
+			cerr << "Error : cannot open " << testfile << endl;
+			exit(1);
+		}
 	}
 
 /* ----------------------------------------------------------------------------------------------*/
@@ -1318,7 +1325,7 @@ if(samples_per_frames>1){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 #endif
-		cout << "exit after first EstimPowerSpectra" << endl;
+		cout << "Exit after first EstimPowerSpectra" << endl;
 		exit(0);
 
 	}

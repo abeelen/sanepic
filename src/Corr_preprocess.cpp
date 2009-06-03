@@ -126,13 +126,13 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		}
 
 		//if (cextension != "NOCALP"){
-			//read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
-			//read_data_std(dirfile, ff, 0, ns/samples_per_frame, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
+		//read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
+		//read_data_std(dirfile, ff, 0, ns/samples_per_frame, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
 		//} else {
-			//      printf("NOCALP\n");
-			//for (ii=0;ii<ns/20;ii++)
-			//for (ii=0;ii<ns/samples_per_frame;ii++) // attention 20 avant
-				//calp[ii] = 1.0;
+		//      printf("NOCALP\n");
+		//for (ii=0;ii<ns/20;ii++)
+		//for (ii=0;ii<ns/samples_per_frame;ii++) // attention 20 avant
+		//calp[ii] = 1.0;
 		//}
 
 
@@ -241,10 +241,13 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 		//Read pointing data
 		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);
-
+		if ((fp = fopen(testfile,"r"))!=NULL){
+			fread(samptopix,sizeof(long),ns,fp);
+			fclose(fp);
+		}else{
+			cerr << "ERROR: Can't find Read pointing data file " << testfile << ". Exiting. \n";
+			exit(1);
+		}
 
 		//**************************************** Noise power spectrum
 		extentnoiseSp = extentnoiseSp_all[iframe];
@@ -261,6 +264,8 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		fread(ell,sizeof(double), nbins+1, fp);
 		fread(*SpN_all,sizeof(double), nbins*ndet, fp);
 		fclose(fp);
+
+
 		//*****************************************
 
 		for (ii=0;ii<ns/2+1;ii++)
@@ -282,10 +287,13 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 			//read Fourier transform of the data
 			sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"r");
+			if((fp = fopen(testfile,"r"))!=NULL){
 			fread(fdata,sizeof(double), (ns/2+1)*2, fp);
 			fclose(fp);
-
+			}else{
+				cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
+							exit(1);
+			}
 
 			//****************** Cross power spectrum of the noise  ***************//
 			for (ii=0;ii<nbins;ii++)
@@ -298,7 +306,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 			for (jj=0;jj<ns/2+1;jj++)
 				if (isnan(Nk[jj])) {
-					printf("Ca ne va pas fr %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
+					printf("isnan has been found : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 					exit(1);
 				}
 
@@ -345,7 +353,6 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 
 	}// end of idet1 loop
-
 
 
 	delete[] samptopix;
