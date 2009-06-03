@@ -13,7 +13,7 @@ using namespace std;
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string termin, double errarcsec, string dirfile,
 		string scerr_field, string flpoint_field, string *bolonames,
-		string bextension, string fextension, string cextension,
+		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ff, long ns, long napod, long ndet,
@@ -31,7 +31,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	char testfile[100];
 
 	long *samptopix;
-	double *bfilter, *Nk, *data, *data_lp, *scerr, *calp, *Ps;
+	double *bfilter, *Nk, *data, *data_lp, *scerr,/* *calp,*/ *Ps;
 	unsigned char *flag, *flpoint, *rejectsamp;
 
 
@@ -42,7 +42,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	scerr = new double[ns];
 	data =  new double[ns];
 	data_lp = new double[ns];
-	calp =  new double[ns];
+	//calp =  new double[ns];
 	flag =  new unsigned char[ns];
 	flpoint = new unsigned char[ns];
 	rejectsamp = new unsigned char[ns];
@@ -74,13 +74,13 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 				flag[ii] = 0;
 		}
 
-		if (cextension != "NOCALP"){
-			read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
-		} else {
+		//if (cextension != "NOCALP"){
+		//	read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
+		//} else {
 			//      printf("NOCALP\n");
-			for (ii=0;ii<ns/20;ii++)
-				calp[ii] = 1.0;
-		}
+			//for (ii=0;ii<ns/20;ii++)
+			//	calp[ii] = 1.0;
+		//}
 
 
 		//// Read pointing
@@ -107,11 +107,11 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP);
 		}
 
@@ -140,7 +140,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	delete[] scerr;
 	delete[] data;
 	delete[] data_lp;
-	delete[] calp;
+	//delete[] calp;
 	delete[] flag;
 	delete[] flpoint;
 	delete[] rejectsamp;

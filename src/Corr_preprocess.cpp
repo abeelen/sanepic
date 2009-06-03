@@ -68,7 +68,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, string termin, double errarcsec, string dirfile,
 		string scerr_field, string flpoint_field, string *bolonames,
-		string bextension, string fextension, string cextension,
+		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, long iframe){
 
@@ -76,7 +76,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	long ii, idet1;
 	//long ndata = ns+2*marge;
 
-	double *scerr, *data, *calp, *bfilter, *data_lp, *Ps;
+	double *scerr, *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
 	unsigned char *flpoint, *flag, *rejectsamp;
 	long *samptopix;
 
@@ -92,7 +92,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	scerr = new double[ns];
 	data =  new double[ns];
 	data_lp = new double[ns];
-	calp =  new double[ns];
+	//calp =  new double[ns];
 	flag =  new unsigned char[ns];
 	flpoint = new unsigned char[ns];
 	rejectsamp = new unsigned char[ns];
@@ -125,15 +125,15 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 				flag[ii] = 0;
 		}
 
-		if (cextension != "NOCALP"){
-			read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
+		//if (cextension != "NOCALP"){
+			//read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
 			//read_data_std(dirfile, ff, 0, ns/samples_per_frame, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
-		} else {
+		//} else {
 			//      printf("NOCALP\n");
-			for (ii=0;ii<ns/20;ii++)
+			//for (ii=0;ii<ns/20;ii++)
 			//for (ii=0;ii<ns/samples_per_frame;ii++) // attention 20 avant
-				calp[ii] = 1.0;
-		}
+				//calp[ii] = 1.0;
+		//}
 
 
 
@@ -159,11 +159,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,calp,ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP);
 		}
 
@@ -184,7 +184,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	delete[] scerr;
 	delete[] data;
 	delete[] data_lp;
-	delete[] calp;
+	//delete[] calp;
 	delete[] flag;
 	delete[] flpoint;
 	delete[] samptopix;

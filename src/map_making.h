@@ -89,7 +89,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
 
 
-void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int napod,
+void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp,*/ long ns, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN,
 			  bool NOFILLGAP, double *Ps = NULL);
 
@@ -117,13 +117,13 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, dou
 
 
 
-
+/*
 void readalldata(long ff, long ns, string field, string ra_field, string dec_field,
 		 string phi_field, string scerr_field, string flpoint_field,
 		 string dirfile, string bextension, string fextension, string cextension,
 		 double *data, double *calp, double *ra, double *dec,
 		 double *phi, double *scerr, unsigned char *flpoint,
-		 unsigned char *flag, int shift_data_to_point);
+		 unsigned char *flag, int shift_data_to_point);*/
 
 
 void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets, double *froffsets);

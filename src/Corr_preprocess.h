@@ -26,7 +26,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, string termin, double errarcsec, string dirfile,
 		string scerr_field, string flpoint_field, string *bolonames,
-		string bextension, string fextension, string cextension,
+		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP,
 		long iframe);

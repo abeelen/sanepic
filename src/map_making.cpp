@@ -1482,7 +1482,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 
-void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long ns, int napod,
+void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP, double *Ps){
 
 
@@ -1511,7 +1511,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, double *calp, long 
 
 	//correct from time varying calibration
 	for (ii=0;ii<ns;ii++)
-		data[ii] = data_out[ii]*calp[ii/20]; // a virer les calp
+		data[ii] = data_out[ii]/**calp[ii/20]*/;
 
 
 
@@ -1794,7 +1794,7 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, dou
 
 
 
-
+/*
 void readalldata(long ff, long ns, string field, string ra_field, string dec_field, string phi_field,
 		string scerr_field, string flpoint_field, string dirfile,
 		string bextension, string fextension, string cextension, double *data,
@@ -1851,7 +1851,7 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 }
-
+*/
 
 void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets, double *froffsets){
 

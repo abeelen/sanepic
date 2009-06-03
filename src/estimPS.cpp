@@ -13,7 +13,7 @@ using namespace std;
 void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long npix, long napod,
 		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, string *bolonames, string dirfile, string bextension,
-		string fextension, string cextension, int shift_data_to_point, string dir,
+		string fextension, /*string cextension,*/ int shift_data_to_point, string dir,
 		string termin, bool NORMLIN, bool NOFILLGAP, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN)
 {
@@ -31,14 +31,14 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	double dnbins, dummy1;
 
-	double *data, *data_lp, *Ps, *calp, *apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
+	double *data, *data_lp, *Ps, /**calp,*/ *apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
 	long *samptopix;
 	unsigned char *flag;
 	double **commonm, **commonm2, **common_f, **vect;
 	double **P, **N, **Rellth, **Rellexp;
 	double **aa, **Cov, **iCov, **iCov2, **SpN_all;
 	double *Nk;
-	double *ell, *SpN, *Nell;
+	double *ell, /**SpN,*/ *Nell;
 	double *sign;
 	double *p, *uvec, *ivec;
 
@@ -66,7 +66,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	Ps = new double[ns];
 	commontmp = new double[ns];
 	commonm_f = new double[ns];
-	calp = new double[ns];
+	//calp = new double[ns];
 	flag = new unsigned char[ns];
 	samptopix = new long[ns];
 	Nk = new double[ns/2+1];
@@ -157,13 +157,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				flag[ii] = 0;
 		}
 
-		if (cextension != "NOCALP"){
+		/*if (cextension != "NOCALP"){
 			read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
 		} else {
 			//      printf("NOCALP\n");
 			for (ii=0;ii<ns/20;ii++)
 				calp[ii] = 1.0;
-		}
+		}*/
 
 
 		//******************************* subtract signal
@@ -180,7 +180,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 		data[ii] = data[ii] - Ps[ii];
 
-		MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP);
 
 		for (ii=0;ii<ns;ii++)
@@ -283,11 +283,11 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	nbins2 = nbins;
 	SpN_all = dmatrix(0,ndet-1,0,nbins-1);
 	ell = new double[nbins+1];
-	SpN = new double[nbins];
+	//SpN = new double[nbins];
 	fread(ell,sizeof(double), nbins+1, fp);
 	fread(*SpN_all,sizeof(double), nbins*ndet, fp);
 	fclose(fp);
-	delete [] SpN;
+	//delete [] SpN;
 	//*****************************************
 
 	//    printf("Inside EstimPowerSpectra after 1st step\n");
@@ -406,13 +406,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				flag[ii] = 0;
 		}
 
-		if (cextension != "NOCALP"){
+		/*if (cextension != "NOCALP"){
 			read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
 		} else {
 			//      printf("NOCALP\n");
 			for (ii=0;ii<ns/20;ii++)
 				calp[ii] = 1.0;
-		}
+		}*/
 
 
 
@@ -432,7 +432,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 
-		MapMakPreProcessData(data,flag,calp,ns,napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP);
 
 
@@ -1127,7 +1127,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	delete [] samptopix;
 	delete [] commontmp;
 	delete [] commonm_f;
-	delete [] calp;
+	//delete [] calp;
 	delete [] flag;
 	delete [] bfilter;
 	delete [] apodwind;
