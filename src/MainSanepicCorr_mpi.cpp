@@ -43,6 +43,7 @@ void usage(char *name)
 	cerr << "-f <first frame>       first frame (multiple allowed)" << endl;
 	cerr << "-G <flag ext>          flag field extension" << endl;
 	cerr << "-H <filter freq>       filter frequency (multiple allowed)" << endl;
+	cerr << "-R <sampling frequency> detectors sampling frequency. Required" << endl;
 	cerr << "-K <noise prefixe>     noise power spectrum file prefixe " << endl;
 	cerr << "-k <noise suffixe>     noise power spectrum file suffixe " << endl;
 	cerr << "-l <last frame>        last frame (multiple allowed, exclusive from -n)" << endl;
@@ -66,15 +67,15 @@ void usage(char *name)
 	cerr << "-c <coord system>      Coordinate system, 1: RA/DEC, 2: L/B (Gal), 3: Telescope coordinates, Default is RA/DEC" << endl;
 	cerr << "-N <map radius>        fixed radius (half a side) of the map in degrees (in case of data outside, they are constrained to have constant values)" << endl;
 	cerr << "-L <no baseline>       Keyword specifiying if a baseline is removed from the data or not (0 for YES, 1 for NO)" << endl;
-	cerr << "-r <precompute PNd>    Keyword specifying if PNd is precomputed and read from disk" << endl;
+	cerr << "-r <precompute PNd>    Keyword specifying if PNd is precomputed and read from disk" << endl; //add this option to work
 	cerr << "-g <project gaps>      Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is 0" << endl;
-	cerr << "-M <map flagged data>   Keyword specifying if flagged data are put in a separate map, default is 0" << endl;
+	cerr << "-M <map flagged data>  Keyword specifying if flagged data are put in a separate map, default is 0" << endl;
 	cerr << "-s <time offset>       Keyword for subtracting a time offset to the data to match the pointing "<< endl;
 	cerr << "-E <no corr>           Set this keyword to 0 if correlations are not included in the analysis" << endl;
 	cerr << "-I <parallel scheme>   Set this keyword to 1 in order to distribute different field visit (or frame ranges) to different processors, instead of different detector data chuncks as it is by default" << endl;
-	cerr << "-j <write unconverged maps>  The value specified by this keyword indicates the period in iterations to which the data are written to disk. Default is 10. Set this keyword to zero if you don't want intermediate maps to be written." << endl;
+	//cerr << "-j <write unconverged maps>  The value specified by this keyword indicates the period in iterations to which the data are written to disk. Default is 10. Set this keyword to zero if you don't want intermediate maps to be written." << endl;
 	cerr << "-a <noise estim>       Optional. Enter filename containing the mixing matrix of noise components. If set, the noise power spectra files for each field are computed after map-making. Default is no re-estimation" << endl;
-	cerr << "-i <Noise PS etimation> Optional. Computes power spectra estimation from the data and saves it in a file. Default is no estimation. You must run sanepic again without -i option to compute mapmaking" << endl;
+	cerr << "-i <Noise PS etimation> Optional. Computes power spectra estimation from the data and saves it in a file. Default is no estimation." << endl;
 	exit(1);
 }
 
@@ -144,14 +145,14 @@ int main(int argc, char *argv[])
 
 	//DEFAULT PARAMETERS
 	long napod = 0; // number of samples to apodize
-	double fsamp = 25.0; // sampling frequency : BLAST Specific
+	double fsamp = 0.0;// 25.0; // sampling frequency : BLAST Specific
 	double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
 	// source error
 
 	long ii, ll, iframe, idet, ib; // loop indices
 	long iframe_min, iframe_max;
 	int flagon = 0; // if rejectsample [ii]==3, flagon=1
-	int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
+	//int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
 	bool bfixc = 0; // indicates that 4 corners are given for the cross corelation removal box
 	bool pixout = 0; // indicates that at least one pixel has been flagged and is out
 	bool NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
@@ -279,7 +280,7 @@ int main(int argc, char *argv[])
 
 
 	// Parse command line options
-	while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:G:P:S:e:p:A:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
+	while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
 		switch (retval) {
 		case 'F':
 			dirfile = optarg;
@@ -357,9 +358,10 @@ int main(int argc, char *argv[])
 		case 'B':
 			bextension = optarg;
 			break;
-		/*case 'R':
-			cextension = optarg;
-			break;*/
+		case 'R':
+			//cextension = optarg;
+			fsamp = atof(optarg);
+			break;
 		case 'G':
 			fextension = optarg;
 			break;
@@ -434,7 +436,7 @@ int main(int argc, char *argv[])
 			parallel_frames = atoi(optarg);
 			break;
 		case 'j':
-			iterw = atoi(optarg);
+		//	iterw = atoi(optarg);
 			break;
 		case 'a':
 			MixMatfile = optarg;
@@ -500,6 +502,13 @@ int main(int argc, char *argv[])
 		cerr << "ERROR: enter pixel size -p keyword\n";
 		exit(1);
 	}
+
+	if (fsamp<=0.0){
+		cerr << "ERROR: enter a correct sampling frequency -R keyword\n";
+		exit(1);
+	}
+
+	cout << "Sampling frequency : " << fsamp << endl;
 
 	ntotscan = ff_in.size();
 	ndet = channel.size();
@@ -805,7 +814,7 @@ if(samples_per_frames>1){
 				read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
 				for (ii=0;ii<ns;ii++)
 					if (isnan(ra[ii]) || isnan(dec[ii]) || isnan(phi[ii]))
-						flpoint[ii] = 1; // sample is flagged, dont take this sample
+						flpoint[ii] = 1; // sample is flagged, don't take this sample
 
 
 
@@ -1116,6 +1125,7 @@ if(samples_per_frames>1){
 			fp = fopen(testfile,"w");
 		//	long indpix_size = factdupl*nn*nn+2 + addnpix;
 		//	fwrite(&indpix_size,sizeof(long),1,fp);
+			fwrite(&flagon,sizeof(int),1,fp); // mat 04/06
 			fwrite(indpix,sizeof(long), factdupl*nn*nn+2 + addnpix, fp);
 			fclose(fp);
 
@@ -1164,7 +1174,6 @@ if(samples_per_frames>1){
 		//prefixe = "fdata"; => now outside the loop
 
 		printf("[%2.2i] iframe : %ld/%ld",rank,iframe,iframe_max);
-		//cout << "[" << rank << "] " << iframe << "/" << iframe_max ;
 		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
 
 		// if there is correlation between detectors

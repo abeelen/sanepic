@@ -102,8 +102,8 @@ void write_fits(string fname, double pixsize, long nx, long ny,
     if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "GLAT AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
-    strx = "GLON-TAN";
-    stry = "GLAT-TAN";
+    strx = (char *)"GLON-TAN";
+    stry = (char *)"GLAT-TAN";
 
   } else {
     if ( fits_write_key(fp, TDOUBLE, "CRVAL1", tancoord, "RA AT TANGENT POINT (DEG)", &fits_status) )
@@ -112,8 +112,8 @@ void write_fits(string fname, double pixsize, long nx, long ny,
     if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "DEC AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
-    strx = "RA---TAN";
-    stry = "DEC--TAN";
+    strx = (char *)"RA---TAN";
+    stry = (char *)"DEC--TAN";
 
   }
 

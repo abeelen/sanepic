@@ -12,21 +12,6 @@ extern "C" {
 #include "nrcode.h"
 }
 
-//#define BLAST_MAIN_CLK (32.0E6) // Hz
-//#define ADC_CLK        (BLAST_MAIN_CLK/3072.0)
-//#define HUNDRED_HZ_CLK (BLAST_MAIN_CLK/319488.0 )
-
-//#define DT (1.0/HUNDRED_HZ_CLK)
-
-//#define FRAME_FREQUENCY (HUNDRED_HZ_CLK / 20.0)
-//#define FAST_PER_SLOW 20
-
-/* already defined in NRutils.h
-#ifndef SQR
-#define SQR(a) ((a)*(a))
-#endif*/
-
-
 
 
 using namespace std;
