@@ -336,9 +336,6 @@ int main(int argc, char *argv[])
 		case 'H':
 			f_lp = atof(optarg);
 			break;
-		case 'D':
-			f_lp = atof(optarg);
-			break;
 		case 'J':
 			f_lp_Nk = atof(optarg);
 			break;
@@ -415,25 +412,25 @@ int main(int argc, char *argv[])
 			tmpcount2 += 1;
 			break;
 		case 'L':
-			NORMLIN = atoi(optarg);
+			NORMLIN = 1;
 			break;
 		case 'g':
-			projgaps = atoi(optarg);
+			projgaps = 1;
 			break;
 		case 'r':
-			PND_ready = atoi(optarg);
+			PND_ready = 1;
 			break;
 		case 'M':
-			flgdupl = atoi(optarg);
+			flgdupl = 1;
 			break;
 		case 's':
 			shift_data_to_point = atoi(optarg);
 			break;
 		case 'E':
-			CORRon = atoi(optarg);
+			CORRon = 1;
 			break;
 		case 'I':
-			parallel_frames = atoi(optarg);
+			parallel_frames = 1;
 			break;
 		case 'j':
 		//	iterw = atoi(optarg);
@@ -872,7 +869,7 @@ if(samples_per_frames>1){
 
 
 
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),".txt");
+		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_",rank,".txt");
 		fp = fopen(testfile,"w");
 		fprintf(fp,"%d\n",nn);
 		fprintf(fp,"%d\n",coordsyst);
@@ -1120,6 +1117,11 @@ if(samples_per_frames>1){
 
 	delete [] pixon;
 
+	/*cout << "flagon : " << flagon << endl;
+	for (ii=0;ii<nn*nn;ii=ii+nn+1)
+		cout << indpix[ii] << " ";
+	cout << endl;*/
+
 	// write in a file for conjugate gradient step // ajout Mat 02/06
 	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Indpix_for_conj_grad_",termin.c_str(),".bi");
 			fp = fopen(testfile,"w");
@@ -1131,7 +1133,7 @@ if(samples_per_frames>1){
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-
+	exit(1);
 
 	PNd = new double[npix];
 	PNdtot = new double[npix];
@@ -1263,7 +1265,10 @@ if(samples_per_frames>1){
 #else
 	PNdtot=PNd;
 #endif
-
+/*
+for (ii=0;ii<20;ii++)
+	cout << PNdtot[ii] << " ";
+cout << endl;*/
 
 	if (rank == 0){
 		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"PNdCorr_",termin.c_str(),".bi");
