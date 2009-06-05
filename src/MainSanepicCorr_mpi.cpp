@@ -72,7 +72,7 @@ void usage(char *name)
 	cerr << "-M <map flagged data>  Keyword specifying if flagged data are put in a separate map, default is 0" << endl;
 	cerr << "-s <time offset>       Keyword for subtracting a time offset to the data to match the pointing "<< endl;
 	cerr << "-E <no corr>           Set this keyword to 0 if correlations are not included in the analysis" << endl;
-	cerr << "-I <parallel scheme>   Set this keyword to 1 in order to distribute different field visit (or frame ranges) to different processors, instead of different detector data chuncks as it is by default" << endl;
+	//cerr << "-I <parallel scheme>   Set this keyword to 1 in order to distribute different field visit (or frame ranges) to different processors, instead of different detector data chuncks as it is by default" << endl;
 	//cerr << "-j <write unconverged maps>  The value specified by this keyword indicates the period in iterations to which the data are written to disk. Default is 10. Set this keyword to zero if you don't want intermediate maps to be written." << endl;
 	cerr << "-a <noise estim>       Optional. Enter filename containing the mixing matrix of noise components. If set, the noise power spectra files for each field are computed after map-making. Default is no re-estimation" << endl;
 	cerr << "-i <Noise PS etimation> Optional. Computes power spectra estimation from the data and saves it in a file. Default is no estimation." << endl;
@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 
 	int size, size_det;
 	int rank, rank_det;
+
 #ifdef USE_MPI
 	// int tag = 10;
 	MPI_Status status;
@@ -160,7 +161,7 @@ int main(int argc, char *argv[])
 	bool PND_ready = 0; // PNd precomputed ? read on disk if =1
 	bool flgdupl = 0; // 1 if flagged data are put in a separate map
 	bool CORRon = 1; // correlation included in the analysis (=1), else 0, default 0
-	bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
+	//bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
 
 	//set coordinate system
 	double *srccoord, *coordscorner;
@@ -429,8 +430,8 @@ int main(int argc, char *argv[])
 		case 'E':
 			CORRon = 1;
 			break;
-		case 'I':
-			parallel_frames = 1;
+		case 'I': // no more used
+			//parallel_frames = 1;
 			break;
 		case 'j':
 		//	iterw = atoi(optarg);
@@ -649,10 +650,10 @@ if(samples_per_frames>1){
 
 
 
-
+#ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
-	if (parallel_frames && (rank == 0)){
+	if (rank == 0){
 
 		// reorder nsamples
 		find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
@@ -675,10 +676,10 @@ if(samples_per_frames>1){
 
 
 	if (rank == 0){
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
+		/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
 		fp = fopen(testfile,"a");
 		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
-		fclose(fp);
+		fclose(fp);*/
 
 
 	// write parallel schema in a file
@@ -694,24 +695,27 @@ if(samples_per_frames>1){
 			exit(1);
 		}
 	}
+#endif
 
-	if (parallel_frames){
+
 #ifdef USE_MPI
 
 		MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 		MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 		MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
-#endif
+
 		iframe_min = frnum[rank];
 		iframe_max = frnum[rank+1];
 		rank_det = 0;
 		size_det = 1;
-	} else {
+
+#else
 		iframe_min = 0;
 		iframe_max = ntotscan;
 		rank_det = rank;
 		size_det = size;
-	}
+
+#endif
 	/*************************************************************/
 
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
@@ -1133,7 +1137,7 @@ if(samples_per_frames>1){
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-	exit(1);
+
 
 	PNd = new double[npix];
 	PNdtot = new double[npix];
