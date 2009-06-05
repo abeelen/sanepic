@@ -3,7 +3,6 @@
 	<name>saneInv</name>
 	<comment></comment>
 	<projects>
-		<project>sanepic_nonMPI</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
