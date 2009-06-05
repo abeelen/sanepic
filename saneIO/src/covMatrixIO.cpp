@@ -80,7 +80,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 
 }
 
-void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
+void write_CovMatrix(string fname, std::vector<string> &bolos, long nbins, double *ell, double **Rellth)
 /*
  * This function write the NoiseNoise Matrices.
  */
