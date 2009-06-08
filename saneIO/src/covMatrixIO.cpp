@@ -15,29 +15,6 @@ extern "C" {
 
 using namespace std;
 
-void read_bolofile(string fname, std::vector<string> &bolos) {
-	string line;
-
-	ifstream inputFile(fname.c_str());
-	if (!inputFile.is_open()) {
-		cerr << "Error opening bolometer file '" << fname << "'. Exiting.\n";
-		exit(1);
-	}
-
-	while (!inputFile.eof()) {
-		getline(inputFile, line);
-
-		line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-		if (line.empty() || line[0] == '#')
-			continue; // skip if empty or commented
-		line = line.substr(0, line.find_first_of(" \t")); // pick out first word
-
-		bolos.push_back(line);
-	}
-
-	inputFile.close();
-}
-
 void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 		long *nbins) {
 	string line;
