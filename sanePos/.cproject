@@ -31,6 +31,12 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.553382718" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1965074476" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/mpich2-1.0.5p4/include"/>
+</option>
+<option id="gnu.cpp.compiler.option.preprocessor.def.413425531" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.404254142" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+<listOptionValue builtIn="false" value="USE_MPI"/>
+<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1760123380" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
@@ -51,6 +57,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.2112914027" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/mpich2-1.0.5p4/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1564522375" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">

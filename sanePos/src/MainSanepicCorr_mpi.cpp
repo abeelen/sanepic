@@ -97,6 +97,17 @@ template<class T> void list2array(list<T> l, T* a)
 }
 
 
+template<class T> void vector2array(vector<T> l, T* a)
+{
+	// copy list of type T to array of type T
+	typename vector<T>::iterator iter;
+	int i;
+
+	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
+		a[i] = *iter;
+	}
+}
+
 
 
 
@@ -125,9 +136,6 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << size << endl;
-	cout << rank << endl;
-
 #else
 	size = 1;
 	rank = 0;
@@ -177,20 +185,20 @@ int main(int argc, char *argv[])
 
 
 	// data parameters
-	long *fframes  ; // first frames table ff_in list -> fframes
+	long *fframes  ; // first frames table fframes list -> fframes
 	long *fframesorder ;
-	long *nsamples ; // number of samples table nf_in list -> nsamples
+	long *nsamples ; // number of samples table nsamples list -> nsamples
 	long *nsamplesorder ;
 	long *ruleorder ;
 	long *frnum ;
 
 	// box for crossing constraints removal
-	long *xxi_boxes, *xxf_boxes; // left x, right x
-	long *yyi_boxes, *yyf_boxes; // top y, bottom y
+//	long *xxi, *xxf; // left x, right x
+//	long *yyi, *yyf; // top y, bottom y
 
 	long ntotscan; // total number of scans
 	long ndet; // number of channels
-	int nnf; // extentnoiseSp_list number of elements
+	int nnf; // extentnoiseSp number of elements
 	int samples_per_frames=1; // default = 1, BLAST = 20
 	samples_per_frames=20; // Blast specific, a supprimer par la suite
 
@@ -208,20 +216,20 @@ int main(int argc, char *argv[])
 
 	//internal data params
 	long ns, ff; // number of samples for this scan, first frame number of this scan
-	double f_lp, f_lp_Nk, f_lppix, f_lppix_Nk; // frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples
+	double f_lp, f_lp_Nk; // frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples
 
 
 	FILE *fp;
 
 	char testfile[100];
-
+	string testfile2;
 
 
 	char type='d'; // returned type of read_data functions, d=64bit double
 	double *ra, *dec, *phi, *scerr; // RA/DEC, phi (angle) coordinates of the bolo, source errors
 	unsigned char *flag, *flpoint, *rejectsamp, *mask; // samples flags, pointing flags, rejected samples list
 	// mask = box for crossing constraint removal mask in the map
-	double *PNd, *PNdtot; //
+//	double *PNd, *PNdtot; //
 	long *indpix, *indpsrc; // pixels indices, mask pixels indices
 
 	int *xx, *yy; // data coordinates in the map
@@ -234,8 +242,8 @@ int main(int argc, char *argv[])
 	string field; // actual boloname in the bolo loop
 	// moved array of strings to vector of strings...
 	//string *bolonames; // channel list -> bolonames array : considered bolometers names
-	string *extentnoiseSp_all; // ((list -> string*))
-	string *extentnoiseSp_allorder;
+//	string *extentnoiseSp; // ((list -> string*))
+//	string *extentnoiseSporder;
 	string bolofield; // bolofield = boloname + bextension
 	//string calfield; // calfield  = field+cextension;
 	string flagfield; // flagfield = field+fextension;
@@ -250,7 +258,7 @@ int main(int argc, char *argv[])
 	string file_frame_offsets = "NOOFFS"; // offset file
 	string termin; // output file suffix
 	string noiseSppreffile; // noise file suffix
-	string extentnoiseSp; // noise file
+//	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 
 	string MixMatfile = "NOFILE";
@@ -272,9 +280,10 @@ int main(int argc, char *argv[])
 
 	std::vector<string> bolonames; // bolometer list
 
-	list<long> ff_in, nf_in, xxi_in, xxf_in, yyi_in, yyf_in; // first frame list, number of frames per sample, box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
-	list<double> fcut_in;
-	list<string> extentnoiseSp_list; // noise file prefixe
+	std::vector<long> fframes_vec, nsamples_vec; // first frame list, number of frames per sample
+	std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
+	std::vector<double> fcut;
+	std::vector<string> extentnoiseSp; // noise file prefixe
 
 
 	//time t2, t3, t4, t5, dt;
@@ -293,49 +302,49 @@ int main(int argc, char *argv[])
 			dirfile = optarg;
 			break;
 		case 'f':
-			if (ff_in.size() != nf_in.size()) {
+			if (fframes_vec.size() != nsamples_vec.size()) {
 				cerr << "'-f' must be followed by '-l' or '-n'. Exiting.\n";
 				exit(1);
 			}
-			ff_in.push_back(atoi(optarg));
+			fframes_vec.push_back(atoi(optarg));
 			break;
 		case 'l':
 		case 'n':
-			if (nf_in.size() != ff_in.size()-1) {
+			if (nsamples_vec.size() != fframes_vec.size()-1) {
 				cerr << "'-l' or '-n' must follow '-f'. Exiting.\n";
 				exit(1);
 			}
 			temp = atoi(optarg);
-			if (retval == 'l') temp -= ff_in.back() - 1;
-			nf_in.push_back(temp);
+			if (retval == 'l') temp -= fframes_vec.back() - 1;
+			nsamples_vec.push_back(temp);
 			break;
 		case 'x':
-			if (xxi_in.size() != yyf_in.size()){
+			if (xxi.size() != yyf.size()){
 				cerr << "'-x' must be followed by '-X -z -Z'. Exiting.\n";
 				exit(1);
 			}
-			xxi_in.push_back(atoi(optarg));
+			xxi.push_back(atoi(optarg));
 			break;
 		case 'X':
-			if (xxf_in.size() != xxi_in.size()-1){
+			if (xxf.size() != xxi.size()-1){
 				cerr << "'-X' must follow '-x' and be followed by '-z -Z'. Exiting. \n";
 				exit(1);
 			}
-			xxf_in.push_back(atoi(optarg));
+			xxf.push_back(atoi(optarg));
 			break;
 		case 'z':
-			if (yyi_in.size() != xxi_in.size()-1){
+			if (yyi.size() != xxi.size()-1){
 				cerr << "'-z' must follow by '-x -X' and be followed by 'Z'. Exiting.\n";
 				exit(1);
 			}
-			yyi_in.push_back(atoi(optarg));
+			yyi.push_back(atoi(optarg));
 			break;
 		case 'Z':
-			if (yyf_in.size() != xxi_in.size()-1){
+			if (yyf.size() != xxi.size()-1){
 				cerr << "'-Z' must follow '-x -X -z'. Exiting. \n";
 				exit(1);
 			}
-			yyf_in.push_back(atoi(optarg));
+			yyf.push_back(atoi(optarg));
 			break;
 		case 'p':
 			pixdeg = atof(optarg);
@@ -382,7 +391,7 @@ int main(int argc, char *argv[])
 			noiseSppreffile = optarg;
 			break;
 		case 'K':
-			extentnoiseSp_list.push_back(optarg);
+			extentnoiseSp.push_back(optarg);
 			break;
 		case 'S':
 			file_frame_offsets = optarg;
@@ -461,12 +470,12 @@ int main(int argc, char *argv[])
 
 
 	// Set default parameter values
-	if (ff_in.size() == 0) {
-		ff_in.push_back(0);
-		nf_in.push_back(-1);
+	if (fframes_vec.size() == 0) {
+		fframes_vec.push_back(0);
+		nsamples_vec.push_back(-1);
 	}
-	if (ff_in.size() == 1 && nf_in.size() == 0)
-		nf_in.push_back(-1);
+	if (fframes_vec.size() == 1 && nsamples_vec.size() == 0)
+		nsamples_vec.push_back(-1);
 
 	// Check improper usage
 	if (dirfile == "") usage(argv[0]);
@@ -474,11 +483,11 @@ int main(int argc, char *argv[])
 		cerr << "Must provide at least one channel.\n\n";
 		usage(argv[0]);
 	}
-	if (ff_in.size() != nf_in.size()) {
+	if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "'-l' or '-n' must follow '-f'. Exiting.\n";
 		exit(1);
 	}
-	if (xxi_in.size() != xxf_in.size() || xxi_in.size() != yyi_in.size() || xxi_in.size() != yyf_in.size()) {
+	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "'-x' must be followed by '-X -z -Z'. Exiting.\n";
 		exit(1);
 	}
@@ -514,51 +523,55 @@ int main(int argc, char *argv[])
 
 	cout << "Sampling frequency : " << fsamp << endl;
 
-	ntotscan = ff_in.size();
+	ntotscan = fframes_vec.size();
 	ndet = bolonames.size();
 
-	nnf = extentnoiseSp_list.size();
+	nnf = extentnoiseSp.size();
 	if (nnf != 1 && nnf != ntotscan){
 		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
 		exit(1);
 	}
+	if (nnf == 1 && ntotscan > 1)
+		extentnoiseSp.resize(ntotscan, extentnoiseSp[0]);
+
 	//  printf("%d\n",nnf);
 
 
-	// convert lists to regular arrays
-	fframes  = new long[ntotscan];
-	fframesorder = new long[ntotscan];
-	nsamples = new long[ntotscan];
+	// convert lists to regular arrays (MPI_BCas works only on array...
+	fframes       = new long[ntotscan];
+	fframesorder  = new long[ntotscan];
+	nsamples      = new long[ntotscan];
 	nsamplesorder = new long[ntotscan];
-	ruleorder = new long[ntotscan];
-	frnum = new long[ntotscan+1];
+	ruleorder     = new long[ntotscan];
+	frnum         = new long[ntotscan+1];
 //	bolonames = new string [ndet];
-	extentnoiseSp_all = new string[ntotscan];
-	extentnoiseSp_allorder = new string[ntotscan];
+//	extentnoiseSp = new string[ntotscan];
+//	extentnoiseSporder = new string[ntotscan];
 
 
-	list2array(ff_in, fframes);
-	list2array(nf_in, nsamples);
+	vector2array(nsamples_vec, nsamples);
+	vector2array(fframes_vec,  fframes);
+
+//	list2array(ff, fframes);
 //	list2array(channel, bolonames);
-	list2array(extentnoiseSp_list,extentnoiseSp_all);
-	if (nnf == 1 && ntotscan > 1)
-		for (ii=1;ii<ntotscan;ii++)
-			extentnoiseSp_all[ii] = extentnoiseSp_all[0];
+//	list2array(extentnoiseSp,extentnoiseSp);
 
 
-	//  printf("xxi_in.size() = %d\n",xxi_in.size());
+	//  printf("xxi.size() = %d\n",xxi.size());
 
 
-	if (xxi_in.size() != 0){
-		xxi_boxes = new long[xxi_in.size()];
-		xxf_boxes = new long[xxi_in.size()];
-		yyi_boxes = new long[xxi_in.size()];
-		yyf_boxes = new long[xxi_in.size()];
-		list2array(xxi_in, xxi_boxes);
-		list2array(xxf_in, xxf_boxes);
-		list2array(yyi_in, yyi_boxes);
-		list2array(yyf_in, yyf_boxes);
-	}
+//
+//if (xxi.size() != 0){
+//	cout << "here" << endl;
+//	xxi = new long[xxi.size()];
+//		xxf = new long[xxi.size()];
+//		yyi = new long[xxi.size()];
+//		yyf = new long[xxi.size()];
+//		list2array(xxi, xxi);
+//		list2array(xxf, xxf);
+//		list2array(yyi, yyi);
+//		list2array(yyf, yyf);
+//	}
 
 
 if(samples_per_frames>1){
@@ -661,54 +674,43 @@ if(samples_per_frames>1){
 
 	if (rank == 0){
 
+		// TODO: Check for asked to recompute the scheme or not
+		// if (weNeedToRecompute){
+
 		// reorder nsamples
-		find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+		find_best_order_frames(ruleorder,frnum,nsamples, ntotscan, size);
+
+		testfile2 = outdir + "Parallel_for_Sanepic_" + termin + ".bin";
+		write_ParallelizationScheme(testfile2, ruleorder, frnum, nsamples, ntotscan, size);
+
+		/*
+
+		else {
+
+		testfile2 = outdir + "Parallel_for_Sanepic_" + termin + ".bin";
+		check_ParallelizationScheme(testfile2, nsample, ntotscan, size, &pos, &frnum);
+
+		 */
 
 		for (ii=0;ii<ntotscan;ii++){
 			nsamplesorder[ii] = nsamples[ruleorder[ii]];
 			fframesorder[ii] = fframes[ruleorder[ii]];
-			//extentnoiseSp_allorder[ii] = extentnoiseSp_all[ii];
+			//extentnoiseSporder[ii] = extentnoiseSp[ii];
 		}
 		for (ii=0;ii<ntotscan;ii++){
 			nsamples[ii] = nsamplesorder[ii];
 			fframes[ii] = fframesorder[ii];
-			//extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
+			//extentnoiseSp[ii] = extentnoiseSporder[ii];
 			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
 		}
 
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
 
-
-
-	if (rank == 0){
-		/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-		fp = fopen(testfile,"a");
-		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
-		fclose(fp);*/
-
-
-	// write parallel schema in a file
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".bi");
-		if ((fp = fopen(testfile,"w"))!=NULL){
-		//fprintf(fp,"%d\n",size);
-		fwrite(&size,sizeof(int), 1, fp);
-		fwrite(ruleorder,sizeof(long),ntotscan,fp);
-		fwrite(frnum,sizeof(long),ntotscan,fp);
-		fclose(fp);
-		}else{
-			cerr << "Error : couldn't open file to write parallel options. Exiting" << endl;
-			exit(1);
-		}
-	}
-#endif
-
-
-#ifdef USE_MPI
-
-		MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-		MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-		MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
 		iframe_min = frnum[rank];
 		iframe_max = frnum[rank+1];
@@ -892,7 +894,7 @@ if(samples_per_frames>1){
 
 	} else {
 		// read those parameters from a file : -c = 4 option
-		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_",rank,".txt");
+		sprintf("%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_", rank,".txt");
 		if ((fp = fopen(testfile,"r")) == NULL){
 			cerr << "File InfoPointing_for_sanepic... not found. Exiting" << endl;
 			exit(1);
@@ -919,11 +921,11 @@ if(samples_per_frames>1){
 		mask[ii] = 1;
 
 
-	if (xxi_in.size() != 0){
-		for (ib = 0;ib < (long)xxi_in.size(); ib++){ // to avoid warning, mat-27/05
+	if (xxi.size() != 0){
+		for (ib = 0;ib < (long)xxi.size(); ib++){ // to avoid warning, mat-27/05
 		// for each box crossing constraint removal
-			for (ii=xxi_boxes[ib];ii<xxf_boxes[ib];ii++)
-				for (ll=yyi_boxes[ib];ll<yyf_boxes[ib];ll++)
+			for (ii=xxi[ib];ii<xxf[ib];ii++)
+				for (ll=yyi[ib];ll<yyf[ib];ll++)
 					mask[ll*nn + ii] = 0;  // mask is initialised to 0
 		}
 	}
@@ -1146,14 +1148,14 @@ if(samples_per_frames>1){
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-
-
-	PNd = new double[npix];
-	PNdtot = new double[npix];
-	fill(PNd,PNd+npix,0.0);
-	fill(PNdtot,PNdtot+npix,0.0);
-//	init1D_double(PNd,0,npix,0.0);
-//	init1D_double(PNdtot,0,npix,0.0);
+//
+//
+//	PNd = new double[npix];
+//	PNdtot = new double[npix];
+//	fill(PNd,PNd+npix,0.0);
+//	fill(PNdtot,PNdtot+npix,0.0);
+////	init1D_double(PNd,0,npix,0.0);
+////	init1D_double(PNdtot,0,npix,0.0);
 
 
 
@@ -1178,6 +1180,9 @@ if(samples_per_frames>1){
   MPI_Finalize();
 #endif
 
+	printf("[%2.2i] Cleaning up\n",rank);
+
+
   // clean up
     delete [] ra;
     delete [] dec;
@@ -1190,6 +1195,7 @@ if(samples_per_frames>1){
     delete [] samptopix;
     delete [] flpoint; // flpoint_field needed but not flpoint
     delete [] mask;
+
 	delete [] offsets;
 	delete [] froffsets;
 	delete [] offmap;
@@ -1198,29 +1204,27 @@ if(samples_per_frames>1){
 	delete [] srccoord;
 	delete [] coordscorner;
 
-	delete [] extentnoiseSp_allorder;
-	delete [] xxi_boxes;
-	delete [] xxf_boxes;
-	delete [] yyi_boxes;
-	delete [] yyf_boxes;
+//	delete [] extentnoiseSporder;
+//	delete [] xxi;
+//	delete [] xxf;
+//	delete [] yyi;
+//	delete [] yyf;
 
-	free(testfile);
-
+//	free(testfile);
+//
 	delete [] fframesorder; //will be needed
 	delete [] nsamplesorder; //will be needed
 	delete [] ruleorder; //will be needed
 	delete [] frnum; //will be needed
-
-	delete [] PNd; //needed
-    delete [] PNdtot; //needed
+//
+////	delete [] PNd; //needed
+////    delete [] PNdtot; //needed
     delete [] fframes; // needed
     delete [] nsamples; //needed
 	delete [] tancoord; //needed
 	delete [] tanpix; //needed
 	delete [] indpix; //needed
 	delete [] indpsrc; //needed
-//	delete [] bolonames; // needed
-	delete [] extentnoiseSp_all; // needed
 
     return 0;
   }
