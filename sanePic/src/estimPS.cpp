@@ -6,7 +6,7 @@
  */
 
 #include "estimPS.h"
-
+#include "covMatrixIO.h"
 using namespace std;
 
 
@@ -197,7 +197,6 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		fp = fopen(testfile,"w");
 		fwrite(fdata1,sizeof(double), (ns/2+1)*2, fp);
 		fclose(fp);
-
 
 
 		/// compute sigma of the noise
@@ -1010,16 +1009,12 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	// New format for output of power spectra
 
-	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_binary.psd");
-	fp = fopen(nameSpfile,"w");
-	fwrite(&ndet,sizeof(long),1,fp);
-	fwrite(&nbins,sizeof(long),1,fp);
-	fwrite(ell,sizeof(double),nbins+1,fp);
-	for (idet1=0;idet1<ndet;idet1++)
-		for (idet2=0;idet2<ndet;idet2++)
-			for (ii=0;ii<nbins; ii++)
-				fwrite(&Rellth[idet1*ndet+idet2][ii],sizeof(double),1,fp);
-	fclose(fp);
+//	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
+//	string tempo;
+//	tempo = nameSpfile;
+//	write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
+// TODO : Change bolonames from array of string to vector of string everywhere !!!
+
 
 	// write ell
 	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ell_",(int)ff,termin.c_str(),".psd");
