@@ -1114,12 +1114,12 @@ exit(0);
 				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
 				cout << "\r " << flush;
 
-				sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Iteration_file_",termin.c_str(),".txt");
+				/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Iteration_file_",termin.c_str(),".txt");
 				      fp = fopen(testfile,"w");
 				      if(fp!=NULL){
 					for(ii=0;ii<npix;ii++)
 					  fprintf(fp,"[%2.2i] iter = %d, crit = %10.15g, crit2 = %10.15g  \n",rank, iter,var_n/var0,delta_n/delta0);
-					fclose(fp);}
+					fclose(fp);}*/
 
 				//      printf("[%2.2i] iter = %d, crit = %10.15g, crit2 = %10.15g     \n",rank, iter,var_n/var0,delta_n/delta0);
 
