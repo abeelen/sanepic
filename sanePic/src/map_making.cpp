@@ -1516,8 +1516,8 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp,*/ l
 
 
 	//linear prediction
-	/*for (ii=0;ii<ns;ii++)
-		data_lp[ii] = data[ii];*/
+	for (ii=0;ii<ns;ii++)
+		data_lp[ii] = data[ii];
 
 
 
