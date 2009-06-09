@@ -16,25 +16,6 @@
 #define dmod(A,B) ((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
                                         :(A)+(B)*floor(-(A)/(B))):(A))
 
-
-double slaDranrm ( double angle );
-
-void slaDs2tp ( double ra, double dec, double raz, double decz,
-                double *xi, double *eta, int *j );
-
-void slaDtp2s ( double xi, double eta, double raz, double decz,
-                double *ra, double *dec );
-
-void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
-			 double *offsets, int ns, int *xx, int *yy, int *nn,
-			 double *coordscorner, double *tancoord, double *tanpix,
-			 bool fixcoord, double radius, double *offmap, double *radecsrc = NULL);
-
-void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
-		    double **count, int nn, unsigned char *flag,
-		    double **map_f, double **count_f );
-
-
 void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 		   long *indpix, long *samptopix, int npix, double *PNd);
 
@@ -94,12 +75,6 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp,*/ l
 			  bool NOFILLGAP, double *Ps = NULL);
 
 
-
-void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
-		     long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
-		     bool NOFILLGAP, unsigned char *rejectsamp);
-
-
 void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp,
 			double *bfilter, double *Nell, double *Nk);
 
@@ -126,7 +101,6 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 		 unsigned char *flag, int shift_data_to_point);*/
 
 
-void correctFrameOffsets(int nfoff, long ff, double *offsets, foffset *foffsets, double *froffsets);
 
 
 

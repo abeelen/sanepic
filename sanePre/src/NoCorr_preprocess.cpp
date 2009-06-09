@@ -5,6 +5,8 @@
  *      Author: matthieu
  */
 
+#include <vector>
+#include <string>
 
 #include "NoCorr_preprocess.h"
 
@@ -12,7 +14,7 @@ using namespace std;
 
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, string *bolonames,
+		string scerr_field, string flpoint_field, std::vector<string> &bolonames,
 		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
@@ -154,7 +156,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
-		string termin, string dirfile, string *bolonames, double f_lppix,
+		string termin, string dirfile, std::vector<string> &bolonames, double f_lppix,
 		double fsamp, bool flgdupl, int factdupl, long ff, long ns,
 		long ndet, int size, int rank, long *indpix, long nn, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){

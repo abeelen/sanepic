@@ -17,13 +17,6 @@ extern "C" {
 using namespace std;
 
 
-struct foffset {
-  long frame;
-  float pitch;
-  float yaw;
-};
-
-
 
 void init1D_double(double *A, long im, long n, double val); // on peut garder
 void init1D_long(long *A, long im, long n, long val); // on peut garder
@@ -66,7 +59,6 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 int compare_long (const void *a, const void *b); // on peut garder
 
 
-foffset* read_mapoffsets(string fname, float *scoffsets, int *nfoff); // Ptanchon
 int read_data_std(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde
 int read_data(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde
 

@@ -1,9 +1,6 @@
-/*
- * Corr_preprocess.cpp
- *
- *  Created on: 28 mai 2009
- *      Author: matthieu
- */
+
+#include <string>
+#include <vector>
 
 #include "Corr_preprocess.h"
 
@@ -67,7 +64,7 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, string *bolonames,
+		string scerr_field, string flpoint_field, std::vector<string> &bolonames,
 		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, long iframe){
@@ -200,7 +197,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe, string termin, string *bolonames,
+		string dir, string prefixe, string termin, std::vector<string> &bolonames,
 		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
 		int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits){
 
@@ -211,7 +208,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	string field1, field2;
 	string extentnoiseSp;
 
-	char nameSpfile[100];
+	string nameSpfile;
 	char testfile[100];
 
 	long *samptopix;
@@ -251,8 +248,9 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 		//**************************************** Noise power spectrum
 		extentnoiseSp = extentnoiseSp_all[iframe];
-		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
-		if ((fp = fopen(nameSpfile,"r")) == NULL){
+		nameSpfile = noiseSppreffile + field1 + "-all" + extentnoiseSp;
+//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
+		if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
 			cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
 			exit(1);
 		}
