@@ -1516,16 +1516,16 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 
 
 	//linear prediction
-	/*for (ii=0;ii<ns;ii++)
-		data_lp[ii] = data[ii];*/
+	for (ii=0;ii<ns;ii++)
+		data_lp[ii] = data[ii];
 
 
 
 
 	if (NORMLIN == 0){
 		/// remove a baseline
-		aa = (data[ns-1]-data[0])/double(ns);
-		bb = data[0];
+		aa = (data_lp[ns-1]-data[0])/double(ns);
+		bb = data_lp[0];
 		for (ii=0;ii<ns;ii++)
 			data_lp[ii] -= aa*(double)ii+bb;
 	}

@@ -67,7 +67,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="RCW_120_M|nrutils|nrutil|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="MainSanePreCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="MainSanepicCorr.cc|MainSanePreCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -932,7 +932,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="nrutil|nrutils|RCW_120_M|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc|MainSanePreCorr.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="MainSanepicCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc|MainSanePreCorr.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
