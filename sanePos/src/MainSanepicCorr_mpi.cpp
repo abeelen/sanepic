@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 		printf ("The current path is: %s",pPath);
 
 
-	bool projgaps = 0; //1: data flagged are put in a single pixel
+	//bool projgaps = 0; //1: data flagged are put in a single pixel
 	//   (assume no signal in this pixel),
 	//0: data flagged are not reprojected
 
@@ -170,9 +170,9 @@ int main(int argc, char *argv[])
 	bool pixout = 0; // indicates that at least one pixel has been flagged and is out
 	bool NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
 	bool NOFILLGAP = 0; // fill the gap ? default is YES
-	bool PND_ready = 0; // PNd precomputed ? read on disk if =1
+	//bool PND_ready = 0; // PNd precomputed ? read on disk if =1
 	bool flgdupl = 0; // 1 if flagged data are put in a separate map
-	bool CORRon = 1; // correlation included in the analysis (=1), else 0, default 0
+	//bool CORRon = 1; // correlation included in the analysis (=1), else 0, default 0
 	//bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
 
 	//set coordinate system
@@ -216,13 +216,14 @@ int main(int argc, char *argv[])
 
 	//internal data params
 	long ns, ff; // number of samples for this scan, first frame number of this scan
-	double f_lp, f_lp_Nk; // frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples
+	//double f_lp, f_lp_Nk, f_lppix, f_lppix_Nk; // frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples
 
 
 	FILE *fp;
 
 	char testfile[100];
 	string testfile2;
+
 
 
 	char type='d'; // returned type of read_data functions, d=64bit double
@@ -261,8 +262,8 @@ int main(int argc, char *argv[])
 //	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 
-	string MixMatfile = "NOFILE";
-	int doInitPS = 0;
+	//string MixMatfile = "NOFILE";
+	//int doInitPS = 0;
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /// Default is RA/DEC
@@ -288,10 +289,10 @@ int main(int argc, char *argv[])
 
 	//time t2, t3, t4, t5, dt;
 
-
+/*
 
 	f_lp = 0.0; // low pass filter frequency
-	f_lp_Nk = 0.0; // noise PS frequency threshold
+	f_lp_Nk = 0.0; // noise PS frequency threshold*/
 	pixdeg = -1.0; // "Size of pixels (deg)"
 
 
@@ -350,10 +351,10 @@ int main(int argc, char *argv[])
 			pixdeg = atof(optarg);
 			break;
 		case 'H':
-			f_lp = atof(optarg);
+			//f_lp = atof(optarg); // unused var for sanePos (but needed in sanePre)
 			break;
 		case 'J':
-			f_lp_Nk = atof(optarg);
+			//f_lp_Nk = atof(optarg); // unused var for sanePos (but needed in sanePre)
 			break;
 		case 'A':
 			napod = atoi(optarg);
@@ -431,10 +432,10 @@ int main(int argc, char *argv[])
 			NORMLIN = 1;
 			break;
 		case 'g':
-			projgaps = 1;
+			//projgaps = 1;
 			break;
 		case 'r':
-			PND_ready = 1;
+			//PND_ready = 1; // never used
 			break;
 		case 'M':
 			flgdupl = 1;
@@ -443,19 +444,19 @@ int main(int argc, char *argv[])
 			shift_data_to_point = atoi(optarg);
 			break;
 		case 'E':
-			CORRon = 1;
+			//CORRon = 1; // unused var for sanePos (but needed in sanePre/pic)
 			break;
 		case 'I': // no more used
 			//parallel_frames = 1;
 			break;
 		case 'j':
-		//	iterw = atoi(optarg);
+		//	iterw = atoi(optarg); // unused var for sanePos (but needed in sanePic)
 			break;
 		case 'a':
-			MixMatfile = optarg;
+			//MixMatfile = optarg; // unused var for sanePos (but needed in sanePre)
 			break;
 		case 'i':
-			doInitPS = atoi(optarg);
+			//doInitPS = atoi(optarg); // unused var for sanePos (but needed in sanePre)
 			break;
 		default:
 			cerr << "Option '" << (char)retval << "' not valid. Exiting.\n\n";
@@ -464,10 +465,10 @@ int main(int argc, char *argv[])
 	}
 
 
-
+/*
 	if (CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
 	if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-
+*/
 
 	// Set default parameter values
 	if (fframes_vec.size() == 0) {
@@ -501,8 +502,8 @@ int main(int argc, char *argv[])
 	}
 
 
-	if (f_lp_Nk == 0.0)
-		f_lp_Nk = f_lp;
+	/*if (f_lp_Nk == 0.0)
+		f_lp_Nk = f_lp;*/
 
 	if (napod){
 		printf("[%2.2i] Data are apodized\n", rank);
@@ -545,8 +546,8 @@ int main(int argc, char *argv[])
 	ruleorder     = new long[ntotscan];
 	frnum         = new long[ntotscan+1];
 //	bolonames = new string [ndet];
-//	extentnoiseSp = new string[ntotscan];
-//	extentnoiseSporder = new string[ntotscan];
+//	extentnoiseSp_all = new string[ntotscan];
+	//extentnoiseSp_allorder = new string[ntotscan];
 
 
 	vector2array(nsamples_vec, nsamples);
@@ -631,9 +632,9 @@ if(samples_per_frames>1){
 		printf("NO BASELINE REMOVED\n");
 
 
-	if (projgaps)
+	/*if (projgaps)
 		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
-
+*/
 
 	// map offsets
 	float scoffsets[6]; // offsets depending on wavelength
@@ -706,11 +707,37 @@ if(samples_per_frames>1){
 
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+
+
+	if (rank == 0){
+		/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
+		fp = fopen(testfile,"a");
+		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
+		fclose(fp);*/
+
+
+	// write parallel schema in a file
+		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".bi");
+		if ((fp = fopen(testfile,"w"))!=NULL){
+		//fprintf(fp,"%d\n",size);
+		fwrite(&size,sizeof(int), 1, fp);
+		fwrite(ruleorder,sizeof(long),ntotscan,fp);
+		fwrite(frnum,sizeof(long),ntotscan,fp);
+		fclose(fp);
+		}else{
+			cerr << "Error : couldn't open file to write parallel options. Exiting" << endl;
+			exit(1);
+		}
+	}
+#endif
+
+
+#ifdef USE_MPI
+
+		MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+		MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+		MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
 		iframe_min = frnum[rank];
 		iframe_max = frnum[rank+1];
@@ -894,7 +921,7 @@ if(samples_per_frames>1){
 
 	} else {
 		// read those parameters from a file : -c = 4 option
-		sprintf("%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_", rank,".txt");
+		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_", rank,".txt");
 		if ((fp = fopen(testfile,"r")) == NULL){
 			cerr << "File InfoPointing_for_sanepic... not found. Exiting" << endl;
 			exit(1);
@@ -1210,8 +1237,8 @@ if(samples_per_frames>1){
 //	delete [] yyi;
 //	delete [] yyf;
 
-//	free(testfile);
-//
+	free(testfile);
+
 	delete [] fframesorder; //will be needed
 	delete [] nsamplesorder; //will be needed
 	delete [] ruleorder; //will be needed
