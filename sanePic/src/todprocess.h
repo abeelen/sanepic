@@ -74,7 +74,7 @@ int read_data(string fname, int frame, int fs, int ns, void* data, string field,
 double* randg(long nombre, int seedpass); // on garde
 double* rand(long nombre, int seed);	// on garde
 
-void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde
+//void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde
 
 
 

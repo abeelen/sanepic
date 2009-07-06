@@ -197,9 +197,12 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 
 
 	// find coordinates min and max
-	minmax(ra_bolo, ns, &ra_min, &ra_max, &temp1, &temp2, NULL);
-	minmax(dec_bolo, ns, &dec_min, &dec_max, &temp1, &temp2, NULL);
-
+	//minmax(ra_bolo, ns, &ra_min, &ra_max, &temp1, &temp2, NULL);
+	//minmax(dec_bolo, ns, &dec_min, &dec_max, &temp1, &temp2, NULL);
+	ra_max  = *max_element(ra_bolo, ra_bolo+ns);
+		ra_min  = *min_element(ra_bolo, ra_bolo+ns);
+		dec_max = *max_element(dec_bolo, dec_bolo+ns);
+		dec_min = *min_element(dec_bolo, dec_bolo+ns);
 
 
 	/// add a small interval of 2 arcmin

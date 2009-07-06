@@ -45,7 +45,7 @@ void init2D_double(double **A, long im, long jm, long nx, long ny, double val){
 }
 
 
-
+/*
 void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag)
 {
   int k;
@@ -78,7 +78,7 @@ void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int
   }
 }
 
-
+*/
 
 void polynomia(double x, double y[], int dma)
 {
