@@ -19,7 +19,7 @@ long *data_compare;
 void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 		long *indpix, long *samptopix, int npix, double *PNd){
 
-	long ii, k;
+	//long ii, k;
 	//long ll;
 
 	double *Nd;
@@ -38,7 +38,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 	fftw_destroy_plan(fftplan);
 
 
-	for (k=0;k<ndata/2+1;k++){
+	for (long k=0;k<ndata/2+1;k++){
 		Ndf[k][0] = fdata[k][0]/Nk[k]/(double)ndata/(double)ndata;
 		Ndf[k][1] = fdata[k][1]/Nk[k]/(double)ndata/(double)ndata;
 	}
@@ -77,7 +77,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 
 
 
-	for (ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			PNd[npix-2] += Nd[ii];
 		} else {
@@ -158,7 +158,7 @@ void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, uns
 
 }
 
-*/
+ */
 
 
 
@@ -214,7 +214,7 @@ void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejec
 }
 
 
-*/
+ */
 
 
 
@@ -225,7 +225,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 		int npix, double f_lppix, double *PtNP){
 
 
-	long ii, k, jj, kk, ll, ll2, indPtNP;
+	long jj, ll, ll2, indPtNP;
 	int *pixpos;
 	long *jj_sqr;
 
@@ -242,7 +242,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 
 
 	// N^-1
-	for (k=0;k<ndata/2+1;k++){
+	for (long k=0;k<ndata/2+1;k++){
 		Nk_[k][0] = 1.0/Nk[k]/(double)ndata/(double)ndata;
 		Nk_[k][1] = 0.0;
 	}
@@ -252,7 +252,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 
 
 
-	for (ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			pixpos[ii] = npix-2;
 		} else {
@@ -270,16 +270,16 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 	}
 
 
-	for (ii=0;ii<npix;ii++)
+	for (long ii=0;ii<npix;ii++)
 		jj_sqr[ii] = ii*(ii+1)/2;
 
 
 
-	for (ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++){
 		ll = pixpos[ii];
 		ll2 = ll*(ll+1)/2;
 		if (ii){
-			for (kk=MAX(ii-(ndata)/MAX(2,int(f_lppix+0.5)),0);kk<ii;kk++){
+			for (long kk=MAX(ii-(ndata)/MAX(2,int(f_lppix+0.5)),0);kk<ii;kk++){
 				//for (kk=0;kk<=ii;kk++){
 				jj = pixpos[kk];
 				if (ll < jj){
@@ -428,7 +428,7 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
 
 
 
-*/
+ */
 
 
 
@@ -438,7 +438,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 		int npix, double f_lppix, double *dPtNP){
 
 
-	long ii, k, kk, kk2, ipix, ii2, ndataf;
+	long kk2, ii2, ndataf;
 	long *pixpos;
 	long count, count_;
 	long *pixtosamp;
@@ -456,7 +456,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 	// N^-1
-	for (k=0;k<ndata/2+1;k++){
+	for (long k=0;k<ndata/2+1;k++){
 		Nk_[k][0] = 1.0/abs(Nk[k])/(double)ndata/(double)ndata;
 		Nk_[k][1] = 0.0;
 	}
@@ -467,7 +467,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 
-	for (ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			pixpos[ii] = npix-2;
 		} else {
@@ -482,10 +482,10 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 
-	for (ii=0;ii<ndata;ii++)
+	for (long ii=0;ii<ndata;ii++)
 		pixtosamp[ii] = ii;
 
-	for (ii=0;ii<ndata;ii++)
+	for (long ii=0;ii<ndata;ii++)
 		data_compare[ii] = pixpos[ii];
 
 
@@ -499,7 +499,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 	count = 0;
 
-	for (ipix=data_compare[0];ipix<npix;ipix++){
+	for (long ipix=data_compare[0];ipix<npix;ipix++){
 
 		count_ = count;
 
@@ -507,13 +507,13 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 			count++;
 
 		if (count-count_ > 0){
-			for (ii=count_;ii<count;ii++){
+			for (long ii=count_;ii<count;ii++){
 				ii2 = pixtosamp[ii];
 				if ((ipix == npix-1) || (ipix == npix-2)){ //This is just to avoid spending to much time computing this pixel which could contain a lot of data
 					dPtNP[ipix] += N_[0];
 					//printf("TEST");
 				} else {
-					for (kk=count_;kk<count;kk++){
+					for (long kk=count_;kk<count;kk++){
 						kk2 = pixtosamp[kk];
 						if (abs(kk2-ii2) < ndataf)
 							dPtNP[ipix] += N_[abs(ii2-kk2)];
@@ -547,7 +547,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 		int npix, double f_lppix, double *dPtNP){
 
 
-	long ii, k, kk, kk2, ipix, ii2, ndataf;
+	long kk2, ii2, ndataf;
 	long *pixpos;
 	long count, count_;
 	long *pixtosamp;
@@ -565,7 +565,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 
 	// N^-1
-	for (k=0;k<ndata/2+1;k++){
+	for (long k=0;k<ndata/2+1;k++){
 		Nk_[k][0] = abs(Nk[k]);
 		Nk_[k][1] = 0.0;
 	}
@@ -575,7 +575,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 
 
-	for (ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			pixpos[ii] = npix-2;
 		} else {
@@ -591,10 +591,10 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 
 
-	for (ii=0;ii<ndata;ii++)
+	for (long ii=0;ii<ndata;ii++)
 		pixtosamp[ii] = ii;
 
-	for (ii=0;ii<ndata;ii++)
+	for (long ii=0;ii<ndata;ii++)
 		data_compare[ii] = pixpos[ii];
 
 
@@ -608,7 +608,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 	count = 0;
 
-	for (ipix=data_compare[0];ipix<npix;ipix++){
+	for (long ipix=data_compare[0];ipix<npix;ipix++){
 
 		count_ = count;
 
@@ -616,13 +616,13 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 			count++;
 
 		if (count-count_ > 0){
-			for (ii=count_;ii<count;ii++){
+			for (long ii=count_;ii<count;ii++){
 				ii2 = pixtosamp[ii];
 				if ((ipix == npix-1) || (ipix == npix-2)){ //This is just to avoid spending to much time computing this pixel
 					dPtNP[ipix] += N_[0];
 					//printf("TEST");
 				} else {
-					for (kk=count_;kk<count;kk++){
+					for (long kk=count_;kk<count;kk++){
 						kk2 = pixtosamp[kk];
 						if (abs(kk2-ii2) < ndataf)
 							dPtNP[ipix] += N_[abs(ii2-kk2)];
@@ -776,7 +776,7 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 
 
 
-*/
+ */
 
 
 
@@ -831,7 +831,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 			}
 			else {
 				pixpos[ii+marge] = npixmap-1+ *countreject;
-				*countreject = *countreject+1;
+ *countreject = *countreject+1;
 			}
 		}
 	}
@@ -902,7 +902,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
 
 
-*/
+ */
 
 /*
 
@@ -1012,16 +1012,16 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 
-*/
+ */
 
 
 
 
 void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */long ns, int napod,
-		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP, double *Ps){
+		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
-	long ii;
+	//long ii;
 	double aa, bb;
 
 	double *data_out, *data_out_lp;
@@ -1035,23 +1035,25 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 	if (NOFILLGAP == 0){
 		//fill gaps with straight line
 		fillgaps(data,ns,data_out,flag,0);
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii];
 	}
 
+	if(remove_polynomia){
+		//remove polynomia
+		remove_poly(data,ns,orderpoly,data_out,0);
 
-	//remove polynomia
-	remove_poly(data,ns,orderpoly,data_out,0);
 
 
-	//correct from time varying calibration
-	for (ii=0;ii<ns;ii++)
-		data[ii] = data_out[ii]/**calp[ii/20]*/;
-
+		//Used to correct from time varying calibration
+		// now this is done to copy data_out in data
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data_out[ii]/**calp[ii/20]*/;
+	}
 
 
 	//linear prediction
-	for (ii=0;ii<ns;ii++)
+	for (long ii=0;ii<ns;ii++)
 		data_lp[ii] = data[ii];
 
 
@@ -1061,7 +1063,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 		/// remove a baseline
 		aa = (data_lp[ns-1]-data[0])/double(ns);
 		bb = data_lp[0];
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] -= aa*(double)ii+bb;
 	}
 
@@ -1069,25 +1071,25 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
 		butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
-		for (ii=0;ii<(ns);ii++)
+		for (long ii=0;ii<(ns);ii++)
 			data_lp[ii] = data_out_lp[ii];
 	} else{
-		for (ii=0;ii<(ns)/2+1;ii++)
+		for (long ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = 1.0;
 	}
 
 
 
 	if (Ps != NULL)
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data_lp[ii] - Ps[ii];
 
 	//******************* process gaps
 	if (NOFILLGAP == 0){
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			data_out[ii] = data_lp[ii];
 		fillgaps(data_out,ns,data,flag,0);
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data[ii];
 	}
 
@@ -1095,7 +1097,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 	if (Ps != NULL){
 		//linear prediction
 
-		for (ii=0;ii<ns;ii++)
+		for (long ii=0;ii<ns;ii++)
 			//if (flag[ii] == 0)
 			data_lp[ii] = data_lp[ii] + Ps[ii];
 	}
@@ -1117,7 +1119,7 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 
 void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
-	int ii,k,q;
+	int qq;
 	double totapod;
 
 	double *datatemp, *datatemp2, *apodwind, *bfiltertemp;
@@ -1135,7 +1137,7 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 	remove_poly(data,ns,4,datatemp2,0);
 	apodwind = apodwindow(ns,ns/10);
-	for (ii=0;ii<ns;ii++)
+	for (long ii=0;ii<ns;ii++)
 		datatemp[ii] = datatemp2[ii]*apodwind[ii];
 
 
@@ -1145,12 +1147,12 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 
 	totapod = 0.0;
-	for (ii=0;ii<ns;ii++)
+	for (long ii=0;ii<ns;ii++)
 		totapod += apodwind[ii]*apodwind[ii];
 
 
 	//power spectrum
-	for (k=0;k<ns/2+1;k++){
+	for (long k=0;k<ns/2+1;k++){
 		Nk[k] = pow(fdata[k][0],2) + pow(fdata[k][1],2);
 		Nk[k] = Nk[k]/(totapod/(double)ns)/(double)ns;
 	}
@@ -1159,28 +1161,28 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 
 	//bin power spectrum
-	for (q=0;q<nbins;q++){
+	for (int q=0;q<nbins;q++){
 		Nell[q] = 0.0;
 		count[q] = 0;
 	}
 
 
-	q=0;
-	for (k=0;k<ns/2+1;k++){
-		if (k >= ell[q+1]/fsamp*(double)ns)
-			if (q<nbins-1)
-				q++;
-		Nell[q] += Nk[k];
-		count[q] += 1;
+	qq=0;
+	for (long k=0;k<ns/2+1;k++){
+		if (k >= ell[qq+1]/fsamp*(double)ns)
+			if (qq<nbins-1)
+				qq++;
+		Nell[qq] += Nk[k];
+		count[qq] += 1;
 	}
 
 
-	for (q=0;q<nbins;q++)
+	for (int q=0;q<nbins;q++)
 		Nell[q] /= double(count[q]);
 
 
 
-	for(ii=0;ii<ns/2+1;ii++){
+	for(long ii=0;ii<ns/2+1;ii++){
 		if (bfilter == NULL){
 			bfiltertemp[ii] = 1.0;
 		} else {
@@ -1214,7 +1216,7 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
-	int ii,k,q;
+	int qq;
 
 	double *bfiltertemp;
 	int *count;
@@ -1225,35 +1227,35 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 	//power spectrum
-	for (k=0;k<ns/2+1;k++){
+	for (long k=0;k<ns/2+1;k++){
 		Nk[k] = fdata1[k][0]*fdata2[k][0] + fdata1[k][1]*fdata2[k][1];
 		Nk[k] = Nk[k]/(double)ns;
 	}
 
 
 	//bin power spectrum
-	for (q=0;q<nbins;q++){
+	for (int q=0;q<nbins;q++){
 		Nell[q] = 0.0;
 		count[q] = 0;
 	}
 
 
-	q=0;
-	for (k=0;k<ns/2+1;k++){
-		if (k >= ell[q+1]/fsamp*(double)ns)
-			if (q<nbins-1)
-				q++;
-		Nell[q] += Nk[k];
-		count[q] += 1;
+	qq=0;
+	for (long k=0;k<ns/2+1;k++){
+		if (k >= ell[qq+1]/fsamp*(double)ns)
+			if (qq<nbins-1)
+				qq++;
+		Nell[qq] += Nk[k];
+		count[qq] += 1;
 	}
 
 
-	for (q=0;q<nbins;q++)
+	for (int q=0;q<nbins;q++)
 		Nell[q] /= double(count[q]);
 
 
 
-	for(ii=0;ii<ns/2+1;ii++){
+	for(long ii=0;ii<ns/2+1;ii++){
 		if (bfilter == NULL){
 			bfiltertemp[ii] = 1.0;
 		} else {
@@ -1285,7 +1287,7 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, dou
 	FILE *fp;
 
 	int nbins;
-	long ii;
+	//long ii;
 	double dummy1, dummy2;
 
 	double *SpN;
@@ -1303,7 +1305,7 @@ void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, dou
 	SpN = new double[nbins];
 	ell = new double[nbins+1];
 
-	for (ii=0;ii<nbins;ii++){
+	for (int ii=0;ii<nbins;ii++){
 		fscanf(fp,"%lf %lf",&dummy1,&dummy2);
 		ell[ii] = dummy1;
 		SpN[ii] = dummy2;
@@ -1386,7 +1388,7 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 }
-*/
+ */
 
 void deproject(double *S, long *indpix, long *samptopix, long ndata, long nn, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
 

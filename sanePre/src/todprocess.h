@@ -18,8 +18,8 @@ using namespace std;
 
 
 
-void init1D_double(double *A, long im, long n, double val); // on peut garder
-void init1D_long(long *A, long im, long n, long val); // on peut garder
+//void init1D_double(double *A, long im, long n, double val); // on peut garder
+//void init1D_long(long *A, long im, long n, long val); // on peut garder
 void init2D_double(double **A, long im, long jm, long nx, long ny, double val); // on peut garder
 
 
@@ -63,10 +63,10 @@ int read_data_std(string fname, int frame, int fs, int ns, void* data, string fi
 int read_data(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde
 
 
-double* randg(long nombre, int seedpass); // on garde
+double randg(long nombre, int seedpass); // on garde
 double* rand(long nombre, int seed);	// on garde
 
-void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde
+//void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde
 
 
 

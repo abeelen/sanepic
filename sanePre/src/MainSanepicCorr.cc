@@ -1087,7 +1087,8 @@ int main(int argc, char *argv[])
 
     //pixon indicates pixels that are seen
     pixon = new long[factdupl*nn*nn+2 + addnpix];   // last pixel is for flagged samples
-    init1D_long(pixon,0,factdupl*nn*nn+2 + addnpix,0);
+    fill(pixon,pixon+(factdupl*nn*nn+2 + addnpix),0);
+    //init1D_long(pixon,0,factdupl*nn*nn+2 + addnpix,0);
 
 
 
@@ -1222,7 +1223,8 @@ int main(int argc, char *argv[])
 
 
   indpix = new long[factdupl*nn*nn+2 + addnpix];
-  init1D_long(indpix,0,factdupl*nn*nn+2 + addnpix,-1);
+  fill(indpix,indpix+(factdupl*nn*nn+2 + addnpix),-1);
+  //init1D_long(indpix,0,factdupl*nn*nn+2 + addnpix,-1);
 
 
 

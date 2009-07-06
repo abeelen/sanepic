@@ -72,7 +72,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
 void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp,*/ long ns, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN,
-			  bool NOFILLGAP, double *Ps = NULL);
+			  bool NOFILLGAP,bool remove_polynomia, double *Ps = NULL);
 
 
 void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp,

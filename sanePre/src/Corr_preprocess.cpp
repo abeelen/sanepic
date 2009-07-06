@@ -4,17 +4,18 @@
 
 #include "Corr_preprocess.h"
 
+
 using namespace std;
 
 
 void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl, string dir, string termin, long ff, long ns, long ndet, long iframe){
 
 
-	long idet1;
+	//long idet1;
 	//long ndata = ns+2*marge;
 
-	FILE *fp;
-	char testfile[100];
+	//FILE *fp;
+	//char testfile[100];
 
 	double *Ps;
 	long *samptopix;
@@ -28,13 +29,14 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 
 
 	//for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
-	for (idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<ndet;idet1++){
 
 		//Read pointing data
-		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
+		read_samptopix(ns, samptopix, termin, dir, idet1, iframe);
+		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);
+		fclose(fp);*/
 
 		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
@@ -43,10 +45,12 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
+
+		write_fPs(ns, fdata, termin, dir, idet1, iframe);
+		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
 		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
-		fclose(fp);
+		fclose(fp);*/
 
 	}
 
@@ -64,13 +68,13 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, std::vector<string> &bolonames,
+		string scerr_field, string flpoint_field, std::vector<string> bolonames,
 		string bextension, string fextension, /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
-		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, long iframe){
+		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, long iframe/*,fftw_complex **&fdatas*/){
 
 
-	long ii, idet1;
+	//long ii, idet1;
 	//long ndata = ns+2*marge;
 
 	double *scerr, *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
@@ -80,11 +84,12 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
+
 	string field1;
 
-	char testfile[100];
+	//char testfile[100];
 
-	FILE *fp;
+	//FILE *fp;
 
 	scerr = new double[ns];
 	data =  new double[ns];
@@ -101,11 +106,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 
-	for (idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<ndet;idet1++){
 
 		field1 = bolonames[idet1];
 		//     cout << "Inside write_ftrProcessdata " << endl;
-		//     cout << " field 1 : " << field1 << endl;
+		//    cout << " field 1 : " << field1 << endl;
 
 		if (S != NULL){
 			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
@@ -118,7 +123,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field1+fextension,  'c');
 		} else {
 			//      printf("NOFLAG\n");
-			for (ii=0;ii<ns;ii++)
+			for (long ii=0;ii<ns;ii++)
 				flag[ii] = 0;
 		}
 
@@ -136,10 +141,12 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 		if (S != NULL){
 			//// Read pointing
-			sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
+			read_samptopix(ns, samptopix, termin, dir, idet1, iframe);
+
+			/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
 			fread(samptopix,sizeof(long),ns,fp);
-			fclose(fp);
+			fclose(fp);*/
 
 			if (addnpix){
 				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
@@ -147,8 +154,8 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
 			}
 
-			for (ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
-			for (ii=0;ii<ns;ii++)
+			for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
+			for (long ii=0;ii<ns;ii++)
 				if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0)
 					rejectsamp[ii] = 1;
 		}
@@ -157,11 +164,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP,Ps);
+					NORMLIN,NOFILLGAP,remove_polynomia,Ps);
 		}
 		else {
 			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP);
+					NORMLIN,NOFILLGAP,remove_polynomia);
 		}
 
 		//Fourier transform of the data
@@ -169,11 +176,14 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
+		//write fourier transform to disk
+		write_fdata(ns, fdata, termin, dir, idet1, iframe);
+		//fdatas[idet1][]
 
-		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
+		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
 		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
-		fclose(fp);
+		fclose(fp);*/
 
 	}
 
@@ -197,19 +207,19 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe, string termin, std::vector<string> &bolonames,
+		string dir, string prefixe, string termin, std::vector<string> bolonames,
 		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
-		int rank, long *indpix, long nn, long npix, long iframe, double *Mp, long *hits){
+		int rank, long *indpix, long nn, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
 
 
-	long ii, jj, idet1, idet2, nbins;
-	double dnbins;
+	long  nbins;
+	//double dnbins;
 	//long ndata = ns+2*marge;
 	string field1, field2;
 	string extentnoiseSp;
 
 	string nameSpfile;
-	char testfile[100];
+	//char testfile[100];
 
 	long *samptopix;
 	double *ell, *SpN, *bfilter, *bfilter_, *Nk, *Nd;
@@ -228,29 +238,39 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 	double **SpN_all;
 
-	FILE *fp;
+	//FILE *fp;
 
 
+	//cout << rank << " " << size << endl;
 
-
-	for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
+	for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 		field1 = bolonames[idet1];
+		//cout << field1 << endl;
 
 		//Read pointing data
-		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
+		read_samptopix(ns, samptopix, termin, dir, idet1, iframe);
+
+		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		if ((fp = fopen(testfile,"r"))!=NULL){
 			fread(samptopix,sizeof(long),ns,fp);
 			fclose(fp);
 		}else{
 			cerr << "ERROR: Can't find Read pointing data file " << testfile << ". Exiting. \n";
 			exit(1);
-		}
+		}*/
+
+		//cout << "samptopix" << endl;
 
 		//**************************************** Noise power spectrum
 		extentnoiseSp = extentnoiseSp_all[iframe];
 		nameSpfile = noiseSppreffile + field1 + "-all" + extentnoiseSp;
-//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
-		if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
+		//cout << nameSpfile << endl;
+		//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
+
+		//read noise PS file
+		read_noise_file(nbins, ell, SpN, SpN_all, nameSpfile, ndet);
+
+		/*if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
 			cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
 			exit(1);
 		}
@@ -261,40 +281,42 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		SpN = new double[nbins];
 		fread(ell,sizeof(double), nbins+1, fp);
 		fread(*SpN_all,sizeof(double), nbins*ndet, fp);
-		fclose(fp);
+		fclose(fp);*/
 
-
+		//cout << "apres read" << endl;
 		//*****************************************
 
-		for (ii=0;ii<ns/2+1;ii++)
+		for (long ii=0;ii<ns/2+1;ii++)
 			bfilter[ii] = pow(double(ii)/f_lppix, 16) /(1.0+pow(double(ii)/f_lppix, 16));
-		for (ii=0;ii<ns/2+1;ii++)
+		for (long ii=0;ii<ns/2+1;ii++)
 			bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
 
 
 		//Init N-1d
-		for (ii=0;ii<ns/2+1;ii++){
+		for (long ii=0;ii<ns/2+1;ii++){
 			Ndf[ii][0] = 0;
 			Ndf[ii][1] = 0;
 		}
 
 
 
-		for (idet2=0;idet2<ndet;idet2++){
+		for (long idet2=0;idet2<ndet;idet2++){
 			field2 = bolonames[idet2];
 
 			//read Fourier transform of the data
-			sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
+			read_fdata(ns, fdata, prefixe, termin, dir, idet2, iframe);
+
+			/*sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
 			if((fp = fopen(testfile,"r"))!=NULL){
-			fread(fdata,sizeof(double), (ns/2+1)*2, fp);
-			fclose(fp);
+				fread(fdata,sizeof(double), (ns/2+1)*2, fp);
+				fclose(fp);
 			}else{
 				cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
-							exit(1);
-			}
-
+				exit(1);
+			}*/
+			//cout << "apres fdata" << endl;
 			//****************** Cross power spectrum of the noise  ***************//
-			for (ii=0;ii<nbins;ii++)
+			for (int ii=0;ii<nbins;ii++)
 				SpN[ii] = SpN_all[idet2][ii];
 
 
@@ -302,14 +324,14 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 
 
-			for (jj=0;jj<ns/2+1;jj++)
+			for (long jj=0;jj<ns/2+1;jj++)
 				if (isnan(Nk[jj])) {
 					printf("isnan has been found : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 					exit(1);
 				}
 
 			//********************************* compute N^-1 d  ***********************//
-			for (ii=0;ii<ns/2+1;ii++){
+			for (long ii=0;ii<ns/2+1;ii++){
 				Ndf[ii][0] += fdata[ii][0]*Nk[ii];
 				Ndf[ii][1] += fdata[ii][1]*Nk[ii];
 			}
@@ -319,36 +341,38 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 			//Compute weight map for preconditioner
 			if ((Mp != NULL) && (idet2 == idet1))
 				compute_diagPtNPCorr(Nk,samptopix,ns,nn,indpix,npix,f_lppix,Mp);
+			//
 
 
 		}// end of idet2 loop
 
-
+	//	cout << "fftw" << endl;
 		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
+	//	cout << "apres fftw" << endl;
 
 
-
-		for (ii=0;ii<ns;ii++){
+		for (long ii=0;ii<ns;ii++){
 			if ((ii < 0) || (ii >= ns)){
 				PNd[npix-2] += Nd[ii];
 			} else {
-				PNd[indpix[samptopix[ii]]] += Nd[ii];
+				PNd[indpix[samptopix[ii]]] += Nd[ii]; // Nd real
 			}
 		}
 
 		//compute hit counts
 		if (hits != NULL){
-			for (ii=0;ii<ns;ii++){
+			for (long ii=0;ii<ns;ii++){
 				hits[indpix[samptopix[ii]]] += 1;
 			}
 		}
 
-
+	//	cout << "avant delete" << endl;
 		delete[] ell;
 		delete[] SpN;
 		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
+	//	cout << "delete" << endl;
 
 	}// end of idet1 loop
 

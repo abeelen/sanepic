@@ -31,8 +31,11 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1560873665" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.458953551" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
+<option id="gnu.cpp.compiler.option.debugging.prof.1675962536" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.gprof.188332445" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1891346893" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -40,6 +43,7 @@
 <option id="gnu.c.compiler.exe.debug.option.debugging.level.520800626" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.include.paths.420697937" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/iniparser/src}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1024706921" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
@@ -47,12 +51,14 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.859488601" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.1235981317" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
-<listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="fftw3"/>
+<listOptionValue builtIn="false" value="iniparser"/>
+<listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
 <option id="gnu.cpp.link.option.paths.265886019" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.255527790" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -63,6 +69,7 @@
 <tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1212388989" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
 <option id="gnu.both.asm.option.include.paths.658694909" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/iniparser/src}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.613445933" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 </tool>

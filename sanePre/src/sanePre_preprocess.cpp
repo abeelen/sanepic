@@ -1,0 +1,59 @@
+/*
+ * sanePre_preprocess.cpp
+ *
+ *  Created on: 25 juin 2009
+ *      Author: matthieu
+ */
+
+#include "sanePre_preprocess.h"
+
+using namespace std;
+
+
+
+
+long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
+		std::vector<long> yyf, long* &indpsrc,long &npixsrc){
+
+	long addnpix=0;
+
+	//************************************* Deal with masking the point sources
+	// define the mask
+	unsigned char *mask;
+
+	mask = new unsigned char[nn*nn];
+	for (long ii=0;ii<nn*nn;ii++)
+		mask[ii] = 1;
+
+
+	if (xxi.size() != 0){
+		for (long ib = 0;ib < (long)xxi.size(); ib++){ // to avoid warning, mat-27/05
+			// for each box crossing constraint removal
+			for (long ii=xxi[ib];ii<xxf[ib];ii++)
+				for (long ll=yyi[ib];ll<yyf[ib];ll++)
+					mask[ll*nn + ii] = 0;  // mask is initialised to 0
+		}
+	}
+
+
+
+
+	indpsrc = new long[nn*nn];
+	for (long ii=0;ii<nn*nn;ii++){
+		if (mask[ii] == 0){
+			indpsrc[ii] = npixsrc;
+			npixsrc += 1;
+		} else {
+			indpsrc[ii] = -1;
+		}
+	}
+	addnpix = ntotscan*npixsrc; // addnpix = number of pix to add in pixon = number of scans * number of pix in box crossing constraint removal
+
+	//debug
+	cout  << "addnpix : " << addnpix << endl;
+
+	//clean up
+	delete [] mask;
+
+	return addnpix;
+}
