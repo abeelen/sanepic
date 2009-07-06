@@ -54,6 +54,8 @@ void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string 
 
 void write_PNd(double *PNd, int npix, string termin, string outdir);
 
+void read_PNd(double *&PNdtot, int &npix, string termin, string outdir);
+
 void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int idet, long iframe);
 
 void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int idet, long iframe);
