@@ -19,7 +19,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 		long *nbins) {
 	string line;
 
-	long ii;
+	//long ii;
 	double dummy1, dummy2;
 
 	ifstream Spfile(fname.c_str());
@@ -40,7 +40,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 		if (line == bolo1bolo2) {
 			getline(Spfile, line);
 			*nbins = atoi(line.c_str());
-			for (ii = 0; ii < *nbins; ii++) {
+			for (long ii = 0; ii < *nbins; ii++) {
 				getline(Spfile, line);
 				sscanf(line.c_str(), "%lf%lf", &dummy1, &dummy2);
 				ell[ii] = dummy1;
@@ -80,7 +80,7 @@ void write_CovMatrix(string fname, std::vector<string> &bolos, long nbins, doubl
 	data = vString2carray(bolos);
 
 	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
-			"Channel List", &status);
+			(char*)"Channel List", &status);
 	fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status);
 	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
 			(char *) "physical unit of the field", &status);

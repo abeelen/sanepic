@@ -2,6 +2,7 @@
 #include <string>
 
 //TODO remove C++ dependancies (cerr & string fname)
+// OK
 
 #include "imageIO.h"
 
@@ -55,7 +56,8 @@ void write_fits(string fname, double pixsize, long nx, long ny,
       print_fits_error(fits_status);
     break;
   default:
-    cerr << "write_fits: data type '" << dtype << "' not supported. Exiting.\n";
+   // cerr << "write_fits: data type '" << dtype << "' not supported. Exiting.\n";
+	  printf("write_fits: data type %c not supported. Exiting.\n",dtype);
     exit(1);
   }
 
@@ -64,50 +66,50 @@ void write_fits(string fname, double pixsize, long nx, long ny,
     print_fits_error(fits_status);
 
   // write map parameters (keywords)
-  if ( fits_write_key(fp, TLONG, "NROW", &nx, "Number of rows", &fits_status) )
+  if ( fits_write_key(fp, TLONG, (char*)"NROW", &nx, (char*)"Number of rows", &fits_status) )
     print_fits_error(fits_status);
 
-  if ( fits_write_key(fp, TLONG, "NCOL", &ny, "Number of columns", &fits_status) )
+  if ( fits_write_key(fp, TLONG, (char*)"NCOL", &ny, (char*)"Number of columns", &fits_status) )
     print_fits_error(fits_status);
 
-  if ( fits_write_key(fp, TDOUBLE, "PIXSIZE", &pixsize, "Size of pixels (deg)", &fits_status) )
+  if ( fits_write_key(fp, TDOUBLE, (char*)"PIXSIZE", &pixsize, (char*)"Size of pixels (deg)", &fits_status) )
     print_fits_error(fits_status);
 
   if ( fits_write_comment(fp, "Galactic coordinates",  &fits_status) )
     print_fits_error(fits_status);
 
   dtmp = (tanpix[0]); // 0-based index to 1
-  if ( fits_write_key(fp, TDOUBLE, "CRPIX1", &dtmp, "X PIXEL OF TANGENT POINT", &fits_status) )
+  if ( fits_write_key(fp, TDOUBLE, (char*)"CRPIX1", &dtmp, (char*)"X PIXEL OF TANGENT POINT", &fits_status) )
     print_fits_error(fits_status);
 
   dtmp = (tanpix[1]); // 0-based index to 1
-  if ( fits_write_key(fp, TDOUBLE, "CRPIX2", &dtmp, "Y PIXEL OF TANGENT POINT", &fits_status) )
+  if ( fits_write_key(fp, TDOUBLE, (char*)"CRPIX2", &dtmp, (char*)"Y PIXEL OF TANGENT POINT", &fits_status) )
     print_fits_error(fits_status);
 
   dtmp = -pixsize;
-  if ( fits_write_key(fp, TDOUBLE, "CDELT1", &dtmp, "COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
+  if ( fits_write_key(fp, TDOUBLE, (char*)"CDELT1", &dtmp, (char*)"COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
 		      &fits_status) )
     print_fits_error(fits_status);
 
-  if ( fits_write_key(fp, TDOUBLE, "CDELT2", &pixsize, "COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
+  if ( fits_write_key(fp, TDOUBLE, (char*)"CDELT2", &pixsize, (char*)"COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
 		      &fits_status) )
     print_fits_error(fits_status);
 
   if (coordsyst == 2){
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL1", tancoord, "GLON AT TANGENT POINT (DEG)", &fits_status) )
+    if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL1", tancoord, (char*)"GLON AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "GLAT AT TANGENT POINT (DEG)", &fits_status) )
+    if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL2", tancoord+1, (char*)"GLAT AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
     strx = (char *)"GLON-TAN";
     stry = (char *)"GLAT-TAN";
 
   } else {
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL1", tancoord, "RA AT TANGENT POINT (DEG)", &fits_status) )
+    if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL1", tancoord, (char*)"RA AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
-    if ( fits_write_key(fp, TDOUBLE, "CRVAL2", tancoord+1, "DEC AT TANGENT POINT (DEG)", &fits_status) )
+    if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL2", tancoord+1, (char*)"DEC AT TANGENT POINT (DEG)", &fits_status) )
       print_fits_error(fits_status);
 
     strx = (char *)"RA---TAN";
@@ -115,10 +117,10 @@ void write_fits(string fname, double pixsize, long nx, long ny,
 
   }
 
-  if ( fits_write_key(fp, TSTRING, "CTYPE1", strx, "TANGENT PLANE PROJECTION", &fits_status) )
+  if ( fits_write_key(fp, TSTRING, (char*)"CTYPE1", strx, (char*)"TANGENT PLANE PROJECTION", &fits_status) )
     print_fits_error(fits_status);
 
-  if ( fits_write_key(fp, TSTRING, "CTYPE2", stry, "TANGENT PLANE PROJECTION", &fits_status) )
+  if ( fits_write_key(fp, TSTRING, (char*)"CTYPE2", stry, (char*)"TANGENT PLANE PROJECTION", &fits_status) )
     print_fits_error(fits_status);
 
 
