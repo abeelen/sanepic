@@ -143,11 +143,12 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		double *offsets, int ns, int *xx, int *yy, int *nn,
 		double *coordscorner, double *tancoord, double *tanpix,
-		bool fixcoord, double radius, double *offmap, double *radecsrc)
+		bool fixcoord, double radius, double *offmap, double *radecsrc, bool compute_xx_yy)
 {
 	// ra is in hours, dec in degrees
 
-	int ii, jj, j;
+	int j;
+	//int ii, jj, j;
 	double ra_rad, dec_rad, dec_min, dec_max, ra_min, ra_max, dec_mean, ra_mean;
 	double x1, y1, xm, ym, ix, iy, nnf;
 	double sinphi, cosphi, cosphi_phas, sinphi_phas;
@@ -171,7 +172,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 
 
 	// find the pointing solution of the detector
-	for (ii=0;ii<ns;ii++){
+	for (long ii=0;ii<ns;ii++){
 		offxx = cos((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[0]
 		                                                       - sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[1] + offmap[0];
 		offyy = sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[0]
@@ -192,8 +193,8 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 	ra_min  = *min_element(ra_bolo, ra_bolo+ns);
 	dec_max = *max_element(dec_bolo, dec_bolo+ns);
 	dec_min = *min_element(dec_bolo, dec_bolo+ns);
-//	minmax(ra_bolo, ns, &ra_min, &ra_max, &temp1, &temp2, NULL);
-//	minmax(dec_bolo, ns, &dec_min, &dec_max, &temp1, &temp2, NULL);
+	//	minmax(ra_bolo, ns, &ra_min, &ra_max, &temp1, &temp2, NULL);
+	//	minmax(dec_bolo, ns, &dec_min, &dec_max, &temp1, &temp2, NULL);
 
 
 
@@ -231,8 +232,8 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 	double stepb = 1.0/60;
 	if (radius <= 0){
 		nnf=0.0;
-		for (ii=int(ra_min/12.0*180.0/stepb);ii<int(ra_max/12.0*180.0/stepb);ii++){
-			for (jj=int(dec_min/stepb);jj<int(dec_max/stepb);jj++){
+		for (int ii=int(ra_min/12.0*180.0/stepb);ii<int(ra_max/12.0*180.0/stepb);ii++){
+			for (int jj=int(dec_min/stepb);jj<int(dec_max/stepb);jj++){
 				slaDs2tp ((double)ii/180.0*M_PI*stepb,(double)jj/180.0*M_PI*stepb,ra_mean,dec_mean,&ix   ,&iy  ,&j);
 
 				if (fabs(ix)/dl_rad > nnf/2.0)
@@ -272,41 +273,42 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 	// compute x and y for each sample
 	////////////////////////////////////////////////////////////////////
 
+	if(compute_xx_yy){
+		for (long ii=0;ii<ns;ii++){
 
-	for (ii=0;ii<ns;ii++){
-
-		ra_rad = ra[ii]/12.0 * M_PI;
-		dec_rad = dec[ii]/180.0 * M_PI;
-
-
-		cosphi = cos(phi[ii]*degtorad);
-		sinphi = sin(phi[ii]*degtorad);
-		cosphi_phas = cos((phi[ii]-ang_sc2array)*degtorad);
-		sinphi_phas = sin((phi[ii]-ang_sc2array)*degtorad);
-
-		offxx = cosphi_phas*offsets[0] - sinphi_phas*offsets[1] + offmap[0];
-		offyy = sinphi_phas*offsets[0] + cosphi_phas*offsets[1] + offmap[1];
+			ra_rad = ra[ii]/12.0 * M_PI;
+			dec_rad = dec[ii]/180.0 * M_PI;
 
 
+			cosphi = cos(phi[ii]*degtorad);
+			sinphi = sin(phi[ii]*degtorad);
+			cosphi_phas = cos((phi[ii]-ang_sc2array)*degtorad);
+			sinphi_phas = sin((phi[ii]-ang_sc2array)*degtorad);
 
-		slaDs2tp (ra_rad,dec_rad,ra_mean,dec_mean,&x1,&y1,&j);
-		x1 = -x1/dl_rad + double(*nn/2) + 0.5;
-		y1 = y1/dl_rad + double(*nn/2) + 0.5;
+			offxx = cosphi_phas*offsets[0] - sinphi_phas*offsets[1] + offmap[0];
+			offyy = sinphi_phas*offsets[0] + cosphi_phas*offsets[1] + offmap[1];
 
 
 
-		if ((radecsrc != NULL) && (radecsrc[0] >= -100) && (radecsrc[1] >= -100)){//telescope coordinates
-			xm = pixsrc[0]  + (x1-pixsrc[0]) * cosphi + (y1-pixsrc[1]) * sinphi + offsets[0]/pixdeg;
-			ym = pixsrc[1]  + (y1-pixsrc[1]) * cosphi - (x1-pixsrc[0]) * sinphi + offsets[1]/pixdeg;
-		}else{
-			xm = x1 + offxx/pixdeg;
-			ym = y1 + offyy/pixdeg;
+			slaDs2tp (ra_rad,dec_rad,ra_mean,dec_mean,&x1,&y1,&j);
+			x1 = -x1/dl_rad + double(*nn/2) + 0.5;
+			y1 = y1/dl_rad + double(*nn/2) + 0.5;
+
+
+
+			if ((radecsrc != NULL) && (radecsrc[0] >= -100) && (radecsrc[1] >= -100)){//telescope coordinates
+				xm = pixsrc[0]  + (x1-pixsrc[0]) * cosphi + (y1-pixsrc[1]) * sinphi + offsets[0]/pixdeg;
+				ym = pixsrc[1]  + (y1-pixsrc[1]) * cosphi - (x1-pixsrc[0]) * sinphi + offsets[1]/pixdeg;
+			}else{
+				xm = x1 + offxx/pixdeg;
+				ym = y1 + offyy/pixdeg;
+			}
+
+
+			xx[ii] = int(xm);
+			yy[ii] = int(ym);
+
 		}
-
-
-		xx[ii] = int(xm);
-		yy[ii] = int(ym);
-
 	}
 	//////////////////////////////////////////////////////////////
 
@@ -323,10 +325,10 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 	slaDtp2s (double(*nn)*dl_rad - dummy1,0.0, ra_mean, dec_mean, &ra00, &dummy2 );
 
 
-	ra0 = ra0*12.0/M_PI;
+	/*ra0 = ra0*12.0/M_PI;
 	dec0 = dec0*180.0/M_PI;
 	ra00 = ra00*12.0/M_PI;
-	dec00 = dec00*180.0/M_PI;
+	dec00 = dec00*180.0/M_PI;*/
 
 	////////////////////////////////////////////////
 
@@ -355,10 +357,10 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double **count, int nn, unsigned char *flag, double **map_f, double **count_f)
 {
 
-	int ii, jj;
+	//int ii, jj;
 
-	for (ii=0;ii<nn;ii++){
-		for (jj=0;jj<nn;jj++){
+	for (int ii=0;ii<nn;ii++){
+		for (int jj=0;jj<nn;jj++){
 			map[ii][jj] = 0.0;
 			map_f[ii][jj] = 0.0;
 			count[ii][jj] = 0.0;
@@ -368,7 +370,7 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 	// cerr << "reproj here1?\n";
 
-	for (ii=0;ii<ns;ii++){
+	for (long ii=0;ii<ns;ii++){
 		if (ii == 137909) cerr << ii << ", " << ns << endl;
 		if ((flag == NULL) || ((flag[ii] & 1) == 0)){
 			/*if (ii == 137909) {
@@ -385,8 +387,8 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 	}
 	//cerr << "reproj here2?\n";
 
-	for (ii=0;ii<nn;ii++){
-		for (jj=0;jj<nn;jj++){
+	for (int ii=0;ii<nn;ii++){
+		for (int jj=0;jj<nn;jj++){
 			if (count[ii][jj]-0.5 > 0)
 				map[ii][jj] = -map[ii][jj]/count[ii][jj];
 			if (count_f[ii][jj]-0.5 > 0)
@@ -410,7 +412,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 
-	long ii;
+	//long ii;
 	unsigned char *flagtmp;
 	double *scerrtmp;
 	unsigned char *flpointtmp;
@@ -421,13 +423,13 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 	if (NOFILLGAP){
-		for (ii=0;ii<ns;ii++){
+		for (long ii=0;ii<ns;ii++){
 			flagtmp[ii] = 0;
 			scerrtmp[ii] = 0.0;
 			flpointtmp[ii] = 0;
 		}
 	} else {
-		for (ii=0;ii<ns;ii++){
+		for (long ii=0;ii<ns;ii++){
 			flagtmp[ii] = flag[ii];
 			scerrtmp[ii] = scerr[ii];
 			flpointtmp[ii] = flpoint[ii];
@@ -438,7 +440,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 
-	for (ii=0;ii<ns;ii++){
+	for (long ii=0;ii<ns;ii++){
 		rejectsamp[ii] = 0;
 		if ((flagtmp[ii] & 1) != 0 || (scerrtmp[ii] > errarcsec) || (flpointtmp[ii] & 1) != 0)
 			rejectsamp[ii] = 1;
@@ -448,7 +450,7 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 
-	for (ii=0;ii<ns;ii++){
+	for (long ii=0;ii<ns;ii++){
 		if ((xx[ii] < 0) || (yy[ii] < 0) || (xx[ii] >= nn) || (yy[ii] >= nn) || (NOFILLGAP && (flag[ii] & 1))){
 			rejectsamp[ii] = 2;
 			if ((xx[ii] < -100000) || (yy[ii] < -100000) || (xx[ii] > 100000) || (yy[ii] > 100000))
@@ -461,7 +463,6 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 	delete [] flpointtmp;
 
 }
-
 
 
 

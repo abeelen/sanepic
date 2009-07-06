@@ -9,9 +9,9 @@
 using namespace std;
 
 struct foffset {
-  long frame;
-  float pitch;
-  float yaw;
+	long frame;
+	float pitch;
+	float yaw;
 };
 
 

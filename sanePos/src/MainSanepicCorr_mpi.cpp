@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <list>
 #include <vector>
+#include <string>
 #include <cmath>
 #include <algorithm>
 
@@ -12,14 +13,21 @@
 #include <unistd.h>
 #include <stdio.h>
 
+
 #include "mpi_architecture_builder.h"
 
 #include "boloIO.h"
 #include "dataIO.h"
+#include "inline_IO.h"
+extern "C" {
+#include "nrutil.h"
+}
+
 
 #include "map_making.h"
 #include "blastSpecific.h"
-
+#include "parsePos.h"
+#include "sanePos_preprocess.h"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -28,79 +36,11 @@
 using namespace std;
 
 
-void usage(char *name)
-{
-	cerr << "USAGE: " << name << ": simulate time stream data" << endl << endl;
-	cerr << name << " [-F <data dir>] [-f <first frame>]" << endl;
-	cerr << "\t[-l <last frame> | -n <num frames>]" << endl;
-	cerr << "\t[-y <channel>] [-C <channel file>] [-p <pixsize>]" << endl;
-	cerr << "-H <filter freq>       frequency of the high pass filter applied to the data" << endl;
-	cerr << "-J <noise freq cut>    frequency under which noise power spectra are thresholded. Default is the frequency cut of the high pass filter applied to the data (-H option)" << endl;
-	cerr << "\t[-O <offset file>] [-B <bolo ext>] [-G <flag ext>] [-P <pointing ext>]" << endl;
-	cerr << "\t[-o <output dir>] [-e <output file>]" << endl << endl;
-	cerr << "-A <apodize nsamp>     number of samples to apodize (supercedes -a)\n";
-	//cerr << "-m <padding interval>  number of samples extrapolated before (and after) data" << endl;
-	cerr << "-B <bolo ext>          bolo field extension" << endl;
-	cerr << "-C <channel file>      include bolometers named in file" << endl;
-	cerr << "-e <output file str>   id string in output file" << endl;
-	cerr << "-F <data dir>          source data directory" << endl;
-	cerr << "-f <first frame>       first frame (multiple allowed)" << endl;
-	cerr << "-G <flag ext>          flag field extension" << endl;
-	cerr << "-H <filter freq>       filter frequency (multiple allowed)" << endl;
-	cerr << "-R <sampling frequency> detectors sampling frequency. Required" << endl;
-	cerr << "-K <noise prefixe>     noise power spectrum file prefixe " << endl;
-	cerr << "-k <noise suffixe>     noise power spectrum file suffixe " << endl;
-	cerr << "-l <last frame>        last frame (multiple allowed, exclusive from -n)" << endl;
-	cerr << "-n <num frames>        number of frames (multiple allowed, exclusive from -l)" << endl;
-	cerr << "-x <box coord x1>      if set, defines the x coordinate of the left side of the box(es) in which crossing constraints are removed" << endl;
-	cerr << "-X <box coord x2>      if set, defines the x coordinate of the right side of the box(es) in which crossings constraints are removed" << endl;
-	cerr << "-z <box coord y1>      if set, defines the y coordinate of the top side of the box(es) in which crossing constraints are removed" << endl;
-	cerr << "-Z <box coord y2>      if set, defines the y coordinate of the bottom side of the box(es) in which crossings constraints are removed" << endl;
-	cerr << "-O <offset file>       file containing bolometer offsets" << endl;
-	cerr << "-o <output dir>        output directory" << endl;
-	cerr << "-P <pointing ext>      pointing field extension" << endl;
-	cerr << "-p <pixsize>           size of pixels (degrees)" << endl;
-	cerr << "-y <channel>           include bolometer (multiple allowed)" << endl;
-	cerr << "-S <Scan offset file>  file containing offsets for different frame ranges" << endl;
-	cerr << "-t <RA source>         RA (or Gal l if keyword c is 2) of the tangent point and of the source for telescope coordinate maps" << endl;
-	cerr << "-T <DEC source>        DEC (or Gal b if keyword c is 2) of the tangent point and of the source for telescope coordinate maps" << endl;
-	cerr << "-u <RA min>            fixed minimum RA (or Gal l) of the map, if none of -N, -t, and -T are defined" << endl;
-	cerr << "-U <RA max>            fixed maximum RA (or Gal l) of the map, if none of -N, -t, and -T are defined" << endl;
-	cerr << "-v <DEC min>           fixed minimum DEC (or Gal b) of the map, if none of -N, -t, and -T are defined" << endl;
-	cerr << "-V <DEC max>           fixed maximum DEC (or Gal b) of the map, if none of -N, -t, and -T are defined" << endl;
-	cerr << "-c <coord system>      Coordinate system, 1: RA/DEC, 2: L/B (Gal), 3: Telescope coordinates, Default is RA/DEC" << endl;
-	cerr << "-N <map radius>        fixed radius (half a side) of the map in degrees (in case of data outside, they are constrained to have constant values)" << endl;
-	cerr << "-L <no baseline>       Keyword specifiying if a baseline is removed from the data or not (0 for YES, 1 for NO)" << endl;
-	cerr << "-r <precompute PNd>    Keyword specifying if PNd is precomputed and read from disk" << endl; //add this option to work
-	cerr << "-g <project gaps>      Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is 0" << endl;
-	cerr << "-M <map flagged data>  Keyword specifying if flagged data are put in a separate map, default is 0" << endl;
-	cerr << "-s <time offset>       Keyword for subtracting a time offset to the data to match the pointing "<< endl;
-	cerr << "-E <no corr>           Set this keyword to 0 if correlations are not included in the analysis" << endl;
-	//cerr << "-I <parallel scheme>   Set this keyword to 1 in order to distribute different field visit (or frame ranges) to different processors, instead of different detector data chuncks as it is by default" << endl;
-	//cerr << "-j <write unconverged maps>  The value specified by this keyword indicates the period in iterations to which the data are written to disk. Default is 10. Set this keyword to zero if you don't want intermediate maps to be written." << endl;
-	cerr << "-a <noise estim>       Optional. Enter filename containing the mixing matrix of noise components. If set, the noise power spectra files for each field are computed after map-making. Default is no re-estimation" << endl;
-	cerr << "-i <Noise PS etimation> Optional. Computes power spectra estimation from the data and saves it in a file. Default is no estimation." << endl;
-	exit(1);
-}
 
-
-
-template<class T> void list2array(list<T> l, T* a)
+template<class T> void vector2array(std::vector<T> l, T* a)
 {
 	// copy list of type T to array of type T
-	typename list<T>::iterator iter;
-	int i;
-
-	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}
-
-
-template<class T> void vector2array(vector<T> l, T* a)
-{
-	// copy list of type T to array of type T
-	typename vector<T>::iterator iter;
+	typename std::vector<T>::iterator iter;
 	int i;
 
 	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
@@ -148,32 +88,25 @@ int main(int argc, char *argv[])
 		printf ("The current path is: %s",pPath);
 
 
-	//bool projgaps = 0; //1: data flagged are put in a single pixel
-	//   (assume no signal in this pixel),
-	//0: data flagged are not reprojected
-
 	//default value of the data to pointing shift
 	int shift_data_to_point = 0;
 
 
 	//DEFAULT PARAMETERS
 	long napod = 0; // number of samples to apodize
-	double fsamp = 0.0;// 25.0; // sampling frequency : BLAST Specific
 	double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
 	// source error
 
-	long ii, ll, iframe, idet, ib; // loop indices
+
+
 	long iframe_min, iframe_max;
-	int flagon = 0; // if rejectsample [ii]==3, flagon=1
-	//int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
+
+	int flagon = 0; // if rejectsample [ii]==3, flagon=1	//int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
 	bool bfixc = 0; // indicates that 4 corners are given for the cross corelation removal box
 	bool pixout = 0; // indicates that at least one pixel has been flagged and is out
-	bool NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
 	bool NOFILLGAP = 0; // fill the gap ? default is YES
-	//bool PND_ready = 0; // PNd precomputed ? read on disk if =1
 	bool flgdupl = 0; // 1 if flagged data are put in a separate map
-	//bool CORRon = 1; // correlation included in the analysis (=1), else 0, default 0
-	//bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
+
 
 	//set coordinate system
 	double *srccoord, *coordscorner;
@@ -186,21 +119,14 @@ int main(int argc, char *argv[])
 
 	// data parameters
 	long *fframes  ; // first frames table fframes list -> fframes
-	long *fframesorder ;
 	long *nsamples ; // number of samples table nsamples list -> nsamples
-	long *nsamplesorder ;
-	long *ruleorder ;
-	long *frnum ;
-
-	// box for crossing constraints removal
-//	long *xxi, *xxf; // left x, right x
-//	long *yyi, *yyf; // top y, bottom y
+	//long *frnum ;
 
 	long ntotscan; // total number of scans
 	long ndet; // number of channels
 	int nnf; // extentnoiseSp number of elements
-	int samples_per_frames=1; // default = 1, BLAST = 20
-	samples_per_frames=20; // Blast specific, a supprimer par la suite
+	long addnpix=0;
+
 
 
 	// map making parameters
@@ -208,29 +134,34 @@ int main(int argc, char *argv[])
 
 
 	int nn, npix; // nn = side of the map, npix = number of filled pixels
+	long npixsrc;
 	double ra_min, ra_max, dec_min, dec_max; // coord ra/dec of the map
 	double *offsets, *froffsets, *offmap; // offsets par rapport au bolo de ref, froffsets = ?, offmap = ?
+	float *scoffsets; // offsets depending on wavelength
+	scoffsets = new float[6];
+
+	int nfoff; // number of offsets
+	foffset *foffsets; // tableau d'offsets
+
 	double *tancoord; // tangent point coordinates
 	double *tanpix; // tangent pixel
 	double gra_min, gra_max, gdec_min, gdec_max; // global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors)
 
 	//internal data params
-	long ns, ff; // number of samples for this scan, first frame number of this scan
-	//double f_lp, f_lp_Nk, f_lppix, f_lppix_Nk; // frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples
+	long ns; // number of samples for this scan, first frame number of this scan
 
 
-	FILE *fp;
 
-	char testfile[100];
-	string testfile2;
+	//FILE *fp;
 
+	//char testfile[100];
+	//string testfile2;
+	string fname;
 
 
 	char type='d'; // returned type of read_data functions, d=64bit double
 	double *ra, *dec, *phi, *scerr; // RA/DEC, phi (angle) coordinates of the bolo, source errors
 	unsigned char *flag, *flpoint, *rejectsamp, *mask; // samples flags, pointing flags, rejected samples list
-	// mask = box for crossing constraint removal mask in the map
-//	double *PNd, *PNdtot; //
 	long *indpix, *indpsrc; // pixels indices, mask pixels indices
 
 	int *xx, *yy; // data coordinates in the map
@@ -241,269 +172,82 @@ int main(int argc, char *argv[])
 
 
 	string field; // actual boloname in the bolo loop
-	// moved array of strings to vector of strings...
-	//string *bolonames; // channel list -> bolonames array : considered bolometers names
-//	string *extentnoiseSp; // ((list -> string*))
-//	string *extentnoiseSporder;
 	string bolofield; // bolofield = boloname + bextension
-	//string calfield; // calfield  = field+cextension;
 	string flagfield; // flagfield = field+fextension;
 	string dirfile; // data directory
 	string outdir; // output directory
 	string poutdir; // current path (pPath) or output dir (outdir)
 	string bextension; // bolometer field extension
-	//string cextension = "NOCALP"; // needed for calfield calculation !
 	string fextension = "NOFLAG"; // flag field extension
 	string pextension; // pointing extension
 	string file_offsets; // bolometer offsets file
 	string file_frame_offsets = "NOOFFS"; // offset file
 	string termin; // output file suffix
-	string noiseSppreffile; // noise file suffix
-//	string extentnoiseSp; // noise file
-	string prefixe; // prefix used for temporary name file creation
 
-	//string MixMatfile = "NOFILE";
-	//int doInitPS = 0;
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /// Default is RA/DEC
-	int coordsyst2 = 1;
 
 
+	int samples_per_frames=20;
 
-	/* COMMAND-LINE PARAMETER PROCESSING */
-
-
-	int retval; // parser variable
-	int tmpcount = 0; // parser variable (check if parsing was performed well)
-	int tmpcount2 = 0; // parser variable (check if parsing was performed well)
-	int temp; // parser variable (check if parsing was performed well)
-
-	std::vector<string> bolonames; // bolometer list
-
+	/* parser inputs */
+	std::vector<string> bolonames/*, extentnoiseSP*/; // bolometer list, noise file prefix
 	std::vector<long> fframes_vec, nsamples_vec; // first frame list, number of frames per sample
 	std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
-	std::vector<double> fcut;
-	std::vector<string> extentnoiseSp; // noise file prefixe
+	//std::vector<double> fcut;
+	//std::vector<string> extentnoiseSP; // noise file prefix
 
 
-	//time t2, t3, t4, t5, dt;
+	time_t t2, t3;//, t3, t4, t5, dt;
 
-/*
 
-	f_lp = 0.0; // low pass filter frequency
-	f_lp_Nk = 0.0; // noise PS frequency threshold*/
+
+
 	pixdeg = -1.0; // "Size of pixels (deg)"
 
+	// -----------------------------------------------------------------------------//
 
-	// Parse command line options
-	while ( (retval = getopt(argc, argv, "F:f:l:n:y:C:H:J:o:O:B:R:G:P:S:e:p:A:k:K:t:T:u:U:v:V:c:N:L:g:r:M:x:X:z:Z:s:E:I:j:a:D:i:")) != -1) {
-		switch (retval) {
-		case 'F':
-			dirfile = optarg;
-			break;
-		case 'f':
-			if (fframes_vec.size() != nsamples_vec.size()) {
-				cerr << "'-f' must be followed by '-l' or '-n'. Exiting.\n";
-				exit(1);
-			}
-			fframes_vec.push_back(atoi(optarg));
-			break;
-		case 'l':
-		case 'n':
-			if (nsamples_vec.size() != fframes_vec.size()-1) {
-				cerr << "'-l' or '-n' must follow '-f'. Exiting.\n";
-				exit(1);
-			}
-			temp = atoi(optarg);
-			if (retval == 'l') temp -= fframes_vec.back() - 1;
-			nsamples_vec.push_back(temp);
-			break;
-		case 'x':
-			if (xxi.size() != yyf.size()){
-				cerr << "'-x' must be followed by '-X -z -Z'. Exiting.\n";
-				exit(1);
-			}
-			xxi.push_back(atoi(optarg));
-			break;
-		case 'X':
-			if (xxf.size() != xxi.size()-1){
-				cerr << "'-X' must follow '-x' and be followed by '-z -Z'. Exiting. \n";
-				exit(1);
-			}
-			xxf.push_back(atoi(optarg));
-			break;
-		case 'z':
-			if (yyi.size() != xxi.size()-1){
-				cerr << "'-z' must follow by '-x -X' and be followed by 'Z'. Exiting.\n";
-				exit(1);
-			}
-			yyi.push_back(atoi(optarg));
-			break;
-		case 'Z':
-			if (yyf.size() != xxi.size()-1){
-				cerr << "'-Z' must follow '-x -X -z'. Exiting. \n";
-				exit(1);
-			}
-			yyf.push_back(atoi(optarg));
-			break;
-		case 'p':
-			pixdeg = atof(optarg);
-			break;
-		case 'H':
-			//f_lp = atof(optarg); // unused var for sanePos (but needed in sanePre)
-			break;
-		case 'J':
-			//f_lp_Nk = atof(optarg); // unused var for sanePos (but needed in sanePre)
-			break;
-		case 'A':
-			napod = atoi(optarg);
-			break;
-		case 'y':
-			bolonames.push_back(optarg);
-			break;
-		case 'C':
-			read_bolofile(optarg, bolonames);
-			//      cerr << "num ch: "<< channel.size() << endl;
-			break;
-		case 'o':
-			outdir = optarg;
-			break;
-		case 'B':
-			bextension = optarg;
-			break;
-		case 'R':
-			//cextension = optarg;
-			fsamp = atof(optarg);
-			break;
-		case 'G':
-			fextension = optarg;
-			break;
-		case 'P':
-			pextension = optarg;
-			break;
-		case 'O':
-			file_offsets = optarg;
-			break;
-		case 'e':
-			termin = optarg;
-			break;
-		case 'k':
-			noiseSppreffile = optarg;
-			break;
-		case 'K':
-			extentnoiseSp.push_back(optarg);
-			break;
-		case 'S':
-			file_frame_offsets = optarg;
-			break;
-		case 't':
-			srccoord[0] = atof(optarg);
-			tmpcount2 += 1;
-			break;
-		case 'T':
-			srccoord[1] = atof(optarg);
-			tmpcount2 += 1;
-			break;
-		case 'u':
-			coordscorner[0] = atof(optarg);
-			tmpcount += 1;
-			break;
-		case 'U':
-			coordscorner[1] = atof(optarg);
-			tmpcount += 1;
-			break;
-		case 'v':
-			coordscorner[2] = atof(optarg);
-			tmpcount += 1;
-			break;
-		case 'V':
-			coordscorner[3] = atof(optarg);
-			tmpcount += 1;
-			break;
-		case 'c':
-			coordsyst = atoi(optarg);
-			break;
-		case 'N':
-			radius = atof(optarg);
-			tmpcount2 += 1;
-			break;
-		case 'L':
-			NORMLIN = 1;
-			break;
-		case 'g':
-			//projgaps = 1;
-			break;
-		case 'r':
-			//PND_ready = 1; // never used
-			break;
-		case 'M':
-			flgdupl = 1;
-			break;
-		case 's':
-			shift_data_to_point = atoi(optarg);
-			break;
-		case 'E':
-			//CORRon = 1; // unused var for sanePos (but needed in sanePre/pic)
-			break;
-		case 'I': // no more used
-			//parallel_frames = 1;
-			break;
-		case 'j':
-		//	iterw = atoi(optarg); // unused var for sanePos (but needed in sanePic)
-			break;
-		case 'a':
-			//MixMatfile = optarg; // unused var for sanePos (but needed in sanePre)
-			break;
-		case 'i':
-			//doInitPS = atoi(optarg); // unused var for sanePos (but needed in sanePre)
-			break;
-		default:
-			cerr << "Option '" << (char)retval << "' not valid. Exiting.\n\n";
-			usage(argv[0]);
+	// Parse ini file
+	if (argc<2) {
+		printf("Please run %s using a *.ini file\n",argv[0]);
+		exit(0);
+	} else {
+		//parse_sanePos_ini_file(argv[1]);
+		int parsed=1;
+		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
+				srccoord,coordscorner,radius,ntotscan,ndet,nnf,
+				pixdeg,tancoord,tanpix,dirfile,outdir,poutdir,bextension,fextension,
+				pextension,file_offsets,file_frame_offsets,termin,coordsyst,bolonames,fframes_vec,nsamples_vec,fname);
+
+		if (parsed==-1){
+#ifdef USE_MPI
+			MPI_Finalize();
+#endif
+			exit(1);
 		}
+
 	}
 
 
-/*
-	if (CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-	if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-*/
-
-	// Set default parameter values
-	if (fframes_vec.size() == 0) {
-		fframes_vec.push_back(0);
-		nsamples_vec.push_back(-1);
-	}
-	if (fframes_vec.size() == 1 && nsamples_vec.size() == 0)
-		nsamples_vec.push_back(-1);
-
-	// Check improper usage
-	if (dirfile == "") usage(argv[0]);
-	if (bolonames.size() == 0) {
-		cerr << "Must provide at least one channel.\n\n";
-		usage(argv[0]);
-	}
-	if (fframes_vec.size() != nsamples_vec.size()) {
-		cerr << "'-l' or '-n' must follow '-f'. Exiting.\n";
-		exit(1);
-	}
-	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
-		cerr << "'-x' must be followed by '-X -z -Z'. Exiting.\n";
-		exit(1);
-	}
-	if (tmpcount == 1 || tmpcount == 2 || tmpcount == 3){
-		cerr << "ERROR: None or all the following keywords must be set: -u -U -v -V. Exiting. \n";
-		exit(1);
-	}
-	if (tmpcount2 == 1 || tmpcount2 == 2){
-		cerr << "ERROR: None or all the following keywords must be set: -t -T -N. Exiting. \n";
-		exit(1);
-	}
+	///////////////: debug ///////////////////////////////
+	cout << "ntotscan : " << ntotscan << endl;
 
 
-	/*if (f_lp_Nk == 0.0)
-		f_lp_Nk = f_lp;*/
+	std::vector<long>::iterator it;
+
+	cout << "frames" << endl;
+	for(it=fframes_vec.begin();it<fframes_vec.end();it++)
+		cout << *it << " ";
+
+	cout << "\nnsamples" << endl;
+	for(it=nsamples_vec.begin();it<nsamples_vec.end();it++)
+		cout << *it << " ";
+	cout << endl;
+	///////////////: debug ///////////////////////////////
+
+	// -----------------------------------------------------------------------------//
+	t2=time(NULL);
 
 	if (napod){
 		printf("[%2.2i] Data are apodized\n", rank);
@@ -511,98 +255,26 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
 
-
-	if (pixdeg < 0){
-		cerr << "ERROR: enter pixel size -p keyword\n";
-		exit(1);
-	}
-
-	if (fsamp<=0.0){
-		cerr << "ERROR: enter a correct sampling frequency -R keyword\n";
-		exit(1);
-	}
-
-	cout << "Sampling frequency : " << fsamp << endl;
-
-	ntotscan = fframes_vec.size();
-	ndet = bolonames.size();
-
-	nnf = extentnoiseSp.size();
-	if (nnf != 1 && nnf != ntotscan){
-		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
-		exit(1);
-	}
-	if (nnf == 1 && ntotscan > 1)
-		extentnoiseSp.resize(ntotscan, extentnoiseSp[0]);
-
-	//  printf("%d\n",nnf);
-
+	printf("[%2.2i] Data written in %s\n",rank, poutdir.c_str());
 
 	// convert lists to regular arrays (MPI_BCas works only on array...
 	fframes       = new long[ntotscan];
-	fframesorder  = new long[ntotscan];
 	nsamples      = new long[ntotscan];
-	nsamplesorder = new long[ntotscan];
-	ruleorder     = new long[ntotscan];
-	frnum         = new long[ntotscan+1];
-//	bolonames = new string [ndet];
-//	extentnoiseSp_all = new string[ntotscan];
-	//extentnoiseSp_allorder = new string[ntotscan];
 
 
 	vector2array(nsamples_vec, nsamples);
 	vector2array(fframes_vec,  fframes);
-
-//	list2array(ff, fframes);
-//	list2array(channel, bolonames);
-//	list2array(extentnoiseSp,extentnoiseSp);
+	//cout << fframes[0] << fframes[1] << fframes[2] << endl;
+	//cout << nsamples[0] << nsamples[1] << nsamples[2] << endl;
 
 
-	//  printf("xxi.size() = %d\n",xxi.size());
 
-
-//
-//if (xxi.size() != 0){
-//	cout << "here" << endl;
-//	xxi = new long[xxi.size()];
-//		xxf = new long[xxi.size()];
-//		yyi = new long[xxi.size()];
-//		yyf = new long[xxi.size()];
-//		list2array(xxi, xxi);
-//		list2array(xxf, xxf);
-//		list2array(yyi, yyi);
-//		list2array(yyf, yyf);
-//	}
-
-
-if(samples_per_frames>1){
-	for (int ii=0; ii<ntotscan; ii++) {
-		nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
-	}
-}
-	if (tmpcount == 4)
-		bfixc = 1;
-
-	if (tmpcount2 == 3){
-		if (tmpcount == 4){
-			cerr << "ERROR: Conflicting input parameter: -u -U -v -V keywords are not compatible with -N -t -T keywords . Exiting. \n";
-			exit(1);
+	if(samples_per_frames>1){
+		for (int ii=0; ii<ntotscan; ii++) {
+			nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
 		}
-		bfixc = 1;
-		coordscorner[0] = srccoord[0];
-		coordscorner[1] = srccoord[0];
-		coordscorner[2] = srccoord[1];
-		coordscorner[3] = srccoord[1];
 	}
 
-	if (coordsyst != 3){
-		srccoord[0] = -1000;
-		srccoord[1] = -1000;
-	}
-	if ((coordsyst == 3) && (tmpcount2 != 3)){
-		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use -t -T -N\n";
-		exit(1);
-	}
 
 	// utilisé lors de la lecture des coord de la map en pixel (dans la f° read_data)
 	string ra_field;
@@ -626,46 +298,19 @@ if(samples_per_frames>1){
 			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
 		}
 	}
-
+	/*
 
 	if (NORMLIN)
-		printf("NO BASELINE REMOVED\n");
+		printf("NO BASELINE REMOVED\n");*/
 
 
 	/*if (projgaps)
 		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
-*/
+	 */
 
 	// map offsets
-	float scoffsets[6]; // offsets depending on wavelength
-	int nfoff; // number of offsets
-	foffset *foffsets; // tableau d'offsets
-	if (file_frame_offsets != "NOOFFS") // option -S file containing offsets for different frame ranges
-		foffsets = read_mapoffsets(file_frame_offsets, scoffsets, &nfoff); //-> return foffsets, scoffsets, nfoff
-	else {
-		printf("[%2.2i] No offsets between visits\n", rank);
-		nfoff = 2;
-		ff = fframes[0];
-		for (ii=0;ii<ntotscan;ii++) if (fframes[ii] > ff) ff = fframes[ii];
-		foffsets = new foffset [2];
-		(foffsets[0]).frame = 0;
-		(foffsets[0]).pitch = 0.0;
-		(foffsets[0]).yaw   = 0.0;
-		(foffsets[1]).frame = ff+1; // ff = last frame number here
-		(foffsets[1]).pitch = 0.0;
-		(foffsets[1]).yaw   = 0.0;
-		for (ii=0;ii<6;ii++)
-			scoffsets[ii] = 0.0;
-	}
+	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank);
 
-
-	// path in which data are written
-	if (pPath != NULL){
-		poutdir = pPath;
-	} else {
-		poutdir = outdir;
-	}
-	printf("[%2.2i] Data written in %s\n",rank, poutdir.c_str());
 
 
 
@@ -673,88 +318,96 @@ if(samples_per_frames>1){
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
+
 	if (rank == 0){
 
-		// TODO: Check for asked to recompute the scheme or not
-		// if (weNeedToRecompute){
+		long *frnum ;
+		long *ruleorder ;
+		long *fframesorder ;
+		long *nsamplesorder ;
+		//string *extentnoiseSp_allorder;
 
+		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
 		// reorder nsamples
-		find_best_order_frames(ruleorder,frnum,nsamples, ntotscan, size);
+		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
-		testfile2 = outdir + "Parallel_for_Sanepic_" + termin + ".bin";
-		write_ParallelizationScheme(testfile2, ruleorder, frnum, nsamples, ntotscan, size);
 
-		/*
+		fframesorder  = new long[ntotscan];
+		//extentnoiseSp_allorder = new string[ntotscan];
+		nsamplesorder = new long[ntotscan];
 
-		else {
-
-		testfile2 = outdir + "Parallel_for_Sanepic_" + termin + ".bin";
-		check_ParallelizationScheme(testfile2, nsample, ntotscan, size, &pos, &frnum);
-
-		 */
-
-		for (ii=0;ii<ntotscan;ii++){
+		for (long ii=0;ii<ntotscan;ii++){
 			nsamplesorder[ii] = nsamples[ruleorder[ii]];
 			fframesorder[ii] = fframes[ruleorder[ii]];
-			//extentnoiseSporder[ii] = extentnoiseSp[ii];
+			//extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
 		}
-		for (ii=0;ii<ntotscan;ii++){
+		for (long ii=0;ii<ntotscan;ii++){
 			nsamples[ii] = nsamplesorder[ii];
 			fframes[ii] = fframesorder[ii];
-			//extentnoiseSp[ii] = extentnoiseSporder[ii];
+			//extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
 			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
 		}
+
+		delete [] fframesorder;
+		delete [] nsamplesorder;
+		//delete [] extentnoiseSp_allorder;
+
+		delete [] ruleorder;
+		delete [] frnum;
 
 	}
 
 
 
 
-	if (rank == 0){
-		/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
+
+
+	//if (rank == 0){
+	/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
 		fp = fopen(testfile,"a");
 		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
 		fclose(fp);*/
 
-
-	// write parallel schema in a file
+	/*
+		// write parallel schema in a file
 		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".bi");
 		if ((fp = fopen(testfile,"w"))!=NULL){
-		//fprintf(fp,"%d\n",size);
-		fwrite(&size,sizeof(int), 1, fp);
-		fwrite(ruleorder,sizeof(long),ntotscan,fp);
-		fwrite(frnum,sizeof(long),ntotscan,fp);
-		fclose(fp);
+			//fprintf(fp,"%d\n",size);
+			fwrite(&size,sizeof(int), 1, fp);
+			fwrite(ruleorder,sizeof(long),ntotscan,fp);
+			fwrite(frnum,sizeof(long),ntotscan,fp);
+			fclose(fp);
 		}else{
 			cerr << "Error : couldn't open file to write parallel options. Exiting" << endl;
 			exit(1);
 		}
-	}
-#endif
+	}*/
 
 
-#ifdef USE_MPI
+	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
-		MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-		MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-		MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
-
-		iframe_min = frnum[rank];
-		iframe_max = frnum[rank+1];
-		rank_det = 0;
-		size_det = 1;
+	iframe_min = frnum[rank];
+	iframe_max = frnum[rank+1];
+	rank_det = 0;
+	size_det = 1;
 
 #else
-		iframe_min = 0;
-		iframe_max = ntotscan;
-		rank_det = rank;
-		size_det = size;
+	iframe_min = 0;
+	iframe_max = ntotscan;
+	rank_det = rank;
+	size_det = size;
 
 #endif
-	/*************************************************************/
+
+
+
 
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
+	/************************ Look for distribution failure *******************************/
 	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
@@ -770,9 +423,9 @@ if(samples_per_frames>1){
 	/********** Alocate memory ***********/
 	printf("[%2.2i] Allocating Memory\n",rank);
 
-	ns = nsamples[0];
 	// seek maximum number of samples
-	for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
+	ns = nsamples[0];
+	for(int ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
 
 	ra = new double[2*ns]; // RA bolo de ref
 	dec = new double[2*ns]; // DEc du bolo de ref
@@ -786,14 +439,14 @@ if(samples_per_frames>1){
 	flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
 	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
 	tanpix = new double[2]; // coordinates in the map of the tangent point
-	offsets = new double[2]; //
-	froffsets = new double[2]; //
 
+	froffsets = new double[2]; //
+	offsets = new double[2];
 
 	offmap = new double[2]; // map offsets
 
 
-	// init some mapmaking variables
+	// default value for map variables
 	ra_min  = 1000.0;
 	ra_max  = -1000.0;
 	dec_min = 1000.0;
@@ -813,113 +466,54 @@ if(samples_per_frames>1){
 
 	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
-	coordsyst2 = coordsyst;
-	if (coordsyst2 != 4){ // coordsyst never = 4 => debug mode => delete
-		// ndet = number of channels
-		for (idet=0;idet<ndet;idet++){
 
-			// field = actual boloname
-			field = bolonames[idet];
-			// bolofield = boloname + bextension
-			bolofield = field+bextension;
+	//if (coordsyst != 4){ // coordsyst never = 4 => debug mode => delete
+	find_coordinates_in_map(ndet,bolonames,bextension,fextension,file_offsets,foffsets,scoffsets,
+			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,ra_field,dec_field,phi_field,
+			scerr_field,flpoint_field,nfoff,pixdeg, xx, yy, nn, coordscorner,
+			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi,scerr, flpoint,ra_min,ra_max,dec_min,dec_max);
 
-			//printf("%s\n",bolofield.c_str());
-
-			//if (cextension != "NOCALP")
-			//	calfield  = field+cextension;
-			if (fextension != "NOFLAG")
-				flagfield = field+fextension;
-
-			//read bolometer offsets
-			read_bolo_offsets(field,file_offsets,scoffsets,offsets);
-
-			// for each scan
-			for (iframe=iframe_min;iframe<iframe_max;iframe++){
-
-				//	cout << "[" << rank << "] " << idet << "/" << ndet << " " << iframe << "/" << ntotscan << endl;
-
-				// read pointing files
-				ns = nsamples[iframe];
-				ff = fframes[iframe];
-
-				// lis les données RA/DEC, Phi, et scerr (sky coordinates err, BLASPEC) pour ff et ns
-				read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
-				read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-				read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-				read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-				read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
-				for (ii=0;ii<ns;ii++)
-					if (isnan(ra[ii]) || isnan(dec[ii]) || isnan(phi[ii]))
-						flpoint[ii] = 1; // sample is flagged, don't take this sample
-
-
-
-				// find offset based on frame range
-				correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
-
-
-				// spheric coords to squared coords (tangent plane)
-				sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-						tancoord, tanpix, bfixc, radius, offmap, srccoord);
-
-				// store ra/dec min and max (of the map) and for this processor
-				if (coordscorner[0] < ra_min) ra_min = coordscorner[0];
-				if (coordscorner[1] > ra_max) ra_max = coordscorner[1];
-				if (coordscorner[2] < dec_min) dec_min = coordscorner[2];
-				if (coordscorner[3] > dec_max) dec_max = coordscorner[3];
-
-			}
-
-		} //// end of idet loop
 
 #ifdef USE_MPI
-		MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-		MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
-		MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-		MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+	MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+	MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+	MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+	MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+	MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+	MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 #else
-		gra_min=ra_min;
-		gra_max=ra_max;
-		gdec_min=dec_min;
-		gdec_max=dec_max;
+	gra_min=ra_min;
+	gra_max=ra_max;
+	gdec_min=dec_min;
+	gdec_max=dec_max;
 #endif
 
-		//set coordinates
-		coordscorner[0] = gra_min; // store ra/dec min/max of the final map
-		coordscorner[1] = gra_max;
-		coordscorner[2] = gdec_min;
-		coordscorner[3] = gdec_max;
+	//set coordinates
+	coordscorner[0] = gra_min; // store ra/dec min/max of the final map
+	coordscorner[1] = gra_max;
+	coordscorner[2] = gdec_min;
+	coordscorner[3] = gdec_max;
 
-		if (rank == 0) {
-			printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
-			printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
-		}
+	if (rank == 0) {
+		printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
+		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
+	}
 
-		/// just to set nn in order to compute map-making matrices and vectors
-		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-				tancoord, tanpix, 1, radius, offmap, srccoord);
-
-
-
-		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_",rank,".txt");
-		fp = fopen(testfile,"w");
-		fprintf(fp,"%d\n",nn);
-		fprintf(fp,"%d\n",coordsyst);
-		fprintf(fp,"%lf\n",tanpix[0]);
-		fprintf(fp,"%lf\n",tanpix[1]);
-		fprintf(fp,"%lf\n",tancoord[0]);
-		fprintf(fp,"%lf\n",tancoord[1]);
-		fclose(fp);
+	/// just to set nn in order to compute map-making matrices and vectors
+	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+			tancoord, tanpix, 1, radius, offmap, srccoord,0);
 
 
-	} else {
+	// write Pointing informations in a file
+	write_info_pointing(nn, outdir, termin, coordsyst, tanpix, tancoord);
+
+
+	/*} else {
 		// read those parameters from a file : -c = 4 option
 		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_", rank,".txt");
 		if ((fp = fopen(testfile,"r")) == NULL){
@@ -933,7 +527,7 @@ if(samples_per_frames>1){
 		fscanf(fp,"%lf\n",tancoord);
 		fscanf(fp,"%lf\n",tancoord+1);
 		fclose(fp);
-	}
+	}*/
 
 
 
@@ -942,191 +536,46 @@ if(samples_per_frames>1){
 
 
 	//************************************* Deal with masking the point sources
-	// define the mask
 	mask = new unsigned char[nn*nn];
-	for (ii=0;ii<nn*nn;ii++)
-		mask[ii] = 1;
-
-
-	if (xxi.size() != 0){
-		for (ib = 0;ib < (long)xxi.size(); ib++){ // to avoid warning, mat-27/05
-		// for each box crossing constraint removal
-			for (ii=xxi[ib];ii<xxf[ib];ii++)
-				for (ll=yyi[ib];ll<yyf[ib];ll++)
-					mask[ll*nn + ii] = 0;  // mask is initialised to 0
-		}
-	}
-
-
-
-	long npixsrc = 0;
 	indpsrc = new long[nn*nn];
-	for (ii=0;ii<nn*nn;ii++){
-		if (mask[ii] == 0){
-			indpsrc[ii] = npixsrc;
-			npixsrc += 1;
-		} else {
-			indpsrc[ii] = -1;
-		}
+
+	// if a box for crossing constraint removal is given in ini file
+	if(xxi.size()>0)
+		addnpix=Compute_indpsrc_addnpix(nn,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc,mask);
+	else{
+		for (long ii=0;ii<nn*nn;ii++)
+			mask[ii] = 1;
+		addnpix=0;
+		npixsrc=0;
+		for(long ii=0;ii<nn*nn;ii++)
+			indpsrc[ii]=-1;
 	}
-	long addnpix = ntotscan*npixsrc; // addnpix = number of pix to add in pixon = number of scans * number of pix in box crossing constraint removal
-
-	//******************************************
-
-
-
-
 
 
 	// map duplication factor
 	int factdupl = 1;
-	if (flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
+	if (flgdupl) factdupl = 2; //  default 0 : if flagged data are put in a duplicated map
 
 
 	//pixon indicates pixels that are seen
 	pixon = new long[factdupl*nn*nn+2 + addnpix];   // last pixel is for flagged samples
 	fill(pixon,pixon+(factdupl*nn*nn+2 + addnpix),0);
-//	init1D_long(pixon,0,factdupl*nn*nn+2 + addnpix,0); // pixon[0->end] = 0, initialisation
+
 
 
 
 
 	//**********************************************************************************
-	//loop to get coordinates of pixels that are seen
+	// get coordinates of pixels that are seen
 	//**********************************************************************************
+	compute_seen_pixels_coordinates(ndet,ntotscan,outdir,bolonames,bextension, fextension, termin,
+			file_offsets,foffsets,scoffsets,iframe_min, iframe_max,fframes,
+			nsamples,dirfile,ra_field,dec_field,phi_field, scerr_field,
+			flpoint_field, nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
+			tanpix, bfixc, radius, offmap, srccoord, type, ra,dec,
+			phi,scerr,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
+			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon);
 
-	/// loop again on detectors
-	//for (idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-	for (idet=0;idet<ndet;idet++){
-
-
-		field = bolonames[idet];
-		//printf("%s\n",field.c_str());
-		bolofield = field+bextension;
-		//calfield  = field+cextension;
-		flagfield = field+fextension;
-
-
-		// read bolometer offsets
-		read_bolo_offsets(field,file_offsets,scoffsets,offsets);
-
-
-
-		//loop to get coordinates of pixels that are seen
-		for (iframe=0;iframe<ntotscan;iframe++){
-			ns = nsamples[iframe];
-			ff = fframes[iframe];
-
-			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
-			for (ii=0;ii<ns;ii++)
-				if (isnan(ra[ii]) || isnan(dec[ii]))
-					flpoint[ii] = 1;
-			if (fextension != "NOFLAG"){
-				read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-			} else {
-				for (ii=0;ii<ns;ii++)
-					flag[ii] = 0;
-			}
-
-
-
-			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
-
-
-			// return coordscorner, nn ,xx, yy, tancoord, tanpix
-			sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-					tancoord, tanpix, 1, radius, offmap, srccoord);
-
-
-
-
-			// create flag field -----> conditions to flag data,
-					// flag
-					// scerr = pointing error : BLASPEC
-					// flpoint = do we consider those data at time t
-					// napod = number of samples to apodize
-					// errarcsec critere de flag, default = 15.0, BLAST specific : pointing error threshold
-					// NOFILLGAP = fill the gap ? default = yes
-					// rejectsamples: rejected samples array, rejectsample value =0,1,2 or 3
-			flag_conditions(flag,scerr,flpoint,ns,napod,xx,yy,nn,errarcsec,NOFILLGAP,rejectsamp);
-			//flag_conditions(flag,scerr,flpoint,ns,napod,xx,yy,nn,errarcsec,NOFILLGAP,rejectsamp);
-
-			// returns rejectsamp
-
-
-
-			for (ii=0;ii<ns;ii++){
-				//sample is rejected
-				if (rejectsamp[ii] == 2){
-					pixout = 1; // pixel is out of map
-					pixon[factdupl*nn*nn + addnpix] += 1; // add one to a pixel outside the map
-					samptopix[ii] = factdupl*nn*nn + addnpix; // the ii sample corresponds to a pixel outside the map
-
-
-					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %i, yy = %i\n",rank, ii,xx[ii],yy[ii]);
-
-				}
-				// sample is not rejected
-				if (rejectsamp[ii] == 0) {
-					// if not in the  box constraint removal mask (defined by user)
-					if (mask[yy[ii]*nn + xx[ii]] == 1){
-						ll = yy[ii]*nn + xx[ii]; // ll=map indice
-					} else {//if pixel is in the mask
-						ll = indpsrc[yy[ii]*nn + xx[ii]]+factdupl*nn*nn+iframe*npixsrc;
-					}
-					pixon[ll] += 1;
-					samptopix[ii] = ll; // the ii sample ii coresponds to pixel ll
-
-					//printf("ll=%ld\n",ll);
-
-				}
-				// sample is flagged or scerr > scerr_threshold or flpoint =0
-				if (rejectsamp[ii] == 1){
-					if (flgdupl){ // if flagged pixels are in a duplicated map
-						ll = yy[ii]*nn + xx[ii];
-						pixon[nn*nn+ll] += 1;
-						samptopix[ii] = nn*nn+ll;
-					} else { // else every flagged sample is projected to the same pixel (outside the map)
-						pixon[nn*nn+1 + addnpix] += 1;
-						samptopix[ii] = nn*nn+1 + addnpix;
-					}
-				}
-				// pixel dans la zone d'apodisation //a suppr
-				if (rejectsamp[ii] == 3){
-					pixon[factdupl*nn*nn+1 + addnpix] += 1;
-					flagon = 1;
-					samptopix[ii] = factdupl*nn*nn+1 + addnpix;
-				}
-			}
-
-
-
-			//printf("pixon[nn*nn] = %d/n",pixon[nn*nn]);
-
-
-			//if (rank == 0){
-
-			sprintf(testfile,"%s%s%ld%s%ld%s%s%s",poutdir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"w");
-			fwrite(samptopix,sizeof(long), ns, fp);
-			fclose(fp);
-			//}
-
-		} // end of iframe loop
-
-	}//end of idet loop
-
-
-
-
-
-
-	//***********************************************************************************
 
 
 
@@ -1134,57 +583,34 @@ if(samples_per_frames>1){
 
 	printf("[%2.2i] Init map making variables\n",rank);
 
-	// useless
-	//ns = nsamples[0];
-	//for (ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
-	// a supprimer
 
 	// pixel indices
 	indpix = new long[factdupl*nn*nn+2 + addnpix];
-	// initialize
-	fill(indpix, indpix+(factdupl*nn*nn+2 + addnpix),-1);
-//	init1D_long(indpix,0,factdupl*nn*nn+2 + addnpix,-1);
+
+	// compute indpix. npix is the number of filled pixels
+	npix=compute_indpix(indpix,factdupl,nn,addnpix,pixon);
 
 
+	// write in a file for conjugate gradient step
+	long ind_size = factdupl*nn*nn+2 + addnpix;
+	write_indpix(ind_size, npix, indpix, termin, outdir, flagon);
 
-	ll=0;
-	for (ii=0;ii<factdupl*nn*nn+2 + addnpix;ii++){
-		if (pixon[ii] != 0){
-			indpix[ii] = ll; // pixel indice : 0 -> number of seen pixels
-			ll++;
-		}
-	}
-	npix = ll;  // npix = number of filled pixels
-
-
-	delete [] pixon;
-
-	/*cout << "flagon : " << flagon << endl;
-	for (ii=0;ii<nn*nn;ii=ii+nn+1)
-		cout << indpix[ii] << " ";
-	cout << endl;*/
-
-	// write in a file for conjugate gradient step // ajout Mat 02/06
-	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"Indpix_for_conj_grad_",termin.c_str(),".bi");
-			fp = fopen(testfile,"w");
-		//	long indpix_size = factdupl*nn*nn+2 + addnpix;
-		//	fwrite(&indpix_size,sizeof(long),1,fp);
-			fwrite(&flagon,sizeof(int),1,fp); // mat 04/06
-			fwrite(indpix,sizeof(long), factdupl*nn*nn+2 + addnpix, fp);
-			fclose(fp);
+	/*
+	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".txt";
+	fp = fopen(testfile2.c_str(),"w");
+	//	long indpix_size = factdupl*nn*nn+2 + addnpix;
+	//	fwrite(&indpix_size,sizeof(long),1,fp);
+	//fwrite(&flagon,sizeof(int),1,fp); // mat 04/06
+	fprintf(fp,"%d ",flagon);
+	fprintf(fp,"%d ",npix);
+	for(int gg=0;gg<nn*nn+2;gg++)
+		fprintf(fp,"%ld ",indpix[gg]);
+	fclose(fp);*/
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-//
-//
-//	PNd = new double[npix];
-//	PNdtot = new double[npix];
-//	fill(PNd,PNd+npix,0.0);
-//	fill(PNdtot,PNdtot+npix,0.0);
-////	init1D_double(PNd,0,npix,0.0);
-////	init1D_double(PNdtot,0,npix,0.0);
-
-
+	t3=time(NULL);
+	cout << "temps de traitement : " << t3-t2 << " sec" << endl;
 
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
@@ -1197,61 +623,56 @@ if(samples_per_frames>1){
 #endif
 
 
-/* ---------------------------------------------------------------------------------------------*/
+	/* ---------------------------------------------------------------------------------------------*/
 
 
-// Close MPI process
+	// Close MPI process
 
 
 #ifdef USE_MPI
-  MPI_Finalize();
+	MPI_Finalize();
 #endif
 
 	printf("[%2.2i] Cleaning up\n",rank);
 
 
-  // clean up
-    delete [] ra;
-    delete [] dec;
-    delete [] phi;
-    delete [] scerr; //scerr_field needed
-    delete [] xx;
-    delete [] yy;
-    delete [] flag;
-    delete [] rejectsamp;
-    delete [] samptopix;
-    delete [] flpoint; // flpoint_field needed but not flpoint
-    delete [] mask;
+	// clean up
+	delete [] ra;
+	delete [] dec;
+	delete [] phi;
+	delete [] scerr; //scerr_field needed
+	delete [] xx;
+	delete [] yy;
+	delete [] flag;
+	delete [] rejectsamp;
+	delete [] samptopix;
+	delete [] flpoint; // flpoint_field needed but not flpoint
+	delete [] mask;
 
+	delete [] pixon;
+
+	delete [] scoffsets;
 	delete [] offsets;
 	delete [] froffsets;
 	delete [] offmap;
-	//delete [] scoffsets;
+
 	delete [] foffsets;
 	delete [] srccoord;
 	delete [] coordscorner;
 
-//	delete [] extentnoiseSporder;
-//	delete [] xxi;
-//	delete [] xxf;
-//	delete [] yyi;
-//	delete [] yyf;
+	//free(testfile);
 
-	free(testfile);
 
-	delete [] fframesorder; //will be needed
-	delete [] nsamplesorder; //will be needed
-	delete [] ruleorder; //will be needed
-	delete [] frnum; //will be needed
-//
-////	delete [] PNd; //needed
-////    delete [] PNdtot; //needed
-    delete [] fframes; // needed
-    delete [] nsamples; //needed
-	delete [] tancoord; //needed
-	delete [] tanpix; //needed
-	delete [] indpix; //needed
-	delete [] indpsrc; //needed
+	//delete [] frnum;
 
-    return 0;
-  }
+	delete [] fframes;
+	delete [] nsamples;
+	delete [] tancoord;
+	delete [] tanpix;
+	delete [] indpix;
+	delete [] indpsrc;
+
+	printf("[%2.2i] End of sanePos\n",rank);
+
+	return 0;
+}
