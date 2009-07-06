@@ -381,6 +381,21 @@ int main(int argc, char *argv[])
 
 	}
 
+
+	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+
+	iframe_min = frnum[rank];
+	iframe_max = frnum[rank+1];
+	rank_det = 0;
+	size_det = 1;
+
+#else
+	iframe_min = 0;
+	iframe_max = ntotscan;
+	rank_det = rank;
+	size_det = size;
 #endif
 
 
@@ -417,23 +432,7 @@ int main(int argc, char *argv[])
 
 
 
-#ifdef USE_MPI
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
-
-	iframe_min = frnum[rank];
-	iframe_max = frnum[rank+1];
-	rank_det = 0;
-	size_det = 1;
-
-#else
-	iframe_min = 0;
-	iframe_max = ntotscan;
-	rank_det = rank;
-	size_det = size;
-#endif
 	/*************************************************************/
 
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
@@ -498,13 +497,8 @@ int main(int argc, char *argv[])
 
 
 	if (rank == 0){
-
-
 		//write infos for second part
 		write_info_for_second_part(outdir, termin, nn, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
-
-
-
 	}
 
 #ifdef USE_MPI

@@ -23,6 +23,7 @@
 #include "boloIO.h"
 #include "dataIO.h"
 #include "imageIO.h"
+#include "inline_IO2.h"
 #include "mpi_architecture_builder.h"
 
 #include "parseSanepic.h"

@@ -13,9 +13,9 @@ void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 		long ntotscan, long &addnpix,int &npix, int &factdupl, bool flgdupl, string termin,
 		string outdir, double *&PNdtot, long *&indpix, int &flagon){
 
-	char testfile[100];
+	//char testfile[100];
 	unsigned char *mask; // samples flags, pointing flags, rejected samples list
-	FILE *fp;
+	//FILE *fp;
 	int npix2;
 
 	//************************************* Deal with masking the point sources
