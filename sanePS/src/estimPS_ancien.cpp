@@ -6,6 +6,8 @@
  */
 
 #include "estimPS.h"
+#include "covMatrixIO.h"
+#include "psdIO.h"
 
 using namespace std;
 
