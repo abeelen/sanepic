@@ -14,6 +14,7 @@
 #include "todprocess.h"
 #include "map_making.h"
 #include "inline_IO2.h"
+#include <sstream>
 //#include "sane_io.h"
 
 extern "C" {
@@ -24,7 +25,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string bextension,
 		string fextension, int shift_data_to_point, string dir,
-		string termin, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
+		string termin,string termin_internal, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN);
 
 double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, long ndet, long ncomp, long nbins);

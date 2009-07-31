@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 
-#include "mpi_architecture_builder.h"
+
 
 #include "boloIO.h"
 #include "dataIO.h"
@@ -30,25 +30,15 @@
 
 #include "parsePS.h"
 #include "estimPS.h"
+#include "todprocess.h"
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include "mpi_architecture_builder.h"
 #endif
 
 using namespace std;
 
-
-
-template<class T> void vector2array(std::vector<T> l, T* a)
-{
-	// copy list of type T to array of type T
-	typename std::vector<T>::iterator iter;
-	int i;
-
-	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}
 
 
 int main(int argc, char *argv[])
@@ -76,10 +66,10 @@ int main(int argc, char *argv[])
 	cout << "Mpi will not be used for the main loop" << endl;
 #endif
 
-	char * pPath;
+	/*char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
+		printf ("The current path is: %s",pPath);*/
 
 
 	//default value of the data to pointing shift
@@ -117,7 +107,7 @@ int main(int argc, char *argv[])
 	string bolofield; // bolofield = boloname + bextension
 	string dirfile; // data directory
 	string outdir; // output directory
-	string poutdir; // current path (pPath) or output dir (outdir)
+	string tmp_dir; // current path (pPath) or output dir (outdir)
 	string bextension; // bolometer field extension
 	string fextension = "NOFLAG"; // flag field extension
 	string pextension; // pointing extension
@@ -125,6 +115,7 @@ int main(int argc, char *argv[])
 	string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
+	string termin_internal = "internal_data";
 
 	string MixMatfile = "NOFILE";
 
@@ -161,7 +152,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
-				ntotscan, ndet, dirfile, outdir, poutdir, bextension,
+				ntotscan, ndet, dirfile, outdir, tmp_dir, bextension,
 				fextension, termin, noiseSppreffile,
 				bolonames, fframes_vec,  nsamples_vec, fname,extentnoiseSP, MixMatfile);
 
@@ -220,7 +211,7 @@ int main(int argc, char *argv[])
 
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, outdir, termin, coordsyst2, tanpix, tancoord);
+	read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -233,7 +224,9 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//int npix2;
-	read_indpix(ind_size, npix, indpix, termin, outdir, flagon);
+	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
+
+	cout << "lussa" << endl;
 
 	//First time run S=0, after sanepic, S = Pure signal
 	S = new double[npix];
@@ -308,9 +301,42 @@ int main(int argc, char *argv[])
 			ff = fframes[iframe];
 			extentnoiseSp = extentnoiseSp_all[iframe];
 
-			EstimPowerSpectra(fsamp, ns, ff, ndet, nn, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, bextension,
-					fextension, shift_data_to_point, outdir,termin, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, poutdir);
+			cout << ff ;
+			cout << " " ;
+			cout << ns ;
+			cout << " " ;
+			cout << extentnoiseSp ;
+			cout << endl;
 
+			EstimPowerSpectra(fsamp, ns, ff, ndet, nn, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, bextension,
+					fextension, shift_data_to_point, tmp_dir,termin,termin_internal, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir);
+			// fsamp = bolometers sampling freq
+			// ns = number of samples in the "iframe" scan
+			// ff = first sample number
+			// ndet = total number of detectors
+			// nn = side of the map
+			// npix = total number of filled pixels
+			// napod = number of border pixels used to apodize data
+			// iframe == scan number
+			// flgdupl = flagged data map duplication indicator
+			// factdupl = duplication factor (1 or 2)
+			// indpix = pixels index
+			// S = Pnd
+			// MixMatfile = this file contains the number of components that interviene in the common-mode component of the noise
+			// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
+			// bolonames = detectors names
+			// dirfile = data directory
+			// bextension = -B option : "_data" for example
+			// fextension = "NOFLAG" or -G option ("_flag" for example)
+			// cextension = "NOCALP" or -R option ("_calp" for example)
+			// shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
+			// poutdir = outpout dir or current path (default)
+			// termin = output file suffix
+			// NORMLIN = baseline is remove from the data, default =0, option -L
+			// NOFILLGAP = fill the gap ? default yes => 0
+			// noiseSppreffile = noise power spectrum file suffix = path
+			// extentnoiseSp = noise file
+			// outdir = output directory
 		}
 	}
 

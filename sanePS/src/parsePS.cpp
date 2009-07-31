@@ -9,7 +9,7 @@
 #include "parsePS.h"
 //int parse_sanePos_ini_file(char * ini_name)
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &poutdir, string &bextension,
+		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
 		string &fextension, string &termin, string &noiseSppreffile,
 		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname, std::vector<string> &extentnoiseSP, string &MixMatfile)
 {
@@ -25,10 +25,10 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	const char *temp;
 
 	// for poutdir default value
-	char * pPath;
+	/*char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
+		printf ("The current path is: %s",pPath);*/
 
 
 
@@ -60,7 +60,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("fname : [%s]\n",s);
 		fname=s;
 	}else{
-		printf("You need to run Find_best_frame_order first !\n");
+		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1 ;
 	}
 #endif
@@ -148,7 +148,36 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
+#ifdef USE_MPI
+	// for poutdir default value
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		tmp_dir=pPath;
+		printf ("The current path is: %s\n",pPath);
+	}
+#else
 
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
+		cout << "Using default temporary directory : " << dirfile << endl;
+		tmp_dir=dirfile;
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("temp_dir : [%s]\n",s);
+			tmp_dir=s;
+		}else{
+			cout << "Using default temporary directory : " << dirfile << endl;
+			tmp_dir=dirfile;
+		}//tmp_dir = ./internal_sanepic/ ;
+	}
+
+
+#endif
+
+	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
 		printf("You must choose add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
 		return -1;
@@ -162,6 +191,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		return -1 ;
 	}//_data
 
+	s = iniparser_getstring(ini, "commons:flag_field_extension",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to flag_field_extension in the parser file : commons:flag_field_extension\n");
 		return -1;
@@ -301,11 +331,11 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 
 
 	// path in which data are written
-	if (pPath != NULL){
+	/*if (pPath != NULL){
 		poutdir = pPath;
 	} else {
 		poutdir = outdir;
-	}
+	}*/
 
 
 

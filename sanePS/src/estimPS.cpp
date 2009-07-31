@@ -16,80 +16,85 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string bextension,
 		string fextension, int shift_data_to_point, string dir,
-		string termin, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
+		string termin,string termin_internal, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN)
 {
 
 
 
-	double fcut = 12;
+	double fcut = 12; // why fixed ?? read it in the ini file ??
 	long ncomp = 1;
 
 	//long s, jj, kk, ll, idet, idet1, idet2, ib;
-	long ib;
+	long ib=0; // used as an iterator
 	long ncomp2 = 0;
 	long nbins = 500;
-	long nbins2;
-	double tmpsign, mm, sign0, factapod;
+	long nbins2; // readed bins : mixmatfile
+	double tmpsign, mm, factapod;
+	double sign0=1;
+	double dummy1; // used to read mixing matrix
 
-	double dummy1;
-
+	// data, data low passed, Prewhitened signal ? ,apodization window, ?, ?, butter filter values, first detector PS (in the cross correlation estimation part)
 	double *data, *data_lp, *Ps, /**calp, */*apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
-	long *samptopix;
-	unsigned char *flag;
-	double **commonm, **commonm2, **common_f, **vect;
-	double **P, **N, **Rellth, **Rellexp;
-	double **aa, **Cov, **iCov, **iCov2, **SpN_all;
-	double *Nk;
-	double *ell, /**SpN,*/ *Nell;
-	double *sign;
+	long *samptopix; // sample to pixel projection matrix
+	unsigned char *flag; // flag array
+	double **commonm, **commonm2, **common_f, **vect; // ?
+	double **P, **N, **Rellth, **Rellexp; // Rellth = covariance matrix
+	double **mixmat, **Cov, **iCov, **iCov2, **SpN_all; //mixing matrix, AtN-1A, inverted AtN-1A, ?, SpN_all = PS for the bolo (ndet, nbins)
+	double *Nk; // Noise power spectrum
+	double *ell, /**SpN,*/ *Nell; // ell = bins values, Nell = binned noise PS
+	double *sign; // sigma of the noise
 	double *p, *uvec, *ivec;
 
 	fftw_plan fftplan;
-	fftw_complex *fdata1, *fdata2;
+	fftw_complex *fdata1, *fdata2; // fourier transform of the data
 
 	FILE *fp;
 
-	double *data1d;
+	double *data1d; // buffer used to write down 1d array
 
 
-	char testfile[100];
-	char nameSpfile[100];
+	//char testfile[100];
+	//char nameSpfile[100];
+	string testfile; // string used to remove sprintf horror
+	string nameSpfile; // noise Ps filename
 
-	string field;
-	string tempstr1;
-	string tempstr2;
+	std::ostringstream temp_stream; // used to remove sprintf horror
+
+	string field; // detector name in the loop
+	string tempstr1; // boloname : used to write down Rellth
+	string tempstr2; // boloname : used to write down Rellth
 
 
 	printf("Inside EstimPowerSpectra just at the beginning\n");
 
 
-	data = new double[ns];
-	data_lp = new double[ns];
-	Ps = new double[ns];
+	data = new double[ns]; // raw data
+	data_lp = new double[ns]; // data low passed
+	Ps = new double[ns]; // prewhitened noise ?
 	commontmp = new double[ns];
 	commonm_f = new double[ns];
 	//calp = new double[ns];
-	flag = new unsigned char[ns];
-	samptopix = new long[ns];
-	Nk = new double[ns/2+1];
-	bfilter = new double[ns/2+1];
-	fdata1 = new fftw_complex[ns/2+1];
+	flag = new unsigned char[ns]; // flag array
+	samptopix = new long[ns]; // sample to pixel proj matrix
+	Nk = new double[ns/2+1]; // noise PS
+	bfilter = new double[ns/2+1]; // buttter filter values
+	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 	fdata2 = new fftw_complex[ns/2+1];
 
 
-	Nell = new double[nbins];
-	SPref = new double[nbins];
-	P = dmatrix(0,ncomp-1,0,nbins-1);
+	Nell = new double[nbins]; // binned noise PS
+	SPref = new double[nbins]; // first detector PS to avoid numerical problems
+	P = dmatrix(0,ncomp-1,0,nbins-1); // component power spectra
 	N = dmatrix(0,ndet-1,0,nbins-1);
-	Rellexp = dmatrix(0,ndet*ndet-1,0,nbins-1);
-	Rellth = dmatrix(0,ndet*ndet-1,0,nbins-1);
-	aa = dmatrix(0,ndet-1,0,20);
+	Rellexp = dmatrix(0,ndet*ndet-1,0,nbins-1); // covariance du signal (mesurée)
+	Rellth = dmatrix(0,ndet*ndet-1,0,nbins-1); // covariance matrix (theorique) = modele : inversible et pas Rellexp
+	//mixmat = dmatrix(0,ndet-1,0,20);
 
-	sign = new double[ndet];
+	sign = new double[ndet]; // sigma of the noise
 
-	Cov = dmatrix(0,ncomp-1,0,ncomp-1);
-	iCov = dmatrix(0,ncomp-1,0,ncomp-1);
+	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
+	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
 	iCov2 = dmatrix(0,ncomp-1,0,ncomp-1);
 	p = new double[ncomp];
 	uvec = new double[ncomp];
@@ -97,7 +102,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	vect = dmatrix(0,ncomp-1,0,ndet-1);
 
-	commonm = dmatrix(0,ncomp,0,ns-1);
+	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	commonm2 = dmatrix(0,ncomp,0,ns-1);
 	common_f = dmatrix(0,ncomp,0,ns-1);
 
@@ -126,10 +131,12 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	}
 	fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
 
+	mixmat = dmatrix(0,ndet-1,0,ncomp2-1); // ajout mat 24/07 pour eviter de declarer 20 comp useless
+
 	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<ncomp2;jj++){
 			fscanf(fp,"%lf",&dummy1);
-			aa[ii][jj] = dummy1;
+			mixmat[ii][jj] = dummy1;
 		}
 	}
 	fclose(fp);
@@ -174,7 +181,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, termin, dir, idet, iframe);
+		read_samptopix(ns, samptopix, termin_internal, dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
@@ -200,7 +207,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 
-		read_fdata(ns, fdata1, "fdata_", termin, dir, idet, ff);
+		write_fdata(ns, fdata1, termin_internal, dir, idet, ff);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
 		fwrite(fdata1,sizeof(double), (ns/2+1)*2, fp);
@@ -216,13 +223,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		sign[idet] = sqrt(tmpsign/500.0);
 		// normalize to the first detector
 		if (idet == 0) sign0 = sign[0];
-		sign[idet] = sign[idet]/sign0;
+		sign[idet] = sign[idet]/sign0; // normalize to first detector sigma of the noise
 
 
-
+		// common mode computation
 		for (long jj=0;jj<ncomp;jj++)
 			for (long ii=0;ii<ns;ii++)
-				commonm[jj][ii] += aa[idet][jj]/(sign[idet]*sign[idet])*data[ii];
+				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
 
 	}
@@ -240,7 +247,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	for (long jj=0;jj<ncomp;jj++)
 		for (long kk=0;kk<ncomp;kk++)
 			for (long ii=0;ii<ndet;ii++)
-				Cov[jj][kk] += aa[ii][jj] * aa[ii][kk]/sign[ii]/sign[ii];
+				Cov[jj][kk] += mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii];
 
 
 	// invert AtN-1A
@@ -258,13 +265,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	for (long ii=0;ii<ns;ii++)
 		for (long jj=0;jj<ncomp;jj++)
 			for (long kk=0;kk<ncomp;kk++)
-				commonm2[jj][ii] += iCov[jj][kk] * commonm[kk][ii];
+				commonm2[jj][ii] += iCov[jj][kk] * commonm[kk][ii]; //common mode * (AtN-1A)-1
 
 
 
 	factapod = 0.0;
 	for (long ii=0;ii<ns;ii++)
-		factapod += apodwind[ii]*apodwind[ii]/ns;
+		factapod += apodwind[ii]*apodwind[ii]/ns; // factapod ?? apodization factor ?
 
 
 
@@ -280,9 +287,10 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 	//**************************************** Read pre-estimated power spectrum for reference
-	sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field.c_str(),"-all",extentnoiseSp.c_str());
-	string temp_str=nameSpfile;
-	read_noise_file(nbins, ell, SpN_all, temp_str, ndet);
+	//sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field.c_str(),"-all",extentnoiseSp.c_str());
+	//string temp_str=nameSpfile;
+	nameSpfile=noiseSppreffile + field + "-all" + extentnoiseSp;
+	read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet);
 	nbins2 = nbins;
 	/*
 	if ((fp = fopen(nameSpfile,"r")) == NULL){
@@ -368,9 +376,9 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	//   for (ii=0;ii<ndet;ii++){
 	//     for (jj=0;jj<ncomp;jj++){
-	//       aa[ii][jj] = 0.0;
+	//       mixmat[ii][jj] = 0.0;
 	//       for (kk=0;kk<ncomp;kk++)
-	// 	aa[ii][jj] += iCov2[jj][kk] * vect[kk][ii];
+	// 	mixmat[ii][jj] += iCov2[jj][kk] * vect[kk][ii];
 	//     }
 	//   }
 
@@ -383,7 +391,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	//   fprintf(fp,"%d \n",ncomp);
 	//   for (ii=0;ii<ndet;ii++){
 	//     for (jj=0;jj<ncomp;jj++){
-	//       fprintf(fp,"%lf \t",aa[ii][jj]);
+	//       fprintf(fp,"%lf \t",mixmat[ii][jj]);
 	//     }
 	//     fprintf(fp,"\n");
 	//   }
@@ -430,7 +438,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, termin, dir, idet, iframe);
+		read_samptopix(ns, samptopix, termin_internal, dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
@@ -456,7 +464,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		// Subtract components
 		for (long ii=0;ii<ns;ii++)
 			for (long jj=0;jj<ncomp;jj++)
-				data[ii] -= aa[idet][jj]*common_f[jj][ii];
+				data[ii] -= mixmat[idet][jj]*common_f[jj][ii];
 
 
 		//Noise power spectra
@@ -466,8 +474,8 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 		for (long ii=0;ii<nbins;ii++){
-			Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod;
-			N[idet][ii] = Nell[ii]/factapod;
+			Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
+			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 	}
 
@@ -494,8 +502,16 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		printf("iCov[%ld] = %10.15g\n",ii,iCov[ii][ii]*sign0*sign0);
 
 
-		sprintf(testfile,"%s%s%ld%s%ld%s%s%s",outdirSpN.c_str(),"Nellc_",ii,"_",ff,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"w");
+		//sprintf(testfile,"%s%s%ld%s%ld%s%s%s",outdirSpN.c_str(),"Nellc_",ii,"_",ff,"_",termin.c_str(),".bi");
+
+		temp_stream << outdirSpN + "Nellc_" << ii << "_" << ff << "_" + termin + ".bi";
+
+		// récupérer une chaîne de caractères
+		testfile= temp_stream.str();
+		// Clear ostringstream buffer
+		temp_stream.str("");
+
+		fp = fopen(testfile.c_str(),"w");
 		fwrite(Nell,sizeof(double), nbins, fp);
 		fclose(fp);
 
@@ -510,7 +526,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		for (long kk=0;kk<ndet;kk++)
 			for (long ll=0;ll<ncomp;ll++)
 				for (long jj=0;jj<nbins;jj++)
-					Rellth[ii*ndet+kk][jj] += aa[ii][ll] * aa[kk][ll] * P[ll][jj];
+					Rellth[ii*ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
 
@@ -528,7 +544,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		read_fdata(ns, fdata1, "fdata_", termin, dir, idet1, ff);
+		read_fdata(ns, fdata1, "fdata_", termin_internal, dir, idet1, ff);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(fdata1,sizeof(double), (ns/2+1)*2, fp);
@@ -538,7 +554,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			read_fdata(ns, fdata2, "fdata_", termin, dir, idet2, ff);
+			read_fdata(ns, fdata2, "fdata_", termin_internal, dir, idet2, ff);
 			/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet2,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
 			fread(fdata2,sizeof(double), (ns/2+1)*2, fp);
@@ -549,7 +565,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod;
+				Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
 
@@ -559,7 +575,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	////// normalize to the first detector power spectrum in order to avoid numerical problems
 	for (long ii=0;ii<nbins;ii++)
-		SPref[ii] = Rellexp[0][ii];
+		SPref[ii] = Rellexp[0][ii]; // first detector PS
 
 	for (long ii=0;ii<nbins;ii++)
 		if ( isnan(SPref[ii]) || isinf(SPref[ii]))
@@ -568,13 +584,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	for (long idet1=0;idet1<ndet;idet1++)
 		for (long idet2=0;idet2<ndet;idet2++)
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*ndet+idet2][ii] = Rellexp[idet1*ndet+idet2][ii]/SPref[ii];
+				Rellexp[idet1*ndet+idet2][ii] = Rellexp[idet1*ndet+idet2][ii]/SPref[ii]; // normalize to first detector
 	for (long jj=0;jj<ncomp;jj++)
 		for (long ii=0;ii<nbins;ii++)
-			P[jj][ii] = P[jj][ii]/SPref[ii];
+			P[jj][ii] = P[jj][ii]/SPref[ii]; // normalize common mode part
 	for (long jj=0;jj<ndet;jj++)
 		for (long ii=0;ii<nbins;ii++)
-			N[jj][ii] = N[jj][ii]/SPref[ii];
+			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
 
 
@@ -584,20 +600,33 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 	//// write Rellexp to disk and also first guess of parameters
-	sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
-	fp = fopen(testfile,"w");
+	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
+
+	temp_stream << outdirSpN + "Rellexp_" << ff << "_" + termin + ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(testfile.c_str(),"w");
 	for (long jj=0;jj<nbins;jj++)
 		for (long ii=0;ii<ndet;ii++)
 			for (long kk=0;kk<ndet;kk++)
-				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]);
+				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]); // cross power spectrum
 	fprintf(fp,"\n");
 	fclose(fp);
 
-	sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
-	fp = fopen(testfile,"w");
+	//sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
+	temp_stream << outdirSpN + "Ninit_" << ff << "_" + termin + ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(testfile.c_str(),"w");
 	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<nbins;jj++)
-			fprintf(fp,"%10.15g \t",N[ii][jj]);
+			fprintf(fp,"%10.15g \t",N[ii][jj]); // uncorralated part of the noise
 		fprintf(fp,"\n");
 	}
 	fclose(fp);
@@ -607,25 +636,43 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
-	sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	write_psd_tofits(testfile,ndet,nbins,'d', data1d);
+	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
+	temp_stream << outdirSpN + "Ninit_" << ff << "_" + termin + ".fits";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
 	delete [] data1d;
 
 
-	sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
-	fp = fopen(testfile,"w");
+	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
+	temp_stream << outdirSpN + "Pinit_" << ff << "_" + termin + ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(testfile.c_str(),"w");
 	for (long ii=0;ii<ncomp;ii++)
 		for (long jj=0;jj<nbins;jj++)
-			fprintf(fp,"%10.15g \t",P[ii][jj]);
+			fprintf(fp,"%10.15g \t",P[ii][jj]); // common mode part  of the noise
 	fprintf(fp,"\n");
 	fclose(fp);
 
 
-	sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
-	fp = fopen(testfile,"w");
+	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
+	temp_stream << outdirSpN + "Ainit_" << ff << "_" + termin + ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(testfile.c_str(),"w");
 	for (long ii=0;ii<ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++){
-			fprintf(fp,"%10.15g \t",aa[ii][jj]);
+			fprintf(fp,"%10.15g \t",mixmat[ii][jj]); // mixing matrix
 			fprintf(fp,"\n");
 		}
 	fclose(fp);
@@ -653,7 +700,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	double **Pr2, **AiNA, **Mattmp, **ImDR, **ACq, **Cq, **Wq;
 
 
-	ib = 0;
+	//ib = 0;
 	while ((ell[ib] < fcut) && (ib < nbins)){
 		nbins2 = ib+1;
 		ib++;
@@ -689,12 +736,18 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 	//// Compute weights
 	for (long ii=0;ii<nbins2;ii++)
-		w[ii] = (ell[ii+1] - ell[ii])*ns/fsamp;
+		w[ii] = (ell[ii+1] - ell[ii])*ns/fsamp; // weights = ??
 
 
 
-	sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
-	fp = fopen(testfile,"w");
+	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
+	temp_stream << outdirSpN + "weights_" << ff << "_" + termin + ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(testfile.c_str(),"w");
 	for (long jj=0;jj<nbins2;jj++){
 		fprintf(fp,"%10.15g \t",w[jj]);
 	}
@@ -702,7 +755,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	fclose(fp);
 
 
-	f = fdsf(Rellexp,w,aa,P,N,ndet,ncomp,nbins2) ;
+	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 	printf("Pre em:   obj: %10.15g\n", f) ;
 
 
@@ -747,7 +800,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				for (long jj=0;jj<ncomp;jj++){
 					AiNA[ii][jj] = 0.0;
 					for (long idet=0;idet<ndet;idet++)
-						AiNA[ii][jj] += aa[idet][jj] * aa[idet][ii] * iN[idet];
+						AiNA[ii][jj] += mixmat[idet][jj] * mixmat[idet][ii] * iN[idet];
 				}
 
 			for (long ii=0;ii<ncomp;ii++){
@@ -777,7 +830,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				for (long ii=0;ii<ncomp;ii++){
 					Wq[idet][ii] = 0.0;
 					for (long jj=0;jj<ncomp;jj++)
-						Wq[idet][ii] += aa[idet][jj] * iN[idet] *Cq[jj][ii] ;
+						Wq[idet][ii] += mixmat[idet][jj] * iN[idet] *Cq[jj][ii] ;
 				}
 			for (long idet=0;idet<ndet;idet++)
 				for (long ii=0;ii<ncomp;ii++){
@@ -834,7 +887,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 			dcholdc(Cov,ncomp,p);
 			dcholsl(Cov,ncomp,p,uvec,ivec);
 			for (long ii=0;ii<ncomp;ii++)
-				aa[idet][ii] = ivec[ii];
+				mixmat[idet][ii] = ivec[ii];
 		}
 
 
@@ -861,7 +914,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				for (long jj=0;jj<ncomp;jj++){
 					AiNA[ii][jj] = 0.0;
 					for (long idet=0;idet<ndet;idet++)
-						AiNA[ii][jj] += aa[idet][jj] * aa[idet][ii] * iN[idet];
+						AiNA[ii][jj] += mixmat[idet][jj] * mixmat[idet][ii] * iN[idet];
 				}
 
 			for (long ii=0;ii<ncomp;ii++){
@@ -892,7 +945,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 				for (long ii=0;ii<ncomp;ii++){
 					ACq[idet][ii] = 0.0;
 					for (long jj=0;jj<ncomp;jj++)
-						ACq[idet][ii] += aa[idet][jj]*Cq[jj][ii];
+						ACq[idet][ii] += mixmat[idet][jj]*Cq[jj][ii];
 				}
 
 			for (long idet=0;idet<ndet;idet++)
@@ -901,7 +954,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 					if (jj == idet)
 						ImDR[jj][idet] = 1.0;
 					for (long ii=0;ii<ncomp;ii++)
-						ImDR[jj][idet] -= ACq[jj][ii]*iN[idet]*aa[idet][ii] ;
+						ImDR[jj][idet] -= ACq[jj][ii]*iN[idet]*mixmat[idet][ii] ;
 				}
 
 
@@ -921,7 +974,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 			for (long idet=0;idet<ndet;idet++){
 				for (long ii=0;ii<ncomp;ii++){
-					N[idet][ib] += ACq[idet][ii]*aa[idet][ii];
+					N[idet][ib] += ACq[idet][ii]*mixmat[idet][ii];
 				}
 				N[idet][ib] = abs(N[idet][ib]);
 			}
@@ -942,19 +995,19 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 
-		//printf("A[1][2] =  %10.15g\n", aa[1][2]) ;
-		//printf("N[2][3] =  %10.15g\n", N[2][3]) ;
+		//printf("A[1][2] =  %10.15g\n", mixmat[1][2]) ;
+		//printf("N[2][3] =  %10.15g\n", N[2][3]) ;Rellth
 		//printf("P[2][3] =  %10.15g\n", P[2][3]) ;
 
 
 		// Fixing the indeterminacies.  Is it useful here?
-		//    rescaleAP(aa, P, ndet, ncomp, nbins2) ;
+		//    rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
 
 
 
 		///// here is the problem
 
-		f = fdsf(Rellexp,w,aa,P,N,ndet,ncomp,nbins2) ;
+		f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 		cout << "em->iter: " << iter*100./nbiter << " %\r" << flush;
 		if (isnan(f) || isinf(f)) {
 			cout << "Nan........." << endl;
@@ -966,7 +1019,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 	// Fixing the indeterminacies.  Is it useful here?
-	rescaleAP(aa, P, ndet, ncomp, nbins2) ;
+	rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
 
 
 
@@ -986,7 +1039,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 			Rellth[idet*ndet+idet][jj] += N[idet][jj]*SPref[jj];
 			for (long ii=0;ii<ndet;ii++)
 				for (long ll=0;ll<ncomp;ll++)
-					Rellth[idet*ndet+ii][jj] += aa[idet][ll] * aa[ii][ll] * P[ll][jj]*SPref[jj];
+					Rellth[idet*ndet+ii][jj] += mixmat[idet][ll] * mixmat[ii][ll] * P[ll][jj]*SPref[jj];
 		}
 	}
 
@@ -1001,12 +1054,21 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	//*****************  Write power spectra to disk  ********************//
 
 
-	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
-	string tempo;
-	tempo = nameSpfile;
-	write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
+	//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
 
-	/*
+
+
+	temp_stream << outdirSpN + "BoloPS" << ff << termin + "_psd.fits";
+
+	// récupérer une chaîne de caractères
+	nameSpfile= temp_stream.str();
+	temp_stream.str("");
+
+	//string tempo;
+	//tempo = nameSpfile;
+				write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth, mixmat ,ncomp);
+
+				/*
 	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),".psd");
 	fp = fopen(nameSpfile,"w");
 	for (long idet1=0;idet1<ndet;idet1++){
@@ -1030,169 +1092,212 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	}
 	fclose(fp);*/
 
-	// New format for output of power spectra
-	//	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
-	//	string tempo;
-	//	tempo = nameSpfile;
-	//	write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
+				// New format for output of power spectra
+				//	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
+				//	string tempo;
+				//	tempo = nameSpfile;
+				//	write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
 
 
 
-	// write ell
-	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ell_",(int)ff,termin.c_str(),".psd");
-	//string tempo;
-	//tempo = nameSpfile;
-	//write_psd_tofits(tempo, 1, nbins, 'd', ell);
+				// write ell
+				//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ell_",(int)ff,termin.c_str(),".psd");
 
-	fp = fopen(nameSpfile,"w");
-	for (long ii=0;ii<nbins;ii++){
-		fprintf(fp,"%g\n",ell[ii]);
-	}
-	fclose(fp);
+				temp_stream << outdirSpN + "Ell_" << ff << termin + ".psd";
 
-	//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
-	//string tempo;
-	//tempo = nameSpfile;
-	//write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
+				// récupérer une chaîne de caractères
+				nameSpfile= temp_stream.str();
+				temp_stream.str("");
 
-	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_exp.psd");
-	fp = fopen(nameSpfile,"w");
+				//string tempo;
+				//tempo = nameSpfile;
+				//write_psd_tofits(tempo, 1, nbins, 'd', ell);
 
-	for (long idet1=0;idet1<ndet;idet1++){
-		for (long idet2=0;idet2<ndet;idet2++){
+				fp = fopen(nameSpfile.c_str(),"w");
+				for (long ii=0;ii<nbins;ii++){
+					fprintf(fp,"%g\n",ell[ii]);
+				}
+				fclose(fp);
 
-			///// write power spectrum to disk
-			tempstr1 = bolonames[idet1];
-			tempstr2 = bolonames[idet2];
-			//sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"-",tempstr2.c_str(),"_",ff,"_exp.psd");
-			//fp = fopen(nameSpfile,"w");
-			fprintf(fp,"%s%s%s\n",tempstr1.c_str(),"-",tempstr2.c_str());
-			fprintf(fp,"%d\n",(int)nbins);
-			for (long ii=0;ii<nbins;ii++){
-				fprintf(fp,"%g\t",ell[ii]);
-				fprintf(fp,"%10.15g\n",(Rellexp[idet1*ndet+idet2][ii]+Rellexp[idet2*ndet+idet1][ii])/2.0*SPref[ii]);
-			}
-			fprintf(fp,"%g\n",ell[nbins]);
-			//fprintf(fp,"\n");
-			//fclose(fp);
-		}
-	}
-	fclose(fp);
+				//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_psd.fits");
+				//string tempo;
+				//tempo = nameSpfile;
+				//write_CovMatrix(tempo, bolonames, nbins, ell, Rellexp);
 
+				//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_exp.psd");
+				temp_stream << outdirSpN + "BoloPS" << ff << termin + "_exp.psd";
 
+				// récupérer une chaîne de caractères
+				nameSpfile= temp_stream.str();
+				temp_stream.str("");
 
-	sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Afinal_",(int)ff,termin.c_str(),".txt");
-	fp = fopen(testfile,"w");
-	for (long ii=0;ii<ndet;ii++)
-		for (long jj=0;jj<ncomp;jj++)
-			fprintf(fp,"%10.15g \t",aa[ii][jj]);
-	fprintf(fp,"\n");
-	fclose(fp);
+				fp = fopen(nameSpfile.c_str(),"w");
 
+				for (long idet1=0;idet1<ndet;idet1++){
+					for (long idet2=0;idet2<ndet;idet2++){
 
-
-	//**************** Write component power spectra to disk
-	for (long idet1=0;idet1<ndet;idet1++){
-
-		tempstr1 = bolonames[idet1];
-		sprintf(nameSpfile,"%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"_uncnoise",ff,".psd");
-		fp = fopen(nameSpfile,"w");
-		//fprintf(fp,"%d\n",nbins);
-		for (long ii=0;ii<nbins;ii++){
-			//fprintf(fp,"%g\t",ell[ii]);
-			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
-		}
-		//fprintf(fp,"%g\n",ell[nbins]);
-		fprintf(fp,"\n");
-		fclose(fp);
-	}
-
-	data1d = new double[ndet*nbins];
-	for (long i=0; i< ndet; i++)
-		for (long j=0; j<nbins; j++)
-			data1d[i*nbins+j] = N[i][j]*SPref[j];
-
-	sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	write_psd_tofits(testfile,nbins,ndet,'d',data1d);
-	delete [] data1d;
+						///// write power spectrum to disk
+						tempstr1 = bolonames[idet1];
+						tempstr2 = bolonames[idet2];
+						//sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"-",tempstr2.c_str(),"_",ff,"_exp.psd");
+						//fp = fopen(nameSpfile,"w");
+						fprintf(fp,"%s%s%s\n",tempstr1.c_str(),"-",tempstr2.c_str());
+						fprintf(fp,"%d\n",(int)nbins);
+						for (long ii=0;ii<nbins;ii++){
+							fprintf(fp,"%g\t",ell[ii]);
+							fprintf(fp,"%10.15g\n",(Rellexp[idet1*ndet+idet2][ii]+Rellexp[idet2*ndet+idet1][ii])/2.0*SPref[ii]);
+						}
+						fprintf(fp,"%g\n",ell[nbins]);
+						//fprintf(fp,"\n");
+						//fclose(fp);
+					}
+				}
+				fclose(fp);
 
 
 
-	for (long jj=0;jj<ncomp;jj++){
+				//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Afinal_",(int)ff,termin.c_str(),".txt");
+				temp_stream << outdirSpN + "Afinal_" << ff << "_" + termin + ".txt";
 
-		sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
-		fp = fopen(nameSpfile,"w");
-		//fprintf(fp,"%d\n",nbins);
-		for (long ii=0;ii<nbins;ii++){
-			//fprintf(fp,"%g\t",ell[ii]);
-			fprintf(fp,"%10.15g\n",P[jj][ii]*SPref[ii]);
-		}
-		//fprintf(fp,"%g\n",ell[nbins]);
-		fprintf(fp,"\n");
-		fclose(fp);
-	}
+				// récupérer une chaîne de caractères
+				testfile= temp_stream.str();
+				temp_stream.str("");
 
-	data1d = new double[ncomp*nbins];
-	for (long i=0; i< ncomp; i++)
-		for (long j=0; j<nbins; j++)
-			data1d[i*nbins+j] = P[i][j]*SPref[j];
-
-	sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	write_psd_tofits(testfile,nbins,ncomp,'d',data1d);
-	delete [] data1d;
+				fp = fopen(testfile.c_str(),"w");
+				for (long ii=0;ii<ndet;ii++)
+					for (long jj=0;jj<ncomp;jj++)
+						fprintf(fp,"%10.15g \n",mixmat[ii][jj]);
+				fprintf(fp,"\n");
+				fclose(fp);
 
 
 
+				//**************** Write component power spectra to disk
+				for (long idet1=0;idet1<ndet;idet1++){
 
-	delete [] data;
-	delete [] data_lp;
-	delete [] fdata1;
-	delete [] fdata2;
-	delete [] Ps;
-	delete [] samptopix;
-	delete [] commontmp;
-	delete [] commonm_f;
-	//delete [] calp;
-	delete [] flag;
-	delete [] bfilter;
-	delete [] apodwind;
-	delete [] Nell;
-	free_dmatrix(Rellexp,0,ndet*ndet-1,0,nbins-1);
-	free_dmatrix(Rellth,0,ndet*ndet-1,0,nbins-1);
-	free_dmatrix(aa,0,ndet-1,0,20);
-	delete [] sign;
-	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(iCov2,0,ncomp-1,0,ncomp-1);
-	delete [] p;
-	delete [] uvec;
-	delete [] ivec;
-	free_dmatrix(commonm,0,ncomp,0,ns-1);
-	free_dmatrix(commonm2,0,ncomp,0,ns-1);
-	free_dmatrix(common_f,0,ncomp,0,ns-1);
-	free_dmatrix(vect,0,ncomp-1,0,ndet-1);
-	delete [] Nk;
-	delete [] ell;
-	free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
-	free_dmatrix(P,0,ncomp-1,0,nbins-1);
-	free_dmatrix(N,0,ndet-1,0,nbins-1);
-	delete [] iN;
-	delete [] Pr;
-	free_dmatrix(Rxs,0,ndet-1 ,0,ncomp-1);
-	free_dmatrix(Rxsq,0,ndet-1 ,0,ncomp-1);
-	free_dmatrix(RnRxsb,0,ndet-1 ,0,ncomp-1);
-	free_dmatrix(Rxx,0,ndet-1 ,0,ndet-1);
-	free_dmatrix(Rxxq,0,ndet-1 ,0,ndet-1);
-	free_dmatrix(Rss,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(Rssq,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(RnRssb,0,ncomp-1,0,ncomp*ndet-1);
-	free_dmatrix(Pr2,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(AiNA,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(Mattmp,0,ndet-1,0,ndet-1);
-	free_dmatrix(ImDR,0,ndet-1,0,ndet-1);
-	free_dmatrix(ACq,0,ndet-1,0,ncomp-1);
-	free_dmatrix(Cq,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(Wq,0,ndet-1,0,ncomp-1);
+					tempstr1 = bolonames[idet1];
+					//sprintf(nameSpfile,"%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"_uncnoise",ff,".psd");
+
+					temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << termin + ".psd";
+
+					// récupérer une chaîne de caractères
+					nameSpfile= temp_stream.str();
+					temp_stream.str("");
+
+					fp = fopen(nameSpfile.c_str(),"w");
+					//fprintf(fp,"%d\n",nbins);
+					for (long ii=0;ii<nbins;ii++){
+						//fprintf(fp,"%g\t",ell[ii]);
+						fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
+					}
+					//fprintf(fp,"%g\n",ell[nbins]);
+					fprintf(fp,"\n");
+					fclose(fp);
+				}
+
+				data1d = new double[ndet*nbins];
+				for (long i=0; i< ndet; i++)
+					for (long j=0; j<nbins; j++)
+						data1d[i*nbins+j] = N[i][j]*SPref[j];
+
+				//sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
+				temp_stream << outdirSpN + "Nfinal_" << ff << "_" + termin + "_uncnoise.fits";
+
+				// récupérer une chaîne de caractères
+				testfile= temp_stream.str();
+				temp_stream.str("");
+				write_psd_tofits(testfile,nbins,ndet,'d',data1d);
+				delete [] data1d;
+
+
+
+				for (long jj=0;jj<ncomp;jj++){
+
+					//sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
+
+					temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
+
+					// récupérer une chaîne de caractères
+					nameSpfile= temp_stream.str();
+					temp_stream.str("");
+
+					fp = fopen(nameSpfile.c_str(),"w");
+					//fprintf(fp,"%d\n",nbins);
+					for (long ii=0;ii<nbins;ii++){
+						//fprintf(fp,"%g\t",ell[ii]);
+						fprintf(fp,"%10.15g\n",P[jj][ii]*SPref[ii]);
+					}
+					//fprintf(fp,"%g\n",ell[nbins]);
+					fprintf(fp,"\n");
+					fclose(fp);
+				}
+
+				data1d = new double[ncomp*nbins];
+				for (long i=0; i< ncomp; i++)
+					for (long j=0; j<nbins; j++)
+						data1d[i*nbins+j] = P[i][j]*SPref[j];
+
+				//sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
+				temp_stream << outdirSpN + "Nfinal_" << ff << "_" + termin + "_cnoise.fits";
+
+				// récupérer une chaîne de caractères
+				testfile= temp_stream.str();
+				temp_stream.str("");
+				write_psd_tofits(testfile,nbins,ncomp,'d',data1d);
+				delete [] data1d;
+
+
+
+
+				delete [] data;
+				delete [] data_lp;
+				delete [] fdata1;
+				delete [] fdata2;
+				delete [] Ps;
+				delete [] samptopix;
+				delete [] commontmp;
+				delete [] commonm_f;
+				//delete [] calp;
+				delete [] flag;
+				delete [] bfilter;
+				delete [] apodwind;
+				delete [] Nell;
+				free_dmatrix(Rellexp,0,ndet*ndet-1,0,nbins-1);
+				free_dmatrix(Rellth,0,ndet*ndet-1,0,nbins-1);
+				free_dmatrix(mixmat,0,ndet-1,0,20);
+				delete [] sign;
+				free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(iCov2,0,ncomp-1,0,ncomp-1);
+				delete [] p;
+				delete [] uvec;
+				delete [] ivec;
+				free_dmatrix(commonm,0,ncomp,0,ns-1);
+				free_dmatrix(commonm2,0,ncomp,0,ns-1);
+				free_dmatrix(common_f,0,ncomp,0,ns-1);
+				free_dmatrix(vect,0,ncomp-1,0,ndet-1);
+				delete [] Nk;
+				delete [] ell;
+				free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
+				free_dmatrix(P,0,ncomp-1,0,nbins-1);
+				free_dmatrix(N,0,ndet-1,0,nbins-1);
+				delete [] iN;
+				delete [] Pr;
+				free_dmatrix(Rxs,0,ndet-1 ,0,ncomp-1);
+				free_dmatrix(Rxsq,0,ndet-1 ,0,ncomp-1);
+				free_dmatrix(RnRxsb,0,ndet-1 ,0,ncomp-1);
+				free_dmatrix(Rxx,0,ndet-1 ,0,ndet-1);
+				free_dmatrix(Rxxq,0,ndet-1 ,0,ndet-1);
+				free_dmatrix(Rss,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(Rssq,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(RnRssb,0,ncomp-1,0,ncomp*ndet-1);
+				free_dmatrix(Pr2,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(AiNA,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(Mattmp,0,ndet-1,0,ndet-1);
+				free_dmatrix(ImDR,0,ndet-1,0,ndet-1);
+				free_dmatrix(ACq,0,ndet-1,0,ncomp-1);
+				free_dmatrix(Cq,0,ncomp-1,0,ncomp-1);
+				free_dmatrix(Wq,0,ndet-1,0,ncomp-1);
 
 
 }

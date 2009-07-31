@@ -31,7 +31,13 @@ extern "C"{
 }
 
 using namespace std;
-//int parse_sanePos_ini_file(char * ini_name);
+
+/*!
+ * - Parse sanePS input options using the ini file given in the command line \n
+ * - Verify the good usage of each option, deal with incorrect values, warn the user when a line is \n
+ * missing in the ini file !
+ * - Initialise sanePS variable
+ */
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &poutdir, string &bextension,
 		string &fextension, string &termin, string &noiseSppreffile,
