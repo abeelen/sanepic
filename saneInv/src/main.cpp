@@ -24,19 +24,32 @@ extern "C" {
 int main(int argc, char *argv[]) {
 
 	// data parameters
+	/*!
+	 * -ndet = number of detectors to output
+	 * -ndetOrig = number of detectors in the NoiseNoise matrix
+	 * -nbins = number of bins (Ell)
+	 */
 	long ndet, ndetOrig, nbins;
+	int ncomp;/*! number of component for the mixing matrices */
 
-	double *ell1;
-	double **Rellth, **RellthOrig, **iRellth;
+	double *ell; /*! bins values */
+	/*!
+	 * -Rellth : Reduced NoiseNoise matrix
+	 * -RellthOrig : Original NoiseNoise matrix
+	 * -iRellth : Inverted reduced NoiseNoise matrix
+	 * -mixmatOrig : original mixing matrix
+	 * -mixmat : Reduced mixing matrix
+	 */
+	double **Rellth, **RellthOrig, **iRellth,**mixmatOrig,**mixmat;
 
-	string noiseSp_dir_output;
-	string extentnoiseSp;
-	string fname;
-	string boloname;
+	string noiseSp_dir_output;/*! output directory */
+	string extentnoiseSp;/*! output noise file suffix */
+	string fname; /*! covariance matrix fits filename */
+	string boloname;/*! channels list file */
 
-	std::vector<string> channelIn;
-	std::vector<string> channelOut;
-	std::vector<int> indexIn;
+	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
+	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
+	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
 	if (argc<2) {
 		printf("Please run %s using a *.ini file\n",argv[0]);
@@ -55,25 +68,37 @@ int main(int argc, char *argv[]) {
 	}
 
 
+	// read covariance matrix in a fits file named fname
+	// returns : -the bins => Ell
+	// -the input channel list => channelIn
+	// -The number of bins (size of Ell) => nbins
+	// -The original NoiseNoise covariance matrix => RellthOrig
+	// -The original mixing matrix => mixmatOrig
+	// -The number of noise component in this mixing matrix => ncomp
+	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &mixmatOrig, &ncomp);
 
-	read_CovMatrix(fname/*argv[1]*/, channelIn, &nbins, &ell1, &RellthOrig);
-
+	// total number of detectors in the covmatrix fits file
 	ndetOrig = channelIn.size();
 	printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
 	// Input argument for output : channellist
-	read_bolofile(boloname/*argv[2]*/, channelOut);
+	read_bolofile(boloname, channelOut);
+
+	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	ndet = channelOut.size();
 	printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
+	//Deal with bolometer reduction and fill Rellth and mixmat
+	reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth,mixmatOrig,ncomp,mixmat);
 
-	//noiseSp_dir_output = string(argv[3]);
-	//extentnoiseSp = string(argv[4]);
-
-	reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
+	// Inverse reduced covariance Matrix : Returns iRellth
 	inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
-	write_InvNoisePowerSpectra(channelOut, nbins, ell1, iRellth, noiseSp_dir_output, extentnoiseSp);
+	// write inversed noisePS in a binary file for each detector
+	write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, noiseSp_dir_output, extentnoiseSp);
+
+	// write Reduced mixing matrix in a binary file
+	write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
 
 	return 0;
 }

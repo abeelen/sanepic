@@ -12,17 +12,13 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
-	//int				b ;
-	//int				i ;
-	//double			d ;
 	char		*	s ;
-	//long l;
-	//string str;
+
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
 
-	if (ini==NULL) {
+	if (ini==NULL) { // if dictionnary was not found, exit + error msg
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
@@ -67,7 +63,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 		return(-1);
 	}//	extentnoiseSp = NoisePS
 
-
+	// cleaning up
 	iniparser_freedict(ini);
 
 	return 0;
