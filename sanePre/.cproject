@@ -27,15 +27,16 @@
 </builder>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1961892642" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
-<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1584067493" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
-<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1560873665" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.1584067493" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1560873665" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.458953551" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Sanelib/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
-<option id="gnu.cpp.compiler.option.debugging.prof.1675962536" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.debugging.gprof.188332445" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.prof.1675962536" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="false" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.gprof.188332445" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1891346893" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -45,12 +46,15 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sanePre/iniparser/src}&quot;"/>
 </option>
+<option id="gnu.c.compiler.option.debugging.gprof.97870634" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1024706921" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1311424529" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.859488601" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.1235981317" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="gsl"/>
+<listOptionValue builtIn="false" value="Sanelib"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="iniparser"/>
 <listOptionValue builtIn="false" value="saneIO"/>
@@ -58,9 +62,13 @@
 </option>
 <option id="gnu.cpp.link.option.paths.265886019" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Sanelib/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
+<option id="gnu.cpp.link.option.debugging.gprof.2012464156" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
+<option id="gnu.cpp.link.option.debugging.prof.1917748626" name="Generate prof information (-p)" superClass="gnu.cpp.link.option.debugging.prof" value="true" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.255527790" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -77,7 +85,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="RCW_120_M|nrutils|nrutil|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="MainSanepicCorr.cc|MainSanePreCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="todprocessb.h|todprocessb.cpp|NoCorr_preprocess20_07.h|NoCorr_preprocess20_07.cpp|map_makingb.h|map_makingb.cpp|Corr_preprocess20_07.h|Corr_preprocess20_07.cpp|todprocess.h|todprocess.cpp|NoCorr_preprocess.h|NoCorr_preprocess.cpp|map_making.h|map_making.cpp|Corr_preprocess.h|Corr_preprocess.cpp|MainSanepicCorr.cc|MainSanePreCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -942,7 +950,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="nrutil|nrutils|RCW_120_M|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="MainSanepicCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc|MainSanePreCorr.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="todprocessb.h|todprocessb.cpp|NoCorr_preprocess20_07.h|NoCorr_preprocess20_07.cpp|map_makingb.h|map_makingb.cpp|Corr_preprocess20_07.h|Corr_preprocess20_07.cpp|todprocess.h|todprocess.cpp|NoCorr_preprocess.h|NoCorr_preprocess.cpp|map_making.h|map_making.cpp|Corr_preprocess.h|Corr_preprocess.cpp|MainSanepicCorr.cc|MapMakerBuildInvN_full2.cc|MapMakerBuildInvN_full.cc|MainSanePreCorr.cc" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>

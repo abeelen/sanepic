@@ -9,8 +9,8 @@
 #include "parsePre.h"
 
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, string &dirfile, string &outdir, string &poutdir, string &bextension,
-		string &fextension, string &pextension, string &termin, string &noiseSppreffile,
+		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ string &bextension,
+		string &fextension, string &pextension, /*string &termin,*/ string &noiseSppreffile,
 		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname, std::vector<long> &xxi,
 		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut)
 {
@@ -25,12 +25,6 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	string str;
 	const char *temp;
 
-	// for poutdir default value
-	char * pPath;
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
-
 
 	//std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
 
@@ -40,7 +34,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	// load dictionnary
 	ini = iniparser_load(ini_name);
 
-	if (ini==NULL) {
+	if (ini==NULL) { // if dictionnary was not found, return an error message and exit
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
@@ -48,20 +42,25 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
+#ifdef USE_MPI
 	printf("\nsanepic_parallel_scheme:\n");
+
+	// Reads sanepic parallel scheme generated with Find_best_frame_order
 	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
-	if(s==NULL){
+	if(s==NULL){// line was not found in the ini file
 		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
 		return -1;
 	}
 	str=(string)s;
-	if(str.size()!=0){
+	if(str.size()!=0){ //  line was found but is not completed
 		printf("fname : [%s]\n",s);
 		fname=s;
 	}else{
-		printf("You need to run Find_best_frame_order first !\n");
+		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1;
 	}
+#endif
+
 
 	/* Get sanepic_preprocess attributes */
 	printf("\nsanepic_preprocess:\n");
@@ -149,7 +148,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
-		printf("You must choose add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
+		printf("You must add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
 		return -1;
 	}
 	str=(string)s;
@@ -297,15 +296,25 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 
 
 
-	s = iniparser_getstring(ini, "commons:output_dir",NULL);
+#ifdef USE_MPI
+	// for poutdir default value
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		outdir=pPath;
+		printf ("The current path is: %s\n",pPath);
+	}
+#else
+
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 	if(s==NULL){
-		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
 		cout << "Using default output directory : " << dirfile << endl;
 		outdir=dirfile;
 	}else{
 		str=(string)s;
 		if(str.size()!=0){
-			printf("output_dir : [%s]\n",s);
+			printf("temp_dir : [%s]\n",s);
 			outdir=s;
 		}else{
 			cout << "Using default output directory : " << dirfile << endl;
@@ -313,58 +322,13 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
-	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
-	if(s==NULL){
-		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("out_file_str : [%s]\n",s);
-		termin=s;
-	}else{
-		printf("You must specify a prefixe for generated files : out_file_str\n");
-		return -1;
-	}//out_file_str = sanepic ;
-
-	/*s = iniparser_getstring(ini, "sanepic_preprocess:offset_file",NULL);
-	if(s!=NULL){
-		printf("offset_file : [%s]\n",s);
-		file_offsets=s;
-	}else{
-		printf("You must specify bolometers position : offset_file\n");
-		exit(0);
-	}//offset_file = ./RCW_120_M/bolo_positions.txt ;*/
-
-	/*s = iniparser_getstring(ini, "sanepic_preprocess:file_frame_offsets",NULL);
-	str=(string)s;
-	if((s!=NULL)&&(str.size()!=0)){
-		printf("file_frame_offsets : [%s]\n",s);
-		file_frame_offsets=s;
-	}//file_frame_offsets =  ;*/
+#endif
 
 	i = iniparser_getint(ini, "commons:time_offset", 0);
 	if(i!=0){
 		printf("time_offset :      [%d]\n", i);
 		shift_data_to_point=i;
 	}
-	/*}else{
-		//printf("test was good\n");
-	}//time_offset =  ;*/
-
-
-
-	/*	i = iniparser_getint(ini, (char*)"sanepic_preprocess:box_coord_x1", -1); // faire un data file
-	if((i!=-1)&&(i!=0)){
-			printf("box_coord_x1_1 :      [%d]\n", i);
-
-			if (xxi.size() != yyf.size()){
-				printf("box_coord_x1 requires at least box_coord_x2, box_coord_y1, box_coord_y2. Exiting.\n");
-				exit(1);
-			}
-			xxi.push_back(i);//box_coord_x1 =  ;
-		}*/
-
 
 	// crossing constraint removal box coordinates
 	s = iniparser_getstring(ini, (char*)"commons:box_coord_x1", NULL); // faire un data file
@@ -452,21 +416,13 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	if(b!=-1){
 		printf("nofill_gap:    [%d]\n", b);
 		NOFILLGAP=b;
-	}
-	//NOFILLGAP = 0 ;
+	}//NOFILLGAP = 0 ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", -1);
 	if(b!=-1){
 		printf("remove_poly:    [%d]\n", b);
 		remove_polynomia=b;
 	}//remove_poly = True
-
-	// path in which data are written
-	if (pPath != NULL){
-		poutdir = pPath;
-	} else {
-		poutdir = outdir;
-	}
 
 
 
@@ -484,37 +440,48 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 		//usage(argv[0]);
 	}
+
 	if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return -1;
 	}
+
 	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
 		return -1;
 	}
 
+	//ntotscan = number of scans
 	ntotscan = fframes_vec.size();
+	// ndet = number of detectors
 	ndet = bolonames.size();
 
+	//nnf = number of noise PS files
 	nnf = (int)extentnoiseSP.size();
+
 	//nnf=1; // Debug
 	if (nnf != 1 && nnf != ntotscan){
 		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
 		return -1;
 	}
+
+	//if only one extension for all the noisePS file : extend to all the scans
 	if (nnf == 1 && ntotscan > 1)
 		extentnoiseSP.resize(ntotscan, extentnoiseSP[0]);
 
-	//  printf("%d\n",nnf);
-
+	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
 	if (((int)fcut.size()!=nnf)&&((long)fcut.size()!=ntotscan)){
 		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
 		exit(0);
 	}
 
+	// if only one fcut, extend to all scans
 	if(fcut.size()==1)
 		fcut.resize(ntotscan, fcut[0]);
 
+	// cleaning up
 	iniparser_freedict(ini);
+
+
 	return 0 ;
 }

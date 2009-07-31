@@ -13,7 +13,8 @@ using namespace std;
 
 
 long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
-		std::vector<long> yyf, long* &indpsrc,long &npixsrc){
+		std::vector<long> yyf, long* &indpsrc,long &npixsrc)
+{
 
 	long addnpix=0;
 
