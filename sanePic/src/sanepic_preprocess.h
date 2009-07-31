@@ -29,7 +29,7 @@
 #include "parseSanepic.h"
 #include "sanepic_preprocess.h"
 
-#include "estimPS.h"
+//#include "estimPS.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
 #include "mpi_architecture_builder.h"
@@ -46,7 +46,6 @@ using namespace std;
 
 void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 		std::vector<long> yyi, std::vector<long> yyf, long *&indpsrc, long &npixsrc,
-		long ntotscan, long &addnpix,int &npix, int &factdupl, bool flgdupl, string termin,
-		string outdir, double *&PNdtot,long *&indpix, int &flagon);
+		long ntotscan, long &addnpix);
 
 #endif /* SANEPIC_PREPROCESS_H_ */

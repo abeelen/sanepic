@@ -10,13 +10,12 @@
 
 void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 		std::vector<long> yyi, std::vector<long> yyf, long *&indpsrc, long &npixsrc,
-		long ntotscan, long &addnpix,int &npix, int &factdupl, bool flgdupl, string termin,
-		string outdir, double *&PNdtot, long *&indpix, int &flagon){
+		long ntotscan, long &addnpix){
 
 	//char testfile[100];
 	unsigned char *mask; // samples flags, pointing flags, rejected samples list
 	//FILE *fp;
-	int npix2;
+
 
 	//************************************* Deal with masking the point sources
 	// define the mask
@@ -51,41 +50,9 @@ void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 	cout  << "addnpix : " << addnpix << endl;
 	//*************************************************************************************************//
 
-	if (flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
-
-	// read npix, PNdtot from file
-	read_PNd(PNdtot, npix, termin, outdir);
-	/*for (ii=0;ii<20;ii++)
-		cout << PNdtot[ii] << " ";
-	cout << endl << "avant read indpix\n";
-	exit(0);*/
-
-
-	indpix=new long[factdupl*nn*nn+2 + addnpix];
-	// read indpix
-
-	read_indpix(factdupl*nn*nn+2 + addnpix, npix2, indpix, termin, outdir, flagon);
-
-	if (npix!=npix2)
-		cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
-
-
-
-	/*cout << "flagon : " << flagon << endl;
-	for (ii=0;ii<nn*nn;ii=ii+nn+1)
-		cout << indpix[ii] << " ";
-	cout << endl;
-	exit(1);*/
-	/*
-	if (rank == 0){
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-		fp = fopen(testfile,"a");
-		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
-		fclose(fp);
-	}*/
-
-	//end of PREPROC
-
 	delete [] mask;
 
 }
+
+//end of PREPROC
+

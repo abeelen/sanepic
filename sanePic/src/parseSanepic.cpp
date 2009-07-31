@@ -9,11 +9,12 @@
 
 
 int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, int &iterw,bool &doInitPS, long &ntotscan, long &ndet, int &nnf,	double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &poutdir, string &bextension,
+		bool &CORRon, int &iterw,bool &doInitPS, long &ntotscan, long &ndet, int &nnf,	double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
 		string &fextension, string &pextension, string &termin, string &noiseSppreffile,
 		int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname,
 		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP)
 {
+
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
@@ -25,11 +26,11 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	string str;
 	const char *temp;
 
-	// for poutdir default value
-	char * pPath;
+
+	/*char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
+		printf ("The current path is: %s",pPath);*/
 
 
 
@@ -48,6 +49,8 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	//iniparser_dump(ini, stderr);
 
 	printf("\nsanepic_conjugate_gradient:\n");
+
+#ifdef USE_MPI
 	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
 	if(s==NULL){
 		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
@@ -58,10 +61,10 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		printf("fname : [%s]\n",s);
 		fname=s;
 	}else{
-		printf("You need to run Find_best_frame_order first !\n");
+		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1;
 	}
-
+#endif
 
 	s = iniparser_getstring(ini, "commons:data_directory", NULL);
 	if(s==NULL){
@@ -211,18 +214,13 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	}//sampling_frequency = 25.0 ;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:filter_frequency", -1.0);
-	if (d<=0.0){b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", -1);
-	if(b!=-1){
-		printf("remove_poly:    [%d]\n", b);
-		remove_polynomia=b;
-	}//remove_poly = True
-	printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
-	return -1 ;
+	if (d<=0.0){
+		printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
+		return -1 ;
 	}else{
 		printf("filter_frequency  :   [%g]\n", d);
 		f_lp=d;
 	}//filter_frequency = 0.005 ;
-
 
 	// a changer
 	/*d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:noise_cut_frequency", 0.0);
@@ -243,7 +241,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		}//noise_cut_frequency = 0.01 ;
 	}*/
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:noise_cut_frequency",NULL);
+	s = iniparser_getstring(ini, "sanepic_preprocess:fcut_file",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to noise cut frequency file in the parser file : sanepic_preprocess:fcut_file\n");
 		return -1;
@@ -293,7 +291,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}//pointing_field_extension = _def ;
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:noise_prefixe",NULL);
+	s = iniparser_getstring(ini, "sanepic_preprocess:noise_prefixe_file",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to noise_prefixe file in the ini file : sanepic_preprocess:noise_prefixe\n");
 		return -1;
@@ -344,7 +342,34 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
-	s = iniparser_getstring(ini, "sanepic_conjugate_gradient:out_file_str",NULL);
+#ifdef USE_MPI
+	// for poutdir default value
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		tmp_dir=pPath;
+		printf ("The current path is: %s\n",pPath);
+	}
+#else
+
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s==NULL){
+			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
+			cout << "Using default output directory : " << dirfile << endl;
+			tmp_dir=dirfile;
+		}else{
+			str=(string)s;
+			if(str.size()!=0){
+				printf("temp_dir : [%s]\n",s);
+				tmp_dir=s;
+			}else{
+				cout << "Using default output directory : " << dirfile << endl;
+				tmp_dir=dirfile;
+			}//output_dir = ./RCW_120_M/ ;
+		}
+#endif
+
+	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
 		return -1;
@@ -493,11 +518,11 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 
 
 	// path in which data are written
-	if (pPath != NULL){
+	/*if (pPath != NULL){
 		poutdir = pPath;
 	} else {
 		poutdir = outdir;
-	}
+	}*/
 
 
 
