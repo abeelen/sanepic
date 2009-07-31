@@ -8,16 +8,17 @@
 
 #include "mpi_architecture_builder.h"
 
+
 using namespace std;
 
 
-template<class T> void vector2array(vector<T> l, T* a)
+template<class T> void vector2array(std::vector<T> vect, T* a)
 {
 	// copy list of type T to array of type T
-	typename vector<T>::iterator iter;
+	typename std::vector<T>::iterator iter;
 	int i;
 
-	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
+	for (iter=vect.begin(), i=0; iter != vect.end(); iter++, i++) {
 		a[i] = *iter;
 	}
 }
@@ -25,7 +26,7 @@ template<class T> void vector2array(vector<T> l, T* a)
 
 double *dat_compare;
 
-double* randg(long nombre, int seedpass) {
+/*double* randg(long nombre, int seedpass) {
 
 	double* nombre_hasard;
 	time_t temps;
@@ -54,27 +55,61 @@ double* randg(long nombre, int seedpass) {
 
 
 	return nombre_hasard;
+}*/
+
+
+double randg_archi(long nombre, int seedpass) {
+
+	double nombre_hasard;
+	time_t temps;
+	temps = time(NULL);
+
+	unsigned int seed = 0;
+
+	if (seedpass == 0) seed = (unsigned int) temps;
+	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
+	if (seedpass != -1) srandom(seed);
+
+	//	nombre_hasard= new double[nombre];
+
+	for (long i=0;i<nombre/2;i++) {
+		cout << "hmm problem" << endl;
+		exit(0);
+		//double t1 = (double(rand())/RAND_MAX);
+		//double t2 = (double(rand())/RAND_MAX);
+		//	nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
+		///	nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
+	}
+
+	if (nombre/2!=nombre/2.) {
+		double t1 = (double(rand())/RAND_MAX);
+		double t2 = (double(rand())/RAND_MAX);
+		nombre_hasard=sqrt(-2*log(t1))*cos(2*M_PI*t2);
+	}//
+
+
+	return nombre_hasard;
 }
 
 
-int compare_array_double (const void *a, const void *b)
+int compare_array_double (const void *array_1, const void *array_2)
 {
 
-	const long *da = (const long *) a;
-	const long *db = (const long *) b;
+	const long *casted_array_1 = (const long *) array_1;
+	const long *casted_array_2 = (const long *) array_2;
 
-	return (dat_compare[*da] > dat_compare[*db]) - (dat_compare[*da] < dat_compare[*db]);
+	return (dat_compare[*casted_array_1] > dat_compare[*casted_array_2]) - (dat_compare[*casted_array_1] < dat_compare[*casted_array_2]);
 }
 
 
-void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int size){
+void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size){
 
 	long count, a, b;
 	double maxproctmp, valmin, stdmin, stdtmp, valtmp;
 
 	long *ns_order;
 	double *std, *sizeperproc, *maxproc;
-	double *valtemp;
+	double valtemp;
 
 	int nessai = 10000;
 
@@ -90,7 +125,7 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int
 	dat_compare = new double[ntotscan];
 
 	//init random generator
-	valtemp = randg(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
+	valtemp = randg_archi(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
 
 	//init arrays
 	for (long ii=0;ii<=ntotscan;ii++)
@@ -100,19 +135,19 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int
 	for (long jj=0;jj<nessai;jj++){
 
 		for (long kk=0;kk<ntotscan;kk++){
-			valtemp = randg(1,-1); // return a random value between 0/1
-			dat_compare[kk] = valtemp[0];
+			valtemp = randg_archi(1,-1); // return a random value between 0/1
+			dat_compare[kk] = valtemp;
 		}
 
 		for (long ii=0;ii<ntotscan;ii++)
 			ns_order[ii] = ns[ii];
 		for (long ii=0;ii<ntotscan;ii++)
-			pos[ii] = ii;
+			position[ii] = ii;
 
-		qsort(pos,ntotscan,sizeof(long),compare_array_double);
+		qsort(position,ntotscan,sizeof(long),compare_array_double);
 
 		for (long ii=0;ii<ntotscan;ii++)
-			ns_order[ii] = ns[pos[ii]];
+			ns_order[ii] = ns[position[ii]];
 
 		count = 0;
 		a = ns_order[0];
@@ -167,19 +202,19 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int
 
 
 		for (long kk=0;kk<ntotscan;kk++){
-			valtemp = randg(1,-1);
-			dat_compare[kk] = valtemp[0];
+			valtemp = randg_archi(1,-1);
+			dat_compare[kk] = valtemp;
 		}
 
 		for (long ii=0;ii<ntotscan;ii++)
 			ns_order[ii] = ns[ii];
 		for (long ii=0;ii<ntotscan;ii++)
-			pos[ii] = ii;
+			position[ii] = ii;
 
-		qsort(pos,ntotscan,sizeof(long),compare_array_double);
+		qsort(position,ntotscan,sizeof(long),compare_array_double);
 
 		for (long ii=0;ii<ntotscan;ii++)
-			ns_order[ii] = ns[pos[ii]];
+			ns_order[ii] = ns[position[ii]];
 
 		count = 0;
 		a = ns_order[0];
@@ -220,7 +255,7 @@ void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int
 
 }
 
-void write_ParallelizationScheme(string fname, long *pos, long *frnum, long *ns,  long ntotscan, int size)
+void write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns,  long ntotscan, int size)
 // Write the Parrallelization Scheme for further use.
 // working , tested 18/06
 {
@@ -238,7 +273,7 @@ void write_ParallelizationScheme(string fname, long *pos, long *frnum, long *ns,
 		fprintf(fp,"%ld ",ns[ii]);
 	fprintf(fp,"\n");
 	for (ii=0;ii<ntotscan; ii++)
-		fprintf(fp,"%ld ",pos[ii]);
+		fprintf(fp,"%ld ",position[ii]);
 	fprintf(fp,"\n");
 	for (ii=0;ii<ntotscan+1; ii++)
 		fprintf(fp,"%ld ",frnum[ii]);
@@ -249,13 +284,13 @@ void write_ParallelizationScheme(string fname, long *pos, long *frnum, long *ns,
 	fwrite(&ntotscan, sizeof(long), 1, fp);
 
 	fwrite(ns,        sizeof(long), ntotscan,fp);
-	fwrite(pos,       sizeof(long), ntotscan,fp);
+	fwrite(position,       sizeof(long), ntotscan,fp);
 	fwrite(frnum,     sizeof(long), ntotscan+1,fp);
 	fclose(fp);
 
 }
 
-void read_ParallelizationScheme(string fname,  long **pos, long **frnum, long **ns,  long *ntotscan, int *size)
+void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size)
 // read the Parrallelization Scheme for further use.
 //TODO: test
 {
@@ -270,23 +305,23 @@ void read_ParallelizationScheme(string fname,  long **pos, long **frnum, long **
 	fread(ntotscan,  sizeof(long), 1, fp);
 
 	*ns    = new long[*ntotscan];
-	*pos   = new long[*ntotscan];
+	*position   = new long[*ntotscan];
 	*frnum = new long[(*ntotscan)+1];
 
 	fread(*ns,       sizeof(long), *ntotscan,fp);
-	fread(*pos,      sizeof(long), *ntotscan,fp);
+	fread(*position,      sizeof(long), *ntotscan,fp);
 	fwrite(*frnum,   sizeof(long), (*ntotscan)+1,fp);
 	fclose(fp);
 
 }
 
-void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **pos, long **frnum)
-// read and check that the saved Parallelization Scheme correspond to the actual data
+void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum)
+// read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
 	long /**dummy_frnum, *dummy_pos,*/ *dummy_nsamples, dummy_ntotscan;
 	int dummy_size;
-	read_ParallelizationScheme(fname, pos, frnum, &dummy_nsamples, &dummy_ntotscan, &dummy_size);
+	read_ParallelizationScheme(fname, position, frnum, &dummy_nsamples, &dummy_ntotscan, &dummy_size);
 
 
 

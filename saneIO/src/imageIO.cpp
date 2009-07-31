@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-//TODO remove C++ dependancies (cerr & string fname)
+
 // OK
 
 #include "imageIO.h"
@@ -56,7 +56,6 @@ void write_fits(string fname, double pixsize, long nx, long ny,
       print_fits_error(fits_status);
     break;
   default:
-   // cerr << "write_fits: data type '" << dtype << "' not supported. Exiting.\n";
 	  printf("write_fits: data type %c not supported. Exiting.\n",dtype);
     exit(1);
   }

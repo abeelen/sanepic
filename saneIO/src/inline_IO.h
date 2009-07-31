@@ -4,7 +4,7 @@
  *  Created on: 23 juin 2009
  *      Author: matthieu
  */
-
+/*
 #ifndef INLINE_IO_H_
 #define INLINE_IO_H_
 
@@ -117,7 +117,7 @@ INLINE void read_info_pointing(int &nn, string outdir, string termin, int &coord
 	}
 }
 
-
+// Warning, different from inline_IO2.cpp
 INLINE void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon) {
 	FILE *fp;
 	string testfile2;
@@ -146,8 +146,8 @@ INLINE void write_PNd(double *PNd, int npix, string termin, string outdir) {
 		fprintf(fp,"%d\n",npix);
 		for(long ii=0;ii<npix;ii++)
 			fprintf(fp,"%lf ",PNd[ii]);
-		/*fwrite(&npix,sizeof(int),1,fp);
-		fwrite(PNd,sizeof(double), npix, fp);*/
+		//fwrite(&npix,sizeof(int),1,fp);
+		//fwrite(PNd,sizeof(double), npix, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
@@ -236,4 +236,4 @@ INLINE void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir
 	}
 }
 
-#endif
+#endif*/

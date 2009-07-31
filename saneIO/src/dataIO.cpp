@@ -13,31 +13,35 @@ using namespace std;
 
 
 int read_data_std(string fname, int frame, int fs, int ns,
-              void* data, string field, char type)
+		void* data, string field, char type)
 {
 
-  int sizetype;
-  char test[2];
-  test[0] = type;
-  test[1] = '\0';
-  string typestr = string(test);
-  //  printf("type = %s\n",test);
+	int sizetype;
+	char test[2];
+	test[0] = type;
+	test[1] = '\0';
+	string typestr = string(test);
+	//  printf("type = %s\n",test);
 
 
-  FILE *fp;
+	FILE *fp;
 
-  if (typestr == "d") sizetype = 8;
-  if (typestr == "c") sizetype = 1;
+	if (typestr == "d") sizetype = 8;
+	if (typestr == "c") sizetype = 1;
 
-  string filename = fname + field;
-  fp = fopen(filename.c_str(),"r");
-  fseek(fp,(20*frame+fs)*sizetype,SEEK_SET);
-  fread(data,sizetype,ns,fp);
-  fclose(fp);
+	string filename = fname + field;
 
-  return 1;
+	if((fp = fopen(filename.c_str(),"r"))!=NULL){
+		fseek(fp,(20*frame+fs)*sizetype,SEEK_SET);
+		fread(data,sizetype,ns,fp);
+		fclose(fp);
+	}else{
+		printf("Error. Could not open %s. Exiting...\n",filename.c_str());
+		exit(0);
+	}
+
+		return 1;
 }
-
 
 // int read_data(string fname, int frame, int fs, int ns,
 //               void* data, string field, char type)

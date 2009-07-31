@@ -14,7 +14,7 @@ extern "C" {
 }
 
 using namespace std;
-
+/*
 void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 		long *nbins) {
 	string line;
@@ -56,10 +56,11 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 	Spfile.close();
 
 }
+*/
 
-void write_CovMatrix(string fname, std::vector<string> &bolos, long nbins, double *ell, double **Rellth)
+void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth, double** mixmat, int ncomp)
 /*
- * This function write the NoiseNoise Matrices.
+ * This function write the NoiseNoise Matrices in a fits file.
  */
 {
 	fitsfile *fptr;
@@ -118,13 +119,38 @@ void write_CovMatrix(string fname, std::vector<string> &bolos, long nbins, doubl
 			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
 			&status);
 
+
+	//-------------------------------------------------
+	// write the mixing matrix
+	naxes[0] = ncomp;
+	naxes[1] = nBolos;
+	fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
+
+	// since mixmat is a NR matrix, one has to write it line by line :
+	for (long i = 0; i < nBolos; i++) {
+		fpixel[1] = i + 1;
+		fits_write_pix(fptr, TDOUBLE, fpixel, ncomp, mixmat[i], &status);
+	}
+	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+			(char *) "mixing Matrices",
+			(char *) "name of this binary table extension", &status);
+	fits_write_comment(
+			fptr,
+			(char *) "This contains the mixing matrix",
+			&status);
+	fits_write_comment(
+			fptr,
+			(char *) "Each line contains a detector (NAXIS1) for each component (NAXIS2)",
+			&status);
+
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
+
 
 }
 
 void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
-		double **ell, double ***Rellth)
+		double **ell, double ***Rellth,double ***mixmat, int *ncomp)
 /*
  * This function read the NoiseNoise Matrices.
  */
@@ -170,7 +196,7 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
 		fits_report_error(stderr, status);
 
 	fits_get_img_size(fptr, 1, naxes, &status);
-	*nbins = naxes[0] - 1;
+	*nbins = naxes[0] ;//- 1; // TODO : verifier que c'est OK sans ce -1 !
 	*ell = new double[naxes[0]];
 	fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, *ell, NULL, &status);
 
@@ -189,6 +215,25 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
 		fpixel[1] = i + 1;
 		fits_read_pix(fptr, TDOUBLE, fpixel, *nbins, NULL, (*Rellth)[i], NULL, &status);
 	}
+
+	//------------------------------------------------
+	// read the mixmat
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mixing Matrices", NULL, &status))
+		fits_report_error(stderr, status);
+
+	fits_get_img_size(fptr, 2, naxes, &status);
+	if (naxes[1] != nBolos)// || naxes[0] != *ncomp)
+		fits_report_error(stderr,213);
+
+	*ncomp=naxes[0];
+	*mixmat = dmatrix(0, nBolos - 1, 0, *ncomp - 1);
+
+	for (int i = 0; i < nBolos; i++) {
+		fpixel[1] = i + 1;
+		fits_read_pix(fptr, TDOUBLE, fpixel, *ncomp, NULL, (*mixmat)[i], NULL, &status);
+	}
+
+	*ncomp=(int)*ncomp;
 
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
@@ -229,7 +274,7 @@ char* tableFormat(std::vector<string> strings) {
 }
 
 long maxStringLength(std::vector<string> strings) {
-	// Return the longhest string length of a string vector
+	// Return the longest string length of a string vector
 	unsigned long maxSize = 0;
 	std::vector<string>::iterator itString;
 
@@ -246,7 +291,7 @@ long maxStringLength(std::vector<string> strings) {
 void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * ell,
 		double **Rellth, string outputDir, string suffix)
 /*
- * This function write the Inverse Covariance Matrices in binary format
+ * This function writes the Inverse Covariance Matrices in binary format
  */
 {
 
@@ -257,11 +302,11 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 	for (int idet = 0; idet < ndet; idet++) {
 
 		// open file
-		filename = outputDir + bolos[idet] + "-all2_Inv" + suffix;
+		filename = outputDir + bolos[idet] + "-all_Inv" + suffix;
 		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
 			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
-					exit(1);
-			}
+			exit(1);
+		}
 
 		// write sizes
 		fwrite(&nbins, sizeof(long), 1, fpw);
@@ -277,20 +322,102 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 
 }
 
+void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outputDir)
+// Writes the reduced mixing matrix in a binary file
+{
+
+	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
+	FILE *fp;
+
+	// open file
+	filename = outputDir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
+	if((fp=fopen(filename.c_str(),"w"))== NULL){
+		cerr << "ERROR: Can't write Reduced MixingMatrix file" << filename << endl;
+		exit(1);
+	}
+
+	//Read sizes
+	fwrite(&ndet,sizeof(long),1,fp); // number of detectors in the mixmat
+	fwrite(&ncomp,sizeof(int),1,fp); // number of noise component in the mixmat
+
+	for (long idet=0;idet<ndet;idet++)
+		for (int icomp=0;icomp<ncomp;icomp++)
+			fwrite(&mixmat[idet][icomp],sizeof(double),1,fp); // writes the mixmat element by element
+			// TODO : verify that it is faster to read line by line due to dmatrix allocation
+
+	//close file
+	fclose(fp);
+
+	//------------------------------DEBUG MODE------------------------------------
+	// open file
+	filename = outputDir + "Reduced_MixingMatrix_internal_data_test.txt";
+	if((fp=fopen(filename.c_str(),"w"))== NULL){
+		cerr << "ERROR: Can't write Reduced MixingMatrix file" << filename << endl;
+		exit(1);
+	}
+
+	//read sizes
+	fprintf(fp,"%ld",ndet);
+	fprintf(fp,"%d",ncomp);
+
+	for (long idet=0;idet<ndet;idet++)
+		for (int icomp=0;icomp<ncomp;icomp++)
+			fprintf(fp,"%lf",mixmat[idet][icomp]);
+
+
+
+	//close file
+	fclose(fp);
+
+
+
+}
+
+void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir){
+
+	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
+	FILE *fp;
+
+	// open file
+	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
+	if((fp=fopen(filename.c_str(),"r"))== NULL){
+		cerr << "ERROR: Can't find Reduced MixingMatrix file" << filename << endl;
+		exit(1);
+	}
+
+	//Read sizes
+	fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
+	fread(&ncomp,sizeof(int),1,fp); // number of noise component
+
+	//allocate memory considering readed sizes
+	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
+
+
+	for (long idet=0;idet<ndet;idet++)
+		for (int icomp=0;icomp<ncomp;icomp++)
+			fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
+
+
+	//close file
+	fclose(fp);
+
+}
+
+// TODO : la fonction fait doublon avec read_noise_file dans inline_IO2.cpp
 void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 		long * nbins, long * ndet, double ** ell, double *** SpN_all)
 /*
- * This function write the Inverse Covariance Matrices in binary format
+ * This function reads the Inverse Covariance Matrices in binary format
  */
 {
 
 	string filename;
 	FILE *fp;
 
-	filename = prefix + boloName + "-all2" + suffix;
+	filename = prefix + boloName + "-all" + suffix; // TODO : (reminder) remplacé -all2 par -all : mat 28_07
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename
-				<< endl;
+		<< endl;
 		exit(1);
 	}
 	// Read sizes
@@ -309,7 +436,7 @@ void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 
 	for (int i=0; i< *nbins; i++)
 		cout << (*SpN_all)[0][i] << " ";
-		cout << endl;
+	cout << endl;
 
 	cout << "here final" << endl;
 

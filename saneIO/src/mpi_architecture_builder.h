@@ -16,11 +16,16 @@
 using namespace std;
 
 // scans are distributed over processors
-void find_best_order_frames(long *pos, long *frnum, long *ns, long ntotscan, int size);
-double* randg(long nombre, int seedpass); // on garde
+void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size);
+//double* randg(long nombre, int seedpass); // on garde
 
-void write_ParallelizationScheme(string fname, long  *pos, long  *frnum, long  *ns,  long  ntotscan, int  size);
-void read_ParallelizationScheme(string fname,  long **pos, long **frnum, long **ns,  long *ntotscan, int *size);
-void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **pos, long **frnum);
+int compare_array_double (const void *array_1, const void *array_2);
+double randg_archi(long nombre, int seedpass);
+
+void write_ParallelizationScheme(string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size);
+void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
+void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
+
+
 
 #endif /* MPI_ARCHITECTURE_BUILDER_H_ */
