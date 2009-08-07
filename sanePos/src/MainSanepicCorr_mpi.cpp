@@ -18,16 +18,18 @@
 
 #include "boloIO.h"
 #include "dataIO.h"
-#include "inline_IO.h"
+#include "inline_IO2.h"
 extern "C" {
 #include "nrutil.h"
 }
 
 
-#include "map_making.h"
+#include "sanePos_map_making.h"
 #include "blastSpecific.h"
 #include "parsePos.h"
 #include "sanePos_preprocess.h"
+#include "projection_wcs.h"
+
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -58,6 +60,13 @@ template<class T> void vector2array(std::vector<T> l, T* a)
 //**********************************************************************************//
 
 
+/*! \mainpage Sanepic for SPIRE
+ *
+ * \section intro_sec Matthieu HUSSON & Alexandre Beelen
+ *
+ * Sanepic for SPIRE Manual
+ */
+
 
 
 int main(int argc, char *argv[])
@@ -65,8 +74,8 @@ int main(int argc, char *argv[])
 
 
 
-	int size, size_det;
-	int rank, rank_det;
+	int size, size_det; /*! size = number of processor used for this step*/
+	int rank, rank_det; /*! rank = processor MPI rank*/
 
 #ifdef USE_MPI
 	// int tag = 10;
@@ -82,121 +91,110 @@ int main(int argc, char *argv[])
 	cout << "Mpi is not used for this step" << endl;
 #endif
 
-	char * pPath;
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
+
 
 
 	//default value of the data to pointing shift
-	int shift_data_to_point = 0;
+	int shift_data_to_point = 0; /*! default value = 0 */
 
 
 	//DEFAULT PARAMETERS
-	long napod = 0; // number of samples to apodize
-	double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
-	// source error
+	long napod = 0; /*! number of samples to apodize, =0 -> no apodisation */
+	double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
 
 
+	long iframe_min, iframe_max; /*! frame number min and max each processor has to deal with */
 
-	long iframe_min, iframe_max;
-
-	int flagon = 0; // if rejectsample [ii]==3, flagon=1	//int iterw = 10; // period in iterations to which the data are written to disk, 0 = no intermediate map to be written
-	bool bfixc = 0; // indicates that 4 corners are given for the cross corelation removal box
-	bool pixout = 0; // indicates that at least one pixel has been flagged and is out
-	bool NOFILLGAP = 0; // fill the gap ? default is YES
-	bool flgdupl = 0; // 1 if flagged data are put in a separate map
+	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
+	bool bfixc = 0; /*! indicates that 4 corners are given for the cross corelation removal box */
+	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
+	bool NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
+	bool flgdupl = 0; /*! 1 if flagged data are put in a separate map */
 
 
 	//set coordinate system
-	double *srccoord, *coordscorner;
-	srccoord = new double[2]; // RA/DEC tangent point/source
+	double *srccoord, *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
+	srccoord = new double[2]; // RA/DEC source
 	coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
 	srccoord[0] = -1000; // RA tangent point/source
 	srccoord[1] = -1000; // DEC tangent point/source
-	double radius = -1.0; // map radius (half a side) in degrees
+	double radius = -1.0; /*! map radius (half a side) in degrees */
 
 
 	// data parameters
-	long *fframes  ; // first frames table fframes list -> fframes
-	long *nsamples ; // number of samples table nsamples list -> nsamples
-	//long *frnum ;
+	long *fframes  ; /*! first frames number array*/
+	long *nsamples ; /*! number of samples table array */
 
-	long ntotscan; // total number of scans
-	long ndet; // number of channels
-	int nnf; // extentnoiseSp number of elements
-	long addnpix=0;
+
+	long ntotscan; /*! total number of scans */
+	long ndet; /*! number of channels used*/
+	int nnf; /*! number of noise file */
+	long addnpix=0; /*!add a number 'n' of pixels to the map */
 
 
 
 	// map making parameters
-	double pixdeg; // size of pixels (degree)
+	double pixdeg; /*! size of pixels (degree) */
 
-
-	int nn, npix; // nn = side of the map, npix = number of filled pixels
-	long npixsrc;
-	double ra_min, ra_max, dec_min, dec_max; // coord ra/dec of the map
-	double *offsets, *froffsets, *offmap; // offsets par rapport au bolo de ref, froffsets = ?, offmap = ?
-	float *scoffsets; // offsets depending on wavelength
+	int nn, npix; /*! nn = side of the map, npix = number of filled pixels */
+	long npixsrc; /*! number of pixels included in CCR */
+	double ra_min, ra_max, dec_min, dec_max; /*! ra/dec min/max coordinates of the map*/
+	double *offsets, *froffsets, *offmap; /*! bolo offsets / ref bolo, froffsets = frame offsets, offmap = map offsets */
+	float *scoffsets; /*! source offsets depending on wavelength */
 	scoffsets = new float[6];
 
-	int nfoff; // number of offsets
-	foffset *foffsets; // tableau d'offsets
+	int nfoff; /*! number of offsets */
+	foffset *foffsets; /*! tableau d'offsets */
 
-	double *tancoord; // tangent point coordinates
-	double *tanpix; // tangent pixel
-	double gra_min, gra_max, gdec_min, gdec_max; // global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors)
+	double *tancoord; /*! tangent point coordinates RA/dec */
+	double *tanpix; /*! tangent pixel coordinates in the map */
+	double gra_min, gra_max, gdec_min, gdec_max; /*! global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
 
 	//internal data params
-	long ns; // number of samples for this scan, first frame number of this scan
+	long ns; /*! number of samples for this scan */
 
 
-
-	//FILE *fp;
-
-	//char testfile[100];
-	//string testfile2;
-	string fname;
+	string fname; /*! parallel scheme file name */
 
 
-	char type='d'; // returned type of read_data functions, d=64bit double
-	double *ra, *dec, *phi, *scerr; // RA/DEC, phi (angle) coordinates of the bolo, source errors
-	unsigned char *flag, *flpoint, *rejectsamp, *mask; // samples flags, pointing flags, rejected samples list
-	long *indpix, *indpsrc; // pixels indices, mask pixels indices
+	char type='d'; /*! returned type of read_data functions, d=64bit double */
+	double *ra, *dec, *phi, *scerr; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
+	unsigned char *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
+	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
-	int *xx, *yy; // data coordinates in the map
-	long *pixon; // this array is used to store the rules for pixels : they are seen or not
-	long *samptopix; // sample to pixel conversion array
+	int *xx, *yy; /*! data coordinates in the map */
+	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
+	long *samptopix; /*! sample to pixel conversion array */
 
 
 
 
-	string field; // actual boloname in the bolo loop
-	string bolofield; // bolofield = boloname + bextension
-	string flagfield; // flagfield = field+fextension;
-	string dirfile; // data directory
-	string outdir; // output directory
-	string poutdir; // current path (pPath) or output dir (outdir)
-	string bextension; // bolometer field extension
-	string fextension = "NOFLAG"; // flag field extension
-	string pextension; // pointing extension
-	string file_offsets; // bolometer offsets file
-	string file_frame_offsets = "NOOFFS"; // offset file
-	string termin; // output file suffix
-
+	string field; /*! actual boloname in the bolo loop */
+	string bolofield; /*! bolofield = boloname + bextension */
+	string flagfield; /*! flagfield = field+fextension;*/
+	string dirfile; /*! data directory*/
+	string outdir; /*! output directory*/
+	string poutdir; /*! current path (pPath) or output dir (outdir)*/
+	string bextension; /*! bolometer field extension*/
+	string fextension = "NOFLAG"; /*! flag field extension*/
+	string pextension; /*! pointing extension*/
+	string file_offsets; /*! bolometer offsets file*/
+	string file_frame_offsets = "NOOFFS"; /*! offset file*/
+	//string termin; /*! output file suffix */
+	string termin_internal = "internal_data";
 
 	/* DEFAULT PARAMETERS */
-	int coordsyst = 1; /// Default is RA/DEC
+	int coordsyst = 1; /*! Default is RA/DEC */
 
 
 	int samples_per_frames=20;
 
 	/* parser inputs */
-	std::vector<string> bolonames/*, extentnoiseSP*/; // bolometer list, noise file prefix
-	std::vector<long> fframes_vec, nsamples_vec; // first frame list, number of frames per sample
-	std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
+	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
+	std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample */
+	std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 	//std::vector<double> fcut;
-	//std::vector<string> extentnoiseSP; // noise file prefix
+	//std::vector<string> extentnoiseSP; /*! noise file prefix*/
 
 
 	time_t t2, t3;//, t3, t4, t5, dt;
@@ -204,7 +202,7 @@ int main(int argc, char *argv[])
 
 
 
-	pixdeg = -1.0; // "Size of pixels (deg)"
+	pixdeg = -1.0; /*! "Size of pixels (deg)"*/
 
 	// -----------------------------------------------------------------------------//
 
@@ -217,8 +215,8 @@ int main(int argc, char *argv[])
 		int parsed=1;
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
 				srccoord,coordscorner,radius,ntotscan,ndet,nnf,
-				pixdeg,tancoord,tanpix,dirfile,outdir,poutdir,bextension,fextension,
-				pextension,file_offsets,file_frame_offsets,termin,coordsyst,bolonames,fframes_vec,nsamples_vec,fname);
+				pixdeg,dirfile,outdir,poutdir,bextension,fextension,
+				pextension,file_offsets,file_frame_offsets,coordsyst,bolonames,fframes_vec,nsamples_vec,fname,xxi,xxf,yyi,yyf);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -308,7 +306,7 @@ int main(int argc, char *argv[])
 		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
 	 */
 
-	// map offsets
+	/*! map offsets*/
 	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank);
 
 
@@ -357,33 +355,6 @@ int main(int argc, char *argv[])
 		delete [] frnum;
 
 	}
-
-
-
-
-
-
-	//if (rank == 0){
-	/*sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-		fp = fopen(testfile,"a");
-		for (ii=0;ii<=ntotscan;ii++) fprintf(fp,"frnum[%ld] = %ld \n",ii,frnum[ii]);
-		fclose(fp);*/
-
-	/*
-		// write parallel schema in a file
-		sprintf(testfile,"%s%s%s%s",outdir.c_str(),"parallel_for_Sanepic_",termin.c_str(),".bi");
-		if ((fp = fopen(testfile,"w"))!=NULL){
-			//fprintf(fp,"%d\n",size);
-			fwrite(&size,sizeof(int), 1, fp);
-			fwrite(ruleorder,sizeof(long),ntotscan,fp);
-			fwrite(frnum,sizeof(long),ntotscan,fp);
-			fclose(fp);
-		}else{
-			cerr << "Error : couldn't open file to write parallel options. Exiting" << endl;
-			exit(1);
-		}
-	}*/
-
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -455,7 +426,27 @@ int main(int argc, char *argv[])
 	offmap[0] = 0.0;
 	offmap[1] = 0.0;
 
+	/*--------------------------------Default parameters initialization for WCS and fits headers ---------*/
+	/*const int NAXIS = 2; // number of dimensions
+	const double CRPIX[2] =  {  128.0, 128.0}; // reference pixel coordinates
+	const double PC[2][2] = {{    1.0,  0.0}, // linear transformation matrix
+			{    0.0,  1.0}};
+	const double CDELT[2] =  {-0.00168725828819, 0.00168725828819}; // -pixdeg, pixdeg (coordinate scales)
 
+	char CUNIT[2][18] = {"deg", "deg"}; // en degre // units of CRVAL and CDELT
+	char CTYPE[2][18] = {"RA---TAN", "DEC--TAN"}; // X, Y, projection type
+	char CNAME[2][18] = {"Right Ascension", "Declination"};
+
+	const double CRVAL[2] = {258.144877,-38.332616}; // ra mean, dec mean
+	// => Celestial longitude and latitude of the fiducial point
+
+	const double LONPOLE  = 150.0; // reference pole longitude
+	const double LATPOLE  = 150.0; // reference pole latitude
+
+	int NPV = 0;*/
+	//struct pvcard PV[2]; // native latitude, longitude of the fiducial point /* Projection parameters are set in main(). */
+
+	/*-------------------------------------------------------------------------------------------------*/
 
 
 
@@ -468,6 +459,10 @@ int main(int argc, char *argv[])
 
 
 	//if (coordsyst != 4){ // coordsyst never = 4 => debug mode => delete
+	/*!
+	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
+	 * -> Compute map coordinates
+	 */
 	find_coordinates_in_map(ndet,bolonames,bextension,fextension,file_offsets,foffsets,scoffsets,
 			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,ra_field,dec_field,phi_field,
 			scerr_field,flpoint_field,nfoff,pixdeg, xx, yy, nn, coordscorner,
@@ -509,8 +504,16 @@ int main(int argc, char *argv[])
 			tancoord, tanpix, 1, radius, offmap, srccoord,0);
 
 
-	// write Pointing informations in a file
-	write_info_pointing(nn, outdir, termin, coordsyst, tanpix, tancoord);
+	/*!
+	 * \fn write Pointing informations in a file
+	 * Write nn : size of the map in pixel
+	 * outdir : output directory
+	 * termin : generated files prefixe
+	 * coordsyst : coordinate system value
+	 * tanpix : tangent point coordinates in the map (in pixel)
+	 * tancoord : tangent point coordinates in coordsyst coordinate system
+	 */
+	write_info_pointing(nn, outdir, termin_internal, coordsyst, tanpix, tancoord);
 
 
 	/*} else {
@@ -541,6 +544,15 @@ int main(int argc, char *argv[])
 
 	// if a box for crossing constraint removal is given in ini file
 	if(xxi.size()>0)
+		/*!
+		 * \fn compute_indpsrc_addnpix
+		 * Input : nn : size of the map in pixels
+		 * ntotscan : total number of scans
+		 * xxi, xxf, yyi, yyf : box for crossing constraint removal corner coordinates
+		 * indpsrc : pixel indice of the pixel included in box for CCR
+		 * npixsrc : total number of pix in box for CCR
+		 * mask : 0 if the pixel is contained in box for CCR, 1 otherwise
+		 */
 		addnpix=Compute_indpsrc_addnpix(nn,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc,mask);
 	else{
 		for (long ii=0;ii<nn*nn;ii++)
@@ -568,15 +580,25 @@ int main(int argc, char *argv[])
 	//**********************************************************************************
 	// get coordinates of pixels that are seen
 	//**********************************************************************************
-	compute_seen_pixels_coordinates(ndet,ntotscan,outdir,bolonames,bextension, fextension, termin,
+	/*!
+	 * \fn Get coordinates of pixels that are seen
+	 * Compute the position to pixel projetcion matrices :
+	 * One binary file per bolometer and per scan
+	 */
+	compute_seen_pixels_coordinates(ndet,ntotscan,outdir,bolonames,bextension, fextension, termin_internal,
 			file_offsets,foffsets,scoffsets,iframe_min, iframe_max,fframes,
 			nsamples,dirfile,ra_field,dec_field,phi_field, scerr_field,
 			flpoint_field, nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
 			tanpix, bfixc, radius, offmap, srccoord, type, ra,dec,
 			phi,scerr,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
-			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon);
+			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
 
 
+
+	bool default_projection = 1;
+	string temp = dirfile + "optimMap_sanepic_flux.fits";
+	const char *fits_file = temp.c_str();
+	fits_header_generation(outdir,fits_file,pixdeg,default_projection,tanpix,tancoord);
 
 
 	//************** init mapmaking variables *************//
@@ -587,14 +609,27 @@ int main(int argc, char *argv[])
 	// pixel indices
 	indpix = new long[factdupl*nn*nn+2 + addnpix];
 
-	// compute indpix. npix is the number of filled pixels
-	npix=compute_indpix(indpix,factdupl,nn,addnpix,pixon);
+	if(rank==0){
+
+		/*!
+		 *  \fn compute indpix : pixels indices used for data projection/deprojection.
+		 *  npix is the number of filled pixels
+		 *  Pixon : indicates if the pixel is projected on the map or not
+		 *  addnpix : number of pixels to add : depends on box for CCR and duplication factor
+		 */
+		npix=compute_indpix(indpix,factdupl,nn,addnpix,pixon);
 
 
-	// write in a file for conjugate gradient step
-	long ind_size = factdupl*nn*nn+2 + addnpix;
-	write_indpix(ind_size, npix, indpix, termin, outdir, flagon);
+		// write in a file for conjugate gradient step
+		long ind_size = factdupl*nn*nn+2 + addnpix;
 
+		/*!
+		 * Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
+		 * npix : total number of filled pixels,
+		 * flagon : if some pixels are apodized or outside the map
+		 */
+		write_indpix(ind_size, npix, indpix, termin_internal, outdir, flagon);
+	}
 	/*
 	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".txt";
 	fp = fopen(testfile2.c_str(),"w");
@@ -609,13 +644,17 @@ int main(int argc, char *argv[])
 
 	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
-	t3=time(NULL);
-	cout << "temps de traitement : " << t3-t2 << " sec" << endl;
 
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
-	printf("[%2.2i] Size of the map : %d x %d\t Total Number of filled pixels : %d\n",rank, nn,nn, npix);
+	printf("[%2.2i] Size of the map : %d x %d\t Total Number of filled pixels : %d\n",rank, nn, nn, npix);
+
+
+	t3=time(NULL);
+	cout << "temps de traitement : " << t3-t2 << " sec" << endl;
+
+
 
 
 #ifdef USE_MPI

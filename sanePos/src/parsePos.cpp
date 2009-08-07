@@ -10,9 +10,10 @@
 
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet, int &nnf,
-		double &pixdeg, double * tancoord, double * tanpix, string &dirfile, string &outdir, string &poutdir, string &bextension,
-		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, string &termin,
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,string &fname)
+		double &pixdeg, string &dirfile, string &outdir, string &poutdir, string &bextension,
+		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, /*string &termin,*/
+		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,string &fname,
+		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf)
 {
 	dictionary	*	ini ;
 
@@ -25,14 +26,8 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	string str;
 	const char *temp;
 
-	// for poutdir default value
-	char * pPath;
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL)
-		printf ("The current path is: %s",pPath);
 
-
-	std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
+	//std::vector<long> xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
 
 
 
@@ -51,7 +46,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
-
+#ifdef USE_MPI
 	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
 	if(s==NULL){
 		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
@@ -62,12 +57,41 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("fname : [%s]\n",s);
 		fname=s;
 	}else{
-		printf("You need to run Find_best_frame_order first !\n");
+		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1 ;
 	}
+#endif
 
 	/* Get sanepic_compute_positions attributes */
 	printf("sanepic_compute_positions:\n");
+
+#ifdef USE_MPI
+	// for poutdir default value
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		outdir=pPath;
+		printf ("The current path is: %s\n",pPath);
+	}
+#else
+
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
+		cout << "Using default output directory : " << dirfile << endl;
+		outdir=dirfile;
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("temp_dir : [%s]\n",s);
+			outdir=s;
+		}else{
+			cout << "Using default output directory : " << dirfile << endl;
+			outdir=dirfile;
+		}//output_dir = ./RCW_120_M/ ;
+	}
+
+#endif
 
 	s = iniparser_getstring(ini, "commons:data_directory", NULL);
 	if(s==NULL){
@@ -252,23 +276,9 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		exit(0);
 	}//noise_suffixe = ./RCW_120_M/ ;*/
 
-	s = iniparser_getstring(ini, "commons:output_dir",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("output_dir : [%s]\n",s);
-			outdir=s;
-		}else{
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
-		}//output_dir = ./RCW_120_M/ ;
-	}
 
-	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
+
+	/*s = iniparser_getstring(ini, "commons:out_file_str",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
 		return -1;
@@ -280,7 +290,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	}else{
 		printf("You must specify a prefixe for generated files : out_file_str\n");
 		return -1 ;
-	}//out_file_str = sanepic ;
+	}//out_file_str = sanepic ;*/
 
 	s = iniparser_getstring(ini, "sanepic_compute_positions:offset_file",NULL);
 	if(s==NULL){
@@ -480,13 +490,6 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	if ((coordsyst == 3) && (tmpcount2 != 3)){
 		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use RA_source DEC_source map_radius\n";
 		return -1 ;
-	}
-
-	// path in which data are written
-	if (pPath != NULL){
-		poutdir = pPath;
-	} else {
-		poutdir = outdir;
 	}
 
 

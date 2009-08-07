@@ -29,7 +29,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 
 	// ndet = number of channels
 	for (int idet=0;idet<ndet;idet++){
-
+		//cout << idet << endl;
 		// field = actual boloname
 		field = bolonames[idet];
 
@@ -147,7 +147,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,
 		double *&phi,double *&scerr, unsigned char *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,unsigned char* &flag,
 		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
-		long *indpsrc, long npixsrc, int &flagon){
+		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
 
 
 	string field;
@@ -155,7 +155,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 	string flagfield;
 	long ns,ff;
 
-	bool pixout;
+
 	int ll=0;
 
 	double * offsets,*froffsets;
@@ -278,28 +278,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 
 
 			//if (rank == 0){
-
-			//sprintf(testfile,"%s%s%ld%s%ld%s%s%s",poutdir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-			//fp = fopen(testfile,"w");
-			//string test;
-			//test=string((char)iframe);
 			write_samptopix(ns, samptopix, termin, outdir, idet, iframe);
-			/*sprintf(testfile,"%ld",iframe);
-			testfile2 = outdir + "samptopix_";// + char(iframe) + "_" + char(idet) + "_" + termin + ".bi";
-			testfile2 +=testfile;
-			testfile2 +="_";
-			sprintf(testfile,"%d",idet);
-			testfile2 +=testfile;
-			testfile2 += "_" + termin + ".bi";
-			fp = fopen(testfile2.c_str(),"w");
-			fwrite(samptopix,sizeof(long), ns, fp);
-			fclose(fp);
-
-			sprintf(testfile,"%s%s%ld%s%d%s%s%s",poutdir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".txt");
-			fp = fopen(testfile,"w");
-			for(int kk=0;kk<ns;kk++)
-				fprintf(fp,"%ld ",samptopix[kk]);
-			fclose(fp);*/
 			//}
 
 		} // end of iframe loop

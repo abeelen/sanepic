@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "map_making.h"
+#include "sanePos_map_making.h"
 
 using namespace std;
 
@@ -353,7 +353,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 }
 
 
-
+/*
 void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double **count, int nn, unsigned char *flag, double **map_f, double **count_f)
 {
 
@@ -373,11 +373,11 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 	for (long ii=0;ii<ns;ii++){
 		if (ii == 137909) cerr << ii << ", " << ns << endl;
 		if ((flag == NULL) || ((flag[ii] & 1) == 0)){
-			/*if (ii == 137909) {
-	cerr << xx[ii] << endl;
-	cerr << yy[ii] << endl;
-	cerr << data[ii] << endl;
-      }*/
+			//if (ii == 137909) {
+	//cerr << xx[ii] << endl;
+	//cerr << yy[ii] << endl;
+	//cerr << data[ii] << endl;
+     // }
 			map[xx[ii]][yy[ii]] += data[ii];
 			count[xx[ii]][yy[ii]] += 1.0;
 		} else{
@@ -399,7 +399,7 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 }
 
-
+*/
 
 
 
