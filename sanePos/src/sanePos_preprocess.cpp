@@ -15,7 +15,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 		long *fframes,long *nsamples,string dirfile,string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
-		double *&phi,double *&scerr, unsigned char *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max){
+		double *&phi,double *&scerr, unsigned char *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
 
 	double * offsets,*froffsets;
 	offsets = new double[2]; //
@@ -74,10 +74,13 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 			// find offset based on frame range
 			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
 
-
-			// spheric coords to squared coords (tangent plane)
-			sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-					tancoord, tanpix, bfixc, radius, offmap, srccoord,0);
+			if (default_projection){
+				// spheric coords to squared coords (tangent plane)
+				sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+						tancoord, tanpix, bfixc, radius, offmap, srccoord,0);
+			}else{
+				//compute ramin/max, etc... with WCS
+			}
 
 			// store ra/dec min and max (of the map) and for this processor
 			if (coordscorner[0] < ra_min) ra_min = coordscorner[0];
@@ -105,16 +108,21 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 
 
 
-	for (long ii=0;ii<nn*nn;ii++)
+	for (long ii=0;ii<nn*nn;ii++){
 		mask[ii] = 1;
+		indpsrc[ii] = -1;
+	}
 
 
 	if (xxi.size() != 0){
 		for (long ib = 0;ib < (long)xxi.size(); ib++){ // to avoid warning, mat-27/05
 			// for each box crossing constraint removal
 			for (long ii=xxi[ib];ii<xxf[ib];ii++)
-				for (long ll=yyi[ib];ll<yyf[ib];ll++)
+				for (long ll=yyi[ib];ll<yyf[ib];ll++){
 					mask[ll*nn + ii] = 0;  // mask is initialised to 0
+					indpsrc[ll*nn + ii] = npixsrc;
+					npixsrc += 1;
+				}
 		}
 	}
 
@@ -122,14 +130,14 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 
 
 
-	for (long ii=0;ii<nn*nn;ii++){
+	/*for (long ii=0;ii<nn*nn;ii++){
 		if (mask[ii] == 0){
 			indpsrc[ii] = npixsrc;
 			npixsrc += 1;
 		} else {
 			indpsrc[ii] = -1;
 		}
-	}
+	}*/
 	addnpix = ntotscan*npixsrc; // addnpix = number of pix to add in pixon = number of scans * number of pix in box crossing constraint removal
 
 	//debug

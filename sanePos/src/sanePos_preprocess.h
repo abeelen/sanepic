@@ -46,7 +46,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 		string fextension,string file_offsets,foffset *foffsets,float *scoffsets,	/*double *offsets,*/long iframe_min, long iframe_max,
 		long *fframes,long *nsamples,string dirfile,string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
-		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,double *&phi,double *&scerr, unsigned char *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max);
+		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,double *&phi,double *&scerr, unsigned char *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection);
 
 /*!
  *  compute_indpsrc_addnpix

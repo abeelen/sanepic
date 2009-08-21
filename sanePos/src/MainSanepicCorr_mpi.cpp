@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
 	} else {
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
+		// TODO : add fits reading and binary/fits data gestion
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
 				srccoord,coordscorner,radius,ntotscan,ndet,nnf,
 				pixdeg,dirfile,outdir,poutdir,bextension,fextension,
@@ -426,30 +427,6 @@ int main(int argc, char *argv[])
 	offmap[0] = 0.0;
 	offmap[1] = 0.0;
 
-	/*--------------------------------Default parameters initialization for WCS and fits headers ---------*/
-	/*const int NAXIS = 2; // number of dimensions
-	const double CRPIX[2] =  {  128.0, 128.0}; // reference pixel coordinates
-	const double PC[2][2] = {{    1.0,  0.0}, // linear transformation matrix
-			{    0.0,  1.0}};
-	const double CDELT[2] =  {-0.00168725828819, 0.00168725828819}; // -pixdeg, pixdeg (coordinate scales)
-
-	char CUNIT[2][18] = {"deg", "deg"}; // en degre // units of CRVAL and CDELT
-	char CTYPE[2][18] = {"RA---TAN", "DEC--TAN"}; // X, Y, projection type
-	char CNAME[2][18] = {"Right Ascension", "Declination"};
-
-	const double CRVAL[2] = {258.144877,-38.332616}; // ra mean, dec mean
-	// => Celestial longitude and latitude of the fiducial point
-
-	const double LONPOLE  = 150.0; // reference pole longitude
-	const double LATPOLE  = 150.0; // reference pole latitude
-
-	int NPV = 0;*/
-	//struct pvcard PV[2]; // native latitude, longitude of the fiducial point /* Projection parameters are set in main(). */
-
-	/*-------------------------------------------------------------------------------------------------*/
-
-
-
 
 	//********************************************************************************
 	//*************  find coordinates of pixels in the map
@@ -457,6 +434,7 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
+	bool default_projection = 1;
 
 	//if (coordsyst != 4){ // coordsyst never = 4 => debug mode => delete
 	/*!
@@ -466,7 +444,7 @@ int main(int argc, char *argv[])
 	find_coordinates_in_map(ndet,bolonames,bextension,fextension,file_offsets,foffsets,scoffsets,
 			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,ra_field,dec_field,phi_field,
 			scerr_field,flpoint_field,nfoff,pixdeg, xx, yy, nn, coordscorner,
-			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi,scerr, flpoint,ra_min,ra_max,dec_min,dec_max);
+			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi,scerr, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
 
 
 #ifdef USE_MPI
@@ -499,9 +477,10 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
 
-	/// just to set nn in order to compute map-making matrices and vectors
-	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-			tancoord, tanpix, 1, radius, offmap, srccoord,0);
+	if(default_projection)
+		// just to set nn in order to compute map-making matrices and vectors
+		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+				tancoord, tanpix, 1, radius, offmap, srccoord,0);
 
 
 	/*!
@@ -595,7 +574,7 @@ int main(int argc, char *argv[])
 
 
 
-	bool default_projection = 1;
+
 	string temp = dirfile + "optimMap_sanepic_flux.fits";
 	const char *fits_file = temp.c_str();
 	fits_header_generation(outdir,fits_file,pixdeg,default_projection,tanpix,tancoord);
@@ -630,19 +609,6 @@ int main(int argc, char *argv[])
 		 */
 		write_indpix(ind_size, npix, indpix, termin_internal, outdir, flagon);
 	}
-	/*
-	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".txt";
-	fp = fopen(testfile2.c_str(),"w");
-	//	long indpix_size = factdupl*nn*nn+2 + addnpix;
-	//	fwrite(&indpix_size,sizeof(long),1,fp);
-	//fwrite(&flagon,sizeof(int),1,fp); // mat 04/06
-	fprintf(fp,"%d ",flagon);
-	fprintf(fp,"%d ",npix);
-	for(int gg=0;gg<nn*nn+2;gg++)
-		fprintf(fp,"%ld ",indpix[gg]);
-	fclose(fp);*/
-
-	//  printf("[%2.2i] indpix[nn*nn] = %d\n",rank, indpix[nn*nn]);
 
 
 	if (pixout)
