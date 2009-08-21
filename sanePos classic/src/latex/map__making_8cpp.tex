@@ -1,0 +1,87 @@
+\hypertarget{map__making_8cpp}{
+\section{map\_\-making.cpp File Reference}
+\label{map__making_8cpp}\index{map\_\-making.cpp@{map\_\-making.cpp}}
+}
+{\tt \#include $<$cmath$>$}\par
+{\tt \#include $<$iostream$>$}\par
+{\tt \#include $<$algorithm$>$}\par
+{\tt \#include $<$cstdlib$>$}\par
+{\tt \#include \char`\"{}map\_\-making.h\char`\"{}}\par
+\subsection*{Defines}
+\begin{CompactItemize}
+\item 
+\#define \hyperlink{map__making_8cpp_cf1c38f71f39386356edb151a131ad11}{TINY}~1e-6
+\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+double \hyperlink{map__making_8cpp_03b343dfd18e91eea99da4a9f358ac56}{slaDranrm} (double angle)
+\item 
+void \hyperlink{map__making_8cpp_c768b4a6a4272acd32e6017ea17b36e4}{slaDs2tp} (double ra, double dec, double raz, double decz, double $\ast$xi, double $\ast$eta, int $\ast$j)
+\item 
+void \hyperlink{map__making_8cpp_aa62fe8515b10e132f3f9f3ea4da3182}{slaDtp2s} (double xi, double eta, double raz, double decz, double $\ast$ra, double $\ast$dec)
+\item 
+void \hyperlink{map__making_8cpp_ccb205349252bc71485003a62525dca4}{sph\_\-coord\_\-to\_\-sqrmap} (double pixdeg, double $\ast$ra, double $\ast$dec, double $\ast$phi, double $\ast$offsets, int ns, int $\ast$xx, int $\ast$yy, int $\ast$nn, double $\ast$coordscorner, double $\ast$tancoord, double $\ast$tanpix, bool fixcoord, double radius, double $\ast$offmap, double $\ast$radecsrc, bool compute\_\-xx\_\-yy)
+\item 
+void \hyperlink{map__making_8cpp_e638e15678b43ed87da76012ef7537ca}{reproj\_\-to\_\-map} (double $\ast$data, int $\ast$xx, int $\ast$yy, int ns, double $\ast$$\ast$map, double $\ast$$\ast$count, int nn, unsigned char $\ast$flag, double $\ast$$\ast$map\_\-f, double $\ast$$\ast$count\_\-f)
+\item 
+void \hyperlink{map__making_8cpp_ba2aea0995b029b1a174245e7cabd345}{flag\_\-conditions} (unsigned char $\ast$flag, double $\ast$scerr, unsigned char $\ast$flpoint, long ns, long napod, int $\ast$xx, int $\ast$yy, int nn, double errarcsec, bool NOFILLGAP, unsigned char $\ast$rejectsamp)
+\end{CompactItemize}
+
+
+\subsection{Define Documentation}
+\hypertarget{map__making_8cpp_cf1c38f71f39386356edb151a131ad11}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!TINY@{TINY}}
+\index{TINY@{TINY}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{TINY}]{\setlength{\rightskip}{0pt plus 5cm}\#define TINY~1e-6}}
+\label{map__making_8cpp_cf1c38f71f39386356edb151a131ad11}
+
+
+
+
+\subsection{Function Documentation}
+\hypertarget{map__making_8cpp_ba2aea0995b029b1a174245e7cabd345}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!flag\_\-conditions@{flag\_\-conditions}}
+\index{flag\_\-conditions@{flag\_\-conditions}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{flag\_\-conditions}]{\setlength{\rightskip}{0pt plus 5cm}void flag\_\-conditions (unsigned char $\ast$ {\em flag}, \/  double $\ast$ {\em scerr}, \/  unsigned char $\ast$ {\em flpoint}, \/  long {\em ns}, \/  long {\em napod}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int {\em nn}, \/  double {\em errarcsec}, \/  bool {\em NOFILLGAP}, \/  unsigned char $\ast$ {\em rejectsamp})}}
+\label{map__making_8cpp_ba2aea0995b029b1a174245e7cabd345}
+
+
+\hypertarget{map__making_8cpp_e638e15678b43ed87da76012ef7537ca}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!reproj\_\-to\_\-map@{reproj\_\-to\_\-map}}
+\index{reproj\_\-to\_\-map@{reproj\_\-to\_\-map}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{reproj\_\-to\_\-map}]{\setlength{\rightskip}{0pt plus 5cm}void reproj\_\-to\_\-map (double $\ast$ {\em data}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int {\em ns}, \/  double $\ast$$\ast$ {\em map}, \/  double $\ast$$\ast$ {\em count}, \/  int {\em nn}, \/  unsigned char $\ast$ {\em flag}, \/  double $\ast$$\ast$ {\em map\_\-f}, \/  double $\ast$$\ast$ {\em count\_\-f})}}
+\label{map__making_8cpp_e638e15678b43ed87da76012ef7537ca}
+
+
+\hypertarget{map__making_8cpp_03b343dfd18e91eea99da4a9f358ac56}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!slaDranrm@{slaDranrm}}
+\index{slaDranrm@{slaDranrm}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{slaDranrm}]{\setlength{\rightskip}{0pt plus 5cm}double slaDranrm (double {\em angle})}}
+\label{map__making_8cpp_03b343dfd18e91eea99da4a9f358ac56}
+
+
+\hypertarget{map__making_8cpp_c768b4a6a4272acd32e6017ea17b36e4}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!slaDs2tp@{slaDs2tp}}
+\index{slaDs2tp@{slaDs2tp}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{slaDs2tp}]{\setlength{\rightskip}{0pt plus 5cm}void slaDs2tp (double {\em ra}, \/  double {\em dec}, \/  double {\em raz}, \/  double {\em decz}, \/  double $\ast$ {\em xi}, \/  double $\ast$ {\em eta}, \/  int $\ast$ {\em j})}}
+\label{map__making_8cpp_c768b4a6a4272acd32e6017ea17b36e4}
+
+
+\hypertarget{map__making_8cpp_aa62fe8515b10e132f3f9f3ea4da3182}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!slaDtp2s@{slaDtp2s}}
+\index{slaDtp2s@{slaDtp2s}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{slaDtp2s}]{\setlength{\rightskip}{0pt plus 5cm}void slaDtp2s (double {\em xi}, \/  double {\em eta}, \/  double {\em raz}, \/  double {\em decz}, \/  double $\ast$ {\em ra}, \/  double $\ast$ {\em dec})}}
+\label{map__making_8cpp_aa62fe8515b10e132f3f9f3ea4da3182}
+
+
+\hypertarget{map__making_8cpp_ccb205349252bc71485003a62525dca4}{
+\index{map\_\-making.cpp@{map\_\-making.cpp}!sph\_\-coord\_\-to\_\-sqrmap@{sph\_\-coord\_\-to\_\-sqrmap}}
+\index{sph\_\-coord\_\-to\_\-sqrmap@{sph\_\-coord\_\-to\_\-sqrmap}!map_making.cpp@{map\_\-making.cpp}}
+\subsubsection[{sph\_\-coord\_\-to\_\-sqrmap}]{\setlength{\rightskip}{0pt plus 5cm}void sph\_\-coord\_\-to\_\-sqrmap (double {\em pixdeg}, \/  double $\ast$ {\em ra}, \/  double $\ast$ {\em dec}, \/  double $\ast$ {\em phi}, \/  double $\ast$ {\em offsets}, \/  int {\em ns}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int $\ast$ {\em nn}, \/  double $\ast$ {\em coordscorner}, \/  double $\ast$ {\em tancoord}, \/  double $\ast$ {\em tanpix}, \/  bool {\em fixcoord}, \/  double {\em radius}, \/  double $\ast$ {\em offmap}, \/  double $\ast$ {\em radecsrc}, \/  bool {\em compute\_\-xx\_\-yy})}}
+\label{map__making_8cpp_ccb205349252bc71485003a62525dca4}
+
+
+
+
+add a small interval of 2 arcmin 

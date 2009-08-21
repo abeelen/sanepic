@@ -1,0 +1,103 @@
+==22547== Lackey, an example Valgrind tool.
+==22547== Copyright (C) 2002-2007, and GNU GPL'd, by Nicholas Nethercote.
+==22547== Using LibVEX rev 1804, a library for dynamic binary translation.
+==22547== Copyright (C) 2004-2007, and GNU GPL'd, by OpenWorks LLP.
+==22547== Using valgrind-3.3.0-Debian, a dynamic binary instrumentation framework.
+==22547== Copyright (C) 2000-2007, and GNU GPL'd, by Julian Seward et al.
+==22547== 
+==22547== My PID = 22547, parent PID = 15807.  Prog and args are:
+==22547==    ./Debug/sanePos
+==22547==    ./Debug/sanepic_ini.ini
+==22547== 
+--22547-- 
+--22547-- Command line
+--22547--    ./Debug/sanePos
+--22547--    ./Debug/sanepic_ini.ini
+--22547-- Startup, with flags:
+--22547--    --log-file=log_lackey.txt
+--22547--    --tool=lackey
+--22547--    -v
+--22547-- Contents of /proc/version:
+--22547--   Linux version 2.6.24-24-generic (buildd@rothera) (gcc version 4.2.4 (Ubuntu 4.2.4-1ubuntu4)) #1 SMP Wed Apr 15 15:54:25 UTC 2009
+--22547-- Arch and hwcaps: X86, x86-sse1-sse2
+--22547-- Page sizes: currently 4096, max supported 4096
+--22547-- Valgrind library directory: /usr/lib/valgrind
+--22547-- Reading syms from /lib/ld-2.7.so (0x4000000)
+--22547-- Reading debug info from /lib/ld-2.7.so...
+--22547-- ... CRC mismatch (computed aa5c1346 wanted 05177b25)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /home/matthieu/workspace/sanePos/Debug/sanePos (0x8048000)
+--22547-- Reading syms from /usr/lib/valgrind/x86-linux/lackey (0x38000000)
+--22547--    object doesn't have a dynamic symbol table
+--22547-- Reading syms from /usr/lib/valgrind/x86-linux/vgpreload_core.so (0x401E000)
+--22547-- Reading syms from /usr/lib/libcfitsio.so.3.040 (0x402D000)
+--22547-- Reading debug info from /usr/lib/libcfitsio.so.3.040...
+--22547-- ... CRC mismatch (computed c094c864 wanted cbefb04b)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /home/matthieu/workspace/iniparser/Debug/libiniparser.so (0x41E3000)
+--22547-- Reading syms from /home/matthieu/workspace/nr/Debug/libnr.so (0x41E7000)
+--22547-- Reading syms from /home/matthieu/workspace/saneIO/Debug/libsaneIO.so (0x41EC000)
+--22547-- Reading syms from /usr/lib/libstdc++.so.6.0.9 (0x41FB000)
+--22547-- Reading debug info from /usr/lib/libstdc++.so.6.0.9...
+--22547-- ... CRC mismatch (computed b24bea06 wanted 69349987)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /lib/tls/i686/cmov/libm-2.7.so (0x42EE000)
+--22547-- Reading debug info from /lib/tls/i686/cmov/libm-2.7.so...
+--22547-- ... CRC mismatch (computed a35b3de9 wanted 4dd52e16)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /lib/libgcc_s.so.1 (0x4313000)
+--22547-- Reading debug info from /lib/libgcc_s.so.1...
+--22547-- ... CRC mismatch (computed f32b6bb2 wanted ef5e2665)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /lib/tls/i686/cmov/libc-2.7.so (0x431E000)
+--22547-- Reading debug info from /lib/tls/i686/cmov/libc-2.7.so...
+--22547-- ... CRC mismatch (computed af7c73db wanted ca2b0f8f)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /usr/lib/libfftw3.so.3.1.2 (0x446E000)
+--22547-- Reading debug info from /usr/lib/libfftw3.so.3.1.2...
+--22547-- ... CRC mismatch (computed 6b037afa wanted 58f81316)
+--22547--    object doesn't have a symbol table
+--22547-- Reading syms from /lib/tls/i686/cmov/libpthread-2.7.so (0x4554000)
+--22547-- Reading debug info from /lib/tls/i686/cmov/libpthread-2.7.so...
+--22547-- ... CRC mismatch (computed ad1a7762 wanted effcce0a)
+==22547== 
+==22547== Process terminating with default action of signal 27 (SIGPROF)
+==22547==    at 0x40007F0: (within /lib/ld-2.7.so)
+==22547==    by 0x43F736B: _mcleanup (in /lib/tls/i686/cmov/libc-2.7.so)
+==22547==    by 0x434C083: exit (in /lib/tls/i686/cmov/libc-2.7.so)
+==22547==    by 0x4334457: (below main) (in /lib/tls/i686/cmov/libc-2.7.so)
+==22547== 
+==22547== Counted 0 calls to _dl_runtime_resolve()
+==22547== 
+==22547== Jccs:
+==22547==   total:         1,337,999,515
+==22547==   taken:         511,563,981 ( 38%)
+==22547== 
+==22547== Executed:
+==22547==   SBs entered:   2,380,027,058
+==22547==   SBs completed: 1,588,564,033
+==22547==   guest instrs:  18,162,884,895
+==22547==   IRStmts:       96,388,725,486
+==22547== 
+==22547== Ratios:
+==22547==   guest instrs : SB entered  =  76 : 10
+==22547==        IRStmts : SB entered  = 404 : 10
+==22547==        IRStmts : guest instr =  53 : 10
+==22547== 
+==22547== Exit code:       0
+--22547-- translate:            fast SP updates identified: 0 (   --%)
+--22547-- translate:   generic_known SP updates identified: 0 (   --%)
+--22547-- translate: generic_unknown SP updates identified: 0 (   --%)
+--22547--     tt/tc: 502,727 tt lookups requiring 503,963 probes
+--22547--     tt/tc: 502,727 fast-cache updates, 2 flushes
+--22547--  transtab: new        6,783 (159,512 -> 2,891,644; ratio 181:10) [0 scs]
+--22547--  transtab: dumped     0 (0 -> ??)
+--22547--  transtab: discarded  0 (0 -> ??)
+--22547-- scheduler: 2,380,027,058 jumps (bb entries).
+--22547-- scheduler: 23,800/34,883,739 major/minor sched events.
+--22547--    sanity: 23801 cheap, 197 expensive checks.
+--22547--    exectx: 769 lists, 0 contexts (avg 0 per list)
+--22547--    exectx: 0 searches, 0 full compares (0 per 1000)
+--22547--    exectx: 0 cmp2, 0 cmp4, 0 cmpAll
+--22547--  errormgr: 0 supplist searches, 0 comparisons during search
+--22547--  errormgr: 0 errlist searches, 0 comparisons during search

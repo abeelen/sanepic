@@ -1,0 +1,58 @@
+\hypertarget{sanePos__preprocess_8cpp}{
+\section{sanePos\_\-preprocess.cpp File Reference}
+\label{sanePos__preprocess_8cpp}\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+}
+{\tt \#include \char`\"{}sanePos\_\-preprocess.h\char`\"{}}\par
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+void \hyperlink{sanePos__preprocess_8cpp_d5a43c9ac946cab47aa94d1da16437b8}{find\_\-coordinates\_\-in\_\-map} (long ndet, std::vector$<$ string $>$ bolonames, string bextension, string fextension, string file\_\-offsets, \hyperlink{structfoffset}{foffset} $\ast$foffsets, float $\ast$scoffsets, long iframe\_\-min, long iframe\_\-max, long $\ast$fframes, long $\ast$nsamples, string dirfile, string ra\_\-field, string dec\_\-field, string phi\_\-field, string scerr\_\-field, string flpoint\_\-field, int nfoff, double pixdeg, int $\ast$\&xx, int $\ast$\&yy, int nn, double $\ast$\&coordscorner, double $\ast$tancoord, double $\ast$tanpix, bool bfixc, double radius, double $\ast$offmap, double $\ast$srccoord, char type, double $\ast$\&ra, double $\ast$\&dec, double $\ast$\&phi, double $\ast$\&scerr, unsigned char $\ast$\&flpoint, double \&ra\_\-min, double \&ra\_\-max, double \&dec\_\-min, double \&dec\_\-max)
+\item 
+long \hyperlink{sanePos__preprocess_8cpp_3fd979a48e0b9dfbfb1a7a719eb65125}{Compute\_\-indpsrc\_\-addnpix} (int nn, long ntotscan, std::vector$<$ long $>$ xxi, std::vector$<$ long $>$ xxf, std::vector$<$ long $>$ yyi, std::vector$<$ long $>$ yyf, long $\ast$\&indpsrc, long \&npixsrc, unsigned char $\ast$\&mask)
+\item 
+void \hyperlink{sanePos__preprocess_8cpp_81781f0ee4644a09d7931baa3151b94f}{compute\_\-seen\_\-pixels\_\-coordinates} (int ndet, long ntotscan, string outdir, std::vector$<$ string $>$ bolonames, string bextension, string fextension, string termin, string file\_\-offsets, \hyperlink{structfoffset}{foffset} $\ast$foffsets, float $\ast$scoffsets, long iframe\_\-min, long iframe\_\-max, long $\ast$fframes, long $\ast$nsamples, string dirfile, string ra\_\-field, string dec\_\-field, string phi\_\-field, string scerr\_\-field, string flpoint\_\-field, int nfoff, double pixdeg, int $\ast$\&xx, int $\ast$\&yy, unsigned char $\ast$\&mask, int \&nn, double $\ast$\&coordscorner, double $\ast$tancoord, double $\ast$tanpix, bool bfixc, double radius, double $\ast$offmap, double $\ast$srccoord, char type, double $\ast$\&ra, double $\ast$\&dec, double $\ast$\&phi, double $\ast$\&scerr, unsigned char $\ast$\&flpoint, int shift\_\-data\_\-to\_\-point, double \&ra\_\-min, double \&ra\_\-max, double \&dec\_\-min, double \&dec\_\-max, unsigned char $\ast$\&flag, long napod, double errarcsec, bool NOFILLGAP, bool flgdupl, int factdupl, long addnpix, unsigned char $\ast$\&rejectsamp, long $\ast$\&samptopix, long $\ast$\&pixon, int rank, long $\ast$indpsrc, long npixsrc, int \&flagon)
+\item 
+int \hyperlink{sanePos__preprocess_8cpp_bce2469e5f8983c9bfd1bc09c30ab006}{compute\_\-indpix} (long $\ast$\&indpix, int factdupl, int nn, long addnpix, long $\ast$pixon)
+\item 
+int \hyperlink{sanePos__preprocess_8cpp_860253178dafb42fc00837aada9f4172}{map\_\-offsets} (string file\_\-frame\_\-offsets, long ntotscan, float $\ast$\&scoffsets, \hyperlink{structfoffset}{foffset} $\ast$\&foffsets, long $\ast$fframes, int rank)
+\end{CompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{sanePos__preprocess_8cpp_bce2469e5f8983c9bfd1bc09c30ab006}{
+\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}!compute\_\-indpix@{compute\_\-indpix}}
+\index{compute\_\-indpix@{compute\_\-indpix}!sanePos_preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+\subsubsection[{compute\_\-indpix}]{\setlength{\rightskip}{0pt plus 5cm}int compute\_\-indpix (long $\ast$\& {\em indpix}, \/  int {\em factdupl}, \/  int {\em nn}, \/  long {\em addnpix}, \/  long $\ast$ {\em pixon})}}
+\label{sanePos__preprocess_8cpp_bce2469e5f8983c9bfd1bc09c30ab006}
+
+
+compute indpix : pixels indices used for data projection/deprojection. npix is the number of filled pixels Pixon : indicates if the pixel is projected on the map or not addnpix : number of pixels to add : depends on box for CCR and duplication factor \hypertarget{sanePos__preprocess_8cpp_3fd979a48e0b9dfbfb1a7a719eb65125}{
+\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}!Compute\_\-indpsrc\_\-addnpix@{Compute\_\-indpsrc\_\-addnpix}}
+\index{Compute\_\-indpsrc\_\-addnpix@{Compute\_\-indpsrc\_\-addnpix}!sanePos_preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+\subsubsection[{Compute\_\-indpsrc\_\-addnpix}]{\setlength{\rightskip}{0pt plus 5cm}long Compute\_\-indpsrc\_\-addnpix (int {\em nn}, \/  long {\em ntotscan}, \/  std::vector$<$ long $>$ {\em xxi}, \/  std::vector$<$ long $>$ {\em xxf}, \/  std::vector$<$ long $>$ {\em yyi}, \/  std::vector$<$ long $>$ {\em yyf}, \/  long $\ast$\& {\em indpsrc}, \/  long \& {\em npixsrc}, \/  unsigned char $\ast$\& {\em mask})}}
+\label{sanePos__preprocess_8cpp_3fd979a48e0b9dfbfb1a7a719eb65125}
+
+
+compute\_\-indpsrc\_\-addnpix Input : nn : size of the map in pixels ntotscan : total number of scans xxi, xxf, yyi, yyf : box for crossing constraint removal corner coordinates indpsrc : pixel indice of the pixel included in box for CCR npixsrc : total number of pix in box for CCR mask : 0 if the pixel is contained in box for CCR, 1 otherwise \hypertarget{sanePos__preprocess_8cpp_81781f0ee4644a09d7931baa3151b94f}{
+\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}!compute\_\-seen\_\-pixels\_\-coordinates@{compute\_\-seen\_\-pixels\_\-coordinates}}
+\index{compute\_\-seen\_\-pixels\_\-coordinates@{compute\_\-seen\_\-pixels\_\-coordinates}!sanePos_preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+\subsubsection[{compute\_\-seen\_\-pixels\_\-coordinates}]{\setlength{\rightskip}{0pt plus 5cm}void compute\_\-seen\_\-pixels\_\-coordinates (int {\em ndet}, \/  long {\em ntotscan}, \/  string {\em outdir}, \/  std::vector$<$ string $>$ {\em bolonames}, \/  string {\em bextension}, \/  string {\em fextension}, \/  string {\em termin}, \/  string {\em file\_\-offsets}, \/  {\bf foffset} $\ast$ {\em foffsets}, \/  float $\ast$ {\em scoffsets}, \/  long {\em iframe\_\-min}, \/  long {\em iframe\_\-max}, \/  long $\ast$ {\em fframes}, \/  long $\ast$ {\em nsamples}, \/  string {\em dirfile}, \/  string {\em ra\_\-field}, \/  string {\em dec\_\-field}, \/  string {\em phi\_\-field}, \/  string {\em scerr\_\-field}, \/  string {\em flpoint\_\-field}, \/  int {\em nfoff}, \/  double {\em pixdeg}, \/  int $\ast$\& {\em xx}, \/  int $\ast$\& {\em yy}, \/  unsigned char $\ast$\& {\em mask}, \/  int \& {\em nn}, \/  double $\ast$\& {\em coordscorner}, \/  double $\ast$ {\em tancoord}, \/  double $\ast$ {\em tanpix}, \/  bool {\em bfixc}, \/  double {\em radius}, \/  double $\ast$ {\em offmap}, \/  double $\ast$ {\em srccoord}, \/  char {\em type}, \/  double $\ast$\& {\em ra}, \/  double $\ast$\& {\em dec}, \/  double $\ast$\& {\em phi}, \/  double $\ast$\& {\em scerr}, \/  unsigned char $\ast$\& {\em flpoint}, \/  int {\em shift\_\-data\_\-to\_\-point}, \/  double \& {\em ra\_\-min}, \/  double \& {\em ra\_\-max}, \/  double \& {\em dec\_\-min}, \/  double \& {\em dec\_\-max}, \/  unsigned char $\ast$\& {\em flag}, \/  long {\em napod}, \/  double {\em errarcsec}, \/  bool {\em NOFILLGAP}, \/  bool {\em flgdupl}, \/  int {\em factdupl}, \/  long {\em addnpix}, \/  unsigned char $\ast$\& {\em rejectsamp}, \/  long $\ast$\& {\em samptopix}, \/  long $\ast$\& {\em pixon}, \/  int {\em rank}, \/  long $\ast$ {\em indpsrc}, \/  long {\em npixsrc}, \/  int \& {\em flagon})}}
+\label{sanePos__preprocess_8cpp_81781f0ee4644a09d7931baa3151b94f}
+
+
+Get coordinates of pixels that are seen Compute the position to pixel projetcion matrices : One binary file per bolometer and per scan 
+
+loop again on detectors \hypertarget{sanePos__preprocess_8cpp_d5a43c9ac946cab47aa94d1da16437b8}{
+\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}!find\_\-coordinates\_\-in\_\-map@{find\_\-coordinates\_\-in\_\-map}}
+\index{find\_\-coordinates\_\-in\_\-map@{find\_\-coordinates\_\-in\_\-map}!sanePos_preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+\subsubsection[{find\_\-coordinates\_\-in\_\-map}]{\setlength{\rightskip}{0pt plus 5cm}void find\_\-coordinates\_\-in\_\-map (long {\em ndet}, \/  std::vector$<$ string $>$ {\em bolonames}, \/  string {\em bextension}, \/  string {\em fextension}, \/  string {\em file\_\-offsets}, \/  {\bf foffset} $\ast$ {\em foffsets}, \/  float $\ast$ {\em scoffsets}, \/  long {\em iframe\_\-min}, \/  long {\em iframe\_\-max}, \/  long $\ast$ {\em fframes}, \/  long $\ast$ {\em nsamples}, \/  string {\em dirfile}, \/  string {\em ra\_\-field}, \/  string {\em dec\_\-field}, \/  string {\em phi\_\-field}, \/  string {\em scerr\_\-field}, \/  string {\em flpoint\_\-field}, \/  int {\em nfoff}, \/  double {\em pixdeg}, \/  int $\ast$\& {\em xx}, \/  int $\ast$\& {\em yy}, \/  int {\em nn}, \/  double $\ast$\& {\em coordscorner}, \/  double $\ast$ {\em tancoord}, \/  double $\ast$ {\em tanpix}, \/  bool {\em bfixc}, \/  double {\em radius}, \/  double $\ast$ {\em offmap}, \/  double $\ast$ {\em srccoord}, \/  char {\em type}, \/  double $\ast$\& {\em ra}, \/  double $\ast$\& {\em dec}, \/  double $\ast$\& {\em phi}, \/  double $\ast$\& {\em scerr}, \/  unsigned char $\ast$\& {\em flpoint}, \/  double \& {\em ra\_\-min}, \/  double \& {\em ra\_\-max}, \/  double \& {\em dec\_\-min}, \/  double \& {\em dec\_\-max})}}
+\label{sanePos__preprocess_8cpp_d5a43c9ac946cab47aa94d1da16437b8}
+
+
+find\_\-coordinates\_\-in\_\-map : Output : ra\_\-min, ra\_\-max, dec\_\-min, dec\_\-max \hypertarget{sanePos__preprocess_8cpp_860253178dafb42fc00837aada9f4172}{
+\index{sanePos\_\-preprocess.cpp@{sanePos\_\-preprocess.cpp}!map\_\-offsets@{map\_\-offsets}}
+\index{map\_\-offsets@{map\_\-offsets}!sanePos_preprocess.cpp@{sanePos\_\-preprocess.cpp}}
+\subsubsection[{map\_\-offsets}]{\setlength{\rightskip}{0pt plus 5cm}int map\_\-offsets (string {\em file\_\-frame\_\-offsets}, \/  long {\em ntotscan}, \/  float $\ast$\& {\em scoffsets}, \/  {\bf foffset} $\ast$\& {\em foffsets}, \/  long $\ast$ {\em fframes}, \/  int {\em rank})}}
+\label{sanePos__preprocess_8cpp_860253178dafb42fc00837aada9f4172}
+
+

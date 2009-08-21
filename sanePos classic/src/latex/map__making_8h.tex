@@ -1,0 +1,98 @@
+\hypertarget{map__making_8h}{
+\section{map\_\-making.h File Reference}
+\label{map__making_8h}\index{map\_\-making.h@{map\_\-making.h}}
+}
+{\tt \#include $<$cstdlib$>$}\par
+\subsection*{Defines}
+\begin{CompactItemize}
+\item 
+\#define \hyperlink{map__making_8h_d31c3fd97b12471ed84a11631f3b1eae}{D2PI}~6.2831853071795864769252867665590057683943387987502
+\item 
+\#define \hyperlink{map__making_8h_c704fdd0b60da296b008252f71084592}{dmod}(A, B)
+\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+double \hyperlink{map__making_8h_03b343dfd18e91eea99da4a9f358ac56}{slaDranrm} (double angle)
+\item 
+void \hyperlink{map__making_8h_c768b4a6a4272acd32e6017ea17b36e4}{slaDs2tp} (double ra, double dec, double raz, double decz, double $\ast$xi, double $\ast$eta, int $\ast$j)
+\item 
+void \hyperlink{map__making_8h_aa62fe8515b10e132f3f9f3ea4da3182}{slaDtp2s} (double xi, double eta, double raz, double decz, double $\ast$ra, double $\ast$dec)
+\item 
+void \hyperlink{map__making_8h_18e2f18d7767707f5f0d6ac27d094ab9}{sph\_\-coord\_\-to\_\-sqrmap} (double pixdeg, double $\ast$ra, double $\ast$dec, double $\ast$phi, double $\ast$offsets, int ns, int $\ast$xx, int $\ast$yy, int $\ast$nn, double $\ast$coordscorner, double $\ast$tancoord, double $\ast$tanpix, bool fixcoord, double radius, double $\ast$offmap, double $\ast$radecsrc=NULL, bool compute\_\-xx\_\-yy=0)
+\item 
+void \hyperlink{map__making_8h_e638e15678b43ed87da76012ef7537ca}{reproj\_\-to\_\-map} (double $\ast$data, int $\ast$xx, int $\ast$yy, int ns, double $\ast$$\ast$map, double $\ast$$\ast$count, int nn, unsigned char $\ast$flag, double $\ast$$\ast$map\_\-f, double $\ast$$\ast$count\_\-f)
+\item 
+void \hyperlink{map__making_8h_ba2aea0995b029b1a174245e7cabd345}{flag\_\-conditions} (unsigned char $\ast$flag, double $\ast$scerr, unsigned char $\ast$flpoint, long ns, long napod, int $\ast$xx, int $\ast$yy, int nn, double errarcsec, bool NOFILLGAP, unsigned char $\ast$rejectsamp)
+\end{CompactItemize}
+
+
+\subsection{Define Documentation}
+\hypertarget{map__making_8h_d31c3fd97b12471ed84a11631f3b1eae}{
+\index{map\_\-making.h@{map\_\-making.h}!D2PI@{D2PI}}
+\index{D2PI@{D2PI}!map_making.h@{map\_\-making.h}}
+\subsubsection[{D2PI}]{\setlength{\rightskip}{0pt plus 5cm}\#define D2PI~6.2831853071795864769252867665590057683943387987502}}
+\label{map__making_8h_d31c3fd97b12471ed84a11631f3b1eae}
+
+
+\hypertarget{map__making_8h_c704fdd0b60da296b008252f71084592}{
+\index{map\_\-making.h@{map\_\-making.h}!dmod@{dmod}}
+\index{dmod@{dmod}!map_making.h@{map\_\-making.h}}
+\subsubsection[{dmod}]{\setlength{\rightskip}{0pt plus 5cm}\#define dmod(A, \/  B)}}
+\label{map__making_8h_c704fdd0b60da296b008252f71084592}
+
+
+\textbf{Value:}
+
+\begin{Code}\begin{verbatim}((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
+        :(A)+(B)*floor(-(A)/(B))):(A))
+\end{verbatim}
+\end{Code}
+
+
+\subsection{Function Documentation}
+\hypertarget{map__making_8h_ba2aea0995b029b1a174245e7cabd345}{
+\index{map\_\-making.h@{map\_\-making.h}!flag\_\-conditions@{flag\_\-conditions}}
+\index{flag\_\-conditions@{flag\_\-conditions}!map_making.h@{map\_\-making.h}}
+\subsubsection[{flag\_\-conditions}]{\setlength{\rightskip}{0pt plus 5cm}void flag\_\-conditions (unsigned char $\ast$ {\em flag}, \/  double $\ast$ {\em scerr}, \/  unsigned char $\ast$ {\em flpoint}, \/  long {\em ns}, \/  long {\em napod}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int {\em nn}, \/  double {\em errarcsec}, \/  bool {\em NOFILLGAP}, \/  unsigned char $\ast$ {\em rejectsamp})}}
+\label{map__making_8h_ba2aea0995b029b1a174245e7cabd345}
+
+
+\hypertarget{map__making_8h_e638e15678b43ed87da76012ef7537ca}{
+\index{map\_\-making.h@{map\_\-making.h}!reproj\_\-to\_\-map@{reproj\_\-to\_\-map}}
+\index{reproj\_\-to\_\-map@{reproj\_\-to\_\-map}!map_making.h@{map\_\-making.h}}
+\subsubsection[{reproj\_\-to\_\-map}]{\setlength{\rightskip}{0pt plus 5cm}void reproj\_\-to\_\-map (double $\ast$ {\em data}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int {\em ns}, \/  double $\ast$$\ast$ {\em map}, \/  double $\ast$$\ast$ {\em count}, \/  int {\em nn}, \/  unsigned char $\ast$ {\em flag}, \/  double $\ast$$\ast$ {\em map\_\-f}, \/  double $\ast$$\ast$ {\em count\_\-f})}}
+\label{map__making_8h_e638e15678b43ed87da76012ef7537ca}
+
+
+\hypertarget{map__making_8h_03b343dfd18e91eea99da4a9f358ac56}{
+\index{map\_\-making.h@{map\_\-making.h}!slaDranrm@{slaDranrm}}
+\index{slaDranrm@{slaDranrm}!map_making.h@{map\_\-making.h}}
+\subsubsection[{slaDranrm}]{\setlength{\rightskip}{0pt plus 5cm}double slaDranrm (double {\em angle})}}
+\label{map__making_8h_03b343dfd18e91eea99da4a9f358ac56}
+
+
+\hypertarget{map__making_8h_c768b4a6a4272acd32e6017ea17b36e4}{
+\index{map\_\-making.h@{map\_\-making.h}!slaDs2tp@{slaDs2tp}}
+\index{slaDs2tp@{slaDs2tp}!map_making.h@{map\_\-making.h}}
+\subsubsection[{slaDs2tp}]{\setlength{\rightskip}{0pt plus 5cm}void slaDs2tp (double {\em ra}, \/  double {\em dec}, \/  double {\em raz}, \/  double {\em decz}, \/  double $\ast$ {\em xi}, \/  double $\ast$ {\em eta}, \/  int $\ast$ {\em j})}}
+\label{map__making_8h_c768b4a6a4272acd32e6017ea17b36e4}
+
+
+\hypertarget{map__making_8h_aa62fe8515b10e132f3f9f3ea4da3182}{
+\index{map\_\-making.h@{map\_\-making.h}!slaDtp2s@{slaDtp2s}}
+\index{slaDtp2s@{slaDtp2s}!map_making.h@{map\_\-making.h}}
+\subsubsection[{slaDtp2s}]{\setlength{\rightskip}{0pt plus 5cm}void slaDtp2s (double {\em xi}, \/  double {\em eta}, \/  double {\em raz}, \/  double {\em decz}, \/  double $\ast$ {\em ra}, \/  double $\ast$ {\em dec})}}
+\label{map__making_8h_aa62fe8515b10e132f3f9f3ea4da3182}
+
+
+\hypertarget{map__making_8h_18e2f18d7767707f5f0d6ac27d094ab9}{
+\index{map\_\-making.h@{map\_\-making.h}!sph\_\-coord\_\-to\_\-sqrmap@{sph\_\-coord\_\-to\_\-sqrmap}}
+\index{sph\_\-coord\_\-to\_\-sqrmap@{sph\_\-coord\_\-to\_\-sqrmap}!map_making.h@{map\_\-making.h}}
+\subsubsection[{sph\_\-coord\_\-to\_\-sqrmap}]{\setlength{\rightskip}{0pt plus 5cm}void sph\_\-coord\_\-to\_\-sqrmap (double {\em pixdeg}, \/  double $\ast$ {\em ra}, \/  double $\ast$ {\em dec}, \/  double $\ast$ {\em phi}, \/  double $\ast$ {\em offsets}, \/  int {\em ns}, \/  int $\ast$ {\em xx}, \/  int $\ast$ {\em yy}, \/  int $\ast$ {\em nn}, \/  double $\ast$ {\em coordscorner}, \/  double $\ast$ {\em tancoord}, \/  double $\ast$ {\em tanpix}, \/  bool {\em fixcoord}, \/  double {\em radius}, \/  double $\ast$ {\em offmap}, \/  double $\ast$ {\em radecsrc} = {\tt NULL}, \/  bool {\em compute\_\-xx\_\-yy} = {\tt 0})}}
+\label{map__making_8h_18e2f18d7767707f5f0d6ac27d094ab9}
+
+
+
+
+add a small interval of 2 arcmin 

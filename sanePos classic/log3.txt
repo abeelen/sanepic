@@ -1,0 +1,225 @@
+==8293== Memcheck, a memory error detector.
+==8293== Copyright (C) 2002-2007, and GNU GPL'd, by Julian Seward et al.
+==8293== Using LibVEX rev 1804, a library for dynamic binary translation.
+==8293== Copyright (C) 2004-2007, and GNU GPL'd, by OpenWorks LLP.
+==8293== Using valgrind-3.3.0-Debian, a dynamic binary instrumentation framework.
+==8293== Copyright (C) 2000-2007, and GNU GPL'd, by Julian Seward et al.
+==8293== 
+==8293== My PID = 8293, parent PID = 7560.  Prog and args are:
+==8293==    ./Debug/sanePos
+==8293==    ./Debug/sanepic_ini.ini
+==8293== 
+--8293-- 
+--8293-- Command line
+--8293--    ./Debug/sanePos
+--8293--    ./Debug/sanepic_ini.ini
+--8293-- Startup, with flags:
+--8293--    --log-file=log3.txt
+--8293--    --tool=memcheck
+--8293--    --leak-check=full
+--8293--    -v
+--8293-- Contents of /proc/version:
+--8293--   Linux version 2.6.24-24-generic (buildd@rothera) (gcc version 4.2.4 (Ubuntu 4.2.4-1ubuntu4)) #1 SMP Wed Apr 15 15:54:25 UTC 2009
+--8293-- Arch and hwcaps: X86, x86-sse1-sse2
+--8293-- Page sizes: currently 4096, max supported 4096
+--8293-- Valgrind library directory: /usr/lib/valgrind
+--8293-- Reading syms from /lib/ld-2.7.so (0x4000000)
+--8293-- Reading debug info from /lib/ld-2.7.so...
+--8293-- ... CRC mismatch (computed aa5c1346 wanted 05177b25)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /home/matthieu/workspace/sanePos/Debug/sanePos (0x8048000)
+--8293-- Reading syms from /usr/lib/valgrind/x86-linux/memcheck (0x38000000)
+--8293--    object doesn't have a dynamic symbol table
+--8293-- Reading suppressions file: /usr/lib/valgrind/default.supp
+--8293-- Reading syms from /usr/lib/valgrind/x86-linux/vgpreload_core.so (0x401E000)
+--8293-- Reading syms from /usr/lib/valgrind/x86-linux/vgpreload_memcheck.so (0x4020000)
+--8293-- Reading syms from /usr/lib/libcfitsio.so.3.040 (0x4034000)
+--8293-- Reading debug info from /usr/lib/libcfitsio.so.3.040...
+--8293-- ... CRC mismatch (computed c094c864 wanted cbefb04b)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /home/matthieu/workspace/iniparser/Debug/libiniparser.so (0x41EB000)
+--8293-- Reading syms from /home/matthieu/workspace/nr/Debug/libnr.so (0x41EF000)
+--8293-- Reading syms from /home/matthieu/workspace/saneIO/Debug/libsaneIO.so (0x41F3000)
+--8293-- Reading syms from /usr/lib/libstdc++.so.6.0.9 (0x4202000)
+--8293-- Reading debug info from /usr/lib/libstdc++.so.6.0.9...
+--8293-- ... CRC mismatch (computed b24bea06 wanted 69349987)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /lib/tls/i686/cmov/libm-2.7.so (0x42F5000)
+--8293-- Reading debug info from /lib/tls/i686/cmov/libm-2.7.so...
+--8293-- ... CRC mismatch (computed a35b3de9 wanted 4dd52e16)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /lib/libgcc_s.so.1 (0x431A000)
+--8293-- Reading debug info from /lib/libgcc_s.so.1...
+--8293-- ... CRC mismatch (computed f32b6bb2 wanted ef5e2665)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /lib/tls/i686/cmov/libc-2.7.so (0x4326000)
+--8293-- Reading debug info from /lib/tls/i686/cmov/libc-2.7.so...
+--8293-- ... CRC mismatch (computed af7c73db wanted ca2b0f8f)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /usr/lib/libfftw3.so.3.1.2 (0x4475000)
+--8293-- Reading debug info from /usr/lib/libfftw3.so.3.1.2...
+--8293-- ... CRC mismatch (computed 6b037afa wanted 58f81316)
+--8293--    object doesn't have a symbol table
+--8293-- Reading syms from /lib/tls/i686/cmov/libpthread-2.7.so (0x455B000)
+--8293-- Reading debug info from /lib/tls/i686/cmov/libpthread-2.7.so...
+--8293-- ... CRC mismatch (computed ad1a7762 wanted effcce0a)
+--8293-- REDIR: 0x43994b0 (memset) redirected to 0x4023d50 (memset)
+--8293-- REDIR: 0x43999a0 (memcpy) redirected to 0x4024aa0 (memcpy)
+--8293-- REDIR: 0x4398620 (rindex) redirected to 0x4023710 (rindex)
+--8293-- REDIR: 0x4398250 (strlen) redirected to 0x40239d0 (strlen)
+--8293-- REDIR: 0x42bb560 (operator new[](unsigned)) redirected to 0x4022eb0 (operator new[](unsigned))
+--8293-- REDIR: 0x42bb420 (operator new(unsigned)) redirected to 0x4023230 (operator new(unsigned))
+--8293-- REDIR: 0x4393c20 (malloc) redirected to 0x4022a50 (malloc)
+--8293-- REDIR: 0x4393930 (calloc) redirected to 0x4021b70 (calloc)
+--8293-- REDIR: 0x4398fb0 (memchr) redirected to 0x4023bf0 (memchr)
+--8293-- REDIR: 0x4397d90 (strcpy) redirected to 0x4024d10 (strcpy)
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x41ED523: iniparser_load (iniparser.c:583)
+==8293==    by 0x8051385: parse_sanePos_ini_file(char*, bool&, int&, long&, bool&, bool&, double*, double*, double&, long&, long&, int&, double&, double*, double*, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, int&, std::vector<std::string, std::allocator<std::string> >&, std::vector<long, std::allocator<long> >&, std::vector<long, std::allocator<long> >&, std::string&) (parsePos.cpp:44)
+==8293==    by 0x804B38F: main (MainSanepicCorr_mpi.cpp:221)
+--8293-- REDIR: 0x439a2d0 (rawmemchr) redirected to 0x4023e20 (rawmemchr)
+--8293-- REDIR: 0x4397d20 (strcmp) redirected to 0x4023aa0 (strcmp)
+--8293-- REDIR: 0x439a3a0 (strchrnul) redirected to 0x4023df0 (strchrnul)
+--8293-- REDIR: 0x4399510 (mempcpy) redirected to 0x4024490 (mempcpy)
+--8293-- REDIR: 0x4395460 (free) redirected to 0x40225f0 (free)
+--8293-- REDIR: 0x42b9af0 (operator delete(void*)) redirected to 0x4022280 (operator delete(void*))
+--8293-- REDIR: 0x42b9b50 (operator delete[](void*)) redirected to 0x4021e60 (operator delete[](void*))
+--8293-- REDIR: 0x4399440 (memmove) redirected to 0x4023da0 (memmove)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050116: slaDranrm(double) (map_making.cpp:35)
+==8293==    by 0x805020C: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:134)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050170: slaDranrm(double) (map_making.cpp:36)
+==8293==    by 0x805020C: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:134)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050233: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:135)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050235: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:135)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x805108D: double* std::max_element<double*>(double*, double*) (stl_algo.h:4893)
+==8293==    by 0x80504F9: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:192)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x80510E1: double* std::min_element<double*>(double*, double*) (stl_algo.h:4945)
+==8293==    by 0x8050516: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:193)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x805108D: double* std::max_element<double*>(double*, double*) (stl_algo.h:4893)
+==8293==    by 0x8050533: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:194)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x80510E1: double* std::min_element<double*>(double*, double*) (stl_algo.h:4945)
+==8293==    by 0x8050550: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:195)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== ERROR SUMMARY: 234787 errors from 9 contexts (suppressed: 29 from 1)
+==8293== 
+==8293== 71 errors in context 1 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x41ED523: iniparser_load (iniparser.c:583)
+==8293==    by 0x8051385: parse_sanePos_ini_file(char*, bool&, int&, long&, bool&, bool&, double*, double*, double&, long&, long&, int&, double&, double*, double*, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, std::string&, int&, std::vector<std::string, std::allocator<std::string> >&, std::vector<long, std::allocator<long> >&, std::vector<long, std::allocator<long> >&, std::string&) (parsePos.cpp:44)
+==8293==    by 0x804B38F: main (MainSanepicCorr_mpi.cpp:221)
+==8293== 
+==8293== 29339 errors in context 2 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x80510E1: double* std::min_element<double*>(double*, double*) (stl_algo.h:4945)
+==8293==    by 0x8050550: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:195)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29339 errors in context 3 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x805108D: double* std::max_element<double*>(double*, double*) (stl_algo.h:4893)
+==8293==    by 0x8050533: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:194)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29339 errors in context 4 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x80510E1: double* std::min_element<double*>(double*, double*) (stl_algo.h:4945)
+==8293==    by 0x8050516: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:193)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29339 errors in context 5 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x805108D: double* std::max_element<double*>(double*, double*) (stl_algo.h:4893)
+==8293==    by 0x80504F9: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:192)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29340 errors in context 6 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050235: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:135)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29340 errors in context 7 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050233: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:135)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29340 errors in context 8 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050170: slaDranrm(double) (map_making.cpp:36)
+==8293==    by 0x805020C: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:134)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+==8293== 
+==8293== 29340 errors in context 9 of 9:
+==8293== Conditional jump or move depends on uninitialised value(s)
+==8293==    at 0x8050116: slaDranrm(double) (map_making.cpp:35)
+==8293==    by 0x805020C: slaDtp2s(double, double, double, double, double*, double*) (map_making.cpp:134)
+==8293==    by 0x8050495: sph_coord_to_sqrmap(double, double*, double*, double*, double*, int, int*, int*, int*, double*, double*, double*, bool, double, double*, double*) (map_making.cpp:184)
+==8293==    by 0x804C4AD: main (MainSanepicCorr_mpi.cpp:515)
+--8293-- 
+--8293-- supp:     29 dl-hack3-1
+==8293== 
+==8293== IN SUMMARY: 234787 errors from 9 contexts (suppressed: 29 from 1)
+==8293== 
+==8293== malloc/free: in use at exit: 0 bytes in 0 blocks.
+==8293== malloc/free: 19,486 allocs, 19,486 frees, 351,666,294 bytes allocated.
+==8293== 
+==8293== All heap blocks were freed -- no leaks are possible.
+--8293--  memcheck: sanity checks: 18764 cheap, 173 expensive
+--8293--  memcheck: auxmaps: 0 auxmap entries (0k, 0M) in use
+--8293--  memcheck: auxmaps_L1: 0 searches, 0 cmps, ratio 0:10
+--8293--  memcheck: auxmaps_L2: 0 searches, 0 nodes
+--8293--  memcheck: SMs: n_issued      = 5332 (85312k, 83M)
+--8293--  memcheck: SMs: n_deissued    = 5201 (83216k, 81M)
+--8293--  memcheck: SMs: max_noaccess  = 65535 (1048560k, 1023M)
+--8293--  memcheck: SMs: max_undefined = 32 (512k, 0M)
+--8293--  memcheck: SMs: max_defined   = 86 (1376k, 1M)
+--8293--  memcheck: SMs: max_non_DSM   = 179 (2864k, 2M)
+--8293--  memcheck: max sec V bit nodes:    0 (0k, 0M)
+--8293--  memcheck: set_sec_vbits8 calls: 0 (new: 0, updates: 0)
+--8293--  memcheck: max shadow mem size:   3168k, 3M
+--8293-- translate:            fast SP updates identified: 8,042 ( 89.1%)
+--8293-- translate:   generic_known SP updates identified: 583 (  6.4%)
+--8293-- translate: generic_unknown SP updates identified: 393 (  4.3%)
+--8293--     tt/tc: 472,254 tt lookups requiring 473,433 probes
+--8293--     tt/tc: 472,254 fast-cache updates, 2 flushes
+--8293--  transtab: new        6,474 (154,397 -> 2,122,653; ratio 137:10) [0 scs]
+--8293--  transtab: dumped     0 (0 -> ??)
+--8293--  transtab: discarded  0 (0 -> ??)
+--8293-- scheduler: 1,876,467,768 jumps (bb entries).
+--8293-- scheduler: 18,764/34,859,175 major/minor sched events.
+--8293--    sanity: 18765 cheap, 173 expensive checks.
+--8293--    exectx: 769 lists, 316 contexts (avg 0 per list)
+--8293--    exectx: 273,788 searches, 275,032 full compares (1,004 per 1000)
+--8293--    exectx: 0 cmp2, 586,998 cmp4, 0 cmpAll
+--8293--  errormgr: 15 supplist searches, 705 comparisons during search
+--8293--  errormgr: 234,816 errlist searches, 586,998 comparisons during search

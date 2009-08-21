@@ -1,0 +1,38 @@
+\hypertarget{parsePos_8h}{
+\section{parsePos.h File Reference}
+\label{parsePos_8h}\index{parsePos.h@{parsePos.h}}
+}
+{\tt \#include $<$iostream$>$}\par
+{\tt \#include $<$iomanip$>$}\par
+{\tt \#include $<$fstream$>$}\par
+{\tt \#include $<$cstdlib$>$}\par
+{\tt \#include $<$stdio.h$>$}\par
+{\tt \#include $<$stdlib.h$>$}\par
+{\tt \#include $<$string$>$}\par
+{\tt \#include $<$unistd.h$>$}\par
+{\tt \#include $<$list$>$}\par
+{\tt \#include $<$vector$>$}\par
+{\tt \#include $<$algorithm$>$}\par
+{\tt \#include $<$math.h$>$}\par
+{\tt \#include \char`\"{}boloIO.h\char`\"{}}\par
+{\tt \#include \char`\"{}iniparser.h\char`\"{}}\par
+{\tt \#include \char`\"{}dictionary.h\char`\"{}}\par
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+int \hyperlink{parsePos_8h_b630c77a548dda989021144eae9933e9}{parse\_\-sanePos\_\-ini\_\-file} (char $\ast$ini\_\-name, bool \&bfixc, int \&shift\_\-data\_\-to\_\-point, long \&napod, bool \&NOFILLGAP, bool \&flgdupl, double $\ast$srccoord, double $\ast$coordscorner, double \&radius, long \&ntotscan, long \&ndet, int \&nnf, double \&pixdeg, double $\ast$tancoord, double $\ast$tanpix, string \&dirfile, string \&outdir, string \&poutdir, string \&bextension, string \&fextension, string \&pextension, string \&file\_\-offsets, string \&file\_\-frame\_\-offsets, string \&termin, int \&coordsyst, std::vector$<$ string $>$ \&bolonames, std::vector$<$ long $>$ \&fframes\_\-vec, std::vector$<$ long $>$ \&nsamples\_\-vec, string \&fname)
+\end{CompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{parsePos_8h_b630c77a548dda989021144eae9933e9}{
+\index{parsePos.h@{parsePos.h}!parse\_\-sanePos\_\-ini\_\-file@{parse\_\-sanePos\_\-ini\_\-file}}
+\index{parse\_\-sanePos\_\-ini\_\-file@{parse\_\-sanePos\_\-ini\_\-file}!parsePos.h@{parsePos.h}}
+\subsubsection[{parse\_\-sanePos\_\-ini\_\-file}]{\setlength{\rightskip}{0pt plus 5cm}int parse\_\-sanePos\_\-ini\_\-file (char $\ast$ {\em ini\_\-name}, \/  bool \& {\em bfixc}, \/  int \& {\em shift\_\-data\_\-to\_\-point}, \/  long \& {\em napod}, \/  bool \& {\em NOFILLGAP}, \/  bool \& {\em flgdupl}, \/  double $\ast$ {\em srccoord}, \/  double $\ast$ {\em coordscorner}, \/  double \& {\em radius}, \/  long \& {\em ntotscan}, \/  long \& {\em ndet}, \/  int \& {\em nnf}, \/  double \& {\em pixdeg}, \/  double $\ast$ {\em tancoord}, \/  double $\ast$ {\em tanpix}, \/  string \& {\em dirfile}, \/  string \& {\em outdir}, \/  string \& {\em poutdir}, \/  string \& {\em bextension}, \/  string \& {\em fextension}, \/  string \& {\em pextension}, \/  string \& {\em file\_\-offsets}, \/  string \& {\em file\_\-frame\_\-offsets}, \/  string \& {\em termin}, \/  int \& {\em coordsyst}, \/  std::vector$<$ string $>$ \& {\em bolonames}, \/  std::vector$<$ long $>$ \& {\em fframes\_\-vec}, \/  std::vector$<$ long $>$ \& {\em nsamples\_\-vec}, \/  string \& {\em fname})}}
+\label{parsePos_8h_b630c77a548dda989021144eae9933e9}
+
+
+\begin{itemize}
+\item Parse sanePos input options using the ini file given in the command line \par
+\item Verify the good usage of each option, deal with incorrect values, warn the user when a line is \par
+ missing in the ini file !\item Initialise sanePos variable \end{itemize}
