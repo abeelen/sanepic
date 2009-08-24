@@ -11,10 +11,17 @@
 
 #include <vector>
 #include <algorithm>
+#include <sstream>
+#include <time.h>
+
 #include "todprocess.h"
 #include "map_making.h"
 #include "inline_IO2.h"
-#include <sstream>
+#include "covMatrixIO.h"
+#include "psdIO.h"
+
+#include "estimPS_steps.h"
+
 //#include "sane_io.h"
 
 extern "C" {
@@ -28,8 +35,5 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 		string termin,string termin_internal, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN);
 
-double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, long ndet, long ncomp, long nbins);
-
-void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins);
 
 #endif /* ESTIMPS_H_ */

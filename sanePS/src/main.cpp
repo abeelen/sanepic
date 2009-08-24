@@ -226,7 +226,6 @@ int main(int argc, char *argv[])
 	//int npix2;
 	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
 
-	cout << "lussa" << endl;
 
 	//First time run S=0, after sanepic, S = Pure signal
 	S = new double[npix];
