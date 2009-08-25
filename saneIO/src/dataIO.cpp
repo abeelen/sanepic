@@ -18,6 +18,8 @@ int read_data_std(string fname, int frame, int fs, int ns,
 
 	int sizetype;
 	char test[2];
+	size_t result;
+
 	test[0] = type;
 	test[1] = '\0';
 	string typestr = string(test);
@@ -33,7 +35,7 @@ int read_data_std(string fname, int frame, int fs, int ns,
 
 	if((fp = fopen(filename.c_str(),"r"))!=NULL){
 		fseek(fp,(20*frame+fs)*sizetype,SEEK_SET);
-		fread(data,sizetype,ns,fp);
+		result = fread(data,sizetype,ns,fp);
 		fclose(fp);
 	}else{
 		printf("Error. Could not open %s. Exiting...\n",filename.c_str());

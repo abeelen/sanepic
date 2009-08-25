@@ -261,10 +261,10 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
+	long *frnum ;
 
 	if (rank == 0){
 
-		long *frnum ;
 		long *ruleorder ;
 		long *fframesorder ;
 		long *nsamplesorder ;

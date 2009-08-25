@@ -378,6 +378,8 @@ void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir
 	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
 	FILE *fp;
 
+	size_t result;
+
 	// open file
 	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
 	if((fp=fopen(filename.c_str(),"r"))== NULL){
@@ -386,8 +388,8 @@ void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir
 	}
 
 	//Read sizes
-	fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
-	fread(&ncomp,sizeof(int),1,fp); // number of noise component
+	result = fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
+	result = fread(&ncomp,sizeof(int),1,fp); // number of noise component
 
 	//allocate memory considering readed sizes
 	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
@@ -395,7 +397,7 @@ void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir
 
 	for (long idet=0;idet<ndet;idet++)
 		for (int icomp=0;icomp<ncomp;icomp++)
-			fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
+			result = fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
 
 
 	//close file
@@ -413,6 +415,7 @@ void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 
 	string filename;
 	FILE *fp;
+	size_t result;
 
 	filename = prefix + boloName + "-all2" + suffix; // TODO : (reminder) remplacé -all2 par -all : mat 28_07
 	cout << filename << endl;
@@ -422,8 +425,8 @@ void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 		exit(1);
 	}
 	// Read sizes
-	fread(nbins, sizeof(long), 1, fp);
-	fread(ndet, sizeof(long), 1, fp);
+	result = fread(nbins, sizeof(long), 1, fp);
+	result = fread(ndet, sizeof(long), 1, fp);
 
 
 	// Allocate memory
@@ -431,9 +434,9 @@ void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
 
 	// Read arrays
-	fread(*ell,     sizeof(double), (*nbins) + 1, fp);
+	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
 	for (int i=0; i<(*ndet); i++)
-		fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
+		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
 
 	for (int i=0; i< *nbins; i++)
 		cout << (*SpN_all)[0][i] << " ";

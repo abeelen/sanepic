@@ -299,21 +299,22 @@ void read_ParallelizationScheme(string fname,  long **position, long **frnum, lo
 //TODO: test
 {
 	FILE *fp;
+	size_t result;
 
 	if ((fp = fopen(fname.c_str(),"r")) == NULL){
 		cerr << "Error : couldn't open file to read parallelization Scheme." << endl << "Exiting..." << endl;
 		exit(1);
 	}
 
-	fread(size,      sizeof(int),  1, fp);
-	fread(ntotscan,  sizeof(long), 1, fp);
+	result = fread(size,      sizeof(int),  1, fp);
+	result = fread(ntotscan,  sizeof(long), 1, fp);
 
 	*ns    = new long[*ntotscan];
 	*position   = new long[*ntotscan];
 	*frnum = new long[(*ntotscan)+1];
 
-	fread(*ns,       sizeof(long), *ntotscan,fp);
-	fread(*position,      sizeof(long), *ntotscan,fp);
+	result = fread(*ns,       sizeof(long), *ntotscan,fp);
+	result = fread(*position,      sizeof(long), *ntotscan,fp);
 	fwrite(*frnum,   sizeof(long), (*ntotscan)+1,fp);
 	fclose(fp);
 

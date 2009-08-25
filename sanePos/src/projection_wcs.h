@@ -15,10 +15,10 @@
 #include <iostream>
 #include <string>
 
-#include <sph.h>
-#include <wcs.h>
-#include <wcshdr.h>
-#include <wcsfix.h>
+#include <wcslib/sph.h>
+#include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
+#include <wcslib/wcsfix.h>
 
 extern "C" {
 #include <fitsio.h>

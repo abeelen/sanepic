@@ -3,16 +3,16 @@
 	<name>sanePic</name>
 	<comment></comment>
 	<projects>
+		<project>iniparser</project>
+		<project>nr</project>
+		<project>saneIO</project>
+		<project>saneLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
 			<arguments>
-				<dictionary>
-					<key>?children?</key>
-					<value>?name?=outputEntries\|?children?=?name?=entry\\\\\\\\\\\\\\\|\\\\\\\|?name?=entry\\\\\\\\\\\\\\\|\\\\\\\|\||</value>
-				</dictionary>
 				<dictionary>
 					<key>?name?</key>
 					<value></value>
@@ -35,7 +35,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/sanePic/Debug}</value>
+					<value>${workspace_loc:/sanePic/Release}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>

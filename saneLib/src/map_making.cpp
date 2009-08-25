@@ -1292,25 +1292,25 @@ void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, do
 
 	double *SpN;
 	double *ell;
-
+	int result;
 
 
 	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
 		cerr << "ERROR: Can't find noise power spectra file, check -k or -K in command line. Exiting. \n";
 		exit(1);
 	}
-	fscanf(fp,"%d",&nbins);
+	result = fscanf(fp,"%d",&nbins);
 
 
 	SpN = new double[nbins];
 	ell = new double[nbins+1];
 
 	for (int ii=0;ii<nbins;ii++){
-		fscanf(fp,"%lf %lf",&dummy1,&dummy2);
+		result = fscanf(fp,"%lf %lf",&dummy1,&dummy2);
 		ell[ii] = dummy1;
 		SpN[ii] = dummy2;
 	}
-	fscanf(fp,"%lf",&dummy1);
+	result = fscanf(fp,"%lf",&dummy1);
 	ell[nbins] = dummy1;
 	fclose(fp);
 

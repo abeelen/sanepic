@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "Corr_preprocess.h"
-
 #include "covMatrixIO.h"
+
+#include <gsl/gsl_math.h>
 #include <time.h>
 
 using namespace std;

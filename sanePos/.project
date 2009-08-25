@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>sanePos_libwcs</name>
+	<name>sanePos</name>
 	<comment></comment>
 	<projects>
+		<project>iniparser</project>
+		<project>nr</project>
+		<project>saneIO</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

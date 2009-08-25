@@ -115,16 +115,16 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
 void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *&tanpix, double *&tancoord) {
 	FILE *fp;
 	string testfile2;
-
+	int result;
 
 	testfile2 = outdir + "InfoPointing_for_Sanepic_" + termin + ".txt";
 	if((fp = fopen(testfile2.c_str(),"r"))){ // doubles parenthèses sinon warning ...
-		fscanf(fp,"%d\n",&nn);
-		fscanf(fp,"%d\n",&coordsyst2);
-		fscanf(fp,"%lf\n",tanpix);
-		fscanf(fp,"%lf\n",tanpix+1);
-		fscanf(fp,"%lf\n",tancoord);
-		fscanf(fp,"%lf\n",tancoord+1);
+		result = fscanf(fp,"%d\n",&nn);
+		result = fscanf(fp,"%d\n",&coordsyst2);
+		result = fscanf(fp,"%lf\n",tanpix);
+		result = fscanf(fp,"%lf\n",tanpix+1);
+		result = fscanf(fp,"%lf\n",tancoord);
+		result = fscanf(fp,"%lf\n",tancoord+1);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
@@ -135,14 +135,15 @@ void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, 
 void read_indpix(long &ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon) {
 	FILE *fp;
 	string testfile2;
+	size_t result;
 
 	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".bi";
 	if ((fp = fopen(testfile2.c_str(),"r"))!=NULL){
-		fread(&flagon,sizeof(int),1,fp); // mat 04/06
-		fread(&npix,sizeof(int),1,fp);
-		fread(&ind_size,sizeof(long),1,fp);
+		result = fread(&flagon,sizeof(int),1,fp); // mat 04/06
+		result = fread(&npix,sizeof(int),1,fp);
+		result = fread(&ind_size,sizeof(long),1,fp);
 		indpix=new long[ind_size];
-		fread(indpix,sizeof(long), ind_size, fp);
+		result = fread(indpix,sizeof(long), ind_size, fp);
 		fclose(fp);
 	}else{
 		cerr << "Error : cannot find Indpix file " << testfile2 << endl;
@@ -190,12 +191,14 @@ void write_PNd(double *PNd, int npix, string termin, string outdir) {
 void read_PNd(double *&PNdtot, int &npix, string termin, string outdir) {
 	FILE *fp;
 	string testfile2;
+	size_t result;
+
 	testfile2 = outdir + "PNdCorr_" + termin + ".bi";
 
 	if ((fp = fopen(testfile2.c_str(),"r"))!=NULL){
-		fread(&npix,sizeof(int),1,fp);
+		result = fread(&npix,sizeof(int),1,fp);
 		PNdtot= new double[npix]; // mat 04/06
-		fread(PNdtot,sizeof(double),npix,fp);
+		result = fread(PNdtot,sizeof(double),npix,fp);
 		fclose(fp);
 	}else{
 		cerr << "Error. Unable to find file : " << testfile2 << endl;
@@ -205,6 +208,7 @@ void read_PNd(double *&PNdtot, int &npix, string termin, string outdir) {
 }
 void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int idet, long iframe) {
 	FILE *fp;
+	size_t result;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
@@ -215,7 +219,7 @@ void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int
 
 	if((fp = fopen(testfile.c_str(),"r"))){
 		//read(&ns,sizeof(long),fp);
-		fread(samptopix,sizeof(long),ns,fp);
+		result = fread(samptopix,sizeof(long),ns,fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile << endl;
@@ -275,18 +279,18 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 
 	FILE *fp;
 	double dnbins;
-
+	size_t result;
 
 	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
 		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
 		exit(1);
 	}
-	fread(&dnbins,sizeof(double), 1, fp);
+	result = fread(&dnbins,sizeof(double), 1, fp);
 	nbins = (long)dnbins;
 	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
 	ell = new double[nbins+1];
-	fread(ell,sizeof(double), nbins+1, fp);
-	fread(*SpN_all,sizeof(double), nbins*ndet, fp);
+	result = fread(ell,sizeof(double), nbins+1, fp);
+	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
 	fclose(fp);
 
 
@@ -295,6 +299,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, string outdir, int idet, long iframe) {
 	FILE *fp;
+	size_t result;
 	//long data_size;
 
 	// créer un flux de sortie
@@ -308,7 +313,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, st
 	if((fp = fopen(testfile.c_str(),"r"))!=NULL){
 		//fread(&data_size,sizeof(long),fp);
 		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
-		fread(fdata,sizeof(double), (ns/2+1)*2, fp);
+		result = fread(fdata,sizeof(double), (ns/2+1)*2, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
@@ -371,19 +376,20 @@ void write_info_for_second_part(string outdir, string termin, int nn, int npix,
 void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat)
 {
 	FILE *fp;
+	int result;
 	double dummy1; // used to read mixing matrix
 
 	if ((fp = fopen(MixMatfile.c_str(),"r")) == NULL){
 		cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
 		exit(1);
 	}
-	fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
+	result = fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
 
 	mixmat = dmatrix(0,ndet-1,0,ncomp2-1); // ajout mat 24/07 pour eviter de declarer 20 comp useless
 
 	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<ncomp2;jj++){
-			fscanf(fp,"%lf",&dummy1);
+			result = fscanf(fp,"%lf",&dummy1);
 			mixmat[ii][jj] = dummy1;
 		}
 	}

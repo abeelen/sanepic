@@ -3,6 +3,8 @@
 	<name>saneLib</name>
 	<comment></comment>
 	<projects>
+		<project>nr</project>
+		<project>saneIO</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -31,7 +33,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/libSane/Debug}</value>
+					<value>${workspace_loc:/libSane/Release}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.cleanBuildTarget</key>
