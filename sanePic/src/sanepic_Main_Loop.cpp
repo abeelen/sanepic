@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 	delete [] nsamplesorder;
 	delete [] ruleorder;
 	delete [] extentnoiseSp_allorder;
-	delete [] frnum;
+
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -405,6 +405,7 @@ int main(int argc, char *argv[])
 	iframe_max = frnum[rank+1];
 	rank_det = 0;
 	size_det = 1;
+	delete [] frnum;
 
 #else
 	iframe_min = 0;
