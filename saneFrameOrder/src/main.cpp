@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 		for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
 		}
-		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
+		//cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
 		// reorder nsamples
 		find_best_order_frames(ruleorder, frnum, nsamples, ntotscan, size);
 		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
