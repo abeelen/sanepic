@@ -109,6 +109,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
 
+
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
 
