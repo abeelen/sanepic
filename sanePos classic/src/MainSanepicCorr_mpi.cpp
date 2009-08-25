@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 		//delete [] extentnoiseSp_allorder;
 
 		delete [] ruleorder;
-		delete [] frnum;
+
 
 	}
 
@@ -354,6 +354,7 @@ int main(int argc, char *argv[])
 	iframe_max = frnum[rank+1];
 	rank_det = 0;
 	size_det = 1;
+	delete [] frnum;
 
 #else
 	iframe_min = 0;
