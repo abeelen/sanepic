@@ -31,6 +31,7 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.553382718" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1965074476" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
@@ -63,6 +64,7 @@
 <listOptionValue builtIn="false" value="wcs"/>
 </option>
 <option id="gnu.cpp.link.option.paths.2112914027" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
@@ -782,10 +784,11 @@
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.202208786" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.139333215" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.1102429208" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+<option id="gnu.cpp.compiler.option.preprocessor.undef.1102429208" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
@@ -806,6 +809,7 @@
 <listOptionValue builtIn="false" value="wcs"/>
 </option>
 <option id="gnu.cpp.link.option.paths.461515909" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
@@ -1523,6 +1527,7 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1142757210" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.887999688" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
@@ -1530,7 +1535,7 @@
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.74319944" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.74319944" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.187048140" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.debugging.prof.427863679" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.462363829" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -1555,6 +1560,7 @@
 <listOptionValue builtIn="false" value="wcs"/>
 </option>
 <option id="gnu.cpp.link.option.paths.165500878" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="/usr/local/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
@@ -2269,7 +2275,7 @@
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.551858342" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
 <builder buildPath="${workspace_loc:/sanePos/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.1358098210" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
 <tool command="mpicxx" id="cdt.managedbuild.tool.gnu.archiver.base.407672765" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.526151611" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+<tool command="mpicxx" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.526151611" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 <option id="gnu.cpp.compiler.exe.release.option.optimization.level.1193605158" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.2078358783" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1652432593" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
