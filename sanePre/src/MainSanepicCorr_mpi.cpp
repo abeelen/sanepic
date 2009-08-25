@@ -13,7 +13,7 @@
 
 #include "todprocess.h"
 #include "map_making.h"
-#include "Corr_preprocess2.h"
+#include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
 #include "parsePre.h"
 #include "sanePre_preprocess.h"
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 	double f_lp, f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
 	f_lp = 0.0; // low pass filter frequency
 
-	fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
+	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
 
 
@@ -399,11 +399,11 @@ int main(int argc, char *argv[])
 			// iframe = scan number : 0=> ntotscan
 
 			// A fdata buffer will be used to avoid binary writing
-			fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
+			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata2(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
+			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 					outdir,termin_internal,errarcsec,dirfile,scerr_field,flpoint_field,bolonames, bextension,
-					fextension,shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe,fdata_buffer);
+					fextension,shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -433,12 +433,12 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
-			do_PtNd2(PNd,extentnoiseSp_all,noiseSppreffile,outdir,prefixe,termin_internal,bolonames,f_lppix_Nk,
-					fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL,fdata_buffer);
+			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,outdir,prefixe,termin_internal,bolonames,f_lppix_Nk,
+					fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
-			delete [] fdata_buffer;
+			//delete [] fdata_buffer;
 
 			/*do_PtNd2(PNd,NULL,extentnoiseSp_all,noiseSppreffile,outdir,prefixe,termin_internal,bolonames,f_lppix_Nk,
 								fsamp,ff,ns,ndet,size_det,rank_det,indpix,indpsrc,npixsrc,ntotscan,addnpix,flgdupl,factdupl,
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
-		write_PNd(PNd,npix,termin_internal,outdir);
+		write_PNd(PNdtot,npix,termin_internal,outdir);
 	}
 
 
