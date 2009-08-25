@@ -22,7 +22,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
-void write_ParallelizationScheme(string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size);
+int write_ParallelizationScheme(string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size);
 void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
 void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
 

@@ -60,7 +60,7 @@ double *dat_compare;
 
 double randg_archi(long nombre, int seedpass) {
 
-	double nombre_hasard;
+	double nombre_hasard=0.5;
 	time_t temps;
 	temps = time(NULL);
 
@@ -126,6 +126,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	//init random generator
 	valtemp = randg_archi(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
+	cout << valtemp << endl;
 
 	//init arrays
 	for (long ii=0;ii<=ntotscan;ii++)
@@ -136,6 +137,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 		for (long kk=0;kk<ntotscan;kk++){
 			valtemp = randg_archi(1,-1); // return a random value between 0/1
+			cout << valtemp << endl;
 			dat_compare[kk] = valtemp;
 		}
 
@@ -255,7 +257,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 }
 
-void write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns,  long ntotscan, int size)
+int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns,  long ntotscan, int size)
 // Write the Parrallelization Scheme for further use.
 // working , tested 18/06
 {
@@ -263,7 +265,7 @@ void write_ParallelizationScheme(string fname, long *position, long *frnum, long
 
 	if ((fp = fopen(fname.c_str(),"w")) == NULL){
 		cerr << "Error : couldn't open file to write parallelization Scheme." << endl << "Exiting..." << endl;
-		exit(1);
+		return -1;
 	}
 	// test
 	/*int ii;
@@ -287,6 +289,8 @@ void write_ParallelizationScheme(string fname, long *position, long *frnum, long
 	fwrite(position,       sizeof(long), ntotscan,fp);
 	fwrite(frnum,     sizeof(long), ntotscan+1,fp);
 	fclose(fp);
+
+	return 0;
 
 }
 

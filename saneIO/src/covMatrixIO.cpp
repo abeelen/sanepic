@@ -343,7 +343,7 @@ void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outpu
 	for (long idet=0;idet<ndet;idet++)
 		for (int icomp=0;icomp<ncomp;icomp++)
 			fwrite(&mixmat[idet][icomp],sizeof(double),1,fp); // writes the mixmat element by element
-			// TODO : verify that it is faster to read line by line due to dmatrix allocation
+			// TODO : verify if it is faster to read line by line due to dmatrix allocation
 
 	//close file
 	fclose(fp);
@@ -403,7 +403,7 @@ void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir
 
 }
 
-// TODO : la fonction fait doublon avec read_noise_file dans inline_IO2.cpp
+// TODO : la fonction fait doublon avec read_noise_file dans inline_IO2.cpp, celle ci permet de read ndet en plus (depend du format d'ecriture)
 void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 		long * nbins, long * ndet, double ** ell, double *** SpN_all)
 /*
@@ -414,7 +414,8 @@ void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix,
 	string filename;
 	FILE *fp;
 
-	filename = prefix + boloName + "-all" + suffix; // TODO : (reminder) remplacé -all2 par -all : mat 28_07
+	filename = prefix + boloName + "-all2" + suffix; // TODO : (reminder) remplacé -all2 par -all : mat 28_07
+	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename
 		<< endl;

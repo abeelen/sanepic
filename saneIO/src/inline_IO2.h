@@ -157,5 +157,13 @@ void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long 
 void write_info_for_second_part(string outdir, string termin, int nn, int npix,
 		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix);
 
+/*!
+ * Reads mixing matrix in a .txt file \n
+ * -MixMatfile is the name of the mixing matrix file
+ * -ndet number of detector
+ * -ncomp2 = number of component
+ * -mixmat is the mixing matrix
+ */
+void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat);
 
 #endif
