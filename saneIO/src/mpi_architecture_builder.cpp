@@ -26,7 +26,7 @@ template<class T> void vector2array(std::vector<T> vect, T* a)
 
 double *dat_compare;
 
-/*double* randg(long nombre, int seedpass) {
+double* randg(long nombre, int seedpass) {
 
 	double* nombre_hasard;
 	time_t temps;
@@ -55,7 +55,7 @@ double *dat_compare;
 
 
 	return nombre_hasard;
-}*/
+}
 
 
 double randg_archi(long nombre, int seedpass) {
@@ -109,7 +109,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	long *ns_order;
 	double *std, *sizeperproc, *maxproc;
-	double valtemp;
+	double *valtemp;
 
 	int nessai = 10000;
 
@@ -125,7 +125,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	dat_compare = new double[ntotscan];
 
 	//init random generator
-	valtemp = randg_archi(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
+	valtemp = randg(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
 	cout << valtemp << endl;
 
 	//init arrays
@@ -136,9 +136,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	for (long jj=0;jj<nessai;jj++){
 
 		for (long kk=0;kk<ntotscan;kk++){
-			valtemp = randg_archi(1,-1); // return a random value between 0/1
+			valtemp = randg(1,-1); // return a random value between 0/1
 			cout << valtemp << endl;
-			dat_compare[kk] = valtemp;
+			dat_compare[kk] = valtemp[0];
 		}
 
 		for (long ii=0;ii<ntotscan;ii++)
@@ -204,8 +204,8 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 
 		for (long kk=0;kk<ntotscan;kk++){
-			valtemp = randg_archi(1,-1);
-			dat_compare[kk] = valtemp;
+			valtemp = randg(1,-1);
+			dat_compare[kk] = valtemp[0];
 		}
 
 		for (long ii=0;ii<ntotscan;ii++)
@@ -315,7 +315,7 @@ void read_ParallelizationScheme(string fname,  long **position, long **frnum, lo
 
 	result = fread(*ns,       sizeof(long), *ntotscan,fp);
 	result = fread(*position,      sizeof(long), *ntotscan,fp);
-	fwrite(*frnum,   sizeof(long), (*ntotscan)+1,fp);
+	result = fread(*frnum,   sizeof(long), (*ntotscan)+1,fp);
 	fclose(fp);
 
 }
