@@ -318,6 +318,9 @@ int main(int argc, char *argv[])
 	/********************* Define parallelization scheme   *******/
 
 	long *frnum ;
+	if(rank>0)
+
+
 
 	if (rank == 0){
 
@@ -355,6 +358,8 @@ int main(int argc, char *argv[])
 		delete [] ruleorder;
 
 
+	}else{
+		frnum = new long[ntotscan+1];
 	}
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
