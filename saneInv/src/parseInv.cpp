@@ -43,15 +43,23 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 		return(-1);
 	}//	fname = ./RCW_120_M/BoloPS0sanepic_binary.psd
 
-	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_out_dir",NULL);
-	if(s!=NULL){
-		printf("noise_out_dir: [%s]\n",s);
-		noiseSp_dir_output=s;
-		//read_bolofile((string)s, bolonames);
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		noiseSp_dir_output=pPath;
+		printf ("The current path is: %s\n",pPath);
 	}else{
-		printf("You must specify a output directory : sanepic_inv_matrix:noise_out_dir\n");
-		return(-1);
-	}//	noiseSp_dir_output = ./RCW_120_M/
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s!=NULL){
+			printf("noise_out_dir: [%s]\n",s);
+			noiseSp_dir_output=s;
+			//read_bolofile((string)s, bolonames);
+		}else{
+			printf("You must specify a output directory : commons:temp_dir\n");
+			return(-1);
+		}//	noiseSp_dir_output = ./RCW_120_M/
+	}
+
 
 	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_prefixe",NULL);
 	if(s!=NULL){
