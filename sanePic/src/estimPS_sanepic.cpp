@@ -1024,7 +1024,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
-	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellexp, mixmat ,ncomp);
+	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellexp ,ncomp);
 
 	/*
 	sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),".psd");

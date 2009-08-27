@@ -13,6 +13,8 @@ extern "C" {
 #include <fitsio.h>
 }
 
+// TODO: This file should not be here
+
 using namespace std;
 /*
 void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
@@ -58,7 +60,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 }
 */
 
-void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth, double** mixmat, int ncomp)
+void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth, int ncomp)
 /*
  * This function write the NoiseNoise Matrices in a fits file.
  */
@@ -76,7 +78,7 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 
 	char *ttype[] = { (char*) "NAME" };
 	char *tform[] = { tableFormat(bolos) };
-	char *tunit[] = { (char*) "NONE" };
+	char *tunit[] = { (char*) "None" };
 	char **data;
 	data = vString2carray(bolos);
 
@@ -119,30 +121,6 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
 			&status);
 
-
-	//-------------------------------------------------
-	// write the mixing matrix
-	naxes[0] = ncomp;
-	naxes[1] = nBolos;
-	fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
-
-	// since mixmat is a NR matrix, one has to write it line by line :
-	for (long i = 0; i < nBolos; i++) {
-		fpixel[1] = i + 1;
-		fits_write_pix(fptr, TDOUBLE, fpixel, ncomp, mixmat[i], &status);
-	}
-	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
-			(char *) "mixing Matrices",
-			(char *) "name of this binary table extension", &status);
-	fits_write_comment(
-			fptr,
-			(char *) "This contains the mixing matrix",
-			&status);
-	fits_write_comment(
-			fptr,
-			(char *) "Each line contains a detector (NAXIS1) for each component (NAXIS2)",
-			&status);
-
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
@@ -150,7 +128,7 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 }
 
 void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
-		double **ell, double ***Rellth,double ***mixmat, int *ncomp)
+		double **ell, double ***Rellth, int *ncomp)
 /*
  * This function read the NoiseNoise Matrices.
  */
@@ -196,7 +174,7 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
 		fits_report_error(stderr, status);
 
 	fits_get_img_size(fptr, 1, naxes, &status);
-	*nbins = naxes[0] ;//- 1; // TODO : verifier que c'est OK sans ce -1 !
+	*nbins = naxes[0] - 1;
 	*ell = new double[naxes[0]];
 	fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, *ell, NULL, &status);
 
@@ -215,25 +193,6 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins,
 		fpixel[1] = i + 1;
 		fits_read_pix(fptr, TDOUBLE, fpixel, *nbins, NULL, (*Rellth)[i], NULL, &status);
 	}
-
-	//------------------------------------------------
-	// read the mixmat
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mixing Matrices", NULL, &status))
-		fits_report_error(stderr, status);
-
-	fits_get_img_size(fptr, 2, naxes, &status);
-	if (naxes[1] != nBolos)// || naxes[0] != *ncomp)
-		fits_report_error(stderr,213);
-
-	*ncomp=naxes[0];
-	*mixmat = dmatrix(0, nBolos - 1, 0, *ncomp - 1);
-
-	for (int i = 0; i < nBolos; i++) {
-		fpixel[1] = i + 1;
-		fits_read_pix(fptr, TDOUBLE, fpixel, *ncomp, NULL, (*mixmat)[i], NULL, &status);
-	}
-
-	*ncomp=(int)*ncomp;
 
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);

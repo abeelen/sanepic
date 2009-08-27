@@ -1121,7 +1121,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 
 	//string tempo;
 	//tempo = nameSpfile;
-	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth, mixmat ,ncomp);
+	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth ,ncomp);
 
 
 	temp_stream << outdirSpN + "Ell_" << ff << termin + ".psd";
