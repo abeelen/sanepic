@@ -40,7 +40,7 @@ using namespace std;
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ string &bextension,
 		string &fextension, string &pextension, /*string &termin,*/ string &noiseSppreffile,
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname, std::vector<long> &xxi,
+		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<long> &xxi,
 		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut);
 
 

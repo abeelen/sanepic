@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
 
 	int size;/*!< number of processors */
-//	int size_det, rank_det;
+	//	int size_det, rank_det;
 	int rank;
 
 #ifdef USE_MPI
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	string bolofield; /*! bolofield = boloname + bextension*/
 	string flagfield; /*! flagfield = field+fextension;*/
 	string dirfile; /*! data directory*/
-	string outdir; /*! output directory*/
+	string tmp_dir; /*! output directory*/
 	string poutdir; /*! current path (pPath) or output dir (outdir)*/
 	string bextension; /*! bolometer field extension*/
 	string fextension = "NOFLAG"; /*! flag field extension*/
@@ -174,8 +174,8 @@ int main(int argc, char *argv[])
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
 		parsed=parse_sanePre_ini_file(argv[1],shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,remove_polynomia,flgdupl,
-				CORRon,ntotscan,ndet,nnf,f_lp,dirfile,outdir,bextension,fextension,
-				pextension,noiseSppreffile,coordsyst,bolonames,fframes_vec,nsamples_vec,fname, xxi, xxf, yyi, yyf, extentnoiseSP, fcut);
+				CORRon,ntotscan,ndet,nnf,f_lp,dirfile,tmp_dir,bextension,fextension,
+				pextension,noiseSppreffile,coordsyst,bolonames,fframes_vec,nsamples_vec, xxi, xxf, yyi, yyf, extentnoiseSP, fcut);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, outdir, termin_internal, coordsyst2, tanpix, tancoord);
+	read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, tanpix, tancoord);
 
 	cout << "Map size :" << nn << "x" << nn << endl;
 
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//read projection vector from a file
-	read_indpix(ind_size, npix, indpix, termin_internal, outdir, flagon);
+	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
 
 	// Check indpix readed size = expected size
 	if(ind_size!=(factdupl*nn*nn+2 + addnpix)){
@@ -261,48 +261,11 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
+
+	fname = tmp_dir + parallel_scheme_filename;
+
 	long *frnum ;
-
-
-
-	if (rank == 0){
-
-		long *ruleorder ;
-		long *fframesorder ;
-		long *nsamplesorder ;
-		string *extentnoiseSp_allorder;
-
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
-		// reorder nsamples
-		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
-
-
-		fframesorder  = new long[ntotscan];
-		extentnoiseSp_allorder = new string[ntotscan];
-		nsamplesorder = new long[ntotscan];
-
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamplesorder[ii] = nsamples[ruleorder[ii]];
-			fframesorder[ii] = fframes[ruleorder[ii]];
-			extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
-		}
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamples[ii] = nsamplesorder[ii];
-			fframes[ii] = fframesorder[ii];
-			extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
-			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
-		}
-
-		delete [] fframesorder;
-		delete [] nsamplesorder;
-		delete [] extentnoiseSp_allorder;
-
-		delete [] ruleorder;
-
-	}else{
-		frnum=new long[ntotscan+1];
-	}
+	define_parallelization_scheme(rank,fname,ntotscan,size,nsamples,iframe_min,iframe_max);
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -406,7 +369,7 @@ int main(int argc, char *argv[])
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
 			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-					outdir,termin_internal,errarcsec,dirfile,scerr_field,flpoint_field,bolonames, bextension,
+					tmp_dir,termin_internal,errarcsec,dirfile,scerr_field,flpoint_field,bolonames, bextension,
 					fextension,shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -437,7 +400,7 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
-			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,outdir,prefixe,termin_internal,bolonames,f_lppix_Nk,
+			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
 					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
@@ -454,7 +417,7 @@ int main(int argc, char *argv[])
 
 			//write_ftrProcesdata_nocorr();
 
-			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,outdir,termin_internal,errarcsec,dirfile,
+			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,errarcsec,dirfile,
 					scerr_field,flpoint_field,bolonames,bextension,fextension,
 					shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
@@ -482,7 +445,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
-		write_PNd(PNdtot,npix,termin_internal,outdir);
+		write_PNd(PNdtot,npix,termin_internal,tmp_dir);
 	}
 
 

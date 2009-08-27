@@ -11,7 +11,7 @@
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ string &bextension,
 		string &fextension, string &pextension, /*string &termin,*/ string &noiseSppreffile,
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname, std::vector<long> &xxi,
+		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<long> &xxi,
 		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut)
 {
 	dictionary	*	ini ;
@@ -41,7 +41,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
-
+/*
 #ifdef USE_MPI
 	printf("\nsanepic_parallel_scheme:\n");
 
@@ -59,7 +59,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1;
 	}
-#endif
+#endif*/
 
 
 	/* Get sanepic_preprocess attributes */
@@ -257,9 +257,9 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}//pointing_field_extension = _def ;
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:noise_prefixe_file",NULL);
+	s = iniparser_getstring(ini, "commons:noise_prefixe_file",NULL);
 	if(s==NULL){
-		printf("You must add a line corresponding to noise_prefixe file in the ini file : sanepic_preprocess:noise_prefixe_file\n");
+		printf("You must add a line corresponding to noise_prefixe file in the ini file : commons:noise_prefixe_file\n");
 		return -1;
 	}
 	str=(string)s;
@@ -279,17 +279,17 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}//noise_prefixe = NoisePS ;
 
-	s = iniparser_getstring(ini, "commons:noise_suffixe",NULL);
+	s = iniparser_getstring(ini, "commons:data_directory",NULL); // mat 27/08 pour sanePre c'est data_directory = noise_suffixe
 	if(s==NULL){
-		printf("You must add a line corresponding to noise_suffixe in the ini file : commons:noise_suffixe\n");
+		printf("You must add a line corresponding to data_directory in the ini file : commons:data_directory\n");
 		return -1;
 	}
 	str=(string)s;
 	if(str.size()!=0){
-		printf("noise_suffixe : [%s]\n",s);
+		printf("noise_data_directory : [%s]\n",s);
 		noiseSppreffile=s;
 	}else{
-		printf("you must specify a noise_suffixe\n");
+		printf("you must specify commons:data_directory\n");
 		return -1;
 	}//noise_suffixe = ./RCW_120_M/ ;
 
@@ -318,7 +318,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 			}else{
 				cout << "Using default output directory : " << dirfile << endl;
 				outdir=dirfile;
-			}//output_dir = ./RCW_120_M/ ;
+			}//output_dir = ./sanepic_internal/ ;
 		}
 
 	}
