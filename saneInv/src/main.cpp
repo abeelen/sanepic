@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 	 * -mixmatOrig : original mixing matrix
 	 * -mixmat : Reduced mixing matrix
 	 */
-	double **Rellth, **RellthOrig, **iRellth,**mixmatOrig,**mixmat;
+	double **Rellth, **RellthOrig, **iRellth/*,**mixmatOrig,**mixmat*/;
 
 	string noiseSp_dir_output;/*! output directory */
 	string extentnoiseSp;/*! output noise file suffix */
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
 	// -The original NoiseNoise covariance matrix => RellthOrig
 	// -The original mixing matrix => mixmatOrig
 	// -The number of noise component in this mixing matrix => ncomp
-	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &mixmatOrig, &ncomp);
-
+	//read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &mixmatOrig, &ncomp);
+	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &ncomp);
 	// total number of detectors in the covmatrix fits file
 	ndetOrig = channelIn.size();
 	printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 	printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
 	//Deal with bolometer reduction and fill Rellth and mixmat
-	reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth,mixmatOrig,ncomp,mixmat);
+	reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
 
 	// Inverse reduced covariance Matrix : Returns iRellth
 	inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 	write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, noiseSp_dir_output, extentnoiseSp);
 
 	// write Reduced mixing matrix in a binary file
-	write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
+	//write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
 
 	return 0;
 }
