@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
 
 
 	int size;/*!< number of processors */
-	int size_det;
-	int rank, rank_det;
+//	int size_det, rank_det;
+	int rank;
 
 #ifdef USE_MPI
 	// int tag = 10;
@@ -263,6 +263,8 @@ int main(int argc, char *argv[])
 	/********************* Define parallelization scheme   *******/
 	long *frnum ;
 
+
+
 	if (rank == 0){
 
 		long *ruleorder ;
@@ -298,6 +300,8 @@ int main(int argc, char *argv[])
 
 		delete [] ruleorder;
 
+	}else{
+		frnum=new long[ntotscan+1];
 	}
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -306,16 +310,16 @@ int main(int argc, char *argv[])
 
 	iframe_min = frnum[rank];
 	iframe_max = frnum[rank+1];
-	rank_det = 0;
-	size_det = 1;
+	//rank_det = 0;
+	//size_det = 1;
 
 	delete [] frnum;
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	rank_det = rank;
-	size_det = size;
+	//rank_det = rank;
+	//size_det = size;
 
 #endif
 
@@ -434,7 +438,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,outdir,prefixe,termin_internal,bolonames,f_lppix_Nk,
-					fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
+					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -453,7 +457,7 @@ int main(int argc, char *argv[])
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,outdir,termin_internal,errarcsec,dirfile,
 					scerr_field,flpoint_field,bolonames,bextension,fextension,
 					shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-					flgdupl,factdupl,2,ff,ns,napod,ndet,size_det,rank_det,indpix,indpsrc,
+					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
 					nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 

@@ -296,33 +296,32 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 
 
 
-#ifdef USE_MPI
+	//#ifdef USE_MPI
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		outdir=pPath;
 		printf ("The current path is: %s\n",pPath);
-	}
-#else
-
-	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
 	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("temp_dir : [%s]\n",s);
-			outdir=s;
-		}else{
+
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s==NULL){
+			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
 			cout << "Using default output directory : " << dirfile << endl;
 			outdir=dirfile;
-		}//output_dir = ./RCW_120_M/ ;
-	}
+		}else{
+			str=(string)s;
+			if(str.size()!=0){
+				printf("temp_dir : [%s]\n",s);
+				outdir=s;
+			}else{
+				cout << "Using default output directory : " << dirfile << endl;
+				outdir=dirfile;
+			}//output_dir = ./RCW_120_M/ ;
+		}
 
-#endif
+	}
 
 	i = iniparser_getint(ini, "commons:time_offset", 0);
 	if(i!=0){
