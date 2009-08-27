@@ -296,7 +296,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 
 void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size)
 // read the Parrallelization Scheme for further use.
-//TODO: test
+
 {
 	FILE *fp;
 	size_t result;
@@ -346,7 +346,52 @@ void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size
 		exit(1);
 	}
 
+}
+
+
+void define_parallelization_scheme(int rank,string fname,long *frnum,long ntotscan,int size,long *nsamples,long *fframes,long &iframe_min,long &iframe_max){
+
+
+
+	if (rank == 0){
+
+		long *ruleorder ;
+		long *fframesorder ;
+		long *nsamplesorder ;
+		//string *extentnoiseSp_allorder;
+
+		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
+		// reorder nsamples
+		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
+
+
+		fframesorder  = new long[ntotscan];
+		//extentnoiseSp_allorder = new string[ntotscan];
+		nsamplesorder = new long[ntotscan];
+
+		for (long ii=0;ii<ntotscan;ii++){
+			nsamplesorder[ii] = nsamples[ruleorder[ii]];
+			fframesorder[ii] = fframes[ruleorder[ii]];
+			//extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
+		}
+		for (long ii=0;ii<ntotscan;ii++){
+			nsamples[ii] = nsamplesorder[ii];
+			fframes[ii] = fframesorder[ii];
+			//extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
+			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
+		}
+
+		delete [] fframesorder;
+		delete [] nsamplesorder;
+		//delete [] extentnoiseSp_allorder;
+
+		delete [] ruleorder;
+
+
+	}else{
+		frnum = new long[ntotscan+1];
+	}
 
 
 }
-
