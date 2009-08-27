@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
 				ntotscan, ndet, dirfile, outdir, tmp_dir, bextension,
 				fextension, termin, noiseSppreffile,
-				bolonames, fframes_vec,  nsamples_vec, fname,extentnoiseSP, MixMatfile);
+				bolonames, fframes_vec,  nsamples_vec, extentnoiseSP, MixMatfile);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -236,7 +236,9 @@ int main(int argc, char *argv[])
 	/********************* Define parallelization scheme   *******/
 	long *frnum ;
 
-	if (rank == 0){
+	fname = tmp_dir + parallel_scheme_filename;
+	define_parallelization_scheme(rank,fname,frnum,ntotscan,size,nsamples,fframes,iframe_min,iframe_max);
+	/*if (rank == 0){
 
 		long *ruleorder ;
 		long *fframesorder ;
@@ -271,7 +273,7 @@ int main(int argc, char *argv[])
 
 		delete [] ruleorder;
 
-	}
+	}*/
 
 
 
