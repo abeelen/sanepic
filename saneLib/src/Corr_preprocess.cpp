@@ -218,8 +218,8 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, string termin, std::vector<string> bolonames,
-		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
-		int rank, long *indpix, long nn, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
+		double f_lppix, double fsamp, long ff, long ns, long ndet, /*int size,*/
+		/*int rank,*/ long *indpix, long nn, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
 
 
 	long  nbins;
@@ -268,7 +268,8 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 	//cout << rank << " " << size << endl;
 
-	for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){ // TODO : verifier que ca fonctionne avec mpi (double paralellization : frame/det)
+	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){ // TODO : verifier que ca fonctionne avec mpi (double paralellization : frame/det)
+	for (long idet1=0;idet1<ndet;idet1++){
 		field1 = bolonames[idet1];
 		//cout << field1 << endl;
 

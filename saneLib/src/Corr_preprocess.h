@@ -20,8 +20,8 @@ extern "C" {
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, string termin, std::vector<string> bolonames,
-		double f_lppix, double fsamp, long ff, long ns, long ndet, int size,
-		int rank, long *indpix, long nn, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
+		double f_lppix, double fsamp, long ff, long ns, long ndet,
+		long *indpix, long nn, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
 
 
 

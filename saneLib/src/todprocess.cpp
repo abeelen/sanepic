@@ -929,7 +929,7 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 
 	a = new double[2];
 	// schema memoire a changé 19/08
-	xx=new double [margfit*2];
+	xx=new double [margfit*2]; // TODO  : j'ai changé xx et yy depuis boucle jusque ici.
 	yy=new double [margfit*2];
 
 	seriem = new double[margfit];
