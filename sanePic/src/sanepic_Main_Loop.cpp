@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 
 	//
 
-	int size, size_det;
-	int rank, rank_det;
+	int size;//, size_det;
+	int rank;//, rank_det;
 #ifdef USE_MPI
 	// int tag = 10;
 	MPI_Status status;
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 	string fextension = "NOFLAG"; /*! flag field extension */
 	string pextension; /*! pointing extension */
 	string termin; /*! output file suffix */
-	string noiseSppreffile; /*! noise file suffix */
+	//string noiseSppreffile; /*! noise file suffix */
 	string extentnoiseSp; /*! noise file */
 	string prefixe; /*! prefix used for temporary name file creation */
 	string termin_internal = "internal_data"; /*! internal data suffix */
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 		int parsed=1;
 		parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
 				CORRon,iterw,doInitPS, ntotscan,ndet,nnf,f_lp,f_lp_Nk,dirfile,outdir,tmp_dir,bextension,fextension,
-				pextension,termin,noiseSppreffile,coordsyst,MixMatfile,bolonames,fframes_vec,nsamples_vec,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP);
+				pextension,termin,coordsyst,MixMatfile,bolonames,fframes_vec,nsamples_vec,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -365,37 +365,10 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	cout << "parallel_frames : 1 " << "   size : " << size  << endl;
 
-	if (rank == 0){
+	long *frnum ;
+	fname = tmp_dir + parallel_scheme_filename;
 
-		fframesorder = new long[ntotscan];
-		nsamplesorder = new long[ntotscan];
-		ruleorder = new long[ntotscan];
-		frnum = new long[ntotscan+1];
-		extentnoiseSp_allorder = new string[ntotscan];
-
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
-		// reorder nsamples
-		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamplesorder[ii] = nsamples[ruleorder[ii]];
-			fframesorder[ii] = fframes[ruleorder[ii]];
-			extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
-		}
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamples[ii] = nsamplesorder[ii];
-			fframes[ii] = fframesorder[ii];
-			extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
-			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
-		}
-
-	}
-
-	delete [] fframesorder;
-	delete [] nsamplesorder;
-	delete [] ruleorder;
-	delete [] extentnoiseSp_allorder;
-
+	define_parallelization_scheme(rank,fname,frnum,ntotscan,size,nsamples,fframes,iframe_min,iframe_max);
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -403,15 +376,16 @@ int main(int argc, char *argv[])
 
 	iframe_min = frnum[rank];
 	iframe_max = frnum[rank+1];
-	rank_det = 0;
-	size_det = 1;
+	//rank_det = 0;
+	//size_det = 1;
 	delete [] frnum;
+
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	rank_det = rank;
-	size_det = size;
+	//rank_det = rank;
+	//size_det = size;
 #endif
 
 
@@ -492,7 +466,7 @@ int main(int argc, char *argv[])
 	// conjugate GRADIENT LOOP
 	sanepic_conjugate_gradient(flgdupl, npix, S, iframe_min, iframe_max,
 			nsamples, fframes, fcut,f_lp, fsamp, indpix, nn, factdupl, tmp_dir, termin, termin_internal,
-			ndet,extentnoiseSp_all,noiseSppreffile, bolonames, size_det, rank_det, iterw,
+			ndet,extentnoiseSp_all,tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
 			pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, projgaps, rank, CORRon,
 			dirfile, PNdtot, ntotscan,addnpix,NORMLIN,NOFILLGAP,napod,shift_data_to_point,
 			remove_polynomia,fextension,bextension,flpoint_field,scerr_field, outdir);
@@ -515,7 +489,7 @@ int main(int argc, char *argv[])
 
 				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
 						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
-						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,noiseSppreffile,extentnoiseSp,outdir);
+						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
 
 			}
 		}

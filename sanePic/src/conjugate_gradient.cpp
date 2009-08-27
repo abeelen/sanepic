@@ -12,8 +12,8 @@
 void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_min, long iframe_max,
 		long *nsamples, long *fframes,std::vector<double> fcut,double f_lp,double fsamp,
 		long *indpix, int nn, int factdupl, string tmp_dir, string termin, string termin_internal, long ndet,
-		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames, int size_det,
-		int rank_det, int iterw, double pixdeg, double *tancoord, double *tanpix,int coordsyst,
+		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames,/* int size_det,
+		int rank_det,*/ int iterw, double pixdeg, double *tancoord, double *tanpix,int coordsyst,
 		long *indpsrc, long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
 		string dirfile, double *&PNdtot, long ntotscan,long addnpix,bool NORMLIN,bool NOFILLGAP,
 		long napod,int shift_data_to_point,bool remove_polynomia,string fextension,string bextension,
@@ -111,12 +111,12 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				// read pointing + deproject + fourier transform
 
 				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,
-						f_lppix_Nk,fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,Mp,hits);
+						f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,Mp,hits);
 				// return Pnd = At N-1 d
 			} else {
 
 				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
-						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,indpix,
+						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
 						nn,npix,iframe,PtNPmatS,Mp,hits);
 			}
 
@@ -207,12 +207,12 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					// read pointing + deproject + fourier transform
 
 					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
-							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,indpix,
+							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
 							nn,npix,iframe,q,NULL,NULL);
 				}
 			} // end of iframe loop
@@ -264,13 +264,13 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						// read pointing + deproject + fourier transform
 
 						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,
-								f_lppix_Nk,fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,
+								f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,
 								NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
 						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
-								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,size_det,rank_det,
+								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/
 								indpix,nn,npix,iframe,PtNPmatS,NULL,NULL);
 					}
 				} // end of iframe loop
@@ -570,14 +570,14 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					// "fdata_" files generation (fourier transform of the data)
 
 					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,size_det,rank_det,indpix,nn,npix,iframe,NULL,NULL);
+							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,errarcsec,dirfile,
 							scerr_field,flpoint_field,bolonames,bextension,fextension,
 							shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-							flgdupl,factdupl,2,ff,ns,napod,ndet,size_det,rank_det,indpix,indpsrc,
+							flgdupl,factdupl,2,ff,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
 							nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
 				}
 			} // end of iframe loop

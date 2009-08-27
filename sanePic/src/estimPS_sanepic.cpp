@@ -1024,6 +1024,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
+	//write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellexp, mixmat ,ncomp);
 	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellexp ,ncomp);
 
 	/*

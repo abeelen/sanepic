@@ -24,7 +24,7 @@
 #include "dataIO.h"
 #include "imageIO.h"
 #include "inline_IO2.h"
-#include "mpi_architecture_builder.h"
+//#include "mpi_architecture_builder.h"
 
 #include "parseSanepic.h"
 #include "sanepic_preprocess.h"
@@ -32,7 +32,7 @@
 //#include "estimPS.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
-#include "mpi_architecture_builder.h"
+//#include "mpi_architecture_builder.h"
 #include <time.h>
 #include <fftw3.h>
 //#include <fcntl.h>

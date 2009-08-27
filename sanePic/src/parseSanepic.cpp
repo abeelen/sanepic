@@ -10,7 +10,7 @@
 
 int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, int &iterw,bool &doInitPS, long &ntotscan, long &ndet, int &nnf,	double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
-		string &fextension, string &pextension, string &termin, string &noiseSppreffile,
+		string &fextension, string &pextension, string &termin,
 		int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname,
 		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP)
 {
@@ -50,7 +50,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 
 	printf("\nsanepic_conjugate_gradient:\n");
 
-#ifdef USE_MPI
+	/*#ifdef USE_MPI
 	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
 	if(s==NULL){
 		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
@@ -64,7 +64,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1;
 	}
-#endif
+#endif*/
 
 	s = iniparser_getstring(ini, "commons:data_directory", NULL);
 	if(s==NULL){
@@ -312,20 +312,27 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1;
 	}//noise_prefixe = NoisePS ;
 
-	s = iniparser_getstring(ini, "sanepic_conjugate_gradient:noise_suffixe",NULL);
-	if(s==NULL){
-		printf("You must add a line corresponding to noise_suffixe in the ini file : commons:noise_suffixe\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("noise_suffixe : [%s]\n",s);
-		noiseSppreffile=s;
+	/*char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		noiseSppreffile=pPath;
+		printf ("The current path is: %s\n",pPath);
 	}else{
-		printf("you must specify a noise_suffixe\n");
-		return -1 ;
-	}//noise_suffixe = ./RCW_120_M/ ;
-
+		s = iniparser_getstring(ini, "commons:tmp_dir",NULL);
+		if(s==NULL){
+			printf("You must add a line corresponding to noise_suffixe in the ini file : commons:noise_suffixe\n");
+			return -1;
+		}
+		str=(string)s;
+		if(str.size()!=0){
+			printf("noise_suffixe : [%s]\n",s);
+			noiseSppreffile=s;
+		}else{
+			printf("you must specify a noise_suffixe\n");
+			return -1 ;
+		}//noise_suffixe = ./RCW_120_M/ ;
+	}
+*/
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
 	if(s==NULL){
 		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
@@ -342,17 +349,17 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
-#ifdef USE_MPI
+	//#ifdef USE_MPI
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
-	}
-#else
+	}else{
+		//#else
 
-	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s==NULL){
 			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
 			cout << "Using default output directory : " << dirfile << endl;
@@ -367,7 +374,8 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 				tmp_dir=dirfile;
 			}//output_dir = ./RCW_120_M/ ;
 		}
-#endif
+		//#endif
+	}
 
 	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
 	if(s==NULL){
@@ -495,13 +503,13 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		iterw=i;
 	}//iterw =  ;
 
-	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:Noise_PS_etimation", -1);
+	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:Noise_PS_estimation", -1);
 	if(b!=-1){
 		printf("doInitPS:    [%d]\n", b);
 		doInitPS=b;
 	}//doInitPS = False
 
-	s = iniparser_getstring(ini, (char*)"sanepic_conjugate_gradient:noise_estim", NULL);
+	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_conjugate_gradient:noise_estim\n");
 		return -1;
