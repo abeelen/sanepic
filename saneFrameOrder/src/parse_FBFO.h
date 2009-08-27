@@ -22,6 +22,7 @@
 #include <math.h>
 #include "boloIO.h"
 
+
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
@@ -29,6 +30,6 @@ extern "C"{
 
 using namespace std;
 
-int parse_FBFO(char * ini_name, string &fname, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec);
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec);
 
 #endif /* PARSE_FBFO_H_ */

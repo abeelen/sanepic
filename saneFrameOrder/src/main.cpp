@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
 		long *frnum ;
 		int parsed;
 		std::vector<long> fframes_vec, nsamples_vec;
-		string fname;
+		string fname,tmp_dir;
 
-		parsed=parse_FBFO(argv[1], fname, ntotscan, fframes_vec, nsamples_vec);
+		parsed=parse_FBFO(argv[1], tmp_dir, ntotscan, fframes_vec, nsamples_vec);
 		if (parsed==-1){
 			cerr << "Problem in the parse function. Exiting\n";
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
 		vector2array(nsamples_vec,nsamples);
 
-
+		fname = tmp_dir + parallel_scheme_filename;
 
 		/********************* Define parallelization scheme   *******/
 		cout << ntotscan << endl;

@@ -18,7 +18,7 @@
 #include "mpi.h"
 #endif
 
-int parse_FBFO(char * ini_name, string &fname, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec)
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec)
 {
 	dictionary	*	ini ;
 
@@ -84,14 +84,16 @@ int parse_FBFO(char * ini_name, string &fname, long &ntotscan, std::vector<long>
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 
 
-	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 	if(s!=NULL){
 		printf("file_name : [%s]\n",s);
-		fname=s;
+		tmp_dir=s;
 	}else{
 		printf("You must provide a file name for the parallel scheme data file : sanepic_parallel_scheme:file_name\n");
 		return(-1);
 	}
+
+	//fname = tmp_dir + parallel_scheme_filename;
 
 	// Check improper usage
 	if (fframes_vec.size() != nsamples_vec.size()) {
