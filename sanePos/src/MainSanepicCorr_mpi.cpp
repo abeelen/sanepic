@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 	fname = tmp_dir + parallel_scheme_filename;
 
 	long *frnum;
-	define_parallelization_scheme(rank,fname,ntotscan,size,nsamples,iframe_min,iframe_max);
+	define_parallelization_scheme(rank,fname,frnum,ntotscan,size,nsamples,fframes,iframe_min,iframe_max);
 
 	/*long *frnum ;
 
