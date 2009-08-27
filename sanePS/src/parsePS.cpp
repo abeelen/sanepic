@@ -11,7 +11,7 @@
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
 		string &fextension, string &termin, string &noiseSppreffile,
-		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname, std::vector<string> &extentnoiseSP, string &MixMatfile)
+		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile)
 {
 	dictionary	*	ini ;
 
@@ -49,7 +49,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	//iniparser_dump(ini, stderr);
 
 
-#ifdef USE_MPI
+	/*#ifdef USE_MPI
 	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
 	if(s==NULL){
 		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
@@ -63,7 +63,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
 		return -1 ;
 	}
-#endif
+#endif*/
 
 
 	i = iniparser_getint(ini, "commons:time_offset", 0);
@@ -148,34 +148,35 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
-#ifdef USE_MPI
+
+
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
-	}
-#else
-
-	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default temporary directory : " << dirfile << endl;
-		tmp_dir=dirfile;
 	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("temp_dir : [%s]\n",s);
-			tmp_dir=s;
-		}else{
+
+
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s==NULL){
+			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
 			cout << "Using default temporary directory : " << dirfile << endl;
 			tmp_dir=dirfile;
-		}//tmp_dir = ./internal_sanepic/ ;
+		}else{
+			str=(string)s;
+			if(str.size()!=0){
+				printf("temp_dir : [%s]\n",s);
+				tmp_dir=s;
+			}else{
+				cout << "Using default temporary directory : " << dirfile << endl;
+				tmp_dir=dirfile;
+			}//tmp_dir = ./internal_sanepic/ ;
+		}
+
 	}
 
-
-#endif
 
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
@@ -219,7 +220,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		return -1;
 	}//out_file_str = sanepic ;
 
-	s = iniparser_getstring(ini, "sanepic_conjugate_gradient:noise_suffixe",NULL);
+	/*s = iniparser_getstring(ini, "commons:tmp_dir",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to noise_suffixe in the ini file : commons:noise_suffixe\n");
 		return -1;
@@ -231,7 +232,8 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	}else{
 		printf("you must specify a noise_suffixe\n");
 		return -1 ;
-	}//noise_suffixe = ./RCW_120_M/ ;
+	}//noise_suffixe = ./RCW_120_M/ ;*/
+	noiseSppreffile=tmp_dir;
 
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s==NULL){
@@ -313,7 +315,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	}//noise_prefixe = NoisePS ;
 
 
-	s = iniparser_getstring(ini, (char*)"sanepic_conjugate_gradient:noise_estim", NULL);
+	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_conjugate_gradient:noise_estim\n");
 		return -1;

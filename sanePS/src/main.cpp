@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 
 	// read framesorder
 
-	int size,size_det;
-	int rank,rank_det;
+	int size;//,size_det;
+	int rank;//,rank_det;
 #ifdef USE_MPI
 	// int tag = 10;
 	MPI_Status status;
@@ -281,16 +281,16 @@ int main(int argc, char *argv[])
 
 	iframe_min = frnum[rank];
 	iframe_max = frnum[rank+1];
-	rank_det = 0;
-	size_det = 1;
+	//rank_det = 0;
+	//size_det = 1;
 
 	delete [] frnum;
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	rank_det = rank;
-	size_det = size;
+	//rank_det = rank;
+	//size_det = size;
 #endif
 
 
