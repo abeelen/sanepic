@@ -40,7 +40,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet, int &nnf,
 		double &pixdeg, string &dirfile, string &outdir, string &poutdir, string &bextension,
 		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, /*string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,string &fname,
+		int &coordsyst, std::vector<string> &bolonames, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,
 		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf);
 
 #endif /* PARSEPOS_H_ */

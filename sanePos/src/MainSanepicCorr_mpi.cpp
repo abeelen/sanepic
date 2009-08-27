@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
 
 
 
-	int size, size_det; /*! size = number of processor used for this step*/
-	int rank, rank_det; /*! rank = processor MPI rank*/
+	int size/*, size_det*/; /*! size = number of processor used for this step*/
+	int rank/*, rank_det*/; /*! rank = processor MPI rank*/
 
 #ifdef USE_MPI
 	// int tag = 10;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 	string bolofield; /*! bolofield = boloname + bextension */
 	string flagfield; /*! flagfield = field+fextension;*/
 	string dirfile; /*! data directory*/
-	string outdir; /*! output directory*/
+	string tmp_dir; /*! output directory*/
 	string poutdir; /*! current path (pPath) or output dir (outdir)*/
 	string bextension; /*! bolometer field extension*/
 	string fextension = "NOFLAG"; /*! flag field extension*/
@@ -216,8 +216,8 @@ int main(int argc, char *argv[])
 		// TODO : add fits reading and binary/fits data gestion
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
 				srccoord,coordscorner,radius,ntotscan,ndet,nnf,
-				pixdeg,dirfile,outdir,poutdir,bextension,fextension,
-				pextension,file_offsets,file_frame_offsets,coordsyst,bolonames,fframes_vec,nsamples_vec,fname,xxi,xxf,yyi,yyf);
+				pixdeg,dirfile,tmp_dir,poutdir,bextension,fextension,
+				pextension,file_offsets,file_frame_offsets,coordsyst,bolonames,fframes_vec,nsamples_vec,xxi,xxf,yyi,yyf);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -228,6 +228,7 @@ int main(int argc, char *argv[])
 
 	}
 
+	//fname = tmp_dir + parallel_scheme_filename;
 
 	///////////////: debug ///////////////////////////////
 	cout << "ntotscan : " << ntotscan << endl;
@@ -312,12 +313,15 @@ int main(int argc, char *argv[])
 
 
 
-
-
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
-	long *frnum ;
+	fname = tmp_dir + parallel_scheme_filename;
+
+	long *frnum;
+	define_parallelization_scheme(rank,fname,ntotscan,size,nsamples,iframe_min,iframe_max,rank_det,size_det);
+
+	/*long *frnum ;
 
 	if (rank == 0){
 
@@ -358,21 +362,25 @@ int main(int argc, char *argv[])
 	} else {
 	frnum = new long[ntotscan+1];
 	}
+*/
+
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
 	iframe_min = frnum[rank];
 	iframe_max = frnum[rank+1];
-	rank_det = 0;
-	size_det = 1;
+	//rank_det = 0;
+	//size_det = 1;
 	delete [] frnum;
+
+
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	rank_det = rank;
-	size_det = size;
+	//rank_det = rank;
+	//size_det = size;
 
 #endif
 
@@ -494,7 +502,7 @@ int main(int argc, char *argv[])
 	 * tanpix : tangent point coordinates in the map (in pixel)
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
-	write_info_pointing(nn, outdir, termin_internal, coordsyst, tanpix, tancoord);
+	write_info_pointing(nn, tmp_dir, termin_internal, coordsyst, tanpix, tancoord);
 
 
 	/*} else {
@@ -566,7 +574,7 @@ int main(int argc, char *argv[])
 	 * Compute the position to pixel projetcion matrices :
 	 * One binary file per bolometer and per scan
 	 */
-	compute_seen_pixels_coordinates(ndet,ntotscan,outdir,bolonames,bextension, fextension, termin_internal,
+	compute_seen_pixels_coordinates(ndet,ntotscan,tmp_dir,bolonames,bextension, fextension, termin_internal,
 			file_offsets,foffsets,scoffsets,iframe_min, iframe_max,fframes,
 			nsamples,dirfile,ra_field,dec_field,phi_field, scerr_field,
 			flpoint_field, nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
@@ -579,7 +587,7 @@ int main(int argc, char *argv[])
 
 	string temp = dirfile + "optimMap_sanepic_flux.fits";
 	const char *fits_file = temp.c_str();
-	fits_header_generation(outdir,fits_file,pixdeg,default_projection,tanpix,tancoord);
+	fits_header_generation(tmp_dir,fits_file,pixdeg,default_projection,tanpix,tancoord);
 
 
 	//************** init mapmaking variables *************//
@@ -609,7 +617,7 @@ int main(int argc, char *argv[])
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
-		write_indpix(ind_size, npix, indpix, termin_internal, outdir, flagon);
+		write_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
 	}
 
 

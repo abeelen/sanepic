@@ -12,7 +12,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet, int &nnf,
 		double &pixdeg, string &dirfile, string &outdir, string &poutdir, string &bextension,
 		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, /*string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,string &fname,
+		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,
 		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf)
 {
 	dictionary	*	ini ;
@@ -46,52 +46,39 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
-#ifdef USE_MPI
-	s = iniparser_getstring(ini, "sanepic_parallel_scheme:fname",NULL);
-	if(s==NULL){
-		printf("You must add a line in ini file specifying Find_best_frame_order result : sanepic_parallel_scheme:fname\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("fname : [%s]\n",s);
-		fname=s;
-	}else{
-		printf("You need to run Find_best_frame_order first and specify the generated file path and name !\n");
-		return -1 ;
-	}
-#endif
+
 
 	/* Get sanepic_compute_positions attributes */
 	printf("sanepic_compute_positions:\n");
 
-#ifdef USE_MPI
+	//#ifdef USE_MPI
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		outdir=pPath;
 		printf ("The current path is: %s\n",pPath);
-	}
-#else
-
-	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
 	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("temp_dir : [%s]\n",s);
-			outdir=s;
-		}else{
+		//#else
+
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s==NULL){
+			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
 			cout << "Using default output directory : " << dirfile << endl;
 			outdir=dirfile;
-		}//output_dir = ./RCW_120_M/ ;
+		}else{
+			str=(string)s;
+			if(str.size()!=0){
+				printf("temp_dir : [%s]\n",s);
+				outdir=s;
+			}else{
+				cout << "Using default output directory : " << dirfile << endl;
+				outdir=dirfile;
+			}//output_dir = ./RCW_120_M/ ;
+		}
 	}
+	//#endif
 
-#endif
 
 	s = iniparser_getstring(ini, "commons:data_directory", NULL);
 	if(s==NULL){

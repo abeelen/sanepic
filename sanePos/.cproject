@@ -30,14 +30,16 @@
 <option id="gnu.cpp.compiler.exe.debug.option.optimization.level.333092287" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.553382718" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1965074476" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="/home/matthieu/mpich2-1.0.5p4/src/include/"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.def.413425531" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.404254142" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+<option id="gnu.cpp.compiler.option.preprocessor.def.413425531" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
+</option>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.404254142" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
 <option id="gnu.cpp.compiler.option.debugging.gprof.1474718930" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
