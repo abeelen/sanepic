@@ -279,9 +279,9 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}//noise_prefixe = NoisePS ;
 
-	s = iniparser_getstring(ini, "commons:data_directory",NULL); // mat 27/08 pour sanePre c'est data_directory = noise_suffixe
+	s = iniparser_getstring(ini, "commons:temp_dir",NULL); // mat 27/08 pour sanePre c'est data_directory = noise_suffixe
 	if(s==NULL){
-		printf("You must add a line corresponding to data_directory in the ini file : commons:data_directory\n");
+		printf("You must add a line corresponding to data_directory in the ini file : commons:temp_dir\n");
 		return -1;
 	}
 	str=(string)s;
@@ -289,7 +289,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		printf("noise_data_directory : [%s]\n",s);
 		noiseSppreffile=s;
 	}else{
-		printf("you must specify commons:data_directory\n");
+		printf("you must specify commons:temp_dir\n");
 		return -1;
 	}//noise_suffixe = ./RCW_120_M/ ;
 
