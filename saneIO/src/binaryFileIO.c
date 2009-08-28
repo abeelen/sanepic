@@ -19,9 +19,10 @@ void write_vector(char *filename, void *data, int typesize, long nn) {
 void read_vector(char *filename, void *data, int typesize, long nn) {
 
   FILE *fp;
+  size_t result;
 
   fp = fopen(filename,"r");
-  fread(data,typesize, nn, fp);
+  result = fread(data,typesize, nn, fp);
   fclose(fp);
 
 }

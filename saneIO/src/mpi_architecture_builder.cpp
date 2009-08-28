@@ -349,7 +349,7 @@ void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size
 }
 
 
-void define_parallelization_scheme(int rank,string fname,long *frnum,long ntotscan,int size,long *nsamples,long *fframes,long &iframe_min,long &iframe_max){
+void define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes,long &iframe_min,long &iframe_max){
 
 
 
@@ -360,7 +360,7 @@ void define_parallelization_scheme(int rank,string fname,long *frnum,long ntotsc
 		long *nsamplesorder ;
 		//string *extentnoiseSp_allorder;
 
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
+		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, frnum);
 		// reorder nsamples
 		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
 		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
@@ -390,7 +390,7 @@ void define_parallelization_scheme(int rank,string fname,long *frnum,long ntotsc
 
 
 	}else{
-		frnum = new long[ntotscan+1];
+		*frnum = new long[ntotscan+1];
 	}
 
 
