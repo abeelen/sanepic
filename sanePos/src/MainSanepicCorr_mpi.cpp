@@ -221,6 +221,7 @@ int main(int argc, char *argv[])
 
 		if (parsed==-1){
 #ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			exit(1);
@@ -318,8 +319,15 @@ int main(int argc, char *argv[])
 
 	fname = tmp_dir + parallel_scheme_filename;
 
+	int test=0;
 	long *frnum;
-	define_parallelization_scheme(rank,fname,frnum,ntotscan,size,nsamples,fframes,iframe_min,iframe_max);
+	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+
+	if(test==-1){
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		exit(1);
+	}
 
 	/*long *frnum ;
 
