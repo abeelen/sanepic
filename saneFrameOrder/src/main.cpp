@@ -66,14 +66,9 @@ int main(int argc, char *argv[])
 	//size=2;
 	//rank=0;
 
-	if(size==1) {cerr << "Please run mpirun -n# first\n"; MPI_Finalize(); exit(1);}
+	if(size==1) {cerr << "Please run mpirun -n# first\n"; MPI_Barrier(MPI_COMM_WORLD); MPI_Finalize(); exit(1);}
 
 	if (rank == 0){
-
-		char * pPath;
-		pPath = getenv ("TMPBATCH");
-		if (pPath!=NULL)
-			printf ("The current path is: %s\n",pPath);
 
 		long ntotscan;
 		long *nsamples ; // number of samples table nsamples_vec -> nsamples

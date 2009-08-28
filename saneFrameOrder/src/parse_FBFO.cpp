@@ -14,9 +14,9 @@
 
 
 #include "parse_FBFO.h"
-#ifdef USE_MPI
+/*#ifdef USE_MPI
 #include "mpi.h"
-#endif
+#endif*/
 
 int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec)
 {
@@ -84,13 +84,20 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 
 
-	s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-	if(s!=NULL){
-		printf("file_name : [%s]\n",s);
-		tmp_dir=s;
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		printf ("The current path is: %s\n",pPath);
+		tmp_dir=pPath;
 	}else{
-		printf("You must provide a file name for the parallel scheme data file : sanepic_parallel_scheme:file_name\n");
-		return(-1);
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s!=NULL){
+			printf("file_name : [%s]\n",s);
+			tmp_dir=s;
+		}else{
+			printf("You must provide a file name for the parallel scheme data file : sanepic_parallel_scheme:file_name\n");
+			return(-1);
+		}
 	}
 
 	//fname = tmp_dir + parallel_scheme_filename;
