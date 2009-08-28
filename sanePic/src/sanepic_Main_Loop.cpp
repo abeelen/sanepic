@@ -166,14 +166,6 @@ int main(int argc, char *argv[])
 	long *fframes  ; /*!  first frames table  */
 	long *nsamples ; /*!  number of samples (for each frame) table */
 
-#ifdef USE_MPI
-	long *fframesorder ; /*! reordered frames */
-	long *nsamplesorder ; /*! reordered number of samples */
-	long *ruleorder ; /*! which frame goes to which processor */
-	long *frnum ;
-	string *extentnoiseSp_allorder; /*! reordered noise file names */
-#endif
-
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels */
 	int nnf; /*! extentnoiseSp_list number of elements */
@@ -269,6 +261,7 @@ int main(int argc, char *argv[])
 
 		if (parsed==-1){
 #ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			exit(1);
@@ -363,12 +356,18 @@ int main(int argc, char *argv[])
 	/********************* Define parallelization scheme   *******/
 
 #ifdef USE_MPI
-	cout << "parallel_frames : 1 " << "   size : " << size  << endl;
 
-	long *frnum ;
 	fname = tmp_dir + parallel_scheme_filename;
 
-	define_parallelization_scheme(rank,fname,frnum,ntotscan,size,nsamples,fframes,iframe_min,iframe_max);
+	int test=0;
+	long *frnum;
+	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+
+	if(test==-1){
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		exit(1);
+	}
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
