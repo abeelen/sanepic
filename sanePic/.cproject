@@ -85,7 +85,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|src/sane_io.cpp|src/sane_io.h|parseSanepic.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/estimPS_sanepic.h|src/estimPS_sanepic.cpp|src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|src/sane_io.cpp|src/sane_io.h|parseSanepic.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -569,7 +569,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|parseSanepic.cpp|src/sane_io.h|src/sane_io.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/estimPS_sanepic.h|src/estimPS_sanepic.cpp|src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|parseSanepic.cpp|src/sane_io.h|src/sane_io.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1027,8 +1027,8 @@
 <option id="gnu.cpp.compiler.option.debugging.prof.565188734" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.625585517" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.other.other.955499276" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-Wunused -c -fmessage-length=0" valueType="string"/>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.2016190917" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols"/>
-<option id="gnu.cpp.compiler.option.preprocessor.def.768386584" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<option id="gnu.cpp.compiler.option.preprocessor.undef.2016190917" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.768386584" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
@@ -1075,7 +1075,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|src/sane_io.cpp|src/sane_io.h|parseSanepic.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/estimPS_sanepic.h|src/estimPS_sanepic.cpp|src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|src/sane_io.cpp|src/sane_io.h|parseSanepic.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1525,7 +1525,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.def.977511379" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<option id="gnu.cpp.compiler.option.preprocessor.def.977511379" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
@@ -1563,7 +1563,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|parseSanepic.cpp|src/sane_io.h|src/sane_io.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/estimPS_sanepic.h|src/estimPS_sanepic.cpp|src/Corr_preprocess_old.h|src/Corr_preprocess_old.cpp|src/sane_io_old.h|src/sane_io_old.cpp|src/NoCorr_preprocess_old.h|src/NoCorr_preprocess_old.cpp|src/map_making_old.h|src/todprocess_old.h|src/todprocess_old.cpp|src/map_making_old$.h|src/map_making_old.cpp|src/todprocess.h|src/todprocess.cpp|src/NoCorr_preprocess.h|src/NoCorr_preprocess.cpp|src/map_making.h|src/map_making.cpp|src/Corr_preprocess.h|src/Corr_preprocess.cpp|src/NoCorr_preprocess29_06.h|src/NoCorr_preprocess29_06.cpp|src/map_making29-06.h|src/map_making_29_06.cpp|src/Corr_preprocess29_06.h|src/Corr_preprocess29_06.cpp|src/usage.cpp|src/Copy of NoCorr_preprocess24_06.cpp|src/Copy of Corr_preprocess24_06.h|src/Copy of Corr_preprocess24_06.cpp|parseSanepic.cpp|src/sane_io.h|src/sane_io.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>

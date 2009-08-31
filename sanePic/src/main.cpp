@@ -38,7 +38,7 @@
 #include "sanepic_preprocess.h"
 #include "conjugate_gradient.h"
 
-#include "estimPS_sanepic.h"
+//#include "estimPS_sanepic.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
 #include "mpi_architecture_builder.h"
@@ -472,27 +472,28 @@ int main(int argc, char *argv[])
 
 
 
-
-
-	//*******************************************************************//
-	//******************  Update noise power spectra  *******************//
-
-	if (doInitPS){
-		//printf("EstimPS will be run  with this mixing matrix file : %s\n",MixMatfile.c_str());
-
-		if (MixMatfile != "NOFILE"){
-			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-				ns = nsamples[iframe];
-				ff = fframes[iframe];
-				extentnoiseSp = extentnoiseSp_all[iframe];
-
-				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
-						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
-						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
-
-			}
-		}
-	}
+//
+// TODO : should not be here, all in sanePS
+//
+//	//*******************************************************************//
+//	//******************  Update noise power spectra  *******************//
+//
+//	if (doInitPS){
+//		//printf("EstimPS will be run  with this mixing matrix file : %s\n",MixMatfile.c_str());
+//
+//		if (MixMatfile != "NOFILE"){
+//			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+//				ns = nsamples[iframe];
+//				ff = fframes[iframe];
+//				extentnoiseSp = extentnoiseSp_all[iframe];
+//
+//				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
+//						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
+//						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
+//
+//			}
+//		}
+//	}
 
 
 

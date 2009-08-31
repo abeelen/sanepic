@@ -349,7 +349,7 @@ void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size
 }
 
 
-void define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes,long &iframe_min,long &iframe_max){
+void define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes){
 
 
 

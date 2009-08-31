@@ -226,7 +226,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	//double dnbins;
 	//long ndata = ns+2*marge;
 	string field1, field2;
-	string extentnoiseSp;
+	string extentNoiseSp;
 
 	string nameSpfile;
 	//char testfile[100];
@@ -289,15 +289,16 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		//cout << "samptopix" << endl;
 
 		//**************************************** Noise power spectrum
-		extentnoiseSp = extentnoiseSp_all[iframe];
-		nameSpfile = noiseSppreffile + field1 + "-all" + extentnoiseSp;
+		extentNoiseSp = extentnoiseSp_all[iframe];
+		nameSpfile = noiseSppreffile + field1 + "-all" + extentNoiseSp;
 		//cout << nameSpfile << endl;
 
 		//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
 
 
 		//read noise PS file
-		read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
+		read_InvNoisePowerSpectra(noiseSppreffile, field1, extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
+//		read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
 		//read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentnoiseSp,&nbins, &ndet2, &ell, &SpN_all);
 		//if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 

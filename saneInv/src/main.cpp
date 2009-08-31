@@ -30,7 +30,6 @@ int main(int argc, char *argv[]) {
 	 * -nbins = number of bins (Ell)
 	 */
 	long ndet, ndetOrig, nbins;
-	int ncomp;/*! number of component for the mixing matrices */
 
 	double *ell; /*! bins values */
 	/*!
@@ -73,10 +72,7 @@ int main(int argc, char *argv[]) {
 	// -the input channel list => channelIn
 	// -The number of bins (size of Ell) => nbins
 	// -The original NoiseNoise covariance matrix => RellthOrig
-	// -The original mixing matrix => mixmatOrig
-	// -The number of noise component in this mixing matrix => ncomp
-	//read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &mixmatOrig, &ncomp);
-	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig, &ncomp);
+	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig);
 	// total number of detectors in the covmatrix fits file
 	ndetOrig = channelIn.size();
 	printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());

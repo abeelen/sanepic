@@ -274,27 +274,27 @@ void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int
 
 }
 
-
-void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
-
-	FILE *fp;
-	double dnbins;
-	size_t result;
-
-	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
-		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
-		exit(1);
-	}
-	result = fread(&dnbins,sizeof(double), 1, fp);
-	nbins = (long)dnbins;
-	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
-	ell = new double[nbins+1];
-	result = fread(ell,sizeof(double), nbins+1, fp);
-	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
-	fclose(fp);
-
-
-}
+//// TODO : To be Removed
+//void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
+//
+//	FILE *fp;
+//	double dnbins;
+//	size_t result;
+//
+//	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
+//		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
+//		exit(1);
+//	}
+//	result = fread(&dnbins,sizeof(double), 1, fp);
+//	nbins = (long)dnbins;
+//	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
+//	ell = new double[nbins+1];
+//	result = fread(ell,sizeof(double), nbins+1, fp);
+//	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
+//	fclose(fp);
+//
+//
+//}
 
 
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, string outdir, int idet, long iframe) {

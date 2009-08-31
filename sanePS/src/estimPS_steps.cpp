@@ -223,7 +223,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 
 
-void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentnoiseSp, string noiseSppreffile, string bextension, string fextension, long &nbins,
+void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string noiseSppreffile, string bextension, string fextension, long &nbins,
 		long &nbins2, long ns, long ff, long ndet, int nn, long npix,long napod, double *&ell, double **&SpN_all, double *data, unsigned char *flag,
 		long *samptopix, string dir, double *S, long iframe,string termin_internal, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
@@ -240,8 +240,9 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	//**************************************** Read pre-estimated power spectrum for reference : get ell and nbins
 
 	//nameSpfile=noiseSppreffile + field + "-all" + extentnoiseSp;
-	nameSpfile=noiseSppreffile + bolonames[0] + "-all" + extentnoiseSp;
-	read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // just to get nbins and ell ...
+	nameSpfile=noiseSppreffile + bolonames[0] + "-all" + extentNoiseSp;
+	read_InvNoisePowerSpectra(noiseSppreffile, bolonames[0], extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
+//	read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // just to get nbins and ell ...
 	nbins2 = nbins;
 
 	//    printf("Inside EstimPowerSpectra after 1st step\n");
@@ -1121,7 +1122,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 
 	//string tempo;
 	//tempo = nameSpfile;
-	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth ,ncomp);
+	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth);
 
 
 	temp_stream << outdirSpN + "Ell_" << ff << termin + ".psd";

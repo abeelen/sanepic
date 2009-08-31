@@ -25,7 +25,7 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 void read_InvNoisePowerSpectra(string prefix, string boloName, string suffix, long * nbins, long * ndet, double ** ell, double *** SpN_all);
 
 /*! This function writes the NoiseNoise Matrices in a fits file (also Writes the mixing matrices) */
-void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth, int ncomp);
+void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth);
 
 /*! Writes the reduced mixing matrix in a binary file */
 void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outputDir);
@@ -34,7 +34,7 @@ void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outpu
 void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir);
 
 /*! This function reads the NoiseNoise Matrices in a fits file (also reads the mixing matrices) */
-void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins, double **ell, double ***Rellth, int *ncomp);
+void read_CovMatrix(string fname, std::vector<string> &bolos, long *nbins, double **ell, double ***Rellth);
 
 /*! Returns the table Format for the given vector of string*/
 char* tableFormat(std::vector<string> strings);
