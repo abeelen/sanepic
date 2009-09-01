@@ -16,7 +16,7 @@
 
 #include "mpi_architecture_builder.h"
 
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
 #include "inline_IO2.h"
 extern "C" {

@@ -31,7 +31,7 @@
 
 
 #include "sanePos_map_making.h"
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
 #include "blastSpecific.h"
 #include "inline_IO2.h"

@@ -1,6 +1,14 @@
 #include <string>
-
 #include <stdio.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
+#include <cstdlib>
+
+#include "dataIO.h"
+
+using namespace std;
 
 //TODO: remove C++ dependancies (string fname)
 //TODO: inline/extern inline if needed (not likely)
@@ -44,6 +52,9 @@ int read_data_std(string fname, int frame, int fs, int ns,
 
 		return 1;
 }
+
+
+
 
 // int read_data(string fname, int frame, int fs, int ns,
 //               void* data, string field, char type)

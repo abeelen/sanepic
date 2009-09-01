@@ -1,10 +1,19 @@
-#ifndef BOLOIO_H_
-#define BOLOIO_H_
+/*
+ * positionsIO.h
+ *
+ *  Created on: 31 août 2009
+ *      Author: abeelen
+ */
 
+#ifndef POSITIONSIO_H_
+#define POSITIONSIO_H_
+
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <string>
 #include <vector>
 
 using namespace std;
@@ -21,4 +30,6 @@ void read_bolofile(string fname, std::vector<string>& bolos);
  */
 void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, double *offsets);
 
-#endif /* BOLOIO_H_ */
+void read_bolo_offsets_from_fits(string filename, string field, float *scoffsets, double *offsets);
+
+#endif /* POSITIONSIO_H_ */

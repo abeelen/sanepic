@@ -1,11 +1,13 @@
-
-
 #ifndef DATAIO_H_
 #define DATAIO_H_
 
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 

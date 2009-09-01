@@ -7,6 +7,7 @@
 
 #include "sanePos_preprocess.h"
 
+#include "positionsIO.h"
 
 
 
@@ -43,7 +44,9 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 
 		//read bolometer offsets
 		read_bolo_offsets(field,file_offsets,scoffsets,offsets);
-
+		cout << "before " << offsets[0] << " " << offsets[1] << endl;
+		read_bolo_offsets_from_fits("data_00.fits", field, scoffsets, offsets);
+		cout << "after  " << offsets[0] << " " << offsets[1] << endl;
 
 		// for each scan
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
