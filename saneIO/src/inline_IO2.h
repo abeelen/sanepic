@@ -166,4 +166,14 @@ void write_info_for_second_part(string outdir, string termin, int nn, int npix,
  */
 void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat);
 
+/*!
+ * Writes (sanePic) estimated signal to a binary file
+ */
+void write_signal(int npix, double *S, string signame);
+
+/*!
+ * Writes (sanePic) estimated signal in a binary file
+ */
+void read_signal(int &npix, double *&S, string signame);
+
 #endif

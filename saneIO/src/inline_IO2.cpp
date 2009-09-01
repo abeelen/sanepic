@@ -396,3 +396,22 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat
 	fclose(fp);
 
 }
+
+void write_signal(int npix, double *S, string signame){
+	FILE *fp;
+
+	if((fp=fopen(signame.c_str(),"w")) == NULL){
+		fwrite(&npix,sizeof(int),1,fp);
+		fwrite(S,sizeof(double),npix,fp);
+	}
+}
+// TODO : tests
+void read_signal(int &npix, double *&S, string signame){
+	FILE *fp;
+
+	if((fp=fopen(signame.c_str(),"r")) == NULL){
+		fread(&npix,sizeof(int),1,fp);
+		S = new double[npix];
+		fread(S,sizeof(double),npix,fp);
+	}
+}

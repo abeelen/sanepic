@@ -58,6 +58,7 @@ double* randg(long nombre, int seedpass) {
 }
 
 
+
 double randg_archi(long nombre, int seedpass) {
 
 	double nombre_hasard=0.5;
@@ -90,7 +91,7 @@ double randg_archi(long nombre, int seedpass) {
 
 	return nombre_hasard;
 }
- 
+
 
 int compare_array_double (const void *array_1, const void *array_2)
 {
