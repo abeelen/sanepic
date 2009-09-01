@@ -90,7 +90,7 @@ double randg_archi(long nombre, int seedpass) {
 
 	return nombre_hasard;
 }
-
+ 
 
 int compare_array_double (const void *array_1, const void *array_2)
 {
@@ -126,7 +126,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	//init random generator
 	valtemp = randg(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
-	cout << valtemp << endl;
+	//cout << valtemp << endl;
 
 	//init arrays
 	for (long ii=0;ii<=ntotscan;ii++)
@@ -137,7 +137,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 		for (long kk=0;kk<ntotscan;kk++){
 			valtemp = randg(1,-1); // return a random value between 0/1
-			cout << valtemp << endl;
+			//cout << valtemp << endl;
 			dat_compare[kk] = valtemp[0];
 		}
 
@@ -252,8 +252,13 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	}
 
-	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+	delete [] maxproc;
+	delete [] std;
+	delete [] ns_order;
+	delete [] sizeperproc;
+	delete [] dat_compare;
 
+	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 
 }
 
@@ -320,7 +325,7 @@ void read_ParallelizationScheme(string fname,  long **position, long **frnum, lo
 
 }
 
-void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum)
+int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
@@ -335,32 +340,35 @@ void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size
 		for(int ii=0;ii<ntotscan;ii++)
 			if(ns[ii]!=dummy_nsamples[ii]){
 				cerr << "You must use a parallel scheme that fits the actual mpi configuration (number of samples are different)\n" << endl;
-				exit(1);
+				return(-1);
 			}
 	}else{
 		cerr << "You must use a parallel scheme that fits the actual mpi configuration (number of scans are different)\n" << endl;
-		exit(1);
+		return(-1);
 	}
 	if(size!=(dummy_size)){
 		cerr << "You must use a parallel scheme that fits the actual mpi configuration (size is different)\n" << endl;
-		exit(1);
+		return(-1);
 	}
-
+	return 0;
 }
 
 
-void define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes){
+int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes){
 
 
 
 	if (rank == 0){
 
+		int test=0;
 		long *ruleorder ;
 		long *fframesorder ;
 		long *nsamplesorder ;
 		//string *extentnoiseSp_allorder;
 
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, frnum);
+		test=check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, frnum);
+		if (test==-1)
+			return test;
 		// reorder nsamples
 		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
 		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
@@ -393,5 +401,6 @@ void define_parallelization_scheme(int rank,string fname,long **frnum,long ntots
 		*frnum = new long[ntotscan+1];
 	}
 
+	return 0;
 
 }

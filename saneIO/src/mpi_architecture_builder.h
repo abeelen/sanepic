@@ -27,8 +27,8 @@ double randg_archi(long nombre, int seedpass);
 
 int write_ParallelizationScheme(string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size);
 void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
-void check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
-void define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
+int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
+int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
 
 #define parallel_scheme_filename  "parallel_scheme.bin";
 
