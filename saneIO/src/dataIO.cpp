@@ -32,7 +32,7 @@ int read_data_std(string fname, int frame, int fs, int ns,
 	test[1] = '\0';
 	string typestr = string(test);
 	//  printf("type = %s\n",test);
-	free(test);
+
 
 	FILE *fp;
 
