@@ -62,24 +62,25 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 			cout << "iframe " << iframe << endl;
 			// lis les données RA/DEC, Phi, et scerr (sky coordinates err, BLASPEC) pour ff et ns
 			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
-			cout << "before "  << endl;
-			cout << ra[0] << " " << ra[1] << endl;
+			cout << "before " << ra[0] << " " << ra[1] << endl;
 
 			short *flpoint2;
 			flpoint2 = new short[2*ns];
 
-			read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, ns2, type);
+			read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
 			cout << "after " << ra[0] << " " << ra[1] << endl << endl;
-			cout << "after " << dec[0] << " " << dec[1] << endl;
-			cout << "after " << phi[0] << " " << phi[1] << endl;
+			cout << "after dec " << dec[0] << " " << dec[1] << endl;
+			cout << "after phi " << phi[0] << " " << phi[1] << endl;
 			cout << "flpoint : " << flpoint2[0] <<  flpoint2[1] << flpoint2[2] << flpoint2[3] << endl;
 			cout << "ns : " << ns << " " << "ns 2 : " << ns2 << endl;
+
+
+			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+			cout << "before dec " << dec[0] << " " << dec[1] << endl;
+
+			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+			cout << "before phi " << phi[0] << " " << phi[1] << endl;
 			getchar();
-
-			//read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-
-			//read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-
 			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type); // TODO : ca n'existe plus
 
 			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
@@ -180,7 +181,8 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 	string field;
 	string bolofield;
 	string flagfield;
-	long ns,ff;
+	long ns,ff, ns2;
+	short *flpoint2;
 
 
 	int ll=0;
@@ -204,6 +206,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 		// read bolometer offsets
 		read_bolo_offsets(field,file_offsets,scoffsets,offsets);
 
+		read_bolo_offsets_from_fits("data_00.fits", field, offsets);
 
 
 		//loop to get coordinates of pixels that are seen
@@ -219,9 +222,14 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 			for (long ii=0;ii<ns;ii++)
 				if (isnan(ra[ii]) || isnan(dec[ii]))
 					flpoint[ii] = 1;
+
+			flpoint2 = new short[2*ns];
+
 			if (fextension != "NOFLAG"){
 				read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
+				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 1, flag, ns2, field);
 			} else {
+				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
 				for (long ii=0;ii<ns;ii++)
 					flag[ii] = 0;
 			}
