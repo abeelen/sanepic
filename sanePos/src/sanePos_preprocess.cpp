@@ -45,8 +45,10 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 		//read bolometer offsets
 		read_bolo_offsets(field,file_offsets,scoffsets,offsets);
 		cout << "before " << offsets[0] << " " << offsets[1] << endl;
-		read_bolo_offsets_from_fits("data_00.fits", field, scoffsets, offsets);
+		read_bolo_offsets_from_fits("data_00.fits", field, offsets);
 		cout << "after  " << offsets[0] << " " << offsets[1] << endl;
+
+		long ns2;
 
 		// for each scan
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -57,16 +59,30 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
 
+			cout << "iframe " << iframe << endl;
 			// lis les données RA/DEC, Phi, et scerr (sky coordinates err, BLASPEC) pour ff et ns
 			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
+			cout << "before "  << endl;
+			cout << ra[0] << " " << ra[1] << endl;
 
-			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+			short *flpoint2;
+			flpoint2 = new short[2*ns];
 
-			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+			read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, ns2, type);
+			cout << "after " << ra[0] << " " << ra[1] << endl << endl;
+			cout << "after " << dec[0] << " " << dec[1] << endl;
+			cout << "after " << phi[0] << " " << phi[1] << endl;
+			cout << "flpoint : " << flpoint2[0] <<  flpoint2[1] << flpoint2[2] << flpoint2[3] << endl;
+			cout << "ns : " << ns << " " << "ns 2 : " << ns2 << endl;
+			getchar();
 
-			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+			//read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
 
-			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
+			//read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+
+			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type); // TODO : ca n'existe plus
+
+			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
 
 			for (long ii=0;ii<ns;ii++)
 				if (isnan(ra[ii]) || isnan(dec[ii]) || isnan(phi[ii]))
@@ -75,7 +91,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 
 
 			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
+			//correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : A virer
 
 			if (default_projection){
 				// spheric coords to squared coords (tangent plane)
@@ -198,7 +214,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
 			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
 			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
 			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
 			for (long ii=0;ii<ns;ii++)
 				if (isnan(ra[ii]) || isnan(dec[ii]))
@@ -213,7 +229,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 
 
 			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
+			//correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
 
 
 
