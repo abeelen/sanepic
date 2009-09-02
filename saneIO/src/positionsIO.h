@@ -32,6 +32,6 @@ void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, 
 
 void read_bolo_offsets_from_fits(string filename, string field, double *offsets);
 
-void read_data_from_fits(string filename, void *data, void *data2, void *data3,void *data4,  long &ns, char type);
+void read_data_from_fits(string filename, void *data, void *data2, void *data3,void *data4, bool flag, void *data5, long &ns, string field);
 
 #endif /* POSITIONSIO_H_ */

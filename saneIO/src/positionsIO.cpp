@@ -153,7 +153,7 @@ void read_bolo_offsets_from_fits(string filename, string field, double *offsets)
 }
 
 
-void read_data_from_fits(string filename, void *data, void *data2, void *data3, void *data4, long &ns, char type){
+void read_data_from_fits(string filename, void *data, void *data2, void *data3, void *data4, bool flag, void *data5, long &ns, string field){
 
 
 	/*int sizetype;
@@ -209,6 +209,13 @@ void read_data_from_fits(string filename, void *data, void *data2, void *data3, 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, data4, 0, &status);
+
+	if(flag){
+		// read the Channel List
+			if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
+				fits_report_error(stderr, status);
+
+	}
 
 
 
