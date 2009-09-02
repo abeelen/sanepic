@@ -59,51 +59,51 @@ void read_bolofile(string fname, std::vector<string> &bolos) {
  */
 void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, double *offsets){
 
-  double lel, xel;
-  long temp1, temp2, temp3;
-  int nobolo = 1;
+	double lel, xel;
+	long temp1, temp2, temp3;
+	int nobolo = 1;
 
-  char boloname[100];
-  FILE *fp;
-
-
-  if ((fp = fopen(file_BoloOffsets.c_str(),"r")) == NULL){
-    cerr << "ERROR: Can't find offset file. Exiting. \n";
-    exit(1);
-  }
-  while (fscanf(fp, "%s%ld%ld%ld%lf%lf\n", boloname, &temp1, &temp2, &temp3, &lel, &xel) != EOF) {
-    if (field == boloname) {
-      nobolo = 0;
-      if (temp3 == 250){
-	offsets[0] = xel/60.0/60.0 - scoffsets[1];
-	offsets[1] = lel/60.0/60.0 + scoffsets[0];
-      }
-      if (temp3 == 350){
-	offsets[0] = xel/60.0/60.0 - scoffsets[3];
-	offsets[1] = lel/60.0/60.0 + scoffsets[2];
-      }
-      if (temp3 == 500){
-	offsets[0] = xel/60.0/60.0 - scoffsets[5];
-	offsets[1] = lel/60.0/60.0 + scoffsets[4];
-      }
-    }
-  }
-  fclose (fp);
+	char boloname[100];
+	FILE *fp;
 
 
-  if (nobolo){
-    cerr << "Bolometer name not found in offset list" << endl;
-    exit(1);
-  }
+	if ((fp = fopen(file_BoloOffsets.c_str(),"r")) == NULL){
+		cerr << "ERROR: Can't find offset file. Exiting. \n";
+		exit(1);
+	}
+	while (fscanf(fp, "%s%ld%ld%ld%lf%lf\n", boloname, &temp1, &temp2, &temp3, &lel, &xel) != EOF) {
+		if (field == boloname) {
+			nobolo = 0;
+			if (temp3 == 250){
+				offsets[0] = xel/60.0/60.0 - scoffsets[1];
+				offsets[1] = lel/60.0/60.0 + scoffsets[0];
+			}
+			if (temp3 == 350){
+				offsets[0] = xel/60.0/60.0 - scoffsets[3];
+				offsets[1] = lel/60.0/60.0 + scoffsets[2];
+			}
+			if (temp3 == 500){
+				offsets[0] = xel/60.0/60.0 - scoffsets[5];
+				offsets[1] = lel/60.0/60.0 + scoffsets[4];
+			}
+		}
+	}
+	fclose (fp);
+
+
+	if (nobolo){
+		cerr << "Bolometer name not found in offset list" << endl;
+		exit(1);
+	}
 
 
 }
 
-void read_bolo_offsets_from_fits(string filename, string field, float *scoffsets, double *offsets){
+void read_bolo_offsets_from_fits(string filename, string field, double *offsets){
 
 	fitsfile *fptr;
 	int status = 0;
-	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+	//long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long nBolos, repeat, width;
 	int colnum, typecode;
 	double temp;
@@ -122,7 +122,7 @@ void read_bolo_offsets_from_fits(string filename, string field, float *scoffsets
 
 	// Initialize the data container
 	char ** data;
-	data = new char*[nBolos+1];
+	data = new char* [nBolos+1];
 	for (long i = 0; i < nBolos; i++) {
 		data[i] = new char[repeat];
 	}
@@ -138,16 +138,78 @@ void read_bolo_offsets_from_fits(string filename, string field, float *scoffsets
 	}
 	free(data);
 
-//	std::vector<string>::const_iterator it = find (bolos.begin(), bolos.end(),field);
+	//	std::vector<string>::const_iterator it = find (bolos.begin(), bolos.end(),field);
 	// +1 because cfitsio is 1 indexed
 	long firstrow = distance(bolos.begin(), find (bolos.begin(), bolos.end(),field))+1;
 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "X", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, firstrow, 1, 1, NULL, &temp, 0, &status);
-	offsets[0] = temp/60.0/60.0;
+	offsets[0] = temp/60.0/60.0; // deg
 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "Y", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, firstrow, 1, 1, NULL, &temp, 0, &status);
-	offsets[1] = temp/60.0/60.0;
+	offsets[1] = temp/60.0/60.0; //deg
+
+}
+
+
+void read_data_from_fits(string filename, void *data, void *data2, void *data3, void *data4, long &ns, char type){
+
+
+	/*int sizetype;
+	char test[2];
+
+
+	test[0] = type;
+	test[1] = '\0';
+	string typestr = string(test);
+	//  printf("type = %s\n",test);
+	free(test);
+
+	if (typestr == "d") sizetype = 8;
+	if (typestr == "c") sizetype = 1;
+	 */
+	////////////////////////////////////
+
+	fitsfile *fptr;
+	int status = 0;
+	//long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+	long repeat, width;
+	int colnum, typecode;
+	//double temp;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// read the Channel List
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
+		fits_report_error(stderr, status);
+
+	fits_get_num_rows(fptr, &ns, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
+	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data, 0, &status);
+
+
+
+	//fits_get_num_rows(fptr, &ns, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
+	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data2, 0, &status);
+
+
+	//fits_get_num_rows(fptr, &ns, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
+	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data3, 0, &status);
+
+
+	//fits_get_num_rows(fptr, &ns, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
+	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, data4, 0, &status);
+
+
 
 }

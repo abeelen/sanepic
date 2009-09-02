@@ -30,6 +30,8 @@ void read_bolofile(string fname, std::vector<string>& bolos);
  */
 void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, double *offsets);
 
-void read_bolo_offsets_from_fits(string filename, string field, float *scoffsets, double *offsets);
+void read_bolo_offsets_from_fits(string filename, string field, double *offsets);
+
+void read_data_from_fits(string filename, void *data, void *data2, void *data3,void *data4,  long &ns, char type);
 
 #endif /* POSITIONSIO_H_ */
