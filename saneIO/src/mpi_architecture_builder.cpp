@@ -5,8 +5,12 @@
 #include <algorithm>
 
 #include "time.h"
-
+#include "positionsIO.h"
 #include "mpi_architecture_builder.h"
+
+extern "C" {
+#include <fitsio.h>
+}
 
 
 using namespace std;
@@ -405,3 +409,42 @@ int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotsc
 	return 0;
 
 }
+
+long readFitsLength(string filename){
+
+	fitsfile *fptr;
+	int status = 0;
+	int hdu_type;
+	long ns;
+
+	//	Open the fits file
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+			fits_report_error(stderr, status);
+
+	// Go to the first Extension (should be an image named "Primary")
+	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
+		fits_report_error(stderr, status);
+	if (hdu_type != IMAGE_HDU)
+		fits_report_error(stderr, BAD_HDU_NUM);
+
+	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status))
+		fits_report_error(stderr ,status);
+
+	return ns;
+
+}
+
+void readFrames(string filename, long * nScan, std::vector<string> &inputList, long *& fframes, long *& nsamples){
+
+	read_strings(filename, inputList);
+
+	*nScan    = inputList.size();
+	fframes  = new long[*nScan];
+	nsamples = new long[*nScan];
+	for (long i=0; i<*nScan; i++){
+		fframes[i]  = i;
+		nsamples[i] = readFitsLength(inputList[i]);
+	}
+
+}
+

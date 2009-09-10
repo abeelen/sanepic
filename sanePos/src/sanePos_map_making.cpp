@@ -354,7 +354,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 
 
 /*
-void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double **count, int nn, unsigned char *flag, double **map_f, double **count_f)
+void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double **count, int nn, short *flag, double **map_f, double **count_f)
 {
 
 	//int ii, jj;
@@ -403,9 +403,9 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 
 
-void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
+void flag_conditions(short *flag, double *scerr, short *flpoint,
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
-		bool NOFILLGAP, unsigned char *rejectsamp){
+		bool NOFILLGAP, short *rejectsamp){
 
 
 	// define the rules for bad samples
@@ -413,13 +413,13 @@ void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
 
 
 	//long ii;
-	unsigned char *flagtmp;
+	short *flagtmp;
 	double *scerrtmp;
-	unsigned char *flpointtmp;
+	short *flpointtmp;
 
-	flagtmp = new unsigned char[ns];
+	flagtmp = new short[ns];
 	scerrtmp = new double[ns];
-	flpointtmp = new unsigned char[ns];
+	flpointtmp = new short[ns];
 
 
 	if (NOFILLGAP){

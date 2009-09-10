@@ -30,6 +30,9 @@ void read_ParallelizationScheme(string fname,  long **position, long **frnum, lo
 int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
 int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
 
+long readFitsLength(string filename);
+void readFrames(string filename, long * nScan, std::vector<string> &inputFiles, long *& fframes, long *& nsamples);
+
 #define parallel_scheme_filename  "parallel_scheme.bin";
 
 #endif /* MPI_ARCHITECTURE_BUILDER_H_ */

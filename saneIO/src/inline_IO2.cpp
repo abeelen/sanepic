@@ -408,10 +408,11 @@ void write_signal(int npix, double *S, string signame){
 // TODO : tests
 void read_signal(int &npix, double *&S, string signame){
 	FILE *fp;
+	size_t result;
 
 	if((fp=fopen(signame.c_str(),"r")) == NULL){
-		fread(&npix,sizeof(int),1,fp);
+		result = fread(&npix,sizeof(int),1,fp);
 		S = new double[npix];
-		fread(S,sizeof(double),npix,fp);
+		result = fread(S,sizeof(double),npix,fp);
 	}
 }

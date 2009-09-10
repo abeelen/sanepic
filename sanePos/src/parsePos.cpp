@@ -102,7 +102,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	str=(string)s;
 	if(str.size()!=0){
 		printf("channel file : [%s]\n",s);
-		read_bolofile((string)s, bolonames);
+		read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a bolometer file : commons:channel\n");
 		return -1 ;
@@ -120,7 +120,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("frame file : [%s]\n",s);
 		//read frame file function
 		std::vector<string> dummy;
-		read_bolofile((string)s,dummy);
+		read_strings((string)s,dummy);
 		if(((int)dummy.size())==0){
 			printf("You must provide one number of samples per scan !");
 			exit(0);}
@@ -259,7 +259,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("noise_suffixe : [%s]\n",s);
 		noiseSppreffile=s;
 	}else{
-		printf("you must specread_bolofileify a noise_suffixe\n");
+		printf("you must specread_stringsify a noise_suffixe\n");
 		exit(0);
 	}//noise_suffixe = ./RCW_120_M/ ;*/
 

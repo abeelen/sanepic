@@ -22,12 +22,12 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		bool fixcoord, double radius, double *offmap, double *radecsrc = NULL,bool compute_xx_yy=0);
 
 void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
-		double **count, int nn, unsigned char *flag,
+		double **count, int nn, short *flag,
 		double **map_f, double **count_f );
 
-void flag_conditions(unsigned char *flag, double *scerr, unsigned char *flpoint,
+void flag_conditions(short *flag, double *scerr, short *flpoint,
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
-		bool NOFILLGAP, unsigned char *rejectsamp);
+		bool NOFILLGAP, short *rejectsamp);
 
 
 

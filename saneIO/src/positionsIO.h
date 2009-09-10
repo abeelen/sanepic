@@ -22,7 +22,7 @@ using namespace std;
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-void read_bolofile(string fname, std::vector<string>& bolos);
+void read_strings(string fname, std::vector<string>& bolos);
 
 /*!
  * Reads the detectors offsets in a .txt file
@@ -32,6 +32,6 @@ void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, 
 
 void read_bolo_offsets_from_fits(string filename, string field, double *offsets);
 
-void read_data_from_fits(string filename, void *data, void *data2, void *data3,void *data4, bool flag, void *data5, long &ns, string field);
+void read_position_from_fits(string filename, double *RA, double *DEC, double *PHI, short *flag, long &ns);
 
 #endif /* POSITIONSIO_H_ */

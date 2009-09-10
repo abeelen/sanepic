@@ -5,10 +5,32 @@
  *      Author: matthieu
  */
 
-#include "sanePos_preprocess.h"
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <time.h>
+#include <cstdlib>
+#include <cmath>
+
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <vector>
+#include <stdio.h>
+#include <string>
+#include <algorithm>
+
+
+#include "sanePos_map_making.h"
 #include "positionsIO.h"
+#include "dataIO.h"
+#include "blastSpecific.h"
+#include "inline_IO2.h"
+#include "positionsIO.h"
+#include "mpi_architecture_builder.h"
 
+#include "sanePos_preprocess.h"
 
 
 void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bextension,
@@ -16,7 +38,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 		long *fframes,long *nsamples,string dirfile,string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
-		double *&phi,double *&scerr, unsigned char *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
+		double *&phi,double *&scerr, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
 
 	double * offsets,*froffsets;
 	offsets = new double[2]; //
@@ -59,27 +81,30 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
 
+			cout << "Length  : " << readFitsLength("data_00.fits") << endl;
+
+
 			cout << "iframe " << iframe << endl;
 			// lis les données RA/DEC, Phi, et scerr (sky coordinates err, BLASPEC) pour ff et ns
-			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
-			cout << "before " << ra[0] << " " << ra[1] << endl;
+//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
+//			cout << "before " << ra[0] << " " << ra[1] << endl;
+//
+//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+//			cout << "before dec " << dec[0] << " " << dec[1] << endl;
+//
+//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+//			cout << "before phi " << phi[0] << " " << phi[1] << endl;
 
 			short *flpoint2;
-			flpoint2 = new short[2*ns];
+			flpoint2 = new short[ns];
 
-			read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
+			read_position_from_fits("data_00.fits", ra, dec, phi, flpoint2, ns2);
 			cout << "after " << ra[0] << " " << ra[1] << endl << endl;
 			cout << "after dec " << dec[0] << " " << dec[1] << endl;
 			cout << "after phi " << phi[0] << " " << phi[1] << endl;
 			cout << "flpoint : " << flpoint2[0] <<  flpoint2[1] << flpoint2[2] << flpoint2[3] << endl;
 			cout << "ns : " << ns << " " << "ns 2 : " << ns2 << endl;
 
-
-			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			cout << "before dec " << dec[0] << " " << dec[1] << endl;
-
-			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			cout << "before phi " << phi[0] << " " << phi[1] << endl;
 			getchar();
 			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type); // TODO : ca n'existe plus
 
@@ -119,7 +144,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames,string bext
 
 
 long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
-		std::vector<long> yyf, long* &indpsrc,long &npixsrc,unsigned char *&mask){
+		std::vector<long> yyf, long* &indpsrc,long &npixsrc,short *&mask){
 
 	long addnpix=0;
 
@@ -171,10 +196,10 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::vector<string> bolonames,string bextension, string fextension,string termin,
 		string file_offsets,foffset *foffsets,float *scoffsets,long iframe_min, long iframe_max,long *fframes,
 		long *nsamples,string dirfile,string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy, unsigned char *&mask,int &nn, double *&coordscorner, double *tancoord,
+		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy, short *&mask,int &nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,
-		double *&phi,double *&scerr, unsigned char *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,unsigned char* &flag,
-		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
+		double *&phi,double *&scerr, short *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,short* &flag,
+		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,short *&rejectsamp, long *&samptopix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
 
 
@@ -213,26 +238,29 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 		for (long iframe=0;iframe<ntotscan;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
+//
+//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
+//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+//			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+//			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+//			for (long ii=0;ii<ns;ii++)
+//				if (isnan(ra[ii]) || isnan(dec[ii]))
+//					flpoint[ii] = 1;
+//
+//			flpoint2 = new short[ns];
 
-			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
-			for (long ii=0;ii<ns;ii++)
-				if (isnan(ra[ii]) || isnan(dec[ii]))
-					flpoint[ii] = 1;
-
-			flpoint2 = new short[2*ns];
-
-			if (fextension != "NOFLAG"){
-				read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 1, flag, ns2, field);
-			} else {
-				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
-				for (long ii=0;ii<ns;ii++)
-					flag[ii] = 0;
-			}
+			// TODO : flag should be read here, all time, and define as short int
+			read_position_from_fits("data_00.fits", ra, dec, phi, flpoint, ns2);
+//
+//			if (fextension != "NOFLAG"){
+//				read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
+//				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 1, flag, ns2, field);
+//			} else {
+//				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
+//				for (long ii=0;ii<ns;ii++)
+//					flag[ii] = 0;
+//			}
 
 
 

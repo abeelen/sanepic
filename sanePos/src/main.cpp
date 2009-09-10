@@ -132,6 +132,17 @@ int main(int argc, char *argv[])
 	long addnpix=0; /*!add a number 'n' of pixels to the map */
 
 
+	// TODO: Write a frameIO (old mpi_architecture_builder) scheme in saneIO to handle all of that...
+	std::vector<string> inputFiles;
+	readFrames("inputList.txt", &ntotscan, inputFiles, fframes, nsamples);
+
+	cout << "ntotscan " << ntotscan << endl;
+
+	for (long i=0; i<ntotscan; i++){
+		cout << i << " " << inputFiles[i] << " " << fframes[i] << " " << nsamples[i] << endl;
+	}
+
+	exit(0);
 
 	// map making parameters
 	double pixdeg; /*! size of pixels (degree) */
@@ -159,7 +170,7 @@ int main(int argc, char *argv[])
 
 	char type='d'; /*! returned type of read_data functions, d=64bit double */
 	double *ra, *dec, *phi, *scerr; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
-	unsigned char *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
+	short *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	int *xx, *yy; /*! data coordinates in the map */
@@ -424,9 +435,9 @@ int main(int argc, char *argv[])
 	xx = new int[2*ns]; // sample column coordinates in the map
 	yy = new int[2*ns]; // sample row coordinates in the map
 	samptopix = new long[2*ns]; // sample to pixel conversion index
-	flag = new unsigned char[2*ns]; // flag data => =1
-	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
-	flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
+	flag = new short[2*ns]; // flag data => =1
+	rejectsamp = new short[2*ns]; // rejected samples after flag conditions
+	flpoint = new short [2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
 	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
 	tanpix = new double[2]; // coordinates in the map of the tangent point
 
@@ -536,7 +547,7 @@ int main(int argc, char *argv[])
 
 
 	//************************************* Deal with masking the point sources
-	mask = new unsigned char[nn*nn];
+	mask = new short[nn*nn];
 	indpsrc = new long[nn*nn];
 
 	// if a box for crossing constraint removal is given in ini file

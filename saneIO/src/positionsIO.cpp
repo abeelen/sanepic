@@ -30,7 +30,7 @@ using namespace std;
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-void read_bolofile(string fname, std::vector<string> &bolos) {
+void read_strings(string fname, std::vector<string> &bolos) {
 	string line;
 
 	ifstream inputFile(fname.c_str());
@@ -153,7 +153,7 @@ void read_bolo_offsets_from_fits(string filename, string field, double *offsets)
 }
 
 
-void read_data_from_fits(string filename, void *data, void *data2, void *data3, void *data4, bool flag, void *data5, long &ns, string field){
+void read_position_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, long &ns){
 
 
 	/*int sizetype;
@@ -189,34 +189,26 @@ void read_data_from_fits(string filename, void *data, void *data2, void *data3, 
 	fits_get_num_rows(fptr, &ns, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data, 0, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
 
 
 	//fits_get_num_rows(fptr, &ns, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data2, 0, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, DEC, 0, &status);
 
 
 	//fits_get_num_rows(fptr, &ns, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, data3, 0, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
 
 	//fits_get_num_rows(fptr, &ns, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, data4, 0, &status);
-
-	if(flag){
-		// read the Channel List
-			if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
-				fits_report_error(stderr, status);
-
-	}
-
+	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
 
 }
