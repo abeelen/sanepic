@@ -48,7 +48,7 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 		printf("frame file : [%s]\n",s);
 		//read frame file function
 		std::vector<string> dummy;
-		read_bolofile((string)s,dummy);
+		read_strings((string)s,dummy);
 		if(((int)dummy.size())==0){
 			printf("You must provide one number of samples per scan !");
 			return(-1);}

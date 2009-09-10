@@ -27,7 +27,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	if(s!=NULL){
 		printf("channel file : [%s]\n",s);
 		boloname=s;
-		//read_bolofile((string)s, bolonames);
+		//read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a bolometer file : commons:channel\n");
 		return(-1);
@@ -37,7 +37,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	if(s!=NULL){
 		printf("cov_matrix_file: [%s]\n",s);
 		fname=s;
-		//read_bolofile((string)s, bolonames);
+		//read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a noise covariance matrix file to invert : sanepic_inv_matrix:cov_matrix_file\n");
 		return(-1);
@@ -53,7 +53,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 		if(s!=NULL){
 			printf("noise_out_dir: [%s]\n",s);
 			noiseSp_dir_output=s;
-			//read_bolofile((string)s, bolonames);
+			//read_strings((string)s, bolonames);
 		}else{
 			printf("You must specify a output directory : commons:temp_dir\n");
 			return(-1);
@@ -65,7 +65,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	if(s!=NULL){
 		printf("noise_prefixe: [%s]\n",s);
 		extentnoiseSp=s;
-		//read_bolofile((string)s, bolonames);
+		//read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a output directory : sanepic_inv_matrix:noise_prefixe\n");
 		return(-1);

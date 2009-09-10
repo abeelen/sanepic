@@ -243,7 +243,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	str=(string)s;
 	if(str.size()!=0){
 		printf("channel file : [%s]\n",s);
-		read_bolofile((string)s, bolonames);
+		read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a bolometer file : commons:channel\n");
 		return -1 ;
@@ -260,7 +260,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("frame file : [%s]\n",s);
 		//read frame file function
 		std::vector<string> dummy;
-		read_bolofile((string)s,dummy);
+		read_strings((string)s,dummy);
 		if(((int)dummy.size())==0){
 			printf("You must provide one number of samples per scan !");
 			exit(0);}
@@ -303,7 +303,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("noise_prefixe_file : [%s]\n",s);
 		//extentnoiseSP.push_back(s);
 		std::vector<string> dummy3;
-		read_bolofile(str,dummy3);
+		read_strings(str,dummy3);
 		if(((int)dummy3.size())==0){
 			printf("You must provide at least one noise prefixe (or one per scan) in noise_prefixe_file !\n");
 			return -1;}

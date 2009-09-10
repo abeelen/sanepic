@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 	printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
 	// Input argument for output : channellist
-	read_bolofile(boloname, channelOut);
+	read_strings(boloname, channelOut);
 
 	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	ndet = channelOut.size();
