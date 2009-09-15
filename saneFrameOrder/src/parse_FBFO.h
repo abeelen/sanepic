@@ -20,7 +20,8 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
-#include "boloIO.h"
+#include "positionsIO.h"
+#include "mpi_architecture_builder.h"
 
 
 extern "C"{
@@ -30,6 +31,6 @@ extern "C"{
 
 using namespace std;
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec);
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples);
 
 #endif /* PARSE_FBFO_H_ */

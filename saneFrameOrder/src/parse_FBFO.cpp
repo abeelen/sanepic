@@ -18,7 +18,7 @@
 #include "mpi.h"
 #endif*/
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec)
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples)
 {
 	dictionary	*	ini ;
 
@@ -27,8 +27,8 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 	//int				i ;
 	//double			d ;
 	char		*	s ;
-	long l;
-	string str;
+	//long l;
+	string str, dirfile;
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -41,8 +41,55 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
-	const char *temp;
+	//const char *temp;
 
+
+	s = iniparser_getstring(ini, "commons:data_directory", NULL);
+	if(s==NULL){
+		printf("You must add a line in ini file specifying a data directory : commons:data_directory\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("data_directory : [%s]\n",s);
+		dirfile = s;
+	}else{
+		printf("You must specify a data directory : commons:data_directory\n");
+		return -1 ;
+	}//./RCW_120_M/
+
+
+	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
+	if(s==NULL){
+		printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("fits filelist : [%s]\n",s);
+		//read frame file function
+		std::vector<string> fitsvect;
+		std::vector<string> noisevect;
+		std::vector<long> scans_index;
+		bool framegiven;
+		read_fits_list(str, fitsvect, noisevect, scans_index, framegiven);
+		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
+		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
+		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+
+		for(int ii=0;ii<(int)fitsvect.size();ii++){
+			cout << dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = dirfile + fitsvect[ii];}
+
+		readFrames(&ntotscan , fitsvect, fframes, nsamples);
+
+		//getchar();
+	}else{
+		printf("You must specify a fits filelist : commons:fits_filelist\n");
+		return -1 ;
+	}//frame_file =./RCW_120_M/fits_files.txt ;
+
+	/*
 	s = iniparser_getstring(ini, "commons:frame_file",NULL);
 	if(s!=NULL){
 		printf("frame file : [%s]\n",s);
@@ -82,7 +129,7 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 		printf("You must specify a frame file : commons:frame_file\n");
 		return(-1);
 	}//frame_file =./RCW_120_M/frame_file.txt ;
-
+	 */
 
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
@@ -103,12 +150,12 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, std::vector<lon
 	//fname = tmp_dir + parallel_scheme_filename;
 
 	// Check improper usage
-	if (fframes_vec.size() != nsamples_vec.size()) {
+	/*if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return(-1);
-	}
+	}*/
 
-	ntotscan = fframes_vec.size();
+	//ntotscan = fframes_vec.size();
 
 	iniparser_freedict(ini);
 

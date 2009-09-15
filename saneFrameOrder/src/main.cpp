@@ -71,14 +71,14 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 
 		long ntotscan;
-		long *nsamples ; // number of samples table nsamples_vec -> nsamples
+		long *nsamples, *fframes ; // number of samples table nsamples_vec -> nsamples
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;
-		std::vector<long> fframes_vec, nsamples_vec;
+		//std::vector<long> fframes_vec, nsamples_vec;
 		string fname,tmp_dir;
 
-		parsed=parse_FBFO(argv[1], tmp_dir, ntotscan, fframes_vec, nsamples_vec);
+		parsed=parse_FBFO(argv[1], tmp_dir, ntotscan, fframes, nsamples);
 		if (parsed==-1){
 			cerr << "Problem in the parse function. Exiting\n";
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -86,11 +86,11 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-		nsamples      = new long[ntotscan];
+		//nsamples      = new long[ntotscan];
 		ruleorder     = new long[ntotscan];
 		frnum         = new long[ntotscan+1];
 
-		vector2array(nsamples_vec,nsamples);
+		//vector2array(nsamples_vec,nsamples);
 
 		fname = tmp_dir + parallel_scheme_filename;
 
@@ -98,9 +98,9 @@ int main(int argc, char *argv[])
 		cout << ntotscan << endl;
 		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
 		//getchar();
-		for (int ii=0; ii<ntotscan; ii++) {
+		/*for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
-		}
+		}*/
 		//cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
 		// reorder nsamples
 		find_best_order_frames(ruleorder, frnum, nsamples, ntotscan, size);
