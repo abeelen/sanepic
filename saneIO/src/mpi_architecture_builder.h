@@ -31,7 +31,8 @@ int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size,
 int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
 
 long readFitsLength(string filename);
-void readFrames(string filename, long * nScan, std::vector<string> &inputFiles, long *& fframes, long *& nsamples);
+void readFrames(long * nScan, std::vector<string> &inputFiles, long *& fframes, long *& nsamples);
+void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
 
 #define parallel_scheme_filename  "parallel_scheme.bin";
 

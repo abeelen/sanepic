@@ -434,9 +434,9 @@ long readFitsLength(string filename){
 
 }
 
-void readFrames(string filename, long * nScan, std::vector<string> &inputList, long *& fframes, long *& nsamples){
+void readFrames(long * nScan, std::vector<string> &inputList, long *& fframes, long *& nsamples){
 
-	read_strings(filename, inputList);
+	//read_strings(filename, inputList);
 
 	*nScan    = inputList.size();
 	fframes  = new long[*nScan];
@@ -448,3 +448,124 @@ void readFrames(string filename, long * nScan, std::vector<string> &inputList, l
 
 }
 
+
+
+void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven) {
+
+
+
+	ifstream fichier;
+	fichier.open(fname.c_str(), ios::in);
+	if(!fichier.is_open()){
+		cerr << "File [" << fname << "] Invalid." << endl;
+		exit(-1);
+	}
+
+
+	framegiven=0;
+
+	string s,p, line, temp;
+	long d;
+	char *pch;
+	const char *strr;
+	int nb_elem = 0;
+	int num=0; // framecounter
+
+	// count number of elements on the first line !
+	getline(fichier, line);
+	strr= line.c_str();
+	pch = strtok ((char*)strr," ,");
+
+	while (pch != NULL)
+	{
+		//printf ("%s\n",pch);
+		/*	if(nb_elem==0){
+			temp=(string)pch;
+			fitsfiles.push_back(temp);
+		}else{
+			temp=(string)pch;
+			frameorder.push_back();
+		}
+
+		pch = strtok (NULL, " ,.-");
+		nb_elem++;
+		temp=(string)pch;
+		noisefiles.push_back(temp);*/
+
+
+		pch = strtok (NULL, " ,.-");
+		nb_elem++;
+	}
+
+	cout << nb_elem << endl;
+
+	// set pointer back to th beginning of file in order to parse the first line too
+	fichier.seekg (0, ios::beg);
+
+	//fichier.close();
+	//fichier.open(fname.c_str(), ios::in);
+	//getchar();
+
+	// if 3 elements per lines
+	if(nb_elem==3){
+
+		while(fichier>>s>>p){
+			//cout << "2 : " << s << " " << p << endl;
+			fitsfiles.push_back(s);
+			noisefiles.push_back(p);
+
+			if(fichier>>d){
+				cout << "3 : " << s << " " << p << " " << " " << d << endl;
+				frameorder.push_back(d);
+				framegiven=1;
+			}else{
+				//if(framegiven==1){
+				cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
+				exit(0);
+				//}
+			}
+
+		}
+	}else{
+		// else 2 elements per line
+		if(nb_elem==2){
+			while(fichier>>s>>p){
+				cout << "2 : " << s << " " << p << endl;
+				fitsfiles.push_back(s);
+				noisefiles.push_back(p);
+				frameorder.push_back(num++);
+			}
+		}else{
+			if(nb_elem==1){
+				while(fichier>>s){
+					cout << "1 : " << s << endl;
+					fitsfiles.push_back(s);
+					frameorder.push_back(num++);
+				}
+				//noisefiles.push_back("read_file_in_the_ini");
+			}else{
+				cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+				exit(0);
+			}
+		}
+	}
+
+
+
+	if(fitsfiles.size()==0){
+		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+		exit(0);
+	}
+
+
+	if (fichier>>s){
+		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
+		exit(0);
+	}
+
+	cout << "read fits list ok !!!\n";
+
+	fichier.close();
+
+
+}
