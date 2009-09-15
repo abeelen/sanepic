@@ -322,6 +322,8 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	fclose(fp);
 
 }
+
+
 void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outputDir)
 // Writes the reduced mixing matrix in a binary file
 {

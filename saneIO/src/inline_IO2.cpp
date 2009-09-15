@@ -112,7 +112,7 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
 
 //sanePre functions
 
-void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *&tanpix, double *&tancoord) {
+void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 	int result;
@@ -121,10 +121,12 @@ void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, 
 	if((fp = fopen(testfile2.c_str(),"r"))){ // doubles parenthèses sinon warning ...
 		result = fscanf(fp,"%d\n",&nn);
 		result = fscanf(fp,"%d\n",&coordsyst2);
-		result = fscanf(fp,"%lf\n",tanpix);
-		result = fscanf(fp,"%lf\n",tanpix+1);
-		result = fscanf(fp,"%lf\n",tancoord);
-		result = fscanf(fp,"%lf\n",tancoord+1);
+		if(tanpix!=NULL){
+			result = fscanf(fp,"%lf\n",tanpix);
+			result = fscanf(fp,"%lf\n",tanpix+1);
+			result = fscanf(fp,"%lf\n",tancoord);
+			result = fscanf(fp,"%lf\n",tancoord+1);
+		}
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
@@ -275,26 +277,26 @@ void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int
 }
 
 //// TODO : To be Removed
-//void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
-//
-//	FILE *fp;
-//	double dnbins;
-//	size_t result;
-//
-//	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
-//		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
-//		exit(1);
-//	}
-//	result = fread(&dnbins,sizeof(double), 1, fp);
-//	nbins = (long)dnbins;
-//	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
-//	ell = new double[nbins+1];
-//	result = fread(ell,sizeof(double), nbins+1, fp);
-//	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
-//	fclose(fp);
-//
-//
-//}
+void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
+	//
+	FILE *fp;
+	double dnbins;
+	size_t result;
+	//
+	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
+		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
+		exit(1);
+	}
+	result = fread(&dnbins,sizeof(double), 1, fp);
+	nbins = (long)dnbins;
+	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
+	ell = new double[nbins+1];
+	result = fread(ell,sizeof(double), nbins+1, fp);
+	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
+	fclose(fp);
+	//
+	//
+}
 
 
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, string outdir, int idet, long iframe) {
@@ -327,7 +329,7 @@ void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long 
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fPs" << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + "fPs_" << iframe << "_" << idet << "_" + termin + ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -396,7 +398,7 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat
 	fclose(fp);
 
 }
-
+/*
 void write_signal(int npix, double *S, string signame){
 	FILE *fp;
 
@@ -416,3 +418,4 @@ void read_signal(int &npix, double *&S, string signame){
 		result = fread(S,sizeof(double),npix,fp);
 	}
 }
+*/

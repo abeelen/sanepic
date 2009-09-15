@@ -144,17 +144,19 @@ void read_bolo_offsets_from_fits(string filename, string field, double *offsets)
 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "X", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, firstrow, 1, 1, NULL, &temp, 0, &status);
-	offsets[0] = temp/60.0/60.0; // deg
+	//offsets[0] = temp/60.0/60.0; // deg
+	offsets[0] = temp/3600;
 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "Y", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, firstrow, 1, 1, NULL, &temp, 0, &status);
-	offsets[1] = temp/60.0/60.0; //deg
+	//offsets[1] = temp/60.0/60.0; //deg
+	offsets[1] = temp/3600;
 
 }
 
 
-void read_position_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, long &ns){
-
+//void read_data_from_fits(string filename, double *data, double *data2, double *data3, short *data4, bool flag, short *data5, long &ns, string field){
+void read_position_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, bool flag, short *mask, long &ns, string field){
 
 	/*int sizetype;
 	char test[2];
@@ -191,6 +193,9 @@ void read_position_from_fits(string filename, double *RA, double *DEC, double *P
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
+	// divide by 15 to get the same value as before
+	for(int ii = 0; ii<ns; ii++)
+		RA[ii]=RA[ii]/15; // TODO : Pourquoi ??????? 15 ??
 
 
 	//fits_get_num_rows(fptr, &ns, &status);
@@ -209,6 +214,19 @@ void read_position_from_fits(string filename, double *RA, double *DEC, double *P
 	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
+
+	if(flag){
+		// read the Channel List
+		if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
+			fits_report_error(stderr, status);
+
+		fits_get_num_rows(fptr, &ns, &status); // optionnel ???
+		fits_get_colnum(fptr, CASEINSEN, (char*)field.c_str(), &colnum, &status);
+		fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+		fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, mask, 0, &status);
+
+	}
+
 
 
 }

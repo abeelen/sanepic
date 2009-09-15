@@ -13,7 +13,7 @@ extern "C" {
 }
 
 
-using namespace std;
+//using namespace std;
 
 
 template<class T> void vector2array(std::vector<T> vect, T* a)

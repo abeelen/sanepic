@@ -70,7 +70,7 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
  * Reads Pointing information from the InfoPoiting file
  * Returns nn, coordsyst, tanpix, tancoord
  */
-void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *&tanpix, double *&tancoord);
+void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *tanpix, double *tancoord);
 
 //void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
 
@@ -169,11 +169,11 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat
 /*!
  * Writes (sanePic) estimated signal to a binary file
  */
-void write_signal(int npix, double *S, string signame);
+//void write_signal(int npix, double *S, string signame);
 
 /*!
  * Writes (sanePic) estimated signal in a binary file
  */
-void read_signal(int &npix, double *&S, string signame);
+//void read_signal(int &npix, double *&S, string signame);
 
 #endif
