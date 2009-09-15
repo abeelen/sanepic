@@ -23,8 +23,9 @@
 
 
 
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
+#include "imageIO.h"
 #include "inline_IO2.h"
 
 
@@ -144,6 +145,7 @@ int main(int argc, char *argv[])
 
 	// parallel scheme file
 	string fname;
+	string signame;
 
 
 	int parsed=0;
@@ -154,7 +156,7 @@ int main(int argc, char *argv[])
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
 				ntotscan, ndet, dirfile, outdir, tmp_dir, bextension,
 				fextension, termin, noiseSppreffile,
-				bolonames, fframes_vec,  nsamples_vec, extentnoiseSP, MixMatfile);
+				bolonames, fframes_vec,  nsamples_vec, extentnoiseSP, MixMatfile,signame);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -203,23 +205,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	int coordsyst2;
-	double *tancoord;
-	double *tanpix;
-	// allocate memory
-	tancoord = new double[2];
-	tanpix = new double[2];
 
 
-	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, tanpix, tancoord);
-	//cout << tanpix[0] << " " << tanpix[1] << endl;
-	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
-	delete [] tancoord;
-	delete [] tanpix;
-
-	cout << "Map size :" << nn << "x" << nn << endl;
 
 
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
@@ -227,11 +215,56 @@ int main(int argc, char *argv[])
 	//int npix2;
 	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
 
+	S = new double[npix];
+
+
+	//signame = "optimMap_sanepic_flux.fits";
+	//signame = "NOSIGFILE";
 
 	//First time run S=0, after sanepic, S = Pure signal
-	S = new double[npix];
-	for(long ii=0;ii<npix;ii++)
-		S[ii]=0.0;
+	if(signame != "NOSIGFILE"){
+		// if second launch of estimPS, read S and nn in the previously generated fits map
+
+		//int npix2;
+		//long nn2;
+		//read_signal(npix2,S,signame);
+		read_fits_signal(signame, S, indpix, nn, npix);
+		FILE * fp;
+		fp = fopen("test_signal.txt","w");
+		for (int i =0;i<npix;i++)
+			fprintf(fp,"%lf\n",S[i]);
+
+		fclose(fp);
+
+		cout << setprecision(10) << S[0] << endl;
+		cout <<  setprecision(10) << S[1] << endl;
+	}else{
+		// read nn in InfoPoiting
+
+
+		int coordsyst2;
+		//double *tancoord;
+		//double *tanpix;
+		// allocate memory
+		//tancoord = new double[2];
+		//tanpix = new double[2];
+
+
+		// read nn, coordsyst, tanpix, tancoord
+		read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, NULL, NULL); //juste to read nn
+		//cout << tanpix[0] << " " << tanpix[1] << endl;
+		//cout << tancoord[0] << " " << tancoord[1] << endl;
+
+		//delete [] tancoord;
+		//delete [] tanpix;
+
+		for(long ii=0;ii<npix;ii++)
+			S[ii]=0.0;
+	}
+
+
+	cout << "Map size :" << nn << "x" << nn << endl;
+	getchar();
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
@@ -352,7 +385,10 @@ int main(int argc, char *argv[])
 	}
 
 
+
+
 #ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif
 

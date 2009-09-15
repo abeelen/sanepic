@@ -22,7 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
-#include "boloIO.h"
+#include "positionsIO.h"
 
 
 extern "C"{
@@ -39,9 +39,9 @@ using namespace std;
  * - Initialise sanePS variable
  */
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &poutdir, string &bextension,
+		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
 		string &fextension, string &termin, string &noiseSppreffile,
-		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile);
+		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame);
 
 
 #endif /* PARSEPPS_H_ */

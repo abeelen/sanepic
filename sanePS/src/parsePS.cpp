@@ -11,7 +11,7 @@
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
 		string &fextension, string &termin, string &noiseSppreffile,
-		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile)
+		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame)
 {
 	dictionary	*	ini ;
 
@@ -293,9 +293,9 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 
 
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:noise_prefixe_file",NULL);
+	s = iniparser_getstring(ini, "commons:noise_prefixe_file",NULL);
 	if(s==NULL){
-		printf("You must add a line corresponding to noise_prefixe file in the ini file : sanepic_preprocess:noise_prefixe\n");
+		printf("You must add a line corresponding to noise_prefixe file in the ini file : commons:noise_prefixe\n");
 		return -1;
 	}
 	str=(string)s;
@@ -317,7 +317,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 
 	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
 	if(s==NULL){
-		printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_conjugate_gradient:noise_estim\n");
+		printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_estim_PS:noise_estim\n");
 		return -1;
 	}
 	str=(string)s;
@@ -328,6 +328,21 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	}else{
 		printf("You must give filename containing the mixing matrix of noise components : noise_estim\n");
 		return(-1);
+	}// MixMatfile = Mixlaboca
+
+
+	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:map_file", NULL);
+	if(s==NULL){
+		printf("You must add a line corresponding to the fits map file (created by sanePic) in the ini file : sanepic_estim_PS:map_file\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("noise_estim :      [%s]\n", s);
+		signame=s;
+
+	}else{
+		signame="NOSIGFILE";
 	}// MixMatfile = Mixlaboca
 
 
