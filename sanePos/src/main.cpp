@@ -128,21 +128,10 @@ int main(int argc, char *argv[])
 
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels used*/
-	int nnf; /*! number of noise file */
+	//int nnf; /*! number of noise file */
 	long addnpix=0; /*!add a number 'n' of pixels to the map */
 
 
-	// TODO: Write a frameIO (old mpi_architecture_builder) scheme in saneIO to handle all of that...
-	std::vector<string> inputFiles;
-	readFrames("inputList.txt", &ntotscan, inputFiles, fframes, nsamples);
-
-	cout << "ntotscan " << ntotscan << endl;
-
-	for (long i=0; i<ntotscan; i++){
-		cout << i << " " << inputFiles[i] << " " << fframes[i] << " " << nsamples[i] << endl;
-	}
-
-	exit(0);
 
 	// map making parameters
 	double pixdeg; /*! size of pixels (degree) */
@@ -169,8 +158,11 @@ int main(int argc, char *argv[])
 
 
 	char type='d'; /*! returned type of read_data functions, d=64bit double */
-	double *ra, *dec, *phi, *scerr; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
-	short *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
+	double *ra, *dec, *phi/*, *scerr*/; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
+	//unsigned char *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
+	unsigned char  *rejectsamp, *mask;// ajout mat 15/09
+	short *flag, *flpoint; // ajout mat 15/09
+
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	int *xx, *yy; /*! data coordinates in the map */
@@ -186,10 +178,10 @@ int main(int argc, char *argv[])
 	string dirfile; /*! data directory*/
 	string tmp_dir; /*! output directory*/
 	string poutdir; /*! current path (pPath) or output dir (outdir)*/
-	string bextension; /*! bolometer field extension*/
-	string fextension = "NOFLAG"; /*! flag field extension*/
-	string pextension; /*! pointing extension*/
-	string file_offsets; /*! bolometer offsets file*/
+	//string bextension; /*! bolometer field extension*/
+	//string fextension = "NOFLAG"; /*! flag field extension*/
+	//string pextension; /*! pointing extension*/
+	//string file_offsets; /*! bolometer offsets file*/
 	string file_frame_offsets = "NOOFFS"; /*! offset file*/
 	//string termin; /*! output file suffix */
 	string termin_internal = "internal_data";
@@ -198,12 +190,15 @@ int main(int argc, char *argv[])
 	int coordsyst = 1; /*! Default is RA/DEC */
 
 
-	int samples_per_frames=20;
+	//int samples_per_frames=20;
 
 	/* parser inputs */
 	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
-	std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample */
+	//std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample */
 	std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
+	std::vector<string> fitsvect;
+	std::vector<long> scans_index;
+
 	//std::vector<double> fcut;
 	//std::vector<string> extentnoiseSP; /*! noise file prefix*/
 
@@ -222,13 +217,12 @@ int main(int argc, char *argv[])
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		exit(0);
 	} else {
-		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
 		// TODO : add fits reading and binary/fits data gestion
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
-				srccoord,coordscorner,radius,ntotscan,ndet,nnf,
-				pixdeg,dirfile,tmp_dir,poutdir,bextension,fextension,
-				pextension,file_offsets,file_frame_offsets,coordsyst,bolonames,fframes_vec,nsamples_vec,xxi,xxf,yyi,yyf);
+				srccoord,coordscorner,radius,ntotscan,ndet,
+				pixdeg,dirfile,tmp_dir,/*bextension,fextension,
+				pextension,*//*file_offsets,*/file_frame_offsets,coordsyst,bolonames,fframes,nsamples,xxi,xxf,yyi,yyf,fitsvect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -244,7 +238,7 @@ int main(int argc, char *argv[])
 
 	///////////////: debug ///////////////////////////////
 	cout << "ntotscan : " << ntotscan << endl;
-
+	/*
 
 	std::vector<long>::iterator it;
 
@@ -255,7 +249,7 @@ int main(int argc, char *argv[])
 	cout << "\nnsamples" << endl;
 	for(it=nsamples_vec.begin();it<nsamples_vec.end();it++)
 		cout << *it << " ";
-	cout << endl;
+	cout << endl;*/
 	///////////////: debug ///////////////////////////////
 
 	// -----------------------------------------------------------------------------//
@@ -267,43 +261,47 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
 
-	printf("[%2.2i] Data written in %s\n",rank, poutdir.c_str());
+	printf("[%2.2i] Data written in %s\n",rank, tmp_dir.c_str());
 
 	// convert lists to regular arrays (MPI_BCas works only on array...
-	fframes       = new long[ntotscan];
-	nsamples      = new long[ntotscan];
+	//fframes       = new long[ntotscan];
+	//nsamples      = new long[ntotscan];
+	string *fits_table;
+	long *index_table;
 
+	fits_table = new string[ntotscan];
+	index_table= new long[ntotscan];
 
-	vector2array(nsamples_vec, nsamples);
-	vector2array(fframes_vec,  fframes);
+	vector2array(fitsvect, fits_table);
+	vector2array(scans_index,  index_table);
 	//cout << fframes[0] << fframes[1] << fframes[2] << endl;
 	//cout << nsamples[0] << nsamples[1] << nsamples[2] << endl;
+	cout << fframes[0] << endl;
+	cout << nsamples[0] << endl;
 
-
-
-	if(samples_per_frames>1){
+	/*if(samples_per_frames>1){
 		for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
 		}
-	}
+	}*/
 
 
 	// utilisé lors de la lecture des coord de la map en pixel (dans la f° read_data)
-	string ra_field;
+	/*string ra_field;
 	string dec_field;
 	string phi_field;
 	string scerr_field = "ERR"+pextension;
-	string flpoint_field = "FLPOINTING";
+	string flpoint_field = "FLPOINTING";*/
 
 	if (coordsyst == 2){
-		ra_field = "L"+pextension;
-		dec_field = "B"+pextension;
-		phi_field = "PHIG"+pextension;
+		//ra_field = "L"+pextension;
+		//dec_field = "B"+pextension;
+		//phi_field = "PHIG"+pextension;
 		printf("[%2.2i] Coordinate system: Galactic\n",rank );
 	}else{
-		ra_field = "RA"+pextension;
-		dec_field = "DEC"+pextension;
-		phi_field = "PHI"+pextension;
+		//ra_field = "RA"+pextension;
+		//dec_field = "DEC"+pextension;
+		//phi_field = "PHI"+pextension;
 		if (coordsyst == 3){
 			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
 		} else {
@@ -321,7 +319,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/*! map offsets*/
-	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank);
+	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
 
 
 
@@ -381,7 +379,7 @@ int main(int argc, char *argv[])
 	} else {
 	frnum = new long[ntotscan+1];
 	}
-*/
+	 */
 
 	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
@@ -421,7 +419,7 @@ int main(int argc, char *argv[])
 
 
 
-	/********** Alocate memory ***********/
+	/********** Allocate memory ***********/
 	printf("[%2.2i] Allocating Memory\n",rank);
 
 	// seek maximum number of samples
@@ -431,13 +429,15 @@ int main(int argc, char *argv[])
 	ra = new double[2*ns]; // RA bolo de ref
 	dec = new double[2*ns]; // DEc du bolo de ref
 	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
-	scerr = new double[2*ns]; // BLAST SPECIFIC : mesure l'erreur de pointage, si trop grande on flag la donnée
+	//scerr = new double[2*ns]; // BLAST SPECIFIC : mesure l'erreur de pointage, si trop grande on flag la donnée
 	xx = new int[2*ns]; // sample column coordinates in the map
 	yy = new int[2*ns]; // sample row coordinates in the map
 	samptopix = new long[2*ns]; // sample to pixel conversion index
-	flag = new short[2*ns]; // flag data => =1
-	rejectsamp = new short[2*ns]; // rejected samples after flag conditions
-	flpoint = new short [2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
+	//flag = new unsigned char[2*ns]; // flag data => =1
+	flag = new short[2*ns];
+	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
+	//flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
+	flpoint = new short[2*ns];
 	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
 	tanpix = new double[2]; // coordinates in the map of the tangent point
 
@@ -470,10 +470,10 @@ int main(int argc, char *argv[])
 	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
 	 * -> Compute map coordinates
 	 */
-	find_coordinates_in_map(ndet,bolonames,bextension,fextension,file_offsets,foffsets,scoffsets,
-			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,ra_field,dec_field,phi_field,
-			scerr_field,flpoint_field,nfoff,pixdeg, xx, yy, nn, coordscorner,
-			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi,scerr, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
+	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,*/foffsets,scoffsets,
+			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
+			scerr_field,*//*flpoint_field,*/nfoff,pixdeg, xx, yy, nn, coordscorner,
+			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
 
 
 #ifdef USE_MPI
@@ -547,7 +547,7 @@ int main(int argc, char *argv[])
 
 
 	//************************************* Deal with masking the point sources
-	mask = new short[nn*nn];
+	mask = new unsigned char[nn*nn];
 	indpsrc = new long[nn*nn];
 
 	// if a box for crossing constraint removal is given in ini file
@@ -593,12 +593,12 @@ int main(int argc, char *argv[])
 	 * Compute the position to pixel projetcion matrices :
 	 * One binary file per bolometer and per scan
 	 */
-	compute_seen_pixels_coordinates(ndet,ntotscan,tmp_dir,bolonames,bextension, fextension, termin_internal,
-			file_offsets,foffsets,scoffsets,iframe_min, iframe_max,fframes,
-			nsamples,dirfile,ra_field,dec_field,phi_field, scerr_field,
-			flpoint_field, nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
+	compute_seen_pixels_coordinates(ndet,ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension,*/ termin_internal,
+			/*file_offsets,*/foffsets,scoffsets,iframe_min, iframe_max,fframes,
+			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
+			flpoint_field,*/ nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
 			tanpix, bfixc, radius, offmap, srccoord, type, ra,dec,
-			phi,scerr,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
+			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
 			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
 
 
@@ -674,7 +674,7 @@ int main(int argc, char *argv[])
 	delete [] ra;
 	delete [] dec;
 	delete [] phi;
-	delete [] scerr; //scerr_field needed
+	//delete [] scerr; //scerr_field needed
 	delete [] xx;
 	delete [] yy;
 	delete [] flag;

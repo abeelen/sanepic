@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <math.h>
 #include "positionsIO.h"
-
+#include "mpi_architecture_builder.h"
 
 extern "C"{
 #include "iniparser.h"
@@ -37,10 +37,10 @@ using namespace std;
  * - Initialise sanePos variable
  */
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
-		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet, int &nnf,
-		double &pixdeg, string &dirfile, string &outdir, string &poutdir, string &bextension,
-		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, /*string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames, std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,
-		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf);
+		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
+		double &pixdeg, string &dirfile, string &outdir, /*string &bextension,
+		string &fextension, string &pextension,*/ /*string &file_offsets,*/ string &file_frame_offsets, /*string &termin,*/
+		int &coordsyst, std::vector<string> &bolonames, /*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
+		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &fitsvect, std::vector<long> &scans_index);
 
 #endif /* PARSEPOS_H_ */

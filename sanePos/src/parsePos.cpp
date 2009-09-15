@@ -8,12 +8,14 @@
 
 #include "parsePos.h"
 
+//void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
+
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
-		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet, int &nnf,
-		double &pixdeg, string &dirfile, string &outdir, string &poutdir, string &bextension,
-		string &fextension, string &pextension, string &file_offsets, string &file_frame_offsets, /*string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,
-		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf)
+		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
+		double &pixdeg, string &dirfile, string &outdir/*, string &poutdir*/,/* string &bextension,
+		string &fextension, string &pextension, *//*string &file_offsets,*/ string &file_frame_offsets, /*string &termin,*/
+		int &coordsyst, std::vector<string> &bolonames,/*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
+		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf,std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
 
@@ -22,7 +24,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	int				i ;
 	double			d ;
 	char		*	s ;
-	long l;
+	//long l;
 	string str;
 	const char *temp;
 
@@ -109,7 +111,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
 
-
+	/*
 	s = iniparser_getstring(ini, "commons:frame_file",NULL);
 	if(s==NULL){
 		printf("You must add a line in the ini file corresponding to a frame file : commons:frame_file\n");
@@ -155,6 +157,43 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 
+	 */
+
+
+	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
+	if(s==NULL){
+		printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("fits filelist : [%s]\n",s);
+		//read frame file function
+		//std::vector<string> fitsvect_path;
+		std::vector<string> noisevect;
+		//std::vector<long> scans_index;
+		bool framegiven;
+
+		read_fits_list(str, fitsvect, noisevect, scans_index, framegiven);
+		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
+		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
+		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+		for(int ii=0;ii<(int)fitsvect.size();ii++){
+			cout << dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = dirfile + fitsvect[ii];}
+
+		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+
+		//getchar();
+	}else{
+		printf("You must specify a fits filelist : commons:fits_filelist\n");
+		return -1 ;
+	}//frame_file =./RCW_120_M/fits_files.txt ;
+
+
+
+
+
 
 	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
 	if(s==NULL){
@@ -191,7 +230,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 	}//coord_syst = 1 ;
 
-	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
+	/*s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
 		printf("You must choose add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
 		return -1;
@@ -203,7 +242,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	}else{
 		printf("You must specify a bolo extension : commons:bolofield_extension\n");
 		return -1 ;
-	}//_data
+	}//_data*/
 
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
 	if(i>0){
@@ -214,7 +253,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 	}//apodize_Nsamples = 100 ;
 
-
+	/*
 	s = iniparser_getstring(ini, "commons:flag_field_extension",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to flag_field_extension in the parser file : commons:flag_field_extension\n");
@@ -228,7 +267,9 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("you must specify flag_field_extension\n");
 		return -1 ;
 	}//flag_field_extension = _flag ;
+	 */
 
+	/*
 	s = iniparser_getstring(ini, "commons:pointing_field_extension",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to pointing_field_extension in the parser file : commons:pointing_field_extension\n");
@@ -242,7 +283,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("you must specify pointing_field_extension\n");
 		return -1 ;
 	}//pointing_field_extension = _def ;
-
+	 */
 
 	/*
 	s = iniparser_getstring(ini, "sanepic_compute_positions:noise_prefixe",NULL);
@@ -259,7 +300,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		printf("noise_suffixe : [%s]\n",s);
 		noiseSppreffile=s;
 	}else{
-		printf("you must specread_stringsify a noise_suffixe\n");
+		printf("you must specify a noise_suffixe\n");
 		exit(0);
 	}//noise_suffixe = ./RCW_120_M/ ;*/
 
@@ -279,7 +320,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 	}//out_file_str = sanepic ;*/
 
-	s = iniparser_getstring(ini, "sanepic_compute_positions:offset_file",NULL);
+	/*s = iniparser_getstring(ini, "sanepic_compute_positions:offset_file",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to bolo positions in the ini file : sanepic_compute_positions:offset_file\n");
 		return -1;
@@ -291,7 +332,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	}else{
 		printf("You must specify bolometers position : offset_file\n");
 		return -1 ;
-	}//offset_file = ./RCW_120_M/bolo_positions.txt ;
+	}//offset_file = ./RCW_120_M/bolo_positions.txt ;*/
 
 	s = iniparser_getstring(ini, "sanepic_compute_positions:file_frame_offsets",NULL);
 	if(s==NULL){
@@ -482,12 +523,12 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 
 
 	// Set default parameter values
-	if (fframes_vec.size() == 0) {
+	/*	if (fframes_vec.size() == 0) {
 		fframes_vec.push_back(0);
 		nsamples_vec.push_back(-1);
 	}
 	if (fframes_vec.size() == 1 && nsamples_vec.size() == 0)
-		nsamples_vec.push_back(-1);
+		nsamples_vec.push_back(-1);*/
 
 	// Check improper usage
 	//if (dirfile == "") usage(argv[0]);
@@ -496,16 +537,17 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 		//usage(argv[0]);
 	}
-	if (fframes_vec.size() != nsamples_vec.size()) {
+	/*if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return -1 ;
-	}
+	}*/
 	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
 		return -1 ;
 	}
 
-	ntotscan = fframes_vec.size();
+	//ntotscan = fframes_vec.size();
+	//ntotscan = fitsvect.size();
 	ndet = bolonames.size();
 
 	printf("Number of scans : %ld\n",ntotscan);
@@ -515,4 +557,6 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	iniparser_freedict(ini);
 	return 0 ;
 }
+
+
 

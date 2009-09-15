@@ -21,11 +21,15 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		double *coordscorner, double *tancoord, double *tanpix,
 		bool fixcoord, double radius, double *offmap, double *radecsrc = NULL,bool compute_xx_yy=0);
 
-void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
+/*void reproj_to_map( double *data, int *xx, int *yy, int ns, double **map,
 		double **count, int nn, short *flag,
-		double **map_f, double **count_f );
+		double **map_f, double **count_f );*/
 
+<<<<<<< .mine
+void flag_conditions(short *flag,/* double *scerr,*/ short *flpoint,
+=======
 void flag_conditions(short *flag, double *scerr, short *flpoint,
+>>>>>>> .r189
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
 		bool NOFILLGAP, short *rejectsamp);
 

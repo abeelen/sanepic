@@ -403,7 +403,11 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 
 
+<<<<<<< .mine
+void flag_conditions(short *flag, /*double *scerr,*/ short *flpoint,
+=======
 void flag_conditions(short *flag, double *scerr, short *flpoint,
+>>>>>>> .r189
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
 		bool NOFILLGAP, short *rejectsamp){
 
@@ -413,25 +417,40 @@ void flag_conditions(short *flag, double *scerr, short *flpoint,
 
 
 	//long ii;
+<<<<<<< .mine
+	short *flagtmp;
+	//double *scerrtmp;
+	short *flpointtmp;
+=======
 	short *flagtmp;
 	double *scerrtmp;
 	short *flpointtmp;
+>>>>>>> .r189
 
+<<<<<<< .mine
+	//flagtmp = new unsigned char[ns];
+	//scerrtmp = new double[ns];
+	//flpointtmp = new unsigned char[ns];
+	flagtmp = new short[ns];
+	flpointtmp = new short[ns];
+
+=======
 	flagtmp = new short[ns];
 	scerrtmp = new double[ns];
 	flpointtmp = new short[ns];
+>>>>>>> .r189
 
 
 	if (NOFILLGAP){
 		for (long ii=0;ii<ns;ii++){
 			flagtmp[ii] = 0;
-			scerrtmp[ii] = 0.0;
+			//scerrtmp[ii] = 0.0;
 			flpointtmp[ii] = 0;
 		}
 	} else {
 		for (long ii=0;ii<ns;ii++){
 			flagtmp[ii] = flag[ii];
-			scerrtmp[ii] = scerr[ii];
+			//scerrtmp[ii] = scerr[ii];
 			flpointtmp[ii] = flpoint[ii];
 		}
 	}
@@ -442,7 +461,8 @@ void flag_conditions(short *flag, double *scerr, short *flpoint,
 
 	for (long ii=0;ii<ns;ii++){
 		rejectsamp[ii] = 0;
-		if ((flagtmp[ii] & 1) != 0 || (scerrtmp[ii] > errarcsec) || (flpointtmp[ii] & 1) != 0)
+		//if ((flagtmp[ii] == 1) != 0 || (flpointtmp[ii] == 1) != 0) //|| (scerrtmp[ii] > errarcsec))
+		if ((flagtmp[ii] == 1) || (flpointtmp[ii] == 1))
 			rejectsamp[ii] = 1;
 		if ((ii < napod) || (ii >= ns-napod))
 			rejectsamp[ii] = 3;
@@ -459,7 +479,7 @@ void flag_conditions(short *flag, double *scerr, short *flpoint,
 	}
 
 	delete [] flagtmp;
-	delete [] scerrtmp;
+	//delete [] scerrtmp;
 	delete [] flpointtmp;
 
 }
