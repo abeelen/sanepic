@@ -284,7 +284,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 	size_t result;
 	//
 	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
-		cerr << "ERROR: Can't find noise power spectra file" << nameSpfile << " , check -k or -K in command line. Exiting. \n";
+		cerr << "ERROR: Can't find noise power spectra file " << nameSpfile << " , check -k or -K in command line. Exiting. \n";
 		exit(1);
 	}
 	result = fread(&dnbins,sizeof(double), 1, fp);
