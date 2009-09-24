@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <cmath>
+
 //#include "/fir_data/patanch/numrec/inc/nrutil.h"
 #include "todprocess.h"
 #include "map_making.h"
@@ -1016,7 +1017,7 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 
-void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */long ns, int napod,
+void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
@@ -1037,6 +1038,10 @@ void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp, */l
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii];
 	}
+	//cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
+	//cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+
+	//getchar();
 
 	if(remove_polynomia){
 		//remove polynomia

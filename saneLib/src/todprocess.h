@@ -54,7 +54,7 @@ void free_dvector(double *v, long nl, long nh); // NR
 
 
 void polynomia(double x, double y[], int dma); // on peut garder
-void remove_poly(double y[], int ndata, int norder, double* yout, unsigned char *flag = NULL); // je pense pas que ca vient de NR
+void remove_poly(double y[], int ndata, int norder, double* yout, short *flag = NULL); // viens de NR ?? TODO : verifier que ca marche avec flag short
 void dpolyfit(double x[], double y[], int ndata, int norder, double *a); // Nr a verifier
 
 
@@ -64,7 +64,7 @@ void mergedata(double y1[], int ndata1, double y2[], int ndata2, double *yout); 
 void dindgen(int nn, double *y); // on peut garder
 
 
-void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double sign); // fait par Patanchon
+void fillgaps(double y[], int ndata, double* yout,  short* flag, double sign); // fait par Patanchon
 
 
 void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite); // on garde ?
@@ -82,7 +82,7 @@ int read_data_std(string fname, int frame, int fs, int ns, void* data, string fi
 int read_data(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde
 
 
-double randg(long nombre, int seedpass); // on garde
+double randg_value(long nombre, int seedpass); // on garde
 double* rand(long nombre, int seed);	// on garde
 
 //void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde

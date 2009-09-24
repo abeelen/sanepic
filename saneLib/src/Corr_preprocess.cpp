@@ -11,6 +11,7 @@
 
 #include "Corr_preprocess.h"
 #include "covMatrixIO.h"
+#include "positionsIO.h"
 
 #include <gsl/gsl_math.h>
 #include <time.h>
@@ -77,9 +78,9 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 
 void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, std::vector<string> bolonames,
-		string bextension, string fextension, /*string cextension,*/
+		int fillg, string dir, string termin, /*double errarcsec,*/ string dirfile,
+		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
+		/*string bextension, string fextension,*/ /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, long iframe/*,fftw_complex **&fdatas*/){
 
@@ -87,34 +88,43 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	//long ii, idet1;
 	//long ndata = ns+2*marge;
 
-	double *scerr, *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
-	unsigned char *flpoint, *flag, *rejectsamp;
+	double *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
+	//unsigned char *rejectsamp;
+	short *flpoint, *flag;
 	long *samptopix;
 
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
 
-	string field1;
+	string field1, fits_filename;
 
 	//char testfile[100];
 
 	//FILE *fp;
 
-	scerr = new double[ns];
+	//scerr = new double[ns];
 	data =  new double[ns];
 	data_lp = new double[ns];
 	//calp =  new double[ns];
-	flag =  new unsigned char[ns];
-	flpoint = new unsigned char[ns];
-	rejectsamp = new unsigned char[ns];
+	//flag =  new unsigned char[ns];
+	//flpoint = new unsigned char[ns];
+	flag = new short[ns];
+	flpoint = new short[ns];
+	//rejectsamp = new unsigned char[ns];
 
 	samptopix = new long[ns];
 	Ps = new double[ns];
 	bfilter = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
 
+	unsigned char *flag2;
+	double *data2;
+	data2= new double[ns];
+	flag2 = new unsigned char[ns];
 
+	fits_filename = fits_table[iframe];
+	cout << "fits file : " << fits_filename << endl;
 
 	for (long idet1=0;idet1<ndet;idet1++){
 
@@ -123,19 +133,40 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 		//    cout << " field 1 : " << field1 << endl;
 
 		if (S != NULL){
-			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
+			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			read_flpoint_from_fits(fits_filename, flpoint);
+			//cout << "S != NULL !!!!!!\n";
+			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
 		}
 
-		read_data_std(dirfile, ff, shift_data_to_point, ns, data, field1+bextension, 'd');
+		//ff=0;
+		//read_data_std(dirfile, ff, shift_data_to_point, ns, data2, field1+"_data", 'd');
+		//cout << "data2 : " <<  setprecision(14)  << data2[0] << " " << data2[1] << " " << data2[2] << " "  << data2[ns -1] << endl;
+		read_signal_from_fits(fits_filename, data, field1);
 
-		if (fextension != "NOFLAG"){
-			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field1+fextension,  'c');
-		} else {
+		//cout << "data : " <<  setprecision(14)  << data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+
+		//if (fextension != "NOFLAG"){
+		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag2, field1+"_flag",  'c');
+		//cout << "flag2 : " << flag2[0] <<  flag2[1] << flag2[2] << flag2[ns -1] << endl;
+		read_flag_from_fits(fits_filename , flag, field1);
+		//cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
+
+		//cout << "idet : " << idet1 << endl;
+		/*for(int ii=0;ii<ns;ii++)
+			if(((flag[ii]) == (flag2[ii]))){
+				cout << "flag!=flag2" << " ii : " << ii << " : "<< flag[ii] << flag2[ii] << endl;
+				//getchar();
+			}*/
+		/*} else {
 			//      printf("NOFLAG\n");
 			for (long ii=0;ii<ns;ii++)
 				flag[ii] = 0;
-		}
+		}*/
+
+
+		//getchar();
 
 		//if (cextension != "NOCALP"){
 		//read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
@@ -164,10 +195,11 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
 			}
 
-			for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
-			for (long ii=0;ii<ns;ii++)
-				if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0)
-					rejectsamp[ii] = 1;
+			//for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
+			/*for (long ii=0;ii<ns;ii++)
+				//if ((flag[ii] & 1) != 0  || (flpoint[ii] & 1) != 0 || (scerr[ii] > errarcsec))
+				if ((flag[ii] == 1) || (flpoint[ii] == 1))
+					rejectsamp[ii] = 1;*/
 		}
 
 
@@ -180,6 +212,8 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,remove_polynomia);
 		}
+
+		//cout << "data apres map : " << setprecision(14)  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
 
 		//Fourier transform of the data
 		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
@@ -198,7 +232,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	}
 
 
-	delete[] scerr;
+	//delete[] scerr;
 	delete[] data;
 	delete[] data_lp;
 	//delete[] calp;
@@ -208,7 +242,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 	delete[] Ps;
 	delete[] bfilter;
 	delete[] fdata;
-	delete[] rejectsamp;
+	//delete[] rejectsamp;
 
 
 }
@@ -268,7 +302,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 	//cout << rank << " " << size << endl;
 
-	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){ // TODO : verifier que ca fonctionne avec mpi (double paralellization : frame/det)
+	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 	for (long idet1=0;idet1<ndet;idet1++){
 		field1 = bolonames[idet1];
 		//cout << field1 << endl;
@@ -295,12 +329,14 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 		//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
 
-
+		//cout << "avant read" << endl;
 		//read noise PS file
-		read_InvNoisePowerSpectra(noiseSppreffile, field1, extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
-//		read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
+		//read_InvNoisePowerSpectra(noiseSppreffile, field1, extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
+		read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
 		//read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentnoiseSp,&nbins, &ndet2, &ell, &SpN_all);
 		//if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+		// TODO : peut etre un soucis avec read_InvNoise ? tester la chaine avec sanePs et saneInv
+		//cout << "apres read" << endl;
 
 		SpN = new double[nbins];
 

@@ -8,15 +8,16 @@
 #include <vector>
 #include <string>
 
+#include "positionsIO.h"
 #include "NoCorr_preprocess.h"
 
 
 using namespace std;
 
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, std::vector<string> bolonames,
-		string bextension, string fextension, /*string cextension,*/
+		string dir, string termin, /*double errarcsec,*/ string dirfile,
+		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames, string *fits_table,
+		/*string bextension, string fextension,*/ /*string cextension,*/
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ff, long ns, long napod, long ndet,
@@ -35,26 +36,32 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	//char testfile[100];
 
 	long *samptopix;
-	double *bfilter, *Nk, *data, *data_lp, *scerr,/* *calp,*/ *Ps;
-	unsigned char *flag, *flpoint, *rejectsamp;
+	double *bfilter, *Nk, *data, *data_lp, /* *calp,*/ *Ps;
+	//unsigned char *rejectsamp;
+	short *flag, *flpoint;
 	double powered;
 
 	samptopix = new long[ns];
 	bfilter = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 
-	scerr = new double[ns];
+	//scerr = new double[ns];
 	data =  new double[ns];
 	data_lp = new double[ns];
 	//calp =  new double[ns];
-	flag =  new unsigned char[ns];
-	flpoint = new unsigned char[ns];
-	rejectsamp = new unsigned char[ns];
+	//flag =  new unsigned char[ns];
+	flpoint = new short[ns];
+	flag =  new short[ns];
+	//flpoint = new unsigned char[ns];
+
+	//rejectsamp = new unsigned char[ns];
 	Ps = new double[ns];
 
+	string fits_filename;
 
 	//FILE *fp;
 
+	fits_filename = fits_table[iframe];
 
 
 	//for (long idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
@@ -64,19 +71,24 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 		if (S != NULL){
-			read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
+			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			read_flpoint_from_fits(fits_filename, flpoint);
 		}
 
-		read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
+		read_signal_from_fits(fits_filename, data, field);
 
-		if (fextension != "NOFLAG"){
+		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
+
+		read_flag_from_fits(fits_filename , flag, field);
+
+		/*if (fextension != "NOFLAG"){
 			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
 		} else {
 			//      printf("NOFLAG\n");
 			for (long ii=0;ii<ns;ii++)
 				flag[ii] = 0;
-		}
+		}*/
 
 		//if (cextension != "NOCALP"){
 		//	read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
@@ -104,10 +116,11 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
 			}
 
-			for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
-			for (long ii=0;ii<ns;ii++)
-				if ((flag[ii] & 1) != 0 || (scerr[ii] > errarcsec) || (flpoint[ii] & 1) != 0)
-					rejectsamp[ii] = 1;
+			//	for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
+			//for (long ii=0;ii<ns;ii++)
+			//if ((flag[ii] & 1) != 0 ||  (flpoint[ii] & 1) != 0 || (scerr[ii] > errarcsec))
+			//if ((flag[ii] ==1) ||  (flpoint[ii] == 1))
+			//rejectsamp[ii] = 1;
 		}
 
 
@@ -150,13 +163,13 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	delete[] samptopix;
 	delete[] bfilter;
 	delete[] Nk;
-	delete[] scerr;
+	//delete[] scerr;
 	delete[] data;
 	delete[] data_lp;
 	//delete[] calp;
 	delete[] flag;
 	delete[] flpoint;
-	delete[] rejectsamp;
+	//delete[] rejectsamp;
 	delete[] Ps;
 
 

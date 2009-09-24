@@ -70,7 +70,7 @@ void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
 
 
 
-void MapMakPreProcessData(double *data, unsigned char *flag, /*double *calp,*/ long ns, int napod,
+void MapMakPreProcessData(double *data,  short *flag, /*double *calp,*/ long ns, int napod,
 			  int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN,
 			  bool NOFILLGAP,bool remove_polynomia, double *Ps = NULL);
 

@@ -106,7 +106,7 @@ void dpolyfit(double x[], double y[], int ndata, int norder, double *a)
 
 }
 
-void remove_poly(double y[], int ndata, int norder, double* yout, unsigned char* flag)
+void remove_poly(double y[], int ndata, int norder, double* yout, short* flag)
 {
 	int j;
 	int ndint;
@@ -119,7 +119,8 @@ void remove_poly(double y[], int ndata, int norder, double* yout, unsigned char*
 
 	j=0;
 	for (int i = 0; i < ndata; i++) {
-		if(flag != NULL && flag[i]) continue;
+		//if(flag != NULL && flag[i]) continue;
+		if(flag != NULL && (flag[i]==1)) continue;
 		sx[j] = i;
 		sy[j] = y[i];
 		j++;
@@ -908,7 +909,7 @@ void dindgen(int nn, double *y)
 
 
 
-void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double sign)
+void fillgaps(double y[], int ndata, double* yout,  short* flag, double sign)
 {
 	// data are assumed to vary linearly in every window
 	// TODO : CHECK que c'est pas plus court avec les new en dehors boucle
@@ -929,7 +930,7 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 
 	a = new double[2];
 	// schema memoire a changé 19/08
-	xx=new double [margfit*2]; // TODO  : j'ai changé xx et yy depuis boucle jusque ici.
+	xx=new double [margfit*2];
 	yy=new double [margfit*2];
 
 	seriem = new double[margfit];
@@ -938,9 +939,13 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 	tempdata2 = new double[margfit];
 	// fin changement
 
+	ofstream fichier;
+	string fname= "log_flag_short.txt";
+	fichier.open(fname.c_str(), ios::out);
 
 	//init random generator
-	valtemp = randg(1,0);
+	valtemp = randg_value(1,0);
+
 
 
 	////copy data
@@ -950,12 +955,15 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 	count = 0;
 	sp = 0;
 	countm = 0;
-	while ((countm<margfit) && (flag[countm] & 0))
+	//while ((countm<margfit) && (flag[countm] & 0))
+	while ((countm<margfit) && (flag[countm] != 0))
 		countm++;
 
+	fichier << countm << " ";
 
 	for (int i=0;i<ndata;i++){
-		if (flag[i] & 1){
+		//if (flag[i] & 1){
+		if (flag[i] == 1){
 			count++;
 			sp = 0;
 		}
@@ -963,17 +971,20 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 			sp = 1;
 		}
 
+		fichier << count << " ";
 		if (sp && count){
 			countp = 0;
-			while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] & 1) == 0){
+			//while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] & 1) == 0){
+			while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] != 1)){
 				countp++;
 				if (i+countp >= ndata) printf("SDHFIDF\n");
 			}
+			fichier << countp << " ";
 
-			/*cout << "alloc p : " << countp <<  " soit " << (countp)*4 <<  endl;
-			cout << "alloc m : " << countm <<  " soit " << (countm)*4 <<  endl;
-			cout << "alloc : " << count << " soit " << count << endl;
-			getchar();*/
+			//cout << "alloc p : " << countp <<  " soit " << (countp)*4 <<  endl;
+			//cout << "alloc m : " << countm <<  " soit " << (countm)*4 <<  endl;
+			//cout << "alloc : " << count << " soit " << count << endl;
+			//getchar();
 
 			//xx = new double[countp+countm]; // on peut sortir xx et yy de la boucle  car taille max de 20
 			//yy = new double[countp+countm]; // en effet, countp et countm < 20 quoi qu'il arrive : faut juste verif que resultats identiques !
@@ -1027,7 +1038,7 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 				xx2[j] += double(countm);
 			}
 			for (int j=0;j<count;j++){
-				valtemp = randg(1,-1);
+				valtemp = randg_value(1,-1);
 				yout[i+j-count] = a[0]+a[1]*xx2[j] + sign*valtemp;//[0];
 				//delete [] valtemp;
 			}
@@ -1059,6 +1070,8 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 		}
 	}
 
+	fichier.close();
+
 	delete[] a;
 	delete[] xx;
 	delete[] yy;
@@ -1067,10 +1080,14 @@ void fillgaps(double y[], int ndata, double* yout, unsigned char* flag, double s
 	delete[] seriem;
 	delete[] tempdata1;
 
+	//printf("ok\n");
+	//getchar();
+
+
 }
 
 
-double randg(long nombre, int seedpass) {
+double randg_value(long nombre, int seedpass) {
 
 	double nombre_hasard=0.0;
 	time_t temps;
@@ -1099,7 +1116,7 @@ double randg(long nombre, int seedpass) {
 		nombre_hasard=sqrt(-2*log(t1))*cos(2*M_PI*t2);
 	}//
 
-
+	//cout << "valtemp" << nombre_hasard << endl;
 	return nombre_hasard;
 }
 

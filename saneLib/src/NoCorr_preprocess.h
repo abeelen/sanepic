@@ -16,9 +16,9 @@
 #include "inline_IO2.h"
 
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string termin, double errarcsec, string dirfile,
-		string scerr_field, string flpoint_field, std::vector<string> bolonames,
-		string bextension, string fextension,/* string cextension,*/
+		string dir, string termin, /*double errarcsec,*/ string dirfile,
+		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames, string *fits_table,
+		/*string bextension, string fextension,*//* string cextension,*/
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ff, long ns, long napod, long ndet,
