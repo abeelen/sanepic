@@ -21,7 +21,8 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
-#include "boloIO.h"
+#include "positionsIO.h"
+#include "mpi_architecture_builder.h"
 
 
 extern "C"{
@@ -38,10 +39,10 @@ using namespace std;
  * - Initialise sanePre variable
  */
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ string &bextension,
-		string &fextension, string &pextension, /*string &termin,*/ string &noiseSppreffile,
-		int &coordsyst, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<long> &xxi,
-		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut);
+		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ /*string &bextension,
+		string &fextension, string &pextension, *//*string &termin,*/ string &noiseSppreffile,
+		int &coordsyst, std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<long> &xxi,
+		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
 
 
 #endif /* PARSEPRE_H_ */

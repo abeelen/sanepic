@@ -18,7 +18,7 @@
 #include "parsePre.h"
 #include "sanePre_preprocess.h"
 
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "inline_IO2.h"
 #include "nrutil.h"
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	//DEFAULT PARAMETERS
 	long napod = 0; /*! number of samples to apodize*/
 	double fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
-	double errarcsec = 15.0; /*! rejection criteria : pointing error > threshold, sample is rejected*/
+	//double errarcsec = 15.0; /*! rejection criteria : pointing error > threshold, sample is rejected*/
 
 
 	//Parser parameter (Program options)
@@ -109,8 +109,8 @@ int main(int argc, char *argv[])
 
 	long ntotscan; /*! total number of scans*/
 	long ndet; /*! number of channels*/
-	int nnf; /*! extentnoiseSp_list number of elements*/
-	int samples_per_frames=20; /*! default = 1, BLAST = 20*/
+	//int nnf; /*! extentnoiseSp_list number of elements*/
+	//int samples_per_frames=20; /*! default = 1, BLAST = 20*/
 
 
 	int nn, npix; /*! nn = side of the map, npix = number of filled pixels*/
@@ -133,22 +133,22 @@ int main(int argc, char *argv[])
 
 	string field; /*! actual boloname in the bolo loop*/
 	string *extentnoiseSp_all; /*! noise file vector of string */
-	string bolofield; /*! bolofield = boloname + bextension*/
-	string flagfield; /*! flagfield = field+fextension;*/
+	//string bolofield; /*! bolofield = boloname + bextension*/
+	//string flagfield; /*! flagfield = field+fextension;*/
 	string dirfile; /*! data directory*/
 	string tmp_dir; /*! output directory*/
-	string poutdir; /*! current path (pPath) or output dir (outdir)*/
-	string bextension; /*! bolometer field extension*/
-	string fextension = "NOFLAG"; /*! flag field extension*/
-	string pextension; /*! pointing extension*/
+	//string poutdir; /*! current path (pPath) or output dir (outdir)*/
+	//string bextension; /*! bolometer field extension*/
+	//string fextension = "NOFLAG"; /*! flag field extension*/
+	//string pextension; /*! pointing extension*/
 	//string termin; /*! output file suffix*/
 	string noiseSppreffile; /*! noise file suffix*/
 	string prefixe; /*! prefix used for temporary name file creation*/
-	string flpoint_field = "FLPOINTING"; /*! Poiting filename */
+	//string flpoint_field = "FLPOINTING"; /*! Poiting filename */
 	string fname; /*! parallel scheme filename*/
 	string termin_internal = "internal_data"; /*! internal data suffix */
 
-	string scerr_field = "ERR"+pextension; /*!source error filename*/
+	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
@@ -159,7 +159,9 @@ int main(int argc, char *argv[])
 	/* Parser inputs */
 	std::vector<string> bolonames; /*! bolometer list*/
 	std::vector<string> extentnoiseSP; /*! noise file prefix*/
-	std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample*/
+	std::vector<string> fitsvect, noisevect;
+	std::vector<long> scans_index;
+	//std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample*/
 	std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)*/
 	std::vector<double> fcut; /* noise cutting frequency */
 
@@ -174,8 +176,7 @@ int main(int argc, char *argv[])
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
 		parsed=parse_sanePre_ini_file(argv[1],shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,remove_polynomia,flgdupl,
-				CORRon,ntotscan,ndet,nnf,f_lp,dirfile,tmp_dir,bextension,fextension,
-				pextension,noiseSppreffile,coordsyst,bolonames,fframes_vec,nsamples_vec, xxi, xxf, yyi, yyf, extentnoiseSP, fcut);
+				CORRon,ntotscan,ndet,f_lp,dirfile,tmp_dir,noiseSppreffile,coordsyst,bolonames,fframes,nsamples, xxi, xxf, yyi, yyf, extentnoiseSP, fcut,fitsvect,noisevect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -195,25 +196,34 @@ int main(int argc, char *argv[])
 	if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
 
 	//malloc
-	fframes       = new long[ntotscan];
-	nsamples      = new long[ntotscan];
+	//fframes       = new long[ntotscan];
+	//nsamples      = new long[ntotscan];
 	extentnoiseSp_all = new string[ntotscan];
 
 
 
+	string *fits_table;
+	long *index_table;
+
+	fits_table = new string[ntotscan];
+	index_table= new long[ntotscan];
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(nsamples_vec, nsamples);
-	vector2array(fframes_vec,  fframes);
+	//vector2array(nsamples_vec, nsamples);
+	//vector2array(fframes_vec,  fframes);
+	vector2array(fitsvect, fits_table);
+	//vector2array(noisevect, );
+	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-
+	cout << fframes[0] << endl;
+	cout << nsamples[0] << endl;
 
 	// some needed parameters calculation
-	if(samples_per_frames>1){
+	/*if(samples_per_frames>1){
 		for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
 		}
-	}
+	}*/
 
 	if (flgdupl) factdupl = 2;
 
@@ -377,8 +387,8 @@ int main(int argc, char *argv[])
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
 			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-					tmp_dir,termin_internal,errarcsec,dirfile,scerr_field,flpoint_field,bolonames, bextension,
-					fextension,shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
+					tmp_dir,termin_internal,/*errarcsec,*/dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
+					fextension,*/shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -425,9 +435,8 @@ int main(int argc, char *argv[])
 
 			//write_ftrProcesdata_nocorr();
 
-			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,errarcsec,dirfile,
-					scerr_field,flpoint_field,bolonames,bextension,fextension,
-					shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
+			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,
+					bolonames,fits_table,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
 					nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
