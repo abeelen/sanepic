@@ -403,13 +403,10 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 
 
-<<<<<<< .mine
+
 void flag_conditions(short *flag, /*double *scerr,*/ short *flpoint,
-=======
-void flag_conditions(short *flag, double *scerr, short *flpoint,
->>>>>>> .r189
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
-		bool NOFILLGAP, short *rejectsamp){
+		bool NOFILLGAP, unsigned char *rejectsamp){
 
 
 	// define the rules for bad samples
@@ -417,28 +414,16 @@ void flag_conditions(short *flag, double *scerr, short *flpoint,
 
 
 	//long ii;
-<<<<<<< .mine
 	short *flagtmp;
 	//double *scerrtmp;
 	short *flpointtmp;
-=======
-	short *flagtmp;
-	double *scerrtmp;
-	short *flpointtmp;
->>>>>>> .r189
 
-<<<<<<< .mine
+
 	//flagtmp = new unsigned char[ns];
 	//scerrtmp = new double[ns];
 	//flpointtmp = new unsigned char[ns];
 	flagtmp = new short[ns];
 	flpointtmp = new short[ns];
-
-=======
-	flagtmp = new short[ns];
-	scerrtmp = new double[ns];
-	flpointtmp = new short[ns];
->>>>>>> .r189
 
 
 	if (NOFILLGAP){

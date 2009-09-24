@@ -25,13 +25,10 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		double **count, int nn, short *flag,
 		double **map_f, double **count_f );*/
 
-<<<<<<< .mine
+
 void flag_conditions(short *flag,/* double *scerr,*/ short *flpoint,
-=======
-void flag_conditions(short *flag, double *scerr, short *flpoint,
->>>>>>> .r189
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
-		bool NOFILLGAP, short *rejectsamp);
+		bool NOFILLGAP, unsigned char *rejectsamp);
 
 
 

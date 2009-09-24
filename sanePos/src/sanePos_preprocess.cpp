@@ -38,11 +38,9 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 		long *fframes,long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,*/int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
-<<<<<<< .mine
 		double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
-=======
-		double *&phi,double *&scerr, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
->>>>>>> .r189
+
+
 
 	double *offsets, *froffsets;
 	offsets = new double[2]; //
@@ -50,6 +48,10 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 	//short *flpoint2;
 	//double *ra2, *dec2, *phi2;
+	//double *signal, *signal2;
+
+	//signal = new double[29341];
+	//signal2 = new double[29341];
 
 	//flpoint2 = new short[29341];
 	//ra2 = new double[29341];
@@ -61,7 +63,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 	//string flagfield;
 	string fits_file;
 	long ns,ff;
-	//Sdouble *ra,*dec,*phi,*scerr, *flpoint;
+	//double *ra,*dec,*phi,*scerr, *flpoint;
 
 	// ndet = number of channels
 	for (int idet=0;idet<ndet;idet++){
@@ -87,6 +89,28 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 		read_bolo_offsets_from_fits(fits_file, field, offsets);
 		//cout << "after  " << offsets[0] << " " << offsets[1] << endl;
 
+		///////////////// Procedure de test pour read_data_from_fits /////////////
+
+		//read_signal_from_fits(fits_file, signal, field);
+
+		//cout << "signal : " << signal[0] << " " << signal[1] << " " << signal[2] << " " << signal[3] << endl;
+
+		/*ff=0;
+		ns=29340;
+		read_data_std(dirfile, ff, 0, ns, signal2, field+"_data", 'd');*/
+
+		//cout << "signal2 : " << signal2[0] << " " << signal2[1] << " " << signal2[2] << " " << signal2[3] << endl;
+
+		/*for(int ii=0; ii<ns;ii++)
+			if(signal[ii]!=signal2[ii]){
+				cout << signal[ii] << " != " << signal2[ii] << endl;
+				getchar();
+			}*/
+
+
+		///////////////// Procedure de test pour read_data_from_fits /////////////
+
+
 		long ns2;
 
 		// for each scan
@@ -98,63 +122,34 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
 
-<<<<<<< .mine
 			//cout << "iframe " << iframe << endl;
-=======
-			cout << "Length  : " << readFitsLength("data_00.fits") << endl;
 
-
-			cout << "iframe " << iframe << endl;
->>>>>>> .r189
 			// lis les données RA/DEC, Phi, et scerr (sky coordinates err, BLASPEC) pour ff et ns
-<<<<<<< .mine
-			//read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
-			//cout << "before " << ra[0] << " " << ra[1] << endl;
-=======
-//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
-//			cout << "before " << ra[0] << " " << ra[1] << endl;
-//
-//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-//			cout << "before dec " << dec[0] << " " << dec[1] << endl;
-//
-//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-//			cout << "before phi " << phi[0] << " " << phi[1] << endl;
->>>>>>> .r189
 
-<<<<<<< .mine
+			//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type); // type = 'd' 64-bit double
+			//			cout << "before " << ra[0] << " " << ra[1] << endl;
+			//
+			//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+			//			cout << "before dec " << dec[0] << " " << dec[1] << endl;
+			//
+			//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+			//			cout << "before phi " << phi[0] << " " << phi[1] << endl;
+
+
 			fits_file=fits_table[iframe];
-=======
-			short *flpoint2;
-			flpoint2 = new short[ns];
->>>>>>> .r189
 
-<<<<<<< .mine
-			read_position_from_fits(fits_file, ra, dec, phi, flpoint, 0, NULL, ns2, field); // TODO : passer flpoint en short
+			read_position_from_fits(fits_file, ra, dec, phi, ns2);
+			read_flpoint_from_fits(fits_file , flpoint);
 			/*cout << "after " << ra2[0] << " " << ra2[1] << endl << endl;
 			cout << "after dec " << dec2[0] << " " << dec2[1] << endl;
 			cout << "after phi " << phi2[0] << " " << phi2[1] << endl;
-=======
-			read_position_from_fits("data_00.fits", ra, dec, phi, flpoint2, ns2);
-			cout << "after " << ra[0] << " " << ra[1] << endl << endl;
-			cout << "after dec " << dec[0] << " " << dec[1] << endl;
-			cout << "after phi " << phi[0] << " " << phi[1] << endl;
->>>>>>> .r189
+
 			cout << "flpoint : " << flpoint2[0] <<  flpoint2[1] << flpoint2[2] << flpoint2[3] << endl;
 			cout << "ns : " << ns << " " << "ns 2 : " << ns2 << endl;*/
 
-<<<<<<< .mine
-
-			//read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			//cout << "before dec " << dec[0] << " " << dec[1] << endl;
-
-			//read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			//cout << "before phi " << phi[0] << " " << phi[1] << endl;
 			//getchar();
 
-=======
-			getchar();
->>>>>>> .r189
-			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type); // TODO : ca n'existe plus
+			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
 
 			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c'); // flpoint = donnee vs time, take the data or not
 
@@ -194,7 +189,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 
 long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
-		std::vector<long> yyf, long* &indpsrc,long &npixsrc,short *&mask){
+		std::vector<long> yyf, long* &indpsrc,long &npixsrc,unsigned char *&mask){
 
 	long addnpix=0;
 
@@ -243,25 +238,14 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 	return addnpix;
 }
 
-<<<<<<< .mine
+
 void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::vector<string> bolonames,  string *fits_table,/*,string bextension, string fextension*/string termin,
 		/*string file_offsets,*/foffset *foffsets,float *scoffsets,long iframe_min, long iframe_max,long *fframes,
 		long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,*/int nfoff,double pixdeg, int *&xx, int *&yy, unsigned char *&mask,int &nn, double *&coordscorner, double *tancoord,
-=======
-void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::vector<string> bolonames,string bextension, string fextension,string termin,
-		string file_offsets,foffset *foffsets,float *scoffsets,long iframe_min, long iframe_max,long *fframes,
-		long *nsamples,string dirfile,string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field,int nfoff,double pixdeg, int *&xx, int *&yy, short *&mask,int &nn, double *&coordscorner, double *tancoord,
->>>>>>> .r189
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,
-<<<<<<< .mine
 		double *&phi, short *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,short* &flag,
 		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
-=======
-		double *&phi,double *&scerr, short *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,short* &flag,
-		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,short *&rejectsamp, long *&samptopix, long *&pixon, int rank,
->>>>>>> .r189
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
 
 
@@ -307,52 +291,29 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 		for (long iframe=0;iframe<ntotscan;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
-//
-//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-//			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-//			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
-//			for (long ii=0;ii<ns;ii++)
-//				if (isnan(ra[ii]) || isnan(dec[ii]))
-//					flpoint[ii] = 1;
-//
-//			flpoint2 = new short[ns];
-
-<<<<<<< .mine
-			//read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-			//read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			//read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			//
+			//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
+			//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
+			//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
+			//			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
+			//			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			//			for (long ii=0;ii<ns;ii++)
+			//				if (isnan(ra[ii]) || isnan(dec[ii]))
+			//					flpoint[ii] = 1;
+			//
+			//			flpoint2 = new short[ns];
 
 
-			//for (long ii=0;ii<ns;ii++)
-			//scerr[ii]=0.0;
 
-=======
-			// TODO : flag should be read here, all time, and define as short int
-			read_position_from_fits("data_00.fits", ra, dec, phi, flpoint, ns2);
-//
-//			if (fextension != "NOFLAG"){
-//				read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-//				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 1, flag, ns2, field);
-//			} else {
-//				read_data_from_fits("data_00.fits", ra, dec, phi, flpoint2, 0, NULL, ns2, field);
-//				for (long ii=0;ii<ns;ii++)
-//					flag[ii] = 0;
-//			}
->>>>>>> .r189
-
-<<<<<<< .mine
 			fits_file=fits_table[iframe];
-=======
->>>>>>> .r189
 
-<<<<<<< .mine
 			//if (fextension != "NOFLAG"){
 			//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-			read_position_from_fits(fits_file, ra, dec, phi, flpoint, 1, flag, ns2, field);
+			read_position_from_fits(fits_file, ra, dec, phi, ns2);
+			read_flag_from_fits(fits_file , flag, field);
+			read_flpoint_from_fits(fits_file , flpoint);
+
+
 			//cout << "flag : " << " " << flag2[0] << " " << flag2[1] <<  " " << flag2[2]<< " " << flag2[3] << endl;
 			//getchar();
 			/*} else {
@@ -365,13 +326,14 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 				if (isnan(ra[ii]) || isnan(dec[ii]))
 					flpoint[ii] = 1;
 
-=======
->>>>>>> .r189
-			if(ns!=ns2)
+
+			if(ns!=ns2){
 				cerr << "Error. Fits file has a wrong number of samples\n";
+				exit(1);
+			}
 
 			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
+			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : a virer
 
 
 
