@@ -455,9 +455,9 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 
 
-	ifstream fichier;
-	fichier.open(fname.c_str(), ios::in);
-	if(!fichier.is_open()){
+	ifstream file;
+	file.open(fname.c_str(), ios::in);
+	if(!file.is_open()){
 		cerr << "File [" << fname << "] Invalid." << endl;
 		exit(-1);
 	}
@@ -472,7 +472,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	int num=0; // framecounter
 
 	// count number of elements on the first line !
-	getline(fichier, line);
+	getline(file, line);
 	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
 	pch = strtok ((char*) line.c_str()," ,");
 
@@ -481,12 +481,12 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		nb_elem++; 	}
 
 	// set pointer back to th beginning of file in order to parse the first line too
-	fichier.seekg (0, ios::beg);
+	file.seekg (0, ios::beg);
 
 	switch(nb_elem) {
 	case 3:
 		framegiven=1;
-		while(fichier >> s >> p >> d) {
+		while(file >> s >> p >> d) {
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
@@ -500,7 +500,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		break;
 
 	case 2:
-		while(fichier >> s >> p){
+		while(file >> s >> p){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
@@ -516,7 +516,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	case 1:
 		//noisefiles.push_back("read_file_in_the_ini");
 
-		while(fichier >> s){
+		while(file >> s){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
@@ -531,24 +531,50 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
 		exit(0);
 		break;
-
 	}
-
 
 	if(fitsfiles.size()==0){
 		cerr << "File [" << fname << "] must have at least one row. Exiting\n";
 		exit(0);
 	}
 
-
-	if (fichier>>s){
+	if (file>>s){
 		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
 		exit(0);
 	}
 
 	cout << "read fits list ok !!!\n";
+	file.close();
 
-	fichier.close();
+}
 
+void readBoxFile(string filename, std::vector<struct box> & boxList){
+	// Read a file with 4 number on a line, describing the boxes
+	// 2 numbers for the bottom_left_corner (blc)
+	// 2 numbers for the top_right_corner (trc)
+
+	ifstream file;
+	file.open(filename.c_str(), ios::in);
+	if(!file.is_open()){
+		cerr << "File [" << filename << "] Invalid." << endl;
+		exit(-1);
+	}
+
+	double x_min, x_max, y_min, y_max;
+
+	while(file >> x_min >> y_min >> x_max >> y_max) {
+		struct box ibox;
+		struct corner icorn;
+
+		icorn.x = x_min;
+		icorn.y = y_min;
+		ibox.blc = icorn;
+
+		icorn.x = x_max;
+		icorn.y = y_max;
+		ibox.trc = icorn;
+
+		boxList.push_back(ibox);
+	}
 
 }

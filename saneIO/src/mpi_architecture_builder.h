@@ -14,7 +14,15 @@
 
 #include "stdio.h"
 
-//#include "mpi.h"
+struct corner{
+	double x;
+	double y;
+};
+
+struct box {
+	struct corner blc;
+	struct corner trc;
+};
 
 using namespace std;
 
@@ -33,6 +41,8 @@ int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotsc
 long readFitsLength(string filename);
 void readFrames(long * nScan, std::vector<string> &inputFiles, long *& fframes, long *& nsamples);
 void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
+
+void readBoxFile(string filename, std::vector<struct box> & boxList);
 
 #define parallel_scheme_filename  "parallel_scheme.bin";
 
