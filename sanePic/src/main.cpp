@@ -28,7 +28,7 @@
 
 //#include "sane_io.h"
 #include "binaryFileIO.h"
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
 #include "imageIO.h"
 #include "inline_IO2.h"
@@ -41,7 +41,7 @@
 //#include "estimPS_sanepic.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
-#include "mpi_architecture_builder.h"
+//#include "mpi_architecture_builder.h"
 #include <time.h>
 #include <fftw3.h>
 //#include <fcntl.h>
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 
 	int shift_data_to_point = 0; /*! default value of the data to pointing shift */
 
-	int samples_per_frames = 20; /*! blast Specific : Each frame has 20 samples */
+	//int samples_per_frames = 20; /*! blast Specific : Each frame has 20 samples */
 
 	//DEFAULT PARAMETERS
 	long napod = 0; /*!  number of samples to apodize */
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels */
-	int nnf; /*! extentnoiseSp_list number of elements */
+	//int nnf; /*! extentnoiseSp_list number of elements */
 
 
 	// map making parameters
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 	double *tanpix; /*! tangent pixel */
 
 	//internal data params
-	long ns, ff; /*! number of samples for this scan, first frame number of this scan */
+	//long ns, ff; /*! number of samples for this scan, first frame number of this scan */
 	double f_lp, f_lp_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
 
 
@@ -199,9 +199,9 @@ int main(int argc, char *argv[])
 	string outdir; /*! output directory */
 	string tmp_dir; /*! temporary directory */
 	//string poutdir; // current path (pPath) or output dir (outdir)
-	string bextension; /*! bolometer field extension */
-	string fextension = "NOFLAG"; /*! flag field extension */
-	string pextension; /*! pointing extension */
+	//string bextension; /*! bolometer field extension */
+	//string fextension = "NOFLAG"; /*! flag field extension */
+	//string pextension; /*! pointing extension */
 	string termin; /*! output file suffix */
 	//string noiseSppreffile; /*! noise file suffix */
 	string extentnoiseSp; /*! noise file */
@@ -209,27 +209,28 @@ int main(int argc, char *argv[])
 	string termin_internal = "internal_data"; /*! internal data suffix */
 
 	// utilisé lors de la lecture des coord de la map en pixel (dans la f° read_data)
-	string ra_field; /*! RA data file suffix */
-	string dec_field;/*! DEC data file suffix */
-	string phi_field;/*! PHI data file suffix */
-	string scerr_field = "ERR"+pextension; /*! Pointing error file suffix */
-	string flpoint_field = "FLPOINTING"; /*! pointing data file suffix */
+	//string ra_field; /*! RA data file suffix */
+	//string dec_field;/*! DEC data file suffix */
+	//string phi_field;/*! PHI data file suffix */
+	//string scerr_field = "ERR"+pextension; /*! Pointing error file suffix */
+	//string flpoint_field = "FLPOINTING"; /*! pointing data file suffix */
 
-
+	string signame; /*! name of the signal file for sanePS */
 	string MixMatfile = "NOFILE"; /*! mixing matrix filename */
-	bool doInitPS = 0; /*! Do we rat a PS estimation from the elaborated map */
+	//bool doInitPS = 0; /*! Do we rat a PS estimation from the elaborated map */
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! coordinatesystem :  Default is RA/DEC = 1 */
 	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
 
 
-	std::vector<long> fframes_vec,nsamples_vec; /*! first frames number vector, number of samples vector */
+	//std::vector<long> fframes_vec,nsamples_vec; /*! first frames number vector, number of samples vector */
 	std::vector<long>  xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)*/
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 	std::vector<string> extentnoiseSP; /*! noise filenames vector of string */
 	std::vector<string> bolonames; /*! bolonames vector */
-
+	std::vector<string> fitsvect, noisevect;
+	std::vector<long> scans_index;
 
 	//time t2, t3, t4, t5, dt;
 
@@ -256,8 +257,8 @@ int main(int argc, char *argv[])
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
 		parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
-				CORRon,iterw,doInitPS, ntotscan,ndet,nnf,f_lp,f_lp_Nk,dirfile,outdir,tmp_dir,bextension,fextension,
-				pextension,termin,coordsyst,MixMatfile,bolonames,fframes_vec,nsamples_vec,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP);
+				CORRon,iterw, ntotscan,ndet,f_lp,f_lp_Nk,dirfile,outdir,tmp_dir,
+				termin,coordsyst,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -296,36 +297,47 @@ int main(int argc, char *argv[])
 	}
 
 
-	fframes  = new long[ntotscan];
-	nsamples = new long[ntotscan];
+
+	//fframes  = new long[ntotscan];
+	//nsamples = new long[ntotscan];
 	extentnoiseSp_all = new string[ntotscan];
 
 
+	string *fits_table;
+	long *index_table;
 
+	fits_table = new string[ntotscan];
+	index_table= new long[ntotscan];
 
 	// convert vectors to regular arrays
-	vector2array(nsamples_vec, nsamples);
-	vector2array(fframes_vec,  fframes);
+	//vector2array(nsamples_vec, nsamples);
+	//vector2array(fframes_vec,  fframes);
+	vector2array(fitsvect, fits_table);
+	//vector2array(noisevect, );
+	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
+	cout << fframes[0] << endl;
+	cout << nsamples[0] << endl;
 
 
-	if(samples_per_frames>1){
+
+	/*if(samples_per_frames>1){
 		for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
 		}
-	}
+	}*/
 
 
 	if (coordsyst == 2){
-		ra_field = "L"+pextension;
-		dec_field = "B"+pextension;
-		phi_field = "PHIG"+pextension;
+		//ra_field = "L"+pextension;
+		//dec_field = "B"+pextension;
+		//phi_field = "PHIG"+pextension;
 		printf("[%2.2i] Coordinate system: Galactic\n",rank );
 	}else{
-		ra_field = "RA"+pextension;
-		dec_field = "DEC"+pextension;
-		phi_field = "PHI"+pextension;
+		//ra_field = "RA"+pextension;
+		//dec_field = "DEC"+pextension;
+		//phi_field = "PHI"+pextension;
 		if (coordsyst == 3){
 			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
 		} else {
@@ -422,7 +434,7 @@ int main(int argc, char *argv[])
 
 	// read npix, PNdtot from file
 	read_PNd(PNdtot, npix, termin_internal, tmp_dir);
-	/*for (ii=0;ii<20;ii++)
+	/*for (int ii=0;ii<20;ii++)
 			cout << PNdtot[ii] << " ";
 		cout << endl << "avant read indpix\n";
 		exit(0);*/
@@ -440,6 +452,12 @@ int main(int argc, char *argv[])
 		cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
 		exit(0);
 	}
+
+
+	/*for (int ii=17000;ii<17500;ii++)
+		cout << indpix[ii] << " ";
+	cout << endl << "apres read indpix\n";
+	exit(0);*/
 
 
 	/*************************************************************/
@@ -468,32 +486,37 @@ int main(int argc, char *argv[])
 			ndet,extentnoiseSp_all,tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
 			pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, projgaps, rank, CORRon,
 			dirfile, PNdtot, ntotscan,addnpix,NORMLIN,NOFILLGAP,napod,shift_data_to_point,
-			remove_polynomia,fextension,bextension,flpoint_field,scerr_field, outdir);
+			remove_polynomia, outdir,fits_table);
 
 
 
-//
-// TODO : should not be here, all in sanePS
-//
-//	//*******************************************************************//
-//	//******************  Update noise power spectra  *******************//
-//
-//	if (doInitPS){
-//		//printf("EstimPS will be run  with this mixing matrix file : %s\n",MixMatfile.c_str());
-//
-//		if (MixMatfile != "NOFILE"){
-//			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-//				ns = nsamples[iframe];
-//				ff = fframes[iframe];
-//				extentnoiseSp = extentnoiseSp_all[iframe];
-//
-//				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
-//						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
-//						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
-//
-//			}
-//		}
-//	}
+	//
+	//
+	//string signame;
+	//signame = tmp_dir + "Signal_internal_data.bin";
+	//write_signal(npix, S, signame);
+
+
+
+	//	//*******************************************************************//
+	//	//******************  Update noise power spectra  *******************//
+	//
+	//	if (doInitPS){
+	//		//printf("EstimPS will be run  with this mixing matrix file : %s\n",MixMatfile.c_str());
+	//
+	//		if (MixMatfile != "NOFILE"){
+	//			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	//				ns = nsamples[iframe];
+	//				ff = fframes[iframe];
+	//				extentnoiseSp = extentnoiseSp_all[iframe];
+	//
+	//				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
+	//						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
+	//						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
+	//
+	//			}
+	//		}
+	//	}
 
 
 

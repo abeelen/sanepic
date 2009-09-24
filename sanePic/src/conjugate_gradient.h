@@ -22,7 +22,7 @@
 
 //#include "sane_io.h"
 #include "binaryFileIO.h"
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
 #include "imageIO.h"
 #include "inline_IO2.h"
@@ -56,7 +56,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S, long iframe_
 		int rank_det,*/ int iterw, double pixdeg,double *tancoord, double *tanpix,int coordsyst,
 		long *indpsrc, long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
 		string dirfile, double *&PNdtot, long ntotscan,long addnpix,bool NORMLIN,bool NOFILLGAP,
-		long napod,int shift_data_to_point,bool remove_polynomia,string fextension,string bextension,
-		string flpoint_field,string scerr_field, string outdir);
+		long napod,int shift_data_to_point,bool remove_polynomia,/*string fextension,string bextension,
+		string flpoint_field,string scerr_field,*/ string outdir, string *fits_table);
 
 #endif /* CONJUGATEGRAIDENT_H_ */

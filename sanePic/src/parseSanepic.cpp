@@ -6,13 +6,13 @@
  */
 
 #include "parseSanepic.h"
+#include "mpi_architecture_builder.h"
 
 
 int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, int &iterw,bool &doInitPS, long &ntotscan, long &ndet, int &nnf,	double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
-		string &fextension, string &pextension, string &termin,
-		int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, string &fname,
-		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP)
+		bool &CORRon, int &iterw, long &ntotscan, long &ndet, double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir,
+		string &termin,	int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
+		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 
 	dictionary	*	ini ;
@@ -22,7 +22,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	int				i ;
 	double			d ;
 	char		*	s ;
-	long l;
+	//long l;
 	string str;
 	const char *temp;
 
@@ -95,7 +95,37 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
 
+	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
+	if(s==NULL){
+		printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("fits filelist : [%s]\n",s);
+		//read frame file function
+		//std::vector<string> fitsvect_path;
+		std::vector<string> noisevect;
+		//std::vector<long> scans_index;
+		bool framegiven;
 
+		read_fits_list(str, fitsvect, noisevect, scans_index, framegiven);
+		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
+		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
+		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+		for(int ii=0;ii<(int)fitsvect.size();ii++){
+			cout << dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = dirfile + fitsvect[ii];}
+
+		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+
+		//getchar();
+	}else{
+		printf("You must specify a fits filelist : commons:fits_filelist\n");
+		return -1 ;
+	}//frame_file =./RCW_120_M/fits_files.txt ;
+
+	/*
 	s = iniparser_getstring(ini, "commons:frame_file",NULL);
 	if(s==NULL){
 		printf("You must add a line in ini file corresponding to a bolometer file : commons:channel\n");
@@ -137,6 +167,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		printf("You must specify a frame file : commons:frame_file\n");
 		return -1 ;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
+	 */
 
 	i = iniparser_getint(ini, "commons:coord_syst", -1);
 	if((i==1)||(i==2)||(i==3)){
@@ -147,6 +178,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}//coord_syst = 1 ;
 
+	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
 		printf("You must choose add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
@@ -160,7 +192,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		printf("You must specify a bolo extension : commons:bolofield_extension\n");
 		return -1 ;
 	}//_data
-
+	 */
 
 	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
 	if(s==NULL){
@@ -263,6 +295,8 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1;
 	}//frame_file =./RCW_120_M/fcut_file.txt ;
 
+
+	/*
 	s = iniparser_getstring(ini, "commons:flag_field_extension",NULL);
 	if(s==NULL){
 		printf("You must add a line corresponding to flag_field_extension in the parser file : commons:flag_field_extension\n");
@@ -290,10 +324,11 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		printf("you must specify pointing_field_extension\n");
 		return -1 ;
 	}//pointing_field_extension = _def ;
+	 */
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:noise_prefixe_file",NULL);
+	s = iniparser_getstring(ini, "commons:noise_prefixe_file",NULL);
 	if(s==NULL){
-		printf("You must add a line corresponding to noise_prefixe file in the ini file : sanepic_preprocess:noise_prefixe\n");
+		printf("You must add a line corresponding to noise_prefixe file in the ini file : commons:noise_prefixe\n");
 		return -1;
 	}
 	str=(string)s;
@@ -332,7 +367,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 			return -1 ;
 		}//noise_suffixe = ./RCW_120_M/ ;
 	}
-*/
+	 */
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
 	if(s==NULL){
 		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
@@ -353,6 +388,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
+	pPath=NULL; // TODO : Remove apres test !!!!
 	if (pPath!=NULL){
 		tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
@@ -503,11 +539,13 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		iterw=i;
 	}//iterw =  ;
 
+	/*
 	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:Noise_PS_estimation", -1);
 	if(b!=-1){
 		printf("doInitPS:    [%d]\n", b);
 		doInitPS=b;
 	}//doInitPS = False
+	 */
 
 	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
 	if(s==NULL){
@@ -535,12 +573,12 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 
 
 	// Set default parameter values
-	if (fframes_vec.size() == 0) {
+	/*if (fframes_vec.size() == 0) {
 		fframes_vec.push_back(0);
 		nsamples_vec.push_back(-1);
 	}
 	if (fframes_vec.size() == 1 && nsamples_vec.size() == 0)
-		nsamples_vec.push_back(-1);
+		nsamples_vec.push_back(-1);*/
 
 	// Check improper usage
 	if (bolonames.size() == 0) {
@@ -548,18 +586,19 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		exit(1);
 		//usage(argv[0]);
 	}
-	if (fframes_vec.size() != nsamples_vec.size()) {
+	/*if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return -1 ;
-	}
+	}*/
 	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
 		return -1 ;
 	}
 
-	ntotscan = fframes_vec.size();
+	//ntotscan = fframes_vec.size();
 	ndet = bolonames.size();
 
+	int nnf;
 	nnf = (int)extentnoiseSP.size();
 	//nnf=1; // Debug
 	if (nnf != 1 && nnf != ntotscan){

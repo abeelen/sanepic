@@ -20,7 +20,7 @@
 
 //#include "sane_io.h"
 #include "binaryFileIO.h"
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "dataIO.h"
 #include "imageIO.h"
 #include "inline_IO2.h"
