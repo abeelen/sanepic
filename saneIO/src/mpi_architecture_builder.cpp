@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <string.h>
 
 #include "time.h"
 #include "positionsIO.h"
@@ -467,93 +468,75 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	string s,p, line, temp;
 	long d;
 	char *pch;
-	const char *strr;
 	int nb_elem = 0;
 	int num=0; // framecounter
 
 	// count number of elements on the first line !
 	getline(fichier, line);
-	strr= line.c_str();
-	pch = strtok ((char*)strr," ,");
+	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
+	pch = strtok ((char*) line.c_str()," ,");
 
-	while (pch != NULL)
-	{
-		//printf ("%s\n",pch);
-		/*	if(nb_elem==0){
-			temp=(string)pch;
-			fitsfiles.push_back(temp);
-		}else{
-			temp=(string)pch;
-			frameorder.push_back();
-		}
-
+	while (pch != NULL) {
 		pch = strtok (NULL, " ,.-");
-		nb_elem++;
-		temp=(string)pch;
-		noisefiles.push_back(temp);*/
-
-
-		pch = strtok (NULL, " ,.-");
-		nb_elem++;
-	}
-
-	cout << nb_elem << endl;
+		nb_elem++; 	}
 
 	// set pointer back to th beginning of file in order to parse the first line too
 	fichier.seekg (0, ios::beg);
 
-	//fichier.close();
-	//fichier.open(fname.c_str(), ios::in);
-	//getchar();
+	switch(nb_elem) {
+	case 3:
+		framegiven=1;
+		while(fichier >> s >> p >> d) {
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			if (found == 0) continue;
 
-	// if 3 elements per lines
-	if(nb_elem==3){
-
-		while(fichier>>s>>p){
-			//cout << "2 : " << s << " " << p << endl;
+			cout << "3 : " << s << " " << p << " " << d << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);
-
-			if(fichier>>d){
-				cout << "3 : " << s << " " << p << " " << " " << d << endl;
-				frameorder.push_back(d);
-				framegiven=1;
-			}else{
-				//if(framegiven==1){
-				cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
-				exit(0);
-				//}
-			}
-
+			frameorder.push_back(d);
 		}
-	}else{
-		// else 2 elements per line
-		if(nb_elem==2){
-			while(fichier>>s>>p){
-				cout << "2 : " << s << " " << p << endl;
-				fitsfiles.push_back(s);
-				noisefiles.push_back(p);
-				frameorder.push_back(num++);
-			}
-		}else{
-			if(nb_elem==1){
-				while(fichier>>s){
-					cout << "1 : " << s << endl;
-					fitsfiles.push_back(s);
-					frameorder.push_back(num++);
-				}
-				//noisefiles.push_back("read_file_in_the_ini");
-			}else{
-				cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
-				exit(0);
-			}
-		}
+		break;
+
+	case 2:
+		while(fichier >> s >> p){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+
+			if (found == 0) continue;
+
+			cout << "2 : " << s << " " << p << endl;
+			fitsfiles.push_back(s);
+			noisefiles.push_back(p);
+			frameorder.push_back(num++); }
+		break;
+
+	case 1:
+		//noisefiles.push_back("read_file_in_the_ini");
+
+		while(fichier >> s){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			if (found == 0) continue;
+
+			cout << "1 : " << s << endl;
+			fitsfiles.push_back(s);
+			frameorder.push_back(num++); }
+		break;
+
+	default:
+		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+		exit(0);
+		break;
+
 	}
 
 
-
 	if(fitsfiles.size()==0){
-		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+		cerr << "File [" << fname << "] must have at least one row. Exiting\n";
 		exit(0);
 	}
 
