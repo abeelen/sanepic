@@ -45,7 +45,7 @@ template<class T> void vector2array(std::vector<T> l, T* a)
 int main(int argc, char *argv[])
 {
 
-
+// TODO : a tester
 
 	int size;
 	int rank;
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 		/********************* Define parallelization scheme   *******/
 		cout << ntotscan << endl;
 		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
-		//getchar();
+		getchar();
 		/*for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
 		}*/

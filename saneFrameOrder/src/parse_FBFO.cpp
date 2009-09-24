@@ -139,10 +139,10 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 	}else{
 		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s!=NULL){
-			printf("file_name : [%s]\n",s);
+			printf("temp_dir : [%s]\n",s);
 			tmp_dir=s;
 		}else{
-			printf("You must provide a file name for the parallel scheme data file : sanepic_parallel_scheme:file_name\n");
+			printf("You must provide a temporary path to write parallel_scheme file : commons:temp_dir\n");
 			return(-1);
 		}
 	}
