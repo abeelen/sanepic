@@ -11,11 +11,11 @@
 using namespace std;
 
 
-void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long npix, long napod,
+void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix, long napod,
 		long iframe, bool flgdupl, int factdupl, long *indpix,
 		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string bextension,
 		string fextension, int shift_data_to_point, string dir,
-		string termin,string termin_internal, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
+		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN)
 {
 
@@ -34,7 +34,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	// data, data low passed, Prewhitened signal ? ,apodization window, ?, ?, butter filter values, first detector PS (in the cross correlation estimation part)
 	double *data, *data_lp, *Ps, /**calp, */*apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
 	long *samptopix; // sample to pixel projection matrix
-	unsigned char *flag; // flag array
+	short *flag; // flag array
 	double /***commonm,*/ **commonm2,/* **common_f,*/ **vect; // ?
 	double **P, **N, **Rellth, **Rellexp; // Rellth = covariance matrix
 	double **Cov, **iCov,/* **iCov2,*/ **SpN_all; //mixing matrix, AtN-1A, inverted AtN-1A, ?, SpN_all = PS for the bolo (ndet, nbins)
@@ -74,7 +74,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	commontmp = new double[ns]; // useless
 	commonm_f = new double[ns]; // useless
 	//calp = new double[ns];
-	flag = new unsigned char[ns]; // flag array
+	flag = new short[ns]; // flag array
 	samptopix = new long[ns]; // sample to pixel proj matrix
 	Nk = new double[ns/2+1]; // noise PS
 	bfilter = new double[ns/2+1]; // buttter filter values
@@ -131,8 +131,8 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 
 
 	// compute common mode commonm2
-	common_mode_computation(apodwind, ndet, ns, ff, nn, npix, flgdupl, factdupl, bolonames, bextension, fextension,
-			dirfile,  shift_data_to_point,  termin_internal,  dir, iframe, S, indpix,  NORMLIN,
+	common_mode_computation(apodwind, ndet, ns, ff, NAXIS1, NAXIS2, npix, flgdupl, factdupl, bolonames, bextension, fextension,
+			dirfile,  shift_data_to_point,  dir, iframe, S, indpix,  NORMLIN,
 			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp, flag,
 			bfilter, Cov, uvec, p, ivec, iCov, factapod, fdata1);
 
@@ -140,30 +140,30 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int nn, long n
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
 	estimate_noise_PS(bolonames, dirfile, extentnoiseSp, noiseSppreffile, bextension, fextension, nbins,
-			nbins2, ns, ff, ndet, nn, npix,napod, ell, SpN_all, data, flag,
-			samptopix, dir, S, iframe, termin_internal, Ps, data_lp, bfilter, indpix, NORMLIN,
+			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, SpN_all, data, flag,
+			samptopix, dir, S, iframe, Ps, data_lp, bfilter, indpix, NORMLIN,
 			NOFILLGAP, remove_polynomia,flgdupl, factdupl, apodwind, ncomp, mixmat, commonm2, fsamp,
-			Nk, Nell, factapod,Rellth, N, commontmp, P, shift_data_to_point, termin, outdirSpN);
+			Nk, Nell, factapod,Rellth, N, commontmp, P, shift_data_to_point, outdirSpN);
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 
 
-	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir, termin_internal, ncomp, mixmat,fsamp,
-			Nk, Nell, factapod, Rellexp, N, P, termin, outdirSpN, fdata1, fdata2, SPref);
+	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir, ncomp, mixmat,fsamp,
+			Nk, Nell, factapod, Rellexp, N, P, outdirSpN, fdata1, fdata2, SPref);
 
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
 
 
 	expectation_maximization_algorithm(fcut, nbins, ndet, ncomp,ns, fsamp, ff,
-			outdirSpN, termin, Rellexp, Rellth, mixmat,P,N, Cov, p,	uvec, ivec, iCov, SPref, ell);
+			outdirSpN,  Rellexp, Rellth, mixmat,P,N, Cov, p,	uvec, ivec, iCov, SPref, ell);
 
 
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	//*****************  Write power spectra to disk  ********************//
 
-	write_to_disk(outdirSpN, ff, termin, bolonames,nbins, ell, mixmat, Rellth,
+	write_to_disk(outdirSpN, ff, bolonames,nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, ndet, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 

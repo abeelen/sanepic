@@ -48,9 +48,9 @@ void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet
 
 }
 
-void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int nn, long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, string bextension, string fextension,
-		string dirfile, int shift_data_to_point, string termin_internal, string dir, long iframe, double *S, long *indpix,  bool NORMLIN,
-		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp, unsigned char *flag,
+void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, string bextension, string fextension,
+		string dirfile, int shift_data_to_point, string dir, long iframe, double *S, long *indpix,  bool NORMLIN,
+		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp, short *flag,
 		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1){
 	//**************************** Read data and compute components
 
@@ -100,14 +100,14 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, termin_internal, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
 			fread(samptopix,sizeof(long),ns,fp);
 			fclose(fp);*/
 
 
-		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 
 		for(long ii=0;ii<ns;ii++)
@@ -127,7 +127,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 
 
-		write_fdata(ns, fdata1, termin_internal, dir, idet, ff);
+		write_fdata(ns, fdata1,  dir, idet, ff);
 		/*for(long ii=0;ii<ns/2+1;ii++){
 				fdata_buffer[idet*(ns/2+1)+ii][0]=fdata1[ii][0];
 				fdata_buffer[idet*(ns/2+1)+ii][1]=fdata1[ii][1];
@@ -224,10 +224,10 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 
 void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string noiseSppreffile, string bextension, string fextension, long &nbins,
-		long &nbins2, long ns, long ff, long ndet, int nn, long npix,long napod, double *&ell, double **&SpN_all, double *data, unsigned char *flag,
-		long *samptopix, string dir, double *S, long iframe,string termin_internal, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
+		long &nbins2, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data, short *flag,
+		long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
-		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, int shift_data_to_point, string termin, string outdirSpN){
+		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, int shift_data_to_point,  string outdirSpN){
 
 
 	string nameSpfile, field;
@@ -285,13 +285,13 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, termin_internal, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
 		fclose(fp);*/
 
-		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -353,7 +353,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 		// write on disk uncorralated part
-		temp_stream << outdirSpN + "Nellc_" << ii << "_" << ff << "_" + termin + ".bi";
+		temp_stream << outdirSpN + "Nellc_" << ii << "_" << ff << ".bi";
 		// récupérer une chaîne de caractères
 		testfile= temp_stream.str();
 		// Clear ostringstream buffer
@@ -384,8 +384,8 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 }
 
 
-void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, string termin_internal, long ncomp, double **mixmat,double fsamp,
-		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string termin, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
+void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, long ncomp, double **mixmat,double fsamp,
+		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
 		double *SPref){
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
@@ -400,7 +400,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		read_fdata(ns, fdata1, "fdata_", termin_internal, dir, idet1, ff);
+		read_fdata(ns, fdata1, "fdata_", dir, idet1, ff);
 
 		/*for(long ii=0;ii<ns/2+1;ii++){
 			fdata1[ii][0]=fdata_buffer[(ns/2+1)*idet1+ii][0];
@@ -416,7 +416,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			read_fdata(ns, fdata2, "fdata_", termin_internal, dir, idet2, ff);
+			read_fdata(ns, fdata2, "fdata_", dir, idet2, ff);
 
 			/*for(long ii=0;ii<ns/2+1;ii++){
 						fdata2[ii][0]=fdata_buffer[(ns/2+1)*idet2+ii][0];
@@ -472,7 +472,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	//// write Rellexp to disk and also first guess of parameters
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
 
-	temp_stream << outdirSpN + "Rellexp_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Rellexp_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -487,7 +487,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	fclose(fp);
 
 	//sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Ninit_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Ninit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -507,7 +507,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 			data1d[i*nbins+j] = N[i][j];
 
 	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Ninit_" << ff << "_" + termin + ".fits";
+	temp_stream << outdirSpN + "Ninit_" << ff << ".fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -518,7 +518,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "Pinit_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Pinit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -533,7 +533,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "Ainit_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Ainit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -556,7 +556,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 
 void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp, long ff,
-		string outdirSpN, string termin,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N, double **Cov, double *p,
+		string outdirSpN, double **Rellexp, double **Rellth, double **mixmat,double **P,double **N, double **Cov, double *p,
 		double *uvec, double *ivec, double **iCov, double *SPref, double *ell){
 
 
@@ -621,7 +621,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "weights_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "weights_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -1101,7 +1101,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string> bolonames,
+void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 		long nbins, double *ell, double **mixmat, double **Rellth, double **Rellexp, long ncomp, long ndet,double **N, double *SPref,
 		double **P){
 
@@ -1114,7 +1114,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 	FILE *fp;
 	double *data1d;
 
-	temp_stream << outdirSpN + "BoloPS" << ff << termin + "_psd.fits";
+	temp_stream << outdirSpN + "BoloPS" << ff << "_psd.fits";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1125,7 +1125,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth);
 
 
-	temp_stream << outdirSpN + "Ell_" << ff << termin + ".psd";
+	temp_stream << outdirSpN + "Ell_" << ff << ".psd";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1142,7 +1142,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 	fclose(fp);
 
 	//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_exp.psd");
-	temp_stream << outdirSpN + "BoloPS" << ff << termin + "_exp.psd";
+	temp_stream << outdirSpN + "BoloPS" << ff << "_exp.psd";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1174,7 +1174,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Afinal_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "Afinal_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Afinal_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -1195,7 +1195,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 		tempstr1 = bolonames[idet1];
 		//sprintf(nameSpfile,"%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"_uncnoise",ff,".psd");
 
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << termin + ".psd";
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << ".psd";
 
 		// récupérer une chaîne de caractères
 		nameSpfile= temp_stream.str();
@@ -1218,7 +1218,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
 	//sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Nfinal_" << ff << "_" + termin + "_uncnoise.fits";
+	temp_stream << outdirSpN + "Nfinal_" << ff << "_uncnoise.fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -1255,7 +1255,7 @@ void write_to_disk(string outdirSpN, long ff, string termin, std::vector<string>
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
 	//sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Nfinal_" << ff << "_" + termin + "_cnoise.fits";
+	temp_stream << outdirSpN + "Nfinal_" << ff << "_cnoise.fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();

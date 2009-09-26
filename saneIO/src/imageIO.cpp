@@ -144,7 +144,7 @@ void write_fits(string fname, double pixsize, long nx, long ny,
 
 
 
-void read_fits_signal(string fname, double *S, long* indpix, int &nn, int npix)
+void read_fits_signal(string fname, double *S, long* indpix, int &NAXIS1, int &NAXIS2, int npix)
 /*
  * This function read the sanePic generated map and converts it into S (only seen pixels)
  */
@@ -172,17 +172,15 @@ void read_fits_signal(string fname, double *S, long* indpix, int &nn, int npix)
 	fits_get_img_size(fptr, 2, naxes, &status);
 	cout << naxes[0] << " " << naxes[1] << endl;
 
-	nn=(int)naxes[0];
-
-	if (naxes[1] != naxes[0])
-		fits_report_error(stderr,213);
+	NAXIS1=(int)naxes[0];
+	NAXIS2=(int)naxes[1];
 
 	// Initialize the data container
-	map = dmatrix(0, nn - 1, 0, nn - 1);
+	map = dmatrix(0, NAXIS1 - 1, 0, NAXIS2 - 1);
 
-	for (int i = 0; i < nn; i++) {
+	for (int i = 0; i < NAXIS1; i++) {
 		fpixel[1] = i + 1;
-		fits_read_pix(fptr, TDOUBLE, fpixel, nn, NULL, map[i], NULL, &status);
+		fits_read_pix(fptr, TDOUBLE, fpixel, NAXIS2, NULL, map[i], NULL, &status);
 	}
 
 	cout << "map" << endl;
@@ -190,9 +188,9 @@ void read_fits_signal(string fname, double *S, long* indpix, int &nn, int npix)
 
 	int uu=1;
 
-	for (long ii=0; ii<nn; ii++) {
-		for (long jj=0; jj<nn; jj++) {
-			mi = jj*nn + ii;
+	for (long ii=0; ii<NAXIS1; ii++) {
+		for (long jj=0; jj<NAXIS2; jj++) {
+			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
 				S[indpix[mi]]= - map[jj][ii]; // TODO : suppress - // added minus mat 28_07
 				uu++;

@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	//double pixdeg; // size of pixels (degree)
 
 
-	int nn, npix; // nn = side of the map, npix = number of filled pixels
+	int NAXIS1, NAXIS2, npix; // nn = side of the map, npix = number of filled pixels
 
 	//internal data params
 	long ns, ff; // number of samples for this scan, first frame number of this scan
@@ -112,11 +112,9 @@ int main(int argc, char *argv[])
 	string bextension; // bolometer field extension
 	string fextension = "NOFLAG"; // flag field extension
 	string pextension; // pointing extension
-	string termin; // output file suffix
 	string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
-	string termin_internal = "internal_data";
 
 	string MixMatfile = "NOFILE";
 
@@ -155,7 +153,7 @@ int main(int argc, char *argv[])
 	} else {
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
 				ntotscan, ndet, dirfile, outdir, tmp_dir, bextension,
-				fextension, termin, noiseSppreffile,
+				fextension, noiseSppreffile,
 				bolonames, fframes_vec,  nsamples_vec, extentnoiseSP, MixMatfile,signame);
 
 		if (parsed==-1){
@@ -213,7 +211,7 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//int npix2;
-	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
+	read_indpix(ind_size, npix, indpix, tmp_dir, flagon);
 
 	S = new double[npix];
 
@@ -228,7 +226,7 @@ int main(int argc, char *argv[])
 		//int npix2;
 		//long nn2;
 		//read_signal(npix2,S,signame);
-		read_fits_signal(signame, S, indpix, nn, npix);
+		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
 		FILE * fp;
 		fp = fopen("test_signal.txt","w");
 		for (int i =0;i<npix;i++)
@@ -251,7 +249,7 @@ int main(int argc, char *argv[])
 
 
 		// read nn, coordsyst, tanpix, tancoord
-		read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, NULL, NULL); //juste to read nn
+		read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, NULL, NULL); //juste to read nn
 		//cout << tanpix[0] << " " << tanpix[1] << endl;
 		//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -263,7 +261,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	cout << "Map size :" << nn << "x" << nn << endl;
+	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 	getchar();
 
 #ifdef USE_MPI
@@ -352,8 +350,8 @@ int main(int argc, char *argv[])
 			cout << extentnoiseSp ;
 			cout << endl;
 
-			EstimPowerSpectra(fsamp, ns, ff, ndet, nn, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, bextension,
-					fextension, shift_data_to_point, tmp_dir,termin,termin_internal, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir);
+			EstimPowerSpectra(fsamp, ns, ff, ndet, NAXIS1, NAXIS2, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, bextension,
+					fextension, shift_data_to_point, tmp_dir, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir);
 			// fsamp = bolometers sampling freq
 			// ns = number of samples in the "iframe" scan
 			// ff = first sample number

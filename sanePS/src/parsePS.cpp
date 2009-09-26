@@ -5,12 +5,12 @@
  *      Author: matthieu
  */
 
-
+#include "inputFileIO.h"
 #include "parsePS.h"
 //int parse_sanePos_ini_file(char * ini_name)
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
-		string &fextension, string &termin, string &noiseSppreffile,
+		string &fextension,  string &noiseSppreffile,
 		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame)
 {
 	dictionary	*	ini ;
@@ -205,20 +205,6 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("you must specify flag_field_extension\n");
 		return -1 ;
 	}//flag_field_extension = _flag ;
-
-	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
-	if(s==NULL){
-		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("out_file_str : [%s]\n",s);
-		termin=s;
-	}else{
-		printf("You must specify a prefixe for generated files : out_file_str\n");
-		return -1;
-	}//out_file_str = sanepic ;
 
 	/*s = iniparser_getstring(ini, "commons:tmp_dir",NULL);
 	if(s==NULL){
