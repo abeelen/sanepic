@@ -17,7 +17,7 @@ using namespace std;
 long *data_compare;
 
 
-void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
+void compute_PtNmd(double *data, double *Nk, long ndata, int NAXIS1, int NAXIS2,
 		long *indpix, long *samptopix, int npix, double *PNd){
 
 	//long ii, k;
@@ -53,23 +53,23 @@ void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
 
 	//for (ii=-marge;ii<ndata-marge;ii++){
 	// if ((ii < 0) || (ii >= ndata-2*marge)){
-	//   PNd[indpix[factdupl*nn*nn]] += Nd[ii+marge];
+	//   PNd[indpix[factdupl*NAXIS1*NAXIS2]] += Nd[ii+marge];
 	// } else {
 	//   if (rejectsamp[ii] == 2)
-	//	PNd[indpix[factdupl*nn*nn]] += Nd[ii+marge];
+	//	PNd[indpix[factdupl*NAXIS1*NAXIS2]] += Nd[ii+marge];
 	//   if (rejectsamp[ii] == 0){
 	//	ll = indpix[yy[ii]*nn + xx[ii]];
 	//	PNd[ll] += Nd[ii+marge];
 	//   }
 	//   if (rejectsamp[ii] == 1){
 	//	if (flgdupl){
-	//	  ll = indpix[(yy[ii]*nn + xx[ii])+nn*nn];
+	//	  ll = indpix[(yy[ii]*nn + xx[ii])+NAXIS1*NAXIS2];
 	//	  PNd[ll] += Nd[ii+marge];
 	//	} else {
-	//	  PNd[indpix[nn*nn+1]] += Nd[ii+marge];
+	//	  PNd[indpix[NAXIS1*NAXIS2+1]] += Nd[ii+marge];
 	//	}
 	//	if (rejectsamp[ii] == 3){
-	//	  PNd[indpix[factdupl*nn*nn+1]] += Nd[ii+marge];
+	//	  PNd[indpix[factdupl*NAXIS1*NAXIS2+1]] += Nd[ii+marge];
 	//	}
 	//   }
 	// }
@@ -434,7 +434,7 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
 
 
 void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
-		int nn, long *indpix,
+		int NAXIS1, int NAXIS2, long *indpix,
 		int npix, double f_lppix, double *dPtNP){
 
 
@@ -543,7 +543,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
-		int nn, long *indpix,
+		int NAXIS1, int NAXIS2, long *indpix,
 		int npix, double f_lppix, double *dPtNP){
 
 
@@ -696,8 +696,8 @@ void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
 					if (mask[yy[ii]*nn + xx[ii]] == 1){
 						pixpos[ii+marge] = indpix[yy[ii]*nn + xx[ii]];
 					} else {
-						pixpos[ii+marge] = indpix[(iframe + 1) * nn*nn + (yy[ii]*nn + xx[ii])];
-						//printf("%d\n",indpix[(iframe + 1) * nn*nn + (yy[ii]*nn + xx[ii])]);
+						pixpos[ii+marge] = indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])];
+						//printf("%d\n",indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])]);
 					}
 				}
 			}
@@ -1395,7 +1395,7 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 }
  */
 
-void deproject(double *S, long *indpix, long *samptopix, long ndata, long nn, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
+void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1, long NAXIS2, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
 
 
 	double a, b;
@@ -1411,16 +1411,16 @@ void deproject(double *S, long *indpix, long *samptopix, long ndata, long nn, lo
 			Ps[ii] = S[indpix[samptopix[ii]]];
 
 			// in case we replaced flagged data
-			if ((flgdupl == 2) && (samptopix[ii] >= nn*nn) && (samptopix[ii] < 2*nn*nn) && (indpix[samptopix[ii] - nn*nn] >= 0)){
-				if (indpix[samptopix[ii] - nn*nn] >= 0){
-					Ps[ii] = S[indpix[samptopix[ii]-nn*nn]];
+			if ((flgdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
+				if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
+					Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
 				} else {
 					a = 0.0;
 					b = 0.0;
 					if (ntotscan){
 						for (long iframe=0;iframe<ntotscan;iframe++){
-							if (indpix[factdupl*nn*nn + indpsrc[samptopix[ii] - nn*nn] + iframe*npixsrc] >= 0){
-								a += S[indpix[factdupl*nn*nn + indpsrc[samptopix[ii] - nn*nn] + iframe*npixsrc]];
+							if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
+								a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
 								b++;
 							}
 						}
@@ -1454,7 +1454,7 @@ void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *y
 	    ll = indpix[yy[ii]*nn + xx[ii]];
 	    Ps[ii+marge] = S[ll];
 	  } else {
-	    ll = indpix[(iframe + 1) * nn*nn + (yy[ii]*nn + xx[ii])];
+	    ll = indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])];
 	    Ps[ii+marge] = S[ll];
 	  }
 	}

@@ -12,7 +12,7 @@ using namespace std;
 
 
 
-long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
+long Compute_indpsrc_addnpix(int NAXIS1, int NAXIS2, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
 		std::vector<long> yyf, long* &indpsrc,long &npixsrc)
 {
 
@@ -22,8 +22,8 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 	// define the mask
 	unsigned char *mask;
 
-	mask = new unsigned char[nn*nn];
-	for (long ii=0;ii<nn*nn;ii++)
+	mask = new unsigned char[NAXIS1*NAXIS2];
+	for (long ii=0;ii<NAXIS1*NAXIS2;ii++)
 		mask[ii] = 1;
 
 
@@ -32,15 +32,15 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::
 			// for each box crossing constraint removal
 			for (long ii=xxi[ib];ii<xxf[ib];ii++)
 				for (long ll=yyi[ib];ll<yyf[ib];ll++)
-					mask[ll*nn + ii] = 0;  // mask is initialised to 0
+					mask[ll*NAXIS1 + ii] = 0;  // mask is initialised to 0
 		}
 	}
 
 
 
 
-	indpsrc = new long[nn*nn];
-	for (long ii=0;ii<nn*nn;ii++){
+	indpsrc = new long[NAXIS1*NAXIS2];
+	for (long ii=0;ii<NAXIS1*NAXIS2;ii++){
 		if (mask[ii] == 0){
 			indpsrc[ii] = npixsrc;
 			npixsrc += 1;

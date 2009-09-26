@@ -45,7 +45,7 @@ using namespace std;
  * Writes Pointing information in the InfoPoiting file
  * Stores nn, coordsyst, tanpix, tancoord
  */
-void write_info_pointing(int nn, string outdir, int coordsyst, double *tanpix, double *tancoord);
+void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, int coordsyst, double *tanpix, double *tancoord);
 
 /*!
  * Read/Write of the pointing information
@@ -77,7 +77,7 @@ void write_indpix(long ind_size, int npix, long *indpix,  string outdir, int fla
  * Reads Pointing information from the InfoPoiting file
  * Returns nn, coordsyst, tanpix, tancoord
  */
-void read_info_pointing(int &nn, string outdir, int &coordsyst2, double *tanpix, double *tancoord);
+void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir, int &coordsyst2, double *tanpix, double *tancoord);
 
 //void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
 
@@ -161,7 +161,7 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
  * -flagon indicates whether a sample was rejected
  * -indpix is the pixel indices in the map
  */
-void write_info_for_second_part(string outdir, int nn, int npix,
+void write_info_for_second_part(string outdir, int NAXIS1, int NAXIS2, int npix,
 		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix);
 
 /*!

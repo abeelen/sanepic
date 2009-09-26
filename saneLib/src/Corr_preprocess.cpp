@@ -19,7 +19,7 @@
 using namespace std;
 
 
-void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl, string dir, /* string termin,*/ long ff, long ns, long ndet, long iframe){
+void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, string dir, /* string termin,*/ long ff, long ns, long ndet, long iframe){
 
 
 	//long idet1;
@@ -49,7 +49,7 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 		fread(samptopix,sizeof(long),ns,fp);
 		fclose(fp);*/
 
-		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
 		fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_ESTIMATE);
@@ -76,7 +76,7 @@ void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int fa
 
 
 
-void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
+void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int NAXIS2, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
 		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
@@ -191,9 +191,9 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 			fclose(fp);*/
 
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl);
 			}
 
 			//for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -254,7 +254,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, /* string termin, */ std::vector<string> bolonames,
 		double f_lppix, double fsamp, long ff, long ns, long ndet, /*int size,*/
-		/*int rank,*/ long *indpix, long nn, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
+		/*int rank,*/ long *indpix, long NAXIS1, long NAXIS2, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
 
 
 	long  nbins;
@@ -326,6 +326,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		//**************************************** Noise power spectrum
 		extentNoiseSp = extentnoiseSp_all[iframe];
 		nameSpfile = noiseSppreffile + field1 + "-all" + extentNoiseSp;
+
 		//cout << nameSpfile << endl;
 
 		//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
@@ -333,9 +334,10 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		//cout << "avant read" << endl;
 		//read noise PS file
 		//read_InvNoisePowerSpectra(noiseSppreffile, field1, extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
-		read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
-		//read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentnoiseSp,&nbins, &ndet2, &ell, &SpN_all);
-		//if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+		//read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // TODO : changé partout read_noise_file par read_InvNoisePowerSpectra des que nouvelles données !
+		long ndet2;
+		read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentNoiseSp, &nbins, &ndet2, &ell, &SpN_all);
+		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 		// TODO : peut etre un soucis avec read_InvNoise ? tester la chaine avec sanePs et saneInv
 		//cout << "apres read" << endl;
 
@@ -405,7 +407,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 			//Compute weight map for preconditioner
 			if ((Mp != NULL) && (idet2 == idet1))
-				compute_diagPtNPCorr(Nk,samptopix,ns,nn,indpix,npix,f_lppix,Mp);
+				compute_diagPtNPCorr(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,f_lppix,Mp);
 			//
 
 

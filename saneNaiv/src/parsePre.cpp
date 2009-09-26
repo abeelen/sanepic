@@ -5,8 +5,9 @@
  *      Author: matthieu
  */
 
-
+#include "inputFileIO.h"
 #include "parsePre.h"
+
 //int parse_sanePos_ini_file(char * ini_name)
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN, bool &flgdupl,
 		bool &CORRon, long &ntotscan, long &ndet, int &nnf,	double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &poutdir, string &bextension,
@@ -77,7 +78,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s!=NULL){
 		printf("channel file : [%s]\n",s);
-		read_bolofile((string)s, bolonames);
+		read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a bolometer file : commons:channel\n");
 		exit(0);
@@ -90,7 +91,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		printf("frame file : [%s]\n",s);
 		//read frame file function
 		std::vector<string> dummy;
-		read_bolofile((string)s,dummy);
+		read_strings((string)s,dummy);
 		if(((int)dummy.size())==0){
 			printf("You must provide one number of samples per scan !");
 			exit(0);}

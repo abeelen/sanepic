@@ -21,12 +21,12 @@ extern "C" {
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, /* string termin,*/ std::vector<string> bolonames,
 		double f_lppix, double fsamp, long ff, long ns, long ndet,
-		long *indpix, long nn, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
+		long *indpix, long NAXIS1, long NAXIS2, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
 
 
 
 
-void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
+void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int NAXIS2, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
 		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
@@ -37,7 +37,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 
-void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl,
+void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl,
 		string dir, /* string termin, */ long ff, long ns, long ndet, long iframe);
 
 

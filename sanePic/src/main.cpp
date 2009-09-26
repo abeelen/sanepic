@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
 	int npix2; /*! used to check PNd reading was correct */
 	long ind_size; /*! indpix read size */
-	int nn, npix; /*! nn = side of the map, npix = number of filled pixels */
+	int NAXIS1, NAXIS2, npix; /*! nn = side of the map, npix = number of filled pixels */
 	double *tancoord; /*! tangent point coordinates */
 	double *tanpix; /*! tangent pixel */
 
@@ -406,13 +406,13 @@ int main(int argc, char *argv[])
 
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, tmp_dir, coordsyst2, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
 
 
-	cout << "Map size :" << nn << "x" << nn << endl;
+	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 	if (coordsyst!=coordsyst2){
 		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
@@ -424,10 +424,10 @@ int main(int argc, char *argv[])
 	//******************************** some preprocess again  ****************/
 
 	// MALLOC
-	indpsrc = new long[nn*nn];
+	indpsrc = new long[NAXIS1*NAXIS2];
 
 	// compute indpsrc and addnpix
-	sanepic_preprocess(nn, xxi, xxf, yyi, yyf, indpsrc, npixsrc, ntotscan, addnpix);
+	sanepic_preprocess(NAXIS1,NAXIS2, xxi, xxf, yyi, yyf, indpsrc, npixsrc, ntotscan, addnpix);
 
 
 	if (flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 	// read indpix
 	read_indpix(ind_size, npix2, indpix,  tmp_dir, flagon);
 
-	if(ind_size!=(factdupl*nn*nn+2 + addnpix)){
+	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
 		cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
 		exit(0);
 	}
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
 
 	// conjugate GRADIENT LOOP
 	sanepic_conjugate_gradient(flgdupl, npix, S, iframe_min, iframe_max,
-			nsamples, fframes, fcut,f_lp, fsamp, indpix, nn, factdupl, tmp_dir, termin, termin_internal,
+			nsamples, fframes, fcut,f_lp, fsamp, indpix, NAXIS1, NAXIS2, factdupl, tmp_dir, termin, termin_internal,
 			ndet,extentnoiseSp_all,tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
 			pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, projgaps, rank, CORRon,
 			dirfile, PNdtot, ntotscan,addnpix,NORMLIN,NOFILLGAP,napod,shift_data_to_point,
@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		//write infos for second part
-		write_info_for_second_part(outdir, nn, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+		write_info_for_second_part(outdir, NAXIS1, NAXIS2, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	}
 
 #ifdef USE_MPI

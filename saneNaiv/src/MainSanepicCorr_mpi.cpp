@@ -17,7 +17,7 @@
 #include "mpi_architecture_builder.h"
 #include "parsePre.h"
 
-#include "boloIO.h"
+#include "positionsIO.h"
 #include "imageIO.h"
 #include "dataIO.h"
 

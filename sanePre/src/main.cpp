@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	//int samples_per_frames=20; /*! default = 1, BLAST = 20*/
 
 
-	int nn, npix; /*! nn = side of the map, npix = number of filled pixels*/
+	int NAXIS1, NAXIS2, npix; /*! nn = side of the map, npix = number of filled pixels*/
 	long npixsrc = 0; /*! number of pixels contained in box constraint removal */
 	long addnpix=0; /* number of pixels to add to the final map */
 	long ind_size; /* indpix readed size */
@@ -234,9 +234,10 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, tmp_dir, coordsyst2, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, tanpix, tancoord);
 
-	cout << "Map size :" << nn << "x" << nn << endl;
+
+	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 
 	//ensure that coordsyst for position calculation and preprocess are the same
@@ -246,24 +247,25 @@ int main(int argc, char *argv[])
 	}
 
 	//******************************** some preprocess again // compute indpsrc and addnpix ****************/
+	// TODO: to be replaced/removed (see/done in sanePos...)
 	if(xxi.size()>0)
-		addnpix=Compute_indpsrc_addnpix(nn,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc);
+		addnpix=Compute_indpsrc_addnpix(NAXIS1,NAXIS2,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc);
 	else{
 		addnpix=0;
 		npixsrc=0;
-		indpsrc = new long[nn*nn];
-		for(long ii=0;ii<nn*nn;ii++)
+		indpsrc = new long[NAXIS1*NAXIS2];
+		for(long ii=0;ii<NAXIS1*NAXIS2;ii++)
 			indpsrc[ii]=-1;
 	}
 
 	//projection vector
-	//indpix=new long[factdupl*nn*nn+2 + addnpix];
+	indpix=new long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
 
 	//read projection vector from a file
 	read_indpix(ind_size, npix, indpix, tmp_dir, flagon);
 
 	// Check indpix readed size = expected size
-	if(ind_size!=(factdupl*nn*nn+2 + addnpix)){
+	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
 		cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
 		exit(0);
 	}
@@ -386,7 +388,7 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
+			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 					tmp_dir,/*termin_internal,errarcsec,*/dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
 					fextension,*/shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
@@ -419,7 +421,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
-					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
+					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -438,7 +440,7 @@ int main(int argc, char *argv[])
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,/*termin_internal,*/dirfile,
 					bolonames,fits_table,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
-					nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
+					NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
 		}
@@ -466,11 +468,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	/*
-	 *
-	 * Noise Power spectra estimation has been moved to sanePS
-	 *
-	 */
+	//TODO: write a naiveMap in fits
 
 
 	/* ---------------------------------------------------------------------------------------------*/

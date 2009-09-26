@@ -140,11 +140,13 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
-/// add a small interval of 2 arcmin
-		ra_min =  ra_min  - 2.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-		ra_max =  ra_max  + 2.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-		dec_min = dec_min - 2.0/60.0;
-		dec_max = dec_max + 2.0/60.0;
+
+	// TODO: way too much...find a way to reduce that without having pixel outside the map
+	/// add a small interval of 10 arcmin
+		ra_min =  ra_min  - 10.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+		ra_max =  ra_max  + 10.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+		dec_min = dec_min - 10.0/60.0;
+		dec_max = dec_max + 10.0/60.0;
 
 		ra_min  = ra_min/15; // in hour
 		ra_max  = ra_max/15;
@@ -214,7 +216,9 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	// .... calculate the size of the map if necessary :
 	// As the map could be distorded, deproject the grid into a plane to get the size of the map
 
-	unsigned int nStep = 20;
+	// TODO : instead of testing a gird of nStep x nStep points
+	//        	just test the edges
+	unsigned int nStep = 30;
 
 	double *lon, *lat, *phi, *theta, *x, *y;
 	int *status;

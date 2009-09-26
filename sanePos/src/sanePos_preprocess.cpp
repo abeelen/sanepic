@@ -522,7 +522,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				switch (bolo_flag[ii]) {
 				case 0:			// sample is not rejected
 
-					ll = NAXIS2*xx[ii]+yy[ii];
+					ll = NAXIS1*yy[ii]+xx[ii];
 
 					if (mask[ll] != 1) //if pixel is in the box constraint removal mask
 						ll = factdupl*NAXIS1*NAXIS2 + 2 + iframe*npixsrc + indpsrc[ll];
@@ -535,7 +535,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				case 1:	   // sample is flagged
 
 					if (flgdupl){ // if flagged pixels are in a duplicated map
-						ll = NAXIS2*xx[ii]+yy[ii]; // index in the second map...
+						ll = NAXIS1*yy[ii]+xx[ii]; // index in the second map...
 						pixon[NAXIS1*NAXIS2 + ll] += 1;
 						samptopix[ii] = NAXIS1*NAXIS2 + ll;
 					} else { // else every flagged sample is projected to the same pixel (outside the map)

@@ -21,7 +21,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ff, long ns, long napod, long ndet,
-		long *indpix, long *indpsrc, long nn, long npix,
+		long *indpix, long *indpsrc, long NAXIS1, long NAXIS2, long npix,
 		long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S){
 
 
@@ -112,9 +112,9 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 		if (S != NULL){
 
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns,nn,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl);
 			}
 
 			//	for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
@@ -155,7 +155,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 		//********************** compute P^t N-1 d ************************//
-		compute_PtNmd(data_lp,Nk,ns,nn,indpix,samptopix,npix,PNd);
+		compute_PtNmd(data_lp,Nk,ns,NAXIS1, NAXIS2,indpix,samptopix,npix,PNd);
 
 
 	}// end of idet loop
@@ -183,7 +183,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
 		/* string termin, */ string dirfile, std::vector<string> bolonames, double f_lppix,
 		double fsamp, bool flgdupl, int factdupl, long ff, long ns,
-		long ndet, long *indpix, long nn, long npix,
+		long ndet, long *indpix, long NAXIS1, long NAXIS2, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
 
 
@@ -221,7 +221,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 
 
 		// AS
-		deproject(S,indpix,samptopix,ns,nn,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 
 
@@ -238,12 +238,12 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 
 
 		//AtN-1A AS (espensive part)
-		compute_PtNmd(Ps,Nk,ns,nn,indpix,samptopix,npix,PtNPmatS);
+		compute_PtNmd(Ps,Nk,ns,NAXIS1, NAXIS2,indpix,samptopix,npix,PtNPmatS);
 
 
 		//Compute weight map for preconditioner
 		if ((Mp != NULL))
-			compute_diagPtNP(Nk,samptopix,ns,nn,indpix,npix,f_lppix,Mp);
+			compute_diagPtNP(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,f_lppix,Mp);
 
 
 		//compute hit counts

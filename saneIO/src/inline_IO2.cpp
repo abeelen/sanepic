@@ -26,14 +26,14 @@ extern "C" {
 using namespace std;
 
 // sanePos functions
-void write_info_pointing(int nn, string outdir, int coordsyst, double *tanpix, double *tancoord) {
+void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, int coordsyst, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 
-
 	testfile2 = outdir + "InfoPointing_for_Sanepic.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		fprintf(fp,"%d\n",nn);
+		fprintf(fp,"%d\n",NAXIS1);
+		fprintf(fp,"%d\n",NAXIS2);
 		fprintf(fp,"%d\n",coordsyst);
 		fprintf(fp,"%lf\n",tanpix[0]);
 		fprintf(fp,"%lf\n",tanpix[1]);
@@ -128,7 +128,7 @@ void write_samptopix(long ns, long *&samptopix, string outdir, int idet, long if
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		for(int ii = 0; ii< ns; ii++)
-			fprintf(fp,"%ld\n ",samptopix[ii]);
+			fprintf(fp,"%ld ",samptopix[ii]);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << temp << endl;
@@ -172,14 +172,15 @@ void write_indpix(long ind_size, int npix, long *indpix, string outdir, int flag
 
 //sanePre functions
 
-void read_info_pointing(int &nn, string outdir,  int &coordsyst2, double *tanpix, double *tancoord) {
+void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir,  int &coordsyst2, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 	int result;
 
 	testfile2 = outdir + "InfoPointing_for_Sanepic.txt";
 	if((fp = fopen(testfile2.c_str(),"r"))){ // doubles parenthèses sinon warning ...
-		result = fscanf(fp,"%d\n",&nn);
+		result = fscanf(fp,"%d\n",&NAXIS1);
+		result = fscanf(fp,"%d\n",&NAXIS2);
 		result = fscanf(fp,"%d\n",&coordsyst2);
 		if(tanpix!=NULL){
 			result = fscanf(fp,"%lf\n",tanpix);
@@ -406,7 +407,7 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
 	}
 }
 
-void write_info_for_second_part(string outdir,  int nn, int npix,
+void write_info_for_second_part(string outdir,  int NAXIS1, int NAXIS2, int npix,
 		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix){
 
 	//char testfile[100];
@@ -419,7 +420,8 @@ void write_info_for_second_part(string outdir,  int nn, int npix,
 		cerr << "Cannot open file :" << testfile << "\tExiting." << endl;
 		exit(1);
 	}
-	fprintf(fp,"%d\n",nn);
+	fprintf(fp,"%d\n",NAXIS1);
+	fprintf(fp,"%d\n",NAXIS2);
 	fprintf(fp,"%d\n",npix);
 	fprintf(fp,"%lf\n",pixdeg);
 	fprintf(fp,"%lf\n",tancoord[0]);
@@ -429,7 +431,7 @@ void write_info_for_second_part(string outdir,  int nn, int npix,
 	fprintf(fp,"%d\n",coordsyst);
 	fprintf(fp,"%i\n",flagon);
 	fprintf(fp,"\n");
-	for (long ii=0;ii<nn*nn;ii++)
+	for (long ii=0;ii<NAXIS1*NAXIS2;ii++)
 		fprintf(fp,"%ld\n",indpix[ii]);
 	fclose(fp);
 

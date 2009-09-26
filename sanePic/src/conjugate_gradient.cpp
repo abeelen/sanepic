@@ -11,7 +11,7 @@
 
 void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_min, long iframe_max,
 		long *nsamples, long *fframes,std::vector<double> fcut,double f_lp,double fsamp,
-		long *indpix, int nn, int factdupl, string tmp_dir, string termin, string termin_internal, long ndet,
+		long *indpix, int NAXIS1, int NAXIS2, int factdupl, string tmp_dir, string termin, string termin_internal, long ndet,
 		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames,/* int size_det,
 		int rank_det,*/ int iterw, double pixdeg, double *tancoord, double *tanpix,int coordsyst,
 		long *indpsrc, long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
@@ -66,7 +66,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 	hitstot = new long[npix];
 	PNd=new double[npix];
 
-	map1d = new double[nn*nn];
+	map1d = new double[NAXIS1*NAXIS2];
 
 	for (int idupl = 0;idupl<=flgdupl;idupl++){
 
@@ -107,17 +107,17 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 			// preconditioner computation : Mp
 			if (CORRon){
-				write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 				// read pointing + deproject + fourier transform
 
 				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-						f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,Mp,hits);
+						f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 				// return Pnd = At N-1 d
 			} else {
 
 				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
-						nn,npix,iframe,PtNPmatS,Mp,hits);
+						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
 			}
 
 		} // end of iframe loop
@@ -191,9 +191,6 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 			fill(qtot,qtot+npixeff,0.0);
-			cout << "dans while" << endl;
-
-
 
 			prefixe = "fPs_";
 
@@ -203,17 +200,17 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 				if (CORRon){
-					write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 					// read pointing + deproject + fourier transform
 
 					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
+							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
-							nn,npix,iframe,q,NULL,NULL);
+							NAXIS1, NAXIS2,npix,iframe,q,NULL,NULL);
 				}
 			} // end of iframe loop
 
@@ -260,18 +257,18 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 					if (CORRon){
-						write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 						// read pointing + deproject + fourier transform
 
 						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-								f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,
+								f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
 								NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
 						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/
-								indpix,nn,npix,iframe,PtNPmatS,NULL,NULL);
+								indpix,NAXIS1, NAXIS2,npix,iframe,PtNPmatS,NULL,NULL);
 					}
 				} // end of iframe loop
 
@@ -343,9 +340,9 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 
 				if (iter == 0){
-					for (long ii=0; ii<nn; ii++) {
-						for (long jj=0; jj<nn; jj++) {
-							mi = jj*nn + ii;
+					for (long ii=0; ii<NAXIS1; ii++) {
+						for (long jj=0; jj<NAXIS2; jj++) {
+							mi = jj*NAXIS2 + ii;
 							if (indpix[mi] >= 0){
 								map1d[mi] = Mptot[indpix[mi]];
 							} else {
@@ -355,12 +352,12 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					}
 
 					fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits"; // write preconditioner
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-					for (long ii=0; ii<nn ; ii++){
-						for (long jj=0; jj<nn; jj++){
-							mi = jj*nn + ii;
+					for (long ii=0; ii<NAXIS1 ; ii++){
+						for (long jj=0; jj<NAXIS2; jj++){
+							mi = jj*NAXIS1 + ii;
 							if (indpix[mi] >= 0){
 								map1d[mi] = Mptot[indpix[mi]] * PNdtot[indpix[mi]];
 							} else {
@@ -369,13 +366,13 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						}
 					}
 					fname = '!' + outdir + "binMap_" + termin + "_flux.fits";
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
 
-					for (long ii=0; ii<nn; ii++) {
-						for (long jj=0; jj<nn; jj++) {
-							mi = jj*nn + ii;
+					for (long ii=0; ii<NAXIS1; ii++) {
+						for (long jj=0; jj<NAXIS2; jj++) {
+							mi = jj*NAXIS1 + ii;
 							if (indpix[mi] >= 0){
 								map1d[mi] = hitstot[indpix[mi]];
 							} else {
@@ -386,40 +383,40 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 					if (addnpix){
 						for (long iframe = 0;iframe<ntotscan;iframe++){
-							for (long ii=0; ii<nn; ii++) {
-								for (long jj=0; jj<nn; jj++) {
-									mi = jj*nn + ii;
-									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc] != -1))
-										map1d[mi] += hitstot[indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc]];
+							for (long ii=0; ii<NAXIS1; ii++) {
+								for (long jj=0; jj<NAXIS2; jj++) {
+									mi = jj*NAXIS1 + ii;
+									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1))
+										map1d[mi] += hitstot[indpix[indpsrc[mi]+factdupl*NAXIS2*NAXIS2+iframe*npixsrc]];
 								}
 							}
 						}
 					}
 
 					fname = '!' + outdir + "optimMap_" + termin + "_hits.fits";
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-					for (long ii=0; ii<nn; ii++) {
-						for (long jj=0; jj<nn; jj++) {
-							mi = jj*nn + ii;
+					for (long ii=0; ii<NAXIS1; ii++) {
+						for (long jj=0; jj<NAXIS2; jj++) {
+							mi = jj*NAXIS1 + ii;
 							map1d[mi] = 0.0;
 						}
 					}
 
 					if (addnpix){
 						for (long iframe = 0;iframe<ntotscan;iframe++){
-							for (long ii=0; ii<nn; ii++) {
-								for (long jj=0; jj<nn; jj++) {
-									mi = jj*nn + ii;
-									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc] != -1))
-										map1d[mi] += 1.0/Mptot[indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc]];
+							for (long ii=0; ii<NAXIS1; ii++) {
+								for (long jj=0; jj<NAXIS2; jj++) {
+									mi = jj*NAXIS1 + ii;
+									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1))
+										map1d[mi] += 1.0/Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]];
 								}
 							}
 						}
 
 						fname = '!' + outdir + "optimMap_" + termin + "_invnoisevaruncpix.fits";
-						write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					}
 
 				}
@@ -428,11 +425,11 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				if (iterw && (iter % iterw) == 0){
 
 					// make the map
-					for (long ii=0; ii<nn; ii++) {
-						for (long jj=0; jj<nn; jj++) {
-							mi = jj*nn + ii;
+					for (long ii=0; ii<NAXIS1; ii++) {
+						for (long jj=0; jj<NAXIS2; jj++) {
+							mi = jj*NAXIS1 + ii;
 							if (indpix[mi] >= 0){
-								map1d[mi] = -S[indpix[mi]];
+								map1d[mi] = S[indpix[mi]];
 							} else {
 								map1d[mi] = 0.0;
 							}
@@ -448,15 +445,16 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					fname= temp_stream.str();
 					// Clear ostringstream buffer
 					temp_stream.str("");
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
+					// TODO : check indices... seems wrong...
 					if (flgdupl){
-						for (long ii=0; ii<nn; ii++) {
-							for (long jj=0; jj<nn; jj++) {
-								mi = jj*nn + ii;
+						for (long ii=0; ii<NAXIS1; ii++) {
+							for (long jj=0; jj<NAXIS2; jj++) {
+								mi = jj*NAXIS1 + ii;
 								if (indpix[mi] >= 0){
-									map1d[mi] = -S[indpix[mi+nn*nn]]; //-finalmap[ii][jj];
+									map1d[mi] = -S[indpix[mi+NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
 								} else {
 									map1d[mi] = 0.0;
 								}
@@ -473,21 +471,21 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						fname= temp_stream.str();
 						// Clear ostringstream buffer
 						temp_stream.str("");
-						write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					}
 					if (addnpix){
-						for (long ii=0; ii<nn ; ii++){
-							for (long jj=0; jj<nn ; jj++){
-								mi = jj*nn + ii;
+						for (long ii=0; ii<NAXIS1 ; ii++){
+							for (long jj=0; jj<NAXIS2 ; jj++){
+								mi = jj*NAXIS1 + ii;
 								map1d[mi] = 0.0;
 							}
 						}
 						for (long iframe = 0;iframe<ntotscan;iframe++){
-							for (long ii=0; ii<nn; ii++) {
-								for (long jj=0; jj<nn; jj++) {
-									mi = jj*nn + ii;
-									if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc] != -1)){
-										map1d[mi] += -S[indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc]]/Mptot[indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc]];
+							for (long ii=0; ii<NAXIS1; ii++) {
+								for (long jj=0; jj<NAXIS2; jj++) {
+									mi = jj*NAXIS1 + ii;
+									if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
+										map1d[mi] += -S[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]]/Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]];
 									}
 								}
 							}
@@ -503,7 +501,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						fname= temp_stream.str();
 						// Clear ostringstream buffer
 						temp_stream.str("");
-						write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 					}
 				}
@@ -562,21 +560,21 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 				if (CORRon){
 
-					write_ftrProcesdata(S,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
+					write_ftrProcesdata(S,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
 							tmp_dir,dirfile,bolonames,fits_table,shift_data_to_point,f_lppix,ff,ns,
 							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
 					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
+							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,
 							bolonames, fits_table, shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 							flgdupl,factdupl,2,ff,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
-							nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
+							NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
 				}
 			} // end of iframe loop
 
@@ -614,7 +612,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 
 
-	// write map function : nn, S, indpix, outdir, termin, addnpix, ntotscan,
+	// write map function : NAXIS1, NAXIS2, S, indpix, outdir, termin, addnpix, ntotscan,
 	// pixdeg, tancoord, tanpix, coordsyst, Mptot, indpsrc, npixsrc, factdupl,
 	//
 
@@ -630,9 +628,9 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 
 
-		for (long ii=0; ii<nn; ii++) {
-			for (long jj=0; jj<nn; jj++) {
-				mi = jj*nn + ii;
+		for (long ii=0; ii<NAXIS1; ii++) {
+			for (long jj=0; jj<NAXIS2; jj++) {
+				mi = jj*NAXIS2 + ii;
 				if (indpix[mi] >= 0){
 					map1d[mi] = -S[indpix[mi]]; // TODO : suppress -S => S // added minus mat 28_07
 				} else {
@@ -650,12 +648,12 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 		////////////////////////////////////
 
 		fname = '!' + outdir + "optimMap_" + termin + "_flux.fits";
-		write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-		for (long ii=0; ii<nn; ii++) {
-			for (long jj=0; jj<nn; jj++) {
-				mi = jj*nn + ii;
+		for (long ii=0; ii<NAXIS1; ii++) {
+			for (long jj=0; jj<NAXIS2; jj++) {
+				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
 					map1d[mi] = Mptot[indpix[mi]];
 				} else {
@@ -666,17 +664,17 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 
 		fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits";
-		write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 		if (addnpix){
 			for (long iframe = 0;iframe<ntotscan;iframe++){
 				fru = 0;
-				for (long ii=0; ii<nn; ii++) {
-					for (long jj=0; jj<nn; jj++) {
-						mi = jj*nn + ii;
-						if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc] != -1)){
+				for (long ii=0; ii<NAXIS1; ii++) {
+					for (long jj=0; jj<NAXIS2; jj++) {
+						mi = jj*NAXIS1 + ii;
+						if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
 							fru = 1;
-							map1d[mi] = -S[indpix[indpsrc[mi]+factdupl*nn*nn+npixsrc*iframe]];
+							map1d[mi] = -S[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+npixsrc*iframe]];
 						} else {
 							map1d[mi] = 0.0;
 						}
@@ -694,14 +692,14 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					fname= temp_stream.str();
 					// Clear ostringstream buffer
 					temp_stream.str("");
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-					for (long ii=0; ii<nn; ii++) {
-						for (long jj=0; jj<nn; jj++) {
-							mi = jj*nn + ii;
-							if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*nn*nn+iframe*npixsrc] != -1)){
-								map1d[mi] = Mptot[indpix[indpsrc[mi]+factdupl*nn*nn+npixsrc*iframe]];
+					for (long ii=0; ii<NAXIS1; ii++) {
+						for (long jj=0; jj<NAXIS2; jj++) {
+							mi = jj*NAXIS1 + ii;
+							if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
+								map1d[mi] = Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+npixsrc*iframe]];
 							} else {
 								map1d[mi] = 0.0;
 							}
@@ -715,7 +713,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					fname= temp_stream.str();
 					// Clear ostringstream buffer
 					temp_stream.str("");
-					write_fits(fname, pixdeg, nn, nn, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 				}
 			}
 		}

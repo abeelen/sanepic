@@ -491,12 +491,12 @@ int main(int argc, char *argv[])
 
 		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
-//	first = time(NULL);
-//	computeMapMinima(bolonames,fits_table,
-//			iframe_min,iframe_max,fframes,nsamples,pixdeg,
-//			ra_min,ra_max,dec_min,dec_max);
-//
-//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+	first = time(NULL);
+	computeMapMinima(bolonames,fits_table,
+			iframe_min,iframe_max,fframes,nsamples,pixdeg,
+			ra_min,ra_max,dec_min,dec_max);
+
+	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 
 #ifdef USE_MPI
@@ -529,75 +529,83 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
 
-	if(default_projection)
-		// just to set nn in order to compute map-making matrices and vectors
-		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
-
-	cout << "nn orig : " << nn << endl;
+//	if(default_projection)
+//		// just to set nn in order to compute map-making matrices and vectors
+//		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+//				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
+//
+//	cout << "nn orig : " << nn << endl;
 
 	struct wcsprm wcs;
 	unsigned long NAXIS1, NAXIS2;
 
 	computeMapHeader(pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
-	NAXIS1 = nn;
-	NAXIS2 = nn;
+	if (rank == 0)
+		printf("[%2.2i] %d x %d pixels\n",rank, NAXIS1, NAXIS2);
 
+	// TODO: remove this temporary fix.... save/read thru wcs...
+	tancoord[0] = wcs.crval[0];
+	tancoord[1] = wcs.crval[1];
 
-	// DEBUG make a fake wcs structure
+	tanpix[0]   = wcs.crpix[0];
+	tanpix[1]   = wcs.crpix[1];
 
-	// Construct the wcsprm structure
-	wcs.flag = -1;
-	wcsini(1, 2, &wcs);
-	// Pixel size in deg
-	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
-	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
+//	NAXIS1 = nn;
+//	NAXIS2 = nn;
 
-	// This will be the reference center of the map
-	wcs.crval[0] = tancoord[0];
-	wcs.crval[1] = tancoord[1];
-
-	wcs.crpix[0] = tanpix[0];
-	wcs.crpix[1] = tanpix[1];
-
-	// Axis label
-	char TYPE[2][5] = { "RA--", "DEC-"};
-	char NAME[2][16] = {"Right Ascension","Declination"};
-
-	for (int ii = 0; ii < 2; ii++) {
-		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
-		strncat(wcs.ctype[ii],"-",1);
-		strncat(wcs.ctype[ii],"TAN", 3);
-		strcpy(wcs.cname[ii], &NAME[ii][0]);
-		}
-	int wcsstatus;
-
-	if ((wcsstatus = wcsset(&wcs))) {
-	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	   }
-
-
-	// END DEBUG OF THE FAKE HEADER
-
-	// TODO: NOT WORKING
-	save_MapHeader(tmp_dir,wcs);
-
-//	struct wcsprm *wcs2;
-//	read_MapHeader(tmp_dir,wcs2);
+//	// DEBUG make a fake wcs structure
 //
-//	int nkeyrec;
-//	char * header, *hptr ;
-//	cout << " Projection 2 : "<< endl;
-//	if (int status = wcshdo(WCSHDO_all, wcs2, &nkeyrec, &header)) {
-//		printf("%4d: %s.\n", status, wcs_errmsg[status]);
-//		exit(0);
-//	}
-//	hptr = header;
-//	printf("\n\n Projection Header 2:\n");
-//	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
-//		printf("%.80s\n", hptr);
-//	}
+//	// Construct the wcsprm structure
+//	wcs.flag = -1;
+//	wcsini(1, 2, &wcs);
+//	// Pixel size in deg
+//	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
+//	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
+//
+//	// This will be the reference center of the map
+//	wcs.crval[0] = tancoord[0];
+//	wcs.crval[1] = tancoord[1];
+//
+//	wcs.crpix[0] = tanpix[0];
+//	wcs.crpix[1] = tanpix[1];
+//
+//	// Axis label
+//	char TYPE[2][5] = { "RA--", "DEC-"};
+//	char NAME[2][16] = {"Right Ascension","Declination"};
+//
+//	for (int ii = 0; ii < 2; ii++) {
+//		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
+//		strncat(wcs.ctype[ii],"-",1);
+//		strncat(wcs.ctype[ii],"TAN", 3);
+//		strcpy(wcs.cname[ii], &NAME[ii][0]);
+//		}
+//	int wcsstatus;
+//
+//	if ((wcsstatus = wcsset(&wcs))) {
+//	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+//	   }
+//
+//
+//	// END DEBUG OF THE FAKE HEADER
+
+	save_MapHeader(tmp_dir,wcs);
+//
+////	struct wcsprm *wcs2;
+////	read_MapHeader(tmp_dir,wcs2);
+////
+////	int nkeyrec;
+////	char * header, *hptr ;
+////	cout << " Projection 2 : "<< endl;
+////	if (int status = wcshdo(WCSHDO_all, wcs2, &nkeyrec, &header)) {
+////		printf("%4d: %s.\n", status, wcs_errmsg[status]);
+////		exit(0);
+////	}
+////	hptr = header;
+////	printf("\n\n Projection Header 2:\n");
+////	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
+////		printf("%.80s\n", hptr);
+////	}
 
 
 	/*!
@@ -610,7 +618,7 @@ int main(int argc, char *argv[])
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
 	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
-	write_info_pointing(nn, tmp_dir, coordsyst, tanpix, tancoord);
+	write_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst, tanpix, tancoord);
 
 
 	/*} else {
@@ -650,8 +658,8 @@ int main(int argc, char *argv[])
 	for (unsigned long iBox = 0; iBox < boxFile.size(); iBox++){
 		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
 			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
-				mask[ii*NAXIS2 + jj] = 0;
-				indpsrc[ii*NAXIS2 + jj] = npixsrc++;
+				mask[jj*NAXIS1 + ii] = 0;
+				indpsrc[jj*NAXIS1 + ii] = npixsrc++;
 			}
 	}
 
@@ -680,24 +688,23 @@ int main(int argc, char *argv[])
 	// get coordinates of pixels that are seen
 	//**********************************************************************************
 
-	//TODO: check from here and below
+//	//TODO: check from here and below
 	computePixelIndex(ntotscan,tmp_dir, bolonames,
-			fits_table, iframe_min, iframe_max,fframes,
-			nsamples,
+			fits_table, iframe_min, iframe_max,fframes, nsamples,
 			wcs, NAXIS1, NAXIS2,
 			mask,nn,
 			napod, NOFILLGAP, flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
 
-	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
-			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
-			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
-			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
-			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
-			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
-			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
-
+//	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
+//			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
+//			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
+//			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
+//			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
+//			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
+//			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
+//
 
 
 	// string temp = dirfile + "optimMap_sanepic_flux.fits";

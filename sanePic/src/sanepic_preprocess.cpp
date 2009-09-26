@@ -8,7 +8,7 @@
 
 #include "sanepic_preprocess.h"
 
-void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
+void sanepic_preprocess(int NAXIS1, int NAXIS2, std::vector<long> xxi, std::vector<long> xxf,
 		std::vector<long> yyi, std::vector<long> yyf, long *&indpsrc, long &npixsrc,
 		long ntotscan, long &addnpix){
 
@@ -18,9 +18,10 @@ void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 
 
 	//************************************* Deal with masking the point sources
+	// TODO: This is in sanePre AND sanePos... FIX THAT
 	// define the mask
-	mask = new unsigned char[nn*nn];
-	for (long ii=0;ii<nn*nn;ii++)
+	mask = new unsigned char[NAXIS1*NAXIS2];
+	for (long ii=0;ii<NAXIS1*NAXIS2;ii++)
 		mask[ii] = 1;
 
 
@@ -29,7 +30,7 @@ void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 			// for each box crossing constraint removal
 			for (long ii=xxi[ib];ii<xxf[ib];ii++)
 				for (long ll=yyi[ib];ll<yyf[ib];ll++)
-					mask[ll*nn + ii] = 0;  // mask is initialised to 0
+					mask[ll*NAXIS2 + ii] = 0;  // mask is initialised to 0
 		}
 	}
 
@@ -37,7 +38,7 @@ void sanepic_preprocess(int nn, std::vector<long> xxi, std::vector<long> xxf,
 
 	//long npixsrc = 0;
 
-	for (long ii=0;ii<nn*nn;ii++){
+	for (long ii=0;ii<NAXIS1*NAXIS2;ii++){
 		if (mask[ii] == 0){
 			indpsrc[ii] = npixsrc;
 			npixsrc += 1;

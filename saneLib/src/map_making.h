@@ -16,7 +16,7 @@
 #define dmod(A,B) ((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
                                         :(A)+(B)*floor(-(A)/(B))):(A))
 
-void compute_PtNmd(double *data, double *Nk, long ndata, int nn,
+void compute_PtNmd(double *data, double *Nk, long ndata, int NAXIS1, int NAXIS2,
 		   long *indpix, long *samptopix, int npix, double *PNd);
 
 
@@ -45,13 +45,13 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
-		      int nn, long *indpix,
+		      int NAXIS1, int NAXIS2, long *indpix,
 		      int npix, double f_lppix, double *dPtNP);
 
 
 
 void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
-			  int nn, long *indpix,
+			  int NAXIS1, int NAXIS2, long *indpix,
 			  int npix, double f_lppix, double *dPtNP);
 
 
@@ -104,7 +104,7 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 
-void deproject(double *S, long *indpix, long *samptopix, long ndata, long nn,
+void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1, long NAXIS2,
 	       long npix, double *Ps, int flgdupl, int factdupl, long ntotscan = 0,
 	       long *indpsrc = NULL, long npixsrc = 0);
 

@@ -31,7 +31,7 @@
  * -npixsrc : number of pixels in those box, also number of indpsrc values != 0
  * -addnpix : number of pixels to add in pixon
  */
-long Compute_indpsrc_addnpix(int nn, long ntotscan,std::vector<long> xxi, std::vector<long> xxf,
+long Compute_indpsrc_addnpix(int NAXIS1, int NAXIS2, long ntotscan,std::vector<long> xxi, std::vector<long> xxf,
 		std::vector<long> yyi, std::vector<long> yyf, long* &indpsrc, long &npixsrc);
 
 
