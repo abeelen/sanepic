@@ -12,12 +12,10 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-
 #include <cstdlib>
 
-
+#include <math.h>
 #include "positionsIO.h"
-
 
 extern "C" {
 #include <nrutil.h>
@@ -25,34 +23,6 @@ extern "C" {
 }
 
 using namespace std;
-
-/*!
- * Reads a detector list in a .txt file
- * Returns a vector of string containing the name of the considered channels
- */
-void read_strings(string fname, std::vector<string> &bolos) {
-	string line;
-
-	ifstream inputFile(fname.c_str());
-	if (!inputFile.is_open()) {
-		cerr << "Error opening bolometer file '" << fname << "'. Exiting.\n";
-		exit(1);
-	}
-
-	while (!inputFile.eof()) {
-		size_t found;
-		getline(inputFile, line);
-		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of("!#;");				// Check for comment character at the beginning of the line
-
-		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
-
-		line = line.substr(0, line.find_first_of(" \t")); // pick out first word
-		bolos.push_back(line);
-	}
-
-	inputFile.close();
-}
 
 /*!
  * Reads the detectors offsets in a .txt file
@@ -178,6 +148,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 	unsigned long ndet = bolonames.size();
 
+	offsets = dmatrix((long)0,ndet-1,(long)0,2-1);
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
@@ -277,63 +248,158 @@ void read_position_from_fits(string filename, double *RA, double *DEC, double *P
 
 }
 
-void read_ReferencePosition_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, long &ns){
-
-	/*int sizetype;
-	char test[2];
-
-
-	test[0] = type;
-	test[1] = '\0';
-	string typestr = string(test);
-	//  printf("type = %s\n",test);
-	free(test);
-
-	if (typestr == "d") sizetype = 8;
-	if (typestr == "c") sizetype = 1;
-	 */
-	////////////////////////////////////
+void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, short *&FLAG, long &ns){
 
 	fitsfile *fptr;
 	int status = 0;
-	//long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long repeat, width;
 	int colnum, typecode;
-	//double temp;
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
 	// ---------------------------------------------
-	// read the Channel List
+	// move to the reference position table
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
 		fits_report_error(stderr, status);
 
+	// Retrieve size of the array and ...
 	fits_get_num_rows(fptr, &ns, &status);
+
+	// ... allocate corresponding memory
+	RA   = new double[ns];
+	DEC  = new double[ns];
+	PHI  = new double[ns];
+	FLAG = new short[ns];
+
+	// Read RA
 	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
-	// divide by 15 to get the same value as before
-	for(int ii = 0; ii<ns; ii++)
-		RA[ii]=RA[ii]/15; // TODO : Pourquoi ??????? 15 ??
+	//TODO: Remove this step
+	// transform RA in hours
+	for(long ii = 0; ii<ns; ii++)
+		RA[ii]=RA[ii]/15;
 
-
-	//fits_get_num_rows(fptr, &ns, &status);
+	// Read DEC
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, DEC, 0, &status);
 
-
-	//fits_get_num_rows(fptr, &ns, &status);
+	// Read PHI
 	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
-
-	//fits_get_num_rows(fptr, &ns, &status);
+	// Read FLAG
 	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
+	// check for bad values
+	for (long ii = 0; ii<ns; ii++)
+		if (isnan(RA[ii]) || isnan(DEC[ii]))
+			FLAG[ii] = 1;
+
 }
+
+
+void read_flpoint_from_fits(string filename, short *FLAG){
+
+
+        fitsfile *fptr;
+        int status = 0;
+        //long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+        long repeat, width;
+        int colnum, typecode;
+        long ns;
+        //double temp;
+
+        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+                fits_report_error(stderr, status);
+
+        // ---------------------------------------------
+        // read the Channel List
+        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
+                fits_report_error(stderr, status);
+
+        fits_get_num_rows(fptr, &ns, &status);
+        fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
+        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+        fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
+
+        // close file
+        if(fits_close_file(fptr, &status)) // ajout mat 15/09
+                fits_report_error(stderr, status);
+
+}
+
+void read_flag_from_fits(string filename, string field, short *&mask, long &ns){
+
+
+        fitsfile *fptr;
+        int status = 0;
+        long repeat, width;
+        int colnum, typecode;
+
+        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+                fits_report_error(stderr, status);
+
+        // ---------------------------------------------
+        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
+                fits_report_error(stderr, status);
+
+        // Get array size ...
+        fits_get_num_rows(fptr, &ns, &status);
+
+        // ... and allocate memory
+        mask = new short[ns];
+
+        // Read the actual data
+        fits_get_colnum(fptr, CASEINSEN, (char*)field.c_str(), &colnum, &status);
+        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+        fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, mask, 0, &status);
+
+        // close file
+        if(fits_close_file(fptr, &status))
+                fits_report_error(stderr, status);
+
+}
+
+void read_signal_from_fits(string filename, double *signal, string field){ // tested in sanepos, work fine
+
+
+
+        fitsfile *fptr;
+        int status = 0;
+        //long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+        long repeat, width;
+        int colnum, typecode;
+        long ns;
+        //double temp;
+
+        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+                fits_report_error(stderr, status);
+
+
+        // ---------------------------------------------
+        // Move ptr to signal hdu
+        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
+                fits_report_error(stderr, status);
+
+        fits_get_num_rows(fptr, &ns, &status);
+        fits_get_colnum(fptr, CASEINSEN, (char*) field.c_str(), &colnum, &status);
+        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+        fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, signal, 0, &status);
+
+        // close file
+        if(fits_close_file(fptr, &status)) // ajout mat 15/09
+                fits_report_error(stderr, status);
+        //print_fits_error(status);
+
+
+
+}
+
+

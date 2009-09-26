@@ -9,20 +9,9 @@
 #define POSITIONSIO_H_
 
 #include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <vector>
 
 using namespace std;
-
-/*!
- * Reads a detector list in a .txt file
- * Returns a vector of string containing the name of the considered channels
- */
-void read_strings(string fname, std::vector<string>& bolos);
 
 /*!
  * Reads the detectors offsets in a .txt file
@@ -40,10 +29,10 @@ void read_position_from_fits(string filename, double *RA, double *DEC, double *P
 
 void read_flpoint_from_fits(string filename, short *FLAG);
 
-void read_flag_from_fits(string filename, short *mask, string field);
+void read_flag_from_fits(string filename, string field, short *& mask, long &ns);
 
 void read_signal_from_fits(string filename, double *signal, string field);
 
-void read_ReferencePosition_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, long &ns);
+void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, short *&FLAG, long &ns);
 
 #endif /* POSITIONSIO_H_ */

@@ -2,11 +2,262 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <string>
+#include <vector>
+
 #include <cstdlib>
+#include <cstring>
 
 #include "sanePos_map_making.h"
+#include "positionsIO.h"
+
+extern "C" {
+#include "nrutil.h"
+#include <wcslib/cel.h>
+#include <wcslib/wcs.h>
+}
 
 using namespace std;
+
+
+void computeMapMinima(std::vector<string> bolonames, string *fits_table,
+		long iframe_min, long iframe_max, long *fframes,long *nsamples, double pixdeg,
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
+
+	// Compute map extrema by projecting the bolometers offsets back into the sky plane
+	// output or update (ra|dec)_(min|max)
+
+	string fits_file;
+
+	unsigned long ndet = bolonames.size();
+
+
+	// Define default values
+	ra_min  =  1000;
+    ra_max  = -1000;
+    dec_min =  1000;
+	dec_max = -1000;
+
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		// for each scan
+		fits_file=fits_table[iframe];
+
+		double *ra, *dec, *phi, **offsets;
+		short *flpoint;
+
+		long ns = nsamples[iframe];
+
+		// read bolo offsets
+		// TODO : This function should also return the PRJCODE to be used below...
+		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
+
+//		for (unsigned long idet = 0; idet < ndet; idet++){
+//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
+//		}
+
+		// read reference position
+		long test_ns;
+		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, flpoint, test_ns);
+
+		if (test_ns != ns) {
+			cerr << "Read position does not correspond to frame position" << endl;
+			cerr << "Check !!" << endl;
+			exit(-1);
+		}
+
+
+		// find the pointing solution at each time stamp for each detector
+		struct celprm celestial;
+		celini(&celestial);
+
+		// TODO: use the PRJCODE read from the file...
+		tanset(&celestial.prj);
+
+		for (long ii=0; ii <ns; ii++){
+
+			celestial.ref[0] =  ra[ii]*15.;
+			celestial.ref[1] =  dec[ii];
+			celset(&celestial);
+
+			double * offxx, *offyy, *lon, *lat, *ra_deg, *dec_deg;
+			int * status;
+			offxx   = new double[ndet];
+			offyy   = new double[ndet];
+			lon     = new double[ndet];
+			lat     = new double[ndet];
+			ra_deg  = new double[ndet];
+			dec_deg = new double[ndet];
+
+			status  = new int[ndet];
+
+			for (unsigned long idet=0;idet<ndet;idet++){
+
+				double sinphi = sin(phi[ii]/180.0*M_PI);
+				double cosphi = cos(phi[ii]/180.0*M_PI);
+
+				//TODO : check this -1 factor... just a stupid convention...
+				offxx[idet] = (cosphi * offsets[idet][0]
+				             - sinphi * offsets[idet][1])*-1;
+				offyy[idet] =  sinphi * offsets[idet][0]
+					         + cosphi * offsets[idet][1];
+
+			}
+
+
+			if (celx2s(&celestial, ndet, 1, 0, 1, offxx, offyy, lon, lat, ra_deg, dec_deg, status) == 1) {
+				printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
+				continue;
+			}
+
+			// find coordinates min and max
+			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
+			double lra_min  = *min_element(ra_deg, ra_deg+ndet);
+			double ldec_max = *max_element(dec_deg, dec_deg+ndet);
+			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
+
+			if (ra_max < lra_max)    ra_max = lra_max;
+			if (ra_min > lra_min)    ra_min = lra_min;
+			if (dec_max < ldec_max) dec_max = ldec_max;
+			if (dec_min > ldec_min) dec_min = ldec_min;
+
+			delete [] offxx;;
+			delete [] offyy;
+			delete [] lon;
+			delete [] lat;
+			delete [] ra_deg;
+			delete [] dec_deg;
+			delete [] status;
+
+		}
+
+
+
+		delete [] ra;
+		delete [] dec;
+		delete [] phi;
+		delete [] flpoint;
+
+		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
+	}
+
+/// add a small interval of 2 arcmin
+		ra_min =  ra_min  - 2.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+		ra_max =  ra_max  + 2.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+		dec_min = dec_min - 2.0/60.0;
+		dec_max = dec_max + 2.0/60.0;
+
+		ra_min  = ra_min/15; // in hour
+		ra_max  = ra_max/15;
+		dec_min = dec_min;
+		dec_max = dec_max;
+
+}
+
+void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coordscorner,
+			struct wcsprm &wcs, unsigned long &NAXIS1, unsigned long &NAXIS2){
+
+	int NAXIS = 2; // image
+	int wcsstatus;
+
+	double ra_min = coordscorner[0]*15;
+	double ra_max = coordscorner[1]*15;
+	double dec_min = coordscorner[2];
+	double dec_max = coordscorner[3];
+
+	// Define tangent point
+	double ra_mean  = (ra_max+ra_min)/2.0;      // RA in deg
+	double dec_mean = (dec_max+dec_min)/2.0;
+
+	// Construct the wcsprm structure
+	wcs.flag = -1;
+	wcsini(1, NAXIS, &wcs);
+
+	// Pixel size in deg
+	for (int ii = 0; ii < NAXIS; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
+	for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs.cunit[ii], "deg");
+
+	// This will be the reference center of the map
+	wcs.crval[0] = ra_mean;
+	wcs.crval[1] = dec_mean;
+
+	// Axis label
+	if (strcmp(ctype, "EQ") == 0){
+		char TYPE[2][5] = { "RA--", "DEC-"};
+		char NAME[2][16] = {"Right Ascension","Declination"};
+
+		for (int ii = 0; ii < NAXIS; ii++) {
+			strcpy(wcs.ctype[ii], &TYPE[ii][0]);
+			strncat(wcs.ctype[ii],"-",1);
+			strncat(wcs.ctype[ii],prjcode, 3);
+			strcpy(wcs.cname[ii], &NAME[ii][0]);
+		}
+	}
+
+	if (strcmp(ctype,"GAL") == 0){
+		char TYPE[2][5] = { "GLON", "GLAT"};
+		char NAME[2][19] = {"Galactic Longitude", "Galactic Latitude"};
+
+		for (int ii = 0; ii < NAXIS; ii++) {
+			strcpy(wcs.ctype[ii], &TYPE[ii][0]);
+			strncat(wcs.ctype[ii],"-",1);
+			strncat(wcs.ctype[ii],prjcode, 3);
+			strcpy(wcs.cname[ii], &NAME[ii][0]);
+		}
+	}
+
+	// Set the structure to have the celestial projection routine in order to ....
+	if ((wcsstatus = wcsset(&wcs))) {
+	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	   }
+
+
+	// .... calculate the size of the map if necessary :
+	// As the map could be distorded, deproject the grid into a plane to get the size of the map
+
+	unsigned int nStep = 20;
+
+	double *lon, *lat, *phi, *theta, *x, *y;
+	int *status;
+
+	lon = new double[nStep];
+	lat = new double[nStep];
+
+	for (unsigned int ii=0; ii<nStep; ii++) {
+		lon[ii] = (ra_max-ra_min)*ii/(nStep-1)+ra_min;
+		lat[ii] = (dec_max-dec_min)*ii/(nStep-1)+dec_min;
+	}
+
+	phi    = new double [nStep*nStep];
+	theta  = new double [nStep*nStep];
+	x      = new double [nStep*nStep];
+	y      = new double [nStep*nStep];
+	status = new int    [nStep*nStep];
+
+	if (cels2x(&wcs.cel, nStep, nStep, 1, 1, lon, lat, phi, theta, x, y, status) == 1) {
+		printf("ERROR 1: %s\n", prj_errmsg[1]);
+	}
+
+	// find coordinates min and max
+	double x_max  = *max_element(x, x+(nStep*nStep));
+	double x_min  = *min_element(x, x+(nStep*nStep));
+	double y_max  = *max_element(y, y+(nStep*nStep));
+	double y_min  = *min_element(y, y+(nStep*nStep));
+
+	NAXIS1 = ceil((x_max-x_min)/pixdeg);
+	NAXIS2 = ceil((y_max-y_min)/pixdeg);
+
+	// Save it as the center of the image
+
+	wcs.crpix[0] = NAXIS1*1./2;
+	wcs.crpix[1] = NAXIS2*1./2;
+
+	if ((wcsstatus = wcsset(&wcs))) {
+	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	   }
+
+//	wcsprt(&wcs);
+
+}
 
 double slaDranrm ( double angle )
 /*
@@ -143,7 +394,7 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		double *offsets, int ns, int *xx, int *yy, int *nn,
 		double *coordscorner, double *tancoord, double *tanpix,
-		bool fixcoord, double radius, double *offmap, double *radecsrc, bool compute_xx_yy)
+		bool fixcoord, double radius, /* double *offmap ,*/ double *radecsrc, bool compute_xx_yy)
 {
 	// ra is in hours, dec in degrees
 
@@ -164,28 +415,76 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 	dec_bolo = new double[ns];
 	pixsrc = new double[2];
 
-	double ang_sc2array = 0.0;
-
 	double dl_rad = pixdeg/180.0*M_PI;
-
-
-
 
 	// find the pointing solution of the detector
 	for (long ii=0;ii<ns;ii++){
-		offxx = cos((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[0]
-		                                                       - sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[1] + offmap[0];
-		offyy = sin((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[0]
-		                                                       + cos((phi[ii]-ang_sc2array)/180.0*M_PI)*offsets[1] + offmap[1];
+		// Rotation of angle phi[ii] to the offsets
 
+		offxx = cos((phi[ii])/180.0*M_PI)*offsets[0]
+              - sin((phi[ii])/180.0*M_PI)*offsets[1];
+		offyy = sin((phi[ii])/180.0*M_PI)*offsets[0]
+              + cos((phi[ii])/180.0*M_PI)*offsets[1];
+
+		// conversion in pixel scale
 		xm = offxx/pixdeg;
 		ym = offyy/pixdeg;
 
+		// deprojection into spherical coordinates using a -TAN deprojection
 		slaDtp2s ( -xm*dl_rad, ym*dl_rad, ra[ii]/12.0*M_PI, dec[ii]/180.0*M_PI, &ra_rad, &dec_rad );
+
+		// Converting to hour/degree
 		ra_bolo[ii] = ra_rad*12.0/M_PI;
 		dec_bolo[ii] = dec_rad*180.0/M_PI;
+
 	}
 
+//	for (long ii=0; ii<20; ii++)
+//			cout << ii << " " << ra_bolo[ii] << " " << dec_bolo[ii] << endl;
+//
+//	cout << endl<<" --- wcslib solution --- " << endl << endl;
+////
+//	struct celprm celestial;
+//	celini(&celestial);
+//	tanset(&celestial.prj);
+//
+//	for (long ii=0; ii <ns; ii++){
+//
+//
+//		offxx = cos((phi[ii])/180.0*M_PI)*offsets[0]
+//              - sin((phi[ii])/180.0*M_PI)*offsets[1];
+//		offyy = sin((phi[ii])/180.0*M_PI)*offsets[0]
+//              + cos((phi[ii])/180.0*M_PI)*offsets[1];
+//
+//		double xm[1], ym[1];
+//
+//        // conversion in pixel scale
+//		xm[0] = (double) -1*offxx;
+//		ym[0] = (double) offyy;
+//
+//		// deprojection into spherical coordinates using a -TAN deprojection
+//
+//		celestial.ref[0] =  ra[ii]*15.;
+//		celestial.ref[1] =  dec[ii];
+//		celset(&celestial);
+//
+//		double ra_deg[1], dec_deg[1];
+//		double lon[1], lat[1];
+//		int stat[1];
+//
+//		if (celx2s(&celestial, 1, 1, 1, 1, xm, ym, lon, lat, ra_deg, dec_deg, stat) == 1) {
+//			printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
+//			continue;
+//	      }
+//		ra_bolo[ii] = ra_deg[0]/15.;
+//		dec_bolo[ii] = dec_deg[0];
+//
+//	}
+
+//	for (long ii=0; ii<20; ii++)
+//			cout << ii << " " << ra_bolo[ii] << " " << dec_bolo[ii] << endl;
+//
+//	exit(0);
 
 
 	// find coordinates min and max
@@ -242,6 +541,7 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 					nnf = (2.0*fabs(iy))/dl_rad;
 			}
 		}
+
 		*nn = int(nnf)+1+int(2.0*stepb/pixdeg);
 
 	} else {
@@ -282,11 +582,11 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 
 			cosphi = cos(phi[ii]*degtorad);
 			sinphi = sin(phi[ii]*degtorad);
-			cosphi_phas = cos((phi[ii]-ang_sc2array)*degtorad);
-			sinphi_phas = sin((phi[ii]-ang_sc2array)*degtorad);
+			cosphi_phas = cos((phi[ii])*degtorad);
+			sinphi_phas = sin((phi[ii])*degtorad);
 
-			offxx = cosphi_phas*offsets[0] - sinphi_phas*offsets[1] + offmap[0];
-			offyy = sinphi_phas*offsets[0] + cosphi_phas*offsets[1] + offmap[1];
+			offxx = cosphi_phas*offsets[0] - sinphi_phas*offsets[1]; // + offmap[0];
+			offyy = sinphi_phas*offsets[0] + cosphi_phas*offsets[1]; // + offmap[1];
 
 
 

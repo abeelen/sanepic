@@ -19,8 +19,10 @@
 #include "positionsIO.h"
 #include "dataIO.h"
 #include "inline_IO2.h"
+
 extern "C" {
 #include "nrutil.h"
+#include "wcslib/wcs.h"
 }
 
 
@@ -143,8 +145,8 @@ int main(int argc, char *argv[])
 	float *scoffsets; /*! source offsets depending on wavelength */
 	scoffsets = new float[6];
 
-	int nfoff; /*! number of offsets */
-	foffset *foffsets; /*! tableau d'offsets */
+//	int nfoff; /*! number of offsets */
+//	foffset *foffsets; /*! tableau d'offsets */
 
 	double *tancoord; /*! tangent point coordinates RA/dec */
 	double *tanpix; /*! tangent pixel coordinates in the map */
@@ -160,7 +162,8 @@ int main(int argc, char *argv[])
 	char type='d'; /*! returned type of read_data functions, d=64bit double */
 	double *ra, *dec, *phi/*, *scerr*/; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
 	//unsigned char *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
-	unsigned char  *rejectsamp, *mask;// ajout mat 15/09
+	unsigned char  *rejectsamp;
+	unsigned short *mask;
 	short *flag, *flpoint; // ajout mat 15/09
 
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
@@ -184,7 +187,7 @@ int main(int argc, char *argv[])
 	//string file_offsets; /*! bolometer offsets file*/
 	string file_frame_offsets = "NOOFFS"; /*! offset file*/
 	//string termin; /*! output file suffix */
-	string termin_internal = "internal_data";
+//	string termin_internal = "internal_data";
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! Default is RA/DEC */
@@ -195,7 +198,7 @@ int main(int argc, char *argv[])
 	/* parser inputs */
 	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
 	//std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample */
-	std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
+	std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 	std::vector<string> fitsvect;
 	std::vector<long> scans_index;
 
@@ -222,7 +225,8 @@ int main(int argc, char *argv[])
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
 				srccoord,coordscorner,radius,ntotscan,ndet,
 				pixdeg,dirfile,tmp_dir,/*bextension,fextension,
-				pextension,*//*file_offsets,*/file_frame_offsets,coordsyst,bolonames,fframes,nsamples,xxi,xxf,yyi,yyf,fitsvect,scans_index);
+				pextension,*//*file_offsets,file_frame_offsets,*/
+				coordsyst,bolonames,fframes,nsamples,boxFile,fitsvect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -319,7 +323,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/*! map offsets*/
-	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
+//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
 
 
 
@@ -406,9 +410,9 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
-	/************************ Look for distribution failure *******************************/
+	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > ntotscan){
-		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
+		cerr << "Error distriBoxuting frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
 	}
 
@@ -421,6 +425,8 @@ int main(int argc, char *argv[])
 
 	/********** Allocate memory ***********/
 	printf("[%2.2i] Allocating Memory\n",rank);
+
+	// TODO: Clean this mess : e.g. here find the maximum length of a scan a allocate twice this memory... THERE IS NO NEED FOR THAT !
 
 	// seek maximum number of samples
 	ns = nsamples[0];
@@ -453,9 +459,10 @@ int main(int argc, char *argv[])
 	dec_min = 1000.0;
 	dec_max = -1000.0;
 
+	/*
 	offmap[0] = 0.0;
 	offmap[1] = 0.0;
-
+*/
 
 	//********************************************************************************
 	//*************  find coordinates of pixels in the map
@@ -465,15 +472,31 @@ int main(int argc, char *argv[])
 
 	bool default_projection = 1;
 
+	// TODO: Different ways of computing the map parameters :
+	// 1 - find minmax of the pointings on the sky -> define map parameters from that
+	// 2 - defined minmax of the map -> define map parameters from that
+	// (3 - define center of the map and radius -> define map parameters from that)
+
 	//if (coordsyst != 4){ // coordsyst never = 4 => debug mode => delete
 	/*!
 	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
 	 * -> Compute map coordinates
 	 */
-	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,*/foffsets,scoffsets,
-			/*offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
-			scerr_field,*//*flpoint_field,*/nfoff,pixdeg, xx, yy, nn, coordscorner,
+	time_t first = time(NULL);
+
+	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
+			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
+			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
 			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
+
+		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+
+//	first = time(NULL);
+//	computeMapMinima(bolonames,fits_table,
+//			iframe_min,iframe_max,fframes,nsamples,pixdeg,
+//			ra_min,ra_max,dec_min,dec_max);
+//
+//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 
 #ifdef USE_MPI
@@ -509,7 +532,72 @@ int main(int argc, char *argv[])
 	if(default_projection)
 		// just to set nn in order to compute map-making matrices and vectors
 		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-				tancoord, tanpix, 1, radius, offmap, srccoord,0);
+				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
+
+	cout << "nn orig : " << nn << endl;
+
+	struct wcsprm wcs;
+	unsigned long NAXIS1, NAXIS2;
+
+	computeMapHeader(pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
+
+	NAXIS1 = nn;
+	NAXIS2 = nn;
+
+
+	// DEBUG make a fake wcs structure
+
+	// Construct the wcsprm structure
+	wcs.flag = -1;
+	wcsini(1, 2, &wcs);
+	// Pixel size in deg
+	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
+	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
+
+	// This will be the reference center of the map
+	wcs.crval[0] = tancoord[0];
+	wcs.crval[1] = tancoord[1];
+
+	wcs.crpix[0] = tanpix[0];
+	wcs.crpix[1] = tanpix[1];
+
+	// Axis label
+	char TYPE[2][5] = { "RA--", "DEC-"};
+	char NAME[2][16] = {"Right Ascension","Declination"};
+
+	for (int ii = 0; ii < 2; ii++) {
+		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
+		strncat(wcs.ctype[ii],"-",1);
+		strncat(wcs.ctype[ii],"TAN", 3);
+		strcpy(wcs.cname[ii], &NAME[ii][0]);
+		}
+	int wcsstatus;
+
+	if ((wcsstatus = wcsset(&wcs))) {
+	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	   }
+
+
+	// END DEBUG OF THE FAKE HEADER
+
+	// TODO: NOT WORKING
+	save_MapHeader(tmp_dir,wcs);
+
+//	struct wcsprm *wcs2;
+//	read_MapHeader(tmp_dir,wcs2);
+//
+//	int nkeyrec;
+//	char * header, *hptr ;
+//	cout << " Projection 2 : "<< endl;
+//	if (int status = wcshdo(WCSHDO_all, wcs2, &nkeyrec, &header)) {
+//		printf("%4d: %s.\n", status, wcs_errmsg[status]);
+//		exit(0);
+//	}
+//	hptr = header;
+//	printf("\n\n Projection Header 2:\n");
+//	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
+//		printf("%.80s\n", hptr);
+//	}
 
 
 	/*!
@@ -521,7 +609,8 @@ int main(int argc, char *argv[])
 	 * tanpix : tangent point coordinates in the map (in pixel)
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
-	write_info_pointing(nn, tmp_dir, termin_internal, coordsyst, tanpix, tancoord);
+	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
+	write_info_pointing(nn, tmp_dir, coordsyst, tanpix, tancoord);
 
 
 	/*} else {
@@ -540,110 +629,113 @@ int main(int argc, char *argv[])
 		fclose(fp);
 	}*/
 
-
-
-
-
-
+	//TODO: Check for parralelization (unpossible ??)
 
 	//************************************* Deal with masking the point sources
-	mask = new unsigned char[nn*nn];
-	indpsrc = new long[nn*nn];
+	mask    = new unsigned short[NAXIS1*NAXIS2];
+	indpsrc = new long[NAXIS1*NAXIS2];
 
-	// if a box for crossing constraint removal is given in ini file
-	if(xxi.size()>0)
-		/*!
-		 * \fn compute_indpsrc_addnpix
-		 * Input : nn : size of the map in pixels
-		 * ntotscan : total number of scans
-		 * xxi, xxf, yyi, yyf : box for crossing constraint removal corner coordinates
-		 * indpsrc : pixel indice of the pixel included in box for CCR
-		 * npixsrc : total number of pix in box for CCR
-		 * mask : 0 if the pixel is contained in box for CCR, 1 otherwise
-		 */
-		addnpix=Compute_indpsrc_addnpix(nn,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc,mask);
-	else{
-		for (long ii=0;ii<nn*nn;ii++)
-			mask[ii] = 1;
-		addnpix=0;
-		npixsrc=0;
-		for(long ii=0;ii<nn*nn;ii++)
-			indpsrc[ii]=-1;
+	// Initialize the masks
+	addnpix=0;
+	npixsrc=0;
+	for (unsigned long ii=0; ii<NAXIS1*NAXIS2; ii++){
+		mask[ii]    =  1;
+		indpsrc[ii] = -1;
 	}
 
+	// TODO : untested....
+	// if a box for crossing constraint removal is given in ini file
+	// TODO : save mask in fits file
+	// TODO : being able to read a mask in fits file format
+	for (unsigned long iBox = 0; iBox < boxFile.size(); iBox++){
+		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
+			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
+				mask[ii*NAXIS2 + jj] = 0;
+				indpsrc[ii*NAXIS2 + jj] = npixsrc++;
+			}
+	}
+
+	// each frame contains npixsrc pixels with index indsprc[] for which
+	// crossing constraint are removed
+	// thus
+	// addnpix = number of pix to add in pixon
+	//         = number of scans * number of pix in box crossing constraint removal
+	addnpix = ntotscan*npixsrc;
 
 	// map duplication factor
-	int factdupl = 1;
-	if (flgdupl) factdupl = 2; //  default 0 : if flagged data are put in a duplicated map
+	int factdupl;
+	(flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
 
+	// pixon indicates pixels that are seen
+	// factdupl if flagged data are to be projected onto a separete map
+	// 1 more pixel for flagged data
+	// 1 more pixel for all data outside the map
+	long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
-	//pixon indicates pixels that are seen
-	pixon = new long[factdupl*nn*nn+2 + addnpix];   // last pixel is for flagged samples
-	fill(pixon,pixon+(factdupl*nn*nn+2 + addnpix),0);
-
-
-
+	pixon = new long[sky_size];
+	fill(pixon,pixon+(sky_size),0);
 
 
 	//**********************************************************************************
 	// get coordinates of pixels that are seen
 	//**********************************************************************************
-	/*!
-	 * \fn Get coordinates of pixels that are seen
-	 * Compute the position to pixel projetcion matrices :
-	 * One binary file per bolometer and per scan
-	 */
-	compute_seen_pixels_coordinates(ndet,ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension,*/ termin_internal,
-			/*file_offsets,*/foffsets,scoffsets,iframe_min, iframe_max,fframes,
+
+	//TODO: check from here and below
+	computePixelIndex(ntotscan,tmp_dir, bolonames,
+			fits_table, iframe_min, iframe_max,fframes,
+			nsamples,
+			wcs, NAXIS1, NAXIS2,
+			mask,nn,
+			napod, NOFILLGAP, flgdupl,factdupl,
+			addnpix, pixon, rank,
+			indpsrc, npixsrc, flagon, pixout);
+
+	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
+			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
 			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
-			flpoint_field,*/ nfoff,pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
-			tanpix, bfixc, radius, offmap, srccoord, type, ra,dec,
+			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
+			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
 			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
 			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
 
 
 
-
-	string temp = dirfile + "optimMap_sanepic_flux.fits";
-	const char *fits_file = temp.c_str();
-	fits_header_generation(tmp_dir,fits_file,pixdeg,default_projection,tanpix,tancoord);
+	// string temp = dirfile + "optimMap_sanepic_flux.fits";
+	// TODO: replaced by computeMapHeader/saveMapHeader
+	//	const char *fits_file = temp.c_str();
+	//	fits_header_generation(tmp_dir,fits_file,pixdeg,default_projection,tanpix,tancoord);
 
 
 	//************** init mapmaking variables *************//
 
-	printf("[%2.2i] Init map making variables\n",rank);
+//	printf("[%2.2i] Init map making variables\n",rank);
 
 
 	// pixel indices
-	indpix = new long[factdupl*nn*nn+2 + addnpix];
 
+	npix = 0;
 	if(rank==0){
 
-		/*!
-		 *  \fn compute indpix : pixels indices used for data projection/deprojection.
-		 *  npix is the number of filled pixels
-		 *  Pixon : indicates if the pixel is projected on the map or not
-		 *  addnpix : number of pixels to add : depends on box for CCR and duplication factor
-		 */
-		npix=compute_indpix(indpix,factdupl,nn,addnpix,pixon);
-
-
-		// write in a file for conjugate gradient step
-		long ind_size = factdupl*nn*nn+2 + addnpix;
+		indpix = new long[sky_size];
+		fill(indpix, indpix+(sky_size),-1);
+		for(long ii=0; ii< sky_size; ii++)
+			if (pixon[ii] != 0)
+				indpix[ii] = npix++;
 
 		/*!
 		 * Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
-		write_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
+		write_indpix(sky_size, npix, indpix, tmp_dir, flagon);
 	}
 
 
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
-	printf("[%2.2i] Size of the map : %d x %d\t Total Number of filled pixels : %d\n",rank, nn, nn, npix);
+	printf("[%2.2i] Size of the map : %d x %d (using %d pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
+	printf("[%2.2i] Total Number of filled pixels : %d\n",rank, npix);
 
 
 	t3=time(NULL);
@@ -669,6 +761,7 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] Cleaning up\n",rank);
 
+	// TODO : Check all variable declaration/free
 
 	// clean up
 	delete [] ra;
@@ -690,8 +783,8 @@ int main(int argc, char *argv[])
 	delete [] froffsets;
 	delete [] offmap;
 
-	delete [] foffsets;
-	delete [] srccoord;
+//	delete [] foffsets;
+//	delete [] srccoord;
 	delete [] coordscorner;
 
 	//free(testfile);

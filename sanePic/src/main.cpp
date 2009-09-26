@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
 
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, tanpix, tancoord);
+	read_info_pointing(nn, tmp_dir, coordsyst2, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
 	if (flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
 
 	// read npix, PNdtot from file
-	read_PNd(PNdtot, npix, termin_internal, tmp_dir);
+	read_PNd(PNdtot, npix,  tmp_dir);
 	/*for (int ii=0;ii<20;ii++)
 			cout << PNdtot[ii] << " ";
 		cout << endl << "avant read indpix\n";
@@ -442,7 +442,7 @@ int main(int argc, char *argv[])
 
 
 	// read indpix
-	read_indpix(ind_size, npix2, indpix, termin_internal, tmp_dir, flagon);
+	read_indpix(ind_size, npix2, indpix,  tmp_dir, flagon);
 
 	if(ind_size!=(factdupl*nn*nn+2 + addnpix)){
 		cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		//write infos for second part
-		write_info_for_second_part(outdir, termin, nn, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+		write_info_for_second_part(outdir, nn, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	}
 
 #ifdef USE_MPI

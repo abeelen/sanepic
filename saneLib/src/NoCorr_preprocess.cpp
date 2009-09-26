@@ -15,7 +15,7 @@
 using namespace std;
 
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string termin, /*double errarcsec,*/ string dirfile,
+		string dir, /* string termin, double errarcsec,*/ string dirfile,
 		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames, string *fits_table,
 		/*string bextension, string fextension,*/ /*string cextension,*/
 		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
@@ -51,7 +51,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	//calp =  new double[ns];
 	//flag =  new unsigned char[ns];
 	flpoint = new short[ns];
-	flag =  new short[ns];
+//	flag =  new short[ns];
 	//flpoint = new unsigned char[ns];
 
 	//rejectsamp = new unsigned char[ns];
@@ -80,7 +80,8 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
 
-		read_flag_from_fits(fits_filename , flag, field);
+		long test_ns;
+		read_flag_from_fits(fits_filename , field, flag, test_ns);
 
 		/*if (fextension != "NOFLAG"){
 			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
@@ -100,7 +101,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 		//// Read pointing
-		read_samptopix(ns, samptopix, termin, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe);
 
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
@@ -180,7 +181,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
-		string termin, string dirfile, std::vector<string> bolonames, double f_lppix,
+		/* string termin, */ string dirfile, std::vector<string> bolonames, double f_lppix,
 		double fsamp, bool flgdupl, int factdupl, long ff, long ns,
 		long ndet, long *indpix, long nn, long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
@@ -212,7 +213,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 	for (long idet=0;idet<ndet;idet++){
 		field = bolonames[idet];
 
-		read_samptopix(ns, samptopix, termin, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);

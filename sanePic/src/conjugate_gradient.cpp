@@ -107,15 +107,15 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 			// preconditioner computation : Mp
 			if (CORRon){
-				write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,termin_internal,ff,ns,ndet,iframe);
+				write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 				// read pointing + deproject + fourier transform
 
-				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,
+				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
 						f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,Mp,hits);
 				// return Pnd = At N-1 d
 			} else {
 
-				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
+				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
 						nn,npix,iframe,PtNPmatS,Mp,hits);
 			}
@@ -203,15 +203,15 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 				if (CORRon){
-					write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, tmp_dir,termin_internal,ff,ns,ndet,iframe);
+					write_tfAS(d,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 					// read pointing + deproject + fourier transform
 
-					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
+					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
-					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
+					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
 							nn,npix,iframe,q,NULL,NULL);
 				}
@@ -260,16 +260,16 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 					if (CORRon){
-						write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,termin_internal,ff,ns,ndet,iframe);
+						write_tfAS(S,indpix,nn,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
 						// read pointing + deproject + fourier transform
 
-						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,
+						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
 								f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,
 								NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
-						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,bolonames,
+						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
 								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/
 								indpix,nn,npix,iframe,PtNPmatS,NULL,NULL);
 					}
@@ -563,17 +563,17 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				if (CORRon){
 
 					write_ftrProcesdata(S,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-							tmp_dir,termin_internal,dirfile,bolonames,fits_table,shift_data_to_point,f_lppix,ff,ns,
+							tmp_dir,dirfile,bolonames,fits_table,shift_data_to_point,f_lppix,ff,ns,
 							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
-					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
+					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,nn,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
-					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,
+					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,
 							bolonames, fits_table, shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 							flgdupl,factdupl,2,ff,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
 							nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);

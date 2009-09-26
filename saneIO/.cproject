@@ -53,6 +53,7 @@
 <option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.469407524" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" value="true" valueType="boolean"/>
 <option id="gnu.cpp.link.option.libs.311269796" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="wcs"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
@@ -794,6 +795,7 @@
 <option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.181419795" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
 <option id="gnu.cpp.link.option.libs.1356347508" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="wcs"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>

@@ -19,7 +19,7 @@ extern "C" {
 }
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe, string termin, std::vector<string> bolonames,
+		string dir, string prefixe, /* string termin,*/ std::vector<string> bolonames,
 		double f_lppix, double fsamp, long ff, long ns, long ndet,
 		long *indpix, long nn, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
 
@@ -28,7 +28,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, string dir, string termin,/* double errarcsec,*/ string dirfile,
+		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
 		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
 		/*string bextension, string fextension,*/ /*string cextension,*/
 		int shift_data_to_point, double f_lppix, long ff, long ns,
@@ -38,7 +38,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int nn, long np
 
 
 void write_tfAS(double *S, long *indpix, int nn, long npix, bool flgdupl, int factdupl,
-		string dir, string termin, long ff, long ns, long ndet, long iframe);
+		string dir, /* string termin, */ long ff, long ns, long ndet, long iframe);
 
 
 #endif /* CORR_PREPROCESS_H_ */

@@ -6,6 +6,26 @@
  */
 
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+#include <string>
+#include <unistd.h>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+#include "positionsIO.h"
+#include "mpi_architecture_builder.h"
+
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
+
+#include "inputFileIO.h"
 #include "parsePos.h"
 
 //void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
@@ -13,9 +33,9 @@
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
 		double &pixdeg, string &dirfile, string &outdir/*, string &poutdir*/,/* string &bextension,
-		string &fextension, string &pextension, *//*string &file_offsets,*/ string &file_frame_offsets, /*string &termin,*/
+		string &fextension, string &pextension, *//*string &file_offsets, string &file_frame_offsets, string &termin,*/
 		int &coordsyst, std::vector<string> &bolonames,/*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
-		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf,std::vector<string> &fitsvect, std::vector<long> &scans_index)
+		std::vector<struct box> & boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
 
@@ -334,16 +354,16 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		return -1 ;
 	}//offset_file = ./RCW_120_M/bolo_positions.txt ;*/
 
-	s = iniparser_getstring(ini, "sanepic_compute_positions:file_frame_offsets",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to the file containing offsets for different frame range has been erased : sanepic_compute_positions:file_frame_offsets\n");
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("file_frame_offsets : [%s]\n",s);
-			file_frame_offsets=s;
-		}
-	}//file_frame_offsets =  ;
+//	s = iniparser_getstring(ini, "sanepic_compute_positions:file_frame_offsets",NULL);
+//	if(s==NULL){
+//		printf("Warning : The line corresponding to the file containing offsets for different frame range has been erased : sanepic_compute_positions:file_frame_offsets\n");
+//	}else{
+//		str=(string)s;
+//		if(str.size()!=0){
+//			printf("file_frame_offsets : [%s]\n",s);
+//			file_frame_offsets=s;
+//		}
+//	}//file_frame_offsets =  ;
 
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
@@ -363,69 +383,19 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		//printf("test was good\n");
 	}//time_offset =  ;*/
 
-	//TODO: faire un fichier + centre + radius au lieu de carré
 	// crossing constraint removal box coordinates
-	s = iniparser_getstring(ini, (char*)"commons:box_coord_x1", NULL); // faire un data file
+	s = iniparser_getstring(ini, (char*)"commons:box_coord_file", NULL);
 	if(s==NULL){
-		printf("Warning : The line corresponding to box_coord_x1 in the ini file has been erased : commons:box_coord_x1\n");
+		printf("Warning : The line corresponding to box_coord_file in the ini file has been erased : commons:box_coord_file\n");
 	}else{
 		str=(string)s;
 		if(str.size()!=0){
-			printf("box_coord_x1 :      [%ld]\n", atol(s));
+			printf("box_coord_file :      [%ld]\n", atol(s));
 
-			if (xxi.size() != yyf.size()){
-				printf("box_coord_x1 requires at least box_coord_x2, box_coord_y1, box_coord_y2. Exiting.\n");
-				return -1;
-			}
-			xxi.push_back(atol(s));//box_coord_x1 =  ;
+			std::vector<box> boxList;
+			readBoxFile(str, boxList);
 		}
 	}
-
-	s = iniparser_getstring(ini, (char*)"commons:box_coord_x2", NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to box_coord_x2 in the ini file has been erased : commons:box_coord_x2\n");
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("box_coord_x2 :      [%ld]\n", atol(s));
-			if (xxf.size() != xxi.size()-1){
-				printf("box_coord_x2 requires at least box_coord_x1, box_coord_y1, box_coord_y2. Exiting. \n");
-				return -1;
-			}
-			xxf.push_back(atol(s));//box_coord_x2 =  ;
-		}
-	}
-
-	s = iniparser_getstring(ini, (char*)"commons:box_coord_y1", NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to box_coord_y1 in the ini file has been erased : commons:box_coord_y1\n");
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("box_coord_y1 :      [%ld]\n", atol(s));
-			if (yyi.size() != xxi.size()-1){
-				printf("box_coord_y1 requires at least box_coord_x1, box_coord_x2, box_coord_y2. Exiting.\n");
-				return -1;
-			}
-			yyi.push_back(atol(s));//box_coord_y1 =  ;
-		}
-	}
-
-	s = iniparser_getstring(ini, (char*)"commons:box_coord_y2", NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to box_coord_y2 in the ini file has been erased : commons:box_coord_y2\n");
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("box_coord_y2 :      [%ld]\n", atol(s));
-			if (yyf.size() != xxi.size()-1){
-				printf("box_coord_y2 requires at least box_coord_x1, box_coord_x2, box_coord_y1. Exiting. \n");
-				return -1;
-			}
-			yyf.push_back(atol(s));//box_coord_y2 =  ;
-		}
-	}
-
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_source", 0.0);
 	if(d!=0.0){
@@ -541,18 +511,12 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return -1 ;
 	}*/
-	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
-		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
-		return -1 ;
-	}
-
 	//ntotscan = fframes_vec.size();
 	//ntotscan = fitsvect.size();
 	ndet = bolonames.size();
 
-	printf("Number of scans : %ld\n",ntotscan);
-	printf("%ld bolometers will be used\n",ndet);
-
+	printf("Number of scans      : %ld\n",ntotscan);
+	printf("Number of bolometers : %ld\n",ndet);
 
 	iniparser_freedict(ini);
 	return 0 ;

@@ -11,21 +11,27 @@
 #include <stdio.h>
 #include <string>
 #include <sstream>
+
+#include <fstream>
+#include <iostream>
+
 #include "inline_IO2.h"
 
 extern "C" {
 #include "nrutil.h"
+#include "wcslib/wcs.h"
+#include "wcslib/wcshdr.h"
 }
 
-//using namespace std;
+using namespace std;
 
 // sanePos functions
-void write_info_pointing(int nn, string outdir, string termin, int coordsyst, double *tanpix, double *tancoord) {
+void write_info_pointing(int nn, string outdir, int coordsyst, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 
 
-	testfile2 = outdir + "InfoPointing_for_Sanepic_" + termin  + ".txt";
+	testfile2 = outdir + "InfoPointing_for_Sanepic.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		fprintf(fp,"%d\n",nn);
 		fprintf(fp,"%d\n",coordsyst);
@@ -40,13 +46,67 @@ void write_info_pointing(int nn, string outdir, string termin, int coordsyst, do
 	}
 }
 
-void write_samptopix(long ns, long *samptopix, string termin, string outdir, int idet, long iframe) {
+
+void save_MapHeader(string outdir, struct wcsprm wcs){
+
+	FILE *fout;
+	int nkeyrec, status;
+	char *header;
+
+	if ((status = wcshdo(WCSHDO_all, &wcs, &nkeyrec, &header))) {
+		printf("%4d: %s.\n", status, wcs_errmsg[status]);
+		exit(0);
+	}
+
+
+	outdir=outdir + "mapHeader.keyrec";
+	fout = fopen(outdir.c_str(),"w");
+	if (fout==NULL) {fputs ("File error on mapHeader.keyrec",stderr); exit (1);}
+
+	for (int i = 0; i < nkeyrec; i++, header += 80) {
+		fprintf(fout,"%.80s\n", header);
+	}
+	fclose(fout);
+
+}
+
+void read_MapHeader(string outdir, struct wcsprm * & wcs){
+
+	outdir = outdir + "mapHeader.keyrec";
+
+	FILE *fin;
+	char *memblock;
+	int size, nkeyrec, nreject, nwcs, status;
+
+	fin = fopen(outdir.c_str(),"r");
+	if (fin==NULL) {fputs ("File error on mapHeader.keyrec",stderr); exit (1);}
+
+	fseek(fin, 0L, SEEK_END);     /* Position to end of file */
+	size = ftell(fin);        /* Get file length */
+	rewind(fin);                  /* Back to start of file */
+
+	nkeyrec = size/81;
+	memblock = new char [nkeyrec*80];
+	for (int ii = 0; ii < nkeyrec; ii++) {
+		fread(&memblock[ii*80], 80, sizeof(char), fin);
+		fseek(fin, 1, SEEK_CUR); // skip newline char
+	}
+	fclose (fin);
+
+	/* Parse the primary header of the FITS file. */
+	if ((status = wcspih(memblock, nkeyrec, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
+		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
+	}
+	delete[] memblock;
+}
+
+void write_samptopix(long ns, long *&samptopix, string outdir, int idet, long iframe) {
 	FILE *fp;
 	// créer un flux de sortie
 	std::ostringstream oss;
 
 
-	oss << outdir + "samptopix_" << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << idet << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string temp = oss.str();
@@ -63,12 +123,12 @@ void write_samptopix(long ns, long *samptopix, string termin, string outdir, int
 	oss.str("");
 
 	// debug
-	oss << outdir + "samptopix_" << iframe << "_" << idet << "_" + termin + ".txt";
+	oss << outdir + "samptopix_" << iframe << "_" << idet << ".txt";
 	temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		for(int ii = 0; ii< ns; ii++)
-			fprintf(fp,"%ld ",samptopix[ii]);
+			fprintf(fp,"%ld\n ",samptopix[ii]);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << temp << endl;
@@ -77,11 +137,11 @@ void write_samptopix(long ns, long *samptopix, string termin, string outdir, int
 }
 
 
-void write_indpix(long ind_size, int npix, long *indpix, string termin, string outdir, int flagon) {
+void write_indpix(long ind_size, int npix, long *indpix, string outdir, int flagon) {
 	FILE *fp;
 	string testfile2;
 
-	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".bi";
+	testfile2 = outdir + "Indpix_for_conj_grad.bi";
 
 	if((fp = fopen(testfile2.c_str(),"w"))!=NULL){
 		fwrite(&flagon,sizeof(int),1,fp); // mat 04/06
@@ -95,7 +155,7 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
 	}
 
 	//Debug
-	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".txt";
+	testfile2 = outdir + "Indpix_for_conj_grad.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		fprintf(fp,"%d\n",flagon); // mat 04/06
 		fprintf(fp,"%d\n",npix);
@@ -112,12 +172,12 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
 
 //sanePre functions
 
-void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *tanpix, double *tancoord) {
+void read_info_pointing(int &nn, string outdir,  int &coordsyst2, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 	int result;
 
-	testfile2 = outdir + "InfoPointing_for_Sanepic_" + termin + ".txt";
+	testfile2 = outdir + "InfoPointing_for_Sanepic.txt";
 	if((fp = fopen(testfile2.c_str(),"r"))){ // doubles parenthèses sinon warning ...
 		result = fscanf(fp,"%d\n",&nn);
 		result = fscanf(fp,"%d\n",&coordsyst2);
@@ -134,12 +194,12 @@ void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, 
 	}
 }
 
-void read_indpix(long &ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon) {
+void read_indpix(long &ind_size, int &npix, long *&indpix, string outdir, int &flagon) {
 	FILE *fp;
 	string testfile2;
 	size_t result;
 
-	testfile2 = outdir + "Indpix_for_conj_grad_" + termin + ".bi";
+	testfile2 = outdir + "Indpix_for_conj_grad.bi";
 	if ((fp = fopen(testfile2.c_str(),"r"))!=NULL){
 		result = fread(&flagon,sizeof(int),1,fp); // mat 04/06
 		result = fread(&npix,sizeof(int),1,fp);
@@ -153,11 +213,11 @@ void read_indpix(long &ind_size, int &npix, long *&indpix, string termin, string
 	}
 }
 
-void write_PNd(double *PNd, int npix, string termin, string outdir) {
+void write_PNd(double *PNd, int npix,  string outdir) {
 	FILE *fp;
 	string testfile2;
 
-	testfile2 = outdir + "PNdCorr_" + termin + ".bi";
+	testfile2 = outdir + "PNdCorr.bi";
 
 	if((fp = fopen(testfile2.c_str(),"w"))!=NULL){
 		//fprintf(fp,"%d\n",npix);
@@ -173,7 +233,7 @@ void write_PNd(double *PNd, int npix, string termin, string outdir) {
 
 
 	//Debug
-	testfile2 = outdir + "PNdCorr_" + termin + ".txt";
+	testfile2 = outdir + "PNdCorr.txt";
 
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		//fprintf(fp,"%d\n",npix);
@@ -190,12 +250,12 @@ void write_PNd(double *PNd, int npix, string termin, string outdir) {
 }
 
 
-void read_PNd(double *&PNdtot, int &npix, string termin, string outdir) {
+void read_PNd(double *&PNdtot, int &npix,  string outdir) {
 	FILE *fp;
 	string testfile2;
 	size_t result;
 
-	testfile2 = outdir + "PNdCorr_" + termin + ".bi";
+	testfile2 = outdir + "PNdCorr.bi";
 
 	if ((fp = fopen(testfile2.c_str(),"r"))!=NULL){
 		result = fread(&npix,sizeof(int),1,fp);
@@ -208,13 +268,13 @@ void read_PNd(double *&PNdtot, int &npix, string termin, string outdir) {
 	}
 
 }
-void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int idet, long iframe) {
+void read_samptopix(long ns, long *&samptopix, string outdir, int idet, long iframe) {
 	FILE *fp;
 	size_t result;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "samptopix_" << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << idet << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -230,13 +290,13 @@ void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int
 }
 
 
-void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int idet, long iframe) {
+void write_fdata(long ns, fftw_complex *fdata, string outdir, int idet, long iframe) {
 	FILE *fp;
 	//long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fdata_" << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + "fdata_" << iframe << "_" << idet << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -255,7 +315,7 @@ void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int
 
 	// Debug
 	oss.str("");
-	oss << outdir + "fdata_" << iframe << "_" << idet << "_" + termin + ".txt";
+	oss << outdir + "fdata_" << iframe << "_" << idet << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile = oss.str();
@@ -299,7 +359,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 }
 
 
-void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, string outdir, int idet, long iframe) {
+void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, int idet, long iframe) {
 	FILE *fp;
 	size_t result;
 	//long data_size;
@@ -307,7 +367,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, st
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + prefixe << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + prefixe << iframe << "_" << idet << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -323,13 +383,13 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, st
 	}
 }
 
-void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long idet, long iframe) {
+void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe) {
 	FILE *fp;
 	//long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fPs_" << iframe << "_" << idet << "_" + termin + ".bi";
+	oss << outdir + "fPs_" << iframe << "_" << idet << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -346,14 +406,14 @@ void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long 
 	}
 }
 
-void write_info_for_second_part(string outdir, string termin, int nn, int npix,
+void write_info_for_second_part(string outdir,  int nn, int npix,
 		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix){
 
 	//char testfile[100];
 	FILE *fp;
 	string testfile;
 
-	testfile = outdir + "InfoFor2ndStep_" + termin + ".txt";
+	testfile = outdir + "InfoFor2ndStep.txt";
 	//sprintf(testfile,"%s%s%s%s",outdir.c_str(),"InfoFor2ndStep_",termin.c_str(),".txt");
 	if((fp = fopen(testfile.c_str(),"w"))==NULL){
 		cerr << "Cannot open file :" << testfile << "\tExiting." << endl;

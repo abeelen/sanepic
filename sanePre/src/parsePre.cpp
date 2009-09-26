@@ -6,7 +6,28 @@
  */
 
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstdlib>
+#include <stdio.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+#include "positionsIO.h"
+#include "mpi_architecture_builder.h"
+
+
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
+
 #include "parsePre.h"
+#include "inputFileIO.h"
 
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ /*string &bextension,

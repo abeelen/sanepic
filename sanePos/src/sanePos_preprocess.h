@@ -14,6 +14,7 @@
 #ifndef SANEPOS_PREPROCESS_H_
 #define SANEPOS_PREPROCESS_H_
 
+#include "mpi_architecture_builder.h"
 
 using namespace std;
 
@@ -23,9 +24,9 @@ using namespace std;
  */
 
 void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fits_table,/*string bextension,
-		string fextension,*//*string file_offsets,*/foffset *foffsets,float *scoffsets,	/*double *offsets,*/long iframe_min, long iframe_max,
+		string fextension,*//*string file_offsets,foffset *foffsets,float *scoffsets,	double *offsets,*/long iframe_min, long iframe_max,
 		long *fframes,long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field,*/int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
+		string flpoint_field,int nfoff, */double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection);
 
 /*!
@@ -37,8 +38,9 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
  *  npixsrc : total number of pix in box for CCR
  *  mask : 0 if the pixel is contained in box for CCR, 1 otherwise
  */
-long Compute_indpsrc_addnpix(int nn, long ntotscan,std::vector<long> xxi, std::vector<long> xxf,
-		std::vector<long> yyi, std::vector<long> yyf, long* &indpsrc, long &npixsrc, unsigned char* &mask);
+
+void Compute_indpsrc_addnpix(unsigned long NAXIS1, unsigned long NAXIS2, long ntotscan, std::vector<struct box> boxFile,
+		long &addnpix, long* &indpsrc, long &npixsrc, unsigned short* &mask);
 
 /*!
  *  Get coordinates of pixels that are seen
@@ -46,23 +48,24 @@ long Compute_indpsrc_addnpix(int nn, long ntotscan,std::vector<long> xxi, std::v
  *  One binary file per bolometer and per scan
  */
 
-void compute_seen_pixels_coordinates(int ndet, long ntotscan,string outdir,std::vector<string> bolonames, string *fits_table,/*string bextension, string fextension,*/string termin,
-		/*string file_offsets,*/foffset *foffsets,float *scoffsets,long iframe_min, long iframe_max,long *fframes,
+void compute_seen_pixels_coordinates(long ntotscan,string outdir,std::vector<string> bolonames, string *fits_table,/*string bextension, string fextension, string termin, */
+		/*string file_offsets,foffset *foffsets,float *scoffsets, */ long iframe_min, long iframe_max,long *fframes,
 		long *nsamples,string dirfile/*,string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field*/,int nfoff,double pixdeg, int *&xx, int *&yy,unsigned char *&mask, int &nn, double *&coordscorner, double *tancoord,
-		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,
+		string flpoint_field,int nfoff*/,double pixdeg, int *&xx, int *&yy,unsigned short *&mask, int &nn, double *&coordscorner, double *tancoord,
+		double *tanpix, bool bfixc, double radius, /*double *offmap,*/ double *srccoord, char type, double *&ra,double *&dec,
 		double *&phi, short *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,short* &flag,
 		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl,int factdupl, long addnpix, unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon,bool &pixout);
 
-/*!
- *   compute indpix : pixels indices used for data projection/deprojection.
- *   npix is the number of filled pixels
- *   Pixon : indicates if the pixel is projected on the map or not
- *   addnpix : number of pixels to add : depends on box for CCR and duplication factor
- */
-int compute_indpix(long *&indpix,int factdupl,int nn,long addnpix, long* pixon);
+void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
+		string *fits_table, long iframe_min, long iframe_max,long *fframes, long *nsamples,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+		unsigned short *&mask,int &nn,
+		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
+		long addnpix, long *&pixon, int rank,
+		long *indpsrc, long npixsrc, int &flagon, bool &pixout);
 
+// TODO: Remove this
 int map_offsets(string file_frame_offsets, long ntotscan, float *&scoffsets, foffset *&foffsets, long *fframes, int rank);
 
 #endif /* SANEPOS_PREPROCESS_H_ */

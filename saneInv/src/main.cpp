@@ -10,6 +10,7 @@
 #include "covMatrixIO.h"
 #include "invMatrix.h"
 #include "parseInv.h"
+#include "inputFileIO.h"
 
 using namespace std;
 

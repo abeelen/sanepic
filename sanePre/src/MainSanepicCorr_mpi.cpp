@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 	string prefixe; /*! prefix used for temporary name file creation*/
 	//string flpoint_field = "FLPOINTING"; /*! Poiting filename */
 	string fname; /*! parallel scheme filename*/
-	string termin_internal = "internal_data"; /*! internal data suffix */
+//	string termin_internal = "internal_data"; /*! internal data suffix */
 
 	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(nn, tmp_dir, termin_internal, coordsyst2, tanpix, tancoord);
+	read_info_pointing(nn, tmp_dir, coordsyst2, tanpix, tancoord);
 
 	cout << "Map size :" << nn << "x" << nn << endl;
 
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//read projection vector from a file
-	read_indpix(ind_size, npix, indpix, termin_internal, tmp_dir, flagon);
+	read_indpix(ind_size, npix, indpix, tmp_dir, flagon);
 
 	// Check indpix readed size = expected size
 	if(ind_size!=(factdupl*nn*nn+2 + addnpix)){
@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
 			write_ftrProcesdata(NULL,indpix,indpsrc,nn,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-					tmp_dir,termin_internal,/*errarcsec,*/dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
+					tmp_dir,/*termin_internal,errarcsec,*/dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
 					fextension,*/shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
-			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,termin_internal,bolonames,f_lppix_Nk,
+			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
 					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,nn,npix,iframe,NULL,NULL/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
@@ -435,7 +435,7 @@ int main(int argc, char *argv[])
 
 			//write_ftrProcesdata_nocorr();
 
-			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,termin_internal,dirfile,
+			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,/*termin_internal,*/dirfile,
 					bolonames,fits_table,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
 					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
 					nn,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
@@ -462,7 +462,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
-		write_PNd(PNdtot,npix,termin_internal,tmp_dir);
+		write_PNd(PNdtot,npix,/*termin_internal,*/tmp_dir);
 	}
 
 

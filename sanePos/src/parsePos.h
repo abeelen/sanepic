@@ -8,26 +8,10 @@
 #ifndef PARSEPOS_H_
 #define PARSEPOS_H_
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <unistd.h>
-#include <list>
-#include <string>
 #include <vector>
-#include <algorithm>
-#include <math.h>
-#include "positionsIO.h"
-#include "mpi_architecture_builder.h"
+#include <string>
 
-extern "C"{
-#include "iniparser.h"
-#include "dictionary.h"
-}
+#include "mpi_architecture_builder.h"
 
 using namespace std;
 /*!
@@ -39,8 +23,8 @@ using namespace std;
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
 		double &pixdeg, string &dirfile, string &outdir, /*string &bextension,
-		string &fextension, string &pextension,*/ /*string &file_offsets,*/ string &file_frame_offsets, /*string &termin,*/
+		string &fextension, string &pextension,*/ /*string &file_offsets, string &file_frame_offsets, string &termin,*/
 		int &coordsyst, std::vector<string> &bolonames, /*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
-		std::vector<long> &xxi,std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &fitsvect, std::vector<long> &scans_index);
+		std::vector<struct box> & boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index);
 
 #endif /* PARSEPOS_H_ */

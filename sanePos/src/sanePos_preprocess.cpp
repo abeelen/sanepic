@@ -32,11 +32,12 @@
 
 #include "sanePos_preprocess.h"
 
+// TODO: Will not be used soon, replaced by compute MapMinima
 
 void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fits_table,/*,string bextension,
-		string fextension,*//*string file_offsets,*/foffset *foffsets,float *scoffsets,	/*double *offsets,*/long iframe_min, long iframe_max,
+		string fextension,*//*string file_offsets,foffset *foffsets,float *scoffsets,	double *offsets,*/long iframe_min, long iframe_max,
 		long *fframes,long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field,*/int nfoff,double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
+		string flpoint_field,int nfoff,*/ double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
 		double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
 
@@ -86,8 +87,13 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 		fits_file=fits_table[0];
 
+//		cout << fits_file << " " << field << endl;
+
 		read_bolo_offsets_from_fits(fits_file, field, offsets);
-		//cout << "after  " << offsets[0] << " " << offsets[1] << endl;
+
+
+//		cout << "after  " << offsets[0] << " " << offsets[1] << endl;
+//		exit(0);
 
 		///////////////// Procedure de test pour read_data_from_fits /////////////
 
@@ -138,8 +144,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 			fits_file=fits_table[iframe];
 
-			read_position_from_fits(fits_file, ra, dec, phi, ns2);
-			read_flpoint_from_fits(fits_file , flpoint);
+			read_position_from_fits(fits_file, ra, dec, phi, flpoint, 0, NULL, ns2, field);
 			/*cout << "after " << ra2[0] << " " << ra2[1] << endl << endl;
 			cout << "after dec " << dec2[0] << " " << dec2[1] << endl;
 			cout << "after phi " << phi2[0] << " " << phi2[1] << endl;
@@ -160,12 +165,12 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 
 			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : A virer
+//			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : A virer
 
 			if (default_projection){
 				// spheric coords to squared coords (tangent plane)
-				sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-						tancoord, tanpix, bfixc, radius, offmap, srccoord,0);
+				sph_coord_to_sqrmap(pixdeg, ra, dec, phi, offsets, ns, xx, yy, &nn, coordscorner,
+						tancoord, tanpix, bfixc, radius, /*offmap,*/ srccoord,0);
 			}else{
 				//compute ramin/max, etc... with WCS
 			}
@@ -188,160 +193,75 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 
 
-long Compute_indpsrc_addnpix(int nn, long ntotscan, std::vector<long> xxi, std::vector<long> xxf, std::vector<long> yyi,
-		std::vector<long> yyf, long* &indpsrc,long &npixsrc,unsigned char *&mask){
-
-	long addnpix=0;
-
-	//************************************* Deal with masking the point sources
-	// define the mask
 
 
 
-	for (long ii=0;ii<nn*nn;ii++){
-		mask[ii] = 1;
-		indpsrc[ii] = -1;
-	}
-
-
-	if (xxi.size() != 0){
-		for (long ib = 0;ib < (long)xxi.size(); ib++){ // to avoid warning, mat-27/05
-			// for each box crossing constraint removal
-			for (long ii=xxi[ib];ii<xxf[ib];ii++)
-				for (long ll=yyi[ib];ll<yyf[ib];ll++){
-					mask[ll*nn + ii] = 0;  // mask is initialised to 0
-					indpsrc[ll*nn + ii] = npixsrc;
-					npixsrc += 1;
-				}
-		}
-	}
-
-
-
-
-
-	/*for (long ii=0;ii<nn*nn;ii++){
-		if (mask[ii] == 0){
-			indpsrc[ii] = npixsrc;
-			npixsrc += 1;
-		} else {
-			indpsrc[ii] = -1;
-		}
-	}*/
-	addnpix = ntotscan*npixsrc; // addnpix = number of pix to add in pixon = number of scans * number of pix in box crossing constraint removal
-
-	//debug
-	cout  << "addnpix : " << addnpix << endl;
-
-
-
-	return addnpix;
-}
-
-
-void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::vector<string> bolonames,  string *fits_table,/*,string bextension, string fextension*/string termin,
-		/*string file_offsets,*/foffset *foffsets,float *scoffsets,long iframe_min, long iframe_max,long *fframes,
+void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<string> bolonames,  string *fits_table,/*,string bextension, string fextension, string termin,*/
+		/*string file_offsets,foffset *foffsets,float *scoffsets,*/ long iframe_min, long iframe_max,long *fframes,
 		long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
-		string flpoint_field,*/int nfoff,double pixdeg, int *&xx, int *&yy, unsigned char *&mask,int &nn, double *&coordscorner, double *tancoord,
-		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,
+		string flpoint_field,int nfoff*/ double pixdeg, int *&xx, int *&yy, unsigned short *&mask,int &nn, double *&coordscorner, double *tancoord,
+		double *tanpix, bool bfixc, double radius, /*double *offmap,*/ double *srccoord, char type, double *&ra,double *&dec,
 		double *&phi, short *&flpoint,int shift_data_to_point,double &ra_min,double &ra_max,double &dec_min,double &dec_max,short* &flag,
 		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl, int factdupl,long addnpix,unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
 
+	/*!
+	 * \fn Get coordinates of pixels that are seen
+	 * Compute the position to pixel projetcion matrices :
+	 * One binary file per bolometer and per scan
+	 */
+
+	unsigned long ndet = bolonames.size();
 
 	string field;
-	//string bolofield;
-	//string flagfield;
+
 	string fits_file;
 	long ns, ff, ns2;
-	//short *flpoint2;
-	//short *flag2;
-
 
 	int ll=0;
 
-	double * offsets,*froffsets;
+	double * offsets;
 	offsets = new double[2]; //
-	froffsets = new double[2]; //
-
-	//flpoint2 = new short[29340];
-	//flag2 = new short[29340];
 
 	/// loop again on detectors
 	//for (idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-	for (int idet=0;idet<ndet;idet++){
+	for (unsigned int idet=0;idet<ndet;idet++){
 
 
 		field = bolonames[idet];
-		//printf("%s\n",field.c_str());
-		//bolofield = field+bextension;
-		//calfield  = field+cextension;
-		//flagfield = field+fextension;
-
 
 		// read bolometer offsets
 		//read_bolo_offsets(field,file_offsets,scoffsets,offsets);
 
 		fits_file=fits_table[0];
 
+		// TODO: Bolo offsets change per frames, so switch the loop between bolo and frame
 		read_bolo_offsets_from_fits(fits_file, field, offsets);
 
-
 		//loop to get coordinates of pixels that are seen
-		for (long iframe=0;iframe<ntotscan;iframe++){
+		for (unsigned long iframe=0;iframe<ntotscan;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
-			//
-			//			read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-			//			read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-			//			read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-			//			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-			//			read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
-			//			for (long ii=0;ii<ns;ii++)
-			//				if (isnan(ra[ii]) || isnan(dec[ii]))
-			//					flpoint[ii] = 1;
-			//
-			//			flpoint2 = new short[ns];
-
-
 
 			fits_file=fits_table[iframe];
 
-			//if (fextension != "NOFLAG"){
-			//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-			read_position_from_fits(fits_file, ra, dec, phi, ns2);
-			read_flag_from_fits(fits_file , flag, field);
-			read_flpoint_from_fits(fits_file , flpoint);
-
-
-			//cout << "flag : " << " " << flag2[0] << " " << flag2[1] <<  " " << flag2[2]<< " " << flag2[3] << endl;
-			//getchar();
-			/*} else {
-				read_position_from_fits("data_00.fits", ra, dec, phi, flpoint, 0, NULL, ns2, field);
-				for (long ii=0;ii<ns;ii++)
-					flag[ii] = 0;
-			}*/
+			read_position_from_fits(fits_file, ra, dec, phi, flpoint, 1, flag, ns2, field);
 
 			for (long ii=0;ii<ns;ii++)
 				if (isnan(ra[ii]) || isnan(dec[ii]))
 					flpoint[ii] = 1;
 
-
-			if(ns!=ns2){
+			if(ns!=ns2)
 				cerr << "Error. Fits file has a wrong number of samples\n";
-				exit(1);
-			}
-
-			// find offset based on frame range
-			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : a virer
-
-
 
 			// return coordscorner, nn ,xx, yy, tancoord, tanpix
-			sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-					tancoord, tanpix, 1, radius, offmap, srccoord,1);
+			sph_coord_to_sqrmap(pixdeg, ra, dec, phi, offsets, ns, xx, yy, &nn, coordscorner,
+					tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,1);
 
-
+//			for (long ii=0; ii<20; ii++){
+//				cout << xx[ii] << " " << yy[ii] << endl;
+//
+//			}
 
 
 			// create flag field -----> conditions to flag data,
@@ -409,7 +329,7 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 
 
 			//if (rank == 0){
-			write_samptopix(ns, samptopix, termin, outdir, idet, iframe);
+			write_samptopix(ns, samptopix, /*termin, */ outdir, idet, iframe);
 			//write_samptopix(ns, samptopix, termin, outdir, idet, index_table[iframe]);
 			//}
 
@@ -419,32 +339,241 @@ void compute_seen_pixels_coordinates(int ndet,long ntotscan,string outdir, std::
 
 
 	delete [] offsets;
-	delete [] froffsets;
+
 }
 
 
-int compute_indpix(long *&indpix,int factdupl,int nn,long addnpix,long *pixon){
 
-	int npix;
-	int ll=0;
+void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
+		string *fits_table, long iframe_min, long iframe_max,long *fframes, long *nsamples,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+		unsigned short *&mask,int &nn,
+		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
+		long addnpix, long *&pixon, int rank,
+		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
+
+	/*!
+	 * \fn Get coordinates of pixels that are seen
+	 * Compute the position to pixel projetcion matrices :
+	 * One binary file per bolometer and per scan
+	 */
+
+	// TODO : samptopix unsigned long
+	long  *samptopix;
+	unsigned long ndet = bolonames.size();
+
+	string field;
+
+	string fits_file;
+	long ns;
+
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		// for each scan
+		fits_file=fits_table[iframe];
+		ns = nsamples[iframe];
+
+		double *ra, *dec, *phi, **offsets;
+		short *flpoint;
 
 
-	// initialize indpix
-	fill(indpix, indpix+(factdupl*nn*nn+2 + addnpix),-1);
+		// read bolo offsets
+		// TODO : This function should also return the PRJCODE to be used below...
+		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
 
+		// read reference position
+		long test_ns;
+		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, flpoint, test_ns);
 
-
-	for(int ii=0;ii<factdupl*nn*nn+2 + addnpix;ii++){
-		if (pixon[ii] != 0){
-			indpix[ii] = ll; // pixel indice : 0 -> number of seen pixels
-			ll++;
+		if (test_ns != ns) {
+			cerr << "Read position does not correspond to frame size : Check !" << endl;
+			exit(-1);
 		}
-	}
-	npix = ll;  // npix = number of filled pixelsx;
 
-	return npix;
+
+
+		// find the pointing solution at each time stamp for each detector
+		struct celprm celestial;
+		celini(&celestial);
+
+		// TODO: use the PRJCODE read from the file...
+		tanset(&celestial.prj);
+
+		// Warning !!
+		// We need to deproject the bolometer into the sky (detector parallelization) and then project into map pixel
+		// as we need to process an entire frame to save data per frame, we cannot parallelize by detector,
+		// since we would then need to save a 2*ndet*ns matrix
+
+		// First compute the sin and cos of the phi (will be reused ns times..)
+		double *cosphi, *sinphi;
+		cosphi = new double[ns];
+		sinphi = new double[ns];
+
+		for (unsigned long ii=0; ii<ns; ii++){
+			cosphi[ii] = cos(phi[ii]/180.0*M_PI);
+			sinphi[ii] = sin(phi[ii]/180.0*M_PI);
+		}
+
+
+
+		for (unsigned long idet = 0; idet<ndet; idet++){
+
+			string field = bolonames[idet];
+
+			double offxx, offyy, lon, lat, ra_deg, dec_deg;
+			int status;
+
+			int *xx, *yy;
+			double *world, *imgcrd, *pixcrd;
+			double *theta, *phi;
+			int    *wcsstatus;
+			theta  = new double[ns];
+			phi    = new double[ns];
+			world  = new double[2*ns];
+			imgcrd = new double[2*ns];
+			pixcrd = new double[2*ns];
+			xx     = new int[2*ns];
+			yy     = new int[2*ns];
+			wcsstatus = new int[ns];
+			// First deproject the bolometer position ....
+
+			for (long ii=0; ii <ns; ii++){
+
+				celestial.ref[0] =  ra[ii]*15.;
+				celestial.ref[1] =  dec[ii];
+				celset(&celestial);
+
+				//TODO : check this -1 factor... just a stupid convention...
+				offxx = (cosphi[ii] * offsets[idet][0]
+				                                - sinphi[ii] * offsets[idet][1])*-1;
+				offyy =  sinphi[ii] * offsets[idet][0]
+				                                + cosphi[ii] * offsets[idet][1];
+
+				if (celx2s(&celestial, 1, 1, 0, 1, &offxx, &offyy, &lon, &lat, &ra_deg, &dec_deg, &status) == 1) {
+					printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
+					continue;
+				}
+
+				world[2*ii]   = ra_deg;
+				world[2*ii+1] = dec_deg;
+			}
+
+			// ... and reproject it back onto the map
+
+			if ((status = wcss2p(&wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
+				printf("   wcss2p(1) ERROR %2d \n", status);
+				continue;
+			}
+
+			// Transform pixel coordinates to pixel index
+			for (unsigned long ii = 0; ii < ns; ii++){
+				xx[ii]  = int(pixcrd[2*ii]-0.5);
+				yy[ii]  = int(pixcrd[2*ii+1]-0.5);
+			}
+			delete [] world;
+			delete [] imgcrd;
+			delete [] pixcrd;
+			delete [] theta;
+			delete [] phi;
+			delete [] wcsstatus;
+
+
+//			for (unsigned long ii = 0; ii < 20; ii++){
+//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+//			}
+
+			// Combine position and bolo flags
+			// and check
+
+			short *bolo_flag;
+
+			long test_ns;
+			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
+
+			if (test_ns != ns) {
+				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+
+
+			for (unsigned long ii=0; ii<ns; ii++){
+
+				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
+
+				if ((xx[ii] < 0)   || (yy[ii] < 0  ))   bolo_flag[ii] = 2;
+				if ((xx[ii] >= nn) || (yy[ii] >= nn))   bolo_flag[ii] = 2;
+				if (NOFILLGAP && (bolo_flag[ii] == 1 )) bolo_flag[ii] = 2;
+
+				if ((ii < napod) || (ii >= ns-napod)) bolo_flag[ii] = 3;
+
+			}
+
+
+			// Compute sample pixel index according to its flag
+
+			samptopix = new long[ns];
+
+			for (unsigned long ii=0 ; ii<ns; ii++){
+
+				// image1        + flag pixel + out pixel + crossing constrain removal
+				// NAXIS1*NAXIS2 + 1          + 1         + addnpix*nframe
+
+				long ll;
+				switch (bolo_flag[ii]) {
+				case 0:			// sample is not rejected
+
+					ll = NAXIS2*xx[ii]+yy[ii];
+
+					if (mask[ll] != 1) //if pixel is in the box constraint removal mask
+						ll = factdupl*NAXIS1*NAXIS2 + 2 + iframe*npixsrc + indpsrc[ll];
+
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+
+					break;
+
+				case 1:	   // sample is flagged
+
+					if (flgdupl){ // if flagged pixels are in a duplicated map
+						ll = NAXIS2*xx[ii]+yy[ii]; // index in the second map...
+						pixon[NAXIS1*NAXIS2 + ll] += 1;
+						samptopix[ii] = NAXIS1*NAXIS2 + ll;
+					} else { // else every flagged sample is projected to the same pixel (outside the map)
+						ll = factdupl*NAXIS1*NAXIS2 + 1;
+						pixon[ll] += 1;
+						samptopix[ii] = ll;
+					}
+
+					break;
+
+				case 2: // sample is rejected
+					ll = factdupl*NAXIS1*NAXIS2 + 2;
+					pixout = 1; // pixel is out of map
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+
+					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %i, yy = %i\n",rank, ii,xx[ii],yy[ii]);
+
+					break;
+				case 3:	// apodized data -> flag
+					ll = factdupl*NAXIS1*NAXIS2 + 1;
+					flagon = 1;
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+					break;
+				default:
+					break;
+				}
+			}
+
+		write_samptopix(ns, samptopix,  outdir, idet, iframe);
+
+		}//end of idet loop
+	} // end of iframe loop
 }
 
+
+//TODO: Remove this
 
 int map_offsets(string file_frame_offsets,long ntotscan, float *&scoffsets, foffset *&foffsets,long *fframes, int rank){
 

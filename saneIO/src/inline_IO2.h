@@ -26,6 +26,7 @@
 
 extern "C" {
 #include "nrutil.h"
+#include "wcslib/wcs.h"
 }
 
 /*
@@ -44,7 +45,13 @@ using namespace std;
  * Writes Pointing information in the InfoPoiting file
  * Stores nn, coordsyst, tanpix, tancoord
  */
-void write_info_pointing(int nn, string outdir, string termin, int coordsyst, double *tanpix, double *tancoord);
+void write_info_pointing(int nn, string outdir, int coordsyst, double *tanpix, double *tancoord);
+
+/*!
+ * Read/Write of the pointing information
+ */
+void save_MapHeader(string outdir, struct wcsprm wcs);
+void read_MapHeader(string outdir, struct wcsprm *& wcs);
 
 /*!
  * Writes samptopix in a binary file \n
@@ -53,7 +60,7 @@ void write_info_pointing(int nn, string outdir, string termin, int coordsyst, do
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void write_samptopix(long ns, long *samptopix, string termin, string outdir, int idet, long iframe);
+void write_samptopix(long ns, long *&samptopix,  string outdir, int idet, long iframe);
 
 /*!
  * Writes indpix in a binary file \n
@@ -62,7 +69,7 @@ void write_samptopix(long ns, long *samptopix, string termin, string outdir, int
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void write_indpix(long ind_size, int npix, long *indpix, string termin, string outdir, int flagon);
+void write_indpix(long ind_size, int npix, long *indpix,  string outdir, int flagon);
 
 //sanePre functions
 
@@ -70,7 +77,7 @@ void write_indpix(long ind_size, int npix, long *indpix, string termin, string o
  * Reads Pointing information from the InfoPoiting file
  * Returns nn, coordsyst, tanpix, tancoord
  */
-void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, double *tanpix, double *tancoord);
+void read_info_pointing(int &nn, string outdir, int &coordsyst2, double *tanpix, double *tancoord);
 
 //void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
 
@@ -81,21 +88,21 @@ void read_info_pointing(int &nn, string outdir, string termin, int &coordsyst2, 
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void read_indpix(long &ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
+void read_indpix(long &ind_size, int &npix, long *&indpix, string outdir, int &flagon);
 
 /*!
  * Writes PNd in a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void write_PNd(double *PNd, int npix, string termin, string outdir);
+void write_PNd(double *PNd, int npix, string outdir);
 
 /*!
  * Reads PNd from a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void read_PNd(double *&PNdtot, int &npix, string termin, string outdir);
+void read_PNd(double *&PNdtot, int &npix, string outdir);
 
 /*!
  * Reads samptopix from a binary file \n
@@ -104,7 +111,7 @@ void read_PNd(double *&PNdtot, int &npix, string termin, string outdir);
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int idet, long iframe);
+void read_samptopix(long ns, long *&samptopix, string outdir, int idet, long iframe);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -113,7 +120,7 @@ void read_samptopix(long ns, long *&samptopix, string termin, string outdir, int
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fdata(long ns, fftw_complex *fdata, string termin, string outdir, int idet, long iframe);
+void write_fdata(long ns, fftw_complex *fdata, string outdir, int idet, long iframe);
 
 /*!
  * Reads PS for one bolo in a binary file \n
@@ -132,7 +139,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, string outdir, int idet, long iframe);
+void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string outdir, int idet, long iframe);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -141,7 +148,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string termin, st
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long idet, long iframe);
+void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe);
 
 /*!
  * Writes information for a second run of sanepic \n
@@ -154,7 +161,7 @@ void write_fPs(long ns, fftw_complex *fdata, string termin, string outdir, long 
  * -flagon indicates whether a sample was rejected
  * -indpix is the pixel indices in the map
  */
-void write_info_for_second_part(string outdir, string termin, int nn, int npix,
+void write_info_for_second_part(string outdir, int nn, int npix,
 		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix);
 
 /*!

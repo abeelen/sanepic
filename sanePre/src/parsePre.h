@@ -8,27 +8,8 @@
 #ifndef PARSEPRE_H_
 #define PARSEPRE_H_
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <unistd.h>
-#include <list>
-#include <string>
 #include <vector>
-#include <algorithm>
-#include <math.h>
-#include "positionsIO.h"
-#include "mpi_architecture_builder.h"
-
-
-extern "C"{
-#include "iniparser.h"
-#include "dictionary.h"
-}
+#include <string>
 
 using namespace std;
 
