@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	int flagon;
 	long ind_size;
 
-	int samples_per_frames=20;
+	//int samples_per_frames=20;
 	long *indpix;
 
 	long ntotscan; // total number of scans
@@ -105,23 +105,27 @@ int main(int argc, char *argv[])
 
 
 	string field; // actual boloname in the bolo loop
-	string bolofield; // bolofield = boloname + bextension
+	//string bolofield; // bolofield = boloname + bextension
 	string dirfile; // data directory
 	string outdir; // output directory
 	string tmp_dir; // current path (pPath) or output dir (outdir)
-	string bextension; // bolometer field extension
-	string fextension = "NOFLAG"; // flag field extension
-	string pextension; // pointing extension
+	//string bextension; // bolometer field extension
+	//string fextension = "NOFLAG"; // flag field extension
+	//string pextension; // pointing extension
+	//string termin; // output file suffix
 	string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
+	//string termin_internal = "internal_data";
 
 	string MixMatfile = "NOFILE";
 
 
-	std::vector<long> fframes_vec,nsamples_vec,xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
+	std::vector<long> /*fframes_vec,nsamples_vec,*/xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
 	std::vector<string> extentnoiseSP;
 	std::vector<string> bolonames;
+	std::vector<string> fitsvect, noisevect;
+		std::vector<long> scans_index;
 
 	// data parameters
 	long *fframes  ; // first frames table ff_in list -> fframes
@@ -152,9 +156,9 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
-				ntotscan, ndet, dirfile, outdir, tmp_dir, bextension,
-				fextension, noiseSppreffile,
-				bolonames, fframes_vec,  nsamples_vec, extentnoiseSP, MixMatfile,signame);
+				ntotscan, ndet, dirfile, outdir, tmp_dir, /*bextension,
+				fextension,*/ termin, noiseSppreffile,
+				bolonames, fframes,  nsamples, extentnoiseSP, MixMatfile,signame,fitsvect,noisevect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -184,24 +188,33 @@ int main(int argc, char *argv[])
 	}
 
 
-	fframes  = new long[ntotscan];
-	nsamples = new long[ntotscan];
+	//	fframes  = new long[ntotscan];
+	//nsamples = new long[ntotscan];
 	extentnoiseSp_all = new string[ntotscan];
 
+	string *fits_table;
+	long *index_table;
 
-
-	// convert vectors to regular arrays
-	vector2array(nsamples_vec, nsamples);
-	vector2array(fframes_vec,  fframes);
+	fits_table = new string[ntotscan];
+	index_table= new long[ntotscan];
+	//convert vector to standard C array to speed up memory accesses
+	//vector2array(nsamples_vec, nsamples);
+	//vector2array(fframes_vec,  fframes);
+	vector2array(fitsvect, fits_table);
+	//vector2array(noisevect, );
+	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
+	cout << fframes[0] << endl;
+	cout << nsamples[0] << endl;
 
 
-	if(samples_per_frames>1){
+
+	/*if(samples_per_frames>1){
 		for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= samples_per_frames;      // convert nframes to nsamples
 		}
-	}
+	}*/
 
 
 
@@ -261,6 +274,8 @@ int main(int argc, char *argv[])
 	}
 
 
+	//cout << "Map size :" << nn << "x" << nn << endl;
+	//getchar();
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 	getchar();
 
@@ -336,12 +351,14 @@ int main(int argc, char *argv[])
 	//size_det = size;
 #endif
 
+	string fits_filename;
 
 	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
 			ff = fframes[iframe];
 			extentnoiseSp = extentnoiseSp_all[iframe];
+			fits_filename=fits_table[iframe];
 
 			cout << ff ;
 			cout << " " ;
@@ -350,8 +367,8 @@ int main(int argc, char *argv[])
 			cout << extentnoiseSp ;
 			cout << endl;
 
-			EstimPowerSpectra(fsamp, ns, ff, ndet, NAXIS1, NAXIS2, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, bextension,
-					fextension, shift_data_to_point, tmp_dir, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir);
+			EstimPowerSpectra(fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, /*bextension,
+					fextension,*/ shift_data_to_point, tmp_dir, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir,fits_filename);
 			// fsamp = bolometers sampling freq
 			// ns = number of samples in the "iframe" scan
 			// ff = first sample number

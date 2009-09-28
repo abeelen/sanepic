@@ -7,11 +7,15 @@
 
 #include "inputFileIO.h"
 #include "parsePS.h"
+//#include "mpi_architecture_builder.h"
+
+
 //int parse_sanePos_ini_file(char * ini_name)
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir, string &bextension,
-		string &fextension,  string &noiseSppreffile,
-		std::vector<string> &bolonames,std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame)
+		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir,/* string &bextension,
+		string &fextension,*/ string &termin, string &noiseSppreffile,
+		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
+		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
 
@@ -20,9 +24,9 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	int				i ;
 	double			d ;
 	char		*	s ;
-	long l;
+	//long l;
 	string str;
-	const char *temp;
+	//const char *temp;
 
 	// for poutdir default value
 	/*char * pPath;
@@ -157,8 +161,6 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
 	}else{
-
-
 		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s==NULL){
 			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
@@ -178,7 +180,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	}
 
 
-	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
+/*	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
 		printf("You must choose add a line in the ini_file corresponding to the bolofield extension : commons:bolofield_extension\n");
 		return -1;
@@ -205,6 +207,8 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("you must specify flag_field_extension\n");
 		return -1 ;
 	}//flag_field_extension = _flag ;
+*/
+
 
 	/*s = iniparser_getstring(ini, "commons:tmp_dir",NULL);
 	if(s==NULL){
@@ -235,7 +239,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		return -1 ;
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
-
+/*
 	s = iniparser_getstring(ini, "commons:frame_file",NULL);
 	if(s==NULL){
 		printf("You must add a line in the ini file corresponding to a frame file : commons:frame_file\n");
@@ -276,6 +280,40 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("You must specify a frame file : commons:frame_file\n");
 		return -1 ;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
+
+*/
+
+
+	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
+	if(s==NULL){
+		printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("fits filelist : [%s]\n",s);
+		//read frame file function
+		//std::vector<string> fitsvect_path;
+		std::vector<string> noisevect;
+		//std::vector<long> scans_index;
+		bool framegiven;
+
+		read_fits_list(str, fitsvect, noisevect, scans_index, framegiven);
+		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
+		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
+		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+		for(int ii=0;ii<(int)fitsvect.size();ii++){
+			cout << dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = dirfile + fitsvect[ii];}
+
+		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+
+		//getchar();
+	}else{
+		printf("You must specify a fits filelist : commons:fits_filelist\n");
+		return -1 ;
+	}//frame_file =./RCW_120_M/fits_files.txt ;
+
 
 
 
@@ -329,7 +367,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 
 	}else{
 		signame="NOSIGFILE";
-	}// MixMatfile = Mixlaboca
+	}//
 
 
 
@@ -343,12 +381,12 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 
 
 	// Set default parameter values
-	if (fframes_vec.size() == 0) {
+	/*if (fframes_vec.size() == 0) {
 		fframes_vec.push_back(0);
 		nsamples_vec.push_back(-1);
 	}
 	if (fframes_vec.size() == 1 && nsamples_vec.size() == 0)
-		nsamples_vec.push_back(-1);
+		nsamples_vec.push_back(-1);*/
 
 	// Check improper usage
 	if (bolonames.size() == 0) {
@@ -356,23 +394,24 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		exit(1);
 		//usage(argv[0]);
 	}
-	if (fframes_vec.size() != nsamples_vec.size()) {
+/*	if (fframes_vec.size() != nsamples_vec.size()) {
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		exit(1);
-	}
+	}*/
 
 
-	ntotscan = fframes_vec.size();
+	//ntotscan = fframes_vec.size();
 	ndet = bolonames.size();
 
-	nnf = extentnoiseSP.size();
+
+	nnf = (int)extentnoiseSP.size();
 	//nnf=1; // Temporarily
 	if (nnf != 1 && nnf != ntotscan){
 		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
 		exit(1);
 	}
-	//if (nnf == 1 && ntotscan > 1)
-	//extentnoiseSp.resize(ntotscan, extentnoiseSp[0]);
+	if (nnf == 1 && ntotscan > 1)
+	extentnoiseSp.resize(ntotscan, extentnoiseSp[0]);
 
 	//  printf("%d\n",nnf);
 

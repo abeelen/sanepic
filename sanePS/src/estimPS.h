@@ -30,10 +30,10 @@ extern "C" {
 
 void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix, long napod,
 		long iframe, bool flgdupl, int factdupl, long *indpix,
-		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string bextension,
-		string fextension, int shift_data_to_point, string dir,
+		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, /*string bextension,
+		string fextension,*/ int shift_data_to_point, string dir,
 		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
-		string extentnoiseSp, string outdirSpN);
+		string extentnoiseSp, string outdirSpN, string fits_filename);
 
 
 #endif /* ESTIMPS_H_ */
