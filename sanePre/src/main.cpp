@@ -18,6 +18,7 @@
 #include "parsePre.h"
 #include "sanePre_preprocess.h"
 
+#include "imageIO.h"
 #include "positionsIO.h"
 #include "inline_IO2.h"
 #include "nrutil.h"
@@ -130,6 +131,7 @@ int main(int argc, char *argv[])
 	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
 	long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 
+	long *hits,*hitstot; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string *extentnoiseSp_all; /*! noise file vector of string */
@@ -146,7 +148,7 @@ int main(int argc, char *argv[])
 	string prefixe; /*! prefix used for temporary name file creation*/
 	//string flpoint_field = "FLPOINTING"; /*! Poiting filename */
 	string fname; /*! parallel scheme filename*/
-//	string termin_internal = "internal_data"; /*! internal data suffix */
+	//	string termin_internal = "internal_data"; /*! internal data suffix */
 
 	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
@@ -311,11 +313,18 @@ int main(int argc, char *argv[])
 	PNd = new double[npix];
 
 	// global At N-1 D malloc for mpi
+
 	PNdtot = new double[npix];
+	hits=new long[npix];
+	hitstot=new long[npix];
+
+
 
 	// initialisation to 0.0
 	fill(PNd,PNd+npix,0.0);
 	fill(PNdtot,PNdtot+npix,0.0);
+	fill(hits,hits+npix,0);
+	fill(hitstot,hitstot+npix,0);
 
 
 
@@ -421,7 +430,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
-					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL/*,fdata_buffer*/);
+					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -455,9 +464,13 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+
 #else
-	for(int ii=0;ii<npix;ii++)
+	for(int ii=0;ii<npix;ii++){
+		hitstot[ii]=hits[ii];
 		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
+	}
 #endif
 
 
@@ -471,6 +484,51 @@ int main(int argc, char *argv[])
 	//TODO: write a naiveMap in fits
 
 
+	cout << "naive step" << endl;
+	string fnaivname;
+	double *map1d;
+	int mi;
+	map1d = new double[NAXIS1*NAXIS2];
+
+
+
+
+	for (int ii=0; ii<NAXIS1; ii++) {
+		for (int jj=0; jj<NAXIS2; jj++) {
+			mi = jj*NAXIS1 + ii;
+			if (indpix[mi] >= 0){
+				map1d[mi] = hits[indpix[mi]];
+			} else {
+				map1d[mi] = 0.0;
+			}
+		}
+	}
+
+	fnaivname = '!' + tmp_dir + "naivMaphits.fits";
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
+
+
+	for (int ii=0; ii<NAXIS1; ii++) {
+		for (int jj=0; jj<NAXIS2; jj++) {
+			mi = jj*NAXIS1 + ii;
+			if (indpix[mi] >= 0){
+				if(hits[indpix[mi]]>0)
+					map1d[mi] = PNdtot[indpix[mi]]/(double)hits[indpix[mi]];
+			} else {
+				map1d[mi] = 0.0;
+			}
+		}
+	}
+
+
+	fnaivname = '!' + tmp_dir + "naivMap.fits";
+	//fname+= "_naive.fits";
+	cout << fnaivname << endl;
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+
+
+	printf("End of saneNaiv\n");
+
 	/* ---------------------------------------------------------------------------------------------*/
 
 	//Processing stops here
@@ -482,6 +540,7 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] PNd;
 	delete [] PNdtot;
+	delete [] hits;
 	delete [] fframes;
 	delete [] nsamples;
 	delete [] indpix;
