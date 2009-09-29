@@ -7,13 +7,13 @@
 
 #include "inputFileIO.h"
 #include "parsePS.h"
-//#include "mpi_architecture_builder.h"
+#include "mpi_architecture_builder.h"
 
 
 //int parse_sanePos_ini_file(char * ini_name)
 int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir,/* string &bextension,
-		string &fextension,*/ string &termin, string &noiseSppreffile,
+		string &fextension,*/ string &noiseSppreffile,
 		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
@@ -411,7 +411,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		exit(1);
 	}
 	if (nnf == 1 && ntotscan > 1)
-	extentnoiseSp.resize(ntotscan, extentnoiseSp[0]);
+	extentnoiseSP.resize(ntotscan, extentnoiseSP[0]);
 
 	//  printf("%d\n",nnf);
 

@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 	} else {
 		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
 				ntotscan, ndet, dirfile, outdir, tmp_dir, /*bextension,
-				fextension,*/ termin, noiseSppreffile,
+				fextension,*/ noiseSppreffile,
 				bolonames, fframes,  nsamples, extentnoiseSP, MixMatfile,signame,fitsvect,noisevect,scans_index);
 
 		if (parsed==-1){

@@ -6,7 +6,8 @@
  */
 
 #include "estimPS_steps.h"
-//#include "positionsIO.h"
+//#include "inputFileIO.h"
+#include "positionsIO.h"
 
 
 using namespace std;
@@ -51,7 +52,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet
 
 void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, /*string bextension, string fextension,*/
 		string dirfile, int shift_data_to_point, string dir, long iframe, double *S, long *indpix,  bool NORMLIN,
-		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp, short *flag,
+		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
 		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename){
 	//**************************** Read data and compute components
 
@@ -63,6 +64,9 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 	double tmpsign, mm;
 	double sign0=1;
 	double **commonm;
+
+	long ns2;
+	short *flag;
 
 	fftw_plan fftplan;
 
@@ -85,7 +89,8 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 		//if (fextension != "NOFLAG"){
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+"_flag",  'c');
-		read_flag_from_fits(fits_filename , flag, field);
+		read_flag_from_fits(fits_filename ,field, flag, ns2);
+
 		/*} else {
 			//      printf("NOFLAG\n");
 			for (long ii=0;ii<ns;ii++)
@@ -228,7 +233,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 
 void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string noiseSppreffile, /*string bextension, string fextension,*/ long &nbins,
-		long &nbins2, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data,  short *flag,
+		long &nbins2, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data, /* short *flag,*/
 		long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
 		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, int shift_data_to_point, string outdirSpN, string fits_filename){
@@ -238,7 +243,9 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	string testfile;
 	std::ostringstream temp_stream; // used to remove sprintf horror
 	FILE *fp;
+	long ns2;
 
+	short *flag;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 	//**************************************** Read pre-estimated power spectrum for reference : get ell and nbins
@@ -268,7 +275,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 		read_signal_from_fits(fits_filename, data, field);
 
-		read_flag_from_fits(fits_filename , flag, field);
+		read_flag_from_fits(fits_filename ,field, flag, ns2);
 
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
 
@@ -480,7 +487,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	//// write Rellexp to disk and also first guess of parameters
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
 
-	temp_stream << outdirSpN + "Rellexp_" << ff << "_" + termin + ".txt";
+	temp_stream << outdirSpN + "Rellexp_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();

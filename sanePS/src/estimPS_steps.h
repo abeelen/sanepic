@@ -28,12 +28,12 @@ void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet
 
 void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int NAXIS1,int NAXIS2, long npix, bool flgdupl, int factdupl, std::vector<string> bolonames,/* string bextension, string fextension,*/
 		string dirfile, int shift_data_to_point,  string dir, long iframe, double *S, long *indpix,  bool NORMLIN,
-		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp,  short *flag,
+		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp,  /*short *flag,*/
 		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod ,fftw_complex *fdata1, string fits_filename);
 
 
 void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentnoiseSp, string noiseSppreffile,/* string bextension, string fextension,*/ long &nbins,
-		long &nbins2, long ns, long ff, long ndet, int NAXIS1,int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data, short *flag,
+		long &nbins2, long ns, long ff, long ndet, int NAXIS1,int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data, /*short *flag,*/
 		long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
 		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, int shift_data_to_point, string outdirSpN,string fits_filename);

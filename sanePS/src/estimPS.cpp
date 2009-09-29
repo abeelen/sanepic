@@ -35,7 +35,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	double *data, *data_lp, *Ps, /**calp, */*apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
 	long *samptopix; // sample to pixel projection matrix
 	//unsigned char *flag; // flag array
-	short *flag;
+//	short *flag;
 	double /***commonm,*/ **commonm2,/* **common_f,*/ **vect; // ?
 	double **P, **N, **Rellth, **Rellexp; // Rellth = covariance matrix
 	double **Cov, **iCov,/* **iCov2,*/ **SpN_all; //mixing matrix, AtN-1A, inverted AtN-1A, ?, SpN_all = PS for the bolo (ndet, nbins)
@@ -76,7 +76,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	commonm_f = new double[ns]; // useless
 	//calp = new double[ns];
 	//flag = new unsigned char[ns]; // flag array
-	flag = new short[ns];
+	//flag = new short[ns];
 	samptopix = new long[ns]; // sample to pixel proj matrix
 	Nk = new double[ns/2+1]; // noise PS
 	bfilter = new double[ns/2+1]; // buttter filter values
@@ -135,14 +135,14 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	// compute common mode commonm2
 	common_mode_computation(apodwind, ndet, ns, ff, NAXIS1,NAXIS2, npix, flgdupl, factdupl, bolonames, /*bextension, fextension,*/
 			dirfile,  shift_data_to_point,    dir, iframe, S, indpix,  NORMLIN,
-			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp, flag,
+			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp,
 			bfilter, Cov, uvec, p, ivec, iCov, factapod, fdata1,fits_filename);
 
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
 	estimate_noise_PS(bolonames, dirfile, extentnoiseSp, noiseSppreffile,/* bextension, fextension,*/ nbins,
-			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, SpN_all, data, flag,
+			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, SpN_all, data,
 			samptopix, dir, S, iframe,  Ps, data_lp, bfilter, indpix, NORMLIN,
 			NOFILLGAP, remove_polynomia,flgdupl, factdupl, apodwind, ncomp, mixmat, commonm2, fsamp,
 			Nk, Nell, factapod,Rellth, N, commontmp, P, shift_data_to_point,  outdirSpN,fits_filename);
@@ -180,7 +180,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	delete [] commontmp;
 	delete [] commonm_f;
 	//delete [] calp;
-	delete [] flag;
+	//delete [] flag;
 	delete [] bfilter;
 	delete [] apodwind;
 	delete [] Nell;
