@@ -337,7 +337,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, int idet, long ifr
 
 }
 
-//// TODO : To be Removed
+/*
 void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
 	//
 	FILE *fp;
@@ -359,7 +359,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 	//
 }
 
-
+*/
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, int idet, long iframe) {
 	FILE *fp;
 	size_t result;
@@ -469,7 +469,7 @@ void write_signal(int npix, double *S, string signame){
 		fwrite(S,sizeof(double),npix,fp);
 	}
 }
-// TODO : tests
+
 void read_signal(int &npix, double *&S, string signame){
 	FILE *fp;
 	size_t result;

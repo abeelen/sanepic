@@ -3,7 +3,7 @@
 #include "binaryFileIO.h"
 
 
-// TODO: use inline and/or extern inline if need for speed reason
+// TODO: remove those functions : unused anywhere !!!!
 
 void write_vector(char *filename, void *data, int typesize, long nn) {
 

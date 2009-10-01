@@ -8,14 +8,10 @@
 
 #include "dataIO.h"
 
-using namespace std;
-
-
-#include "dataIO.h"
-
 // #include "getdata.h"
 
 using namespace std;
+
 
 int read_data_std(string fname, int frame, int fs, int ns,
 		void* data, string field, char type)
