@@ -172,6 +172,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	delete [] temp;
 }
 
+// TODO : not used anymore
 //void read_data_from_fits(string filename, double *data, double *data2, double *data3, short *data4, bool flag, short *data5, long &ns, string field){
 void read_position_from_fits(string filename, double *RA, double *DEC, double *PHI, short *FLAG, bool flag, short *mask, long &ns, string field){
 

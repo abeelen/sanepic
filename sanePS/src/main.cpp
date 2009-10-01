@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 		//tancoord = new double[2];
 		//tanpix = new double[2];
 
-
+		// TODO : Should change to use the wcs structure
 		// read nn, coordsyst, tanpix, tancoord
 		read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, NULL, NULL); //juste to read nn
 		//cout << tanpix[0] << " " << tanpix[1] << endl;
@@ -353,6 +353,7 @@ int main(int argc, char *argv[])
 
 	string fits_filename;
 
+// TODO: useless test
 	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];

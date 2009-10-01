@@ -632,7 +632,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 			for (long jj=0; jj<NAXIS2; jj++) {
 				mi = jj*NAXIS2 + ii;
 				if (indpix[mi] >= 0){
-					map1d[mi] = -S[indpix[mi]]; // TODO : suppress -S => S // added minus mat 28_07
+					map1d[mi] = S[indpix[mi]];
 				} else {
 					map1d[mi] = 0.0;
 				}

@@ -54,9 +54,12 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		string dirfile, int shift_data_to_point, string dir, long iframe, double *S, long *indpix,  bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
 		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename){
-	//**************************** Read data and compute components
+	//*************************** Read data and compute components
 
 	// commonm2, samptopix, Ps, data, data_lp, fdata1, flag, bfilter, cov, uvec,p,ivec, icov, factapod
+
+	//TODO : The beginning of this function look a lot like write_ftrProcesdata
+	//       Check and replace/reuse if possible...
 
 	string field; // detector name in the loop
 
@@ -72,8 +75,6 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 	sign = new double[ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
-
-
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
 
@@ -82,7 +83,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 		field = bolonames[idet];
 
-
+		//TODO : sanePS should use the fits file, not the binary file
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+"_data", 'd');
 		read_signal_from_fits(fits_filename, data, field);
 
@@ -106,8 +107,12 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 			}*/
 
 
+		//TODO: subtract the signal only if needed
+
 		//******************************* subtract signal
 
+		//TODO: samptopix should then NOT be in the calling of the function,
+		//      only need in deproject
 		//Read pointing data
 		read_samptopix(ns, samptopix,  dir, idet, iframe);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
@@ -115,9 +120,8 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 			fread(samptopix,sizeof(long),ns,fp);
 			fclose(fp);*/
 
-
+		//TODO : Check this function on what it does/should do
 		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,flgdupl,factdupl);
-
 
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -125,15 +129,19 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP,remove_polynomia);
 
+		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
 
 
+		// TODO: Do we need to compute and save ffts here ???
+		//       fdata are used in cross power spectrum estimation...
+		//       BUT it is done differently than power spectrum estimation WHY ?
+		// TODO: Check how to speed up ffts :  why destroy all plan ?
 		// compute fft and save data to disk for later
 		fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
-
 
 
 		write_fdata(ns, fdata1,  dir, idet, ff);
@@ -250,6 +258,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 	//**************************************** Read pre-estimated power spectrum for reference : get ell and nbins
 
+	// TODO: It actutally needs only the Ell, write specific function just for that
 	//nameSpfile=noiseSppreffile + field + "-all" + extentnoiseSp;
 	nameSpfile=noiseSppreffile + bolonames[0] + "-all" + extentNoiseSp;
 	read_InvNoisePowerSpectra(noiseSppreffile, bolonames[0], extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
@@ -272,7 +281,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 		field = bolonames[idet];
 
-
+		//TODO: should read data from fits file
 		read_signal_from_fits(fits_filename, data, field);
 
 		read_flag_from_fits(fits_filename ,field, flag, ns2);
@@ -296,7 +305,8 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 		}*/
 
 
-
+		//TODO : This computation is already done when computing the common mode
+		//       reuse the fdata if possible?
 		//******************************* subtract signal
 
 		//Read pointing data
@@ -329,11 +339,13 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 				data[ii] -= mixmat[idet][jj]*commonm2[jj][ii]; // common_f precedemment (06/08)
 
 
-		//Noise power spectra
+		// Noise power spectra
 
-		///// measure power spectrum of the uncorrelated part of the noise
+
+		/// measure power spectrum of the uncorrelated part of the noise
 		noisepectrum_estim(data,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
+		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
 		for (long ii=0;ii<nbins;ii++){
 			Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??

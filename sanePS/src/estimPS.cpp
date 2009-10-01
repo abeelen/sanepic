@@ -123,6 +123,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	//apodization
 	apodwind = apodwindow(ns,int(ns*0.04));
+	//TODO: factapod is recomputed several time : could it be computed here ?
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 
@@ -131,6 +132,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 
+	//TODO: Clean the calling function to only needed variable
 
 	// compute common mode commonm2
 	common_mode_computation(apodwind, ndet, ns, ff, NAXIS1,NAXIS2, npix, flgdupl, factdupl, bolonames, /*bextension, fextension,*/

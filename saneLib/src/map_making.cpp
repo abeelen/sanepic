@@ -1123,6 +1123,7 @@ void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns,
 ///// measure power spectrum of the uncorrelated part of the noise
 void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
+	//TODO : should be almost the same as noisecrossspectrum_estim : i.e. take fdata as input
 	int qq;
 	double totapod;
 
@@ -1138,6 +1139,8 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 	count = new int[nbins];
 	fdata = new fftw_complex[ns/2+1];
 
+	//TODO : Why removing a polynomial here ???? SHOULD NOT
+	//TODO : apodization done twice ?? SHOULD NOT, but see below
 
 	remove_poly(data,ns,4,datatemp2,0);
 	apodwind = apodwindow(ns,ns/10);
@@ -1150,6 +1153,8 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 	fftw_execute(fftplan);
 
 
+	// TODO: apodisation done twice ??
+	// TODO: resamblance to factapod in other routines, can we merge that ? (factor ns)
 	totapod = 0.0;
 	for (long ii=0;ii<ns;ii++)
 		totapod += apodwind[ii]*apodwind[ii];
@@ -1220,6 +1225,8 @@ void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsa
 
 void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
+	// TODO : no apodization factor correction here ??
+	// TODO : should be almost the same as noisespectrum_estim
 	int qq;
 
 	double *bfiltertemp;

@@ -74,8 +74,6 @@ void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool
 
 
 
-
-
 void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int NAXIS2, long npix,
 		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
@@ -190,6 +188,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 			fread(samptopix,sizeof(long),ns,fp);
 			fclose(fp);*/
 
+			//TODO : Fix that... same number of argument... not the same calling as in sanePS
 			if (addnpix){
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
 			} else {
@@ -204,6 +203,8 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 		}
 
 
+		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
+		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
@@ -387,6 +388,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 			//getchar();
 
 
+			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);

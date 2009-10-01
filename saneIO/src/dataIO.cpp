@@ -10,15 +10,12 @@
 
 using namespace std;
 
-//TODO: remove C++ dependancies (string fname)
-//TODO: inline/extern inline if needed (not likely)
 
 #include "dataIO.h"
 
 // #include "getdata.h"
 
 using namespace std;
-
 
 int read_data_std(string fname, int frame, int fs, int ns,
 		void* data, string field, char type)
