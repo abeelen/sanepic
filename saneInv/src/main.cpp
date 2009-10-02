@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 	// -the input channel list => channelIn
 	// -The number of bins (size of Ell) => nbins
 	// -The original NoiseNoise covariance matrix => RellthOrig
-	read_CovMatrix(fname, channelIn, &nbins, &ell, &RellthOrig);
+	read_CovMatrix(fname, channelIn, nbins, ell, RellthOrig);
 	// total number of detectors in the covmatrix fits file
 	ndetOrig = channelIn.size();
 	printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
