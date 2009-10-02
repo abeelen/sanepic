@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! coordinatesystem :  Default is RA/DEC = 1 */
-	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
+//	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
 
 
 	//std::vector<long> fframes_vec,nsamples_vec; /*! first frames number vector, number of samples vector */
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 		int parsed=1;
 		parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
 				CORRon,iterw, ntotscan,ndet,f_lp,f_lp_Nk,dirfile,outdir,tmp_dir,
-				termin,coordsyst,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);
+				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -406,18 +406,16 @@ int main(int argc, char *argv[])
 
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
-
-
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-
-	if (coordsyst!=coordsyst2){
-		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
-		exit(0);
-	}
+//
+//	if (coordsyst!=coordsyst2){
+//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
+//		exit(0);
+//	}
 
 
 

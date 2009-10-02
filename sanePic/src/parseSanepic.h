@@ -40,7 +40,7 @@ using namespace std;
  */
 int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, int &iterw, long &ntotscan, long &ndet, double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir, string &termin,
-		int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
+		string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
 		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
 
 

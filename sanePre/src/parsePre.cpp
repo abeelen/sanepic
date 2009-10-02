@@ -32,7 +32,7 @@ extern "C"{
 int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ /*string &bextension,
 		string &fextension, string &pextension,*/ /*string &termin,*/ string &noiseSppreffile,
-		int &coordsyst, std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<long> &xxi,
+		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<long> &xxi,
 		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
@@ -191,14 +191,14 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	*/
 
-	i = iniparser_getint(ini, "commons:coord_syst", -1);
-	if((i==1)||(i==2)||(i==3)){
-		printf("Coordinate system :      [%d]\n", i);
-		coordsyst=i;
-	}else{
-		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-		return -1;
-	}//coord_syst = 1 ;
+//	i = iniparser_getint(ini, "commons:coord_syst", -1);
+//	if((i==1)||(i==2)||(i==3)){
+//		printf("Coordinate system :      [%d]\n", i);
+//		coordsyst=i;
+//	}else{
+//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+//		return -1;
+//	}//coord_syst = 1 ;
 
 	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);

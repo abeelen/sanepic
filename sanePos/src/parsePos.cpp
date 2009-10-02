@@ -28,13 +28,9 @@ extern "C"{
 #include "inputFileIO.h"
 #include "parsePos.h"
 
-//void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
-
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
-		double &pixdeg, string &dirfile, string &outdir/*, string &poutdir*/,/* string &bextension,
-		string &fextension, string &pextension, *//*string &file_offsets, string &file_frame_offsets, string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames,/*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
+		double &pixdeg, string &dirfile, string &outdir,  std::vector<string> &bolonames, long *&fframes, long *&nsamples,
 		std::vector<struct box> & boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
@@ -241,14 +237,14 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		pixdeg=d;
 	}//pixsize =  0.00168725828819 ;*/
 
-	i = iniparser_getint(ini, "commons:coord_syst", -1);
-	if((i==1)||(i==2)||(i==3)){
-		printf("Coordinate system :      [%d]\n", i);
-		coordsyst=i;
-	}else{
-		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-		return -1 ;
-	}//coord_syst = 1 ;
+//	i = iniparser_getint(ini, "commons:coord_syst", -1);
+//	if((i==1)||(i==2)||(i==3)){
+//		printf("Coordinate system :      [%d]\n", i);
+//		coordsyst=i;
+//	}else{
+//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+//		return -1 ;
+//	}//coord_syst = 1 ;
 
 	/*s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
@@ -481,14 +477,14 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		coordscorner[3] = srccoord[1];
 	}
 
-	if (coordsyst != 3){
-		srccoord[0] = -1000;
-		srccoord[1] = -1000;
-	}
-	if ((coordsyst == 3) && (tmpcount2 != 3)){
-		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use RA_source DEC_source map_radius\n";
-		return -1 ;
-	}
+//	if (coordsyst != 3){
+//		srccoord[0] = -1000;
+//		srccoord[1] = -1000;
+//	}
+//	if ((coordsyst == 3) && (tmpcount2 != 3)){
+//		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use RA_source DEC_source map_radius\n";
+//		return -1 ;
+//	}
 
 
 

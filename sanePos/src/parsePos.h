@@ -22,9 +22,7 @@ using namespace std;
  */
 int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
 		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
-		double &pixdeg, string &dirfile, string &outdir, /*string &bextension,
-		string &fextension, string &pextension,*/ /*string &file_offsets, string &file_frame_offsets, string &termin,*/
-		int &coordsyst, std::vector<string> &bolonames, /*std::vector<long> &fframes_vec, std::vector<long> &nsamples_vec,*/long *&fframes, long *&nsamples,
+		double &pixdeg, string &dirfile, string &outdir, std::vector<string> &bolonames, long *&fframes, long *&nsamples,
 		std::vector<struct box> & boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index);
 
 #endif /* PARSEPOS_H_ */

@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	//DEFAULT PARAMETERS
 	long napod = 0; /*! number of samples to apodize, =0 -> no apodisation */
-	double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
+//	double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
 
 
 	long iframe_min, iframe_max; /*! frame number min and max each processor has to deal with */
@@ -138,10 +138,9 @@ int main(int argc, char *argv[])
 	// map making parameters
 	double pixdeg; /*! size of pixels (degree) */
 
-	int nn, npix; /*! nn = side of the map, npix = number of filled pixels */
+	unsigned long npix; /*! npix = number of filled pixels */
 	long npixsrc; /*! number of pixels included in CCR */
 	double ra_min, ra_max, dec_min, dec_max; /*! ra/dec min/max coordinates of the map*/
-	double *offsets, *froffsets, *offmap; /*! bolo offsets / ref bolo, froffsets = frame offsets, offmap = map offsets */
 	float *scoffsets; /*! source offsets depending on wavelength */
 	scoffsets = new float[6];
 
@@ -159,18 +158,11 @@ int main(int argc, char *argv[])
 	string fname; /*! parallel scheme file name */
 
 
-	char type='d'; /*! returned type of read_data functions, d=64bit double */
-	double *ra, *dec, *phi/*, *scerr*/; /*! RA/DEC, phi (angle) coordinates of the bolo, source errors */
-	//unsigned char *flag, *flpoint, *rejectsamp, *mask; /*! samples flags, pointing flags, rejected samples list */
-	unsigned char  *rejectsamp;
 	unsigned short *mask;
-	short *flag, *flpoint; // ajout mat 15/09
-
+	short *flag;
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
-	int *xx, *yy; /*! data coordinates in the map */
 	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
-	long *samptopix; /*! sample to pixel conversion array */
 
 
 
@@ -181,30 +173,12 @@ int main(int argc, char *argv[])
 	string dirfile; /*! data directory*/
 	string tmp_dir; /*! output directory*/
 	string poutdir; /*! current path (pPath) or output dir (outdir)*/
-	//string bextension; /*! bolometer field extension*/
-	//string fextension = "NOFLAG"; /*! flag field extension*/
-	//string pextension; /*! pointing extension*/
-	//string file_offsets; /*! bolometer offsets file*/
-	string file_frame_offsets = "NOOFFS"; /*! offset file*/
-	//string termin; /*! output file suffix */
-//	string termin_internal = "internal_data";
-
-	/* DEFAULT PARAMETERS */
-	int coordsyst = 1; /*! Default is RA/DEC */
-
-
-	//int samples_per_frames=20;
 
 	/* parser inputs */
 	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
-	//std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample */
 	std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 	std::vector<string> fitsvect;
 	std::vector<long> scans_index;
-
-	//std::vector<double> fcut;
-	//std::vector<string> extentnoiseSP; /*! noise file prefix*/
-
 
 	time_t t2, t3;//, t3, t4, t5, dt;
 
@@ -224,9 +198,8 @@ int main(int argc, char *argv[])
 		// TODO : add fits reading and binary/fits data gestion
 		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
 				srccoord,coordscorner,radius,ntotscan,ndet,
-				pixdeg,dirfile,tmp_dir,/*bextension,fextension,
-				pextension,*//*file_offsets,file_frame_offsets,*/
-				coordsyst,bolonames,fframes,nsamples,boxFile,fitsvect,scans_index);
+				pixdeg,dirfile,tmp_dir,
+				bolonames,fframes,nsamples,boxFile,fitsvect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -297,21 +270,21 @@ int main(int argc, char *argv[])
 	string scerr_field = "ERR"+pextension;
 	string flpoint_field = "FLPOINTING";*/
 
-	if (coordsyst == 2){
-		//ra_field = "L"+pextension;
-		//dec_field = "B"+pextension;
-		//phi_field = "PHIG"+pextension;
-		printf("[%2.2i] Coordinate system: Galactic\n",rank );
-	}else{
-		//ra_field = "RA"+pextension;
-		//dec_field = "DEC"+pextension;
-		//phi_field = "PHI"+pextension;
-		if (coordsyst == 3){
-			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
-		} else {
-			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
-		}
-	}
+//	if (coordsyst == 2){
+//		//ra_field = "L"+pextension;
+//		//dec_field = "B"+pextension;
+//		//phi_field = "PHIG"+pextension;
+//		printf("[%2.2i] Coordinate system: Galactic\n",rank );
+//	}else{
+//		//ra_field = "RA"+pextension;
+//		//dec_field = "DEC"+pextension;
+//		//phi_field = "PHI"+pextension;
+//		if (coordsyst == 3){
+//			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
+//		} else {
+//			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
+//		}
+//	}
 	/*
 
 	if (NORMLIN)
@@ -432,25 +405,25 @@ int main(int argc, char *argv[])
 	ns = nsamples[0];
 	for(int ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
 
-	ra = new double[2*ns]; // RA bolo de ref
-	dec = new double[2*ns]; // DEc du bolo de ref
-	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
+//	ra = new double[2*ns]; // RA bolo de ref
+//	dec = new double[2*ns]; // DEc du bolo de ref
+//	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
 	//scerr = new double[2*ns]; // BLAST SPECIFIC : mesure l'erreur de pointage, si trop grande on flag la donnée
-	xx = new int[2*ns]; // sample column coordinates in the map
-	yy = new int[2*ns]; // sample row coordinates in the map
-	samptopix = new long[2*ns]; // sample to pixel conversion index
+//	xx = new int[2*ns]; // sample column coordinates in the map
+//	yy = new int[2*ns]; // sample row coordinates in the map
+//	samptopix = new long[2*ns]; // sample to pixel conversion index
 	//flag = new unsigned char[2*ns]; // flag data => =1
-	flag = new short[2*ns];
-	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
+//	flag = new short[2*ns];
+//	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
 	//flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
-	flpoint = new short[2*ns];
+//	flpoint = new short[2*ns];
 	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
 	tanpix = new double[2]; // coordinates in the map of the tangent point
 
-	froffsets = new double[2]; //
-	offsets = new double[2];
+//	froffsets = new double[2]; //
+//	offsets = new double[2];
 
-	offmap = new double[2]; // map offsets
+//	offmap = new double[2]; // map offsets
 
 
 	// default value for map variables
@@ -470,7 +443,7 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
-	bool default_projection = 1;
+//	bool default_projection = 1;
 
 	// TODO: Different ways of computing the map parameters :
 	// 1 - find minmax of the pointings on the sky -> define map parameters from that
@@ -589,7 +562,7 @@ int main(int argc, char *argv[])
 //	// END DEBUG OF THE FAKE HEADER
 
 	if (rank == 0)
-		printf("[%2.2i] %d x %d pixels\n",rank, NAXIS1, NAXIS2);
+		printf("[%2.2i] %lu x %lu pixels\n",rank, NAXIS1, NAXIS2);
 
 	save_MapHeader(tmp_dir,wcs);
 //	print_MapHeader(wcs);
@@ -604,7 +577,7 @@ int main(int argc, char *argv[])
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
 	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
-	write_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst, tanpix, tancoord);
+	write_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
 
 
 	/*} else {
@@ -664,7 +637,7 @@ int main(int argc, char *argv[])
 	// factdupl if flagged data are to be projected onto a separete map
 	// 1 more pixel for flagged data
 	// 1 more pixel for all data outside the map
-	long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
+	unsigned long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
 	pixon = new long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
@@ -727,8 +700,8 @@ int main(int argc, char *argv[])
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
-	printf("[%2.2i] Size of the map : %d x %d (using %d pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
-	printf("[%2.2i] Total Number of filled pixels : %d\n",rank, npix);
+	printf("[%2.2i] Size of the map : %lu x %lu (using %lu pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
+	printf("[%2.2i] Total Number of filled pixels : %lu\n",rank, npix);
 
 
 	t3=time(NULL);
@@ -757,33 +730,9 @@ int main(int argc, char *argv[])
 	// TODO : Check all variable declaration/free
 
 	// clean up
-	delete [] ra;
-	delete [] dec;
-	delete [] phi;
-	//delete [] scerr; //scerr_field needed
-	delete [] xx;
-	delete [] yy;
-	delete [] flag;
-	delete [] rejectsamp;
-	delete [] samptopix;
-	delete [] flpoint; // flpoint_field needed but not flpoint
 	delete [] mask;
-
 	delete [] pixon;
-
-	delete [] scoffsets;
-	delete [] offsets;
-	delete [] froffsets;
-	delete [] offmap;
-
-//	delete [] foffsets;
-//	delete [] srccoord;
 	delete [] coordscorner;
-
-	//free(testfile);
-
-
-	//delete [] frnum;
 
 	delete [] fframes;
 	delete [] nsamples;

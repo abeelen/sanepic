@@ -11,7 +11,7 @@
 
 int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
 		bool &CORRon, int &iterw, long &ntotscan, long &ndet, double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir,
-		string &termin,	int &coordsyst, string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
+		string &termin,	string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
 		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 
@@ -168,15 +168,15 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	 */
-
-	i = iniparser_getint(ini, "commons:coord_syst", -1);
-	if((i==1)||(i==2)||(i==3)){
-		printf("Coordinate system :      [%d]\n", i);
-		coordsyst=i;
-	}else{
-		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-		return -1 ;
-	}//coord_syst = 1 ;
+//
+//	i = iniparser_getint(ini, "commons:coord_syst", -1);
+//	if((i==1)||(i==2)||(i==3)){
+//		printf("Coordinate system :      [%d]\n", i);
+//		coordsyst=i;
+//	}else{
+//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+//		return -1 ;
+//	}//coord_syst = 1 ;
 
 	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);

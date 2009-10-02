@@ -26,7 +26,7 @@ extern "C" {
 using namespace std;
 
 // sanePos functions
-void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, int coordsyst, double *tanpix, double *tancoord) {
+void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 
@@ -34,7 +34,6 @@ void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, int coordsyst, d
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		fprintf(fp,"%d\n",NAXIS1);
 		fprintf(fp,"%d\n",NAXIS2);
-		fprintf(fp,"%d\n",coordsyst);
 		fprintf(fp,"%lf\n",tanpix[0]);
 		fprintf(fp,"%lf\n",tanpix[1]);
 		fprintf(fp,"%lf\n",tancoord[0]);
@@ -187,7 +186,7 @@ void write_indpix(long ind_size, int npix, long *indpix, string outdir, int flag
 
 //sanePre functions
 
-void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir,  int &coordsyst2, double *tanpix, double *tancoord) {
+void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir,  double *tanpix, double *tancoord) {
 	FILE *fp;
 	string testfile2;
 	int result;
@@ -196,7 +195,6 @@ void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir,  int &coordsyst
 	if((fp = fopen(testfile2.c_str(),"r"))){ // doubles parenthèses sinon warning ...
 		result = fscanf(fp,"%d\n",&NAXIS1);
 		result = fscanf(fp,"%d\n",&NAXIS2);
-		result = fscanf(fp,"%d\n",&coordsyst2);
 		if(tanpix!=NULL){
 			result = fscanf(fp,"%lf\n",tanpix);
 			result = fscanf(fp,"%lf\n",tanpix+1);

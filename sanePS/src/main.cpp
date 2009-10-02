@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		// read nn in InfoPoiting
 
 
-		int coordsyst2;
+//		int coordsyst2;
 		//double *tancoord;
 		//double *tanpix;
 		// allocate memory
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 
 		// TODO : Should change to use the wcs structure
 		// read nn, coordsyst, tanpix, tancoord
-		read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, NULL, NULL); //juste to read nn
+		read_info_pointing(NAXIS1, NAXIS2, tmp_dir, NULL, NULL); //juste to read nn
 		//cout << tanpix[0] << " " << tanpix[1] << endl;
 		//cout << tancoord[0] << " " << tancoord[1] << endl;
 

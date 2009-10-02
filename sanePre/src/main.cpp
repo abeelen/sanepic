@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
-	int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
+//	int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
 
 
 
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
 		parsed=parse_sanePre_ini_file(argv[1],shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,remove_polynomia,flgdupl,
-				CORRon,ntotscan,ndet,f_lp,dirfile,tmp_dir,noiseSppreffile,coordsyst,bolonames,fframes,nsamples, xxi, xxf, yyi, yyf, extentnoiseSP, fcut,fitsvect,noisevect,scans_index);
+				CORRon,ntotscan,ndet,f_lp,dirfile,tmp_dir,noiseSppreffile,bolonames,fframes,nsamples, xxi, xxf, yyi, yyf, extentnoiseSP, fcut,fitsvect,noisevect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -236,17 +236,17 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, coordsyst2, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
 
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 
-	//ensure that coordsyst for position calculation and preprocess are the same
-	if (coordsyst!=coordsyst2){
-		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
-		exit(0);
-	}
+//	//ensure that coordsyst for position calculation and preprocess are the same
+//	if (coordsyst!=coordsyst2){
+//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
+//		exit(0);
+//	}
 
 	//******************************** some preprocess again // compute indpsrc and addnpix ****************/
 	// TODO: to be replaced/removed (see/done in sanePos...)
