@@ -60,7 +60,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir,std::vector<str
 void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
 		string *fits_table, long iframe_min, long iframe_max,long *fframes, long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,int &nn,
+		unsigned short *&mask,
 		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
 		long addnpix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout);

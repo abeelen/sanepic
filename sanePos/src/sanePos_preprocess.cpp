@@ -347,7 +347,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<st
 void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
 		string *fits_table, long iframe_min, long iframe_max,long *fframes, long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,int &nn,
+		unsigned short *&mask,
 		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
 		long addnpix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
@@ -469,6 +469,12 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				xx[ii]  = int(pixcrd[2*ii]-0.5);
 				yy[ii]  = int(pixcrd[2*ii+1]-0.5);
 			}
+
+//			for (unsigned long ii = 0; ii < 20; ii++){
+//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+//			}
+
 			delete [] world;
 			delete [] imgcrd;
 			delete [] pixcrd;
@@ -477,10 +483,6 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 			delete [] wcsstatus;
 
 
-//			for (unsigned long ii = 0; ii < 20; ii++){
-//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-//			}
 
 			// Combine position and bolo flags
 			// and check
@@ -500,14 +502,19 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 
 				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
 
-				if ((xx[ii] < 0)   || (yy[ii] < 0  ))   bolo_flag[ii] = 2;
-				if ((xx[ii] >= nn) || (yy[ii] >= nn))   bolo_flag[ii] = 2;
-				if (NOFILLGAP && (bolo_flag[ii] == 1 )) bolo_flag[ii] = 2;
+				if ((xx[ii] < 0)   || (yy[ii] < 0  ))         bolo_flag[ii] = 2;
+				if ((xx[ii] >= NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
+				if (NOFILLGAP && (bolo_flag[ii] == 1 ))       bolo_flag[ii] = 2;
 
 				if ((ii < napod) || (ii >= ns-napod)) bolo_flag[ii] = 3;
 
 			}
 
+//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
+//			for (unsigned long ii=0; ii<ns; ii++)
+//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
+//				if (bolo_flag[ii]==1)
+//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
 

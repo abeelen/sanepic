@@ -592,7 +592,7 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] %d x %d pixels\n",rank, NAXIS1, NAXIS2);
 
 	save_MapHeader(tmp_dir,wcs);
-	print_MapHeader(wcs);
+//	print_MapHeader(wcs);
 
 	/*!
 	 * \fn write Pointing informations in a file
@@ -678,7 +678,7 @@ int main(int argc, char *argv[])
 	computePixelIndex(ntotscan,tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max,fframes, nsamples,
 			wcs, NAXIS1, NAXIS2,
-			mask,nn,
+			mask,
 			napod, NOFILLGAP, flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
