@@ -70,6 +70,21 @@ void save_MapHeader(string outdir, struct wcsprm wcs){
 
 }
 
+void print_MapHeader(struct wcsprm wcs){
+	int nkeyrec;
+	char * header, *hptr ;
+	if (int status = wcshdo(WCSHDO_all, &wcs, &nkeyrec, &header)) {
+		printf("%4d: %s.\n", status, wcs_errmsg[status]);
+		exit(0);
+	}
+	hptr = header;
+	printf("\n\n Map Header :\n");
+	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
+		printf("%.80s\n", hptr);
+	}
+
+}
+
 void read_MapHeader(string outdir, struct wcsprm * & wcs){
 
 	outdir = outdir + "mapHeader.keyrec";

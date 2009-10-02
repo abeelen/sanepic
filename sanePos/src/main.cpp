@@ -482,22 +482,21 @@ int main(int argc, char *argv[])
 	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
 	 * -> Compute map coordinates
 	 */
-	time_t first = time(NULL);
+//	time_t first = time(NULL);
 
-	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
-			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
-			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
-			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
-
-		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
-
-	first = time(NULL);
+//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
+//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
+//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
+//			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
+//
+//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+//
+//	first = time(NULL);
 	computeMapMinima(bolonames,fits_table,
 			iframe_min,iframe_max,fframes,nsamples,pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 
-	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
-
+//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 #ifdef USE_MPI
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -541,20 +540,20 @@ int main(int argc, char *argv[])
 
 	computeMapHeader(pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
-	if (rank == 0)
-		printf("[%2.2i] %d x %d pixels\n",rank, NAXIS1, NAXIS2);
-
-	// TODO: remove this temporary fix.... save/read thru wcs...
+	//	 TODO: remove this temporary fix.... save/read thru wcs...
 	tancoord[0] = wcs.crval[0];
 	tancoord[1] = wcs.crval[1];
 
 	tanpix[0]   = wcs.crpix[0];
 	tanpix[1]   = wcs.crpix[1];
 
+//	// DEBUG make a fake wcs structure
+//
+//	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+//			tancoord, tanpix, 1, radius, srccoord,0);
+//
 //	NAXIS1 = nn;
 //	NAXIS2 = nn;
-
-//	// DEBUG make a fake wcs structure
 //
 //	// Construct the wcsprm structure
 //	wcs.flag = -1;
@@ -589,24 +588,11 @@ int main(int argc, char *argv[])
 //
 //	// END DEBUG OF THE FAKE HEADER
 
-	save_MapHeader(tmp_dir,wcs);
-//
-////	struct wcsprm *wcs2;
-////	read_MapHeader(tmp_dir,wcs2);
-////
-////	int nkeyrec;
-////	char * header, *hptr ;
-////	cout << " Projection 2 : "<< endl;
-////	if (int status = wcshdo(WCSHDO_all, wcs2, &nkeyrec, &header)) {
-////		printf("%4d: %s.\n", status, wcs_errmsg[status]);
-////		exit(0);
-////	}
-////	hptr = header;
-////	printf("\n\n Projection Header 2:\n");
-////	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
-////		printf("%.80s\n", hptr);
-////	}
+	if (rank == 0)
+		printf("[%2.2i] %d x %d pixels\n",rank, NAXIS1, NAXIS2);
 
+	save_MapHeader(tmp_dir,wcs);
+	print_MapHeader(wcs);
 
 	/*!
 	 * \fn write Pointing informations in a file

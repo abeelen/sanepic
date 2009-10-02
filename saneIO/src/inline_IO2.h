@@ -52,6 +52,7 @@ void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, int coordsyst, d
  */
 void save_MapHeader(string outdir, struct wcsprm wcs);
 void read_MapHeader(string outdir, struct wcsprm *& wcs);
+void print_MapHeader(struct wcsprm wcs);
 
 /*!
  * Writes samptopix in a binary file \n
