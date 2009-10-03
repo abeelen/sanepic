@@ -450,10 +450,12 @@ void write_info_for_second_part(string outdir,  int NAXIS1, int NAXIS2, int npix
 
 }
 
-void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat)
+void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 {
+	//TODO : CAN NOT WORK !
 	FILE *fp;
 	int result;
+	long ncomp2;
 	double dummy1; // used to read mixing matrix
 
 	if ((fp = fopen(MixMatfile.c_str(),"r")) == NULL){
@@ -462,12 +464,13 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat
 	}
 	result = fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
 
-	mixmat = dmatrix(0,ndet-1,0,ncomp2-1); // ajout mat 24/07 pour eviter de declarer 20 comp useless
+	mixmat = dmatrix(0,ndet-1,0,ncomp-1); // ajout mat 24/07 pour eviter de declarer 20 comp useless
 
 	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<ncomp2;jj++){
 			result = fscanf(fp,"%lf",&dummy1);
-			mixmat[ii][jj] = dummy1;
+			if (jj< ncomp)
+				mixmat[ii][jj] = dummy1;
 		}
 	}
 	fclose(fp);

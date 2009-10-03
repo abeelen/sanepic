@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 	//cout << "Map size :" << nn << "x" << nn << endl;
 	//getchar();
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-	getchar();
+//	getchar();
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/

@@ -13,8 +13,10 @@
 using namespace std;
 
 
-void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet, long &ncomp){
+void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet, long ncomp){
 
+	//TODO : WRONG there is no test to do on ndet
+	//TODO : ndet is NOT to be read,
 	//////////////////////////////////////
 	// read mixing parameters
 	int len, li, lo;
@@ -30,7 +32,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet
 
 	if(li==len-2){
 		cout << "fichier mixmat txt" << endl;
-		read_mixmat_txt(MixMatfile, ndet, ncomp2,mixmat);
+		read_mixmat_txt(MixMatfile, ndet, ncomp,mixmat);
 	}else{
 		if (lo==len-2){
 			cout << "fichier mixmat bin" << endl;
@@ -46,7 +48,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet
 	}
 
 
-	if (ncomp2 < ncomp) ncomp = ncomp2;
+//	if (ncomp2 < ncomp) ncomp = ncomp2;
 
 }
 
@@ -259,6 +261,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	//**************************************** Read pre-estimated power spectrum for reference : get ell and nbins
 
 	// TODO: It actutally needs only the Ell, write specific function just for that
+	// TODO: read it from the fits file....
 	//nameSpfile=noiseSppreffile + field + "-all" + extentnoiseSp;
 	nameSpfile=noiseSppreffile + bolonames[0] + "-all" + extentNoiseSp;
 	read_InvNoisePowerSpectra(noiseSppreffile, bolonames[0], extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
@@ -1216,6 +1219,7 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 
 
 
+	//TODO : One should define a fits format for that
 	//**************** Write component power spectra to disk
 	for (long idet1=0;idet1<ndet;idet1++){
 
@@ -1255,6 +1259,8 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 
 
 
+	//TODO: One should define a fits format for that
+	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
 		//sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");

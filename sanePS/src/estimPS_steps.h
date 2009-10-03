@@ -24,7 +24,7 @@ extern "C" {
 }
 
 
-void read_mixmat_file(string MixMatfile, string dir, double **mixmat, long &ndet, long &ncomp);
+void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet, long ncomp);
 
 void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int NAXIS1,int NAXIS2, long npix, bool flgdupl, int factdupl, std::vector<string> bolonames,/* string bextension, string fextension,*/
 		string dirfile, int shift_data_to_point,  string dir, long iframe, double *S, long *indpix,  bool NORMLIN,

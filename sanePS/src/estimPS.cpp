@@ -22,7 +22,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 
 	double fcut = 12; //fixed here to be sure that the code code will not focus on high freq
-	// add it in the ini file ??
+	// TODO : add it in the ini file
 	long ncomp = 1;
 	//long ncomp2 = 0;
 	long nbins = 500;
@@ -41,7 +41,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	double **Cov, **iCov,/* **iCov2,*/ **SpN_all; //mixing matrix, AtN-1A, inverted AtN-1A, ?, SpN_all = PS for the bolo (ndet, nbins)
 	double *Nk; // Noise power spectrum
 	double *ell, /**SpN,*/ *Nell; // ell = bins values, Nell = binned noise PS
-	double **mixmat=NULL; // initialized to NULL to avoid warning, "mixmat may be used uninitialized" ...
+	double **mixmat; // initialized to NULL to avoid warning, "mixmat may be used uninitialized" ...
 	double *p, *uvec, *ivec;
 
 	//fftw_plan fftplan;
@@ -129,17 +129,14 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	read_mixmat_file(MixMatfile, dir, mixmat, ndet,ncomp);
 
-
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 
 	//TODO: Clean the calling function to only needed variable
-
 	// compute common mode commonm2
 	common_mode_computation(apodwind, ndet, ns, ff, NAXIS1,NAXIS2, npix, flgdupl, factdupl, bolonames, /*bextension, fextension,*/
 			dirfile,  shift_data_to_point,    dir, iframe, S, indpix,  NORMLIN,
 			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp,
 			bfilter, Cov, uvec, p, ivec, iCov, factapod, fdata1,fits_filename);
-
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
@@ -151,7 +148,6 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 
-
 	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir,  ncomp, mixmat,fsamp,
 			Nk, Nell, factapod, Rellexp, N, P,  outdirSpN, fdata1, fdata2, SPref);
 
@@ -161,7 +157,6 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	expectation_maximization_algorithm(fcut, nbins, ndet, ncomp,ns, fsamp, ff,
 			outdirSpN,  Rellexp, Rellth, mixmat,P,N, Cov, p,	uvec, ivec, iCov, SPref, ell);
-
 
 
 	//----------------------------------- WRITE TO DISK -------------------------------//

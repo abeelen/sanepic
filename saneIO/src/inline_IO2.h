@@ -172,7 +172,7 @@ void write_info_for_second_part(string outdir, int NAXIS1, int NAXIS2, int npix,
  * -ncomp2 = number of component
  * -mixmat is the mixing matrix
  */
-void read_mixmat_txt(string MixMatfile, long ndet, long ncomp2, double **&mixmat);
+void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat);
 
 /*!
  * Writes (sanePic) estimated signal to a binary file
