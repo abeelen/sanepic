@@ -29,11 +29,17 @@ extern "C"{
 #include "parsePre.h"
 #include "inputFileIO.h"
 
-int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir, /*string &poutdir,*/ /*string &bextension,
-		string &fextension, string &pextension,*/ /*string &termin,*/ string &noiseSppreffile,
-		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<long> &xxi,
-		std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<string> &extentnoiseSP, std::vector<double> &fcut,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
+/*int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
+		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir,
+		 string &noiseSppreffile,
+		int &coordsyst, std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<struct box> & boxFile,
+		std::vector<string> &extentnoiseSP, std::vector<double> &fcut,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)*/
+
+int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
+		long &ntotscan, long &ndet,
+		std::vector<string> &bolonames,long *&fframes, long *&nsamples,
+		std::vector<struct box> & boxFile,std::vector<string> &extentnoiseSP, std::vector<double> &fcut, std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
+
 {
 	dictionary	*	ini ;
 
@@ -96,7 +102,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	str=(string)s;
 	if(str.size()!=0){
 		printf("data_directory : [%s]\n",s);
-		dirfile = s;
+		u_opt.dirfile = s;
 	}else{
 		printf("You must specify a data directory : commons:data_directory\n");
 		return -1;
@@ -136,8 +142,8 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 		for(int ii=0;ii<(int)fitsvect.size();ii++){
-			cout << dirfile + fitsvect[ii] << endl;
-			fitsvect[ii] = dirfile + fitsvect[ii];}
+			cout << u_opt.dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
 		readFrames( &ntotscan , fitsvect, fframes, nsamples);
 
@@ -191,14 +197,14 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	*/
 
-//	i = iniparser_getint(ini, "commons:coord_syst", -1);
-//	if((i==1)||(i==2)||(i==3)){
-//		printf("Coordinate system :      [%d]\n", i);
-//		coordsyst=i;
-//	}else{
-//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-//		return -1;
-//	}//coord_syst = 1 ;
+	i = iniparser_getint(ini, "commons:coord_syst", -1);
+	if((i==1)||(i==2)||(i==3)){
+		printf("Coordinate system :      [%d]\n", i);
+		u_opt.coordsyst=i;
+	}else{
+		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+		return -1;
+	}//coord_syst = 1 ;
 
 	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
@@ -219,7 +225,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
 	if(i>0){
 		printf("apodize_Nsamples :      [%d]\n", i);
-		napod=i;
+		u_opt.napod=i;
 	}else{
 		printf("You must choose a number of samples to apodize commons:apodize_Nsamples\n");
 		return -1;
@@ -231,7 +237,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}else{
 		printf("sampling_frequency  :   [%g]\n", d);
-		fsamp=d;
+		u_opt.fsamp=d;
 	}//sampling_frequency = 25.0 ;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:filter_frequency", -1.0);
@@ -240,7 +246,7 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}else{
 		printf("filter_frequency  :   [%g]\n", d);
-		f_lp=d;
+		u_opt.f_lp=d;
 	}//filter_frequency = 0.005 ;
 
 
@@ -363,39 +369,55 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
-		outdir=pPath;
+		u_opt.outdir=pPath;
 		printf ("The current path is: %s\n",pPath);
 	}else{
 
 		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s==NULL){
 			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
-			//noiseSppreffile=dirfile; // TODO : tester ! mat 16/09
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.outdir=u_opt.dirfile;
+			//noiseSppreffile=dirfile;
 		}else{
 			str=(string)s;
 			if(str.size()!=0){
 				printf("noiseSppreffile : [%s]\n",s);
-				outdir=s;
+				u_opt.outdir=s;
 				//noiseSppreffile=s;
 			}else{
-				cout << "Using default output directory : " << dirfile << endl;
-				outdir=dirfile;
+				cout << "Using default output directory : " << u_opt.dirfile << endl;
+				u_opt.outdir=u_opt.dirfile;
 				//noiseSppreffile=dirfile;
 			}//output_dir = ./sanepic_internal/ ;
 		}
 
 	}
-	noiseSppreffile = outdir;
-	cout << "noiseSppreffile : " << noiseSppreffile << endl;
+	u_opt.noiseSppreffile = u_opt.outdir;
+	cout << "noiseSppreffile : " << u_opt.noiseSppreffile << endl;
 
 	i = iniparser_getint(ini, "commons:time_offset", 0);
 	if(i!=0){
 		printf("time_offset :      [%d]\n", i);
-		shift_data_to_point=i;
+		u_opt.shift_data_to_point=i;
 	}
 
+
+	// crossing constraint removal box coordinates
+	s = iniparser_getstring(ini, (char*)"commons:box_coord_file", NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to box_coord_file in the ini file has been erased : commons:box_coord_file\n");
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("box_coord_file :      [%ld]\n", atol(s));
+
+			std::vector<box> boxList;
+			readBoxFile(str, boxList);
+		}
+	}
+
+	/*
 	// crossing constraint removal box coordinates
 	s = iniparser_getstring(ini, (char*)"commons:box_coord_x1", NULL); // faire un data file
 	if(s==NULL){
@@ -457,37 +479,38 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 			yyf.push_back(atol(s));//box_coord_y2 =  ;
 		}
 	}
+*/
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", -1);
 	if(b!=-1){
 		printf("map_flagged_data:    [%d]\n", b);
-		flgdupl=b;
+		u_opt.flgdupl=b;
 	}
 	//flgdupl = False ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", -1);
 	if(b!=-1){
 		printf("no_baseline:    [%d]\n", b);
-		NORMLIN=b;
+		u_opt.NORMLIN=b;
 	}
 	//NORMLIN = False ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", -1);
 	if(b!=-1){
 		printf("correlation:    [%d]\n", b);
-		CORRon=b;
+		u_opt.CORRon=b;
 	}//CORRon = True
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
 	if(b!=-1){
 		printf("nofill_gap:    [%d]\n", b);
-		NOFILLGAP=b;
+		u_opt.NOFILLGAP=b;
 	}//NOFILLGAP = 0 ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", -1);
 	if(b!=-1){
 		printf("remove_poly:    [%d]\n", b);
-		remove_polynomia=b;
+		u_opt.remove_polynomia=b;
 	}//remove_poly = True
 
 
@@ -512,10 +535,10 @@ int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &na
 		return -1;
 	}*/
 
-	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
+/*	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
 		return -1;
-	}
+	}*/
 
 	//ntotscan = number of scans
 	//ntotscan = fframes_vec.size();

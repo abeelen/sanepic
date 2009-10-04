@@ -22,6 +22,7 @@
 #include "positionsIO.h"
 #include "inline_IO2.h"
 #include "nrutil.h"
+#include "mpi_architecture_builder.h"
 
 extern "C" {
 #include <fftw3.h>
@@ -30,7 +31,7 @@ extern "C" {
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "mpi_architecture_builder.h"
+//#include "mpi_architecture_builder.h"
 #endif
 
 using namespace std;
@@ -81,27 +82,27 @@ int main(int argc, char *argv[])
 #endif
 
 
+	struct user_options u_opt;
 
-
-	int shift_data_to_point = 0; /*!< default value of the data to pointing shift*/
+	u_opt.shift_data_to_point = 0; /*!< default value of the data to pointing shift*/
 
 
 	//DEFAULT PARAMETERS
-	long napod = 0; /*! number of samples to apodize*/
-	double fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
+	u_opt.napod = 0; /*! number of samples to apodize*/
+	u_opt.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
 	//double errarcsec = 15.0; /*! rejection criteria : pointing error > threshold, sample is rejected*/
 
 
 	//Parser parameter (Program options)
 	long iframe_min, iframe_max; /*!  min and max number of frame (used with mpi) */
-	bool NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	bool NOFILLGAP = 0; /*! fill the gap ? default is YES*/
+	u_opt.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	u_opt.NOFILLGAP = 0; /*! fill the gap ? default is YES*/
 	//bool PND_ready = 0; // PNd precomputed ? read on disk if =1*/
-	bool flgdupl = 0; /*! 1 if flagged data are put in a separate map*/
+	u_opt.flgdupl = 0; /*! 1 if flagged data are put in a separate map*/
 	int factdupl=1; /*! map duplication factor */
 	int flagon = 0; /*! if a data is flagged */
-	bool CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
-	bool remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	u_opt.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	u_opt.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
 
 	// data parameters
 	long *fframes  ; /*! first frames table */
@@ -121,8 +122,8 @@ int main(int argc, char *argv[])
 
 	//internal data params
 	long ns, ff; /*! number of samples for this scan, first frame number of this scan*/
-	double f_lp, f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
-	f_lp = 0.0; // low pass filter frequency
+	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
+	u_opt.f_lp = 0.0; // low pass filter frequency
 
 	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
@@ -130,31 +131,31 @@ int main(int argc, char *argv[])
 
 	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
 	long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
-
+	unsigned short *mask;
 	long *hits,*hitstot; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string *extentnoiseSp_all; /*! noise file vector of string */
 	//string bolofield; /*! bolofield = boloname + bextension*/
 	//string flagfield; /*! flagfield = field+fextension;*/
-	string dirfile; /*! data directory*/
-	string tmp_dir; /*! output directory*/
+	//string dirfile; /*! data directory*/
+	//string tmp_dir; /*! output directory*/
 	//string poutdir; /*! current path (pPath) or output dir (outdir)*/
 	//string bextension; /*! bolometer field extension*/
 	//string fextension = "NOFLAG"; /*! flag field extension*/
 	//string pextension; /*! pointing extension*/
 	//string termin; /*! output file suffix*/
-	string noiseSppreffile; /*! noise file suffix*/
+	//string noiseSppreffile; /*! noise file suffix*/
 	string prefixe; /*! prefix used for temporary name file creation*/
 	//string flpoint_field = "FLPOINTING"; /*! Poiting filename */
-	string fname; /*! parallel scheme filename*/
+
 	//	string termin_internal = "internal_data"; /*! internal data suffix */
 
 	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
 	/* DEFAULT PARAMETERS */
-	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
-//	int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
+	u_opt.coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
+	int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
 
 
 
@@ -164,7 +165,8 @@ int main(int argc, char *argv[])
 	std::vector<string> fitsvect, noisevect;
 	std::vector<long> scans_index;
 	//std::vector<long> fframes_vec, nsamples_vec; /*! first frame list, number of frames per sample*/
-	std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)*/
+	//std::vector<long> xxi, xxf, yyi, yyf; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)*/
+	std::vector<struct box> boxFile;
 	std::vector<double> fcut; /* noise cutting frequency */
 
 	// Processing time estimation
@@ -177,8 +179,13 @@ int main(int argc, char *argv[])
 	} else {
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
-		parsed=parse_sanePre_ini_file(argv[1],shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,remove_polynomia,flgdupl,
-				CORRon,ntotscan,ndet,f_lp,dirfile,tmp_dir,noiseSppreffile,bolonames,fframes,nsamples, xxi, xxf, yyi, yyf, extentnoiseSP, fcut,fitsvect,noisevect,scans_index);
+		/*parsed=parse_sanePre_ini_file(argv[1],shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,remove_polynomia,flgdupl,
+				CORRon,ntotscan,ndet,f_lp,dirfile,tmp_dir,noiseSppreffile,coordsyst,bolonames,fframes,nsamples, boxFile, extentnoiseSP, fcut,fitsvect,noisevect,scans_index);*/
+
+		parsed=parse_sanePre_ini_file(argv[1],u_opt,
+				ntotscan, ndet,
+				bolonames,fframes,nsamples,
+				boxFile,extentnoiseSP, fcut, fitsvect,noisevect, scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -194,8 +201,8 @@ int main(int argc, char *argv[])
 	// processing begins here
 	t2=time(NULL);
 
-	if (CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-	if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
+	if (u_opt.CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
+	if (!(u_opt.CORRon)) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
 
 	//malloc
 	//fframes       = new long[ntotscan];
@@ -227,7 +234,7 @@ int main(int argc, char *argv[])
 		}
 	}*/
 
-	if (flgdupl) factdupl = 2;
+	if (u_opt.flgdupl) factdupl = 2;
 
 
 	// projection parameters
@@ -236,20 +243,53 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, coordsyst2, tanpix, tancoord);
 
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 
-//	//ensure that coordsyst for position calculation and preprocess are the same
-//	if (coordsyst!=coordsyst2){
-//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
-//		exit(0);
-//	}
+	//ensure that coordsyst for position calculation and preprocess are the same
+	if (u_opt.coordsyst!=coordsyst2){
+		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
+		exit(0);
+	}
 
 	//******************************** some preprocess again // compute indpsrc and addnpix ****************/
-	// TODO: to be replaced/removed (see/done in sanePos...)
+
+	//************************************* Deal with masking the point sources
+		mask    = new unsigned short[NAXIS1*NAXIS2];
+		indpsrc = new long[NAXIS1*NAXIS2];
+
+		// Initialize the masks
+		addnpix=0;
+		npixsrc=0;
+		for (long ii=0; ii<NAXIS1*NAXIS2; ii++){
+			mask[ii]    =  1;
+			indpsrc[ii] = -1;
+		}
+
+		// TODO : untested....
+		// if a box for crossing constraint removal is given in ini file
+		// TODO : save mask in fits file
+		// TODO : being able to read a mask in fits file format
+		for (long iBox = 0; iBox < boxFile.size(); iBox++){
+			for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
+				for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
+					mask[jj*NAXIS1 + ii] = 0;
+					indpsrc[jj*NAXIS1 + ii] = npixsrc++;
+				}
+		}
+
+		// each frame contains npixsrc pixels with index indsprc[] for which
+		// crossing constraint are removed
+		// thus
+		// addnpix = number of pix to add in pixon
+		//         = number of scans * number of pix in box crossing constraint removal
+		addnpix = ntotscan*npixsrc;
+
+
+	/*
 	if(xxi.size()>0)
 		addnpix=Compute_indpsrc_addnpix(NAXIS1,NAXIS2,ntotscan,xxi,xxf,yyi,yyf,indpsrc,npixsrc);
 	else{
@@ -258,13 +298,13 @@ int main(int argc, char *argv[])
 		indpsrc = new long[NAXIS1*NAXIS2];
 		for(long ii=0;ii<NAXIS1*NAXIS2;ii++)
 			indpsrc[ii]=-1;
-	}
+	}*/
 
 	//projection vector
 	indpix=new long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
 
 	//read projection vector from a file
-	read_indpix(ind_size, npix, indpix, tmp_dir, flagon);
+	read_indpix(ind_size, npix, indpix, u_opt.outdir, flagon);
 
 	// Check indpix readed size = expected size
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
@@ -276,8 +316,8 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
-
-	fname = tmp_dir + parallel_scheme_filename;
+	string fname; /*! parallel scheme filename*/
+	fname = u_opt.outdir + parallel_scheme_filename;
 
 	int test=0;
 	long *frnum;
@@ -355,14 +395,14 @@ int main(int argc, char *argv[])
 
 		ns = nsamples[iframe]; // number of samples for this scan
 		ff = fframes[iframe]; //first frame of this scan
-		f_lppix = f_lp*double(ns)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = fcut[iframe]*double(ns)/fsamp; // noise PS threshold freq, in terms of samples
+		f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp; // knee freq of the filter in terms of samples in order to compute fft
+		f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp; // noise PS threshold freq, in terms of samples
 
 		printf("[%2.2i] iframe : %ld/%ld",rank,iframe+1,iframe_max);
 		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
 
 		// if there is correlation between detectors
-		if (CORRon){
+		if (u_opt.CORRon){
 			// var double *S =  NULL
 			// indpix = pixel indice
 			// indpsrc = box crossing constraint removal pixel indice
@@ -397,9 +437,9 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-					tmp_dir,/*termin_internal,errarcsec,*/dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
-					fextension,*/shift_data_to_point,f_lppix,ff,ns,napod,ndet,NORMLIN,NOFILLGAP, remove_polynomia,iframe/*,fdata_buffer*/);
+			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,u_opt.flgdupl,factdupl,2,
+					u_opt.outdir,/*termin_internal,errarcsec,*/u_opt.dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
+					fextension,*/u_opt.shift_data_to_point,f_lppix,ff,ns,u_opt.napod,ndet,u_opt.NORMLIN,u_opt.NOFILLGAP, u_opt.remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -429,8 +469,8 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
-			do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
-					fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,hits/*,fdata_buffer*/);
+			do_PtNd(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
+					u_opt.fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -446,10 +486,10 @@ int main(int argc, char *argv[])
 
 			//write_ftrProcesdata_nocorr();
 
-			do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,/*termin_internal,*/dirfile,
-					bolonames,fits_table,shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-					flgdupl,factdupl,2,ff,ns,napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
-					NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,NULL);
+			do_PtNd_nocorr(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,/*termin_internal,*/u_opt.dirfile,
+					bolonames,fits_table,u_opt.shift_data_to_point,f_lppix,f_lppix_Nk,u_opt.fsamp,ntotscan,addnpix,
+					u_opt.flgdupl,factdupl,2,ff,ns,u_opt.napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
+					NAXIS1, NAXIS2,npix,npixsrc,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
 		}
@@ -477,11 +517,11 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
-		write_PNd(PNdtot,npix,/*termin_internal,*/tmp_dir);
+		write_PNd(PNdtot,npix,/*termin_internal,*/u_opt.outdir);
 	}
 
 
-	//TODO: write a naiveMap in fits
+	//TODO: test naivmap
 
 
 	cout << "naive step" << endl;
@@ -504,8 +544,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	fnaivname = '!' + tmp_dir + "naivMaphits.fits";
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
+	fnaivname = '!' + u_opt.outdir + "naivMaphits.fits";
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, u_opt.coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
 
 
 	for (int ii=0; ii<NAXIS1; ii++) {
@@ -521,10 +561,10 @@ int main(int argc, char *argv[])
 	}
 
 
-	fnaivname = '!' + tmp_dir + "naivMap.fits";
+	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
 	//fname+= "_naive.fits";
 	cout << fnaivname << endl;
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, u_opt.coordsyst, 'd', (void *)map1d);
 
 
 	printf("End of saneNaiv\n");
