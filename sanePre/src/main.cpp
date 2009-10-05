@@ -154,8 +154,8 @@ int main(int argc, char *argv[])
 	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
 	/* DEFAULT PARAMETERS */
-	u_opt.coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
-	int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
+	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
+	//int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
 
 
 
@@ -243,17 +243,17 @@ int main(int argc, char *argv[])
 	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, coordsyst2, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 
 	//ensure that coordsyst for position calculation and preprocess are the same
-	if (u_opt.coordsyst!=coordsyst2){
+	/*if (u_opt.coordsyst!=coordsyst2){
 		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
 		exit(0);
-	}
+	}*/
 
 	//******************************** some preprocess again // compute indpsrc and addnpix ****************/
 
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 	}
 
 	fnaivname = '!' + u_opt.outdir + "naivMaphits.fits";
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, u_opt.coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
 
 
 	for (int ii=0; ii<NAXIS1; ii++) {
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
 	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
 	//fname+= "_naive.fits";
 	cout << fnaivname << endl;
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, u_opt.coordsyst, 'd', (void *)map1d);
+	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
 	printf("End of saneNaiv\n");

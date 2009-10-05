@@ -196,7 +196,7 @@ int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 		return -1;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	*/
-
+/*
 	i = iniparser_getint(ini, "commons:coord_syst", -1);
 	if((i==1)||(i==2)||(i==3)){
 		printf("Coordinate system :      [%d]\n", i);
@@ -204,7 +204,7 @@ int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 	}else{
 		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
 		return -1;
-	}//coord_syst = 1 ;
+	}//coord_syst = 1 ;*/
 
 	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
