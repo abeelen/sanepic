@@ -70,7 +70,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 	for (int idupl = 0;idupl<=flgdupl;idupl++){
 
-		for (long ii=0;ii<npix;ii++) S[ii] = 0.0;//PNd[ii]; // TODO : remove, useless car fill dans main
+		//for (long ii=0;ii<npix;ii++) S[ii] = 0.0;//PNd[ii]; // useless car fill dans main
 
 		//Conjugate gradien Inversion
 		if (projgaps || !flagon){
@@ -448,7 +448,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
-					// TODO : check indices... seems wrong...
+					// TODO : check indices... seems wrong... (OK for me : mat 30/09)
 					if (flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
@@ -630,7 +630,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 		for (long ii=0; ii<NAXIS1; ii++) {
 			for (long jj=0; jj<NAXIS2; jj++) {
-				mi = jj*NAXIS2 + ii;
+				mi = jj*NAXIS1 + ii; // mat 30/09
 				if (indpix[mi] >= 0){
 					map1d[mi] = S[indpix[mi]];
 				} else {

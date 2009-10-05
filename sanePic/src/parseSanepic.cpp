@@ -9,10 +9,9 @@
 #include "mpi_architecture_builder.h"
 #include "inputFileIO.h"
 
-int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &projgaps,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, int &iterw, long &ntotscan, long &ndet, double &f_lp, double &f_lp_Nk, string &dirfile, string &outdir, string &tmp_dir,
-		string &termin,	string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples, string &fname,
-		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
+int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, long &ntotscan, long &ndet,
+		string &termin,	string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
+		std::vector<struct box> & boxFile, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 
 	dictionary	*	ini ;
@@ -74,7 +73,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	str=(string)s;
 	if(str.size()!=0){
 		printf("data_directory : [%s]\n",s);
-		dirfile = s;
+		u_opt.dirfile = s;
 	}else{
 		printf("You must specify a data directory : commons:data_directory\n");
 		return -1 ;
@@ -114,8 +113,8 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 		for(int ii=0;ii<(int)fitsvect.size();ii++){
-			cout << dirfile + fitsvect[ii] << endl;
-			fitsvect[ii] = dirfile + fitsvect[ii];}
+			cout << u_opt.dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
 		readFrames( &ntotscan , fitsvect, fframes, nsamples);
 
@@ -168,15 +167,15 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	 */
-//
-//	i = iniparser_getint(ini, "commons:coord_syst", -1);
-//	if((i==1)||(i==2)||(i==3)){
-//		printf("Coordinate system :      [%d]\n", i);
-//		coordsyst=i;
-//	}else{
-//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-//		return -1 ;
-//	}//coord_syst = 1 ;
+	//
+	//	i = iniparser_getint(ini, "commons:coord_syst", -1);
+	//	if((i==1)||(i==2)||(i==3)){
+	//		printf("Coordinate system :      [%d]\n", i);
+	//		coordsyst=i;
+	//	}else{
+	//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+	//		return -1 ;
+	//	}//coord_syst = 1 ;
 
 	/*
 	s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
@@ -194,6 +193,19 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	}//_data
 	 */
 
+	s = iniparser_getstring(ini, (char*)"commons:box_coord_file", NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to box_coord_file in the ini file has been erased : commons:box_coord_file\n");
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("box_coord_file :      [%ld]\n", atol(s));
+
+			std::vector<box> boxList;
+			readBoxFile(str, boxList);
+		}
+	}
+
 	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
 	if(s==NULL){
 		printf("You must add a line in the ini file corresponding to pixel size : sanepic_compute_positions:pixsize\n");
@@ -202,8 +214,8 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	str=(string)s;
 	if(str.size()!=0){
 		temp=str.c_str();
-		pixdeg=atof(temp);
-		cout << "Pixsize : " << setprecision(str.size()) << pixdeg << endl;
+		u_opt.pixdeg=atof(temp);
+		cout << "Pixsize : " << setprecision(str.size()) << u_opt.pixdeg << endl;
 		//printf("Pixsize :   [%lf]\n", pixdeg);
 
 	}else{
@@ -222,7 +234,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
 	if(i>0){
 		printf("apodize_Nsamples :      [%d]\n", i);
-		napod=i;
+		u_opt.napod=i;
 	}else{
 		printf("You must choose a number of samples to apodize commons:apodize_Nsamples\n");
 		return -1 ;
@@ -232,7 +244,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
 	if(b!=-1){
 		printf("nofill_gap:    [%d]\n", b);
-		NOFILLGAP=b;
+		u_opt.NOFILLGAP=b;
 	}
 	//NOFILLGAP = 0 ;
 
@@ -242,7 +254,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}else{
 		printf("sampling_frequency  :   [%g]\n", d);
-		fsamp=d;
+		u_opt.fsamp=d;
 	}//sampling_frequency = 25.0 ;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:filter_frequency", -1.0);
@@ -251,7 +263,7 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		return -1 ;
 	}else{
 		printf("filter_frequency  :   [%g]\n", d);
-		f_lp=d;
+		u_opt.f_lp=d;
 	}//filter_frequency = 0.005 ;
 
 	// a changer
@@ -371,16 +383,16 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
 	if(s==NULL){
 		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
+		cout << "Using default output directory : " << u_opt.dirfile << endl;
+		u_opt.outdir=u_opt.dirfile;
 	}else{
 		str=(string)s;
 		if(str.size()!=0){
 			printf("output_dir : [%s]\n",s);
-			outdir=s;
+			u_opt.outdir=s;
 		}else{
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.outdir=u_opt.dirfile;
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
@@ -388,9 +400,9 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
-	pPath=NULL; // TODO : Remove apres test !!!!
+	//pPath=NULL; // TODO : Remove apres test !!!!
 	if (pPath!=NULL){
-		tmp_dir=pPath;
+		u_opt.tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
 	}else{
 		//#else
@@ -398,16 +410,16 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s==NULL){
 			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-			cout << "Using default output directory : " << dirfile << endl;
-			tmp_dir=dirfile;
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.tmp_dir=u_opt.dirfile;
 		}else{
 			str=(string)s;
 			if(str.size()!=0){
 				printf("temp_dir : [%s]\n",s);
-				tmp_dir=s;
+				u_opt.tmp_dir=s;
 			}else{
-				cout << "Using default output directory : " << dirfile << endl;
-				tmp_dir=dirfile;
+				cout << "Using default output directory : " << u_opt.dirfile << endl;
+				u_opt.tmp_dir=u_opt.dirfile;
 			}//output_dir = ./RCW_120_M/ ;
 		}
 		//#endif
@@ -432,11 +444,11 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 	//if(isnan((double)i)){
 	if(i!=0){
 		printf("time_offset :      [%d]\n", i);
-		shift_data_to_point=i;
+		u_opt.shift_data_to_point=i;
 	}//time_offset =  ;*/
 
 
-
+	/*
 	// crossing constraint removal box coordinates
 	s = iniparser_getstring(ini, (char*)"commons:box_coord_x1", NULL); // faire un data file
 	if(s==NULL){
@@ -498,38 +510,39 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 			yyf.push_back(atol(s));//box_coord_y2 =  ;
 		}
 	}
+	 */
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", -1);
 	if(b!=-1){
 		printf("map_flagged_data:    [%d]\n", b);
-		flgdupl=b;
+		u_opt.flgdupl=b;
 	}
 	//flgdupl = False ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", -1);
 	if(b!=-1){
 		printf("no_baseline:    [%d]\n", b);
-		NORMLIN=b;
+		u_opt.NORMLIN=b;
 	}
 	//NORMLIN = False ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", -1);
 	if(b!=-1){
 		printf("correlation:    [%d]\n", b);
-		CORRon=b;
+		u_opt.CORRon=b;
 	}//CORRon = True
 
 	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:project_gaps", -1);
 	if(b!=-1){
 		printf("projgaps:    [%d]\n", b);
-		projgaps=b;
+		u_opt.projgaps=b;
 	}//projgaps= False
 
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", -1);
 	if(b!=-1){
 		printf("remove_poly:    [%d]\n", b);
-		remove_polynomia=b;
+		u_opt.remove_polynomia=b;
 	}//remove_poly = True
 
 	i = iniparser_getint(ini, "sanepic_conjugate_gradient:iterW", 0);
@@ -590,10 +603,10 @@ int parse_sanePic_ini_file(char * ini_name, double &pixdeg, int  &shift_data_to_
 		cerr << "Must give at least one first frame number. Exiting.\n";
 		return -1 ;
 	}*/
-	if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
+	/*if (xxi.size() != xxf.size() || xxi.size() != yyi.size() || xxi.size() != yyf.size()) {
 		cerr << "box_coord_x1 box_coord_x2 box_coord_y1 box_coord_y2 must have the same size. Exiting.\n";
 		return -1 ;
-	}
+	}*/
 
 	//ntotscan = fframes_vec.size();
 	ndet = bolonames.size();

@@ -41,7 +41,7 @@
 //#include "estimPS_sanepic.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
-//#include "mpi_architecture_builder.h"
+#include "mpi_architecture_builder.h"
 #include <time.h>
 #include <fftw3.h>
 //#include <fcntl.h>
@@ -52,7 +52,6 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "mpi_architecture_builder.h"
 #endif
 
 using namespace std;
@@ -131,30 +130,30 @@ int main(int argc, char *argv[])
 	//main conjugate gradient loop
 	//************************************************************************//
 	//************************************************************************//
+	struct user_options u_opt;
 
-
-	bool projgaps = 0; /*!1: data flagged are put in a single pixel  (assume no signal in this pixel),
+	u_opt.projgaps = 0; /*!1: data flagged are put in a single pixel  (assume no signal in this pixel),
 	0: data flagged are not reprojected */
 
 
-	int shift_data_to_point = 0; /*! default value of the data to pointing shift */
+	u_opt.shift_data_to_point = 0; /*! default value of the data to pointing shift */
 
 	//int samples_per_frames = 20; /*! blast Specific : Each frame has 20 samples */
 
 	//DEFAULT PARAMETERS
-	long napod = 0; /*!  number of samples to apodize */
-	double fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
+	u_opt.napod = 0; /*!  number of samples to apodize */
+	u_opt.fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
 
 
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int iterw = 10; /*!  period in iterations to which the data are written to disk, 0 = no intermediate map to be written*/
-	bool NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	bool NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
+	u_opt.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	u_opt.NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
 	//bool PND_ready = 0; // PNd precomputed ? read on disk if =1
-	bool flgdupl = 0; /*!  1 if flagged data are put in a separate map */
-	bool remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
-	bool CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
+	u_opt.flgdupl = 0; /*!  1 if flagged data are put in a separate map */
+	u_opt.remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
+	u_opt.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
 	//bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
 	int factdupl = 1; /*! map duplication factor */
 	long addnpix=0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
@@ -172,7 +171,7 @@ int main(int argc, char *argv[])
 
 
 	// map making parameters
-	double pixdeg; /*! size of pixels (degree) */
+	u_opt.pixdeg=-1.0; /*! size of pixels (degree) */
 
 	int npix2; /*! used to check PNd reading was correct */
 	long ind_size; /*! indpix read size */
@@ -182,7 +181,7 @@ int main(int argc, char *argv[])
 
 	//internal data params
 	//long ns, ff; /*! number of samples for this scan, first frame number of this scan */
-	double f_lp, f_lp_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
+	u_opt.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
 
 
 
@@ -194,10 +193,10 @@ int main(int argc, char *argv[])
 
 	string field; /*! actual boloname in the bolo loop */
 	string *extentnoiseSp_all; /*! noise file name */
-	string bolofield; /*! bolofield = boloname + bextension */
-	string dirfile; /*! data directory */
-	string outdir; /*! output directory */
-	string tmp_dir; /*! temporary directory */
+	//string bolofield; /*! bolofield = boloname + bextension */
+	//string dirfile; /*! data directory */
+	//string outdir; /*! output directory */
+	//string tmp_dir; /*! temporary directory */
 	//string poutdir; // current path (pPath) or output dir (outdir)
 	//string bextension; /*! bolometer field extension */
 	//string fextension = "NOFLAG"; /*! flag field extension */
@@ -215,13 +214,13 @@ int main(int argc, char *argv[])
 	//string scerr_field = "ERR"+pextension; /*! Pointing error file suffix */
 	//string flpoint_field = "FLPOINTING"; /*! pointing data file suffix */
 
-	string signame; /*! name of the signal file for sanePS */
+	//string signame; /*! name of the signal file for sanePS */
 	string MixMatfile = "NOFILE"; /*! mixing matrix filename */
 	//bool doInitPS = 0; /*! Do we rat a PS estimation from the elaborated map */
 
 	/* DEFAULT PARAMETERS */
 	int coordsyst = 1; /*! coordinatesystem :  Default is RA/DEC = 1 */
-//	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
+	//	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
 
 
 	//std::vector<long> fframes_vec,nsamples_vec; /*! first frames number vector, number of samples vector */
@@ -231,21 +230,22 @@ int main(int argc, char *argv[])
 	std::vector<string> bolonames; /*! bolonames vector */
 	std::vector<string> fitsvect, noisevect;
 	std::vector<long> scans_index;
+	std::vector<struct box> boxFile;
 
 	//time t2, t3, t4, t5, dt;
 
 
 
-	f_lp = 0.0; // low pass filter frequency
-	f_lp_Nk = 0.0; // noise PS frequency threshold
-	pixdeg = -1.0; // "Size of pixels (deg)"
+	//f_lp = 0.0; // low pass filter frequency
+	//f_lp_Nk = 0.0; // noise PS frequency threshold
+	//pixdeg = -1.0; // "Size of pixels (deg)"
 
 
 	// main loop variables
 	double *S; /*! Pure signal */
 
 	// parallel scheme file
-	string fname; /*! parallel scheme filename */
+	//string fname; /*! parallel scheme filename */
 
 
 
@@ -256,9 +256,12 @@ int main(int argc, char *argv[])
 	} else {
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
-		parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
-				CORRon,iterw, ntotscan,ndet,f_lp,f_lp_Nk,dirfile,outdir,tmp_dir,
-				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);
+		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
+				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
+				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
+		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
+				termin,	MixMatfile, bolonames,fframes,nsamples,
+				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -272,26 +275,26 @@ int main(int argc, char *argv[])
 	}
 	////////////////////////////////////////////////////////////////
 
-	if (CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-	if (!CORRon) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
+	if (u_opt.CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
+	if (!(u_opt.CORRon)) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
 
 
-	if (f_lp_Nk == 0.0)
-		f_lp_Nk = f_lp;
+	/*if (f_lp_Nk == 0.0)
+		f_lp_Nk = f_lp;*/
 
-	if (napod){
+	if (u_opt.napod){
 		printf("[%2.2i] Data are apodized\n", rank);
 	} else {
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
 
 
-	if (pixdeg < 0){
+	if (u_opt.pixdeg < 0){
 		cerr << "ERROR: enter pixel size -p keyword\n";
 		exit(1);
 	}
 
-	if (fsamp<=0.0){
+	if (u_opt.fsamp<=0.0){
 		cerr << "ERROR: enter a correct sampling frequency -R keyword\n";
 		exit(1);
 	}
@@ -329,7 +332,7 @@ int main(int argc, char *argv[])
 	}*/
 
 
-	if (coordsyst == 2){
+	/*if (coordsyst == 2){
 		//ra_field = "L"+pextension;
 		//dec_field = "B"+pextension;
 		//phi_field = "PHIG"+pextension;
@@ -343,14 +346,14 @@ int main(int argc, char *argv[])
 		} else {
 			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
 		}
-	}
+	}*/
 
 
-	if (NORMLIN)
+	if (u_opt.NORMLIN)
 		printf("NO BASELINE REMOVED\n");
 
 
-	if (projgaps)
+	if (u_opt.projgaps)
 		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
 
 
@@ -406,32 +409,61 @@ int main(int argc, char *argv[])
 
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
+	read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-//
-//	if (coordsyst!=coordsyst2){
-//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
-//		exit(0);
-//	}
+	//
+	//	if (coordsyst!=coordsyst2){
+	//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
+	//		exit(0);
+	//	}
 
 
 
 	//******************************** some preprocess again  ****************/
 
 	// MALLOC
+	unsigned short *mask;
+	mask    = new unsigned short[NAXIS1*NAXIS2];
 	indpsrc = new long[NAXIS1*NAXIS2];
 
+	// Initialize the masks
+	addnpix=0;
+	npixsrc=0;
+	for (long ii=0; ii<NAXIS1*NAXIS2; ii++){
+		mask[ii]    =  1;
+		indpsrc[ii] = -1;
+	}
+
+	// TODO : untested....
+	// if a box for crossing constraint removal is given in ini file
+	// TODO : save mask in fits file
+	// TODO : being able to read a mask in fits file format
+	for (long iBox = 0; iBox < boxFile.size(); iBox++){
+		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
+			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
+				mask[jj*NAXIS1 + ii] = 0;
+				indpsrc[jj*NAXIS1 + ii] = npixsrc++;
+			}
+	}
+
+	// each frame contains npixsrc pixels with index indsprc[] for which
+	// crossing constraint are removed
+	// thus
+	// addnpix = number of pix to add in pixon
+	//         = number of scans * number of pix in box crossing constraint removal
+	addnpix = ntotscan*npixsrc;
+
 	// compute indpsrc and addnpix
-	sanepic_preprocess(NAXIS1,NAXIS2, xxi, xxf, yyi, yyf, indpsrc, npixsrc, ntotscan, addnpix);
+	//sanepic_preprocess(NAXIS1,NAXIS2, xxi, xxf, yyi, yyf, indpsrc, npixsrc, ntotscan, addnpix);
 
 
-	if (flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
+	if (u_opt.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
 
 	// read npix, PNdtot from file
-	read_PNd(PNdtot, npix,  tmp_dir);
+	read_PNd(PNdtot, npix,  u_opt.tmp_dir);
 	/*for (int ii=0;ii<20;ii++)
 			cout << PNdtot[ii] << " ";
 		cout << endl << "avant read indpix\n";
@@ -440,7 +472,7 @@ int main(int argc, char *argv[])
 
 
 	// read indpix
-	read_indpix(ind_size, npix2, indpix,  tmp_dir, flagon);
+	read_indpix(ind_size, npix2, indpix,  u_opt.tmp_dir, flagon);
 
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
 		cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
@@ -479,12 +511,12 @@ int main(int argc, char *argv[])
 	fill(S,S+npix,0.0);
 
 	// conjugate GRADIENT LOOP
-	sanepic_conjugate_gradient(flgdupl, npix, S, iframe_min, iframe_max,
-			nsamples, fframes, fcut,f_lp, fsamp, indpix, NAXIS1, NAXIS2, factdupl, tmp_dir, termin, termin_internal,
-			ndet,extentnoiseSp_all,tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
-			pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, projgaps, rank, CORRon,
-			dirfile, PNdtot, ntotscan,addnpix,NORMLIN,NOFILLGAP,napod,shift_data_to_point,
-			remove_polynomia, outdir,fits_table);
+	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
+			nsamples, fframes, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir, termin, termin_internal,
+			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
+			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
+			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
+			u_opt.remove_polynomia, u_opt.outdir,fits_table);
 
 
 
@@ -530,7 +562,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		//write infos for second part
-		write_info_for_second_part(outdir, NAXIS1, NAXIS2, npix,pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+		write_info_for_second_part(u_opt.outdir, NAXIS1, NAXIS2, npix,u_opt.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	}
 
 #ifdef USE_MPI
