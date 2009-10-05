@@ -24,6 +24,26 @@ struct box {
 	struct corner trc;
 };
 
+struct user_options {
+	bool bfixc;
+	int shift_data_to_point;
+	long napod;
+	bool NOFILLGAP;
+	bool flgdupl;
+	double pixdeg;
+	std::string dirfile;
+	std::string outdir;
+	std::string tmp_dir;
+	double fsamp;
+	bool NORMLIN;
+	bool remove_polynomia;
+	bool CORRon;
+	double f_lp;
+	//double f_lp_Nk;
+	std::string noiseSppreffile;
+	bool projgaps;
+};
+
 using namespace std;
 
 // scans are distributed over processors
