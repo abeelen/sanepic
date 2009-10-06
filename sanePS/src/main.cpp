@@ -28,14 +28,13 @@
 #include "imageIO.h"
 #include "inline_IO2.h"
 
-
+#include "mpi_architecture_builder.h"
 #include "parsePS.h"
 #include "estimPS.h"
 #include "todprocess.h"
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include "mpi_architecture_builder.h"
 #endif
 
 using namespace std;
@@ -72,18 +71,18 @@ int main(int argc, char *argv[])
 	if (pPath!=NULL)
 		printf ("The current path is: %s",pPath);*/
 
-
+	struct user_options u_opt;
 	//default value of the data to pointing shift
-	int shift_data_to_point = 0;
+	u_opt.shift_data_to_point = 0;
 
 	//DEFAULT PARAMETERS
-	long napod = 0; // number of samples to apodize
-	double fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
-	bool NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
-	bool NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
-	bool remove_polynomia=1;
+	u_opt.napod = 0; // number of samples to apodize
+	u_opt.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
+	u_opt.NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
+	u_opt.NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
+	u_opt.remove_polynomia=1;
 	int factdupl = 1;
-	bool flgdupl = 0; // 1 if flagged data are put in a separate map
+	u_opt.flgdupl = 0; // 1 if flagged data are put in a separate map
 	int flagon;
 	long ind_size;
 
@@ -106,14 +105,14 @@ int main(int argc, char *argv[])
 
 	string field; // actual boloname in the bolo loop
 	//string bolofield; // bolofield = boloname + bextension
-	string dirfile; // data directory
-	string outdir; // output directory
-	string tmp_dir; // current path (pPath) or output dir (outdir)
+	//string dirfile; // data directory
+	//string outdir; // output directory
+	//string tmp_dir; // current path (pPath) or output dir (outdir)
 	//string bextension; // bolometer field extension
 	//string fextension = "NOFLAG"; // flag field extension
 	//string pextension; // pointing extension
 	//string termin; // output file suffix
-	string noiseSppreffile; // noise file suffix
+	//string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 	//string termin_internal = "internal_data";
@@ -121,11 +120,11 @@ int main(int argc, char *argv[])
 	string MixMatfile = "NOFILE";
 
 
-	std::vector<long> /*fframes_vec,nsamples_vec,*/xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
+	//std::vector<long> /*fframes_vec,nsamples_vec,*/xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
 	std::vector<string> extentnoiseSP;
 	std::vector<string> bolonames;
 	std::vector<string> fitsvect, noisevect;
-		std::vector<long> scans_index;
+	std::vector<long> scans_index;
 
 	// data parameters
 	long *fframes  ; // first frames table ff_in list -> fframes
@@ -155,9 +154,8 @@ int main(int argc, char *argv[])
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		exit(0);
 	} else {
-		parsed=parse_sanePS_ini_file(argv[1], shift_data_to_point, napod,fsamp, NOFILLGAP, NORMLIN,remove_polynomia, flgdupl,
-				ntotscan, ndet, dirfile, outdir, tmp_dir, /*bextension,
-				fextension,*/ noiseSppreffile,
+		parsed=parse_sanePS_ini_file(argv[1], u_opt,
+				ntotscan, ndet,
 				bolonames, fframes,  nsamples, extentnoiseSP, MixMatfile,signame,fitsvect,noisevect,scans_index);
 
 		if (parsed==-1){
@@ -172,17 +170,17 @@ int main(int argc, char *argv[])
 
 
 
-	if (napod){
+	if (u_opt.napod){
 		printf("[%2.2i] Data are apodized\n", rank);
 	} else {
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
 
-	if (flgdupl)
+	if (u_opt.flgdupl)
 		factdupl=2;
 
 
-	if (fsamp<=0.0){
+	if (u_opt.fsamp<=0.0){
 		cerr << "ERROR: enter a correct sampling frequency -R keyword\n";
 		exit(1);
 	}
@@ -224,7 +222,7 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//int npix2;
-	read_indpix(ind_size, npix, indpix, tmp_dir, flagon);
+	read_indpix(ind_size, npix, indpix, u_opt.tmp_dir, flagon);
 
 	S = new double[npix];
 
@@ -253,7 +251,7 @@ int main(int argc, char *argv[])
 		// read nn in InfoPoiting
 
 
-//		int coordsyst2;
+		//		int coordsyst2;
 		//double *tancoord;
 		//double *tanpix;
 		// allocate memory
@@ -262,7 +260,7 @@ int main(int argc, char *argv[])
 
 		// TODO : Should change to use the wcs structure
 		// read nn, coordsyst, tanpix, tancoord
-		read_info_pointing(NAXIS1, NAXIS2, tmp_dir, NULL, NULL); //juste to read nn
+		read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, NULL, NULL); //juste to read nn
 		//cout << tanpix[0] << " " << tanpix[1] << endl;
 		//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -277,7 +275,7 @@ int main(int argc, char *argv[])
 	//cout << "Map size :" << nn << "x" << nn << endl;
 	//getchar();
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-//	getchar();
+	//	getchar();
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
@@ -353,7 +351,7 @@ int main(int argc, char *argv[])
 
 	string fits_filename;
 
-// TODO: useless test
+	// TODO: useless test
 	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
@@ -368,8 +366,8 @@ int main(int argc, char *argv[])
 			cout << extentnoiseSp ;
 			cout << endl;
 
-			EstimPowerSpectra(fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, napod,	iframe, flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, dirfile, /*bextension,
-					fextension,*/ shift_data_to_point, tmp_dir, NORMLIN, NOFILLGAP,remove_polynomia, noiseSppreffile,extentnoiseSp, outdir,fits_filename);
+			EstimPowerSpectra(u_opt.fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, u_opt.napod,	iframe, u_opt.flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, u_opt.dirfile,
+					u_opt.shift_data_to_point, u_opt.tmp_dir, u_opt.NORMLIN, u_opt.NOFILLGAP,u_opt.remove_polynomia, u_opt.noiseSppreffile,extentnoiseSp, u_opt.outdir,fits_filename);
 			// fsamp = bolometers sampling freq
 			// ns = number of samples in the "iframe" scan
 			// ff = first sample number

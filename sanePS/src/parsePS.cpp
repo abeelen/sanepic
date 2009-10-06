@@ -9,11 +9,8 @@
 #include "parsePS.h"
 #include "mpi_architecture_builder.h"
 
-
-//int parse_sanePos_ini_file(char * ini_name)
-int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir,/* string &bextension,
-		string &fextension,*/ string &noiseSppreffile,
+int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
+		long &ntotscan, long &ndet,
 		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
@@ -74,13 +71,13 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	//if(isnan((double)i)){
 	if(i!=0){
 		printf("time_offset :      [%d]\n", i);
-		shift_data_to_point=i;
+		u_opt.shift_data_to_point=i;
 	}//time_offset =  ;*/
 
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
 	if(i>0){
 		printf("apodize_Nsamples :      [%d]\n", i);
-		napod=i;
+		u_opt.napod=i;
 	}else{
 		printf("You must choose a number of samples to apodize commons:apodize_Nsamples\n");
 		return -1 ;
@@ -92,33 +89,33 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		return -1 ;
 	}else{
 		printf("sampling_frequency  :   [%g]\n", d);
-		fsamp=d;
+		u_opt.fsamp=d;
 	}//sampling_frequency = 25.0 ;
 
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
 	if(b!=-1){
 		printf("nofill_gap:    [%d]\n", b);
-		NOFILLGAP=b;
+		u_opt.NOFILLGAP=b;
 	}	//NOFILLGAP = 0 ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", -1);
 	if(b!=-1){
 		printf("no_baseline:    [%d]\n", b);
-		NORMLIN=b;
+		u_opt.NORMLIN=b;
 	}	//NORMLIN = False ;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", -1);
 	if(b!=-1){
 		printf("remove_poly:    [%d]\n", b);
-		remove_polynomia=b;
+		u_opt.remove_polynomia=b;
 	} //remove_polynomia= True;
 
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", -1);
 	if(b!=-1){
 		printf("map_flagged_data:    [%d]\n", b);
-		flgdupl=b;
+		u_opt.flgdupl=b;
 	}
 	//flgdupl = False ;
 
@@ -130,7 +127,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	str=(string)s;
 	if(str.size()!=0){
 		printf("data_directory : [%s]\n",s);
-		dirfile = s;
+		u_opt.dirfile = s;
 	}else{
 		printf("You must specify a data directory : commons:data_directory\n");
 		return -1 ;
@@ -139,16 +136,16 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
 	if(s==NULL){
 		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
+		cout << "Using default output directory : " << u_opt.dirfile << endl;
+		u_opt.outdir=u_opt.dirfile;
 	}else{
 		str=(string)s;
 		if(str.size()!=0){
 			printf("output_dir : [%s]\n",s);
-			outdir=s;
+			u_opt.outdir=s;
 		}else{
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.outdir=u_opt.dirfile;
 		}//output_dir = ./RCW_120_M/ ;
 	}
 
@@ -158,22 +155,22 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
-		tmp_dir=pPath;
+		u_opt.tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);
 	}else{
 		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
 		if(s==NULL){
 			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-			cout << "Using default temporary directory : " << dirfile << endl;
-			tmp_dir=dirfile;
+			cout << "Using default temporary directory : " << u_opt.dirfile << endl;
+			u_opt.tmp_dir=u_opt.dirfile;
 		}else{
 			str=(string)s;
 			if(str.size()!=0){
 				printf("temp_dir : [%s]\n",s);
-				tmp_dir=s;
+				u_opt.tmp_dir=s;
 			}else{
-				cout << "Using default temporary directory : " << dirfile << endl;
-				tmp_dir=dirfile;
+				cout << "Using default temporary directory : " << u_opt.dirfile << endl;
+				u_opt.tmp_dir=u_opt.dirfile;
 			}//tmp_dir = ./internal_sanepic/ ;
 		}
 
@@ -223,7 +220,7 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		printf("you must specify a noise_suffixe\n");
 		return -1 ;
 	}//noise_suffixe = ./RCW_120_M/ ;*/
-	noiseSppreffile=tmp_dir;
+	u_opt.noiseSppreffile=u_opt.tmp_dir;
 
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s==NULL){
@@ -303,8 +300,8 @@ int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &nap
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 		for(int ii=0;ii<(int)fitsvect.size();ii++){
-			cout << dirfile + fitsvect[ii] << endl;
-			fitsvect[ii] = dirfile + fitsvect[ii];}
+			cout << u_opt.dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
 		readFrames( &ntotscan , fitsvect, fframes, nsamples);
 
