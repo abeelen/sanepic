@@ -94,33 +94,34 @@ int main(int argc, char *argv[])
 #endif
 
 
+	struct user_options_sanepos u_opt;
 
 
 	//default value of the data to pointing shift
-	int shift_data_to_point = 0; /*! default value = 0 */
+	u_opt.shift_data_to_point = 0; /*! default value = 0 */
 
 
 	//DEFAULT PARAMETERS
-	long napod = 0; /*! number of samples to apodize, =0 -> no apodisation */
-//	double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
+	u_opt.napod = 0; /*! number of samples to apodize, =0 -> no apodisation */
+	//double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
 
 
 	long iframe_min, iframe_max; /*! frame number min and max each processor has to deal with */
 
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
-	bool bfixc = 0; /*! indicates that 4 corners are given for the cross corelation removal box */
+	u_opt.bfixc = 0; /*! indicates that 4 corners are given for the cross corelation removal box */
 	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
-	bool NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
-	bool flgdupl = 0; /*! 1 if flagged data are put in a separate map */
+	u_opt.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
+	u_opt.flgdupl = 0; /*! 1 if flagged data are put in a separate map */
 
 
 	//set coordinate system
-	double *srccoord, *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
-	srccoord = new double[2]; // RA/DEC source
-	coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
-	srccoord[0] = -1000; // RA tangent point/source
-	srccoord[1] = -1000; // DEC tangent point/source
-	double radius = -1.0; /*! map radius (half a side) in degrees */
+	//double *srccoord, *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
+	u_opt.srccoord = new double[2]; // RA/DEC source
+	u_opt.coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
+	u_opt.srccoord[0] = -1000; // RA tangent point/source
+	u_opt.srccoord[1] = -1000; // DEC tangent point/source
+	u_opt.radius = -1.0; /*! map radius (half a side) in degrees */
 
 
 	// data parameters
@@ -136,16 +137,16 @@ int main(int argc, char *argv[])
 
 
 	// map making parameters
-	double pixdeg; /*! size of pixels (degree) */
+	//double pixdeg; /*! size of pixels (degree) */
 
 	unsigned long npix; /*! npix = number of filled pixels */
 	long npixsrc; /*! number of pixels included in CCR */
 	double ra_min, ra_max, dec_min, dec_max; /*! ra/dec min/max coordinates of the map*/
-	float *scoffsets; /*! source offsets depending on wavelength */
-	scoffsets = new float[6];
+	//float *scoffsets; /*! source offsets depending on wavelength */
+	//scoffsets = new float[6];  useless now !
 
-//	int nfoff; /*! number of offsets */
-//	foffset *foffsets; /*! tableau d'offsets */
+	//	int nfoff; /*! number of offsets */
+	//	foffset *foffsets; /*! tableau d'offsets */
 
 	double *tancoord; /*! tangent point coordinates RA/dec */
 	double *tanpix; /*! tangent pixel coordinates in the map */
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
 
 
 	unsigned short *mask;
-	short *flag;
+	//short *flag;
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
@@ -170,9 +171,9 @@ int main(int argc, char *argv[])
 	string field; /*! actual boloname in the bolo loop */
 	string bolofield; /*! bolofield = boloname + bextension */
 	string flagfield; /*! flagfield = field+fextension;*/
-	string dirfile; /*! data directory*/
-	string tmp_dir; /*! output directory*/
-	string poutdir; /*! current path (pPath) or output dir (outdir)*/
+	//string dirfile; /*! data directory*/
+	//string tmp_dir; /*! output directory*/
+	//string poutdir; /*! current path (pPath) or output dir (outdir)*/
 
 	/* parser inputs */
 	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
@@ -185,7 +186,7 @@ int main(int argc, char *argv[])
 
 
 
-	pixdeg = -1.0; /*! "Size of pixels (deg)"*/
+	u_opt.pixdeg = -1.0; /*! "Size of pixels (deg)"*/
 
 	// -----------------------------------------------------------------------------//
 
@@ -195,10 +196,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 		int parsed=1;
-		// TODO : add fits reading and binary/fits data gestion
-		parsed=parse_sanePos_ini_file(argv[1],bfixc,shift_data_to_point,napod,NOFILLGAP,flgdupl,
-				srccoord,coordscorner,radius,ntotscan,ndet,
-				pixdeg,dirfile,tmp_dir,
+		parsed=parse_sanePos_ini_file(argv[1],u_opt,ntotscan,ndet,
 				bolonames,fframes,nsamples,boxFile,fitsvect,scans_index);
 
 		if (parsed==-1){
@@ -210,6 +208,8 @@ int main(int argc, char *argv[])
 		}
 
 	}
+
+
 
 	//fname = tmp_dir + parallel_scheme_filename;
 
@@ -232,13 +232,13 @@ int main(int argc, char *argv[])
 	// -----------------------------------------------------------------------------//
 	t2=time(NULL);
 
-	if (napod){
+	if (u_opt.napod){
 		printf("[%2.2i] Data are apodized\n", rank);
 	} else {
 		printf("[%2.2i] Data are not apodized\n", rank);
 	}
 
-	printf("[%2.2i] Data written in %s\n",rank, tmp_dir.c_str());
+	printf("[%2.2i] Data written in %s\n",rank, (u_opt.tmp_dir).c_str());
 
 	// convert lists to regular arrays (MPI_BCas works only on array...
 	//fframes       = new long[ntotscan];
@@ -270,21 +270,21 @@ int main(int argc, char *argv[])
 	string scerr_field = "ERR"+pextension;
 	string flpoint_field = "FLPOINTING";*/
 
-//	if (coordsyst == 2){
-//		//ra_field = "L"+pextension;
-//		//dec_field = "B"+pextension;
-//		//phi_field = "PHIG"+pextension;
-//		printf("[%2.2i] Coordinate system: Galactic\n",rank );
-//	}else{
-//		//ra_field = "RA"+pextension;
-//		//dec_field = "DEC"+pextension;
-//		//phi_field = "PHI"+pextension;
-//		if (coordsyst == 3){
-//			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
-//		} else {
-//			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
-//		}
-//	}
+	//	if (coordsyst == 2){
+	//		//ra_field = "L"+pextension;
+	//		//dec_field = "B"+pextension;
+	//		//phi_field = "PHIG"+pextension;
+	//		printf("[%2.2i] Coordinate system: Galactic\n",rank );
+	//	}else{
+	//		//ra_field = "RA"+pextension;
+	//		//dec_field = "DEC"+pextension;
+	//		//phi_field = "PHI"+pextension;
+	//		if (coordsyst == 3){
+	//			printf("[%2.2i] Map in Telescope coordinates. Reference coordinate system is RA/DEC (J2000)\n", rank);
+	//		} else {
+	//			printf("[%2.2i] Coordinate system: RA/DEC (J2000)\n", rank);
+	//		}
+	//	}
 	/*
 
 	if (NORMLIN)
@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/*! map offsets*/
-//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
+	//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
 
 
 
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > ntotscan){
-		cerr << "Error distriBoxuting frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
+		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
 	}
 
@@ -405,25 +405,25 @@ int main(int argc, char *argv[])
 	ns = nsamples[0];
 	for(int ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
 
-//	ra = new double[2*ns]; // RA bolo de ref
-//	dec = new double[2*ns]; // DEc du bolo de ref
-//	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
+	//	ra = new double[2*ns]; // RA bolo de ref
+	//	dec = new double[2*ns]; // DEc du bolo de ref
+	//	phi = new double[2*ns]; // (du bolo de ref) angle de la matrice de detecteur par rapport a RA/dec
 	//scerr = new double[2*ns]; // BLAST SPECIFIC : mesure l'erreur de pointage, si trop grande on flag la donnée
-//	xx = new int[2*ns]; // sample column coordinates in the map
-//	yy = new int[2*ns]; // sample row coordinates in the map
-//	samptopix = new long[2*ns]; // sample to pixel conversion index
+	//	xx = new int[2*ns]; // sample column coordinates in the map
+	//	yy = new int[2*ns]; // sample row coordinates in the map
+	//	samptopix = new long[2*ns]; // sample to pixel conversion index
 	//flag = new unsigned char[2*ns]; // flag data => =1
-//	flag = new short[2*ns];
-//	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
+	//	flag = new short[2*ns];
+	//	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
 	//flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
-//	flpoint = new short[2*ns];
+	//	flpoint = new short[2*ns];
 	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
 	tanpix = new double[2]; // coordinates in the map of the tangent point
 
-//	froffsets = new double[2]; //
-//	offsets = new double[2];
+	//	froffsets = new double[2]; //
+	//	offsets = new double[2];
 
-//	offmap = new double[2]; // map offsets
+	//	offmap = new double[2]; // map offsets
 
 
 	// default value for map variables
@@ -435,7 +435,7 @@ int main(int argc, char *argv[])
 	/*
 	offmap[0] = 0.0;
 	offmap[1] = 0.0;
-*/
+	 */
 
 	//********************************************************************************
 	//*************  find coordinates of pixels in the map
@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
-//	bool default_projection = 1;
+	//	bool default_projection = 1;
 
 	// TODO: Different ways of computing the map parameters :
 	// 1 - find minmax of the pointings on the sky -> define map parameters from that
@@ -455,21 +455,21 @@ int main(int argc, char *argv[])
 	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
 	 * -> Compute map coordinates
 	 */
-//	time_t first = time(NULL);
+	//	time_t first = time(NULL);
 
-//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
-//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
-//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
-//			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
-//
-//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
-//
-//	first = time(NULL);
+	//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
+	//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
+	//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
+	//			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
+	//
+	//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+	//
+	//	first = time(NULL);
 	computeMapMinima(bolonames,fits_table,
-			iframe_min,iframe_max,fframes,nsamples,pixdeg,
+			iframe_min,iframe_max,fframes,nsamples,u_opt.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 
-//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+	//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 #ifdef USE_MPI
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -491,27 +491,28 @@ int main(int argc, char *argv[])
 #endif
 
 	//set coordinates
-	coordscorner[0] = gra_min; // store ra/dec min/max of the final map
-	coordscorner[1] = gra_max;
-	coordscorner[2] = gdec_min;
-	coordscorner[3] = gdec_max;
+	u_opt.coordscorner[0] = gra_min; // store ra/dec min/max of the final map
+	u_opt.coordscorner[1] = gra_max;
+	u_opt.coordscorner[2] = gdec_min;
+	u_opt.coordscorner[3] = gdec_max;
 
 	if (rank == 0) {
 		printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
 
-//	if(default_projection)
-//		// just to set nn in order to compute map-making matrices and vectors
-//		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-//				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
-//
-//	cout << "nn orig : " << nn << endl;
+	//	if(default_projection)
+	//		// just to set nn in order to compute map-making matrices and vectors
+	//		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+	//				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
+	//
+	//	cout << "nn orig : " << nn << endl;
 
 	struct wcsprm wcs;
 	unsigned long NAXIS1, NAXIS2;
 
-	computeMapHeader(pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
+	computeMapHeader(u_opt.pixdeg, (char *) "EQ", (char *) "TAN", u_opt.coordscorner, wcs, NAXIS1, NAXIS2);
+
 
 	//	 TODO: remove this temporary fix.... save/read thru wcs...
 	tancoord[0] = wcs.crval[0];
@@ -520,52 +521,52 @@ int main(int argc, char *argv[])
 	tanpix[0]   = wcs.crpix[0];
 	tanpix[1]   = wcs.crpix[1];
 
-//	// DEBUG make a fake wcs structure
-//
-//	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-//			tancoord, tanpix, 1, radius, srccoord,0);
-//
-//	NAXIS1 = nn;
-//	NAXIS2 = nn;
-//
-//	// Construct the wcsprm structure
-//	wcs.flag = -1;
-//	wcsini(1, 2, &wcs);
-//	// Pixel size in deg
-//	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
-//	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
-//
-//	// This will be the reference center of the map
-//	wcs.crval[0] = tancoord[0];
-//	wcs.crval[1] = tancoord[1];
-//
-//	wcs.crpix[0] = tanpix[0];
-//	wcs.crpix[1] = tanpix[1];
-//
-//	// Axis label
-//	char TYPE[2][5] = { "RA--", "DEC-"};
-//	char NAME[2][16] = {"Right Ascension","Declination"};
-//
-//	for (int ii = 0; ii < 2; ii++) {
-//		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
-//		strncat(wcs.ctype[ii],"-",1);
-//		strncat(wcs.ctype[ii],"TAN", 3);
-//		strcpy(wcs.cname[ii], &NAME[ii][0]);
-//		}
-//	int wcsstatus;
-//
-//	if ((wcsstatus = wcsset(&wcs))) {
-//	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-//	   }
-//
-//
-//	// END DEBUG OF THE FAKE HEADER
+	//	// DEBUG make a fake wcs structure
+	//
+	//	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
+	//			tancoord, tanpix, 1, radius, srccoord,0);
+	//
+	//	NAXIS1 = nn;
+	//	NAXIS2 = nn;
+	//
+	//	// Construct the wcsprm structure
+	//	wcs.flag = -1;
+	//	wcsini(1, 2, &wcs);
+	//	// Pixel size in deg
+	//	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
+	//	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
+	//
+	//	// This will be the reference center of the map
+	//	wcs.crval[0] = tancoord[0];
+	//	wcs.crval[1] = tancoord[1];
+	//
+	//	wcs.crpix[0] = tanpix[0];
+	//	wcs.crpix[1] = tanpix[1];
+	//
+	//	// Axis label
+	//	char TYPE[2][5] = { "RA--", "DEC-"};
+	//	char NAME[2][16] = {"Right Ascension","Declination"};
+	//
+	//	for (int ii = 0; ii < 2; ii++) {
+	//		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
+	//		strncat(wcs.ctype[ii],"-",1);
+	//		strncat(wcs.ctype[ii],"TAN", 3);
+	//		strcpy(wcs.cname[ii], &NAME[ii][0]);
+	//		}
+	//	int wcsstatus;
+	//
+	//	if ((wcsstatus = wcsset(&wcs))) {
+	//	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	//	   }
+	//
+	//
+	//	// END DEBUG OF THE FAKE HEADER
 
 	if (rank == 0)
 		printf("[%2.2i] %lu x %lu pixels\n",rank, NAXIS1, NAXIS2);
 
-	save_MapHeader(tmp_dir,wcs);
-//	print_MapHeader(wcs);
+	save_MapHeader(u_opt.tmp_dir,wcs);
+	//	print_MapHeader(wcs);
 
 	/*!
 	 * \fn write Pointing informations in a file
@@ -577,7 +578,7 @@ int main(int argc, char *argv[])
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
 	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
-	write_info_pointing(NAXIS1, NAXIS2, tmp_dir, tanpix, tancoord);
+	write_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
 
 
 	/*} else {
@@ -631,7 +632,7 @@ int main(int argc, char *argv[])
 
 	// map duplication factor
 	int factdupl;
-	(flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
+	(u_opt.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
 
 	// pixon indicates pixels that are seen
 	// factdupl if flagged data are to be projected onto a separete map
@@ -647,23 +648,23 @@ int main(int argc, char *argv[])
 	// get coordinates of pixels that are seen
 	//**********************************************************************************
 
-//	//TODO: check from here and below
-	computePixelIndex(ntotscan,tmp_dir, bolonames,
+	//	//TODO: check from here and below
+	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max,fframes, nsamples,
 			wcs, NAXIS1, NAXIS2,
 			mask,
-			napod, NOFILLGAP, flgdupl,factdupl,
+			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
 
-//	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
-//			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
-//			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
-//			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
-//			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
-//			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
-//			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
-//
+	//	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
+	//			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
+	//			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
+	//			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
+	//			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
+	//			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
+	//			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
+	//
 
 
 	// string temp = dirfile + "optimMap_sanepic_flux.fits";
@@ -674,7 +675,7 @@ int main(int argc, char *argv[])
 
 	//************** init mapmaking variables *************//
 
-//	printf("[%2.2i] Init map making variables\n",rank);
+	//	printf("[%2.2i] Init map making variables\n",rank);
 
 
 	// pixel indices
@@ -693,7 +694,7 @@ int main(int argc, char *argv[])
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
-		write_indpix(sky_size, npix, indpix, tmp_dir, flagon);
+		write_indpix(sky_size, npix, indpix, u_opt.tmp_dir, flagon);
 	}
 
 
@@ -732,8 +733,8 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] mask;
 	delete [] pixon;
-	delete [] coordscorner;
-
+	delete [] u_opt.coordscorner;
+	delete [] u_opt.srccoord;
 	delete [] fframes;
 	delete [] nsamples;
 	delete [] tancoord;

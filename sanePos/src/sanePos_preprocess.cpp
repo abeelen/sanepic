@@ -483,6 +483,10 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 			delete [] wcsstatus;
 
 
+//			for (unsigned long ii = 0; ii < 20; ii++){
+//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+//			}
 
 			// Combine position and bolo flags
 			// and check
@@ -580,8 +584,9 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 }
 
 
-//TODO: Remove this
 
+
+/*
 int map_offsets(string file_frame_offsets,long ntotscan, float *&scoffsets, foffset *&foffsets,long *fframes, int rank){
 
 	int ff, nfoff;
@@ -605,3 +610,4 @@ int map_offsets(string file_frame_offsets,long ntotscan, float *&scoffsets, foff
 	}
 	return nfoff;
 }
+*/

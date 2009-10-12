@@ -28,10 +28,10 @@ extern "C"{
 #include "inputFileIO.h"
 #include "parsePos.h"
 
-int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_point, long  &napod, bool &NOFILLGAP, bool &flgdupl,
-		double * srccoord, double * coordscorner, double &radius, long &ntotscan, long &ndet,
-		double &pixdeg, string &dirfile, string &outdir,  std::vector<string> &bolonames, long *&fframes, long *&nsamples,
-		std::vector<struct box> & boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
+int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
+		long &ntotscan, long &ndet,
+		std::vector<string> &bolonames, long *&fframes, long *&nsamples,
+		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
 
@@ -69,34 +69,6 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	/* Get sanepic_compute_positions attributes */
 	printf("sanepic_compute_positions:\n");
 
-	//#ifdef USE_MPI
-	// for poutdir default value
-	char * pPath;
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL){
-		outdir=pPath;
-		printf ("The current path is: %s\n",pPath);
-	}else{
-		//#else
-
-		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-		if(s==NULL){
-			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
-		}else{
-			str=(string)s;
-			if(str.size()!=0){
-				printf("temp_dir : [%s]\n",s);
-				outdir=s;
-			}else{
-				cout << "Using default output directory : " << dirfile << endl;
-				outdir=dirfile;
-			}//output_dir = ./RCW_120_M/ ;
-		}
-	}
-	//#endif
-
 
 	s = iniparser_getstring(ini, "commons:data_directory", NULL);
 	if(s==NULL){
@@ -106,11 +78,42 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	str=(string)s;
 	if(str.size()!=0){
 		printf("data_directory : [%s]\n",s);
-		dirfile = s;
+		u_opt.dirfile = s;
 	}else{
 		printf("You must specify a data directory : commons:data_directory\n");
 		return -1 ;
 	}//./RCW_120_M/
+
+
+	//#ifdef USE_MPI
+	// for poutdir default value
+	char * pPath;
+	pPath = getenv ("TMPBATCH");
+	if (pPath!=NULL){
+		u_opt.tmp_dir=pPath;
+		printf ("The current path is: %s\n",pPath);
+	}else{
+		//#else
+
+		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		if(s==NULL){
+			printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.tmp_dir=u_opt.dirfile;
+		}else{
+			str=(string)s;
+			if(str.size()!=0){
+				printf("temp_dir : [%s]\n",s);
+				u_opt.tmp_dir=s;
+			}else{
+				cout << "Using default output directory : " << u_opt.dirfile << endl;
+				u_opt.tmp_dir=u_opt.dirfile;
+			}//output_dir = ./RCW_120_M/ ;
+		}
+	}
+	//#endif
+
+
 
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s==NULL){
@@ -195,8 +198,8 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 		for(int ii=0;ii<(int)fitsvect.size();ii++){
-			cout << dirfile + fitsvect[ii] << endl;
-			fitsvect[ii] = dirfile + fitsvect[ii];}
+			cout << u_opt.dirfile + fitsvect[ii] << endl;
+			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
 		readFrames( &ntotscan , fitsvect, fframes, nsamples);
 
@@ -219,8 +222,8 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	str=(string)s;
 	if(str.size()!=0){
 		temp=str.c_str();
-		pixdeg=atof(temp);
-		cout << "Pixsize : " << setprecision(str.size()) << pixdeg << endl;
+		u_opt.pixdeg=atof(temp);
+		cout << "Pixsize : " << setprecision(str.size()) << u_opt.pixdeg << endl;
 		//printf("Pixsize :   [%lf]\n", pixdeg);
 
 	}else{
@@ -263,7 +266,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
 	if(i>0){
 		printf("apodize_Nsamples :      [%d]\n", i);
-		napod=i;
+		u_opt.napod=i;
 	}else{
 		printf("You must choose a number of samples to apodize commons:apodize_Nsamples\n");
 		return -1 ;
@@ -365,7 +368,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
 	if(b!=-1){
 		printf("nofill_gap:    [%d]\n", b);
-		NOFILLGAP=b;
+		u_opt.NOFILLGAP=b;
 	}
 	//NOFILLGAP = 0 ;
 
@@ -373,7 +376,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	//if(isnan((double)i)){
 	if(i!=0){
 		printf("time_offset :      [%d]\n", i);
-		shift_data_to_point=i;
+		u_opt.shift_data_to_point=i;
 	}
 	/*}else{
 		//printf("test was good\n");
@@ -396,42 +399,42 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_source", 0.0);
 	if(d!=0.0){
 		printf("RA_source :      [%g]\n", d);
-		srccoord[0]=d;
+		u_opt.srccoord[0]=d;
 		tmpcount2 += 1;
 	}//RA_source =  ;
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_source", 0.0);
 	if(d!=0.0){
 		printf("DEC_source :      [%g]\n", d);
-		srccoord[1]=d;
+		u_opt.srccoord[1]=d;
 		tmpcount2 += 1;
 	}//DEC_source =  ;
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:map_radius", 0.0);
 	if(d!=0.0){
 		printf("map_radius :      [%g]\n", d);
-		radius=d;
+		u_opt.radius=d;
 		tmpcount2 += 1;
 	}//map_radius =  ;
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_min", 0.0);
 	if(d!=0.0){
 		printf("RA_min :      [%g]\n", d);
-		coordscorner[0] = d;
+		u_opt.coordscorner[0] = d;
 		tmpcount += 1;
 	}//RA_min =  ;
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_max", 0.0);
 	if(d!=0.0){
 		printf("RA_max :      [%g]\n", d);
-		coordscorner[1] = d;
+		u_opt.coordscorner[1] = d;
 		tmpcount += 1;
 	}//RA_max =  ;
 
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_min", 0.0);
 	if(d!=0.0){
 		printf("DEC_min :      [%g]\n", d);
-		coordscorner[2] = d;
+		u_opt.coordscorner[2] = d;
 		tmpcount += 1;
 	}
 	//DEC_min =  ;
@@ -439,7 +442,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_max", 0.0);
 	if(d!=0.0){
 		printf("DEC_max :      [%g]\n", d);
-		coordscorner[3] = d;
+		u_opt.coordscorner[3] = d;
 		tmpcount += 1;
 	}//DEC_max =  ;
 
@@ -447,7 +450,7 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", -1);
 	if(b!=-1){
 		printf("map_flagged_data:    [%d]\n", b);
-		flgdupl=b;
+		u_opt.flgdupl=b;
 	}//flgdupl = False ;
 
 
@@ -463,18 +466,18 @@ int parse_sanePos_ini_file(char * ini_name,bool &bfixc, int  &shift_data_to_poin
 
 
 	if (tmpcount == 4)
-		bfixc = 1;
+		u_opt.bfixc = 1;
 
 	if (tmpcount2 == 3){
 		if (tmpcount == 4){
 			cerr << "ERROR: Conflicting input parameter: RA_min RA_max DEC_min DEC_max keywords are not compatible with RA_source DEc_source map_radius keywords . Exiting. \n";
 			return -1 ;
 		}
-		bfixc = 1;
-		coordscorner[0] = srccoord[0];
-		coordscorner[1] = srccoord[0];
-		coordscorner[2] = srccoord[1];
-		coordscorner[3] = srccoord[1];
+		u_opt.bfixc = 1;
+		u_opt.coordscorner[0] = u_opt.srccoord[0];
+		u_opt.coordscorner[1] = u_opt.srccoord[0];
+		u_opt.coordscorner[2] = u_opt.srccoord[1];
+		u_opt.coordscorner[3] = u_opt.srccoord[1];
 	}
 
 //	if (coordsyst != 3){
