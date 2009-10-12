@@ -44,6 +44,20 @@ struct user_options {
 	bool projgaps;
 };
 
+struct user_options_sanepos {
+	bool bfixc;
+	int shift_data_to_point;
+	long napod;
+	bool NOFILLGAP;
+	bool flgdupl;
+	double pixdeg;
+	std::string dirfile;
+	std::string tmp_dir;
+	double * srccoord;
+	double * coordscorner;
+	double radius;
+};
+
 using namespace std;
 
 // scans are distributed over processors
