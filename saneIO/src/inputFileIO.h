@@ -15,5 +15,6 @@ using namespace std;
  * Returns a vector of string containing the name of the considered channels
  */
 void read_strings(string fname, std::vector<string>& bolos);
+void read_double(string fname, double *& array, long & size);
 
 #endif /* INPUTFILEIO_H_ */

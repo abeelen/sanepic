@@ -35,4 +35,7 @@ void read_signal_from_fits(string filename, double *signal, string field);
 
 void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, short *&FLAG, long &ns);
 
+void read_ra_from_fits(string filename, string field, double *& ra, long & ns);
+void read_dec_from_fits(string filename, string field, double *& dec, long & ns);
+
 #endif /* POSITIONSIO_H_ */

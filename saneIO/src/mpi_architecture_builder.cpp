@@ -418,19 +418,31 @@ long readFitsLength(string filename){
 	int status = 0;
 	int hdu_type;
 	long ns;
-
+//	cout << filename << endl;
 	//	Open the fits file
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+//	// Go to the first Extension (should be an image named "Primary")
+//	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
+//		fits_report_error(stderr, status);
+//	if (hdu_type != IMAGE_HDU)
+//		fits_report_error(stderr, BAD_HDU_NUM);
+//
+//	cout << "before" << endl;
+//	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status)){
+//		cout << "failed" << endl;
+		// ---------------------------------------------
+		// Move ptr to signal hdu
+		if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
 			fits_report_error(stderr, status);
 
-	// Go to the first Extension (should be an image named "Primary")
-	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
-		fits_report_error(stderr, status);
-	if (hdu_type != IMAGE_HDU)
-		fits_report_error(stderr, BAD_HDU_NUM);
-
-	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status))
-		fits_report_error(stderr ,status);
+		// ---------------------------------------------
+		// Retrieve the size of the signal
+		if (fits_get_num_rows(fptr, &ns, &status))
+			fits_report_error(stderr, status);
+//		cout << "ns : " << ns << endl;
+//	}
 
 	return ns;
 

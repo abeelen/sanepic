@@ -1,5 +1,3 @@
-
-
 #ifndef COVMATRIX_H_
 #define COVMATRIX_H_
 

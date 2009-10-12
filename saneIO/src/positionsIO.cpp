@@ -87,32 +87,32 @@ void read_bolo_offsets_from_fits(string filename, string field, double * offsets
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel Offsets", NULL, &status))
 		fits_report_error(stderr, status);
 
-//	fits_get_num_rows(fptr, &nBolos, &status);
-//	fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
-//	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-//
-//	// Initialize the data container
-//	char ** data;
-//	data = new char* [nBolos+1];
-//	for (long i = 0; i < nBolos; i++) {
-//		data[i] = new char[repeat];
-//	}
-//
-//	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
-//
-//	std::vector<string> bolos;
-//	// convert to string vector and free the container
-//	bolos.resize(nBolos);
-//	for (long i = 0; i < nBolos; i++) {
-//		bolos[i] = data[i];
-//		free(data[i]);
-//	}
-//	free(data);
-//
-//	//	std::vector<string>::const_iterator it = find (bolos.begin(), bolos.end(),field);
-//	// +1 because cfitsio is 1 indexed
-//	long firstrow = distance(bolos.begin(), find (bolos.begin(), bolos.end(),field))+1;
-//
+	//	fits_get_num_rows(fptr, &nBolos, &status);
+	//	fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
+	//	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	//
+	//	// Initialize the data container
+	//	char ** data;
+	//	data = new char* [nBolos+1];
+	//	for (long i = 0; i < nBolos; i++) {
+	//		data[i] = new char[repeat];
+	//	}
+	//
+	//	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
+	//
+	//	std::vector<string> bolos;
+	//	// convert to string vector and free the container
+	//	bolos.resize(nBolos);
+	//	for (long i = 0; i < nBolos; i++) {
+	//		bolos[i] = data[i];
+	//		free(data[i]);
+	//	}
+	//	free(data);
+	//
+	//	//	std::vector<string>::const_iterator it = find (bolos.begin(), bolos.end(),field);
+	//	// +1 because cfitsio is 1 indexed
+	//	long firstrow = distance(bolos.begin(), find (bolos.begin(), bolos.end(),field))+1;
+	//
 	// Look-up for the Bolometer
 	fits_get_colnum(fptr, CASEINSEN, (char *) field.c_str(), &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, 2, NULL, temp, 0, &status);
@@ -305,102 +305,171 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 
 }
 
-
+//TODO : not used ??
 void read_flpoint_from_fits(string filename, short *FLAG){
 
 
-        fitsfile *fptr;
-        int status = 0;
-        //long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-        long repeat, width;
-        int colnum, typecode;
-        long ns;
-        //double temp;
+	fitsfile *fptr;
+	int status = 0;
+	int colnum;
+	long ns;
+	//double temp;
 
-        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-                fits_report_error(stderr, status);
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
 
-        // ---------------------------------------------
-        // read the Channel List
-        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
-                fits_report_error(stderr, status);
+	// ---------------------------------------------
+	// read the Channel List
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
+		fits_report_error(stderr, status);
 
-        fits_get_num_rows(fptr, &ns, &status);
-        fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
-        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-        fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
+	fits_get_num_rows(fptr, &ns, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
+	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
-        // close file
-        if(fits_close_file(fptr, &status)) // ajout mat 15/09
-                fits_report_error(stderr, status);
+	// close file
+	if(fits_close_file(fptr, &status)) // ajout mat 15/09
+		fits_report_error(stderr, status);
 
 }
 
 void read_flag_from_fits(string filename, string field, short *&mask, long &ns){
 
 
-        fitsfile *fptr;
-        int status = 0;
-        long repeat, width;
-        int colnum, typecode;
+	fitsfile *fptr;
+	int status = 0;
+	int colnum;
 
-        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-                fits_report_error(stderr, status);
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
 
-        // ---------------------------------------------
-        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
-                fits_report_error(stderr, status);
+	// ---------------------------------------------
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "mask", NULL, &status))
+		fits_report_error(stderr, status);
 
-        // Get array size ...
-        fits_get_num_rows(fptr, &ns, &status);
+	// Get array size ...
+	if(fits_get_num_rows(fptr, &ns, &status))
+		fits_report_error(stderr, status);
 
-        // ... and allocate memory
-        mask = new short[ns];
+	// ... and allocate memory
+	mask = new short[ns];
 
-        // Read the actual data
-        fits_get_colnum(fptr, CASEINSEN, (char*)field.c_str(), &colnum, &status);
-        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-        fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, mask, 0, &status);
+	// Read the actual data
+	fits_get_colnum(fptr, CASEINSEN, (char*)field.c_str(), &colnum, &status);
+//	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, mask, 0, &status);
 
-        // close file
-        if(fits_close_file(fptr, &status))
-                fits_report_error(stderr, status);
-
-}
-
-void read_signal_from_fits(string filename, double *signal, string field){ // tested in sanepos, work fine
-
-
-
-        fitsfile *fptr;
-        int status = 0;
-        //long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-        long repeat, width;
-        int colnum, typecode;
-        long ns;
-        //double temp;
-
-        if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-                fits_report_error(stderr, status);
-
-
-        // ---------------------------------------------
-        // Move ptr to signal hdu
-        if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
-                fits_report_error(stderr, status);
-
-        fits_get_num_rows(fptr, &ns, &status);
-        fits_get_colnum(fptr, CASEINSEN, (char*) field.c_str(), &colnum, &status);
-        fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-        fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, signal, 0, &status);
-
-        // close file
-        if(fits_close_file(fptr, &status)) // ajout mat 15/09
-                fits_report_error(stderr, status);
-        //print_fits_error(status);
-
-
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
 
 }
 
+void read_signal_from_fits(string filename, double *signal, string field){
 
+	fitsfile *fptr;
+	int status = 0;
+	int colnum;
+	long ns;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Move ptr to signal hdu
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Retrieve the size of the signal
+	if (fits_get_num_rows(fptr, &ns, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Retrieve the column number corresponding to given channel
+	if (fits_get_colnum(fptr, CASEINSEN, (char*) field.c_str(), &colnum, &status))
+		fits_report_error(stderr, status);
+	// Retrieve all signal
+	if (fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, signal, 0, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+}
+
+void read_ra_from_fits(string filename, string field, double *& ra, long & ns){
+
+	// HIPE like format
+
+	fitsfile *fptr;
+	int status = 0;
+	int colnum;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Move ptr to signal hdu
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "ra", NULL, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Retrieve the size of the signal
+	if (fits_get_num_rows(fptr, &ns, &status))
+		fits_report_error(stderr, status);
+
+	ra = new double[ns];
+	// ---------------------------------------------
+	// Retrieve the column number corresponding to given channel
+	if (fits_get_colnum(fptr, CASEINSEN, (char*) field.c_str(), &colnum, &status))
+		fits_report_error(stderr, status);
+	// Retrieve all signal
+	if (fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, ra, 0, &status))
+		fits_report_error(stderr, status);
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+}
+
+void read_dec_from_fits(string filename, string field, double *& dec, long & ns){
+
+	// HIPE like format
+
+	fitsfile *fptr;
+	int status = 0;
+	int colnum;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Move ptr to signal hdu
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "dec", NULL, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Retrieve the size of the signal
+	if (fits_get_num_rows(fptr, &ns, &status))
+		fits_report_error(stderr, status);
+
+	dec = new double[ns];
+
+	// ---------------------------------------------
+	// Retrieve the column number corresponding to given channel
+	if (fits_get_colnum(fptr, CASEINSEN, (char*) field.c_str(), &colnum, &status))
+		fits_report_error(stderr, status);
+	// Retrieve all signal
+	if (fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, dec, 0, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+}

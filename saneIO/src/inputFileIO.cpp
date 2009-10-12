@@ -25,7 +25,7 @@ void read_strings(string fname, std::vector<string> &bolos) {
 
 	ifstream inputFile(fname.c_str());
 	if (!inputFile.is_open()) {
-		cerr << "Error opening bolometer file '" << fname << "'. Exiting.\n";
+		cerr << "Error opening file '" << fname << "'. Exiting.\n";
 		exit(1);
 	}
 
@@ -42,4 +42,30 @@ void read_strings(string fname, std::vector<string> &bolos) {
 	}
 
 	inputFile.close();
+}
+
+void read_double(string fname, double *& array, long & size){
+	string line;
+	vector<double> temp;
+
+	ifstream inputFile(fname.c_str(), ios::in);
+	if (!inputFile.is_open()) {
+		cerr << "Error opening file '" << fname << "'. Exiting.\n";
+		exit(1);
+	}
+
+	// Count the number of lines ;
+	while(! inputFile.eof()){
+		getline(inputFile,line);
+		temp.push_back(atof(line.c_str()));
+	}
+	// Last element is an empty line
+	temp.pop_back();
+	inputFile.close();
+
+	size = temp.size();
+	// Memory allocation
+	array = new double[size];
+	for (unsigned long ii=0; ii< size; ii++)
+		array[ii] = temp[ii];
 }
