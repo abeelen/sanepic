@@ -201,11 +201,11 @@ int main(int argc, char *argv[])
 	//string bextension; /*! bolometer field extension */
 	//string fextension = "NOFLAG"; /*! flag field extension */
 	//string pextension; /*! pointing extension */
-	string termin; /*! output file suffix */
+//	string termin; /*! output file suffix */
 	//string noiseSppreffile; /*! noise file suffix */
 	string extentnoiseSp; /*! noise file */
 	string prefixe; /*! prefix used for temporary name file creation */
-	string termin_internal = "internal_data"; /*! internal data suffix */
+//	string termin_internal = "internal_data"; /*! internal data suffix */
 
 	// utilisé lors de la lecture des coord de la map en pixel (dans la f° read_data)
 	//string ra_field; /*! RA data file suffix */
@@ -256,12 +256,21 @@ int main(int argc, char *argv[])
 	} else {
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
+<<<<<<< .mine
+		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
+				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
+				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
+		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
+				MixMatfile, bolonames,fframes,nsamples,
+				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
+=======
 		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
 				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
 				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
 		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
 				termin,	MixMatfile, bolonames,fframes,nsamples,
 				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
+>>>>>>> .r217
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -372,7 +381,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	fname = tmp_dir + parallel_scheme_filename;
+	string fname = u_opt.tmp_dir + parallel_scheme_filename;
 
 	int test=0;
 	long *frnum;
@@ -511,12 +520,21 @@ int main(int argc, char *argv[])
 	fill(S,S+npix,0.0);
 
 	// conjugate GRADIENT LOOP
+<<<<<<< .mine
+	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
+			nsamples, fframes, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir,
+			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
+			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
+			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
+			u_opt.remove_polynomia, u_opt.outdir,fits_table);
+=======
 	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
 			nsamples, fframes, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir, termin, termin_internal,
 			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
 			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
 			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
 			u_opt.remove_polynomia, u_opt.outdir,fits_table);
+>>>>>>> .r217
 
 
 

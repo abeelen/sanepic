@@ -11,7 +11,7 @@
 
 void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_min, long iframe_max,
 		long *nsamples, long *fframes,std::vector<double> fcut,double f_lp,double fsamp,
-		long *indpix, int NAXIS1, int NAXIS2, int factdupl, string tmp_dir, string termin, string termin_internal, long ndet,
+		long *indpix, int NAXIS1, int NAXIS2, int factdupl, string tmp_dir, long ndet,
 		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames,/* int size_det,
 		int rank_det,*/ int iterw, double pixdeg, double *tancoord, double *tanpix,int coordsyst,
 		long *indpsrc, long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
@@ -244,7 +244,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 #endif
 
 
-
+			// every 10 iterations do ....
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
 				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
@@ -252,6 +252,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				prefixe = "fPs_";
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
 					ns = nsamples[iframe];
 					ff = fframes[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
@@ -271,7 +272,6 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 								indpix,NAXIS1, NAXIS2,npix,iframe,PtNPmatS,NULL,NULL);
 					}
 				} // end of iframe loop
-
 
 
 #ifdef USE_MPI
@@ -295,10 +295,6 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						r[ii] -= alpha*qtot[ii]; // else r = r - alpha * q
 				}
 			}
-
-
-
-
 
 			if (rank == 0){
 
@@ -338,11 +334,10 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				//      printf("[%2.2i] iter = %d, crit = %10.15g, crit2 = %10.15g     \n",rank, iter,var_n/var0,delta_n/delta0);
 
 
-
 				if (iter == 0){
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
-							mi = jj*NAXIS2 + ii;
+							mi = jj*NAXIS1 + ii;
 							if (indpix[mi] >= 0){
 								map1d[mi] = Mptot[indpix[mi]];
 							} else {
@@ -351,9 +346,9 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						}
 					}
 
-					fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits"; // write preconditioner
-					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
+					fname = '!' + outdir + "optimMap_" + "_noisevar.fits"; // write preconditioner
+					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 					for (long ii=0; ii<NAXIS1 ; ii++){
 						for (long jj=0; jj<NAXIS2; jj++){
@@ -365,9 +360,8 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 							}
 						}
 					}
-					fname = '!' + outdir + "binMap_" + termin + "_flux.fits";
+					fname = '!' + outdir + "binMap_" + "_flux.fits";
 					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-
 
 
 					for (long ii=0; ii<NAXIS1; ii++) {
@@ -393,9 +387,8 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						}
 					}
 
-					fname = '!' + outdir + "optimMap_" + termin + "_hits.fits";
+					fname = '!' + outdir + "optimMap_" + "_hits.fits";
 					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-
 
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
@@ -415,13 +408,11 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 							}
 						}
 
-						fname = '!' + outdir + "optimMap_" + termin + "_invnoisevaruncpix.fits";
+						fname = '!' + outdir + "optimMap_" + "_invnoisevaruncpix.fits";
 						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					}
 
 				}
-
-
 				if (iterw && (iter % iterw) == 0){
 
 					// make the map
@@ -438,8 +429,9 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 					/*sprintf(iterchar,"%d",iter);
 					iterstr = iterchar;
-					fname = '!' + outdir + "optimMap_" + termin + "_flux" + iterstr + "b.fits";*/
-					temp_stream << "!" + outdir + "optimMap_" + termin + "_flux" << iter << "b.fits";
+					fname = '!' + outdir + "optimMap_" + "_flux" + iterstr + "b.fits";*/
+					temp_stream << "!" + outdir + "optimMap_" + "flux" << iter << "b.fits";
+
 
 					// récupérer une chaîne de caractères
 					fname= temp_stream.str();
@@ -447,8 +439,6 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					temp_stream.str("");
 					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
-
-					// TODO : check indices... seems wrong... (OK for me : mat 30/09)
 					if (flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
@@ -464,8 +454,8 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
-						fname = '!' + outdir + "optimMap_" + termin + "_fluxflags" + iterstr + "b.fits";*/
-						temp_stream << "!" + outdir + "optimMap_" + termin + "_fluxflags" << iter << "b.fits";
+						fname = '!' + outdir + "optimMap_" + "_fluxflags" + iterstr + "b.fits";*/
+						temp_stream << "!" + outdir + "optimMap_" + "_fluxflags" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -495,7 +485,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
 						fname = '!' + outdir + "optimMap_" + termin + "_fluxuncpix_" + iterstr + "b.fits";*/
-						temp_stream << "!" + outdir + "optimMap_" + termin + "_fluxuncpix_" << iter << "b.fits";
+						temp_stream << "!" + outdir + "optimMap_" + "_fluxuncpix_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -509,7 +499,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 
 				//	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"ConvFile_",termin.c_str(),".txt");
-				temp_stream << outdir + "ConvFile_" + termin + "txt";
+				temp_stream << outdir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
 				testfile= temp_stream.str();
@@ -520,6 +510,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				fclose(fp);
 
 			}
+
 
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -600,7 +591,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 #endif
 
 	//sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-	temp_stream << outdir + "testfile_" + termin_internal + "txt";
+	temp_stream << outdir + "testfile.txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -647,7 +638,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 		fclose(fp);
 		////////////////////////////////////
 
-		fname = '!' + outdir + "optimMap_" + termin + "_flux.fits";
+		fname = '!' + outdir + "optimMap_flux.fits";
 		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 
@@ -663,7 +654,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 		}
 
 
-		fname = '!' + outdir + "optimMap_" + termin + "_noisevar.fits";
+		fname = '!' + outdir + "optimMap_noisevar.fits";
 		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
 		if (addnpix){
@@ -686,7 +677,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					/*sprintf(iframechar,"%ld",iframe);
 					iframestr = iframechar;
 					fname = '!' + outdir + "optimMap_" + termin + "_flux_fr" + iframestr + ".fits";*/
-					temp_stream << "!" + outdir + "optimMap_" + termin + "_flux_fr" << iframe << ".fits";
+					temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
 
 					// récupérer une chaîne de caractères
 					fname= temp_stream.str();
@@ -707,7 +698,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 					}
 
 					//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-					temp_stream << "!" + outdir + "optimMap_" + termin + "_noisevar_fr" << iframe << ".fits";
+					temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
 
 					// récupérer une chaîne de caractères
 					fname= temp_stream.str();

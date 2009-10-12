@@ -44,7 +44,7 @@ using namespace std;
 		std::vector<long> &xxi, std::vector<long> &xxf, std::vector<long> &yyi, std::vector<long> &yyf, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);*/
 
 int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, long &ntotscan, long &ndet,
-		string &termin,	string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
+		string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
 		std::vector<struct box> & boxFile, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
 
 #endif /* PARSESANEPIC_H_ */

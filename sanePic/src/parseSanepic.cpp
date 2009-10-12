@@ -10,7 +10,7 @@
 #include "inputFileIO.h"
 
 int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, long &ntotscan, long &ndet,
-		string &termin,	string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
+		string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
 		std::vector<struct box> & boxFile, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 
@@ -425,19 +425,19 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 		//#endif
 	}
 
-	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
-	if(s==NULL){
-		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("out_file_str : [%s]\n",s);
-		termin=s;
-	}else{
-		printf("You must specify a prefixe for generated files : out_file_str\n");
-		return -1;
-	}//out_file_str = sanepic ;
+//	s = iniparser_getstring(ini, "commons:out_file_str",NULL);
+//	if(s==NULL){
+//		printf("You must add a line corresponding to a prefixe for generated files in the ini file : commons:out_file_str\n");
+//		return -1;
+//	}
+//	str=(string)s;
+//	if(str.size()!=0){
+//		printf("out_file_str : [%s]\n",s);
+//		termin=s;
+//	}else{
+//		printf("You must specify a prefixe for generated files : out_file_str\n");
+//		return -1;
+//	}//out_file_str = sanepic ;
 
 
 	i = iniparser_getint(ini, "commons:time_offset", 0);
