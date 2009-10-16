@@ -36,7 +36,7 @@
 
 void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fits_table,/*,string bextension,
 		string fextension,*//*string file_offsets,foffset *foffsets,float *scoffsets,	double *offsets,*/long iframe_min, long iframe_max,
-		long *fframes,long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
+		/*long *fframes,*/long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff,*/ double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
 		double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
@@ -63,7 +63,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 	//string bolofield;
 	//string flagfield;
 	string fits_file;
-	long ns,ff;
+	long ns;
 	//double *ra,*dec,*phi,*scerr, *flpoint;
 
 	// ndet = number of channels
@@ -126,7 +126,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 			// read pointing files
 			ns = nsamples[iframe];
-			ff = fframes[iframe];
+			//ff = fframes[iframe];
 
 			//cout << "iframe " << iframe << endl;
 
@@ -197,7 +197,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 
 
 void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<string> bolonames,  string *fits_table,/*,string bextension, string fextension, string termin,*/
-		/*string file_offsets,foffset *foffsets,float *scoffsets,*/ long iframe_min, long iframe_max,long *fframes,
+		/*string file_offsets,foffset *foffsets,float *scoffsets,*/ long iframe_min, long iframe_max,/*long *fframes,*/
 		long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff*/ double pixdeg, int *&xx, int *&yy, unsigned short *&mask,int &nn, double *&coordscorner, double *tancoord,
 		double *tanpix, bool bfixc, double radius, /*double *offmap,*/ double *srccoord, char type, double *&ra,double *&dec,
@@ -216,7 +216,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<st
 	string field;
 
 	string fits_file;
-	long ns, ff, ns2;
+	long ns, ns2;
 
 	int ll=0;
 
@@ -241,7 +241,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<st
 		//loop to get coordinates of pixels that are seen
 		for (unsigned long iframe=0;iframe<ntotscan;iframe++){
 			ns = nsamples[iframe];
-			ff = fframes[iframe];
+			//ff = fframes[iframe];
 
 			fits_file=fits_table[iframe];
 
@@ -345,7 +345,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<st
 
 
 void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max,long *fframes, long *nsamples,
+		string *fits_table, long iframe_min, long iframe_max,/*long *fframes,*/ long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
 		unsigned short *&mask,
 		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,

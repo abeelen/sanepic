@@ -18,7 +18,7 @@ using namespace std;
 
 
 void computeMapMinima(std::vector<string> bolonames, string *fits_table,
-		long iframe_min, long iframe_max, long *fframes,long *nsamples,double pixdeg,
+		long iframe_min, long iframe_max, /*long *fframes,*/long *nsamples,double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
 void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coordscorner,

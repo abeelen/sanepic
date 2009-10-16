@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+	//MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
-
+	long *pixon_tot;
 
 
 
@@ -179,6 +179,7 @@ int main(int argc, char *argv[])
 	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
 	std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 	std::vector<string> fitsvect;
+	std::vector<string> noisevect;
 	std::vector<long> scans_index;
 
 	time_t t2, t3;//, t3, t4, t5, dt;
@@ -243,14 +244,15 @@ int main(int argc, char *argv[])
 	// convert lists to regular arrays (MPI_BCas works only on array...
 	//fframes       = new long[ntotscan];
 	//nsamples      = new long[ntotscan];
-	string *fits_table;
+	string *fits_table, *noise_table;
 	long *index_table;
 
 	fits_table = new string[ntotscan];
+	noise_table = new string[ntotscan];
 	index_table= new long[ntotscan];
 
-	vector2array(fitsvect, fits_table);
-	vector2array(scans_index,  index_table);
+	//vector2array(fitsvect, fits_table);
+	//vector2array(scans_index,  index_table);
 	//cout << fframes[0] << fframes[1] << fframes[2] << endl;
 	//cout << nsamples[0] << nsamples[1] << nsamples[2] << endl;
 	cout << fframes[0] << endl;
@@ -296,83 +298,137 @@ int main(int argc, char *argv[])
 	 */
 
 	/*! map offsets*/
-	//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
+	//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank);
 
 
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
-	fname = tmp_dir + parallel_scheme_filename;
+	//long *frnum;
+	//frnum = new long[ntotscan+1];
 
-	int test=0;
-	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+	//	if (rank == 0){
 
-	if(test==-1){
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		exit(1);
+	  int test=0;
+	  fname = u_opt.outdir + parallel_scheme_filename;
+	  cout << fname << endl;
+	  test=define_parallelization_scheme(rank,fname,u_opt.dirfile,ntotscan,size,nsamples,fitsvect,noisevect,fits_table, noise_table,index_table);
+
+	  if(test==-1){ // TODO : remettre apres test
+	    MPI_Barrier(MPI_COMM_WORLD);
+	    MPI_Finalize();
+	    exit(1);
+	  }
+
+	  cout << "Et ca donne ca !" << endl;
+
+	  cout << fits_table[0] << " " << fits_table[1] << " " << fits_table[2] << " " << fits_table[3] << endl;
+	  cout << noise_table[0] << " " << noise_table[1] << " " << noise_table[2] << " " << noise_table[3] << endl;
+	  cout << index_table[0] << " " << index_table[1] << " " << index_table[2] << " " << index_table[3] << endl;
+	  cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
+
+	  //	}
+
+	  //	MPI_Barrier(MPI_COMM_WORLD);
+	//if(rank==0){
+	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	  //}
+
+	cout << "mon rank : " << rank << endl;
+
+	iframe_min = -1;
+	//iframe_max = -1;
+
+	for(int ii=0;ii<ntotscan;ii++){
+	  if((index_table[ii]==rank)&&(iframe_min == -1)){
+	    iframe_min=ii;
+	    break;
+	  }
 	}
 
+	iframe_max=iframe_min;
+	for(iframe_max=iframe_min;iframe_max<ntotscan-1;iframe_max++)
+	  if(index_table[iframe_max]!=rank){
+	    iframe_max--;
+	    break;
+	  }
+
+	iframe_max++;
+
+	cout << rank << " iframe_min : " << iframe_min << endl;
+	cout << rank << " iframe_max : " << iframe_max << endl;
+
+	for(int ii=0;ii<ntotscan;ii++)
+	  fits_table[ii] = u_opt.dirfile + fits_table[ii];
+
+	//exit(0);
 	/*long *frnum ;
 
-	if (rank == 0){
+	  if (rank == 0){
 
-		long *ruleorder ;
-		long *fframesorder ;
-		long *nsamplesorder ;
-		//string *extentnoiseSp_allorder;
+	  long *ruleorder ;
+	  long *fframesorder ;
+	  long *nsamplesorder ;
+	  //string *extentnoiseSp_allorder;
 
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
-		// reorder nsamples
-		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
-
-
-		fframesorder  = new long[ntotscan];
-		//extentnoiseSp_allorder = new string[ntotscan];
-		nsamplesorder = new long[ntotscan];
-
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamplesorder[ii] = nsamples[ruleorder[ii]];
-			fframesorder[ii] = fframes[ruleorder[ii]];
-			//extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
-		}
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamples[ii] = nsamplesorder[ii];
-			fframes[ii] = fframesorder[ii];
-			//extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
-			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
-		}
-
-		delete [] fframesorder;
-		delete [] nsamplesorder;
-		//delete [] extentnoiseSp_allorder;
-
-		delete [] ruleorder;
+	  check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
+	  // reorder nsamples
+	  //find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+	  //cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
 
-	} else {
-	frnum = new long[ntotscan+1];
-	}
-	 */
+	  fframesorder  = new long[ntotscan];
+	  //extentnoiseSp_allorder = new string[ntotscan];
+	  nsamplesorder = new long[ntotscan];
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+	  for (long ii=0;ii<ntotscan;ii++){
+	  nsamplesorder[ii] = nsamples[ruleorder[ii]];
+	  fframesorder[ii] = fframes[ruleorder[ii]];
+	  //extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
+	  }
+	  for (long ii=0;ii<ntotscan;ii++){
+	  nsamples[ii] = nsamplesorder[ii];
+	  fframes[ii] = fframesorder[ii];
+	  //extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
+	  //printf("frnum[%d] = %d\n",ii,frnum[ii]);
+	  }
 
-	iframe_min = frnum[rank];
-	iframe_max = frnum[rank+1];
+	  delete [] fframesorder;
+	  delete [] nsamplesorder;
+	  //delete [] extentnoiseSp_allorder;
+
+	  delete [] ruleorder;
+
+
+	  } else {
+	  frnum = new long[ntotscan+1];
+	  }
+	*/
+	//}
+	//MPI_Barrier(MPI_COMM_WORLD);
+	//if(rank==0){
+	// MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	  // MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	  //MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+	//}
+
+	//	iframe_min = frnum[rank];
+	//iframe_max = frnum[rank+1];
 	//rank_det = 0;
 	//size_det = 1;
-	delete [] frnum;
+	//delete [] frnum;
 
 
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
+	vector2array(fitsvect, fits_table);
+	vector2array(scans_index,  index_table);
+
 	//rank_det = rank;
 	//size_det = size;
 
@@ -389,7 +445,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-
+	//	exit(0);
 
 	/* END PARAMETER PROCESSING */
 
@@ -466,7 +522,7 @@ int main(int argc, char *argv[])
 	//
 	//	first = time(NULL);
 	computeMapMinima(bolonames,fits_table,
-			iframe_min,iframe_max,fframes,nsamples,u_opt.pixdeg,
+			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 
 	//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
@@ -641,8 +697,9 @@ int main(int argc, char *argv[])
 	unsigned long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
 	pixon = new long[sky_size];
+	pixon_tot = new long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
-
+	fill(pixon_tot,pixon_tot+(sky_size),0);
 
 	//**********************************************************************************
 	// get coordinates of pixels that are seen
@@ -650,7 +707,7 @@ int main(int argc, char *argv[])
 
 	//	//TODO: check from here and below
 	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
-			fits_table, iframe_min, iframe_max,fframes, nsamples,
+			fits_table, iframe_min, iframe_max, nsamples,
 			wcs, NAXIS1, NAXIS2,
 			mask,
 			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
@@ -673,6 +730,19 @@ int main(int argc, char *argv[])
 	//	fits_header_generation(tmp_dir,fits_file,pixdeg,default_projection,tanpix,tancoord);
 
 
+
+#ifdef USE_MPI
+
+	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+#else
+	for(long ii=0;ii<sky_size;ii++){
+	  pixon_tot[ii]=pixon[ii];
+	  }
+#endif
+
+	delete [] pixon;
+
+
 	//************** init mapmaking variables *************//
 
 	//	printf("[%2.2i] Init map making variables\n",rank);
@@ -686,7 +756,7 @@ int main(int argc, char *argv[])
 		indpix = new long[sky_size];
 		fill(indpix, indpix+(sky_size),-1);
 		for(long ii=0; ii< sky_size; ii++)
-			if (pixon[ii] != 0)
+			if (pixon_tot[ii] != 0)
 				indpix[ii] = npix++;
 
 		/*!
@@ -700,10 +770,11 @@ int main(int argc, char *argv[])
 
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
-	printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
-	printf("[%2.2i] Size of the map : %lu x %lu (using %lu pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
-	printf("[%2.2i] Total Number of filled pixels : %lu\n",rank, npix);
-
+	if(rank==0){
+	  printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
+	  printf("[%2.2i] Size of the map : %lu x %lu (using %lu pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
+	  printf("[%2.2i] Total Number of filled pixels : %lu\n",rank, npix);
+	}
 
 	t3=time(NULL);
 	cout << "temps de traitement : " << t3-t2 << " sec" << endl;
@@ -732,7 +803,7 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] mask;
-	delete [] pixon;
+	delete [] pixon_tot;
 	delete [] u_opt.coordscorner;
 	delete [] u_opt.srccoord;
 	delete [] fframes;
@@ -741,6 +812,9 @@ int main(int argc, char *argv[])
 	delete [] tanpix;
 	delete [] indpix;
 	delete [] indpsrc;
+	delete [] fits_table;
+	delete [] noise_table;
+	delete [] index_table;
 
 	printf("[%2.2i] End of sanePos\n",rank);
 

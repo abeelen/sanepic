@@ -113,7 +113,21 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 	}
 	//#endif
 
-
+	s = iniparser_getstring(ini, "commons:output_dir",NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+		cout << "Using default output directory : " << u_opt.dirfile << endl;
+		u_opt.outdir=u_opt.dirfile;
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("output_dir : [%s]\n",s);
+			u_opt.outdir=s;
+		}else{
+			cout << "Using default output directory : " << u_opt.dirfile << endl;
+			u_opt.outdir=u_opt.dirfile;
+		}//output_dir = ./RCW_120_M/ ;
+	}
 
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s==NULL){
@@ -240,14 +254,14 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		pixdeg=d;
 	}//pixsize =  0.00168725828819 ;*/
 
-//	i = iniparser_getint(ini, "commons:coord_syst", -1);
-//	if((i==1)||(i==2)||(i==3)){
-//		printf("Coordinate system :      [%d]\n", i);
-//		coordsyst=i;
-//	}else{
-//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
-//		return -1 ;
-//	}//coord_syst = 1 ;
+	//	i = iniparser_getint(ini, "commons:coord_syst", -1);
+	//	if((i==1)||(i==2)||(i==3)){
+	//		printf("Coordinate system :      [%d]\n", i);
+	//		coordsyst=i;
+	//	}else{
+	//		printf("Choose a coordinate system between 1 and 3 : commons:coord_syst\n");
+	//		return -1 ;
+	//	}//coord_syst = 1 ;
 
 	/*s = iniparser_getstring(ini, "commons:bolofield_extension",NULL);
 	if(s==NULL){
@@ -353,16 +367,16 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		return -1 ;
 	}//offset_file = ./RCW_120_M/bolo_positions.txt ;*/
 
-//	s = iniparser_getstring(ini, "sanepic_compute_positions:file_frame_offsets",NULL);
-//	if(s==NULL){
-//		printf("Warning : The line corresponding to the file containing offsets for different frame range has been erased : sanepic_compute_positions:file_frame_offsets\n");
-//	}else{
-//		str=(string)s;
-//		if(str.size()!=0){
-//			printf("file_frame_offsets : [%s]\n",s);
-//			file_frame_offsets=s;
-//		}
-//	}//file_frame_offsets =  ;
+	//	s = iniparser_getstring(ini, "sanepic_compute_positions:file_frame_offsets",NULL);
+	//	if(s==NULL){
+	//		printf("Warning : The line corresponding to the file containing offsets for different frame range has been erased : sanepic_compute_positions:file_frame_offsets\n");
+	//	}else{
+	//		str=(string)s;
+	//		if(str.size()!=0){
+	//			printf("file_frame_offsets : [%s]\n",s);
+	//			file_frame_offsets=s;
+	//		}
+	//	}//file_frame_offsets =  ;
 
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", -1);
@@ -480,14 +494,14 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		u_opt.coordscorner[3] = u_opt.srccoord[1];
 	}
 
-//	if (coordsyst != 3){
-//		srccoord[0] = -1000;
-//		srccoord[1] = -1000;
-//	}
-//	if ((coordsyst == 3) && (tmpcount2 != 3)){
-//		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use RA_source DEC_source map_radius\n";
-//		return -1 ;
-//	}
+	//	if (coordsyst != 3){
+	//		srccoord[0] = -1000;
+	//		srccoord[1] = -1000;
+	//	}
+	//	if ((coordsyst == 3) && (tmpcount2 != 3)){
+	//		cerr << "ERROR: You must provide coordinates of the source in RA/DEC for telescope coordinates, use RA_source DEC_source map_radius\n";
+	//		return -1 ;
+	//	}
 
 
 
