@@ -18,7 +18,8 @@
 #include "mpi.h"
 #endif*/
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples)
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples,
+		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
 
@@ -58,6 +59,22 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 		return -1 ;
 	}//./RCW_120_M/
 
+	/*s = iniparser_getstring(ini, "commons:output_dir",NULL);
+	if(s==NULL){
+		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+		cout << "Using default output directory : " << dirfile << endl;
+		outdir=dirfile;
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("output_dir : [%s]\n",s);
+			outdir=s;
+		}else{
+			cout << "Using default output directory : " << dirfile << endl;
+			outdir=dirfile;
+		}//output_dir = ./RCW_120_M/ ;
+	}*/
+
 
 	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
 	if(s==NULL){
@@ -68,9 +85,9 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 	if(str.size()!=0){
 		printf("fits filelist : [%s]\n",s);
 		//read frame file function
-		std::vector<string> fitsvect;
-		std::vector<string> noisevect;
-		std::vector<long> scans_index;
+		//std::vector<string> fitsvect;
+		//std::vector<string> noisevect;
+		//std::vector<long> scans_index;
 		bool framegiven;
 		read_fits_list(str, fitsvect, noisevect, scans_index, framegiven);
 		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
@@ -137,12 +154,12 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 		printf ("The current path is: %s\n",pPath);
 		tmp_dir=pPath;
 	}else{
-		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+		s = iniparser_getstring(ini, "commons:output_dir",NULL);
 		if(s!=NULL){
 			printf("temp_dir : [%s]\n",s);
 			tmp_dir=s;
 		}else{
-			printf("You must provide a temporary path to write parallel_scheme file : commons:temp_dir\n");
+			printf("You must provide an output directory to write parallel_scheme file : commons:output_dir\n");
 			return(-1);
 		}
 	}
