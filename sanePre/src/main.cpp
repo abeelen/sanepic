@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+	//MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
 
 
 	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
+	double *Mp,*Mptot;
 	long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 	unsigned short *mask;
 	long *hits,*hitstot; /*! naivmap parameters : hits count */
@@ -211,17 +212,18 @@ int main(int argc, char *argv[])
 
 
 
-	string *fits_table;
+	string *fits_table, *noise_table;
 	long *index_table;
 
 	fits_table = new string[ntotscan];
 	index_table= new long[ntotscan];
+	noise_table = new string[ntotscan];
 	//convert vector to standard C array to speed up memory accesses
 	//vector2array(nsamples_vec, nsamples);
 	//vector2array(fframes_vec,  fframes);
-	vector2array(fitsvect, fits_table);
+	//vector2array(fitsvect, fits_table);
 	//vector2array(noisevect, );
-	vector2array(scans_index,  index_table);
+	//vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
 	cout << fframes[0] << endl;
@@ -258,35 +260,35 @@ int main(int argc, char *argv[])
 	//******************************** some preprocess again // compute indpsrc and addnpix ****************/
 
 	//************************************* Deal with masking the point sources
-		mask    = new unsigned short[NAXIS1*NAXIS2];
-		indpsrc = new long[NAXIS1*NAXIS2];
+	mask    = new unsigned short[NAXIS1*NAXIS2];
+	indpsrc = new long[NAXIS1*NAXIS2];
 
-		// Initialize the masks
-		addnpix=0;
-		npixsrc=0;
-		for (long ii=0; ii<NAXIS1*NAXIS2; ii++){
-			mask[ii]    =  1;
-			indpsrc[ii] = -1;
-		}
+	// Initialize the masks
+	addnpix=0;
+	npixsrc=0;
+	for (long ii=0; ii<NAXIS1*NAXIS2; ii++){
+		mask[ii]    =  1;
+		indpsrc[ii] = -1;
+	}
 
-		// TODO : untested....
-		// if a box for crossing constraint removal is given in ini file
-		// TODO : save mask in fits file
-		// TODO : being able to read a mask in fits file format
-		for (long iBox = 0; iBox < boxFile.size(); iBox++){
-			for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
-				for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
-					mask[jj*NAXIS1 + ii] = 0;
-					indpsrc[jj*NAXIS1 + ii] = npixsrc++;
-				}
-		}
+	// TODO : untested....
+	// if a box for crossing constraint removal is given in ini file
+	// TODO : save mask in fits file
+	// TODO : being able to read a mask in fits file format
+	for (long iBox = 0; iBox < boxFile.size(); iBox++){
+		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
+			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
+				mask[jj*NAXIS1 + ii] = 0;
+				indpsrc[jj*NAXIS1 + ii] = npixsrc++;
+			}
+	}
 
-		// each frame contains npixsrc pixels with index indsprc[] for which
-		// crossing constraint are removed
-		// thus
-		// addnpix = number of pix to add in pixon
-		//         = number of scans * number of pix in box crossing constraint removal
-		addnpix = ntotscan*npixsrc;
+	// each frame contains npixsrc pixels with index indsprc[] for which
+	// crossing constraint are removed
+	// thus
+	// addnpix = number of pix to add in pixon
+	//         = number of scans * number of pix in box crossing constraint removal
+	addnpix = ntotscan*npixsrc;
 
 
 	/*
@@ -316,35 +318,72 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
-	string fname; /*! parallel scheme filename*/
-	fname = u_opt.outdir + parallel_scheme_filename;
+	/********************* Define parallelization scheme   *******/
+
+	//long *frnum;
+	//frnum = new long[ntotscan+1];
+
+	//	if (rank == 0){
 
 	int test=0;
-	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+	string fname;
+	fname = u_opt.outdir + parallel_scheme_filename;
+	cout << fname << endl;
+	test=define_parallelization_scheme(rank,fname,u_opt.dirfile,ntotscan,size,nsamples,fitsvect,noisevect,fits_table, noise_table,index_table);
 
-	if(test==-1){
+	if(test==-1){ // TODO : remettre apres test
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 		exit(1);
 	}
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+	cout << "Et ca donne ca !" << endl;
 
-	iframe_min = frnum[rank];
-	iframe_max = frnum[rank+1];
-	//rank_det = 0;
-	//size_det = 1;
+	cout << fits_table[0] << " " << fits_table[1] << " " << fits_table[2] << " " << fits_table[3] << endl;
+	cout << noise_table[0] << " " << noise_table[1] << " " << noise_table[2] << " " << noise_table[3] << endl;
+	cout << index_table[0] << " " << index_table[1] << " " << index_table[2] << " " << index_table[3] << endl;
+	cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
 
-	delete [] frnum;
+	//	}
 
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//if(rank==0){
+	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//}
+
+	cout << "mon rank : " << rank << endl;
+
+	iframe_min = -1;
+	//iframe_max = -1;
+
+	for(int ii=0;ii<ntotscan;ii++){
+		if((index_table[ii]==rank)&&(iframe_min == -1)){
+			iframe_min=ii;
+			break;
+		}
+	}
+
+	iframe_max=iframe_min;
+	for(iframe_max=iframe_min;iframe_max<ntotscan-1;iframe_max++)
+		if(index_table[iframe_max]!=rank){
+			iframe_max--;
+			break;
+		}
+
+	iframe_max++;
+
+	cout << rank << " iframe_min : " << iframe_min << endl;
+	cout << rank << " iframe_max : " << iframe_max << endl;
+
+	for(int ii=0;ii<ntotscan;ii++)
+		fits_table[ii] = u_opt.dirfile + fits_table[ii];
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	//rank_det = rank;
-	//size_det = size;
+	vector2array(fitsvect, fits_table);
+	vector2array(scans_index,  index_table);
 
 #endif
 
@@ -358,6 +397,9 @@ int main(int argc, char *argv[])
 	hits=new long[npix];
 	hitstot=new long[npix];
 
+	Mp = new double[npix];
+	Mptot = new double[npix];
+
 
 
 	// initialisation to 0.0
@@ -365,6 +407,8 @@ int main(int argc, char *argv[])
 	fill(PNdtot,PNdtot+npix,0.0);
 	fill(hits,hits+npix,0);
 	fill(hitstot,hitstot+npix,0);
+	fill(Mp,Mp+npix,0.0);
+	fill(Mptot,Mptot+npix,0.0);
 
 
 
@@ -470,7 +514,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
-					u_opt.fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,hits/*,fdata_buffer*/);
+					u_opt.fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -505,11 +549,13 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
 	for(int ii=0;ii<npix;ii++){
 		hitstot[ii]=hits[ii];
 		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
+		Mptot[ii]=Mp[ii];
 	}
 #endif
 
@@ -520,8 +566,6 @@ int main(int argc, char *argv[])
 		write_PNd(PNdtot,npix,/*termin_internal,*/u_opt.outdir);
 	}
 
-
-	//TODO: test naivmap
 
 
 	cout << "naive step" << endl;
@@ -553,7 +597,7 @@ int main(int argc, char *argv[])
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
 				if(hits[indpix[mi]]>0)
-					map1d[mi] = PNdtot[indpix[mi]]/(double)hits[indpix[mi]];
+					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];///Mptot[indpix[mi]];///(double)hits[indpix[mi]];
 			} else {
 				map1d[mi] = 0.0;
 			}
@@ -562,7 +606,6 @@ int main(int argc, char *argv[])
 
 
 	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
-	//fname+= "_naive.fits";
 	cout << fnaivname << endl;
 	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 
@@ -580,12 +623,21 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] PNd;
 	delete [] PNdtot;
+
+	delete [] Mp;
+	delete [] Mptot;
+
 	delete [] hits;
+	delete [] hitstot;
+
 	delete [] fframes;
 	delete [] nsamples;
 	delete [] indpix;
 	delete [] indpsrc;
 	delete [] extentnoiseSp_all;
+	delete [] noise_table;
+	delete [] fits_table;
+	delete [] index_table;
 
 	delete [] tanpix;
 	delete [] tancoord;
