@@ -125,18 +125,32 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	for (long ii=0;ii<ntotscan;ii++)
 		ntot += ns[ii];
 
+
+	cout << ntot << endl;
+
 	maxproc = new double[nessai];
 	std = new double[nessai];
 	ns_order = new long[ntotscan];
 	sizeperproc = new double[ntotscan];
 	dat_compare = new double[ntotscan];
 
+	for(long ii=0;ii<ntotscan;ii++){
+	  sizeperproc[ii]=0.0;
+	  dat_compare[ii]=0.0;
+	  ns_order[ii]=0;
+	}
+
+	for(int ii=0;ii<nessai;ii++){
+	  maxproc[ii]=0.0;
+	  std[ii]=0.0;
+	}
+
 	//init random generator
 	valtemp = randg(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
 	//cout << valtemp << endl;
 
 	//init arrays
-	for (long ii=0;ii<=ntotscan;ii++)
+	for (long ii=0;ii<ntotscan+1;ii++)
 		frnum[ii] = 0;
 
 
@@ -181,10 +195,15 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 		for (long kk=frnum[count];kk<ntotscan;kk++)
 			sizeperproc[count] += double(ns_order[kk]);
 
+		//	for(long kk=0;kk<ntotscan;kk++)
+		//  cout << kk << " " <<  sizeperproc[kk] << endl;
 
+		//exit(0);
 		//*********** check values
 		maxproctmp = *max_element(sizeperproc, sizeperproc+ntotscan);
 		//		minmax(sizeperproc,ntotscan,&temp,&maxproctmp,&tmpposmin,&tmpposmax);
+		//cout << "maxproc " << jj << " " << maxproctmp << endl;
+
 		maxproc[jj] = maxproctmp;
 		//seeds(jj+1,*) = seed;
 		std[jj] = 0.0;
@@ -198,7 +217,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	valmin = *min_element(maxproc, maxproc+nessai);
 	//	minmax(maxproc,nessai,&valmin,&temp,&tmpposmin,&tmpposmax);
 
-	stdmin = double(ntot*ntot);
+	//stdmin = double(ntot*ntot);
+	stdmin=double(ntot);
+	stdmin=stdmin*stdmin;
 	for (int ii=0;ii<nessai;ii++)
 		if (long(valmin) == long(maxproc[ii]))
 			if (std[ii] < stdmin)
@@ -208,6 +229,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
+	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+	getchar();
+
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
 
 
@@ -260,6 +284,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 				stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
 
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+		getchar();
 	}
 
 	delete [] maxproc;
@@ -291,6 +316,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 		return -1;
 	}
 
+	cout << "file " << fname << endl;
 
 	//std::vector<string> fitsvect_temp;
 	//std::vector<string> noisevect_temp;
@@ -304,8 +330,9 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	noisevect_temp = new string [ntotscan];
 	scans_index_temp = new long [ntotscan];
 
-	cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
-	cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
+	//cout << "write" << endl;
+	//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
+	//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
 	for (long ii=0;ii<ntotscan;ii++){
 		cout << "loop " << ii << " : " << endl;
@@ -457,7 +484,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	vector2array(index_dummy,  index_table);
 
 	for(int ii=0;ii<(int)fits_dummy.size();ii++){
-		//	cout << dirfile + fits_dummy[ii] << endl;
+	  //	cout << dirfile + fits_dummy[ii] << endl;
 		fits_dummy[ii] = dirfile + fits_dummy[ii];
 	}
 
@@ -493,26 +520,26 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	cout << "comparaison triée : " << endl;
 
 	for(int ii=0;ii<ntotscan;ii++)
-		if(fits_dummy[ii]!=fitsfiles[ii]){
-			cout << fits_dummy[ii] << endl;
-			cout << fitsfiles[ii] << endl;
-			return -1;
-		}
+	  if(fits_dummy[ii]!=fitsfiles[ii]){
+	    cout << fits_dummy[ii] << endl;
+	    cout << fitsfiles[ii] << endl;
+	    return -1;
+	  }
 
 
 	if ((int)noisefiles.size()>0){
 
-		cout << "comparaison triée bruit : " << endl;
+	cout << "comparaison triée bruit : " << endl;
 
-		sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
-		sort (noisefiles.begin(), noisefiles.end(), sortobject);
+	sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
+	sort (noisefiles.begin(), noisefiles.end(), sortobject);
 
-		for(int ii=0;ii<ntotscan;ii++)
-			if(noise_dummy[ii]!=noisefiles[ii]){
-				cout << noise_dummy[ii] << endl;
-				cout << noisefiles[ii] << endl;
-				return -1;
-			}
+	for(int ii=0;ii<ntotscan;ii++)
+	  if(noise_dummy[ii]!=noisefiles[ii]){
+	    cout << noise_dummy[ii] << endl;
+	    cout << noisefiles[ii] << endl;
+	    return -1;
+	  }
 	}
 
 	//struct sortclass_int sortobject;
@@ -522,13 +549,13 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	cout << size << " vs size : " <<  size_tmp+1 << endl;
 
 	if((size_tmp+1)!=size){
-		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-		return -1;
+	  cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+	  return -1;
 	}
 
 
 	for(int ii=0;ii<ntotscan;ii++)
-		nsamples[ii]=nsamples_dummy[ii];
+	  nsamples[ii]=nsamples_dummy[ii];
 
 
 
@@ -543,29 +570,29 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size,long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
 
 
-	// cout << "avant check" << endl;
-	cout << "rank" << rank << endl;
-	// if (rank == 0){
-	//cout << "avant check" << endl;
-	int test=0;
-	//long *ruleorder ;
-	//long *fframesorder ;
-	//long *nsamplesorder ;
-	//string *extentnoiseSp_allorder;
+  // cout << "avant check" << endl;
+  cout << "rank" << rank << endl;
+  // if (rank == 0){
+    //cout << "avant check" << endl;
+    int test=0;
+    //long *ruleorder ;
+    //long *fframesorder ;
+    //long *nsamplesorder ;
+    //string *extentnoiseSp_allorder;
 
-	test=check_ParallelizationScheme(fname,dirfile,ntotscan,size,nsamples,fitsfiles,noisefiles,fits_table,noise_table,index_table);
-	if (test==-1)
-		return test;
-	// reorder nsamples
-	//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-	//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
+    test=check_ParallelizationScheme(fname,dirfile,ntotscan,size,nsamples,fitsfiles,noisefiles,fits_table,noise_table,index_table);
+    if (test==-1)
+      return test;
+    // reorder nsamples
+    //find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+	  //cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
 
-	// }else{
-	//	*frnum = new long[ntotscan+1];
-	// }
+    // }else{
+    //	*frnum = new long[ntotscan+1];
+    // }
 
-	return 0;
+  return 0;
 
 }
 
@@ -624,41 +651,21 @@ long readFitsLength(string filename){
 
 	fitsfile *fptr;
 	int status = 0;
-	//int hdu_type;
+	int hdu_type;
 	long ns;
 
 	//	Open the fits file
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	//	// Go to the first Extension (should be an image named "Primary")
-	//	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
-	//		fits_report_error(stderr, status);
-	//	if (hdu_type != IMAGE_HDU)
-	//		fits_report_error(stderr, BAD_HDU_NUM);
-	//
-	//	cout << "before" << endl;
-	//	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status)){
-	//		cout << "failed" << endl;
-	// ---------------------------------------------
-	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
-		fits_report_error(stderr, status);
-
 	// Go to the first Extension (should be an image named "Primary")
-	/*if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
+	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
 		fits_report_error(stderr, status);
 	if (hdu_type != IMAGE_HDU)
 		fits_report_error(stderr, BAD_HDU_NUM);
 
 	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status))
-		fits_report_error(stderr ,status);*/
-	// Retrieve the size of the signal
-	if (fits_get_num_rows(fptr, &ns, &status))
-		fits_report_error(stderr, status);
-
-	if (fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+		fits_report_error(stderr ,status);
 
 	return ns;
 
