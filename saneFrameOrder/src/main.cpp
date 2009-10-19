@@ -28,16 +28,10 @@
 using namespace std;
 
 
-template<class T> void vector2array(std::vector<T> l, T* a)
-{
-	// copy list of type T to array of type T
-	typename std::vector<T>::iterator iter;
-	int i;
 
-	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}
+struct sortclass {
+  bool operator() (int i,int j) { return (i<j);}
+} sortobject;
 
 
 
@@ -50,14 +44,14 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-	//MPI_Status status;
+	MPI_Status status;
 
 	// setup MPI
-	//MPI_Init(&argc, &argv);
+	//	MPI_Init(&argc, &argv);
 	//MPI_Comm_size(MPI_COMM_WORLD,&size);
 	//MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	//cout << size << endl;
-	//cout << rank << endl;
+	cout << size << endl;
+	cout << rank << endl;
 
 
 	//test params
@@ -95,9 +89,6 @@ int main(int argc, char *argv[])
 
 		if(scans_index.size()!=0){
 		  cerr << "You have already given processors order in the fits filelist. Exiting\n";
-
-		  // just to be able to sort a vector
-		  struct sortclass_int sortobject;
 		  sort (scans_index.begin(), scans_index.end(), sortobject);
 		  cout << scans_index[0] << " " <<  scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 
@@ -110,6 +101,8 @@ int main(int argc, char *argv[])
 
 		}
 
+		//cout << ntotscan << endl;
+
 		//nsamples      = new long[ntotscan];
 		ruleorder     = new long[ntotscan];
 		frnum         = new long[ntotscan+1];
@@ -120,7 +113,7 @@ int main(int argc, char *argv[])
 
 		/********************* Define parallelization scheme   *******/
 		cout << ntotscan << endl;
-		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << endl;
+		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
 		//getchar();
 		/*for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
@@ -135,19 +128,25 @@ int main(int argc, char *argv[])
 		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
 		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
 		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
+		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
+		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
 
-
-		// write parallel schema in a file
-		parsed=write_ParallelizationScheme(fname, ruleorder, frnum, nsamples, ntotscan, size, fitsvect, noisevect, scans_index);
+		//write parallel schema in a file
+		  parsed=write_ParallelizationScheme(fname, ruleorder, frnum, nsamples, ntotscan, size, fitsvect, noisevect, scans_index);
 		if(parsed==-1){
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			exit(0);
+		  // MPI_Barrier(MPI_COMM_WORLD);
+		  //MPI_Finalize();
+		  cerr << "merde" << endl;
+		  exit(0);
 		}
+		delete [] frnum;
+		delete [] ruleorder;
 
 
 	}
+
+
 #else
 	cout << "Mpi is not used for this step. Exiting" << endl;
 	exit(0);

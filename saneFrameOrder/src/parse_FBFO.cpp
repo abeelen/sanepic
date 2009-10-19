@@ -59,21 +59,21 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 		return -1 ;
 	}//./RCW_120_M/
 
-	/*s = iniparser_getstring(ini, "commons:output_dir",NULL);
-	if(s==NULL){
-		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-		cout << "Using default output directory : " << dirfile << endl;
-		outdir=dirfile;
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			printf("output_dir : [%s]\n",s);
-			outdir=s;
-		}else{
-			cout << "Using default output directory : " << dirfile << endl;
-			outdir=dirfile;
-		}//output_dir = ./RCW_120_M/ ;
-	}*/
+	s = iniparser_getstring(ini, "commons:output_dir",NULL);
+	  if(s==NULL){
+	  printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+	  cout << "Using default output directory : " << dirfile << endl;
+	  tmp_dir=dirfile;
+	  }else{
+	  str=(string)s;
+	  if(str.size()!=0){
+	  printf("output_dir : [%s]\n",s);
+	  tmp_dir=s;
+	  }else{
+	  cout << "Using default output directory : " << dirfile << endl;
+	  tmp_dir=dirfile;
+	  }//output_dir = ./RCW_120_M/ ;
+	  }
 
 
 	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
@@ -148,21 +148,21 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 	}//frame_file =./RCW_120_M/frame_file.txt ;
 	 */
 
-	char * pPath;
+	/*char * pPath;
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
-		printf ("The current path is: %s\n",pPath);
-		tmp_dir=pPath;
+	  printf ("The current path is: %s\n",pPath);
+	  tmp_dir=pPath;
 	}else{
-		s = iniparser_getstring(ini, "commons:output_dir",NULL);
-		if(s!=NULL){
-			printf("temp_dir : [%s]\n",s);
-			tmp_dir=s;
-		}else{
-			printf("You must provide an output directory to write parallel_scheme file : commons:output_dir\n");
-			return(-1);
-		}
-	}
+	  s = iniparser_getstring(ini, "commons:output_dir",NULL);
+	  if(s!=NULL){
+	    printf("temp_dir : [%s]\n",s);
+	    tmp_dir=s;
+	  }else{
+	    printf("You must provide an output directory to write parallel_scheme file : commons:output_dir\n");
+	    return(-1);
+	  }
+	  }*/
 
 	//fname = tmp_dir + parallel_scheme_filename;
 
