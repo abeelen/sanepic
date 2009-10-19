@@ -15,7 +15,7 @@
 using namespace std;
 
 
-
+// TODO : remove, this has been replaced by computeMapHeader()
 void fits_header_generation(string outdir, const char *fits_file,double pixdeg, bool default_projection,double *tanpix,double *tancoord)
 {
 
@@ -190,6 +190,7 @@ void fits_header_generation(string outdir, const char *fits_file,double pixdeg, 
 
 
 }
+// TODO: what is the parser doing here ?
 
 void parser(struct wcsprm *wcs,double *tanpix,double *tancoord, double pixdeg)
 

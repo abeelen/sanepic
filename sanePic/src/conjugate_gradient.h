@@ -50,7 +50,7 @@
 using namespace std;
 
 void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S, long iframe_min, long iframe_max,
-		long *nsamples, long *fframes,std::vector<double> fcut,double f_lp,double fsamp,
+		unsigned long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
 		long *indpix, int NAXIS1, int NAXIS2, int factdupl, string poutdir, long ndet,
 		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames, /*int size_det,
 		int rank_det,*/ int iterw, double pixdeg,double *tancoord, double *tanpix,int coordsyst,

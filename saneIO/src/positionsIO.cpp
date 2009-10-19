@@ -28,6 +28,7 @@ using namespace std;
  * Reads the detectors offsets in a .txt file
  * Returns an array containing the considered channel offsets + the source offsets
  */
+//TODO : not used anymore : delete
 void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, double *offsets){
 
 	double lel, xel;
@@ -70,6 +71,8 @@ void read_bolo_offsets(string field, string file_BoloOffsets, float *scoffsets, 
 
 }
 
+
+// TODO: is it still used ?
 void read_bolo_offsets_from_fits(string filename, string field, double * offsets){
 
 	fitsfile *fptr;

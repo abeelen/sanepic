@@ -52,6 +52,7 @@ struct user_options {
 	bool projgaps;
 };
 
+
 struct user_options_sanepos {
 	bool bfixc;
 	int shift_data_to_point;
@@ -70,25 +71,25 @@ struct user_options_sanepos {
 using namespace std;
 
 // scans are distributed over processors
-void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size);
+void find_best_order_frames(long *position, long *frnum, unsigned long *ns, long ntotscan, int size);
 //double* randg(long nombre, int seedpass); // on garde
 
 int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
-int write_ParallelizationScheme(string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
+int write_ParallelizationScheme(string fname, long  *position, long  *frnum, unsigned long  *ns,  long  ntotscan, int  size,
 		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<long> &scans_index);
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
 //int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
 //int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
 
 ///////////////
-int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles,string *&fits_table, string *&noise_table, long *&index_table);
-int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size,long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table);
+int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles,string *&fits_table, string *&noise_table, long *&index_table);
+int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table);
 ///////////////////////////
 
 long readFitsLength(string filename);
-void readFrames(long * nScan, std::vector<string> &inputFiles, long *& fframes, long *& nsamples);
+void readFrames(std::vector<string> &inputFiles, unsigned long *& nsamples);
 void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
 
 void readBoxFile(string filename, std::vector<struct box> & boxList);

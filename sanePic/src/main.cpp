@@ -162,8 +162,8 @@ int main(int argc, char *argv[])
 
 
 	// data parameters
-	long *fframes  ; /*!  first frames table  */
-	long *nsamples ; /*!  number of samples (for each frame) table */
+//	long *fframes  ; /*!  first frames table  */
+	unsigned long *nsamples ; /*!  number of samples (for each frame) table */
 
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels */
@@ -256,22 +256,13 @@ int main(int argc, char *argv[])
 	} else {
 		//parse_sanePos_ini_file(argv[1]);
 		int parsed=1;
-<<<<<<< .mine
-		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
-				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
-				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
-		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
-				MixMatfile, bolonames,fframes,nsamples,
-				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
-=======
-		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
-				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
-				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
-		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
-				termin,	MixMatfile, bolonames,fframes,nsamples,
-				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
->>>>>>> .r217
 
+		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
+				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
+				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
+		parsed=parse_sanePic_ini_file(argv[1],u_opt, iterw, ntotscan, ndet,
+				MixMatfile, bolonames,nsamples,
+				boxFile, fcut, extentnoiseSP,fitsvect,noisevect, scans_index);
 		if (parsed==-1){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -329,7 +320,7 @@ int main(int argc, char *argv[])
 	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-	cout << fframes[0] << endl;
+//	cout << fframes[0] << endl;
 	cout << nsamples[0] << endl;
 
 
@@ -385,7 +376,7 @@ int main(int argc, char *argv[])
 
 	int test=0;
 	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -393,8 +384,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
+//	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
 	iframe_min = frnum[rank];
@@ -450,7 +441,7 @@ int main(int argc, char *argv[])
 	// if a box for crossing constraint removal is given in ini file
 	// TODO : save mask in fits file
 	// TODO : being able to read a mask in fits file format
-	for (long iBox = 0; iBox < boxFile.size(); iBox++){
+	for (unsigned long iBox = 0; iBox < boxFile.size(); iBox++){
 		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
 			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
 				mask[jj*NAXIS1 + ii] = 0;
@@ -520,21 +511,13 @@ int main(int argc, char *argv[])
 	fill(S,S+npix,0.0);
 
 	// conjugate GRADIENT LOOP
-<<<<<<< .mine
 	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
-			nsamples, fframes, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir,
+			nsamples, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir,
 			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
 			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
 			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
 			u_opt.remove_polynomia, u_opt.outdir,fits_table);
-=======
-	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
-			nsamples, fframes, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir, termin, termin_internal,
-			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
-			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
-			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
-			u_opt.remove_polynomia, u_opt.outdir,fits_table);
->>>>>>> .r217
+
 
 
 
@@ -590,7 +573,7 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] S;
-	delete [] fframes;
+//	delete [] fframes;
 	delete [] nsamples;
 	delete [] extentnoiseSp_all;
 	delete [] tanpix;

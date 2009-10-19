@@ -21,7 +21,7 @@ using namespace std;
 
 
 void computeMapMinima(std::vector<string> bolonames, string *fits_table,
-		long iframe_min, long iframe_max, /*long *fframes,*/long *nsamples, double pixdeg,
+		long iframe_min, long iframe_max, unsigned long *nsamples, double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
@@ -33,10 +33,10 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 
 
 	// Define default values
-	ra_min  =  1000;
-    ra_max  = -1000;
-    dec_min =  1000;
-	dec_max = -1000;
+	ra_min  =  360;
+	ra_max  = -360;
+	dec_min =  360;
+	dec_max = -360;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
@@ -97,9 +97,9 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 
 				//TODO : check this -1 factor... just a stupid convention...
 				offxx[idet] = (cosphi * offsets[idet][0]
-				             - sinphi * offsets[idet][1])*-1;
+				                                      - sinphi * offsets[idet][1])*-1;
 				offyy[idet] =  sinphi * offsets[idet][0]
-					         + cosphi * offsets[idet][1];
+				                                      + cosphi * offsets[idet][1];
 
 			}
 
@@ -141,22 +141,137 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 	}
 
 
-	// TODO: way too much...find a way to reduce that without having pixel outside the map
-	/// add a small interval of 10 arcmin
-		ra_min =  ra_min  - 10.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-		ra_max =  ra_max  + 10.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-		dec_min = dec_min - 10.0/60.0;
-		dec_max = dec_max + 10.0/60.0;
+	/// add a small interval of 1 arcmin
+	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	ra_max =  ra_max  + 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	dec_min = dec_min - 1.0/60.0;
+	dec_max = dec_max + 1.0/60.0;
 
-		ra_min  = ra_min/15; // in hour
-		ra_max  = ra_max/15;
-		dec_min = dec_min;
-		dec_max = dec_max;
+	ra_min  = ra_min/15; // in hour
+	ra_max  = ra_max/15;
+	dec_min = dec_min;
+	dec_max = dec_max;
 
 }
 
+void minmax_flag(double  *& array, short *& flag, unsigned long size, double & min_array, double &  max_array){
+
+  // First unflagged data
+  unsigned long ii=0;
+  while(flag[ii] != 0 && ii < size)
+    ii++;
+
+  // Start values
+  min_array = array[ii];
+  max_array = array[ii];
+
+
+  // Scan the array
+  while(ii++ < size-1) 	{
+    if (flag[ii] == 0){
+      if (array[ii] > max_array) max_array = array[ii];
+      if (array[ii] < min_array) min_array = array[ii];
+    }
+  }
+}
+
+void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
+		long iframe_min, long iframe_max, unsigned long *nsamples, double pixdeg,
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
+
+	// Compute map extrema by projecting the bolometers offsets back into the sky plane
+	// output or update (ra|dec)_(min|max)
+
+	string fits_file;
+	string field;
+
+	unsigned long ndet = bolonames.size();
+
+	double lra_min, lra_max;
+	double ldec_min, ldec_max;
+
+	// Define default values
+	ra_min  =  360;
+	ra_max  = -360;
+	dec_min =  360;
+	dec_max = -360;
+
+	for (unsigned long iframe=iframe_min;iframe<iframe_max;iframe++){
+		// for each scan
+		fits_file=fits_table[iframe];
+
+
+		long ns = nsamples[iframe];
+
+		for (unsigned long idet=0; idet < ndet; idet++){
+
+			field = bolonames[idet];
+
+			double *ra, *dec;
+			short *flag;
+			long test_ns;
+
+			read_ra_from_fits(fits_file, field, ra, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+			read_dec_from_fits(fits_file, field, dec, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+
+			read_flag_from_fits(fits_file, field, flag, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+
+			//				  for (int ii=0; ii<50; ii++)
+			//		    cout << ii << " " << ra[ii] << " " << flag[ii] <<endl;
+			//		 exit(0);
+			minmax_flag(ra,flag,ns,lra_min,lra_max);
+			minmax_flag(dec,flag,ns,ldec_min,ldec_max);
+
+			// cout << field << " " << ns << " " <<ns2 <<endl;
+			//			cout << field << " " << lra_max << " " << lra_min << " " << ldec_max << " " << ldec_min << endl;
+
+			if (ra_max < lra_max)    ra_max = lra_max;
+			if (ra_min > lra_min)    ra_min = lra_min;
+			if (dec_max < ldec_max) dec_max = ldec_max;
+			if (dec_min > ldec_min) dec_min = ldec_min;
+
+			//			cout << " field : " << field << " ra_min  : " << lra_min << " ra_max : " << lra_max << " dec_min : " << ldec_min << " dec_max : " << ldec_max << endl;
+
+			delete [] ra;
+			delete [] dec;
+			delete [] flag;
+
+		}
+
+
+
+
+	}
+
+
+	/// add a small interval of 10 arcmin
+	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	ra_max =  ra_max  + 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	dec_min = dec_min - 1.0/60.0;
+	dec_max = dec_max + 1.0/60.0;
+
+	ra_min  = ra_min/15; // in hour
+	ra_max  = ra_max/15;
+	dec_min = dec_min;
+	dec_max = dec_max;
+
+}
+
+
 void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coordscorner,
-			struct wcsprm &wcs, unsigned long &NAXIS1, unsigned long &NAXIS2){
+		struct wcsprm &wcs, unsigned long &NAXIS1, unsigned long &NAXIS2){
 
 	int NAXIS = 2; // image
 	int wcsstatus;
@@ -209,8 +324,8 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 
 	// Set the structure to have the celestial projection routine in order to ....
 	if ((wcsstatus = wcsset(&wcs))) {
-	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	   }
+		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	}
 
 
 	// .... calculate the size of the map if necessary :
@@ -256,13 +371,14 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	wcs.crpix[1] = NAXIS2*1./2;
 
 	if ((wcsstatus = wcsset(&wcs))) {
-	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	   }
+		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+	}
 
-//	wcsprt(&wcs);
+	//	wcsprt(&wcs);
 
 }
 
+//TODO : remove : not used anymore
 double slaDranrm ( double angle )
 /*
  **  - - - - - - - - - -
@@ -292,7 +408,7 @@ double slaDranrm ( double angle )
 }
 
 
-
+// TODO: removed : not used anymore
 void slaDs2tp ( double ra, double dec, double raz, double decz,
 		double *xi, double *eta, int *j )
 /*
@@ -355,7 +471,7 @@ void slaDs2tp ( double ra, double dec, double raz, double decz,
 	*eta = ( sdec * cdecz - cdec * sdecz * cradif ) / denom;
 }
 
-
+// TODO: remove : not used anymore
 void slaDtp2s ( double xi, double eta, double raz, double decz,
 		double *ra, double *dec )
 /*
@@ -394,7 +510,7 @@ void slaDtp2s ( double xi, double eta, double raz, double decz,
 
 
 
-
+// TODO: remove not used anymore
 void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		double *offsets, int ns, int *xx, int *yy, int *nn,
 		double *coordscorner, double *tancoord, double *tanpix,
@@ -426,9 +542,9 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		// Rotation of angle phi[ii] to the offsets
 
 		offxx = cos((phi[ii])/180.0*M_PI)*offsets[0]
-              - sin((phi[ii])/180.0*M_PI)*offsets[1];
+		                                          - sin((phi[ii])/180.0*M_PI)*offsets[1];
 		offyy = sin((phi[ii])/180.0*M_PI)*offsets[0]
-              + cos((phi[ii])/180.0*M_PI)*offsets[1];
+		                                          + cos((phi[ii])/180.0*M_PI)*offsets[1];
 
 		// conversion in pixel scale
 		xm = offxx/pixdeg;
@@ -442,54 +558,6 @@ void sph_coord_to_sqrmap(double pixdeg, double *ra, double *dec, double *phi,
 		dec_bolo[ii] = dec_rad*180.0/M_PI;
 
 	}
-
-//	for (long ii=0; ii<20; ii++)
-//			cout << ii << " " << ra_bolo[ii] << " " << dec_bolo[ii] << endl;
-//
-//	cout << endl<<" --- wcslib solution --- " << endl << endl;
-////
-//	struct celprm celestial;
-//	celini(&celestial);
-//	tanset(&celestial.prj);
-//
-//	for (long ii=0; ii <ns; ii++){
-//
-//
-//		offxx = cos((phi[ii])/180.0*M_PI)*offsets[0]
-//              - sin((phi[ii])/180.0*M_PI)*offsets[1];
-//		offyy = sin((phi[ii])/180.0*M_PI)*offsets[0]
-//              + cos((phi[ii])/180.0*M_PI)*offsets[1];
-//
-//		double xm[1], ym[1];
-//
-//        // conversion in pixel scale
-//		xm[0] = (double) -1*offxx;
-//		ym[0] = (double) offyy;
-//
-//		// deprojection into spherical coordinates using a -TAN deprojection
-//
-//		celestial.ref[0] =  ra[ii]*15.;
-//		celestial.ref[1] =  dec[ii];
-//		celset(&celestial);
-//
-//		double ra_deg[1], dec_deg[1];
-//		double lon[1], lat[1];
-//		int stat[1];
-//
-//		if (celx2s(&celestial, 1, 1, 1, 1, xm, ym, lon, lat, ra_deg, dec_deg, stat) == 1) {
-//			printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
-//			continue;
-//	      }
-//		ra_bolo[ii] = ra_deg[0]/15.;
-//		dec_bolo[ii] = dec_deg[0];
-//
-//	}
-
-//	for (long ii=0; ii<20; ii++)
-//			cout << ii << " " << ra_bolo[ii] << " " << dec_bolo[ii] << endl;
-//
-//	exit(0);
-
 
 	// find coordinates min and max
 	ra_max  = *max_element(ra_bolo, ra_bolo+ns);
@@ -703,11 +771,11 @@ void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double 
 
 }
 
-*/
+ */
 
 
 
-
+//TODO: remove : not used anymore
 void flag_conditions(short *flag, /*double *scerr,*/ short *flpoint,
 		long ns, long napod, int *xx, int *yy, int nn, double errarcsec,
 		bool NOFILLGAP, unsigned char *rejectsamp){

@@ -125,8 +125,7 @@ int main(int argc, char *argv[])
 
 
 	// data parameters
-	long *fframes  ; /*! first frames number array*/
-	long *nsamples ; /*! number of samples table array */
+	unsigned long *nsamples ; /*! number of samples table array */
 
 
 	long ntotscan; /*! total number of scans */
@@ -153,14 +152,13 @@ int main(int argc, char *argv[])
 	double gra_min, gra_max, gdec_min, gdec_max; /*! global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
 
 	//internal data params
-	long ns; /*! number of samples for this scan */
+//	long ns; /*! number of samples for this scan */
 
 
 	string fname; /*! parallel scheme file name */
 
 
 	unsigned short *mask;
-	//short *flag;
 	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
@@ -198,7 +196,7 @@ int main(int argc, char *argv[])
 	} else {
 		int parsed=1;
 		parsed=parse_sanePos_ini_file(argv[1],u_opt,ntotscan,ndet,
-				bolonames,fframes,nsamples,boxFile,fitsvect,scans_index);
+				bolonames,nsamples,boxFile,fitsvect,scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -255,8 +253,7 @@ int main(int argc, char *argv[])
 	//vector2array(scans_index,  index_table);
 	//cout << fframes[0] << fframes[1] << fframes[2] << endl;
 	//cout << nsamples[0] << nsamples[1] << nsamples[2] << endl;
-	cout << fframes[0] << endl;
-	cout << nsamples[0] << endl;
+//	cout << nsamples[0] << endl;
 
 	/*if(samples_per_frames>1){
 		for (int ii=0; ii<ntotscan; ii++) {
@@ -298,7 +295,7 @@ int main(int argc, char *argv[])
 	 */
 
 	/*! map offsets*/
-	//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank);
+	//	nfoff = map_offsets(file_frame_offsets, ntotscan, scoffsets, foffsets,fframes,rank); // TODO : here is a problem : do we keep this function???
 
 
 
@@ -332,7 +329,7 @@ int main(int argc, char *argv[])
 
 	  //	MPI_Barrier(MPI_COMM_WORLD);
 	//if(rank==0){
-	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
 	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	  //}
@@ -369,10 +366,10 @@ int main(int argc, char *argv[])
 
 	  if (rank == 0){
 
-	  long *ruleorder ;
-	  long *fframesorder ;
-	  long *nsamplesorder ;
-	  //string *extentnoiseSp_allorder;
+		long *ruleorder ;
+		long *fframesorder ;
+		long *nsamplesorder ;
+		//string *extentnoiseSp_allorder;
 
 	  check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
 	  // reorder nsamples
@@ -410,7 +407,7 @@ int main(int argc, char *argv[])
 	//}
 	//MPI_Barrier(MPI_COMM_WORLD);
 	//if(rank==0){
-	// MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	// MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
 	  // MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	  //MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 	//}
@@ -458,8 +455,7 @@ int main(int argc, char *argv[])
 	// TODO: Clean this mess : e.g. here find the maximum length of a scan a allocate twice this memory... THERE IS NO NEED FOR THAT !
 
 	// seek maximum number of samples
-	ns = nsamples[0];
-	for(int ii=0;ii<ntotscan;ii++) if (nsamples[ii] > ns) ns = nsamples[ii];
+//	ns = *max_elements(nsamples, nsamples+ntotscan);
 
 	//	ra = new double[2*ns]; // RA bolo de ref
 	//	dec = new double[2*ns]; // DEc du bolo de ref
@@ -511,21 +507,25 @@ int main(int argc, char *argv[])
 	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
 	 * -> Compute map coordinates
 	 */
-	//	time_t first = time(NULL);
+//	time_t first = time(NULL);
+//	long nn;
+//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
+//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
+//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, /*xx, yy,*/ nn, coordscorner,
+//			tancoord, tanpix, bfixc, radius, /*offmap,*/ srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
+//
+//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
-	//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
-	//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
-	//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, xx, yy, nn, coordscorner,
-	//			tancoord, tanpix, bfixc, radius, offmap, srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
-	//
-	//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
-	//
 	//	first = time(NULL);
+/*	computeMapMinima_HIPE(bolonames,fits_table,
+			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
+			ra_min,ra_max,dec_min,dec_max);
+			*/
 	computeMapMinima(bolonames,fits_table,
 			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 
-	//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
+//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 #ifdef USE_MPI
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -705,7 +705,16 @@ int main(int argc, char *argv[])
 	// get coordinates of pixels that are seen
 	//**********************************************************************************
 
-	//	//TODO: check from here and below
+//	//TODO: check from here and below
+/*
+	 computePixelIndex_HIPE(ntotscan,u_opt.tmp_dir, bolonames,
+			fits_table, iframe_min, iframe_max, nsamples,
+			wcs, NAXIS1, NAXIS2,
+			mask,
+			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
+			addnpix, pixon, rank,
+			indpsrc, npixsrc, flagon, pixout);
+*/
 	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max, nsamples,
 			wcs, NAXIS1, NAXIS2,
@@ -735,7 +744,7 @@ int main(int argc, char *argv[])
 
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-	for(long ii=0;ii<sky_size;ii++){
+	for(unsigned long ii=0;ii<sky_size;ii++){
 	  pixon_tot[ii]=pixon[ii];
 	  }
 #endif
@@ -755,8 +764,8 @@ int main(int argc, char *argv[])
 
 		indpix = new long[sky_size];
 		fill(indpix, indpix+(sky_size),-1);
-		for(long ii=0; ii< sky_size; ii++)
-			if (pixon_tot[ii] != 0)
+		for(unsigned long ii=0; ii< sky_size; ii++)
+			if (pixon[ii] != 0)
 				indpix[ii] = npix++;
 
 		/*!
@@ -803,10 +812,10 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] mask;
+	delete [] pixon;
 	delete [] pixon_tot;
 	delete [] u_opt.coordscorner;
 	delete [] u_opt.srccoord;
-	delete [] fframes;
 	delete [] nsamples;
 	delete [] tancoord;
 	delete [] tanpix;

@@ -38,15 +38,9 @@ using namespace std;
  * missing in the ini file !
  * - Initialise sanePS variable
  */
-/*int parse_sanePS_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		long &ntotscan, long &ndet, string &dirfile, string &outdir, string &tmp_dir,
-	    string &noiseSppreffile,
-		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
-		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
-*/
 int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
+		std::vector<string> &bolonames, unsigned long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile, string & ellFile, string &signame,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
 
 

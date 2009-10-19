@@ -10,7 +10,7 @@
 #include "inputFileIO.h"
 
 int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, long &ntotscan, long &ndet,
-		string &MixMatfile, std::vector<string> &bolonames,long *&fframes,long *&nsamples,
+		string &MixMatfile, std::vector<string> &bolonames, unsigned long *&nsamples,
 		std::vector<struct box> & boxFile, std::vector<double> &fcut, std::vector<string> &extentnoiseSP,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 
@@ -116,7 +116,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 			cout << u_opt.dirfile + fitsvect[ii] << endl;
 			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
-		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+		readFrames( fitsvect, nsamples);
 
 		//getchar();
 	}else{

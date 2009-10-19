@@ -30,7 +30,7 @@ extern "C"{
 
 int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, long *&fframes, long *&nsamples,
+		std::vector<string> &bolonames, unsigned long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
@@ -112,6 +112,7 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		}
 	}
 	//#endif
+
 
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
 	if(s==NULL){
@@ -215,7 +216,7 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 			cout << u_opt.dirfile + fitsvect[ii] << endl;
 			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
-		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+		readFrames(fitsvect, nsamples);
 
 		//getchar();
 	}else{

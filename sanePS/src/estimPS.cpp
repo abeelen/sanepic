@@ -6,25 +6,27 @@
  */
 
 #include "estimPS.h"
-
+#include "inputFileIO.h"
 
 using namespace std;
 
 
+
 void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix, long napod,
 		long iframe, bool flgdupl, int factdupl, long *indpix,
-		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile,/* string bextension,
+		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string ellFile, /* string bextension,
 		string fextension,*/ int shift_data_to_point, string dir,
-		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
+		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string tmp_dir,
 		string extentnoiseSp, string outdirSpN, string fits_filename)
 {
 
 
-
+	// TODO: move this to the ini file....
 	double fcut = 12; //fixed here to be sure that the code code will not focus on high freq
 	// TODO : add it in the ini file
 	long ncomp = 1;
 	//long ncomp2 = 0;
+	//TODO : read nbins/ell in the ini file, not even in the fits file
 	long nbins = 500;
 	long nbins2; // readed bins in mixmatfile
 	double factapod;
@@ -83,6 +85,8 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 	fdata2 = new fftw_complex[ns/2+1];
 
+	read_double(ellFile, ell, nbins);
+	nbins = nbins-1;
 
 	Nell = new double[nbins]; // binned noise PS
 	SPref = new double[nbins]; // first detector PS to avoid numerical problems
@@ -140,14 +144,13 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
-	estimate_noise_PS(bolonames, dirfile, extentnoiseSp, noiseSppreffile,/* bextension, fextension,*/ nbins,
+	estimate_noise_PS(bolonames, dirfile, extentnoiseSp, tmp_dir,/* bextension, fextension,*/ nbins,
 			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, SpN_all, data,
 			samptopix, dir, S, iframe,  Ps, data_lp, bfilter, indpix, NORMLIN,
 			NOFILLGAP, remove_polynomia,flgdupl, factdupl, apodwind, ncomp, mixmat, commonm2, fsamp,
 			Nk, Nell, factapod,Rellth, N, commontmp, P, shift_data_to_point,  outdirSpN,fits_filename);
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
-
 	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir,  ncomp, mixmat,fsamp,
 			Nk, Nell, factapod, Rellexp, N, P,  outdirSpN, fdata1, fdata2, SPref);
 
@@ -158,7 +161,6 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	expectation_maximization_algorithm(fcut, nbins, ndet, ncomp,ns, fsamp, ff,
 			outdirSpN,  Rellexp, Rellth, mixmat,P,N, Cov, p,	uvec, ivec, iCov, SPref, ell);
 
-
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	//*****************  Write power spectra to disk  ********************//
 
@@ -167,7 +169,6 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 
 	//delete [] data1d;
-
 	delete [] data;
 	delete [] data_lp;
 	delete [] fdata1;
@@ -197,11 +198,8 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	free_dmatrix(vect,0,ncomp-1,0,ndet-1);
 	delete [] Nk;
 	delete [] ell;
-	free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 	free_dmatrix(P,0,ncomp-1,0,nbins-1);
 	free_dmatrix(N,0,ndet-1,0,nbins-1);
-
-
 
 }
 

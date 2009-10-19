@@ -45,7 +45,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 	// Check for missing data
 	for (int idetOut = 0; idetOut < ndetOut; idetOut++) {
 		if (indexIn[idetOut] == -1) {
-			cerr << "Input Noise Power Spectra must include all requested channels"	<< endl;
+			cerr << "Input Noise Power Spectra must include all requested channels (" << listOut[idetOut] << ")" << endl;
 			exit(1);
 		}
 	}

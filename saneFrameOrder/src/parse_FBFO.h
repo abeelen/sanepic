@@ -31,7 +31,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples,
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, unsigned long *&nsamples,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect,std::vector<long> &scans_index);
 
 #endif /* PARSE_FBFO_H_ */

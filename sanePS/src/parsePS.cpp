@@ -11,8 +11,9 @@
 
 int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile,string &signame,
+		std::vector<string> &bolonames, unsigned long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile, string & ellFile, string &signame,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
+
 {
 	dictionary	*	ini ;
 
@@ -215,7 +216,7 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 	str=(string)s;
 	if(str.size()!=0){
 		printf("noise_suffixe : [%s]\n",s);
-		noiseSppreffile=s;
+		tmp_dir=s;
 	}else{
 		printf("you must specify a noise_suffixe\n");
 		return -1 ;
@@ -235,6 +236,20 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 		printf("You must specify a bolometer file : commons:channel\n");
 		return -1 ;
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
+
+	s = iniparser_getstring(ini, "sanepic_estim_PS:ell_file",NULL);
+	if(s==NULL){
+		printf("You must add a line in ini file corresponding to a ell file :sanepic_estim_PS:ell_file\n");
+		return -1;
+	}
+	ellFile=(string)s;
+	if(ellFile.size()!=0){
+		printf("ell File: [%s]\n",s);
+	}else{
+		printf("You must specify a ell file : sanepic_estim_PS:ell_file\n");
+		return -1 ;
+	}//	channel =./RCW_120_M/bolos_commons.txt ;
+
 
 /*
 	s = iniparser_getstring(ini, "commons:frame_file",NULL);
@@ -303,7 +318,7 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 			cout << u_opt.dirfile + fitsvect[ii] << endl;
 			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
-		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+		readFrames(fitsvect, nsamples);
 
 		//getchar();
 	}else{

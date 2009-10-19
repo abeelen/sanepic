@@ -109,7 +109,7 @@ int compare_array_double (const void *array_1, const void *array_2)
 }
 
 
-void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size){
+void find_best_order_frames(long *position, long *frnum, unsigned long *ns, long ntotscan, int size){
 
 	long count, a, b;
 	double maxproctmp, valmin, stdmin, stdtmp, valtmp;
@@ -297,7 +297,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 }
 
-int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
+int write_ParallelizationScheme(string fname, long *position, long *frnum, unsigned long *ns, long ntotscan, int size,
 		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<long> &scans_index)
 // Write the Parrallelization Scheme for further use.
 {
@@ -439,7 +439,7 @@ int read_ParallelizationScheme(string fname,string dirfile, long ntotscan, int s
 
 }*/
 
-int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
+int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
@@ -454,7 +454,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	//size_t found;
 
 	bool framegiven;
-	long *fframes, *nsamples_dummy;
+	unsigned long *nsamples_dummy;
 	string temp;
 
 	//string *fits_table, *noise_table;
@@ -473,7 +473,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	if((framegiven==0)||((int)fits_dummy.size()==0))
 		return -1;
 
-	ntotscan_dummy=(long)fits_dummy.size();
+	ntotscan_dummy=(unsigned long)fits_dummy.size();
 	if(ntotscan!=ntotscan_dummy){
 		cerr << "number of scans are different between your fits file list and the mpi scheme" << endl;
 		return -1;
@@ -488,8 +488,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 		fits_dummy[ii] = dirfile + fits_dummy[ii];
 	}
 
-	readFrames( &ntotscan_dummy , fits_dummy, fframes, nsamples_dummy);
-	delete [] fframes;
+	readFrames( fits_dummy, nsamples_dummy);
 
 	cout << "ntotscan" << endl;
 	cout << ntotscan << " vs " << ntotscan_dummy << endl;
@@ -567,7 +566,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 
 
 
-int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size,long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
+int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size,unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
 
 
   // cout << "avant check" << endl;
@@ -671,15 +670,13 @@ long readFitsLength(string filename){
 
 }
 
-void readFrames(long * nScan, std::vector<string> &inputList, long *& fframes, long *& nsamples){
+void readFrames(std::vector<string> &inputList, unsigned long *& nsamples){
 
 	//read_strings(filename, inputList);
 
-	*nScan    = inputList.size();
-	fframes  = new long[*nScan];
-	nsamples = new long[*nScan];
-	for (long i=0; i<*nScan; i++){
-		fframes[i]  = i;
+	unsigned long nScan  = inputList.size();
+	nsamples = new unsigned long[nScan];
+	for (unsigned long i=0; i<nScan; i++){
 		nsamples[i] = readFitsLength(inputList[i]);
 	}
 

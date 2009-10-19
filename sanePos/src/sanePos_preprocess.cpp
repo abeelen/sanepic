@@ -38,7 +38,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 		string fextension,*//*string file_offsets,foffset *foffsets,float *scoffsets,	double *offsets,*/long iframe_min, long iframe_max,
 		/*long *fframes,*/long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff,*/ double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
-		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord,char type,double *&ra,double *&dec,
+		double *tanpix, bool bfixc, double radius, /*double *offmap,*/ double *srccoord,char type,double *&ra,double *&dec,
 		double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection){
 
 
@@ -191,11 +191,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 	//delete [] flpoint2;
 }
 
-
-
-
-
-
+//TODO : remove : not used anymore
 void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<string> bolonames,  string *fits_table,/*,string bextension, string fextension, string termin,*/
 		/*string file_offsets,foffset *foffsets,float *scoffsets,*/ long iframe_min, long iframe_max,/*long *fframes,*/
 		long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
@@ -345,7 +341,7 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir, std::vector<st
 
 
 void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max,/*long *fframes,*/ long *nsamples,
+		string *fits_table, long iframe_min, long iframe_max, unsigned long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
 		unsigned short *&mask,
 		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
@@ -458,12 +454,10 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 			}
 
 			// ... and reproject it back onto the map
-
 			if ((status = wcss2p(&wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
 				printf("   wcss2p(1) ERROR %2d \n", status);
 				continue;
 			}
-
 			// Transform pixel coordinates to pixel index
 			for (unsigned long ii = 0; ii < ns; ii++){
 				xx[ii]  = int(pixcrd[2*ii]-0.5);
@@ -483,10 +477,6 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 			delete [] wcsstatus;
 
 
-//			for (unsigned long ii = 0; ii < 20; ii++){
-//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-//			}
 
 			// Combine position and bolo flags
 			// and check
@@ -583,9 +573,210 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 	} // end of iframe loop
 }
 
+void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bolonames,
+		string *fits_table, long iframe_min, long iframe_max, unsigned long *nsamples,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+		unsigned short *&mask,
+		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
+		long addnpix, long *&pixon, int rank,
+		long *indpsrc, long npixsrc, int &flagon, bool &pixout){
+
+	/*!
+	 * \fn Get coordinates of pixels that are seen
+	 * Compute the position to pixel projetcion matrices :
+	 * One binary file per bolometer and per scan
+	 */
+
+	// TODO : samptopix unsigned long
+	long  *samptopix;
+	unsigned long ndet = bolonames.size();
+
+	string field;
+
+	string fits_file;
+	long ns, test_ns;
+	int status;
+
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		// for each scan
+		fits_file=fits_table[iframe];
+		ns = nsamples[iframe];
+
+		double *ra, *dec;
+		short *flag;
+
+		for (unsigned long idet = 0; idet<ndet; idet++){
+			string field = bolonames[idet];
+
+			double *world, *imgcrd, *pixcrd;
+			double *theta, *phi;
+			int    *xx, *yy;
+			int    *wcsstatus;
+
+			theta  = new double[ns];
+			phi    = new double[ns];
+			world  = new double[2*ns];
+			imgcrd = new double[2*ns];
+			pixcrd = new double[2*ns];
+			xx     = new int[2*ns];
+			yy     = new int[2*ns];
+			wcsstatus = new int[ns];
+
+			read_ra_from_fits(fits_file, field, ra, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+			read_dec_from_fits(fits_file, field, dec, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+			read_flag_from_fits(fits_file, field, flag, test_ns);
+			if (test_ns != ns) {
+				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+			for (long ii=0; ii <ns; ii++){
+				//TODO: Very bad fix.... prevent from mapping flagged data to a seperate map
+				if (flag[ii] == 0) {
+					world[2*ii]   = ra[ii];
+					world[2*ii+1] = dec[ii];
+				} else {
+					world[2*ii]   = wcs.crval[0];
+					world[2*ii+1] = wcs.crval[1];
+				}
+			}
+//			for (long ii=0; ii<ns; ii++){
+//				cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << endl;
+//			}
+			// ... and reproject it back onto the map
+//			cout << "before reproject" << endl;
+
+			if ((status = wcss2p(&wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
+				printf("   wcss2p(1) ERROR %2d \n", status);
+				continue;
+			}
+//			cout << "after reproject" << endl;
+
+			// Transform pixel coordinates to pixel index
+			for (unsigned long ii = 0; ii < ns; ii++){
+				xx[ii]  = int(pixcrd[2*ii]-0.5);
+				yy[ii]  = int(pixcrd[2*ii+1]-0.5);
+			}
+
+//			for (unsigned long ii = 0; ii < 20; ii++){
+//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+//			}
+
+			delete [] world;
+			delete [] imgcrd;
+			delete [] pixcrd;
+			delete [] theta;
+			delete [] phi;
+			delete [] wcsstatus;
 
 
 
+			// Combine position and bolo flags
+			// and check
+
+			short *bolo_flag;
+
+			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
+
+			if (test_ns != ns) {
+				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
+				exit(-1);
+			}
+
+
+			for (unsigned long ii=0; ii<ns; ii++){
+
+				//TODO: Bad Fix, check flag values and handle properly
+				if (flag[ii] != 0) bolo_flag[ii] = 1;
+
+				if ((xx[ii] < 0)   || (yy[ii] < 0  ))         bolo_flag[ii] = 2;
+				if ((xx[ii] >= NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
+				if (NOFILLGAP && (bolo_flag[ii] == 1 ))       bolo_flag[ii] = 2;
+
+				if ((ii < napod) || (ii >= ns-napod)) bolo_flag[ii] = 3;
+
+			}
+
+//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
+//			for (unsigned long ii=0; ii<ns; ii++)
+//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
+//				if (bolo_flag[ii]==1)
+//					cout << ii << " bolo flag" << endl;
+
+			// Compute sample pixel index according to its flag
+
+			samptopix = new long[ns];
+
+			for (unsigned long ii=0 ; ii<ns; ii++){
+
+				// image1        + flag pixel + out pixel + crossing constrain removal
+				// NAXIS1*NAXIS2 + 1          + 1         + addnpix*nframe
+
+				long ll;
+				switch (bolo_flag[ii]) {
+				case 0:			// sample is not rejected
+
+					ll = NAXIS1*yy[ii]+xx[ii];
+
+					if (mask[ll] != 1) //if pixel is in the box constraint removal mask
+						ll = factdupl*NAXIS1*NAXIS2 + 2 + iframe*npixsrc + indpsrc[ll];
+
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+
+					break;
+
+				case 1:	   // sample is flagged
+
+					if (flgdupl){ // if flagged pixels are in a duplicated map
+						ll = NAXIS1*yy[ii]+xx[ii]; // index in the second map...
+						pixon[NAXIS1*NAXIS2 + ll] += 1;
+						samptopix[ii] = NAXIS1*NAXIS2 + ll;
+					} else { // else every flagged sample is projected to the same pixel (outside the map)
+						ll = factdupl*NAXIS1*NAXIS2 + 1;
+						pixon[ll] += 1;
+						samptopix[ii] = ll;
+					}
+
+					break;
+
+				case 2: // sample is rejected
+					ll = factdupl*NAXIS1*NAXIS2 + 2;
+					pixout = 1; // pixel is out of map
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+
+					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %i, yy = %i\n",rank, ii,xx[ii],yy[ii]);
+
+					break;
+				case 3:	// apodized data -> flag
+					ll = factdupl*NAXIS1*NAXIS2 + 1;
+					flagon = 1;
+					pixon[ll] += 1;
+					samptopix[ii] = ll;
+					break;
+				default:
+					break;
+				}
+			}
+
+		write_samptopix(ns, samptopix,  outdir, idet, iframe);
+
+		}//end of idet loop
+	} // end of iframe loop
+}
+
+
+
+//TODO: remove : not used
 /*
 int map_offsets(string file_frame_offsets,long ntotscan, float *&scoffsets, foffset *&foffsets,long *fframes, int rank){
 

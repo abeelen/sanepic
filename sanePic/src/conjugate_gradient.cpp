@@ -10,7 +10,7 @@
 
 
 void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_min, long iframe_max,
-		long *nsamples, long *fframes,std::vector<double> fcut,double f_lp,double fsamp,
+		unsigned long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
 		long *indpix, int NAXIS1, int NAXIS2, int factdupl, string tmp_dir, long ndet,
 		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames,/* int size_det,
 		int rank_det,*/ int iterw, double pixdeg, double *tancoord, double *tanpix,int coordsyst,
@@ -44,7 +44,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 	string prefixe;
 	int iter;
 	double  f_lppix_Nk,f_lppix;
-	long ns,ff;
+	long ns;
 	int npixeff;
 
 	//double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
@@ -98,7 +98,7 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
-			ff = fframes[iframe];
+//			ff = fframes[iframe];
 			f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 
@@ -107,16 +107,16 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 			// preconditioner computation : Mp
 			if (CORRon){
-				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
 				// read pointing + deproject + fourier transform
 
 				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-						f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+						f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 				// return Pnd = At N-1 d
 			} else {
 
 				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-						f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
+						f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/indpix,
 						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
 			}
 
@@ -196,20 +196,20 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 				ns = nsamples[iframe];
-				ff = fframes[iframe];
+//				ff = fframes[iframe];
 				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 				if (CORRon){
-					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
 					// read pointing + deproject + fourier transform
 
 					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-							f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/indpix,
+							f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/indpix,
 							NAXIS1, NAXIS2,npix,iframe,q,NULL,NULL);
 				}
 			} // end of iframe loop
@@ -254,21 +254,21 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 					ns = nsamples[iframe];
-					ff = fframes[iframe];
+//					ff = fframes[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 					if (CORRon){
-						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ff,ns,ndet,iframe);
+						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
 						// read pointing + deproject + fourier transform
 
 						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-								f_lppix_Nk,fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
+								f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
 								NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
 						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-								f_lppix_Nk,fsamp,flgdupl,factdupl,ff,ns,ndet,/*size_det,rank_det,*/
+								f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/
 								indpix,NAXIS1, NAXIS2,npix,iframe,PtNPmatS,NULL,NULL);
 					}
 				} // end of iframe loop
@@ -545,26 +545,26 @@ void sanepic_conjugate_gradient(bool flgdupl, int npix, double* &S,long iframe_m
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 				ns = nsamples[iframe];
-				ff = fframes[iframe];
+//				ff = fframes[iframe];
 				f_lppix = f_lp*double(ns)/fsamp;
 				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 				if (CORRon){
 
 					write_ftrProcesdata(S,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-							tmp_dir,dirfile,bolonames,fits_table,shift_data_to_point,f_lppix,ff,ns,
+							tmp_dir,dirfile,bolonames,fits_table,shift_data_to_point,f_lppix,ns,
 							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
 					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ff,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,
 							bolonames, fits_table, shift_data_to_point,f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-							flgdupl,factdupl,2,ff,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
+							flgdupl,factdupl,2,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
 							NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
 				}
 			} // end of iframe loop

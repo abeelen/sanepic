@@ -29,15 +29,9 @@ extern "C"{
 #include "parsePre.h"
 #include "inputFileIO.h"
 
-/*int parse_sanePre_ini_file(char * ini_name, int  &shift_data_to_point, long  &napod,double &fsamp, bool &NOFILLGAP,bool &NORMLIN,bool &remove_polynomia, bool &flgdupl,
-		bool &CORRon, long &ntotscan, long &ndet, double &f_lp, string &dirfile, string &outdir,
-		 string &noiseSppreffile,
-		int &coordsyst, std::vector<string> &bolonames,long *&fframes, long *&nsamples, std::vector<struct box> & boxFile,
-		std::vector<string> &extentnoiseSP, std::vector<double> &fcut,std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)*/
-
 int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames,long *&fframes, long *&nsamples,
+		std::vector<string> &bolonames, unsigned long *&nsamples,
 		std::vector<struct box> & boxFile,std::vector<string> &extentnoiseSP, std::vector<double> &fcut, std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index)
 
 {
@@ -145,7 +139,7 @@ int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 			cout << u_opt.dirfile + fitsvect[ii] << endl;
 			fitsvect[ii] = u_opt.dirfile + fitsvect[ii];}
 
-		readFrames( &ntotscan , fitsvect, fframes, nsamples);
+		readFrames( fitsvect,  nsamples);
 
 		//getchar();
 	}else{

@@ -105,8 +105,8 @@ int main(int argc, char *argv[])
 	u_opt.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
 
 	// data parameters
-	long *fframes  ; /*! first frames table */
-	long *nsamples ; /*! number of samples table  */
+//	long *fframes  ; /*! first frames table */
+	unsigned long *nsamples ; /*! number of samples table  */
 
 
 	long ntotscan; /*! total number of scans*/
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 	long ind_size; /* indpix readed size */
 
 	//internal data params
-	long ns, ff; /*! number of samples for this scan, first frame number of this scan*/
+	long ns; /*! number of samples for this scan, first frame number of this scan*/
 	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
 	u_opt.f_lp = 0.0; // low pass filter frequency
 
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
 		parsed=parse_sanePre_ini_file(argv[1],u_opt,
 				ntotscan, ndet,
-				bolonames,fframes,nsamples,
+				bolonames,nsamples,
 				boxFile,extentnoiseSP, fcut, fitsvect,noisevect, scans_index);
 
 		if (parsed==-1){
@@ -225,9 +225,6 @@ int main(int argc, char *argv[])
 	//vector2array(noisevect, );
 	//vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
-
-	cout << fframes[0] << endl;
-	cout << nsamples[0] << endl;
 
 	// some needed parameters calculation
 	/*if(samples_per_frames>1){
@@ -271,17 +268,17 @@ int main(int argc, char *argv[])
 		indpsrc[ii] = -1;
 	}
 
-	// TODO : untested....
-	// if a box for crossing constraint removal is given in ini file
-	// TODO : save mask in fits file
-	// TODO : being able to read a mask in fits file format
-	for (long iBox = 0; iBox < boxFile.size(); iBox++){
-		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
-			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
-				mask[jj*NAXIS1 + ii] = 0;
-				indpsrc[jj*NAXIS1 + ii] = npixsrc++;
-			}
-	}
+		// TODO : untested....
+		// if a box for crossing constraint removal is given in ini file
+		// TODO : save mask in fits file
+		// TODO : being able to read a mask in fits file format
+		for (unsigned long iBox = 0; iBox < boxFile.size(); iBox++){
+			for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
+				for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
+					mask[jj*NAXIS1 + ii] = 0;
+					indpsrc[jj*NAXIS1 + ii] = npixsrc++;
+				}
+		}
 
 	// each frame contains npixsrc pixels with index indsprc[] for which
 	// crossing constraint are removed
@@ -348,7 +345,7 @@ int main(int argc, char *argv[])
 
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	//if(rank==0){
-	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
 	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	//}
@@ -438,12 +435,12 @@ int main(int argc, char *argv[])
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 		ns = nsamples[iframe]; // number of samples for this scan
-		ff = fframes[iframe]; //first frame of this scan
+//		ff = fframes[iframe]; //first frame of this scan
 		f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp; // noise PS threshold freq, in terms of samples
 
-		printf("[%2.2i] iframe : %ld/%ld",rank,iframe+1,iframe_max);
-		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
+		printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+//		cout << " ( -f " << ff << " -l " << ff+ns/20 << " )" << endl;
 
 		// if there is correlation between detectors
 		if (u_opt.CORRon){
@@ -483,7 +480,7 @@ int main(int argc, char *argv[])
 
 			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,u_opt.flgdupl,factdupl,2,
 					u_opt.outdir,/*termin_internal,errarcsec,*/u_opt.dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
-					fextension,*/u_opt.shift_data_to_point,f_lppix,ff,ns,u_opt.napod,ndet,u_opt.NORMLIN,u_opt.NOFILLGAP, u_opt.remove_polynomia,iframe/*,fdata_buffer*/);
+					fextension,*/u_opt.shift_data_to_point,f_lppix,ns,u_opt.napod,ndet,u_opt.NORMLIN,u_opt.NOFILLGAP, u_opt.remove_polynomia,iframe/*,fdata_buffer*/);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -514,7 +511,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,prefixe,/*termin_internal,*/bolonames,f_lppix_Nk,
-					u_opt.fsamp,ff,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+					u_opt.fsamp,ns,ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -532,7 +529,7 @@ int main(int argc, char *argv[])
 
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,/*termin_internal,*/u_opt.dirfile,
 					bolonames,fits_table,u_opt.shift_data_to_point,f_lppix,f_lppix_Nk,u_opt.fsamp,ntotscan,addnpix,
-					u_opt.flgdupl,factdupl,2,ff,ns,u_opt.napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
+					u_opt.flgdupl,factdupl,2,ns,u_opt.napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
 					NAXIS1, NAXIS2,npix,npixsrc,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
@@ -630,7 +627,7 @@ int main(int argc, char *argv[])
 	delete [] hits;
 	delete [] hitstot;
 
-	delete [] fframes;
+//	delete [] fframes;
 	delete [] nsamples;
 	delete [] indpix;
 	delete [] indpsrc;

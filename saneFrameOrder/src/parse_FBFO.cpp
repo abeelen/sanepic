@@ -18,7 +18,7 @@
 #include "mpi.h"
 #endif*/
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes, long *&nsamples,
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, unsigned long *&nsamples,
 		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
@@ -98,7 +98,7 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&fframes,
 			cout << dirfile + fitsvect[ii] << endl;
 			fitsvect[ii] = dirfile + fitsvect[ii];}
 
-		readFrames(&ntotscan , fitsvect, fframes, nsamples);
+		readFrames(fitsvect, nsamples);
 
 		//getchar();
 	}else{

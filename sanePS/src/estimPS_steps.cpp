@@ -84,11 +84,9 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 	for (long idet=0;idet<ndet;idet++){
 
 		field = bolonames[idet];
-
 		//TODO : sanePS should use the fits file, not the binary file
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+"_data", 'd');
 		read_signal_from_fits(fits_filename, data, field);
-
 
 		//if (fextension != "NOFLAG"){
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+"_flag",  'c');
@@ -111,8 +109,9 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 		//TODO: subtract the signal only if needed
 
-		//******************************* subtract signal
+        if (S != NULL){
 
+		//******************************* subtract signal
 		//TODO: samptopix should then NOT be in the calling of the function,
 		//      only need in deproject
 		//Read pointing data
@@ -127,14 +126,15 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
-
+        }
+        //TODO : the order of the baseline should be in the ini file
+        //TODO : but this is the special case of estimPS
 		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
 				NORMLIN,NOFILLGAP,remove_polynomia);
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
-
 
 		// TODO: Do we need to compute and save ffts here ???
 		//       fdata are used in cross power spectrum estimation...
@@ -168,12 +168,10 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		if (idet == 0) sign0 = sign[0];
 		sign[idet] = sign[idet]/sign0; // normalize to first detector sigma of the noise
 
-
 		// common mode computation
 		for (long jj=0;jj<ncomp;jj++)
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
-
 
 	}
 
@@ -242,7 +240,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 
 
 
-void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string noiseSppreffile, /*string bextension, string fextension,*/ long &nbins,
+void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string tmp_dir, /*string bextension, string fextension,*/ long &nbins,
 		long &nbins2, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix,long napod, double *&ell, double **&SpN_all, double *data, /* short *flag,*/
 		long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long *indpix, bool NORMLIN,
 		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
@@ -258,21 +256,6 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	short *flag;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
-	//**************************************** Read pre-estimated power spectrum for reference : get ell and nbins
-
-	// TODO: It actutally needs only the Ell, write specific function just for that
-	// TODO: read it from the fits file....
-	//nameSpfile=noiseSppreffile + field + "-all" + extentnoiseSp;
-	nameSpfile=noiseSppreffile + bolonames[0] + "-all" + extentNoiseSp;
-	read_InvNoisePowerSpectra(noiseSppreffile, bolonames[0], extentNoiseSp, &nbins, &ndet, &ell, &SpN_all);
-	//	read_noise_file(nbins, ell, SpN_all, nameSpfile, ndet); // just to get nbins and ell ...
-	nbins2 = nbins;
-
-	//    printf("Inside EstimPowerSpectra after 1st step\n");
-
-
-
-
 
 	//************************************************************************//
 	// second part: -- data - common mode
@@ -668,6 +651,9 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 	printf("Pre em:   obj: %10.15g\n", f) ;
 
+	cout << "nbins2 " << nbins2 << endl;
+	cout << "ndet   " << ndet << endl;
+	cout << "ncomp  " << ncomp << endl << endl;
 
 	for (long iter=1;iter<=nbiter;iter++){
 

@@ -18,8 +18,14 @@ using namespace std;
 
 
 void computeMapMinima(std::vector<string> bolonames, string *fits_table,
-		long iframe_min, long iframe_max, /*long *fframes,*/long *nsamples,double pixdeg,
+		long iframe_min, long iframe_max, unsigned long *nsamples,double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
+
+void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
+		long iframe_min, long iframe_max, unsigned long *nsamples,double pixdeg,
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
+
+void minmax_flag(double  *& array, short *& flag, unsigned long size, double & min_array, double &  max_array);
 
 void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coordscorner,
 		struct wcsprm &wcs, unsigned long &NAXIS1, unsigned long &NAXIS2);

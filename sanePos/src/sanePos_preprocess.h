@@ -27,7 +27,7 @@ void find_coordinates_in_map(long ndet,std::vector<string> bolonames, string *fi
 		string fextension,*//*string file_offsets,foffset *foffsets,float *scoffsets,	double *offsets,*/long iframe_min, long iframe_max,
 		/*long *fframes,*/long *nsamples,string dirfile,/*string ra_field,string dec_field,string phi_field, string scerr_field,
 		string flpoint_field,int nfoff, */double pixdeg, int *&xx, int *&yy,int nn, double *&coordscorner, double *tancoord,
-		double *tanpix, bool bfixc, double radius, double *offmap, double *srccoord, char type, double *&ra,double *&dec,double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection);
+		double *tanpix, bool bfixc, double radius, /*double *offmap,*/ double *srccoord, char type, double *&ra,double *&dec,double *&phi, short *&flpoint,double &ra_min,double &ra_max,double &dec_min,double &dec_max,bool default_projection);
 
 /*!
  *  compute_indpsrc_addnpix
@@ -58,12 +58,21 @@ void compute_seen_pixels_coordinates(long ntotscan,string outdir,std::vector<str
 		long *indpsrc, long npixsrc, int &flagon,bool &pixout);
 
 void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max,/*long *fframes,*/ long *nsamples,
+		string *fits_table, long iframe_min, long iframe_max, unsigned long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
 		unsigned short *&mask,
 		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
 		long addnpix, long *&pixon, int rank,
 		long *indpsrc, long npixsrc, int &flagon, bool &pixout);
+
+void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bolonames,
+		string *fits_table, long iframe_min, long iframe_max, unsigned long *nsamples,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+		unsigned short *&mask,
+		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
+		long addnpix, long *&pixon, int rank,
+		long *indpsrc, long npixsrc, int &flagon, bool &pixout);
+
 
 // TODO: Remove this
 //int map_offsets(string file_frame_offsets, long ntotscan, float *&scoffsets, foffset *&foffsets, long *fframes, int rank);

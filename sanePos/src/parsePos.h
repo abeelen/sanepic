@@ -22,7 +22,7 @@ using namespace std;
  */
 int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, long *&fframes, long *&nsamples,
+		std::vector<string> &bolonames, unsigned long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index);
 
 #endif /* PARSEPOS_H_ */

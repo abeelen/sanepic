@@ -39,12 +39,12 @@ int main(int argc, char *argv[])
 {
 
 
-	int size=2;
+	int size=1;
 	int rank=0;
 
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+//	MPI_Status status;
 
 	// setup MPI
 	//	MPI_Init(&argc, &argv);
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 
 		long ntotscan;
-		long *nsamples, *fframes ; // number of samples table nsamples_vec -> nsamples
+		unsigned long *nsamples; // number of samples table nsamples_vec -> nsamples
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 		//std::vector<long> fframes_vec, nsamples_vec;
 		string fname,outdir;
 
-		parsed=parse_FBFO(argv[1], outdir, ntotscan, fframes, nsamples, fitsvect, noisevect, scans_index);
+		parsed=parse_FBFO(argv[1], outdir, ntotscan, nsamples, fitsvect, noisevect, scans_index);
 		if (parsed==-1){
 			cerr << "Problem in the parse function. Exiting\n";
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -112,8 +112,8 @@ int main(int argc, char *argv[])
 		fname = outdir + parallel_scheme_filename;
 
 		/********************* Define parallelization scheme   *******/
-		cout << ntotscan << endl;
-		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
+//		cout << ntotscan << endl;
+//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
 		//getchar();
 		/*for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
@@ -123,11 +123,11 @@ int main(int argc, char *argv[])
 		find_best_order_frames(ruleorder, frnum, nsamples, ntotscan, size);
 		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
-		cout << size << endl;
-		cout << ntotscan << endl;
-		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
-		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
-		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
+//		cout << size << endl;
+//		cout << ntotscan << endl;
+//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
+//		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
+//		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
 		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
 		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 

@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
 	//string dirfile; // data directory
 	//string outdir; // output directory
 	//string tmp_dir; // current path (pPath) or output dir (outdir)
+	string ellFile; // file containing the ells
 	//string bextension; // bolometer field extension
 	//string fextension = "NOFLAG"; // flag field extension
 	//string pextension; // pointing extension
 	//string termin; // output file suffix
-	//string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 	//string termin_internal = "internal_data";
@@ -127,8 +127,8 @@ int main(int argc, char *argv[])
 	std::vector<long> scans_index;
 
 	// data parameters
-	long *fframes  ; // first frames table ff_in list -> fframes
-	long *nsamples ; // number of samples table nf_in list -> nsamples
+//	long *fframes  ; // first frames table ff_in list -> fframes
+	unsigned long *nsamples ; // number of samples table nf_in list -> nsamples
 
 
 	string *extentnoiseSp_all;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 	double *S;
 
 	// parallel scheme file
-	string fname;
+//	string fname;
 	string signame;
 
 
@@ -154,9 +154,11 @@ int main(int argc, char *argv[])
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		exit(0);
 	} else {
+
 		parsed=parse_sanePS_ini_file(argv[1], u_opt,
 				ntotscan, ndet,
-				bolonames, fframes,  nsamples, extentnoiseSP, MixMatfile,signame,fitsvect,noisevect,scans_index);
+				bolonames, nsamples, extentnoiseSP, MixMatfile, ellFile, signame,
+				fitsvect,noisevect, scans_index);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -168,6 +170,7 @@ int main(int argc, char *argv[])
 
 	}
 
+//TODO : Check in the parser if we have more than one bolometer....
 
 
 	if (u_opt.napod){
@@ -203,7 +206,7 @@ int main(int argc, char *argv[])
 	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-	cout << fframes[0] << endl;
+//	cout << fframes[0] << endl;
 	cout << nsamples[0] << endl;
 
 
@@ -222,6 +225,9 @@ int main(int argc, char *argv[])
 	//indpix=new long[factdupl*nn*nn+2 + addnpix];
 
 	//int npix2;
+
+	// TODO : Should not be here
+	// TODO : Ugly fix... remove this for the moment
 	read_indpix(ind_size, npix, indpix, u_opt.tmp_dir, flagon);
 
 	S = new double[npix];
@@ -280,11 +286,11 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
-	fname = tmp_dir + parallel_scheme_filename;
+	string fname = u_opt.tmp_dir + parallel_scheme_filename;
 
 	int test=0;
 	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples,fframes);
+	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -331,8 +337,8 @@ int main(int argc, char *argv[])
 
 
 
-	MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
+//	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
 	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
 	iframe_min = frnum[rank];
@@ -355,7 +361,8 @@ int main(int argc, char *argv[])
 	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = nsamples[iframe];
-			ff = fframes[iframe];
+//			ff = fframes[iframe];
+			ff = iframe;
 			extentnoiseSp = extentnoiseSp_all[iframe];
 			fits_filename=fits_table[iframe];
 
@@ -366,8 +373,12 @@ int main(int argc, char *argv[])
 			cout << extentnoiseSp ;
 			cout << endl;
 
-			EstimPowerSpectra(u_opt.fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, u_opt.napod,	iframe, u_opt.flgdupl, factdupl, indpix,	S, MixMatfile, bolonames, u_opt.dirfile,
-					u_opt.shift_data_to_point, u_opt.tmp_dir, u_opt.NORMLIN, u_opt.NOFILLGAP,u_opt.remove_polynomia, u_opt.noiseSppreffile,extentnoiseSp, u_opt.outdir,fits_filename);
+			EstimPowerSpectra(u_opt.fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, u_opt.napod,
+					iframe, u_opt.flgdupl, factdupl, indpix,
+					S, MixMatfile, bolonames, u_opt.dirfile, ellFile,
+					u_opt.shift_data_to_point, u_opt.tmp_dir,
+					u_opt.NORMLIN, u_opt.NOFILLGAP,u_opt.remove_polynomia, u_opt.tmp_dir,
+					extentnoiseSp, u_opt.outdir,fits_filename);
 			// fsamp = bolometers sampling freq
 			// ns = number of samples in the "iframe" scan
 			// ff = first sample number
@@ -392,7 +403,7 @@ int main(int argc, char *argv[])
 			// termin = output file suffix
 			// NORMLIN = baseline is remove from the data, default =0, option -L
 			// NOFILLGAP = fill the gap ? default yes => 0
-			// noiseSppreffile = noise power spectrum file suffix = path
+			// tmp_dir = noise power spectrum file suffix = path
 			// extentnoiseSp = noise file
 			// outdir = output directory
 		}
@@ -407,7 +418,7 @@ int main(int argc, char *argv[])
 #endif
 
 	//clean up
-	delete [] fframes;
+//	delete [] fframes;
 	delete [] nsamples;
 	delete [] extentnoiseSp_all;
 	delete [] S;

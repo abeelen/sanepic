@@ -19,7 +19,7 @@
 using namespace std;
 
 
-void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, string dir, /* string termin,*/ long ff, long ns, long ndet, long iframe){
+void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, string dir, /* string termin,*/  long ns, long ndet, long iframe){
 
 
 	//long idet1;
@@ -79,7 +79,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
 		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
 		/*string bextension, string fextension,*/ /*string cextension,*/
-		int shift_data_to_point, double f_lppix, long ff, long ns,
+		int shift_data_to_point, double f_lppix, long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, long iframe/*,fftw_complex **&fdatas*/){
 
 
@@ -205,13 +205,14 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 
 		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
+		//TODO : Changed here to poly of order 1 to test.... Should be in the ini file !!!
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,1,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,1,f_lppix,data_lp,bfilter,
 					NORMLIN,NOFILLGAP,remove_polynomia);
 		}
 
@@ -254,7 +255,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		string dir, string prefixe, /* string termin, */ std::vector<string> bolonames,
-		double f_lppix, double fsamp, long ff, long ns, long ndet, /*int size,*/
+		double f_lppix, double fsamp, long ns, long ndet, /*int size,*/
 		/*int rank,*/ long *indpix, long NAXIS1, long NAXIS2, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
 
 
