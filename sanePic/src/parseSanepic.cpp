@@ -400,7 +400,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	// for poutdir default value
 	char * pPath;
 	pPath = getenv ("TMPBATCH");
-	//pPath=NULL; // TODO : Remove apres test !!!!
+	//pPath=NULL;
 	if (pPath!=NULL){
 		u_opt.tmp_dir=pPath;
 		printf ("The current path is: %s\n",pPath);

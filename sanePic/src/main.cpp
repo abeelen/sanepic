@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	int rank;//, rank_det;
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+	//MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -306,21 +306,22 @@ int main(int argc, char *argv[])
 	extentnoiseSp_all = new string[ntotscan];
 
 
-	string *fits_table;
+	string *fits_table, *noise_table;
 	long *index_table;
 
 	fits_table = new string[ntotscan];
 	index_table= new long[ntotscan];
+	noise_table = new string[ntotscan];
 
 	// convert vectors to regular arrays
 	//vector2array(nsamples_vec, nsamples);
 	//vector2array(fframes_vec,  fframes);
-	vector2array(fitsvect, fits_table);
+	//vector2array(fitsvect, fits_table);
 	//vector2array(noisevect, );
-	vector2array(scans_index,  index_table);
+	//vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-//	cout << fframes[0] << endl;
+	//cout << fframes[0] << endl;
 	cout << nsamples[0] << endl;
 
 
@@ -354,7 +355,7 @@ int main(int argc, char *argv[])
 
 
 	if (u_opt.projgaps)
-		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
+		printf("Flagged data are binned. iterative solution to fill gaps with noise only.\n");
 
 
 	// path in which data are written
@@ -367,16 +368,14 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////
 
 
-
-	/********************* Define parallelization scheme   *******/
-
 #ifdef USE_MPI
 
-	string fname = u_opt.tmp_dir + parallel_scheme_filename;
-
+	/********************* Define parallelization scheme   *******/
 	int test=0;
-	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples);
+	string fname;
+	fname = u_opt.outdir + parallel_scheme_filename;
+	cout << fname << endl;
+	test=define_parallelization_scheme(rank,fname,u_opt.dirfile,ntotscan,size,nsamples,fitsvect,noisevect,fits_table, noise_table,index_table);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -384,24 +383,55 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
-//	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
+	cout << "Et ca donne ca !" << endl;
 
-	iframe_min = frnum[rank];
-	iframe_max = frnum[rank+1];
-	//rank_det = 0;
-	//size_det = 1;
-	delete [] frnum;
+	cout << fits_table[0] << " " << fits_table[1] << " " << fits_table[2] << " " << fits_table[3] << endl;
+	cout << noise_table[0] << " " << noise_table[1] << " " << noise_table[2] << " " << noise_table[3] << endl;
+	cout << index_table[0] << " " << index_table[1] << " " << index_table[2] << " " << index_table[3] << endl;
+	cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
 
+	//	}
 
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//if(rank==0){
+	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//}
+
+	cout << "mon rank : " << rank << endl;
+
+	iframe_min = -1;
+	//iframe_max = -1;
+
+	for(int ii=0;ii<ntotscan;ii++){
+		if((index_table[ii]==rank)&&(iframe_min == -1)){
+			iframe_min=ii;
+			break;
+		}
+	}
+
+	iframe_max=iframe_min;
+	for(iframe_max=iframe_min;iframe_max<ntotscan-1;iframe_max++)
+		if(index_table[iframe_max]!=rank){
+			iframe_max--;
+			break;
+		}
+
+	iframe_max++;
+
+	cout << rank << " iframe_min : " << iframe_min << endl;
+	cout << rank << " iframe_max : " << iframe_max << endl;
+
+	for(int ii=0;ii<ntotscan;ii++)
+		fits_table[ii] = u_opt.dirfile + fits_table[ii];
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	//rank_det = rank;
-	//size_det = size;
-#endif
+	vector2array(fitsvect, fits_table);
+	vector2array(scans_index,  index_table);
 
+#endif
 
 	// allocate memory
 	tancoord = new double[2];
@@ -520,7 +550,6 @@ int main(int argc, char *argv[])
 
 
 
-
 	//
 	//
 	//string signame;
@@ -582,6 +611,9 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] PNdtot;
 
+	delete [] fits_table;
+	delete [] noise_table;
+	delete [] index_table;
 
 
 
