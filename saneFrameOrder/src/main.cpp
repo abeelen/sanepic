@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 
 		long ntotscan;
-		unsigned long *nsamples; // number of samples table nsamples_vec -> nsamples
+		long *nsamples; // number of samples table nsamples_vec -> nsamples
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;

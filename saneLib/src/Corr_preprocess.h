@@ -19,26 +19,23 @@ extern "C" {
 }
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe, /* string termin,*/ std::vector<string> bolonames,
+		string dir, string prefixe, std::vector<string> bolonames,
 		double f_lppix, double fsamp,  long ns, long ndet,
-		long *indpix, long NAXIS1, long NAXIS2, long npix, long iframe/*,fftw_complex **fdatas*/, double *Mp, long *hits);
+		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
+		double *Mp, long *hits);
 
-
-
-
-void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int NAXIS2, long npix,
-		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
-		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
-		/*string bextension, string fextension,*/ /*string cextension,*/
-		int shift_data_to_point, double f_lppix,  long ns,
+void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
+		int fillg, string dir, string dirfile,
+		std::vector<string> bolonames,string *fits_table, double f_lppix,  long ns,
 		long napod, long ndet, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia,
-		long iframe/*,fftw_complex **&fdatas*/);
+		long iframe);
 
 
 
-void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl,
-		string dir, /* string termin, */  long ns, long ndet, long iframe);
+void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+			bool flgdupl, int factdupl,
+		string dir, long ns, long ndet, long iframe);
 
 
 #endif /* CORR_PREPROCESS_H_ */

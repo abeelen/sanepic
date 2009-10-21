@@ -26,6 +26,7 @@
 
 extern "C" {
 #include <fftw3.h>
+#include "wcslib/wcs.h"
 }
 
 
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
 
 	// data parameters
 //	long *fframes  ; /*! first frames table */
-	unsigned long *nsamples ; /*! number of samples table  */
+	long *nsamples ; /*! number of samples table  */
 
 
 	long ntotscan; /*! total number of scans*/
@@ -115,10 +116,11 @@ int main(int argc, char *argv[])
 	//int samples_per_frames=20; /*! default = 1, BLAST = 20*/
 
 
-	int NAXIS1, NAXIS2, npix; /*! nn = side of the map, npix = number of filled pixels*/
-	long npixsrc = 0; /*! number of pixels contained in box constraint removal */
-	long addnpix=0; /* number of pixels to add to the final map */
-	long ind_size; /* indpix readed size */
+	long NAXIS1, NAXIS2;
+	long long npix; /*! npix = number of filled pixels*/
+	long long npixsrc = 0; /*! number of pixels contained in box constraint removal */
+	long long addnpix=0; /* number of pixels to add to the final map */
+	long long ind_size; /* indpix readed size */
 
 	//internal data params
 	long ns; /*! number of samples for this scan, first frame number of this scan*/
@@ -128,10 +130,9 @@ int main(int argc, char *argv[])
 	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
 
-
 	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
 	double *Mp,*Mptot;
-	long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
+	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 	unsigned short *mask;
 	long *hits,*hitstot; /*! naivmap parameters : hits count */
 
@@ -155,7 +156,7 @@ int main(int argc, char *argv[])
 	//	string scerr_field = "ERR"+pextension; /*!source error filename*/
 
 	/* DEFAULT PARAMETERS */
-	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
+//	int coordsyst = 1; /*! coordinate system : Default is RA/DEC = 1 */
 	//int coordsyst2 = 1; /*! to check coordsyst between sanePre and sanePos*/
 
 
@@ -237,13 +238,15 @@ int main(int argc, char *argv[])
 
 
 	// projection parameters
-	double *tanpix, *tancoord; /*! tangent point pixel coordinates, tangent point RA/DEC coord*/
-	tanpix=new double[2];
-	tancoord=new double[2];
+//	double *tanpix, *tancoord; /*! tangent point pixel coordinates, tangent point RA/DEC coord*/
+//	tanpix=new double[2];
+//	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 
+//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
+	struct wcsprm * wcs;
+	read_MapHeader(u_opt.outdir,wcs, &NAXIS1, &NAXIS2);
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
@@ -258,7 +261,7 @@ int main(int argc, char *argv[])
 
 	//************************************* Deal with masking the point sources
 	mask    = new unsigned short[NAXIS1*NAXIS2];
-	indpsrc = new long[NAXIS1*NAXIS2];
+	indpsrc = new long long[NAXIS1*NAXIS2];
 
 	// Initialize the masks
 	addnpix=0;
@@ -299,8 +302,9 @@ int main(int argc, char *argv[])
 			indpsrc[ii]=-1;
 	}*/
 
+	// TODO: Is it really needed here ?
 	//projection vector
-	indpix=new long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
+	indpix=new long long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
 
 	//read projection vector from a file
 	read_indpix(ind_size, npix, indpix, u_opt.outdir, flagon);
@@ -478,12 +482,15 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,u_opt.flgdupl,factdupl,2,
-					u_opt.outdir,/*termin_internal,errarcsec,*/u_opt.dirfile,/*scerr_field,flpoint_field,*/bolonames,fits_table, /*bextension,
-					fextension,*/u_opt.shift_data_to_point,f_lppix,ns,u_opt.napod,ndet,u_opt.NORMLIN,u_opt.NOFILLGAP, u_opt.remove_polynomia,iframe/*,fdata_buffer*/);
+			//TODO : WHY fillg is hardcoded to 2 ????
+			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					npixsrc,ntotscan,addnpix,u_opt.flgdupl,factdupl,
+					2, u_opt.outdir, u_opt.dirfile,
+					bolonames,fits_table, f_lppix,ns,
+					u_opt.napod,ndet,u_opt.NORMLIN,u_opt.NOFILLGAP, u_opt.remove_polynomia,
+					iframe);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
-
 
 			//Processing stops here
 			t3=time(NULL);
@@ -528,7 +535,7 @@ int main(int argc, char *argv[])
 			//write_ftrProcesdata_nocorr();
 
 			do_PtNd_nocorr(PNd,extentnoiseSp_all,u_opt.noiseSppreffile,u_opt.outdir,/*termin_internal,*/u_opt.dirfile,
-					bolonames,fits_table,u_opt.shift_data_to_point,f_lppix,f_lppix_Nk,u_opt.fsamp,ntotscan,addnpix,
+					bolonames,fits_table,f_lppix,f_lppix_Nk,u_opt.fsamp,ntotscan,addnpix,
 					u_opt.flgdupl,factdupl,2,ns,u_opt.napod,ndet/*,size_det,rank_det*/,indpix,indpsrc,
 					NAXIS1, NAXIS2,npix,npixsrc,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.remove_polynomia,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
@@ -549,7 +556,7 @@ int main(int argc, char *argv[])
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
-	for(int ii=0;ii<npix;ii++){
+	for(unsigned long ii=0;ii<npix;ii++){
 		hitstot[ii]=hits[ii];
 		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
 		Mptot[ii]=Mp[ii];
@@ -574,8 +581,8 @@ int main(int argc, char *argv[])
 
 
 
-	for (int ii=0; ii<NAXIS1; ii++) {
-		for (int jj=0; jj<NAXIS2; jj++) {
+	for (long ii=0; ii<NAXIS1; ii++) {
+		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
 				map1d[mi] = hits[indpix[mi]];
@@ -586,9 +593,9 @@ int main(int argc, char *argv[])
 	}
 
 	fnaivname = '!' + u_opt.outdir + "naivMaphits.fits";
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
+	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
 
-
+/*
 	for (int ii=0; ii<NAXIS1; ii++) {
 		for (int jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
@@ -605,7 +612,7 @@ int main(int argc, char *argv[])
 	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
 	cout << fnaivname << endl;
 	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-
+*/
 
 	printf("End of saneNaiv\n");
 
@@ -636,8 +643,8 @@ int main(int argc, char *argv[])
 	delete [] fits_table;
 	delete [] index_table;
 
-	delete [] tanpix;
-	delete [] tancoord;
+//	delete [] tanpix;
+//	delete [] tancoord;
 
 
 

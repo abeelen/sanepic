@@ -75,8 +75,6 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL); // Patanchon
 void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL);
 
-int compare_long (const void *a, const void *b); // on peut garder
-
 
 int read_data_std(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde
 int read_data(string fname, int frame, int fs, int ns, void* data, string field, char type); // on garde

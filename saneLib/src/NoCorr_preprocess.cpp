@@ -15,14 +15,13 @@
 using namespace std;
 
 void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, /* string termin, double errarcsec,*/ string dirfile,
-		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames, string *fits_table,
-		/*string bextension, string fextension,*/ /*string cextension,*/
-		int shift_data_to_point, double f_lppix, double f_lppix_Nk,
+		string dir, string dirfile,
+		std::vector<string> bolonames, string *fits_table,
+		double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ns, long napod, long ndet,
-		long *indpix, long *indpsrc, long NAXIS1, long NAXIS2, long npix,
-		long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S){
+		long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+		long long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S){
 
 
 
@@ -35,13 +34,13 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	//char nameSpfile[100];
 	//char testfile[100];
 
-	long *samptopix;
+	long long *samptopix;
 	double *bfilter, *Nk, *data, *data_lp, /* *calp,*/ *Ps;
 	//unsigned char *rejectsamp;
 	short *flag, *flpoint;
 	double powered;
 
-	samptopix = new long[ns];
+	samptopix = new long long[ns];
 	bfilter = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 
@@ -82,6 +81,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 		long test_ns;
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
+		// TODO : Test sizes...
 
 		/*if (fextension != "NOFLAG"){
 			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
@@ -183,7 +183,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
 		/* string termin, */ string dirfile, std::vector<string> bolonames, double f_lppix,
 		double fsamp, bool flgdupl, int factdupl, long ns,
-		long ndet, long *indpix, long NAXIS1, long NAXIS2, long npix,
+		long ndet, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits){
 
 
@@ -196,11 +196,11 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 	//char nameSpfile[100];
 	//char testfile[100];
 
-	long *samptopix;
+	long long *samptopix;
 	double *bfilter, *Nk, *Ps;
 	double powered;
 
-	samptopix = new long[ns];
+	samptopix = new long long[ns];
 	bfilter = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 	Ps = new double[ns];

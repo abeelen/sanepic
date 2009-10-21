@@ -855,15 +855,6 @@ void deconv_antialias(double y[], int ndata, double f_lp, double* yout, bool apo
 
 
 
-int compare_long (const void *a, const void *b)
-{
-	const long *da = (const long *) a;
-	const long *db = (const long *) b;
-
-	return (*da > *db) - (*da < *db);
-}
-
-
 
 void cutdata(double y[], int indm, int indp, double *yout)
 {

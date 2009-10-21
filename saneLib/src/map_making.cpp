@@ -14,11 +14,31 @@
 using namespace std;
 
 
-long *data_compare;
+long long *data_compare;
 
 
-void compute_PtNmd(double *data, double *Nk, long ndata, int NAXIS1, int NAXIS2,
-		long *indpix, long *samptopix, int npix, double *PNd){
+
+int compare_long_long (const void *a, const void *b)
+{
+	const long long *da = (const long long *) a;
+	const long long *db = (const long long *) b;
+
+	return (*da > *db) - (*da < *db);
+}
+
+
+int compare_global_array_long_long (const void *array_1, const void *array_2)
+{
+
+	const long long *long_array_1 = (const long long *) array_1;
+	const long long *long_array_2 = (const long long *) array_2;
+
+	return (data_compare[*long_array_1] > data_compare[*long_array_2]) - (data_compare[*long_array_1] < data_compare[*long_array_2]);
+}
+
+
+void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS2,
+		long long *indpix, long long *samptopix, long long npix, double *PNd){
 
 	//long ii, k;
 	//long ll;
@@ -431,17 +451,16 @@ void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *bin
  */
 
 
+//TODO : Check compute_diagPtNP and compute_diagPtNPCorr
+void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
+		long  NAXIS1, long NAXIS2, long long *indpix,
+		long npix, double f_lppix, double *dPtNP){
 
 
-void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
-		int NAXIS1, int NAXIS2, long *indpix,
-		int npix, double f_lppix, double *dPtNP){
-
-
-	long kk2, ii2, ndataf;
-	long *pixpos;
-	long count, count_;
-	long *pixtosamp;
+	long long kk2, ii2, ndataf;
+	long long *pixpos;
+	long long count, count_;
+	long long *pixtosamp;
 
 
 	//fft stuff
@@ -451,7 +470,7 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
-	pixpos = new long[ndata];
+	pixpos = new long long[ndata];
 	//pixtosamp = new long[ndata];
 
 
@@ -477,8 +496,8 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 
-	data_compare = new long[ndata];
-	pixtosamp = new long[ndata];
+	data_compare = new long long[ndata];
+	pixtosamp = new long long[ndata];
 
 
 
@@ -490,8 +509,8 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 
-	qsort(pixtosamp,ndata,sizeof(long),compare_global_array_long);
-	qsort(data_compare,ndata,sizeof(long),compare_long);
+	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
+	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
 
 
 
@@ -507,13 +526,13 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 			count++;
 
 		if (count-count_ > 0){
-			for (long ii=count_;ii<count;ii++){
+			for (long long ii=count_;ii<count;ii++){
 				ii2 = pixtosamp[ii];
 				if ((ipix == npix-1) || (ipix == npix-2)){ //This is just to avoid spending to much time computing this pixel which could contain a lot of data
 					dPtNP[ipix] += N_[0];
 					//printf("TEST");
 				} else {
-					for (long kk=count_;kk<count;kk++){
+					for (long long kk=count_;kk<count;kk++){
 						kk2 = pixtosamp[kk];
 						if (abs(kk2-ii2) < ndataf)
 							dPtNP[ipix] += N_[abs(ii2-kk2)];
@@ -542,15 +561,15 @@ void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
 
 
 
-void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
-		int NAXIS1, int NAXIS2, long *indpix,
-		int npix, double f_lppix, double *dPtNP){
+void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
+		long NAXIS1, long NAXIS2, long long *indpix,
+		long long npix, double f_lppix, double *dPtNP){
 
 
-	long kk2, ii2, ndataf;
-	long *pixpos;
-	long count, count_;
-	long *pixtosamp;
+	long long kk2, ii2, ndataf;
+	long long *pixpos;
+	long long count, count_;
+	long long *pixtosamp;
 
 
 	//fft stuff
@@ -560,7 +579,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
-	pixpos = new long[ndata];
+	pixpos = new long long [ndata];
 
 
 
@@ -586,8 +605,8 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 
 
-	data_compare = new long[ndata];
-	pixtosamp = new long[ndata];
+	data_compare = new long long[ndata];
+	pixtosamp = new long long[ndata];
 
 
 
@@ -599,8 +618,8 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 
 
-	qsort(pixtosamp,ndata,sizeof(long),compare_global_array_long);
-	qsort(data_compare,ndata,sizeof(long),compare_long);
+	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
+	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
 
 
 
@@ -608,7 +627,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 
 	count = 0;
 
-	for (long ipix=data_compare[0];ipix<npix;ipix++){
+	for (long long ipix=data_compare[0];ipix<npix;ipix++){
 
 		count_ = count;
 
@@ -622,7 +641,7 @@ void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
 					dPtNP[ipix] += N_[0];
 					//printf("TEST");
 				} else {
-					for (long kk=count_;kk<count;kk++){
+					for (long long kk=count_;kk<count;kk++){
 						kk2 = pixtosamp[kk];
 						if (abs(kk2-ii2) < ndataf)
 							dPtNP[ipix] += N_[abs(ii2-kk2)];
@@ -1402,7 +1421,7 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 }
  */
 
-void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1, long NAXIS2, long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long *indpsrc, long npixsrc){
+void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2, long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long long *indpsrc, long long npixsrc){
 
 
 	double a, b;
@@ -1411,7 +1430,7 @@ void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1
 
 
 
-	for (long ii=0;ii<ndata;ii++){
+	for (long long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			Ps[ii] = S[npix-2];
 		} else {
@@ -1507,14 +1526,4 @@ void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rej
 
  */
 
-
-
-int compare_global_array_long (const void *array_1, const void *array_2)
-{
-
-	const long *long_array_1 = (const long *) array_1;
-	const long *long_array_2 = (const long *) array_2;
-
-	return (data_compare[*long_array_1] > data_compare[*long_array_2]) - (data_compare[*long_array_1] < data_compare[*long_array_2]);
-}
 

@@ -30,7 +30,7 @@ extern "C"{
 
 int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, unsigned long *&nsamples,
+		std::vector<string> &bolonames, long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;
@@ -526,7 +526,7 @@ int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		return -1 ;
 	}*/
 	//ntotscan = fframes_vec.size();
-	//ntotscan = fitsvect.size();
+	ntotscan = fitsvect.size();
 	ndet = bolonames.size();
 
 	printf("Number of scans      : %ld\n",ntotscan);

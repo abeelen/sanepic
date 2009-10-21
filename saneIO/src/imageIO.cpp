@@ -11,6 +11,7 @@ using namespace std;
 extern "C" {
 #include <fitsio.h>
 #include <nrutil.h>
+#include "wcslib/wcshdr.h"
 }
 
 
@@ -23,7 +24,7 @@ void print_fits_error(int status){
 }
 
 
-
+//TODO : Not used anymore, remove
 void write_fits(string fname, double pixsize, long nx, long ny,
 		double *tancoord, double *tanpix, int coordsyst, char dtype, void *data)
 {
@@ -142,6 +143,73 @@ void write_fits(string fname, double pixsize, long nx, long ny,
 
 }
 
+//TODO : check and optimize
+void write_fits_wcs(string fname, struct wcsprm * wcs, unsigned long NAXIS1, unsigned long NAXIS2,  char dtype, void *data)
+{
+	// all angles in degrees
+
+	fitsfile *fp;
+	int fits_status;
+
+	int naxis = 2;                  // number of dimensions
+	long naxes[] = {NAXIS1, NAXIS2}; // size of dimensions
+	long fpixel[] = {1, 1};          // index for write_pix
+	long ndata = NAXIS1 * NAXIS2;            // number of data points
+
+	char *header;
+	int nkeyrec;
+
+	// create fits file
+	if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
+		print_fits_error(fits_status);
+
+	// create fits image (switch on data type)
+	switch (dtype) {
+	case 'd':    // double
+		if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
+			print_fits_error(fits_status);
+		break;
+	case 'l':    // long
+		if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
+			print_fits_error(fits_status);
+		break;
+	default:
+		printf("write_fits: data type %c not supported. Exiting.\n",dtype);
+		exit(1);
+	}
+
+	// Transform wcsprm struture to header
+	wcshdo(WCSHDO_all, wcs, &nkeyrec, &header);
+
+
+	// write it to the fits file
+	for (int keyrec = 0; keyrec < nkeyrec; keyrec++)
+		if ( fits_write_record(fp, (const char*) header[keyrec*80], &fits_status))
+			print_fits_error(fits_status);
+
+	exit(0);
+
+	// write date to file
+	if ( fits_write_date(fp, &fits_status) )
+		print_fits_error(fits_status);
+
+	// write map data
+	switch (dtype) {
+	case 'd':    // double
+		if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) )
+			print_fits_error(fits_status);
+		break;
+	case 'l':    // long
+		if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) )
+			print_fits_error(fits_status);
+		break;
+	}
+
+	// close file
+	if(fits_close_file(fp, &fits_status))
+		print_fits_error(fits_status);
+
+}
 
 
 void read_fits_signal(string fname, double *S, long* indpix, int &NAXIS1, int &NAXIS2, int npix)

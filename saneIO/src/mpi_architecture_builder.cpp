@@ -109,7 +109,7 @@ int compare_array_double (const void *array_1, const void *array_2)
 }
 
 
-void find_best_order_frames(long *position, long *frnum, unsigned long *ns, long ntotscan, int size){
+void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size){
 
 	long count, a, b;
 	double maxproctmp, valmin, stdmin, stdtmp, valtmp;
@@ -297,7 +297,7 @@ void find_best_order_frames(long *position, long *frnum, unsigned long *ns, long
 
 }
 
-int write_ParallelizationScheme(string fname, long *position, long *frnum, unsigned long *ns, long ntotscan, int size,
+int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
 		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<long> &scans_index)
 // Write the Parrallelization Scheme for further use.
 {
@@ -439,7 +439,7 @@ int read_ParallelizationScheme(string fname,string dirfile, long ntotscan, int s
 
 }*/
 
-int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
+int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
@@ -454,7 +454,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	//size_t found;
 
 	bool framegiven;
-	unsigned long *nsamples_dummy;
+	long *nsamples_dummy;
 	string temp;
 
 	//string *fits_table, *noise_table;
@@ -473,7 +473,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 	if((framegiven==0)||((int)fits_dummy.size()==0))
 		return -1;
 
-	ntotscan_dummy=(unsigned long)fits_dummy.size();
+	ntotscan_dummy=(long)fits_dummy.size();
 	if(ntotscan!=ntotscan_dummy){
 		cerr << "number of scans are different between your fits file list and the mpi scheme" << endl;
 		return -1;
@@ -566,7 +566,7 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 
 
 
-int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size,unsigned long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
+int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
 
 
   // cout << "avant check" << endl;
@@ -650,33 +650,31 @@ long readFitsLength(string filename){
 
 	fitsfile *fptr;
 	int status = 0;
-	int hdu_type;
 	long ns;
+	char comment[80];
 
 	//	Open the fits file
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	// Go to the first Extension (should be an image named "Primary")
-	if (fits_movabs_hdu(fptr, 1, &hdu_type,  &status))
+	// Go to the signal Extension ...
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
 		fits_report_error(stderr, status);
-	if (hdu_type != IMAGE_HDU)
-		fits_report_error(stderr, BAD_HDU_NUM);
 
-	if(fits_read_key(fptr, TLONG, (char *) "NSAMP", &ns, NULL, &status))
-		fits_report_error(stderr ,status);
-
+	// ... and check for the NAXIS2 keyword...
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ns, (char *) &comment, &status))
+		fits_report_error(stderr, status);
 	return ns;
 
 }
 
-void readFrames(std::vector<string> &inputList, unsigned long *& nsamples){
+void readFrames(std::vector<string> &inputList, long *& nsamples){
 
 	//read_strings(filename, inputList);
 
-	unsigned long nScan  = inputList.size();
-	nsamples = new unsigned long[nScan];
-	for (unsigned long i=0; i<nScan; i++){
+	long nScan  = inputList.size();
+	nsamples = new long[nScan];
+	for (long i=0; i<nScan; i++){
 		nsamples[i] = readFitsLength(inputList[i]);
 	}
 

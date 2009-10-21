@@ -16,8 +16,8 @@
 #define dmod(A,B) ((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
                                         :(A)+(B)*floor(-(A)/(B))):(A))
 
-void compute_PtNmd(double *data, double *Nk, long ndata, int NAXIS1, int NAXIS2,
-		   long *indpix, long *samptopix, int npix, double *PNd);
+void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS2,
+		   long long *indpix, long long *samptopix, long long npix, double *PNd);
 
 
 /*void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
@@ -44,15 +44,15 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 
-void compute_diagPtNP(double *Nk, long *samptopix, long ndata,
-		      int NAXIS1, int NAXIS2, long *indpix,
-		      int npix, double f_lppix, double *dPtNP);
+void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
+		      long NAXIS1, long NAXIS2, long long *indpix,
+		      long npix, double f_lppix, double *dPtNP);
 
 
 
-void compute_diagPtNPCorr(double *Nk, long *samptopix, long ndata,
-			  int NAXIS1, int NAXIS2, long *indpix,
-			  int npix, double f_lppix, double *dPtNP);
+void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
+			  long NAXIS1, long NAXIS2, long long *indpix,
+			  long long npix, double f_lppix, double *dPtNP);
 
 
 /*
@@ -75,7 +75,7 @@ void MapMakPreProcessData(double *data,  short *flag, /*double *calp,*/ long ns,
 			  bool NOFILLGAP,bool remove_polynomia, double *Ps = NULL);
 
 
-void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp,
+void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,
 			double *bfilter, double *Nell, double *Nk);
 
 
@@ -104,9 +104,9 @@ void readalldata(long ff, long ns, string field, string ra_field, string dec_fie
 
 
 
-void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1, long NAXIS2,
-	       long npix, double *Ps, int flgdupl, int factdupl, long ntotscan = 0,
-	       long *indpsrc = NULL, long npixsrc = 0);
+void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2,
+	       long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan = 0,
+	       long long *indpsrc = NULL, long long npixsrc = 0);
 
 
 //void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long iframe, double *Ps);
@@ -116,7 +116,8 @@ void deproject(double *S, long *indpix, long *samptopix, long ndata, long NAXIS1
 
 
 
-int compare_global_array_long (const void *array_1, const void *array_2);
+int compare_global_array_long_long (const void *array_1, const void *array_2);
+int compare_long_long (const void *a, const void *b); // on peut garder
 
 
 #endif

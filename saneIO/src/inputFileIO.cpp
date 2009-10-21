@@ -44,7 +44,7 @@ void read_strings(string fname, std::vector<string> &bolos) {
 	inputFile.close();
 }
 
-void read_double(string fname, double *& array, long & size){
+void read_double(string fname, double *& array, unsigned long & size){
 	string line;
 	vector<double> temp;
 

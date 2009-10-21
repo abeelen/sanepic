@@ -43,12 +43,16 @@
 #include "NoCorr_preprocess.h"
 #include "mpi_architecture_builder.h"
 #include <time.h>
-#include <fftw3.h>
 //#include <fcntl.h>
 //#include <unistd.h>
 #include <list>
 #include <stdio.h>
 #include <stdlib.h>
+
+extern "C" {
+#include <fftw3.h>
+#include "wcslib/wcs.h"
+}
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -101,7 +105,7 @@ int main(int argc, char *argv[])
 	int rank;//, rank_det;
 #ifdef USE_MPI
 	// int tag = 10;
-	//MPI_Status status;
+	MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -156,14 +160,14 @@ int main(int argc, char *argv[])
 	u_opt.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
 	//bool parallel_frames = 0; // a parallel scheme is used : mpi has been launched
 	int factdupl = 1; /*! map duplication factor */
-	long addnpix=0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
-	long npixsrc = 0; /*! number of pix in box constraint */
+	long long addnpix=0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
+	long long npixsrc = 0; /*! number of pix in box constraint */
 	//bool bfixc = 0; // indicates that 4 corners are given for the cross corelation removal box
 
 
 	// data parameters
 //	long *fframes  ; /*!  first frames table  */
-	unsigned long *nsamples ; /*!  number of samples (for each frame) table */
+	long *nsamples ; /*!  number of samples (for each frame) table */
 
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels */
@@ -173,11 +177,12 @@ int main(int argc, char *argv[])
 	// map making parameters
 	u_opt.pixdeg=-1.0; /*! size of pixels (degree) */
 
-	int npix2; /*! used to check PNd reading was correct */
-	long ind_size; /*! indpix read size */
-	int NAXIS1, NAXIS2, npix; /*! nn = side of the map, npix = number of filled pixels */
-	double *tancoord; /*! tangent point coordinates */
-	double *tanpix; /*! tangent pixel */
+	long long npix2; /*! used to check PNd reading was correct */
+	long long ind_size; /*! indpix read size */
+	long NAXIS1, NAXIS2;
+	long long npix; /*! nn = side of the map, npix = number of filled pixels */
+//	double *tancoord; /*! tangent point coordinates */
+//	double *tanpix; /*! tangent pixel */
 
 	//internal data params
 	//long ns, ff; /*! number of samples for this scan, first frame number of this scan */
@@ -187,7 +192,7 @@ int main(int argc, char *argv[])
 
 
 	double *PNdtot; /*! to deal with mpi parallelization : Projected noised data */
-	long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
+	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
 
 
 
@@ -219,7 +224,7 @@ int main(int argc, char *argv[])
 	//bool doInitPS = 0; /*! Do we rat a PS estimation from the elaborated map */
 
 	/* DEFAULT PARAMETERS */
-	int coordsyst = 1; /*! coordinatesystem :  Default is RA/DEC = 1 */
+//	int coordsyst = 1; /*! coordinatesystem :  Default is RA/DEC = 1 */
 	//	int coordsyst2 = -1; /*! used to check binary reading of InfoPointing file */
 
 
@@ -306,22 +311,21 @@ int main(int argc, char *argv[])
 	extentnoiseSp_all = new string[ntotscan];
 
 
-	string *fits_table, *noise_table;
+	string *fits_table;
 	long *index_table;
 
 	fits_table = new string[ntotscan];
 	index_table= new long[ntotscan];
-	noise_table = new string[ntotscan];
 
 	// convert vectors to regular arrays
 	//vector2array(nsamples_vec, nsamples);
 	//vector2array(fframes_vec,  fframes);
-	//vector2array(fitsvect, fits_table);
+	vector2array(fitsvect, fits_table);
 	//vector2array(noisevect, );
-	//vector2array(scans_index,  index_table);
+	vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-	//cout << fframes[0] << endl;
+//	cout << fframes[0] << endl;
 	cout << nsamples[0] << endl;
 
 
@@ -355,7 +359,7 @@ int main(int argc, char *argv[])
 
 
 	if (u_opt.projgaps)
-		printf("Flagged data are binned. iterative solution to fill gaps with noise only.\n");
+		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
 
 
 	// path in which data are written
@@ -368,14 +372,16 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////
 
 
-#ifdef USE_MPI
 
 	/********************* Define parallelization scheme   *******/
+
+#ifdef USE_MPI
+
+	string fname = u_opt.tmp_dir + parallel_scheme_filename;
+
 	int test=0;
-	string fname;
-	fname = u_opt.outdir + parallel_scheme_filename;
-	cout << fname << endl;
-	test=define_parallelization_scheme(rank,fname,u_opt.dirfile,ntotscan,size,nsamples,fitsvect,noisevect,fits_table, noise_table,index_table);
+	long *frnum;
+	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -383,63 +389,35 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	cout << "Et ca donne ca !" << endl;
+	MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
+//	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
 
-	cout << fits_table[0] << " " << fits_table[1] << " " << fits_table[2] << " " << fits_table[3] << endl;
-	cout << noise_table[0] << " " << noise_table[1] << " " << noise_table[2] << " " << noise_table[3] << endl;
-	cout << index_table[0] << " " << index_table[1] << " " << index_table[2] << " " << index_table[3] << endl;
-	cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
+	iframe_min = frnum[rank];
+	iframe_max = frnum[rank+1];
+	//rank_det = 0;
+	//size_det = 1;
+	delete [] frnum;
 
-	//	}
 
-	//	MPI_Barrier(MPI_COMM_WORLD);
-	//if(rank==0){
-	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//}
-
-	cout << "mon rank : " << rank << endl;
-
-	iframe_min = -1;
-	//iframe_max = -1;
-
-	for(int ii=0;ii<ntotscan;ii++){
-		if((index_table[ii]==rank)&&(iframe_min == -1)){
-			iframe_min=ii;
-			break;
-		}
-	}
-
-	iframe_max=iframe_min;
-	for(iframe_max=iframe_min;iframe_max<ntotscan-1;iframe_max++)
-		if(index_table[iframe_max]!=rank){
-			iframe_max--;
-			break;
-		}
-
-	iframe_max++;
-
-	cout << rank << " iframe_min : " << iframe_min << endl;
-	cout << rank << " iframe_max : " << iframe_max << endl;
-
-	for(int ii=0;ii<ntotscan;ii++)
-		fits_table[ii] = u_opt.dirfile + fits_table[ii];
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	vector2array(fitsvect, fits_table);
-	vector2array(scans_index,  index_table);
-
+	//rank_det = rank;
+	//size_det = size;
 #endif
 
-	// allocate memory
-	tancoord = new double[2];
-	tanpix = new double[2];
+//
+//	// allocate memory
+//	tancoord = new double[2];
+//	tanpix = new double[2];
 
+	//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
+	struct wcsprm * wcs;
+	read_MapHeader(u_opt.outdir,wcs, &NAXIS1, &NAXIS2);
 
-	// read nn, coordsyst, tanpix, tancoord
-	read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
+		// read nn, coordsyst, tanpix, tancoord
+//	read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -457,12 +435,12 @@ int main(int argc, char *argv[])
 	// MALLOC
 	unsigned short *mask;
 	mask    = new unsigned short[NAXIS1*NAXIS2];
-	indpsrc = new long[NAXIS1*NAXIS2];
+	indpsrc = new long long[NAXIS1*NAXIS2];
 
 	// Initialize the masks
 	addnpix=0;
 	npixsrc=0;
-	for (long ii=0; ii<NAXIS1*NAXIS2; ii++){
+	for (long long ii=0; ii<NAXIS1*NAXIS2; ii++){
 		mask[ii]    =  1;
 		indpsrc[ii] = -1;
 	}
@@ -542,13 +520,14 @@ int main(int argc, char *argv[])
 
 	// conjugate GRADIENT LOOP
 	sanepic_conjugate_gradient(u_opt.flgdupl, npix, S, iframe_min, iframe_max,
-			nsamples, fcut,u_opt.f_lp, u_opt.fsamp, indpix, NAXIS1, NAXIS2, factdupl, u_opt.tmp_dir,
-			ndet,extentnoiseSp_all,u_opt.tmp_dir, bolonames,/* size_det, rank_det,*/ iterw,
-			u_opt.pixdeg,tancoord, tanpix,coordsyst,indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
-			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,u_opt.napod,u_opt.shift_data_to_point,
-			u_opt.remove_polynomia, u_opt.outdir,fits_table);
-
-
+			nsamples, fcut,u_opt.f_lp, u_opt.fsamp,
+			indpix,
+			wcs, NAXIS1, NAXIS2,
+			factdupl, u_opt.tmp_dir, ndet,
+			extentnoiseSp_all,u_opt.tmp_dir, bolonames, iterw,
+			indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
+			u_opt.dirfile, PNdtot, ntotscan,addnpix,u_opt.NORMLIN,u_opt.NOFILLGAP,
+			u_opt.napod, u_opt.remove_polynomia, u_opt.outdir,fits_table);
 
 	//
 	//
@@ -589,11 +568,11 @@ int main(int argc, char *argv[])
 
 
 
-
-	if (rank == 0){
-		//write infos for second part
-		write_info_for_second_part(u_opt.outdir, NAXIS1, NAXIS2, npix,u_opt.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
-	}
+// TODO : This will be rewrite differently
+//	if (rank == 0){
+//		//write infos for second part
+//		write_info_for_second_part(u_opt.outdir, NAXIS1, NAXIS2, npix,u_opt.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+//	}
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -605,15 +584,12 @@ int main(int argc, char *argv[])
 //	delete [] fframes;
 	delete [] nsamples;
 	delete [] extentnoiseSp_all;
-	delete [] tanpix;
-	delete [] tancoord;
+//	delete [] tanpix;
+//	delete [] tancoord;
 	delete [] indpsrc;
 	delete [] indpix;
 	delete [] PNdtot;
 
-	delete [] fits_table;
-	delete [] noise_table;
-	delete [] index_table;
 
 
 

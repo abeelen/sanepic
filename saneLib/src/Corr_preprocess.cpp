@@ -19,7 +19,9 @@
 using namespace std;
 
 
-void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool flgdupl, int factdupl, string dir, /* string termin,*/  long ns, long ndet, long iframe){
+void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, int factdupl,
+		string dir, long ns, long ndet, long iframe){
 
 
 	//long idet1;
@@ -29,12 +31,12 @@ void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool
 	//char testfile[100];
 
 	double *Ps;
-	long *samptopix;
+	long long *samptopix;
 
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
-	samptopix = new long[ns];
+	samptopix = new long long[ns];
 	Ps = new double[ns];
 	fdata = new fftw_complex[ns/2+1];
 
@@ -72,15 +74,12 @@ void write_tfAS(double *S, long *indpix, int NAXIS1, int NAXIS2, long npix, bool
 }
 
 
-
-
-void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int NAXIS2, long npix,
-		long npixsrc, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, string dir, /* string termin, double errarcsec,*/ string dirfile,
-		/*string scerr_field, string flpoint_field,*/ std::vector<string> bolonames,string *fits_table,
-		/*string bextension, string fextension,*/ /*string cextension,*/
-		int shift_data_to_point, double f_lppix, long ns,
-		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, long iframe/*,fftw_complex **&fdatas*/){
+void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
+		int fillg, string dir, string dirfile,
+		std::vector<string> bolonames,string *fits_table, double f_lppix, long ns,
+		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia,
+		long iframe){
 
 
 	//long ii, idet1;
@@ -89,7 +88,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 	double *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
 	//unsigned char *rejectsamp;
 	short *flpoint, *flag;
-	long *samptopix;
+	long long *samptopix;
 
 	fftw_plan fftplan;
 	fftw_complex *fdata;
@@ -111,7 +110,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 	flpoint = new short[ns];
 	//rejectsamp = new unsigned char[ns];
 
-	samptopix = new long[ns];
+	samptopix = new long long[ns];
 	Ps = new double[ns];
 	bfilter = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
@@ -133,6 +132,7 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 		if (S != NULL){
 			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
 			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
+			// TODO: What is the point of this ?? Do we really need this ?
 			read_flpoint_from_fits(fits_filename, flpoint);
 			//cout << "S != NULL !!!!!!\n";
 			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
@@ -150,6 +150,8 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 		//cout << "flag2 : " << flag2[0] <<  flag2[1] << flag2[2] << flag2[ns -1] << endl;
 		long test_ns;
 		read_flag_from_fits(fits_filename , field1, flag, test_ns);
+		//TODO : Test the size of the output
+
 		//cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
 
 		//cout << "idet : " << idet1 << endl;
@@ -254,9 +256,10 @@ void write_ftrProcesdata(double *S, long *indpix, long *indpsrc, int NAXIS1, int
 
 
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe, /* string termin, */ std::vector<string> bolonames,
-		double f_lppix, double fsamp, long ns, long ndet, /*int size,*/
-		/*int rank,*/ long *indpix, long NAXIS1, long NAXIS2, long npix, long iframe,/*fftw_complex **fdatas,*/ double *Mp, long *hits){
+		string dir, string prefixe,  std::vector<string> bolonames,
+		double f_lppix, double fsamp, long ns, long ndet,
+		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
+		double *Mp, long *hits){
 
 
 	long  nbins;
@@ -269,7 +272,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	//char testfile[100];
 	//FILE *fp;
 
-	long *samptopix;
+	long long *samptopix;
 	double *ell, *SpN, *bfilter, *bfilter_, *Nk, *Nd;
 
 	double powered;
@@ -278,7 +281,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	fftw_complex *fdata, *Ndf;
 
 
-	samptopix = new long[ns];
+	samptopix = new long long[ns];
 	Nd = new double[ns];
 	bfilter = new double[ns/2+1];
 	bfilter_ = new double[ns/2+1];
@@ -340,8 +343,6 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		long ndet2;
 		read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentNoiseSp, &nbins, &ndet2, &ell, &SpN_all);
 		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
-		// TODO : peut etre un soucis avec read_InvNoise ? tester la chaine avec sanePs et saneInv
-		//cout << "apres read" << endl;
 
 		SpN = new double[nbins];
 

@@ -18,7 +18,7 @@
 #include "mpi.h"
 #endif*/
 
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, unsigned long *&nsamples,
+int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples,
 		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<long> &scans_index)
 {
 	dictionary	*	ini ;

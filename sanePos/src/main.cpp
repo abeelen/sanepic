@@ -125,21 +125,25 @@ int main(int argc, char *argv[])
 
 
 	// data parameters
-	unsigned long *nsamples ; /*! number of samples table array */
+	long *nsamples ; /*! number of samples table array */
 
 
 	long ntotscan; /*! total number of scans */
 	long ndet; /*! number of channels used*/
 	//int nnf; /*! number of noise file */
-	long addnpix=0; /*!add a number 'n' of pixels to the map */
+	long long addnpix=0; /*!add a number 'n' of pixels to the map */
 
 
 
 	// map making parameters
 	//double pixdeg; /*! size of pixels (degree) */
 
-	unsigned long npix; /*! npix = number of filled pixels */
-	long npixsrc; /*! number of pixels included in CCR */
+	long long npix; /*! npix = number of filled pixels */
+	long long npixsrc; /*! number of pixels included in Crossing Constraint Removal */
+
+	struct wcsprm wcs;    // wcs structure of the image
+	long NAXIS1, NAXIS2;  // size of the image
+
 	double ra_min, ra_max, dec_min, dec_max; /*! ra/dec min/max coordinates of the map*/
 	//float *scoffsets; /*! source offsets depending on wavelength */
 	//scoffsets = new float[6];  useless now !
@@ -147,8 +151,8 @@ int main(int argc, char *argv[])
 	//	int nfoff; /*! number of offsets */
 	//	foffset *foffsets; /*! tableau d'offsets */
 
-	double *tancoord; /*! tangent point coordinates RA/dec */
-	double *tanpix; /*! tangent pixel coordinates in the map */
+//	double *tancoord; /*! tangent point coordinates RA/dec */
+//	double *tanpix; /*! tangent pixel coordinates in the map */
 	double gra_min, gra_max, gdec_min, gdec_max; /*! global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
 
 	//internal data params
@@ -159,10 +163,10 @@ int main(int argc, char *argv[])
 
 
 	unsigned short *mask;
-	long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
+	long long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
-	long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
-	long *pixon_tot;
+	long long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
+	long long *pixon_tot;
 
 
 
@@ -245,9 +249,9 @@ int main(int argc, char *argv[])
 	string *fits_table, *noise_table;
 	long *index_table;
 
-	fits_table = new string[ntotscan];
+	fits_table  = new string[ntotscan];
 	noise_table = new string[ntotscan];
-	index_table= new long[ntotscan];
+	index_table = new long[ntotscan];
 
 	//vector2array(fitsvect, fits_table);
 	//vector2array(scans_index,  index_table);
@@ -339,7 +343,7 @@ int main(int argc, char *argv[])
 	iframe_min = -1;
 	//iframe_max = -1;
 
-	for(int ii=0;ii<ntotscan;ii++){
+	for(long ii=0;ii<ntotscan;ii++){
 	  if((index_table[ii]==rank)&&(iframe_min == -1)){
 	    iframe_min=ii;
 	    break;
@@ -358,7 +362,7 @@ int main(int argc, char *argv[])
 	cout << rank << " iframe_min : " << iframe_min << endl;
 	cout << rank << " iframe_max : " << iframe_max << endl;
 
-	for(int ii=0;ii<ntotscan;ii++)
+	for(long ii=0;ii<ntotscan;ii++)
 	  fits_table[ii] = u_opt.dirfile + fits_table[ii];
 
 	//exit(0);
@@ -469,8 +473,8 @@ int main(int argc, char *argv[])
 	//	rejectsamp = new unsigned char[2*ns]; // rejected samples after flag conditions
 	//flpoint = new unsigned char[2*ns]; // flpoint est un flag du pointage/time. Savoir au temps t, si tu prends ces données là, ou non.
 	//	flpoint = new short[2*ns];
-	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
-	tanpix = new double[2]; // coordinates in the map of the tangent point
+//	tancoord = new double[2]; // coordinates in ra/dec of the tangent point
+//	tanpix = new double[2]; // coordinates in the map of the tangent point
 
 	//	froffsets = new double[2]; //
 	//	offsets = new double[2];
@@ -479,10 +483,10 @@ int main(int argc, char *argv[])
 
 
 	// default value for map variables
-	ra_min  = 1000.0;
-	ra_max  = -1000.0;
-	dec_min = 1000.0;
-	dec_max = -1000.0;
+//	ra_min  = 1000.0;
+//	ra_max  = -1000.0;
+//	dec_min = 1000.0;
+//	dec_max = -1000.0;
 
 	/*
 	offmap[0] = 0.0;
@@ -517,13 +521,14 @@ int main(int argc, char *argv[])
 //		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 	//	first = time(NULL);
-/*	computeMapMinima_HIPE(bolonames,fits_table,
+	computeMapMinima_HIPE(bolonames,fits_table,
 			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
-			*/
-	computeMapMinima(bolonames,fits_table,
+/*
+ computeMapMinima(bolonames,fits_table,
 			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
+*/
 
 //	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
@@ -564,18 +569,17 @@ int main(int argc, char *argv[])
 	//
 	//	cout << "nn orig : " << nn << endl;
 
-	struct wcsprm wcs;
-	unsigned long NAXIS1, NAXIS2;
+
 
 	computeMapHeader(u_opt.pixdeg, (char *) "EQ", (char *) "TAN", u_opt.coordscorner, wcs, NAXIS1, NAXIS2);
 
 
-	//	 TODO: remove this temporary fix.... save/read thru wcs...
-	tancoord[0] = wcs.crval[0];
-	tancoord[1] = wcs.crval[1];
-
-	tanpix[0]   = wcs.crpix[0];
-	tanpix[1]   = wcs.crpix[1];
+//	//	 TODO: remove this temporary fix.... save/read thru wcs...
+//	tancoord[0] = wcs.crval[0];
+//	tancoord[1] = wcs.crval[1];
+//
+//	tanpix[0]   = wcs.crpix[0];
+//	tanpix[1]   = wcs.crpix[1];
 
 	//	// DEBUG make a fake wcs structure
 	//
@@ -619,11 +623,16 @@ int main(int argc, char *argv[])
 	//	// END DEBUG OF THE FAKE HEADER
 
 	if (rank == 0)
-		printf("[%2.2i] %lu x %lu pixels\n",rank, NAXIS1, NAXIS2);
+		printf("[%2.2i] %ld x %ld pixels\n",rank, NAXIS1, NAXIS2);
 
-	save_MapHeader(u_opt.tmp_dir,wcs);
-	//	print_MapHeader(wcs);
+	save_MapHeader(u_opt.tmp_dir,wcs, NAXIS1, NAXIS2);
 
+//	unsigned long temp1, temp2;
+//	struct wcsprm * wcs2;
+//	read_MapHeader(u_opt.tmp_dir,wcs2, &temp1, &temp2);
+//	cout << "naxis1 : "<< temp1 << " naxis2 : " << temp2 << endl;
+//	print_MapHeader((*wcs2));
+//	exit(0);
 	/*!
 	 * \fn write Pointing informations in a file
 	 * Write nn : size of the map in pixel
@@ -634,7 +643,7 @@ int main(int argc, char *argv[])
 	 * tancoord : tangent point coordinates in coordsyst coordinate system
 	 */
 	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
-	write_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
+	//	write_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
 
 
 	/*} else {
@@ -657,12 +666,12 @@ int main(int argc, char *argv[])
 
 	//************************************* Deal with masking the point sources
 	mask    = new unsigned short[NAXIS1*NAXIS2];
-	indpsrc = new long[NAXIS1*NAXIS2];
+	indpsrc = new long long[NAXIS1*NAXIS2];
 
 	// Initialize the masks
 	addnpix=0;
 	npixsrc=0;
-	for (unsigned long ii=0; ii<NAXIS1*NAXIS2; ii++){
+	for (long long ii=0; ii<NAXIS1*NAXIS2; ii++){
 		mask[ii]    =  1;
 		indpsrc[ii] = -1;
 	}
@@ -671,7 +680,7 @@ int main(int argc, char *argv[])
 	// if a box for crossing constraint removal is given in ini file
 	// TODO : save mask in fits file
 	// TODO : being able to read a mask in fits file format
-	for (unsigned long iBox = 0; iBox < boxFile.size(); iBox++){
+	for (long long iBox = 0; iBox < boxFile.size(); iBox++){
 		for (long ii=boxFile[iBox].blc.x; ii<boxFile[iBox].trc.x ; ii++)
 			for (long jj=boxFile[iBox].blc.y; jj<boxFile[iBox].trc.y; jj++){
 				mask[jj*NAXIS1 + ii] = 0;
@@ -694,10 +703,10 @@ int main(int argc, char *argv[])
 	// factdupl if flagged data are to be projected onto a separete map
 	// 1 more pixel for flagged data
 	// 1 more pixel for all data outside the map
-	unsigned long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
+	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
-	pixon = new long[sky_size];
-	pixon_tot = new long[sky_size];
+	pixon = new long long[sky_size];
+	pixon_tot = new long long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
 	fill(pixon_tot,pixon_tot+(sky_size),0);
 
@@ -706,7 +715,7 @@ int main(int argc, char *argv[])
 	//**********************************************************************************
 
 //	//TODO: check from here and below
-/*
+
 	 computePixelIndex_HIPE(ntotscan,u_opt.tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max, nsamples,
 			wcs, NAXIS1, NAXIS2,
@@ -714,7 +723,7 @@ int main(int argc, char *argv[])
 			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
-*/
+/*
 	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max, nsamples,
 			wcs, NAXIS1, NAXIS2,
@@ -722,7 +731,7 @@ int main(int argc, char *argv[])
 			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
-
+*/
 	//	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
 	//			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
 	//			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
@@ -742,9 +751,10 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-	for(unsigned long ii=0;ii<sky_size;ii++){
+	// TODO : pointer assignement only ?
+	for(long long ii=0;ii<sky_size;ii++){
 	  pixon_tot[ii]=pixon[ii];
 	  }
 #endif
@@ -762,9 +772,9 @@ int main(int argc, char *argv[])
 	npix = 0;
 	if(rank==0){
 
-		indpix = new long[sky_size];
+		indpix = new long long[sky_size];
 		fill(indpix, indpix+(sky_size),-1);
-		for(unsigned long ii=0; ii< sky_size; ii++)
+		for(long long ii=0; ii< sky_size; ii++)
 			if (pixon[ii] != 0)
 				indpix[ii] = npix++;
 
@@ -781,8 +791,8 @@ int main(int argc, char *argv[])
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	if(rank==0){
 	  printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) ntotscan);
-	  printf("[%2.2i] Size of the map : %lu x %lu (using %lu pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
-	  printf("[%2.2i] Total Number of filled pixels : %lu\n",rank, npix);
+	  printf("[%2.2i] Size of the map : %ld x %ld (using %lld pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
+	  printf("[%2.2i] Total Number of filled pixels : %lld\n",rank, npix);
 	}
 
 	t3=time(NULL);
@@ -817,8 +827,8 @@ int main(int argc, char *argv[])
 	delete [] u_opt.coordscorner;
 	delete [] u_opt.srccoord;
 	delete [] nsamples;
-	delete [] tancoord;
-	delete [] tanpix;
+//	delete [] tancoord;
+//	delete [] tanpix;
 	delete [] indpix;
 	delete [] indpsrc;
 	delete [] fits_table;
