@@ -84,10 +84,10 @@ int main(int argc, char *argv[])
 	int factdupl = 1;
 	u_opt.flgdupl = 0; // 1 if flagged data are put in a separate map
 	int flagon;
-	long ind_size;
+	long long ind_size;
 
 	//int samples_per_frames=20;
-	long *indpix;
+	long long *indpix;
 
 	long ntotscan; // total number of scans
 	long ndet; // number of channels
@@ -97,7 +97,8 @@ int main(int argc, char *argv[])
 	//double pixdeg; // size of pixels (degree)
 
 
-	int NAXIS1, NAXIS2, npix; // nn = side of the map, npix = number of filled pixels
+	long NAXIS1, NAXIS2;
+	long long npix; // nn = side of the map, npix = number of filled pixels
 
 	//internal data params
 	long ns, ff; // number of samples for this scan, first frame number of this scan
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
 
 	// data parameters
 //	long *fframes  ; // first frames table ff_in list -> fframes
-	unsigned long *nsamples ; // number of samples table nf_in list -> nsamples
+	long *nsamples ; // number of samples table nf_in list -> nsamples
 
 
 	string *extentnoiseSp_all;
@@ -268,9 +269,12 @@ int main(int argc, char *argv[])
 
 		// TODO : Should change to use the wcs structure
 		// read nn, coordsyst, tanpix, tancoord
-		read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, NULL, NULL); //juste to read nn
+//		read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, NULL, NULL); //juste to read nn
 		//cout << tanpix[0] << " " << tanpix[1] << endl;
 		//cout << tancoord[0] << " " << tancoord[1] << endl;
+		//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
+			struct wcsprm * wcs;
+			read_MapHeader(u_opt.outdir,wcs, &NAXIS1, &NAXIS2);
 
 		//delete [] tancoord;
 		//delete [] tanpix;
@@ -371,7 +375,7 @@ int main(int argc, char *argv[])
 			EstimPowerSpectra(u_opt.fsamp, ns, ff, ndet, NAXIS1,NAXIS2, npix, u_opt.napod,
 					iframe, u_opt.flgdupl, factdupl, indpix,
 					S, MixMatfile, bolonames, u_opt.dirfile, ellFile,
-					u_opt.shift_data_to_point, u_opt.tmp_dir,
+					 u_opt.tmp_dir,
 					u_opt.NORMLIN, u_opt.NOFILLGAP,u_opt.remove_polynomia, u_opt.tmp_dir,
 					extentnoiseSp, u_opt.outdir,fits_filename);
 			// fsamp = bolometers sampling freq

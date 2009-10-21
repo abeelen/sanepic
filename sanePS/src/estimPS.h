@@ -28,10 +28,10 @@ extern "C" {
 #include <fitsio.h>
 }
 
-void EstimPowerSpectra(double fsamp, long ns, long ff,  long ndet, int NAXIS1, int NAXIS2, long npix, long napod,
-		long iframe, bool flgdupl, int factdupl, long *indpix,
+void EstimPowerSpectra(double fsamp, long ns, long ff,  long ndet, long NAXIS1, long NAXIS2, long long npix, long napod,
+		long iframe, bool flgdupl, int factdupl, long long *indpix,
 		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string ellFile, /*string bextension,
-		string fextension,*/ int shift_data_to_point, string dir,
+		string fextension,*/  string dir,
 		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string noiseSppreffile,
 		string extentnoiseSp, string outdirSpN, string fits_filename);
 

@@ -12,10 +12,10 @@ using namespace std;
 
 
 
-void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, int NAXIS2, long npix, long napod,
-		long iframe, bool flgdupl, int factdupl, long *indpix,
+void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, long NAXIS1, long NAXIS2, long long npix, long napod,
+		long iframe, bool flgdupl, int factdupl, long long *indpix,
 		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string ellFile, /* string bextension,
-		string fextension,*/ int shift_data_to_point, string dir,
+		string fextension,*/  string dir,
 		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string tmp_dir,
 		string extentnoiseSp, string outdirSpN, string fits_filename)
 {
@@ -35,7 +35,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 	// data, data low passed, Prewhitened signal ? ,apodization window, ?, ?, butter filter values, first detector PS (in the cross correlation estimation part)
 	double *data, *data_lp, *Ps, /**calp, */*apodwind, *commontmp, *commonm_f, *bfilter, *SPref;
-	long *samptopix; // sample to pixel projection matrix
+	long long *samptopix; // sample to pixel projection matrix
 	//unsigned char *flag; // flag array
 //	short *flag;
 	double /***commonm,*/ **commonm2,/* **common_f,*/ **vect; // ?
@@ -79,7 +79,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	//calp = new double[ns];
 	//flag = new unsigned char[ns]; // flag array
 	//flag = new short[ns];
-	samptopix = new long[ns]; // sample to pixel proj matrix
+	samptopix = new long long[ns]; // sample to pixel proj matrix
 	Nk = new double[ns/2+1]; // noise PS
 	bfilter = new double[ns/2+1]; // buttter filter values
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
@@ -138,7 +138,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 	//TODO: Clean the calling function to only needed variable
 	// compute common mode commonm2
 	common_mode_computation(apodwind, ndet, ns, ff, NAXIS1,NAXIS2, npix, flgdupl, factdupl, bolonames, /*bextension, fextension,*/
-			dirfile,  shift_data_to_point,    dir, iframe, S, indpix,  NORMLIN,
+			dirfile,     dir, iframe, S, indpix,  NORMLIN,
 			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp,
 			bfilter, Cov, uvec, p, ivec, iCov, factapod, fdata1,fits_filename);
 
@@ -148,7 +148,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, SpN_all, data,
 			samptopix, dir, S, iframe,  Ps, data_lp, bfilter, indpix, NORMLIN,
 			NOFILLGAP, remove_polynomia,flgdupl, factdupl, apodwind, ncomp, mixmat, commonm2, fsamp,
-			Nk, Nell, factapod,Rellth, N, commontmp, P, shift_data_to_point,  outdirSpN,fits_filename);
+			Nk, Nell, factapod,Rellth, N, commontmp, P,  outdirSpN,fits_filename);
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir,  ncomp, mixmat,fsamp,

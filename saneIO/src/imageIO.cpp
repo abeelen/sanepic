@@ -211,8 +211,8 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, unsigned long NAXIS1, uns
 
 }
 
-
-void read_fits_signal(string fname, double *S, long* indpix, int &NAXIS1, int &NAXIS2, int npix)
+//TODO : This function should be more generalized
+void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix)
 /*
  * This function read the sanePic generated map and converts it into S (only seen pixels)
  */
@@ -240,8 +240,8 @@ void read_fits_signal(string fname, double *S, long* indpix, int &NAXIS1, int &N
 	fits_get_img_size(fptr, 2, naxes, &status);
 	cout << naxes[0] << " " << naxes[1] << endl;
 
-	NAXIS1=(int)naxes[0];
-	NAXIS2=(int)naxes[1];
+	NAXIS1=(long)naxes[0];
+	NAXIS2=(long)naxes[1];
 
 	// Initialize the data container
 	map = dmatrix(0, NAXIS1 - 1, 0, NAXIS2 - 1);

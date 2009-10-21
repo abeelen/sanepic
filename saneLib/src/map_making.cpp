@@ -1140,7 +1140,7 @@ void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns,
 
 
 ///// measure power spectrum of the uncorrelated part of the noise
-void noisepectrum_estim(double *data, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
+void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
 	//TODO : should be almost the same as noisecrossspectrum_estim : i.e. take fdata as input
 	int qq;

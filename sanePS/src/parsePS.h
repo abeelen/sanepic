@@ -40,7 +40,7 @@ using namespace std;
  */
 int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, unsigned long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile, string & ellFile, string &signame,
+		std::vector<string> &bolonames, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile, string & ellFile, string &signame,
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
 
 
