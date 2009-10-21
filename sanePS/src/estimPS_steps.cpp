@@ -84,9 +84,12 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 	for (long idet=0;idet<ndet;idet++){
 
 		field = bolonames[idet];
+
+
 		//TODO : sanePS should use the fits file, not the binary file
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+"_data", 'd');
 		read_signal_from_fits(fits_filename, data, field);
+
 
 		//if (fextension != "NOFLAG"){
 		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+"_flag",  'c');
@@ -136,6 +139,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
 
+
 		// TODO: Do we need to compute and save ffts here ???
 		//       fdata are used in cross power spectrum estimation...
 		//       BUT it is done differently than power spectrum estimation WHY ?
@@ -168,10 +172,12 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, int 
 		if (idet == 0) sign0 = sign[0];
 		sign[idet] = sign[idet]/sign0; // normalize to first detector sigma of the noise
 
+
 		// common mode computation
 		for (long jj=0;jj<ncomp;jj++)
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
+
 
 	}
 
@@ -256,6 +262,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	short *flag;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
+
 
 	//************************************************************************//
 	// second part: -- data - common mode

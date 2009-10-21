@@ -22,7 +22,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, int NAXIS1, in
 
 
 	// TODO: move this to the ini file....
-	double fcut = 12; //fixed here to be sure that the code code will not focus on high freq
+	double fcut = 12; //fixed here to be sure that the code will not focus on high freq
 	// TODO : add it in the ini file
 	long ncomp = 1;
 	//long ncomp2 = 0;

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	int rank;//,rank_det;
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+	//MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
 	//string fextension = "NOFLAG"; // flag field extension
 	//string pextension; // pointing extension
 	//string termin; // output file suffix
+	//string noiseSppreffile; // noise file suffix
 	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 	//string termin_internal = "internal_data";
@@ -193,20 +194,21 @@ int main(int argc, char *argv[])
 	//nsamples = new long[ntotscan];
 	extentnoiseSp_all = new string[ntotscan];
 
-	string *fits_table;
+	string *fits_table,*noise_table;
 	long *index_table;
 
 	fits_table = new string[ntotscan];
 	index_table= new long[ntotscan];
+	noise_table = new string[ntotscan];
 	//convert vector to standard C array to speed up memory accesses
 	//vector2array(nsamples_vec, nsamples);
 	//vector2array(fframes_vec,  fframes);
-	vector2array(fitsvect, fits_table);
+	//vector2array(fitsvect, fits_table);
 	//vector2array(noisevect, );
-	vector2array(scans_index,  index_table);
+	//vector2array(scans_index,  index_table);
 	vector2array(extentnoiseSP,  extentnoiseSp_all);
 
-//	cout << fframes[0] << endl;
+	//cout << fframes[0] << endl;
 	cout << nsamples[0] << endl;
 
 
@@ -285,12 +287,11 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
-
-	string fname = u_opt.tmp_dir + parallel_scheme_filename;
-
 	int test=0;
-	long *frnum;
-	test=define_parallelization_scheme(rank,fname,&frnum,ntotscan,size,nsamples);
+	string fname;
+	fname = u_opt.outdir + parallel_scheme_filename;
+	cout << fname << endl;
+	test=define_parallelization_scheme(rank,fname,u_opt.dirfile,ntotscan,size,nsamples,fitsvect,noisevect,fits_table, noise_table,index_table);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -298,61 +299,55 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/*if (rank == 0){
+	cout << "Et ca donne ca !" << endl;
 
-		long *ruleorder ;
-		long *fframesorder ;
-		long *nsamplesorder ;
-		string *extentnoiseSp_allorder;
+	cout << fits_table[0] << " " << fits_table[1] << " " << fits_table[2] << " " << fits_table[3] << endl;
+	cout << noise_table[0] << " " << noise_table[1] << " " << noise_table[2] << " " << noise_table[3] << endl;
+	cout << index_table[0] << " " << index_table[1] << " " << index_table[2] << " " << index_table[3] << endl;
+	cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
 
-		check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
-		// reorder nsamples
-		//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
+	//	}
 
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//if(rank==0){
+	//MPI_Bcast(nsamples,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
+	//}
 
-		fframesorder  = new long[ntotscan];
-		extentnoiseSp_allorder = new string[ntotscan];
-		nsamplesorder = new long[ntotscan];
+	cout << "mon rank : " << rank << endl;
 
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamplesorder[ii] = nsamples[ruleorder[ii]];
-			fframesorder[ii] = fframes[ruleorder[ii]];
-			extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
+	iframe_min = -1;
+	//iframe_max = -1;
+
+	for(int ii=0;ii<ntotscan;ii++){
+		if((index_table[ii]==rank)&&(iframe_min == -1)){
+			iframe_min=ii;
+			break;
 		}
-		for (long ii=0;ii<ntotscan;ii++){
-			nsamples[ii] = nsamplesorder[ii];
-			fframes[ii] = fframesorder[ii];
-			extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
-			//printf("frnum[%d] = %d\n",ii,frnum[ii]);
+	}
+
+	iframe_max=iframe_min;
+	for(iframe_max=iframe_min;iframe_max<ntotscan-1;iframe_max++)
+		if(index_table[iframe_max]!=rank){
+			iframe_max--;
+			break;
 		}
 
-		delete [] fframesorder;
-		delete [] nsamplesorder;
-		delete [] extentnoiseSp_allorder;
+	iframe_max++;
 
-		delete [] ruleorder;
+	cout << rank << " iframe_min : " << iframe_min << endl;
+	cout << rank << " iframe_max : " << iframe_max << endl;
 
-	}*/
-
-
-
-	MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
-//	MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
-
-	iframe_min = frnum[rank];
-	iframe_max = frnum[rank+1];
-	//rank_det = 0;
-	//size_det = 1;
-
-	delete [] frnum;
+	for(int ii=0;ii<ntotscan;ii++)
+		fits_table[ii] = u_opt.dirfile + fits_table[ii];
 
 #else
 	iframe_min = 0;
 	iframe_max = ntotscan;
-	//rank_det = rank;
-	//size_det = size;
+	vector2array(fitsvect, fits_table);
+	vector2array(scans_index,  index_table);
+
 #endif
 
 	string fits_filename;
@@ -422,6 +417,10 @@ int main(int argc, char *argv[])
 	delete [] nsamples;
 	delete [] extentnoiseSp_all;
 	delete [] S;
+
+	delete [] fits_table;
+	delete [] index_table;
+	delete [] noise_table;
 
 	return 0;
 }

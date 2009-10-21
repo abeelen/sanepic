@@ -414,7 +414,7 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
 
 	//ntotscan = fframes_vec.size();
 	ndet = bolonames.size();
-
+	ntotscan = fitsvect.size();
 
 	nnf = (int)extentnoiseSP.size();
 	//nnf=1; // Temporarily
