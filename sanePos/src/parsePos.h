@@ -21,7 +21,7 @@ using namespace std;
  * - Initialise sanePos variable
  */
 int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
-		long &ndet,	std::vector<string> &bolonames,struct samples &samples_str,
-		std::vector<struct box> &boxFile, struct samples_vect &samples_vct);
+		struct detectors &det,struct samples &samples_struct,
+		std::vector<struct box> &boxFile);
 
 #endif /* PARSEPOS_H_ */

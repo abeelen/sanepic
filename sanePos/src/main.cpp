@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
 
 
 	//struct user_options_sanepos u_opt;
-	struct samples samples_str;
-	struct samples_vect samples_vct;
+	struct samples samples_struct;
 	struct input_commons com;
 	struct directories dir;
+	struct detectors det;
 
 
 	//default value of the data to pointing shift
@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
 	//long *nsamples ; /*! number of samples table array */
 
 
-	samples_str.ntotscan=0; /*! total number of scans */
-	long ndet; /*! number of channels used*/
+	samples_struct.ntotscan=0; /*! total number of scans */
+	det.ndet=0; /*! number of channels used*/
 	//int nnf; /*! number of noise file */
 	long long addnpix=0; /*!add a number 'n' of pixels to the map */
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 	//string poutdir; /*! current path (pPath) or output dir (outdir)*/
 
 	/* parser inputs */
-	std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
+	//std::vector<string> bolonames/*, extentnoiseSP*/; /*! bolometer list, noise file prefix */
 	std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 	//std::vector<string> fitsvect;
 	//std::vector<string> noisevect;
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 				bolonames,nsamples,boxFile,fitsvect,scans_index);*/
 
 		parsed=parse_sanePos_ini_file(argv[1],com,dir,
-				ndet, bolonames, samples_str, boxFile, samples_vct);
+				det, samples_struct, boxFile);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 	//fname = tmp_dir + parallel_scheme_filename;
 
 	///////////////: debug ///////////////////////////////
-	cout << "ntotscan : " << samples_str.ntotscan << endl;
+	cout << "ntotscan : " << samples_struct.ntotscan << endl;
 	/*
 
 	std::vector<long>::iterator it;
@@ -250,9 +250,9 @@ int main(int argc, char *argv[])
 	//string *fits_table, *noise_table;
 	//long *index_table;
 
-	samples_str.fits_table  = new string[samples_str.ntotscan];
-	samples_str.noise_table = new string[samples_str.ntotscan];
-	samples_str.index_table = new long[samples_str.ntotscan];
+	samples_struct.fits_table  = new string[samples_struct.ntotscan];
+	samples_struct.noise_table = new string[samples_struct.ntotscan];
+	samples_struct.index_table = new long[samples_struct.ntotscan];
 
 	//vector2array(fitsvect, fits_table);
 	//vector2array(scans_index,  index_table);
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
 	int test=0;
 	fname = dir.outdir + parallel_scheme_filename;
 	cout << fname << endl;
-	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_str.ntotscan,size,samples_str.nsamples,samples_vct.fitsvect,samples_vct.noisevect,samples_str.fits_table, samples_str.noise_table,samples_str.index_table);
+	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -291,10 +291,10 @@ int main(int argc, char *argv[])
 
 	cout << "Et ca donne ca !" << endl;
 
-	cout << samples_str.fits_table[0] << " " << samples_str.fits_table[1] << " " << samples_str.fits_table[2] << " " << samples_str.fits_table[3] << endl;
-	cout << samples_str.noise_table[0] << " " << samples_str.noise_table[1] << " " << samples_str.noise_table[2] << " " << samples_str.noise_table[3] << endl;
-	cout << samples_str.index_table[0] << " " << samples_str.index_table[1] << " " << samples_str.index_table[2] << " " << samples_str.index_table[3] << endl;
-	cout << samples_str.nsamples[0] << " " << samples_str.nsamples[1] << " " << samples_str.nsamples[2] << " " << samples_str.nsamples[3] << endl;
+	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
+	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
 
 	//	}
 
@@ -310,16 +310,16 @@ int main(int argc, char *argv[])
 	iframe_min = -1;
 	//iframe_max = -1;
 
-	for(long ii=0;ii<samples_str.ntotscan;ii++){
-		if((samples_str.index_table[ii]==rank)&&(iframe_min == -1)){
+	for(long ii=0;ii<samples_struct.ntotscan;ii++){
+		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
 			iframe_min=ii;
 			break;
 		}
 	}
 
 	iframe_max=iframe_min;
-	for(iframe_max=iframe_min;iframe_max<samples_str.ntotscan-1;iframe_max++)
-		if(samples_str.index_table[iframe_max]!=rank){
+	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
+		if(samples_struct.index_table[iframe_max]!=rank){
 			iframe_max--;
 			break;
 		}
@@ -329,8 +329,8 @@ int main(int argc, char *argv[])
 	cout << rank << " iframe_min : " << iframe_min << endl;
 	cout << rank << " iframe_max : " << iframe_max << endl;
 
-	for(long ii=0;ii<samples_str.ntotscan;ii++)
-		samples_str.fits_table[ii] = dir.dirfile + samples_str.fits_table[ii];
+	for(long ii=0;ii<samples_struct.ntotscan;ii++)
+		samples_struct.fits_table[ii] = dir.dirfile + samples_struct.fits_table[ii];
 
 	//exit(0);
 	/*long *frnum ;
@@ -393,9 +393,9 @@ int main(int argc, char *argv[])
 
 #else
 	iframe_min = 0;
-	iframe_max = samples_str.ntotscan;
-	vector2array(samples_vct.fitsvect, samples_str.fits_table);
-	vector2array(samples_vct.scans_index,  samples_str.index_table);
+	iframe_max = samples_struct.ntotscan;
+	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
+	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
 	//rank_det = rank;
 	//size_det = size;
@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
 	/************************ Look for distriBoxution failure *******************************/
-	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > samples_str.ntotscan){
+	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
 	}
@@ -486,8 +486,8 @@ int main(int argc, char *argv[])
 	//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 	//	first = time(NULL);
-	computeMapMinima_HIPE(bolonames,samples_str.fits_table,
-			iframe_min,iframe_max,samples_str.nsamples,com.pixdeg,
+	computeMapMinima(det.boloname,samples_struct.fits_table,
+			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 	/*
  computeMapMinima(bolonames,fits_table,
@@ -609,7 +609,7 @@ int main(int argc, char *argv[])
 	 */
 	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
 	//	write_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
-
+cout << "apres save" << endl;
 
 	/*} else {
 		// read those parameters from a file : -c = 4 option
@@ -658,7 +658,9 @@ int main(int argc, char *argv[])
 	// thus
 	// addnpix = number of pix to add in pixon
 	//         = number of scans * number of pix in box crossing constraint removal
-	addnpix = samples_str.ntotscan*npixsrc;
+	addnpix = samples_struct.ntotscan*npixsrc;
+
+	cout << "apres addnpix" << endl;
 
 	// map duplication factor
 	int factdupl;
@@ -681,13 +683,18 @@ int main(int argc, char *argv[])
 
 	//	//TODO: check from here and below
 
-	computePixelIndex_HIPE(samples_str.ntotscan,dir.tmp_dir, bolonames,
-			samples_str.fits_table, iframe_min, iframe_max, samples_str.nsamples,
+
+	cout << "avant compute" << endl;
+
+	computePixelIndex(samples_struct.ntotscan,dir.tmp_dir, det.boloname,
+			samples_struct.fits_table, iframe_min, iframe_max, samples_struct.nsamples,
 			wcs, NAXIS1, NAXIS2,
 			mask,
 			com.napod, com.NOFILLGAP, com.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
+
+	cout << "apres compute" << endl;
 	/*
 	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
 			fits_table, iframe_min, iframe_max, nsamples,
@@ -755,7 +762,7 @@ int main(int argc, char *argv[])
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	if(rank==0){
-		printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)ndet, (int) samples_str.ntotscan);
+		printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)det.ndet, (int) samples_struct.ntotscan);
 		printf("[%2.2i] Size of the map : %ld x %ld (using %lld pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
 		printf("[%2.2i] Total Number of filled pixels : %lld\n",rank, npix);
 	}
@@ -790,14 +797,14 @@ int main(int argc, char *argv[])
 	delete [] pixon_tot;
 	delete [] coordscorner;
 	//delete [] u_opt.srccoord;
-	delete [] samples_str.nsamples;
+	delete [] samples_struct.nsamples;
 	//	delete [] tancoord;
 	//	delete [] tanpix;
 	delete [] indpix;
 	delete [] indpsrc;
-	delete [] samples_str.fits_table;
-	delete [] samples_str.noise_table;
-	delete [] samples_str.index_table;
+	delete [] samples_struct.fits_table;
+	delete [] samples_struct.noise_table;
+	delete [] samples_struct.index_table;
 
 	printf("[%2.2i] End of sanePos\n",rank);
 

@@ -34,8 +34,8 @@ extern "C"{
 		std::vector<string> &bolonames, long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)*/
 int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
-		long &ndet,	std::vector<string> &bolonames,struct samples &samples_str,
-		std::vector<struct box> &boxFile, struct samples_vect &samples_vct)
+		struct detectors &det,struct samples &samples_struct,
+		std::vector<struct box> &boxFile)
 {
 
 	dictionary	*	ini ;
@@ -57,23 +57,16 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 	printf("sanepic_compute_positions:\n");
 
 
-
-	if(read_dirfile(ini, dir)==-1)
-		return -1;
-
-	if(read_tmpdir(ini, dir)==-1)
-		return -1;
-
-	if(read_outdir(ini, dir)==-1)
+	if(read_directories(ini, dir)==-1)
 		return -1;
 
 	if(read_commons(ini, com)==-1)
 		return -1;
 
-	if(read_channel_list(ini,bolonames)==-1)
+	if(read_channel_list(ini,det.boloname)==-1)
 		return -1;
 
-	if(read_fits_file_list(ini, dir,samples_vct,samples_str)==-1)
+	if(read_fits_file_list(ini, dir,samples_struct)==-1)
 		return -1;
 
 	if(read_box_coord(ini,boxFile)==-1)
@@ -118,10 +111,10 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 
 */
 
-	samples_str.ntotscan = (samples_vct.fitsvect).size();
-	ndet = (long)bolonames.size();
+	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+	det.ndet = (long)((det.boloname).size());
 
-	if (ndet == 0) {
+	if (det.ndet == 0) {
 		cerr << "Must provide at least one channel.\n\n";
 		return -1 ;
 		//usage(argv[0]);
@@ -130,8 +123,8 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 	//cout << "framegiven : " << samples_vct.framegiven << endl;
 
 
-	printf("Number of scans      : %ld\n",samples_str.ntotscan);
-	printf("Number of bolometers : %ld\n",ndet);
+	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+	printf("Number of bolometers : %ld\n",det.ndet);
 
 	iniparser_freedict(ini);
 	return 0 ;
