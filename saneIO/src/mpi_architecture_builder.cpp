@@ -308,7 +308,6 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	return -1;
 	}*/
 
-
 	ofstream file;
 	file.open(fname.c_str(), ios::out);
 	if(!file.is_open()){
@@ -335,10 +334,9 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
 	for (long ii=0;ii<ntotscan;ii++){
-		cout << "loop " << ii << " : " << endl;
 		cout << position[ii] << endl;
 		temp = fitsvect[position[ii]];
-		found=temp.find_last_of("/");
+		found=temp.find_last_of('/');
 		// cout << " file: " << str.substr(found+1) << endl;
 
 
@@ -705,10 +703,10 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	// count number of elements on the first line !
 	getline(file, line);
 	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str()," ,");
+	pch = strtok ((char*) line.c_str()," ,-\t");
 
 	while (pch != NULL) {
-		pch = strtok (NULL, " ,-");
+		pch = strtok (NULL, " ,-\t");
 		nb_elem++; 	}
 
 	// set pointer back to the beginning of file in order to parse the first line too

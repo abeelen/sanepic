@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-	MPI_Status status;
+//	MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 //		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
 //		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
 //		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
-		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
+// out << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
 		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
 
