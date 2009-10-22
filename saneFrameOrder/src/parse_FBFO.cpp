@@ -99,6 +99,7 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples
 			fitsvect[ii] = dirfile + fitsvect[ii];}
 
 		readFrames(fitsvect, nsamples);
+		ntotscan = fitsvect.size();
 
 		//getchar();
 	}else{

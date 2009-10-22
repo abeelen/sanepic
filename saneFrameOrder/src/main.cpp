@@ -44,19 +44,13 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-//	MPI_Status status;
+	MPI_Status status;
 
 	// setup MPI
-	//	MPI_Init(&argc, &argv);
-	//MPI_Comm_size(MPI_COMM_WORLD,&size);
-	//MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << size << endl;
-	cout << rank << endl;
-
-
-	//test params
-	//size=2;
-	//rank=0;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD,&size);
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	cout << "size : " << size << " rank : " << rank << endl;
 
 	if(size==1) {cerr << "Please run mpirun -n# with # > 1\n"; MPI_Barrier(MPI_COMM_WORLD); MPI_Finalize(); exit(1);}
 
@@ -135,8 +129,8 @@ int main(int argc, char *argv[])
 		//write parallel schema in a file
 		  parsed=write_ParallelizationScheme(fname, ruleorder, frnum, nsamples, ntotscan, size, fitsvect, noisevect, scans_index);
 		if(parsed==-1){
-		  // MPI_Barrier(MPI_COMM_WORLD);
-		  //MPI_Finalize();
+		  MPI_Barrier(MPI_COMM_WORLD);
+		  MPI_Finalize();
 		  cerr << "merde" << endl;
 		  exit(0);
 		}
@@ -154,8 +148,8 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	//wait for the other processors
-	//MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 	// Close MPI process
-	//MPI_Finalize();
+	MPI_Finalize();
 #endif
 }
