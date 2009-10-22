@@ -50,7 +50,7 @@ void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2){
 
 	FILE *fout;
 	int nkeyrec, status;
-	char *header;
+	char *header, *hptr;
 
 	if ((status = wcshdo(WCSHDO_all, &wcs, &nkeyrec, &header))) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
@@ -62,19 +62,22 @@ void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2){
 	fout = fopen(outdir.c_str(),"w");
 	if (fout==NULL) {fputs ("File error on mapHeader.keyrec",stderr); exit (1);}
 
-	fprintf(fout,"NAXIS1  = %20l / %-47s\n",NAXIS1,"length of data axis 1");
-	fprintf(fout,"NAXIS2  = %20l / %-47s\n",NAXIS2,"length of data axis 2");
-	for (int i = 0; i < nkeyrec; i++, header += 80) {
-		fprintf(fout,"%.80s\n", header);
+	fprintf(fout,"NAXIS1  = %20ld / %-47s\n",NAXIS1,"length of data axis 1");
+	fprintf(fout,"NAXIS2  = %20ld / %-47s\n",NAXIS2,"length of data axis 2");
+
+	hptr = header;
+	for (int i = 0; i < nkeyrec; i++, hptr += 80) {
+		fprintf(fout,"%.80s\n", hptr);
 	}
 	fclose(fout);
-
+	free(header);
 }
 
-void print_MapHeader(struct wcsprm wcs){
+void print_MapHeader(struct wcsprm *wcs){
+
 	int nkeyrec;
 	char * header, *hptr ;
-	if (int status = wcshdo(WCSHDO_all, &wcs, &nkeyrec, &header)) {
+	if (int status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
 		exit(0);
 	}
@@ -83,6 +86,7 @@ void print_MapHeader(struct wcsprm wcs){
 	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
 		printf("%.80s\n", hptr);
 	}
+	free(header);
 
 }
 
@@ -108,8 +112,8 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * 
 	char comment[47];
 
 	// Read the two first lines, NAXIS1/NAXIS2
-	result = fscanf(fin,"NAXIS1  = %20l / %47c\n",NAXIS1,(char *) &comment);
-	result = fscanf(fin,"NAXIS2  = %20l / %47c\n",NAXIS2,(char *) &comment);
+	result = fscanf(fin,"NAXIS1  = %20ld / %47c\n",NAXIS1,(char *) &comment);
+	result = fscanf(fin,"NAXIS2  = %20ld / %47c\n",NAXIS2,(char *) &comment);
 
 	memblock = new char [(nkeyrec-2)*80];
 	for (int ii = 0; ii < nkeyrec; ii++) {
@@ -117,9 +121,9 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * 
 		fseek(fin, 1, SEEK_CUR); // skip newline char
 	}
 	fclose (fin);
-
 	/* Parse the primary header of the FITS file. */
-	if ((status = wcspih(memblock, nkeyrec, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
+	/* -2 to handle the firts two NAXIS? keyword */
+	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
 	}
 	delete[] memblock;
@@ -152,7 +156,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 	temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		for(unsigned long ii = 0; ii< ns; ii++)
+		for(long ii = 0; ii< ns; ii++)
 			fprintf(fp,"%lld ",samptopix[ii]);
 		fclose(fp);
 	}else{
@@ -229,8 +233,8 @@ void write_indpix(long long ind_size, long long npix, long long *indpix, string 
 	testfile2 = outdir + "Indpix_for_conj_grad.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		fprintf(fp,"%d\n",flagon); // mat 04/06
-		fprintf(fp,"%ld\n",npix);
-		fprintf(fp,"%ld\n",ind_size);
+		fprintf(fp,"%lld\n",npix);
+		fprintf(fp,"%lld\n",ind_size);
 		for(long ii =0;ii<ind_size;ii++)
 			fprintf(fp,"%lld ",indpix[ii]);
 		fclose(fp);
@@ -287,7 +291,7 @@ void write_PNd(double *PNd, long long npix,  string outdir) {
 		//fprintf(fp,"%lf ",PNd[ii]);
 		fprintf(fp,"%lld\n",npix);
 		for(int ii= 0; ii<npix;ii++)
-			fprintf(fp,"%lld ",PNd[ii]);
+			fprintf(fp,"%fd ",PNd[ii]);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;

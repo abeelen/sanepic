@@ -230,7 +230,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
 	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
-	getchar();
+//	getchar();
 
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
 
@@ -284,7 +284,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 				stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
 
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
-		getchar();
+//		getchar();
 	}
 
 	delete [] maxproc;

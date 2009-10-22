@@ -144,21 +144,20 @@ void write_fits(string fname, double pixsize, long nx, long ny,
 }
 
 //TODO : check and optimize
-void write_fits_wcs(string fname, struct wcsprm * wcs, unsigned long NAXIS1, unsigned long NAXIS2,  char dtype, void *data)
+void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data)
 {
 	// all angles in degrees
 
 	fitsfile *fp;
-	int fits_status;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
 
 	int naxis = 2;                  // number of dimensions
 	long naxes[] = {NAXIS1, NAXIS2}; // size of dimensions
 	long fpixel[] = {1, 1};          // index for write_pix
-	long ndata = NAXIS1 * NAXIS2;            // number of data points
+	long long ndata = NAXIS1 * NAXIS2;            // number of data points
 
-	char *header;
+	char *header, *hptr;
 	int nkeyrec;
-
 	// create fits file
 	if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
 		print_fits_error(fits_status);
@@ -179,15 +178,18 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, unsigned long NAXIS1, uns
 	}
 
 	// Transform wcsprm struture to header
-	wcshdo(WCSHDO_all, wcs, &nkeyrec, &header);
+	if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
+		printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
+		exit(fits_status);
+	}
 
-
+	hptr = header;
 	// write it to the fits file
-	for (int keyrec = 0; keyrec < nkeyrec; keyrec++)
-		if ( fits_write_record(fp, (const char*) header[keyrec*80], &fits_status))
+	for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80)
+		if ( fits_write_record(fp, (const char*) hptr, &fits_status))
 			print_fits_error(fits_status);
 
-	exit(0);
+	free(header);
 
 	// write date to file
 	if ( fits_write_date(fp, &fits_status) )
@@ -208,7 +210,6 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, unsigned long NAXIS1, uns
 	// close file
 	if(fits_close_file(fp, &fits_status))
 		print_fits_error(fits_status);
-
 }
 
 //TODO : This function should be more generalized

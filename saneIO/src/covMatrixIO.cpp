@@ -418,7 +418,7 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 
 	// Read arrays
 	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
-	for (int i=0; i<(*ndet); i++)
+	for (long i=0; i<(*ndet); i++)
 		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
 //
 //	for (int i=0; i< *nbins; i++)
