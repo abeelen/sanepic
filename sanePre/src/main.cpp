@@ -243,13 +243,10 @@ int main(int argc, char *argv[])
 //	tancoord=new double[2];
 
 	// read nn, coordsyst, tanpix, tancoord
-
 //	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 	struct wcsprm * wcs;
 	read_MapHeader(u_opt.outdir,wcs, &NAXIS1, &NAXIS2);
-
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-
 
 	//ensure that coordsyst for position calculation and preprocess are the same
 	/*if (u_opt.coordsyst!=coordsyst2){
@@ -570,15 +567,27 @@ int main(int argc, char *argv[])
 		write_PNd(PNdtot,npix,/*termin_internal,*/u_opt.outdir);
 	}
 
-
-
 	cout << "naive step" << endl;
 	string fnaivname;
 	double *map1d;
-	int mi;
+	long long mi;
 	map1d = new double[NAXIS1*NAXIS2];
 
 
+	for (long ii=0; ii<NAXIS1; ii++) {
+		for (long jj=0; jj<NAXIS2; jj++) {
+			mi = jj*NAXIS1 + ii;
+			if (indpix[mi] >= 0){
+				if(hits[indpix[mi]]>0)
+					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
+			} else {
+				map1d[mi] = 0.0;
+			}
+		}
+	}
+
+	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
+	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 
 	for (long ii=0; ii<NAXIS1; ii++) {
@@ -593,26 +602,9 @@ int main(int argc, char *argv[])
 	}
 
 	fnaivname = '!' + u_opt.outdir + "naivMaphits.fits";
-	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d); //TODO READ pixdeg ? or leave 0 ?
+	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+//	print_MapHeader(wcs);
 
-/*
-	for (int ii=0; ii<NAXIS1; ii++) {
-		for (int jj=0; jj<NAXIS2; jj++) {
-			mi = jj*NAXIS1 + ii;
-			if (indpix[mi] >= 0){
-				if(hits[indpix[mi]]>0)
-					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];///Mptot[indpix[mi]];///(double)hits[indpix[mi]];
-			} else {
-				map1d[mi] = 0.0;
-			}
-		}
-	}
-
-
-	fnaivname = '!' + u_opt.outdir + "naivMap.fits";
-	cout << fnaivname << endl;
-	write_fits(fnaivname, 0, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-*/
 
 	printf("End of saneNaiv\n");
 

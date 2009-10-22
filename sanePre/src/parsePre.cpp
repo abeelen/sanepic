@@ -538,7 +538,11 @@ int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 	//ntotscan = fframes_vec.size();
 	//ntotscan = fitsvect.size();
 	// ndet = number of detectors
+	ntotscan = fitsvect.size();
 	ndet = bolonames.size();
+
+	printf("Number of scans      : %ld\n",ntotscan);
+	printf("Number of bolometers : %ld\n",ndet);
 
 	//nnf = number of noise PS files
 	nnf = (int)extentnoiseSP.size();
@@ -562,6 +566,7 @@ int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
 	// if only one fcut, extend to all scans
 	if(fcut.size()==1)
 		fcut.resize(ntotscan, fcut[0]);
+
 
 	// cleaning up
 	iniparser_freedict(ini);
