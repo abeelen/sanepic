@@ -218,7 +218,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	//	minmax(maxproc,nessai,&valmin,&temp,&tmpposmin,&tmpposmax);
 
 	//stdmin = double(ntot*ntot);
-	stdmin=double(ntot);
+	stdmin=(double)ntot; // was working on 64 bits but not on 32 ...
 	stdmin=stdmin*stdmin;
 	for (int ii=0;ii<nessai;ii++)
 		if (long(valmin) == long(maxproc[ii]))
@@ -229,7 +229,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
-	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+	printf("max range min = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 //	getchar();
 
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){

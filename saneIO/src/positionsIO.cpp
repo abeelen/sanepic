@@ -308,7 +308,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 
 }
 
-//TODO : should not be used anymore...
+//TODO : NOT USED ? => answer : used in saneLib in write_ftrprocess...
 void read_flpoint_from_fits(string filename, short *FLAG){
 
 

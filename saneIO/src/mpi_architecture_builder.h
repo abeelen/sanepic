@@ -25,23 +25,55 @@ struct box {
 };
 
 struct sortclass_int {
-  bool operator() (int i,int j) { return (i<j);}
+	bool operator() (int i,int j) { return (i<j);}
 };
 
 struct sortclass_string {
-  bool operator() (std::string i,std::string j) { return (i<j);}
+	bool operator() (std::string i,std::string j) { return (i<j);}
 };
 
-struct user_options {
-	bool bfixc;
-	int shift_data_to_point;
+struct directories {
+	std::string dirfile;
+	std::string outdir;
+	std::string tmp_dir;
+};
+
+struct samples_vect {
+	std::vector<std::string> fitsvect;
+	std::vector<std::string> noisevect;
+	std::vector<long> scans_index;
+	bool framegiven;
+};
+
+struct samples {
+	std::string *fits_table;
+	std::string *noise_table;
+	long *index_table;
+	long *nsamples;
+	long ntotscan;
+};
+
+struct input_commons {
+	//bool bfixc;
+	//int shift_data_to_point;
 	long napod;
 	bool NOFILLGAP;
 	bool flgdupl;
 	double pixdeg;
-	std::string dirfile;
-	std::string outdir;
-	std::string tmp_dir;
+};
+
+struct user_options {
+	struct input_commons commons ;
+	//bool bfixc;
+	//int shift_data_to_point;
+	//long napod;
+	//bool NOFILLGAP;
+	//bool flgdupl;
+	//double pixdeg;
+	struct directories dir;
+	//std::string dirfile;
+	//std::string outdir;
+	//std::string tmp_dir;
 	double fsamp;
 	bool NORMLIN;
 	bool remove_polynomia;
@@ -54,18 +86,20 @@ struct user_options {
 
 
 struct user_options_sanepos {
-	bool bfixc;
-	int shift_data_to_point;
-	long napod;
-	bool NOFILLGAP;
-	bool flgdupl;
-	double pixdeg;
-	std::string dirfile;
-	std::string tmp_dir;
-	std::string outdir;
-	double * srccoord;
-	double * coordscorner;
-	double radius;
+	struct input_commons commons ;
+	//bool bfixc;
+	//int shift_data_to_point;
+	//long napod;
+	//bool NOFILLGAP;
+	//bool flgdupl;
+	//double pixdeg;
+	struct directories dir;
+	//std::string dirfile;
+	//std::string tmp_dir;
+	//std::string outdir;
+	//double * srccoord;
+	//double * coordscorner;
+	//double radius;
 };
 
 using namespace std;
