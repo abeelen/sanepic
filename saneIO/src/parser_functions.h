@@ -36,7 +36,7 @@ int read_outdir(dictionary	*ini, struct directories &dir);
 
 int read_channel_list(dictionary	*ini, std::vector<string> &bolonames);
 
-int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples_vect &samples_vct,struct samples &samples_str);
+int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str);
 
 int read_pixel_size(dictionary	*ini, struct input_commons &com);
 
@@ -76,7 +76,11 @@ int read_map_file(dictionary	*ini, string &signame);
 
 int read_cov_matrix_file(dictionary	*ini, string &fname);
 
+int read_directories(dictionary	*ini, struct directories &dir);
+
 int read_commons(dictionary	*ini, struct input_commons &commons);
+
+int read_user_options(dictionary *ini,struct user_options &u_opt);
 
 void print_commons(struct input_commons commons);
 

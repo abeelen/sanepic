@@ -66,6 +66,6 @@ void read_double(string fname, double *& array, long & size){
 	size = temp.size();
 	// Memory allocation
 	array = new double[size];
-	for (unsigned long ii=0; ii< size; ii++)
+	for (long ii=0; ii< size; ii++)
 		array[ii] = temp[ii];
 }

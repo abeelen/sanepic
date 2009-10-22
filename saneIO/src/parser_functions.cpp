@@ -140,7 +140,7 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames){
 }
 
 
-int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples_vect &samples_vct,struct samples &samples_str){
+int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str){
 
 	char *s;
 	string str;
@@ -159,16 +159,16 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 		//std::vector<long> scans_index;
 		//bool framegiven;
 
-		read_fits_list(str, samples_vct.fitsvect, samples_vct.noisevect, samples_vct.scans_index, samples_vct.framegiven);
+		read_fits_list(str, samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, samples_str.framegiven);
 		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
-		for(int ii=0;ii<(int)((samples_vct.fitsvect).size());ii++){
+		for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
 			//cout << u_opt.dirfile + fitsvect[ii] << endl;
-			samples_vct.fitsvect[ii] = dir.dirfile + samples_vct.fitsvect[ii];
+			samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
 		}
 
-		readFrames(samples_vct.fitsvect, samples_str.nsamples);
+		readFrames(samples_str.fitsvect, samples_str.nsamples);
 
 		//getchar();
 	}else{
@@ -229,10 +229,10 @@ int read_nofillgap(dictionary	*ini, struct input_commons &com){
 	bool b;
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", 0);
-	if(b!=0){
+	//if(b!=0){
 		//printf("nofill_gap:    [%d]\n", b);
 		com.NOFILLGAP=b;
-	}
+	//}
 	//NOFILLGAP = 0 ;
 
 	return 0;
@@ -354,10 +354,10 @@ int read_map_flagged_data(dictionary	*ini, struct input_commons &com){
 	bool b;
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", 0);
-	if(b!=0){
+	//if(b!=0){
 		//printf("map_flagged_data:    [%d]\n", b);
 		com.flgdupl=b;
-	}//flgdupl = False ;
+	//}//flgdupl = False ;
 
 	return 0;
 }
@@ -466,10 +466,10 @@ int read_baseline(dictionary	*ini, struct user_options &u_opt){
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", 0);
-	if(b!=0){
+	//if(b!=0){
 		//printf("no_baseline:    [%d]\n", b);
 		u_opt.NORMLIN=b;
-	}
+	//}
 	//NORMLIN = False ;
 
 	return 0;
@@ -481,10 +481,10 @@ int read_correlation(dictionary	*ini, struct user_options &u_opt){
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", 1);
-	if(b!=1){
+	//if(b!=1){
 		//printf("correlation:    [%d]\n", b);
 		u_opt.CORRon=b;
-	}//CORRon = True
+	//}//CORRon = True
 
 	return 0;
 }
@@ -494,10 +494,10 @@ int read_remove_poly(dictionary	*ini, struct user_options &u_opt){
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
-	if(b!=1){
+	//if(b!=1){
 		//printf("remove_poly:    [%d]\n", b);
 		u_opt.remove_polynomia=b;
-	}//remove_poly = True
+	//}//remove_poly = True
 
 	return 0;
 
@@ -508,10 +508,10 @@ int read_projgaps(dictionary	*ini, struct user_options &u_opt){
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:project_gaps", 0);
-	if(b!=0){
+	//if(b!=0){
 		//printf("projgaps:    [%d]\n", b);
 		u_opt.projgaps=b;
-	}//projgaps= False
+	//}//projgaps= False
 
 	return 0 ;
 }
@@ -595,6 +595,20 @@ int read_cov_matrix_file(dictionary	*ini, string &fname){
 
 }
 
+int read_directories(dictionary	*ini, struct directories &dir){
+
+	if(read_dirfile(ini, dir)==-1)
+		return -1;
+
+	if(read_tmpdir(ini, dir)==-1)
+		return -1;
+
+	if(read_outdir(ini, dir)==-1)
+		return -1;
+
+	return 0;
+}
+
 int read_commons(dictionary	*ini, struct input_commons &commons){
 
 	if(read_map_flagged_data(ini,  commons))
@@ -608,6 +622,32 @@ int read_commons(dictionary	*ini, struct input_commons &commons){
 
 	if(read_nofillgap(ini, commons))
 		return -1;
+
+	return 0;
+}
+
+int read_user_options(dictionary *ini,struct user_options &u_opt){
+
+
+	if(read_sampling_frequency(ini, u_opt)==-1)
+		return -1;
+
+	if(read_filter_frequency(ini, u_opt)==-1)
+		return -1;
+
+	if(read_baseline(ini, u_opt)==-1)
+		return -1;
+
+	if(read_correlation(ini, u_opt)==-1)
+		return -1;
+
+	if(read_remove_poly(ini, u_opt)==-1)
+		return -1;
+
+	if(read_projgaps(ini, u_opt)==-1)
+		return -1;
+
+
 
 	return 0;
 }
@@ -628,7 +668,7 @@ void print_commons(struct input_commons commons){
 	if(commons.flgdupl)
 		cout << "Flagged data are put in a separate map : map_flagged_data = True\n";
 
-	cout << "You have specified a pixel size : [" << setprecision(14) << commons.pixdeg << "]\n";
+	cout << "You have specified a pixel size : [" << setprecision(14) << commons.pixdeg << " deg]\n";
 
 }
 
@@ -670,62 +710,32 @@ void print_parser_sanepos(struct user_options_sanepos u_opt){
 
 void print_parser(struct user_options u_opt){
 
-	cout << "You have specified the following options : \n";
 
-	///////
-	print_directories(u_opt.dir);
-	/*cout << "Data directory : [" << u_opt.dirfile << "]\n";
-	cout << "Temporary directory : [" << u_opt.tmp_dir << "]\n";
-	cout << "Output directory : [" << u_opt.outdir << "]\n";*/
+	cout << "You have chosen a sampling frequency equal to : [" << u_opt.fsamp << " Hz]\n";
 
-///////
-print_commons(u_opt.commons);
-/*
-	if((u_opt.shift_data_to_point)>0)
-		cout << "A time offset will be subsrtacted to the data to match the pointing : [" << u_opt.shift_data_to_point << "]\n";
-
-	if(u_opt.napod>0)
-		cout << "You have specified a number of samples to apodize : [" << u_opt.napod << "]\n";
-
-	if(u_opt.NOFILLGAP)
-		cout << "You have set nofill_gap to True : the gaps in data timeline will NOT be filled\n";
+	if(u_opt.NORMLIN)
+		cout << "No baseline will be removed from the data\n";
 	else
-		cout << "You have set nofill_gap to False (default) : the gaps in data timeline will be filled\n";
+		cout << "A baseline will be removed from the data (default)\n";
 
-	if(u_opt.flgdupl)
-		cout << "Flagged data are put in a separate map : map_flagged_data = True\n";
+	if(u_opt.remove_polynomia)
+		cout << "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment\n";
+	else
+		cout << "No polynomia will be used\n";
 
+	if(u_opt.CORRon)
+		cout << "Correlations between detectors are included in the analysis\n";
+	else
+		cout << "Correlations between detectors are NOT included in the analysis\n";
 
-	cout << "You have specified a pixel size : [" << setprecision(14) << u_opt.pixdeg << "]\n";
- */
-//////////
+	cout << "Frequency of the high pass filter applied to the data : [" << u_opt.f_lp << " Hz]\n";
 
+	//cout << "Noise power spectrum file prefixe : [" << u_opt.noiseSppreffile << "]\n";
 
-cout << "You have chosen a sampling frequency equal to : [" << u_opt.fsamp << "]\n";
-
-if(u_opt.NORMLIN)
-	cout << "No baseline will be removed from the data\n";
-else
-	cout << "A baseline will be removed from the data (default)\n";
-
-if(u_opt.remove_polynomia)
-	cout << "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment\n";
-else
-	cout << "No polynomia will be used\n";
-
-if(u_opt.CORRon)
-	cout << "Correlations between detectors are included in the analysis\n";
-else
-	cout << "Correlations between detectors are NOT included in the analysis\n";
-
-cout << "Frequency of the high pass filter applied to the data : [" << u_opt.f_lp << "]\n";
-
-cout << "Noise power spectrum file prefixe : [" << u_opt.noiseSppreffile << "]\n";
-
-if(u_opt.projgaps)
-	cout << "Gaps are projected to a pixel in the map, gap filling of noise only is performed iteratively\n";
-else
-	cout <<  "Gaps are NOT projected to a pixel in the map (default)\n";
+	if(u_opt.projgaps)
+		cout << "Gaps are projected to a pixel in the map, gap filling of noise only is performed iteratively\n";
+	else
+		cout <<  "Gaps are NOT projected to a pixel in the map (default)\n";
 
 
 }

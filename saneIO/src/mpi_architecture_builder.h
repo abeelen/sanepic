@@ -38,14 +38,11 @@ struct directories {
 	std::string tmp_dir;
 };
 
-struct samples_vect {
+struct samples {
 	std::vector<std::string> fitsvect;
 	std::vector<std::string> noisevect;
 	std::vector<long> scans_index;
 	bool framegiven;
-};
-
-struct samples {
 	std::string *fits_table;
 	std::string *noise_table;
 	long *index_table;
@@ -53,9 +50,12 @@ struct samples {
 	long ntotscan;
 };
 
+struct detectors {
+	long ndet;
+	std::vector<std::string> boloname;
+};
+
 struct input_commons {
-	//bool bfixc;
-	//int shift_data_to_point;
 	long napod;
 	bool NOFILLGAP;
 	bool flgdupl;
@@ -63,44 +63,15 @@ struct input_commons {
 };
 
 struct user_options {
-	struct input_commons commons ;
-	//bool bfixc;
-	//int shift_data_to_point;
-	//long napod;
-	//bool NOFILLGAP;
-	//bool flgdupl;
-	//double pixdeg;
-	struct directories dir;
-	//std::string dirfile;
-	//std::string outdir;
-	//std::string tmp_dir;
 	double fsamp;
 	bool NORMLIN;
 	bool remove_polynomia;
 	bool CORRon;
 	double f_lp;
-	//double f_lp_Nk;
-	std::string noiseSppreffile;
+	//std::string noiseSppreffile;
 	bool projgaps;
 };
 
-
-struct user_options_sanepos {
-	struct input_commons commons ;
-	//bool bfixc;
-	//int shift_data_to_point;
-	//long napod;
-	//bool NOFILLGAP;
-	//bool flgdupl;
-	//double pixdeg;
-	struct directories dir;
-	//std::string dirfile;
-	//std::string tmp_dir;
-	//std::string outdir;
-	//double * srccoord;
-	//double * coordscorner;
-	//double radius;
-};
 
 using namespace std;
 
