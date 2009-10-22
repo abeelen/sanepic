@@ -20,9 +20,8 @@ using namespace std;
  * missing in the ini file !
  * - Initialise sanePos variable
  */
-int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
-		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, long *&nsamples,
-		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index);
+int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
+		long &ndet,	std::vector<string> &bolonames,struct samples &samples_str,
+		std::vector<struct box> &boxFile, struct samples_vect &samples_vct);
 
 #endif /* PARSEPOS_H_ */

@@ -553,7 +553,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 					pixon[ll] += 1;
 					samptopix[ii] = ll;
 
-					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %ld, yy = %ld\n",rank, ii,xx[ii],yy[ii]);
+					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, ii,xx[ii],yy[ii]);
 
 					break;
 				case 3:	// apodized data -> flag
@@ -754,7 +754,7 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 					pixon[ll] += 1;
 					samptopix[ii] = ll;
 
-					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %ld, yy = %ld\n",rank, ii,xx[ii],yy[ii]);
+					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, ii,xx[ii],yy[ii]);
 
 					break;
 				case 3:	// apodized data -> flag
