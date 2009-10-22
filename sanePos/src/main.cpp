@@ -775,7 +775,7 @@ int main(int argc, char *argv[])
 		indpix = new long long[sky_size];
 		fill(indpix, indpix+(sky_size),-1);
 		for(long long ii=0; ii< sky_size; ii++)
-			if (pixon[ii] != 0)
+			if (pixon_tot[ii] != 0)
 				indpix[ii] = npix++;
 
 		/*!
@@ -822,7 +822,6 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] mask;
-	delete [] pixon;
 	delete [] pixon_tot;
 	delete [] u_opt.coordscorner;
 	delete [] u_opt.srccoord;
