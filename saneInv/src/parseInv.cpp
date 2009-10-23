@@ -61,7 +61,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	}
 
 
-	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_prefixe",NULL);
+	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_prefixe",NULL); // TODO : change to noise_prefixe_file
 	if(s!=NULL){
 		printf("noise_prefixe: [%s]\n",s);
 		extentnoiseSp=s;

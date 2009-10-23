@@ -38,7 +38,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		for (int idetIn = 0; idetIn < ndetIn; idetIn++) {
 			if (listOut[idetOut] == listIn[idetIn]){
 				indexIn[idetOut] = idetIn;
-				break; } // ajout mat 27/07 TODO : Check que ca fait la meme chose
+				break; } // ajout mat 27/07
 			}
 	}
 

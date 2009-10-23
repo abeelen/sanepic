@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 
 		if (parsed==-1){
 #ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			exit(1);
