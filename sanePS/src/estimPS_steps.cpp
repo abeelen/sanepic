@@ -7,7 +7,7 @@
 
 #include "estimPS_steps.h"
 //#include "inputFileIO.h"
-#include "positionsIO.h"
+#include "dataIO.h"
 
 
 using namespace std;

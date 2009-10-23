@@ -28,7 +28,6 @@
 
 //#include "sane_io.h"
 #include "binaryFileIO.h"
-#include "positionsIO.h"
 #include "dataIO.h"
 #include "imageIO.h"
 #include "inline_IO2.h"
@@ -111,8 +110,6 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << size << endl;
-	cout << rank << endl;
 
 #else
 	size = 1;
@@ -439,17 +436,11 @@ int main(int argc, char *argv[])
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-	//
-	//	if (coordsyst!=coordsyst2){
-	//		cerr << "Error : coordinates systems must be the same for preprocessing and mapmaking" << endl;
-	//		exit(0);
-	//	}
 
 
-
+	// TODO : The mask should not be remade everytime...
 	//******************************** some preprocess again  ****************/
 
-	// MALLOC
 	unsigned short *mask;
 	mask    = new unsigned short[NAXIS1*NAXIS2];
 	indpsrc = new long long[NAXIS1*NAXIS2];
@@ -507,12 +498,6 @@ int main(int argc, char *argv[])
 		cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
 		exit(0);
 	}
-
-
-	/*for (int ii=17000;ii<17500;ii++)
-		cout << indpix[ii] << " ";
-	cout << endl << "apres read indpix\n";
-	exit(0);*/
 
 
 	/*************************************************************/

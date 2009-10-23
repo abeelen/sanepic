@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "time.h"
-#include "positionsIO.h"
+#include "dataIO.h"
 #include "mpi_architecture_builder.h"
 
 extern "C" {

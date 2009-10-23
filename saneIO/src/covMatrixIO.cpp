@@ -248,12 +248,12 @@ void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, doubl
 	// write the spectras
 
 	meanEll = new double[nbins];
-    for (unsigned long ibin=0; ibin < nbins; ibin++)
+    for (long ibin=0; ibin < nbins; ibin++)
   	  meanEll[ibin] = (ell[ibin]+ell[ibin+1])/2;
 
 
   	  double *data;
-	for (unsigned long idet1 = 0; idet1 < ndet; idet1++){
+	for (long idet1 = 0; idet1 < ndet; idet1++){
 		    string field1 = bolos[idet1];
 
 	fits_create_tbl(fptr, BINARY_TBL, 0, 0, NULL, NULL, NULL,
@@ -265,12 +265,12 @@ void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, doubl
 
 
 
-		    for (unsigned long idet2 = 0; idet2 < ndet; idet2++){
+		    for (long idet2 = 0; idet2 < ndet; idet2++){
 		      string field2 = bolos[idet2];
 		      string field = field1+"_"+field2;
 
 		      data = new double[nbins];
-		      for (unsigned long ibin=0; ibin < nbins; ibin++)
+		      for (long ibin=0; ibin < nbins; ibin++)
 		    	  data[ibin] = Rellth[idet1][idet2*nbins + ibin];
 
 		      int colnum = idet2+2;

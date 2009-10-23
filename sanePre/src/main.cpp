@@ -19,7 +19,7 @@
 #include "sanePre_preprocess.h"
 
 #include "imageIO.h"
-#include "positionsIO.h"
+#include "dataIO.h"
 #include "inline_IO2.h"
 #include "nrutil.h"
 #include "mpi_architecture_builder.h"
@@ -315,7 +315,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
-	/********************* Define parallelization scheme   *******/
 
 	//long *frnum;
 	//frnum = new long[ntotscan+1];
@@ -581,7 +580,7 @@ cout << "naive step" << endl;
 				//if(hits[indpix[mi]]>0)
 					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
 			} else {
-				map1d[mi] = 0.0;
+				map1d[mi] = NAN;
 			}
 		}
 	}
@@ -596,7 +595,7 @@ cout << "naive step" << endl;
 			if (indpix[mi] >= 0){
 				map1d[mi] = hitstot[indpix[mi]];
 			} else {
-				map1d[mi] = 0.0;
+				map1d[mi] = NAN;
 			}
 		}
 	}

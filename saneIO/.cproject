@@ -32,7 +32,6 @@
 <option id="gnu.cpp.compiler.option.include.paths.877009969" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-<listOptionValue builtIn="false" value="/home/matthieu/mpich2-1.0.5p4/src/include/"/>
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1820326974" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.704688572" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -776,11 +775,12 @@
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.so.release.306952123" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.so.release"/>
 <builder buildPath="${workspace_loc:/saneIO/Release}" id="cdt.managedbuild.target.gnu.builder.so.release.32726416" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.so.release"/>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.2070635676" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.852999622" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.release">
+<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.852999622" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.release">
 <option id="gnu.cpp.compiler.so.release.option.optimization.level.1660359885" name="Optimization Level" superClass="gnu.cpp.compiler.so.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.so.release.option.debugging.level.1997846831" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1954408859" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1381138984" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.715978394" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -798,12 +798,14 @@
 <option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.181419795" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
 <option id="gnu.cpp.link.option.libs.1356347508" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="iniparser"/>
 <listOptionValue builtIn="false" value="wcs"/>
 <listOptionValue builtIn="false" value="fftw3"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
 <option id="gnu.cpp.link.option.paths.125951770" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.245427411" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

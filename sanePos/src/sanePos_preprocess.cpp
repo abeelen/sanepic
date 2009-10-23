@@ -23,11 +23,9 @@
 
 
 #include "sanePos_map_making.h"
-#include "positionsIO.h"
 #include "dataIO.h"
 #include "blastSpecific.h"
 #include "inline_IO2.h"
-#include "positionsIO.h"
 #include "mpi_architecture_builder.h"
 
 #include "sanePos_preprocess.h"

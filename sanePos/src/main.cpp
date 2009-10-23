@@ -16,8 +16,8 @@
 
 #include "mpi_architecture_builder.h"
 
-#include "positionsIO.h"
 #include "dataIO.h"
+#include "imageIO.h"
 #include "inline_IO2.h"
 
 extern "C" {
@@ -470,31 +470,10 @@ int main(int argc, char *argv[])
 	// 2 - defined minmax of the map -> define map parameters from that
 	// (3 - define center of the map and radius -> define map parameters from that)
 
-	//if (coordsyst != 4){ // coordsyst never = 4 => debug mode => delete
-	/*!
-	 * \fn find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
-	 * -> Compute map coordinates
-	 */
-	//	time_t first = time(NULL);
-	//	long nn;
-	//	find_coordinates_in_map(ndet,bolonames,fits_table,/*,bextension,fextension,*//*file_offsets,foffsets,scoffsets,
-	//			offsets,*/iframe_min,iframe_max,fframes,nsamples,dirfile,/*,ra_field,dec_field,phi_field,
-	//			scerr_field,*//*flpoint_field,nfoff,*/pixdeg, /*xx, yy,*/ nn, coordscorner,
-	//			tancoord, tanpix, bfixc, radius, /*offmap,*/ srccoord, type,ra,dec,phi, flpoint,ra_min,ra_max,dec_min,dec_max,default_projection);
-	//
-	//		cout << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
-	//	first = time(NULL);
 	computeMapMinima(det.boloname,samples_struct.fits_table,
 			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
-	/*
- computeMapMinima(bolonames,fits_table,
-			iframe_min,iframe_max,nsamples,u_opt.pixdeg,
-			ra_min,ra_max,dec_min,dec_max);
-	 */
-
-	//	cout << endl<< "after" << endl << ra_min << " " << ra_max << endl << dec_min << " " << dec_max << " in " << time(NULL)-first << endl;
 
 #ifdef USE_MPI
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -526,107 +505,13 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
 
-	//	if(default_projection)
-	//		// just to set nn in order to compute map-making matrices and vectors
-	//		sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-	//				tancoord, tanpix, 1, radius, /*offmap,*/ srccoord,0);
-	//
-	//	cout << "nn orig : " << nn << endl;
-
-
 
 	computeMapHeader(com.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
-
-	//	//	 TODO: remove this temporary fix.... save/read thru wcs...
-	//	tancoord[0] = wcs.crval[0];
-	//	tancoord[1] = wcs.crval[1];
-	//
-	//	tanpix[0]   = wcs.crpix[0];
-	//	tanpix[1]   = wcs.crpix[1];
-
-	//	// DEBUG make a fake wcs structure
-	//
-	//	sph_coord_to_sqrmap(pixdeg, ra, dec, phi, froffsets, ns, xx, yy, &nn, coordscorner,
-	//			tancoord, tanpix, 1, radius, srccoord,0);
-	//
-	//	NAXIS1 = nn;
-	//	NAXIS2 = nn;
-	//
-	//	// Construct the wcsprm structure
-	//	wcs.flag = -1;
-	//	wcsini(1, 2, &wcs);
-	//	// Pixel size in deg
-	//	for (int ii = 0; ii < 2; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
-	//	for (int ii = 0; ii < 2; ii++) strcpy(wcs.cunit[ii], "deg");
-	//
-	//	// This will be the reference center of the map
-	//	wcs.crval[0] = tancoord[0];
-	//	wcs.crval[1] = tancoord[1];
-	//
-	//	wcs.crpix[0] = tanpix[0];
-	//	wcs.crpix[1] = tanpix[1];
-	//
-	//	// Axis label
-	//	char TYPE[2][5] = { "RA--", "DEC-"};
-	//	char NAME[2][16] = {"Right Ascension","Declination"};
-	//
-	//	for (int ii = 0; ii < 2; ii++) {
-	//		strcpy(wcs.ctype[ii], &TYPE[ii][0]);
-	//		strncat(wcs.ctype[ii],"-",1);
-	//		strncat(wcs.ctype[ii],"TAN", 3);
-	//		strcpy(wcs.cname[ii], &NAME[ii][0]);
-	//		}
-	//	int wcsstatus;
-	//
-	//	if ((wcsstatus = wcsset(&wcs))) {
-	//	      printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	//	   }
-	//
-	//
-	//	// END DEBUG OF THE FAKE HEADER
-
-	if (rank == 0)
+	if (rank == 0) {
 		printf("[%2.2i] %ld x %ld pixels\n",rank, NAXIS1, NAXIS2);
-
-	save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
-
-	//	unsigned long temp1, temp2;
-	//	struct wcsprm * wcs2;
-	//	read_MapHeader(u_opt.tmp_dir,wcs2, &temp1, &temp2);
-	//	cout << "naxis1 : "<< temp1 << " naxis2 : " << temp2 << endl;
-	//	print_MapHeader((*wcs2));
-	//	exit(0);
-	/*!
-	 * \fn write Pointing informations in a file
-	 * Write nn : size of the map in pixel
-	 * outdir : output directory
-	 * termin : generated files prefixe
-	 * coordsyst : coordinate system value
-	 * tanpix : tangent point coordinates in the map (in pixel)
-	 * tancoord : tangent point coordinates in coordsyst coordinate system
-	 */
-	//TODO : replace per save_MapHeader (need to save NAXIS1 & NAXIS2 too
-	//	write_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
-cout << "apres save" << endl;
-
-	/*} else {
-		// read those parameters from a file : -c = 4 option
-		sprintf(testfile,"%s%s%s%s%d%s",outdir.c_str(),"InfoPointing_for_Sanepic_",termin.c_str(),"_", rank,".txt");
-		if ((fp = fopen(testfile,"r")) == NULL){
-			cerr << "File InfoPointing_for_sanepic... not found. Exiting" << endl;
-			exit(1);
-		}
-		fscanf(fp,"%d\n",&nn);
-		fscanf(fp,"%d\n",&coordsyst);
-		fscanf(fp,"%lf\n",tanpix);
-		fscanf(fp,"%lf\n",tanpix+1);
-		fscanf(fp,"%lf\n",tancoord);
-		fscanf(fp,"%lf\n",tancoord+1);
-		fclose(fp);
-	}*/
-
-	//TODO: Check for parralelization (unpossible ??)
+		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
+	}
 
 	//************************************* Deal with masking the point sources
 	mask    = new unsigned short[NAXIS1*NAXIS2];
@@ -659,8 +544,6 @@ cout << "apres save" << endl;
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
-	cout << "apres addnpix" << endl;
-
 	// map duplication factor
 	int factdupl;
 	(com.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
@@ -676,14 +559,12 @@ cout << "apres save" << endl;
 	fill(pixon,pixon+(sky_size),0);
 	fill(pixon_tot,pixon_tot+(sky_size),0);
 
+
 	//**********************************************************************************
-	// get coordinates of pixels that are seen
+	// Compute pixels indices
 	//**********************************************************************************
 
-	//	//TODO: check from here and below
-
-
-	cout << "avant compute" << endl;
+	printf("[%2.2i] Compute Pixels Indices\n",rank);
 
 	computePixelIndex(samples_struct.ntotscan,dir.tmp_dir, det.boloname,
 			samples_struct.fits_table, iframe_min, iframe_max, samples_struct.nsamples,
@@ -692,32 +573,6 @@ cout << "apres save" << endl;
 			com.napod, com.NOFILLGAP, com.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
-
-	cout << "apres compute" << endl;
-	/*
-	computePixelIndex(ntotscan,u_opt.tmp_dir, bolonames,
-			fits_table, iframe_min, iframe_max, nsamples,
-			wcs, NAXIS1, NAXIS2,
-			mask,
-			u_opt.napod, u_opt.NOFILLGAP, u_opt.flgdupl,factdupl,
-			addnpix, pixon, rank,
-			indpsrc, npixsrc, flagon, pixout);
-	 */
-	//	compute_seen_pixels_coordinates(ntotscan,tmp_dir,bolonames,fits_table,/*bextension, fextension, termin_internal, */
-	//			/*file_offsets,foffsets,scoffsets, */ iframe_min, iframe_max,fframes,
-	//			nsamples,dirfile,/*ra_field,dec_field,phi_field, scerr_field,
-	//			flpoint_field, nfoff,*/pixdeg,xx,yy,mask, nn,coordscorner, tancoord,
-	//			tanpix, bfixc, radius, /*offmap,*/ srccoord, type, ra,dec,
-	//			phi,flpoint,shift_data_to_point,ra_min,ra_max,dec_min,dec_max, flag,
-	//			napod, errarcsec, NOFILLGAP, flgdupl,factdupl, addnpix, rejectsamp, samptopix, pixon, rank, indpsrc, npixsrc, flagon, pixout);
-	//
-
-
-	// string temp = dirfile + "optimMap_sanepic_flux.fits";
-	// TODO: replaced by computeMapHeader/saveMapHeader
-	//	const char *fits_file = temp.c_str();
-	//	fits_header_generation(tmp_dir,fits_file,pixdeg,default_projection,tanpix,tancoord);
-
 
 
 #ifdef USE_MPI
@@ -732,13 +587,6 @@ cout << "apres save" << endl;
 
 	delete [] pixon;
 
-
-	//************** init mapmaking variables *************//
-
-	//	printf("[%2.2i] Init map making variables\n",rank);
-
-
-	// pixel indices
 
 	npix = 0;
 	if(rank==0){
@@ -790,15 +638,11 @@ cout << "apres save" << endl;
 	printf("[%2.2i] Cleaning up\n",rank);
 
 	// TODO : Check all variable declaration/free
-
 	// clean up
 	delete [] mask;
 	delete [] pixon_tot;
 	delete [] coordscorner;
-	//delete [] u_opt.srccoord;
 	delete [] samples_struct.nsamples;
-	//	delete [] tancoord;
-	//	delete [] tanpix;
 	delete [] indpix;
 	delete [] indpsrc;
 	delete [] samples_struct.fits_table;

@@ -17,7 +17,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "positionsIO.h"
+#include "dataIO.h"
 #include "mpi_architecture_builder.h"
 
 extern "C"{

@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include "sanePos_map_making.h"
-#include "positionsIO.h"
+#include "dataIO.h"
 
 extern "C" {
 #include "nrutil.h"

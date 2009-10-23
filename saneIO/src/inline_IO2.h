@@ -26,7 +26,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "wcslib/wcs.h"
 }
 
 /*
@@ -40,20 +39,6 @@ extern "C" {
 using namespace std;
 
 // sanePos functions
-
-/*!
- * Writes Pointing information in the InfoPoiting file
- * Stores nn, coordsyst, tanpix, tancoord
- */
-void write_info_pointing(int NAXIS1, int NAXIS2, string outdir, double *tanpix, double *tancoord);
-
-/*!
- * Read/Write of the pointing information
- */
-void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2);
-void read_MapHeader(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
-void print_MapHeader(struct wcsprm * wcs);
-
 
 /*!
  * Writes indpix in a binary file \n

@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <math.h>
 
-#include "positionsIO.h"
+#include "dataIO.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
 
