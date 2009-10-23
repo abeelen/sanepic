@@ -76,6 +76,8 @@ int read_map_file(dictionary	*ini, string &signame);
 
 int read_cov_matrix_file(dictionary	*ini, string &fname);
 
+int read_mixmatfile(dictionary	*ini, string &MixMatfile);
+
 int read_directories(dictionary	*ini, struct directories &dir);
 
 int read_commons(dictionary	*ini, struct input_commons &commons);
@@ -85,8 +87,6 @@ int read_user_options(dictionary *ini,struct user_options &u_opt);
 void print_commons(struct input_commons commons);
 
 void print_directories(struct directories dir);
-
-//void print_parser_sanepos(struct user_options_sanepos u_opt);
 
 void print_parser(struct user_options u_opt);
 

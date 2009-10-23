@@ -595,6 +595,29 @@ int read_cov_matrix_file(dictionary	*ini, string &fname){
 
 }
 
+int read_mixmatfile(dictionary	*ini, string &MixMatfile){
+
+	string str;
+	char *s;
+
+	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
+		if(s==NULL){
+			printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_estim_PS:noise_estim\n");
+			return -1;
+		}
+		str=(string)s;
+		if(str.size()!=0){
+			printf("noise_estim :      [%s]\n", s);
+			MixMatfile=s;
+
+		}else{
+			printf("You must give filename containing the mixing matrix of noise components : noise_estim\n");
+			return(-1);
+		}// MixMatfile = Mixlaboca
+
+		return 0;
+}
+
 int read_directories(dictionary	*ini, struct directories &dir){
 
 	if(read_dirfile(ini, dir)==-1)
