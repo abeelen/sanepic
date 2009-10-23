@@ -30,7 +30,6 @@ extern "C" {
 #include "blastSpecific.h"
 #include "parsePos.h"
 #include "sanePos_preprocess.h"
-#include "projection_wcs.h"
 
 
 #ifdef USE_MPI

@@ -58,7 +58,6 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 		// read reference position
 		long test_ns;
 		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, flpoint, test_ns);
-
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame position" << endl;
 			cerr << "Check !!" << endl;
@@ -109,21 +108,24 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 				continue;
 			}
 
+			delete [] offxx;;
+			delete [] offyy;
+			delete [] lon;
+			delete [] lat;
+
 			// find coordinates min and max
 			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
 			double lra_min  = *min_element(ra_deg, ra_deg+ndet);
 			double ldec_max = *max_element(dec_deg, dec_deg+ndet);
 			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
 
+
 			if (ra_max < lra_max)    ra_max = lra_max;
 			if (ra_min > lra_min)    ra_min = lra_min;
 			if (dec_max < ldec_max) dec_max = ldec_max;
 			if (dec_min > ldec_min) dec_min = ldec_min;
 
-			delete [] offxx;;
-			delete [] offyy;
-			delete [] lon;
-			delete [] lat;
+
 			delete [] ra_deg;
 			delete [] dec_deg;
 			delete [] status;
@@ -140,12 +142,12 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
-
-	/// add a small interval of 1 arcmin
-	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	ra_max =  ra_max  + 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	dec_min = dec_min - 1.0/60.0;
-	dec_max = dec_max + 1.0/60.0;
+	//TODO : The interval has to be increased or some pixels will be outside the map... NOT UNDERSTOOD WHY...
+	// add a small interval of 1 arcmin
+	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	dec_min = dec_min - 6.0/60.0;
+	dec_max = dec_max + 6.0/60.0;
 
 	ra_min  = ra_min/15; // in hour
 	ra_max  = ra_max/15;
@@ -180,7 +182,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
-	// output or update (ra|dec)_(min|max)
+	// output (ra|dec)_(min|max)
 
 	string fits_file;
 	string field;

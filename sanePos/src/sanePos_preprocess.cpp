@@ -409,7 +409,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 			sinphi[ii] = sin(phi[ii]/180.0*M_PI);
 		}
 
-
+		delete [] phi;
 
 		for (long idet = 0; idet<ndet; idet++){
 
@@ -440,9 +440,9 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 
 				//TODO : check this -1 factor... just a stupid convention...
 				offxx = (cosphi[ii] * offsets[idet][0]
-				                                - sinphi[ii] * offsets[idet][1])*-1;
+				                                    - sinphi[ii] * offsets[idet][1])*-1;
 				offyy =  sinphi[ii] * offsets[idet][0]
-				                                + cosphi[ii] * offsets[idet][1];
+				                                    + cosphi[ii] * offsets[idet][1];
 
 				if (celx2s(&celestial, 1, 1, 0, 1, &offxx, &offyy, &lon, &lat, &ra_deg, &dec_deg, &status) == 1) {
 					printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
@@ -464,10 +464,10 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				yy[ii]  = (long long) (pixcrd[2*ii+1]-0.5);
 			}
 
-//			for (unsigned long ii = 0; ii < 20; ii++){
-//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-//			}
+			//			for (unsigned long ii = 0; ii < 20; ii++){
+			//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+			//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+			//			}
 
 			delete [] world;
 			delete [] imgcrd;
@@ -504,11 +504,11 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 
 			}
 
-//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
-//			for (unsigned long ii=0; ii<ns; ii++)
-//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
-//				if (bolo_flag[ii]==1)
-//					cout << ii << " bolo flag" << endl;
+			//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
+			//			for (unsigned long ii=0; ii<ns; ii++)
+			//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
+			//				if (bolo_flag[ii]==1)
+			//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
 
@@ -567,9 +567,18 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				}
 			}
 
-		write_samptopix(ns, samptopix,  outdir, idet, iframe);
+			write_samptopix(ns, samptopix,  outdir, idet, iframe);
+
+			delete [] bolo_flag;
+			delete [] samptopix;
+			delete [] xx;
+			delete [] yy;
 
 		}//end of idet loop
+		delete [] ra;
+		delete [] dec;
+		delete [] flpoint;
+
 	} // end of iframe loop
 }
 
@@ -647,17 +656,17 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 					world[2*ii+1] = wcs.crval[1];
 				}
 			}
-//			for (long ii=0; ii<ns; ii++){
-//				cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << endl;
-//			}
+			//			for (long ii=0; ii<ns; ii++){
+			//				cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << endl;
+			//			}
 			// ... and reproject it back onto the map
-//			cout << "before reproject" << endl;
+			//			cout << "before reproject" << endl;
 
 			if ((status = wcss2p(&wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
 				printf("   wcss2p(1) ERROR %2d \n", status);
 				continue;
 			}
-//			cout << "after reproject" << endl;
+			//			cout << "after reproject" << endl;
 
 			// Transform pixel coordinates to pixel index
 			for (long ii = 0; ii < ns; ii++){
@@ -665,10 +674,10 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 				yy[ii]  = (long long) (pixcrd[2*ii+1]-0.5);
 			}
 
-//			for (unsigned long ii = 0; ii < 20; ii++){
-//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-//			}
+			//			for (unsigned long ii = 0; ii < 20; ii++){
+			//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+			//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+			//			}
 
 			delete [] world;
 			delete [] imgcrd;
@@ -705,11 +714,11 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 
 			}
 
-//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
-//			for (unsigned long ii=0; ii<ns; ii++)
-//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
-//				if (bolo_flag[ii]==1)
-//					cout << ii << " bolo flag" << endl;
+			//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
+			//			for (unsigned long ii=0; ii<ns; ii++)
+			//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
+			//				if (bolo_flag[ii]==1)
+			//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
 
@@ -768,7 +777,12 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 				}
 			}
 
-		write_samptopix(ns, samptopix,  outdir, idet, iframe);
+			write_samptopix(ns, samptopix,  outdir, idet, iframe);
+
+			delete [] bolo_flag;
+			delete [] samptopix;
+			delete [] xx;
+			delete [] yy;
 
 		}//end of idet loop
 	} // end of iframe loop
@@ -801,4 +815,4 @@ int map_offsets(string file_frame_offsets,long ntotscan, float *&scoffsets, foff
 	}
 	return nfoff;
 }
-*/
+ */
