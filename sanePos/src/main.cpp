@@ -40,19 +40,6 @@ using namespace std;
 
 
 
-template<class T> void vector2array(std::vector<T> l, T* a)
-{
-	// copy list of type T to array of type T
-	typename std::vector<T>::iterator iter;
-	int i;
-
-	for (iter=l.begin(), i=0; iter != l.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}
-
-
-
 
 //**********************************************************************************//
 //**********************************************************************************//
@@ -109,7 +96,7 @@ int main(int argc, char *argv[])
 	//double errarcsec = 15.0; /*! source error, rejection criteria : scerr[ii] > errarcsec, sample is rejected */
 
 
-	long iframe_min, iframe_max; /*! frame number min and max each processor has to deal with */
+	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
 	//u_opt.bfixc = 0; /*! indicates that 4 corners are given for the cross corelation removal box */
@@ -241,7 +228,9 @@ int main(int argc, char *argv[])
 	// -----------------------------------------------------------------------------//
 	t2=time(NULL);
 
+	//long *frames_index;
 
+	//frames_index = new long [samples_struct.ntotscan];
 
 	// convert lists to regular arrays (MPI_BCas works only on array...
 	//fframes       = new long[ntotscan];
@@ -272,15 +261,11 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	/********************* Define parallelization scheme   *******/
 
-	//long *frnum;
-	//frnum = new long[ntotscan+1];
-
-	//	if (rank == 0){
-
 	int test=0;
 	fname = dir.outdir + parallel_scheme_filename;
 	cout << fname << endl;
-	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -288,23 +273,15 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	cout << "Et ca donne ca !" << endl;
+	cout << "mon rank : " << rank << "Et ca donne ca au final !" << endl;
 
 	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
 	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
 	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
 	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
 
-	//	}
 
-	//	MPI_Barrier(MPI_COMM_WORLD);
-	//if(rank==0){
-	//MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
-	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//}
-
-	cout << "mon rank : " << rank << endl;
+	/*
 
 	iframe_min = -1;
 	//iframe_max = -1;
@@ -330,65 +307,7 @@ int main(int argc, char *argv[])
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++)
 		samples_struct.fits_table[ii] = dir.dirfile + samples_struct.fits_table[ii];
-
-	//exit(0);
-	/*long *frnum ;
-
-	  if (rank == 0){
-
-		long *ruleorder ;
-		long *fframesorder ;
-		long *nsamplesorder ;
-		//string *extentnoiseSp_allorder;
-
-	  check_ParallelizationScheme(fname,nsamples,ntotscan,size, &ruleorder, &frnum);
-	  // reorder nsamples
-	  //find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-	  //cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
-
-
-	  fframesorder  = new long[ntotscan];
-	  //extentnoiseSp_allorder = new string[ntotscan];
-	  nsamplesorder = new long[ntotscan];
-
-	  for (long ii=0;ii<ntotscan;ii++){
-	  nsamplesorder[ii] = nsamples[ruleorder[ii]];
-	  fframesorder[ii] = fframes[ruleorder[ii]];
-	  //extentnoiseSp_allorder[ii] = extentnoiseSp_all[ruleorder[ii]];
-	  }
-	  for (long ii=0;ii<ntotscan;ii++){
-	  nsamples[ii] = nsamplesorder[ii];
-	  fframes[ii] = fframesorder[ii];
-	  //extentnoiseSp_all[ii] = extentnoiseSp_allorder[ii];
-	  //printf("frnum[%d] = %d\n",ii,frnum[ii]);
-	  }
-
-	  delete [] fframesorder;
-	  delete [] nsamplesorder;
-	  //delete [] extentnoiseSp_allorder;
-
-	  delete [] ruleorder;
-
-
-	  } else {
-	  frnum = new long[ntotscan+1];
-	  }
 	 */
-	//}
-	//MPI_Barrier(MPI_COMM_WORLD);
-	//if(rank==0){
-	// MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
-	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//MPI_Bcast(frnum,ntotscan+1,MPI_LONG,0,MPI_COMM_WORLD);
-	//}
-
-	//	iframe_min = frnum[rank];
-	//iframe_max = frnum[rank+1];
-	//rank_det = 0;
-	//size_det = 1;
-	//delete [] frnum;
-
-
 
 #else
 	iframe_min = 0;
@@ -396,8 +315,8 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
-	//rank_det = rank;
-	//size_det = size;
+	//for(long ii=0; ii<samples_struct.ntotscan;ii++)
+		//frames_index[ii] = ii;
 
 #endif
 
@@ -544,6 +463,8 @@ int main(int argc, char *argv[])
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
+	//cout << "apres addnpix" << endl;
+
 	// map duplication factor
 	int factdupl;
 	(com.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
@@ -564,6 +485,10 @@ int main(int argc, char *argv[])
 	// Compute pixels indices
 	//**********************************************************************************
 
+	//	//TODO: check from here and below
+
+
+	//cout << "avant compute" << endl;
 	printf("[%2.2i] Compute Pixels Indices\n",rank);
 
 	computePixelIndex(samples_struct.ntotscan,dir.tmp_dir, det.boloname,
@@ -573,6 +498,8 @@ int main(int argc, char *argv[])
 			com.napod, com.NOFILLGAP, com.flgdupl,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
+
+
 
 
 #ifdef USE_MPI
@@ -622,16 +549,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-
-	/* ---------------------------------------------------------------------------------------------*/
-
-
-	// Close MPI process
-
-
-#ifdef USE_MPI
 	MPI_Finalize();
 #endif
 
@@ -643,11 +560,13 @@ int main(int argc, char *argv[])
 	delete [] pixon_tot;
 	delete [] coordscorner;
 	delete [] samples_struct.nsamples;
-	delete [] indpix;
+	if(rank==0)
+		delete [] indpix;
 	delete [] indpsrc;
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.index_table;
+	//delete [] frames_index;
 
 	printf("[%2.2i] End of sanePos\n",rank);
 

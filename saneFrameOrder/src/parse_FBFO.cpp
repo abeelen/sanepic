@@ -12,11 +12,30 @@
  *      Author: matthieu
  */
 
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <unistd.h>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+#include "dataIO.h"
+#include "mpi_architecture_builder.h"
+
+
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
 
 #include "parse_FBFO.h"
-/*#ifdef USE_MPI
-#include "mpi.h"
-#endif*/
+
+using namespace std;
 
 int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples,
 		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<long> &scans_index)
@@ -60,20 +79,20 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples
 	}//./RCW_120_M/
 
 	s = iniparser_getstring(ini, "commons:output_dir",NULL);
-	  if(s==NULL){
-	  printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-	  cout << "Using default output directory : " << dirfile << endl;
-	  tmp_dir=dirfile;
-	  }else{
-	  str=(string)s;
-	  if(str.size()!=0){
-	  printf("output_dir : [%s]\n",s);
-	  tmp_dir=s;
-	  }else{
-	  cout << "Using default output directory : " << dirfile << endl;
-	  tmp_dir=dirfile;
-	  }//output_dir = ./RCW_120_M/ ;
-	  }
+	if(s==NULL){
+		printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+		cout << "Using default output directory : " << dirfile << endl;
+		tmp_dir=dirfile;
+	}else{
+		str=(string)s;
+		if(str.size()!=0){
+			printf("output_dir : [%s]\n",s);
+			tmp_dir=s;
+		}else{
+			cout << "Using default output directory : " << dirfile << endl;
+			tmp_dir=dirfile;
+		}//output_dir = ./RCW_120_M/ ;
+	}
 
 
 	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
@@ -173,7 +192,7 @@ int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples
 		return(-1);
 	}*/
 
-	//ntotscan = fframes_vec.size();
+	ntotscan = fitsvect.size();
 
 	iniparser_freedict(ini);
 

@@ -1,25 +1,16 @@
-#include <iostream>
-#include <fstream>
-#include <fcntl.h>
-#include <cmath>
-
-#include <string>
-#include <vector>
-#include <list>
 
 #include "covMatrixIO.h"
 #include "invMatrix.h"
 #include "parseInv.h"
 #include "inputFileIO.h"
 
+#include <iostream>
+#include <string>
+#include <vector>
+
+
+
 using namespace std;
-
-extern "C" {
-#include "nrutil.h"
-#include "nrcode.h"
-#include <fitsio.h>
-}
-
 
 
 int main(int argc, char *argv[]) {

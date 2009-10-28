@@ -3,14 +3,10 @@
 	<name>saneInv</name>
 	<comment></comment>
 	<projects>
-		<project>iniparser</project>
-		<project>nr</project>
-		<project>saneIO</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 				<dictionary>
 					<key>?name?</key>

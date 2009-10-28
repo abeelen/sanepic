@@ -5,30 +5,19 @@
  *      Author: matthieu
  */
 
+#include "sanePos_preprocess.h"
 
 #include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <time.h>
-#include <cstdlib>
 #include <cmath>
-
-#include <fcntl.h>
-#include <unistd.h>
-
-#include <vector>
-#include <stdio.h>
-#include <string>
-#include <algorithm>
-
 
 #include "sanePos_map_making.h"
 #include "dataIO.h"
-#include "blastSpecific.h"
 #include "inline_IO2.h"
-#include "mpi_architecture_builder.h"
 
-#include "sanePos_preprocess.h"
+
+
+
+using namespace std;
 
 //// TODO: Will not be used soon, replaced by compute MapMinima
 //
@@ -163,7 +152,7 @@
 //
 //
 //			// find offset based on frame range
-////			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets); // TODO : A virer
+////			correctFrameOffsets(nfoff,ff,offsets,foffsets,froffsets);
 //
 //			if (default_projection){
 //				// spheric coords to squared coords (tangent plane)
@@ -229,7 +218,7 @@
 //
 //		fits_file=fits_table[0];
 //
-//		// TODO: Bolo offsets change per frames, so switch the loop between bolo and frame
+//
 //		read_bolo_offsets_from_fits(fits_file, field, offsets);
 //
 //		//loop to get coordinates of pixels that are seen
@@ -565,7 +554,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 				}
 			}
 
-			write_samptopix(ns, samptopix,  outdir, idet, iframe);
+			write_samptopix(ns, samptopix,  outdir, idet, iframe, bolonames);
 
 			delete [] bolo_flag;
 			delete [] samptopix;
@@ -775,7 +764,7 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 				}
 			}
 
-			write_samptopix(ns, samptopix,  outdir, idet, iframe);
+			write_samptopix(ns, samptopix,  outdir, idet, iframe, bolonames);
 
 			delete [] bolo_flag;
 			delete [] samptopix;

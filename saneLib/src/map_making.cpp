@@ -1,12 +1,11 @@
 #include <iostream>
-
 #include <cmath>
 
-//#include "/fir_data/patanch/numrec/inc/nrutil.h"
 #include "todprocess.h"
 #include "map_making.h"
+
 #include <fftw3.h>
-#include <time.h>
+#include <gsl/gsl_math.h>
 
 #define NR_END 1
 #define FREE_ARG char*

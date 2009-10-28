@@ -4,20 +4,21 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <string.h>
 
-#include "time.h"
-#include "dataIO.h"
+
+//#include "time.h"
+//#include "dataIO.h"
 #include "mpi_architecture_builder.h"
+
 
 extern "C" {
 #include <fitsio.h>
 }
 
 
-//using namespace std;
+using namespace std;
 
-
+/*
 template<class T> void vector2array(std::vector<T> vect, T* a)
 {
 	// copy list of type T to array of type T
@@ -27,7 +28,7 @@ template<class T> void vector2array(std::vector<T> vect, T* a)
 	for (iter=vect.begin(), i=0; iter != vect.end(); iter++, i++) {
 		a[i] = *iter;
 	}
-}
+}*/
 
 
 double *dat_compare;
@@ -135,14 +136,14 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	dat_compare = new double[ntotscan];
 
 	for(long ii=0;ii<ntotscan;ii++){
-	  sizeperproc[ii]=0.0;
-	  dat_compare[ii]=0.0;
-	  ns_order[ii]=0;
+		sizeperproc[ii]=0.0;
+		dat_compare[ii]=0.0;
+		ns_order[ii]=0;
 	}
 
 	for(int ii=0;ii<nessai;ii++){
-	  maxproc[ii]=0.0;
-	  std[ii]=0.0;
+		maxproc[ii]=0.0;
+		std[ii]=0.0;
 	}
 
 	//init random generator
@@ -230,7 +231,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
 	printf("max range min = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
-//	getchar();
+	//	getchar();
 
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
 
@@ -284,7 +285,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 				stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
 
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
-//		getchar();
+		//		getchar();
 	}
 
 	delete [] maxproc;
@@ -437,7 +438,8 @@ int read_ParallelizationScheme(string fname,string dirfile, long ntotscan, int s
 
 }*/
 
-int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
+//int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
+int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, int size)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
@@ -472,87 +474,68 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 		return -1;
 
 	ntotscan_dummy=(long)fits_dummy.size();
-	if(ntotscan!=ntotscan_dummy){
+	if(samples_struct.ntotscan!=ntotscan_dummy){
 		cerr << "number of scans are different between your fits file list and the mpi scheme" << endl;
 		return -1;
 	}
 
-	vector2array(fits_dummy, fits_table);
-	vector2array(noise_dummy, noise_table);
-	vector2array(index_dummy,  index_table);
+	vector2array(fits_dummy, samples_struct.fits_table);
+	vector2array(noise_dummy, samples_struct.noise_table);
+	vector2array(index_dummy,  samples_struct.index_table);
 
 	for(int ii=0;ii<(int)fits_dummy.size();ii++){
-	  //	cout << dirfile + fits_dummy[ii] << endl;
+		//	cout << dirfile + fits_dummy[ii] << endl;
 		fits_dummy[ii] = dirfile + fits_dummy[ii];
 	}
 
 	readFrames( fits_dummy, nsamples_dummy);
 
 	cout << "ntotscan" << endl;
-	cout << ntotscan << " vs " << ntotscan_dummy << endl;
-
-	/*if(ntotscan!=ntotscan_dummy){
-		cerr << "number of scans are different between your fits file list and the mpi scheme" << endl;
-		return -1;
-		}*/
-
-	//fits_table = new string[ntotscan];
-	//index_table= new long[ntotscan];
-	//noise_table = new string[ntotscan];
-
-
-
-	/*	for(int ii=0;ii<ntotscan;){
-	  temp = fits_table[ii];
-	  cout << "temp " << temp << endl;
-	  found=temp.find_last_of("/");
-	  fits_table[ii] = temp.substr(found+1);
-	  cout << "fits_table " << fits_table[ii] << endl;
-	  }*/
+	cout << samples_struct.ntotscan << " vs " << ntotscan_dummy << endl;
 
 	struct sortclass_string sortobject;
 	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
-	sort(fitsfiles.begin(), fitsfiles.end(), sortobject);
+	sort((samples_struct.fitsvect).begin(), (samples_struct.fitsvect).end(), sortobject);
 
 	cout << "comparaison triée : " << endl;
 
-	for(int ii=0;ii<ntotscan;ii++)
-	  if(fits_dummy[ii]!=fitsfiles[ii]){
-	    cout << fits_dummy[ii] << endl;
-	    cout << fitsfiles[ii] << endl;
-	    return -1;
-	  }
+	for(int ii=0;ii<samples_struct.ntotscan;ii++)
+		if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
+			cout << fits_dummy[ii] << endl;
+			cout << samples_struct.fitsvect[ii] << endl;
+			return -1;
+		}
 
 
-	if ((int)noisefiles.size()>0){
+	if ((int)((samples_struct.noisevect).size())>0){
 
-	cout << "comparaison triée bruit : " << endl;
+		cout << "comparaison triée bruit : " << endl;
 
-	sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
-	sort (noisefiles.begin(), noisefiles.end(), sortobject);
+		sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
+		sort ((samples_struct.noisevect).begin(), (samples_struct.noisevect).end(), sortobject);
 
-	for(int ii=0;ii<ntotscan;ii++)
-	  if(noise_dummy[ii]!=noisefiles[ii]){
-	    cout << noise_dummy[ii] << endl;
-	    cout << noisefiles[ii] << endl;
-	    return -1;
-	  }
+		for(int ii=0;ii<samples_struct.ntotscan;ii++)
+			if(noise_dummy[ii]!=samples_struct.noisevect[ii]){
+				cout << noise_dummy[ii] << endl;
+				cout << samples_struct.noisevect[ii] << endl;
+				return -1;
+			}
 	}
 
 	//struct sortclass_int sortobject;
 	//sort(index_dummy.begin(), index_dummy.end(), sortobject);
-	size_tmp = *max_element(index_table, index_table+ntotscan);
+	size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
 	cout << size << " vs size : " <<  size_tmp+1 << endl;
 
 	if((size_tmp+1)!=size){
-	  cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-	  return -1;
+		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+		return -1;
 	}
 
 
-	for(int ii=0;ii<ntotscan;ii++)
-	  nsamples[ii]=nsamples_dummy[ii];
+	for(int ii=0;ii<samples_struct.ntotscan;ii++)
+		samples_struct.nsamples[ii]=nsamples_dummy[ii];
 
 
 
@@ -564,32 +547,70 @@ int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int 
 
 
 
-int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table){
+//int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table, long iframe_min, long iframe_max){
+int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
+
+	// cout << "avant check" << endl;
+	cout << "rank" << rank << endl;
+	// if (rank == 0){
+	//cout << "avant check" << endl;
+	int test=0;
+	//long *ruleorder ;
+	//long *fframesorder ;
+	//long *nsamplesorder ;
+	//string *extentnoiseSp_allorder;
+
+	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);
+	if (test==-1)
+		return test;
+	// reorder nsamples
+	//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
+	//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
 
-  // cout << "avant check" << endl;
-  cout << "rank" << rank << endl;
-  // if (rank == 0){
-    //cout << "avant check" << endl;
-    int test=0;
-    //long *ruleorder ;
-    //long *fframesorder ;
-    //long *nsamplesorder ;
-    //string *extentnoiseSp_allorder;
-
-    test=check_ParallelizationScheme(fname,dirfile,ntotscan,size,nsamples,fitsfiles,noisefiles,fits_table,noise_table,index_table);
-    if (test==-1)
-      return test;
-    // reorder nsamples
-    //find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-	  //cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
+	// }else{
+	//	*frnum = new long[ntotscan+1];
+	// }
 
 
-    // }else{
-    //	*frnum = new long[ntotscan+1];
-    // }
 
-  return 0;
+	cout << "Et ca donne ca !" << endl;
+
+	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
+	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+
+
+	cout << "mon rank : " << rank << endl;
+
+	iframe_min = -1;
+	//iframe_max = -1;
+
+	for(long ii=0;ii<samples_struct.ntotscan;ii++){
+		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
+			iframe_min=ii;
+			break;
+		}
+	}
+
+	iframe_max=iframe_min;
+	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
+		if(samples_struct.index_table[iframe_max]!=rank){
+			iframe_max--;
+			break;
+		}
+
+	iframe_max++;
+
+	cout << rank << " iframe_min : " << iframe_min << endl;
+	cout << rank << " iframe_max : " << iframe_max << endl;
+
+	for(long ii=0;ii<samples_struct.ntotscan;ii++)
+		samples_struct.fits_table[ii] = dirfile + samples_struct.fits_table[ii];
+
+
+	return 0;
 
 }
 

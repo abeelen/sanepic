@@ -5,14 +5,17 @@
  *      Author: matthieu
  */
 
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
+
+//#include <cstdlib>
+//#include <fcntl.h>
+//#include <unistd.h>
+//#include <stdio.h>
 #include <string>
 #include <sstream>
+#include <vector>
 
-#include <fstream>
+//#include <fftw3.h>
+//#include <fstream>
 #include <iostream>
 
 #include "inline_IO2.h"
@@ -26,12 +29,12 @@ using namespace std;
 
 
 //TODO : Read/Write size of the array
-void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe) {
+void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<string> bolonames) {
 	FILE *fp;
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + "samptopix_" << iframe << "_" << idet << ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string temp = oss.str();
@@ -48,7 +51,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 	oss.str("");
 
 	// debug
-	oss << outdir + "samptopix_" << iframe << "_" << idet << ".txt";
+	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet]  << ".txt";
 	temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
@@ -62,13 +65,13 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 }
 
 
-void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe) {
+void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "samptopix_" << iframe << "_" << idet << ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet]  << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -163,7 +166,7 @@ void write_PNd(double *PNd, long long npix,  string outdir) {
 		//fprintf(fp,"%lf ",PNd[ii]);
 		fprintf(fp,"%lld\n",npix);
 		for(int ii= 0; ii<npix;ii++)
-			fprintf(fp,"%fd ",PNd[ii]);
+			fprintf(fp,"%lf ",PNd[ii]);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
@@ -191,13 +194,13 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 
 }
 //TODO: Read/Write the size of the array, and check at reading
-void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe) {
+void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	//long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fdata_" << iframe << "_" << idet << ".bi";
+	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -216,7 +219,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 
 	// Debug
 	oss.str("");
-	oss << outdir + "fdata_" << iframe << "_" << idet << ".txt";
+	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile = oss.str();
@@ -260,7 +263,7 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 }
 
 */
-void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe) {
+void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
 	//long data_size;
@@ -268,7 +271,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + prefixe << iframe << "_" << idet << ".bi";
+	oss << outdir + prefixe << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -285,13 +288,13 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 }
 
 //TODO : Read/Write size of the array and check at reading
-void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe) {
+void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	//long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fPs_" << iframe << "_" << idet << ".bi";
+	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();

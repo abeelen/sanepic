@@ -261,7 +261,7 @@ void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, doubl
 
 	fits_insert_col(fptr, 1, (char*) "Mean Frequency", (char *) "D", &status);
 	fits_write_col(fptr, TDOUBLE, 1, 1, 1, nbins, meanEll, &status);
-	fits_write_key(fptr, TSTRING, "TUNIT1", (char *) "Hz",	(char *) "physical unit of the field", &status);
+	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",	(char *) "physical unit of the field", &status);
 
 
 

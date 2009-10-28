@@ -7,6 +7,16 @@
 
 #include "parseInv.h"
 
+#include <string>
+
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
+
+
+using namespace std;
+
 int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, string &noiseSp_dir_output, string &extentnoiseSp)
 {
 	dictionary	*	ini ;

@@ -9,34 +9,14 @@
 #define INLINE_IO2_H_
 
 
-#include <cstdlib>
-#include <string>
-#include <cmath>
-#include <string.h>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-
-#include <time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-
 #include <fftw3.h>
 
 extern "C" {
 #include "nrutil.h"
 }
 
-/*
-#ifndef INLINE
-# if __GNUC__
-#  define INLINE extern inline
-# else
-#  define INLINE inline
-# endif
-#endif*/
-using namespace std;
+
+//using namespace std;
 
 // sanePos functions
 
@@ -47,7 +27,7 @@ using namespace std;
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void write_indpix(long long ind_size, long long npix, long long *indpix,  string outdir, int flagon);
+void write_indpix(long long ind_size, long long npix, long long *indpix,  std::string outdir, int flagon);
 
 //sanePre functions
 
@@ -66,21 +46,21 @@ void write_indpix(long long ind_size, long long npix, long long *indpix,  string
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void read_indpix(long long &ind_size, long long &npix, long long *&indpix, string outdir, int &flagon);
+void read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::string outdir, int &flagon);
 
 /*!
  * Writes PNd in a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void write_PNd(double *PNd, long long npix, string outdir);
+void write_PNd(double *PNd, long long npix, std::string outdir);
 
 /*!
  * Reads PNd from a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void read_PNd(double *&PNdtot, long long &npix, string outdir);
+void read_PNd(double *&PNdtot, long long &npix, std::string outdir);
 
 /*!
  * Writes samptopix in a binary file \n
@@ -89,7 +69,7 @@ void read_PNd(double *&PNdtot, long long &npix, string outdir);
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void write_samptopix(long ns, long long *&samptopix,  string outdir, long idet, long iframe);
+void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Reads samptopix from a binary file \n
@@ -98,7 +78,7 @@ void write_samptopix(long ns, long long *&samptopix,  string outdir, long idet, 
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe);
+void read_samptopix(long ns, long long *&samptopix, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -107,7 +87,7 @@ void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, lo
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe);
+void write_fdata(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Reads PS for one bolo in a binary file \n
@@ -126,7 +106,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string outdir, long idet, long iframe);
+void read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -135,7 +115,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe, string outdir, lo
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe);
+void write_fPs(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Writes information for a second run of sanepic \n
@@ -158,16 +138,8 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
  * -ncomp2 = number of component
  * -mixmat is the mixing matrix
  */
-void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat);
+void read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
 
-/*!
- * Writes (sanePic) estimated signal to a binary file
- */
-//void write_signal(int npix, double *S, string signame);
 
-/*!
- * Writes (sanePic) estimated signal in a binary file
- */
-//void read_signal(int &npix, double *&S, string signame);
 
 #endif

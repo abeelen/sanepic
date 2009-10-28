@@ -5,23 +5,27 @@
  *      Author: matthieu
  */
 
-
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "Corr_preprocess.h"
 #include "covMatrixIO.h"
 #include "dataIO.h"
+#include "inline_IO2.h"
+#include "todprocess.h"
+#include "map_making.h"
 
 #include <gsl/gsl_math.h>
-#include <time.h>
+#include <fftw3.h>
+//#include <time.h>
 
 using namespace std;
 
 
 void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		bool flgdupl, int factdupl,
-		string dir, long ns, long ndet, long iframe){
+		string dir, long ns, long ndet, long iframe, std::vector<string> bolonames){
 
 
 	//long idet1;
@@ -45,7 +49,7 @@ void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long lon
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, idet1, iframe);
+		read_samptopix(ns, samptopix, dir, idet1, iframe, bolonames);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
@@ -59,7 +63,7 @@ void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long lon
 		fftw_destroy_plan(fftplan);
 
 
-		write_fPs(ns, fdata, dir, idet1, iframe);
+		write_fPs(ns, fdata, dir, idet1, iframe, bolonames);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"w");
 		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
@@ -183,7 +187,7 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 
 		if (S != NULL){
 			//// Read pointing
-			read_samptopix(ns, samptopix, /* termin, */ dir, idet1, iframe);
+			read_samptopix(ns, samptopix, /* termin, */ dir, idet1, iframe, bolonames);
 
 			/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
@@ -226,7 +230,7 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 		fftw_destroy_plan(fftplan);
 
 		//write fourier transform to disk
-		write_fdata(ns, fdata, /* termin, */ dir, idet1, iframe);
+		write_fdata(ns, fdata, /* termin, */ dir, idet1, iframe, bolonames);
 		//fdatas[idet1][]
 
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
@@ -315,7 +319,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, /* termin,*/ dir, idet1, iframe);
+		read_samptopix(ns, samptopix, /* termin,*/ dir, idet1, iframe, bolonames);
 
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
 		if ((fp = fopen(testfile,"r"))!=NULL){
@@ -366,7 +370,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 
 			//read Fourier transform of the data
-			read_fdata(ns, fdata, prefixe, /* termin, */ dir, idet2, iframe);
+			read_fdata(ns, fdata, prefixe, /* termin, */ dir, idet2, iframe, bolonames);
 
 			/*sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
 			if((fp = fopen(testfile,"r"))!=NULL){

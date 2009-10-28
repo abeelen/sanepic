@@ -6,8 +6,22 @@
  */
 
 #include "estimPS_steps.h"
-//#include "inputFileIO.h"
+
+
+#include "covMatrixIO.h"
+#include "psdIO.h"
+#include <vector>
+#include "todprocess.h"
+#include "map_making.h"
+#include "inline_IO2.h"
+#include <sstream>
+#include <cmath>
+
 #include "dataIO.h"
+
+extern "C" {
+#include <fitsio.h>
+}
 
 
 using namespace std;
@@ -118,7 +132,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 		//TODO: samptopix should then NOT be in the calling of the function,
 		//      only need in deproject
 		//Read pointing data
-		read_samptopix(ns, samptopix,  dir, idet, iframe);
+		read_samptopix(ns, samptopix,  dir, idet, iframe, bolonames);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 			fp = fopen(testfile,"r");
 			fread(samptopix,sizeof(long),ns,fp);
@@ -150,7 +164,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 		fftw_destroy_plan(fftplan);
 
 
-		write_fdata(ns, fdata1,  dir, idet, ff);
+		write_fdata(ns, fdata1,  dir, idet, ff, bolonames);
 		/*for(long ii=0;ii<ns/2+1;ii++){
 				fdata_buffer[idet*(ns/2+1)+ii][0]=fdata1[ii][0];
 				fdata_buffer[idet*(ns/2+1)+ii][1]=fdata1[ii][1];
@@ -303,7 +317,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix,  dir, idet, iframe);
+		read_samptopix(ns, samptopix,  dir, idet, iframe,bolonames);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);
@@ -406,7 +420,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, long ncomp, double **mixmat,double fsamp,
 		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
-		double *SPref){
+		double *SPref, std::vector<std::string> bolonames){
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
@@ -420,7 +434,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		read_fdata(ns, fdata1, "fdata_",  dir, idet1, ff);
+		read_fdata(ns, fdata1, "fdata_",  dir, idet1, ff, bolonames);
 
 		/*for(long ii=0;ii<ns/2+1;ii++){
 			fdata1[ii][0]=fdata_buffer[(ns/2+1)*idet1+ii][0];
@@ -436,7 +450,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			read_fdata(ns, fdata2, "fdata_",  dir, idet2, ff);
+			read_fdata(ns, fdata2, "fdata_",  dir, idet2, ff, bolonames);
 
 			/*for(long ii=0;ii<ns/2+1;ii++){
 						fdata2[ii][0]=fdata_buffer[(ns/2+1)*idet2+ii][0];

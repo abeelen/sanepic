@@ -9,11 +9,8 @@
 #define PARSEPOS_H_
 
 #include <vector>
-#include <string>
-
 #include "mpi_architecture_builder.h"
 
-using namespace std;
 /*!
  * - Parse sanePos input options using the ini file given in the command line \n
  * - Verify the good usage of each option, deal with incorrect values, warn the user when a line is \n

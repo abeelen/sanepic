@@ -7,6 +7,14 @@
 
 #include "sanePre_preprocess.h"
 
+#include "todprocess.h"
+#include "map_making.h"
+
+#include <iostream>
+#include <vector>
+#include <string>
+
+
 using namespace std;
 
 

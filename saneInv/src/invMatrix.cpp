@@ -2,14 +2,15 @@
 #include <cmath>
 #include <string>
 #include <vector>
-#include <cstdlib>
+//#include <cstdlib>
 
-using namespace std;
 
 extern "C" {
 #include "nrutil.h"
 #include "nrcode.h"
 }
+
+using namespace std;
 
 void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		std::vector<string> listOut, double ***MatrixOut/*,double **mixmatOrig, int ncomp, double **&mixmat*/)

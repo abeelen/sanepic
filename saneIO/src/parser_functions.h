@@ -8,18 +8,10 @@
 #ifndef PARSER_FUNCTIONS_H_
 #define PARSER_FUNCTIONS_H_
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <cstdio>
-#include <string>
-#include <unistd.h>
+
 #include <string>
 #include <vector>
-#include <algorithm>
 
-#include "dataIO.h"
 #include "mpi_architecture_builder.h"
 
 extern "C"{
@@ -34,7 +26,7 @@ int read_tmpdir(dictionary	*ini, struct directories &dir);
 
 int read_outdir(dictionary	*ini, struct directories &dir);
 
-int read_channel_list(dictionary	*ini, std::vector<string> &bolonames);
+int read_channel_list(dictionary	*ini, std::vector<std::string> &bolonames);
 
 int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str);
 
@@ -58,7 +50,7 @@ int read_filter_frequency(dictionary	*ini, struct user_options &u_opt);
 
 int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut);
 
-int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP);
+//int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP);
 
 int read_baseline(dictionary	*ini, struct user_options &u_opt);
 
@@ -70,13 +62,13 @@ int read_projgaps(dictionary	*ini, struct user_options &u_opt);
 
 int read_iter(dictionary	*ini, int &iterw);
 
-int read_ell_file(dictionary	*ini, string &ellFile);
+int read_ell_file(dictionary	*ini, std::string &ellFile);
 
-int read_map_file(dictionary	*ini, string &signame);
+int read_map_file(dictionary	*ini, std::string &signame);
 
-int read_cov_matrix_file(dictionary	*ini, string &fname);
+int read_cov_matrix_file(dictionary	*ini, std::string &fname);
 
-int read_mixmatfile(dictionary	*ini, string &MixMatfile);
+int read_mixmatfile(dictionary	*ini, std::string &MixMatfile);
 
 int read_directories(dictionary	*ini, struct directories &dir);
 

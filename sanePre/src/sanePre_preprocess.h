@@ -8,22 +8,8 @@
 #ifndef SANEPRE_PREPROCESS_H_
 #define SANEPRE_PREPROCESS_H_
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <time.h>
-#include <cstdlib>
-
-#include <fcntl.h>
-#include <unistd.h>
-//#include <list>
 #include <vector>
-#include <stdio.h>
-#include <string>
-#include <algorithm>
 
-#include "todprocess.h"
-#include "map_making.h"
 
 /*!
  * Recompute indpsrc, npixsrc and addnpix from box constraint coordinates

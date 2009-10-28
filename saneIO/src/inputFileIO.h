@@ -8,13 +8,12 @@
 #include <string>
 #include <vector>
 
-using namespace std;
 
 /*!
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-void read_strings(string fname, std::vector<string>& bolos);
-void read_double(string fname, double *& array, long & size);
+void read_strings(std::string fname, std::vector<std::string>& bolos);
+void read_double(std::string fname, double *& array, long & size);
 
 #endif /* INPUTFILEIO_H_ */

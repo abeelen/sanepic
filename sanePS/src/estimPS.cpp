@@ -6,7 +6,20 @@
  */
 
 #include "estimPS.h"
+
+#include <vector>
+#include <string>
+
+#include "todprocess.h"
 #include "inputFileIO.h"
+#include "estimPS_steps.h"
+
+extern "C" {
+#include <fitsio.h>
+#include "nrutil.h"
+#include "nrcode.h"
+}
+
 
 using namespace std;
 
@@ -152,7 +165,7 @@ void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, long NAXIS1, l
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, dir,  ncomp, mixmat,fsamp,
-			Nk, Nell, factapod, Rellexp, N, P,  outdirSpN, fdata1, fdata2, SPref);
+			Nk, Nell, factapod, Rellexp, N, P,  outdirSpN, fdata1, fdata2, SPref, bolonames);
 
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//

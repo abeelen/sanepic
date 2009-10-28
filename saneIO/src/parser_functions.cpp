@@ -8,17 +8,17 @@
 
 #include <iostream>
 #include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <cstdio>
-#include <string>
-#include <unistd.h>
-#include <string>
-#include <vector>
-#include <algorithm>
-
-#include "dataIO.h"
-#include "mpi_architecture_builder.h"
+//#include <fstream>
+//#include <cstdlib>
+//#include <cstdio>
+//#include <string>
+//#include <unistd.h>
+//#include <string>
+//#include <vector>
+//#include <algorithm>
+//
+//#include "dataIO.h"
+//#include "mpi_architecture_builder.h"
 
 extern "C"{
 #include "iniparser.h"
@@ -28,6 +28,7 @@ extern "C"{
 #include "inputFileIO.h"
 #include "parser_functions.h"
 
+using namespace std;
 
 int read_dirfile(dictionary	*ini, struct directories &dir){
 
@@ -163,6 +164,7 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
 		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
 		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+
 		for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
 			//cout << u_opt.dirfile + fitsvect[ii] << endl;
 			samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
@@ -170,7 +172,27 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 		readFrames(samples_str.fitsvect, samples_str.nsamples);
 
-		//getchar();
+		//cout << (int)(samples_str.noisevect).size() << endl;
+
+		if((int)(samples_str.noisevect).size()==0){
+			s = iniparser_getstring(ini, "commons:noise_prefixe",NULL);
+			if(s==NULL){
+				printf("You must add a line in the ini file corresponding to a frame file : commons:noise_prefixe\n");
+				return -1;
+			}
+			str=(string)s;
+			if(str.size()!=0){
+				samples_str.noisevect.push_back(str);
+				//cout << samples_str.noisevect[0] << endl;
+
+				(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+
+			}else{
+				printf("You must specify a fits noise filename : commons:noise_prefixe\n");
+				return -1 ;
+			}//frame_file =./RCW_120_M/fits_files.txt ;
+		}
+
 	}else{
 		printf("You must specify a fits filelist : commons:fits_filelist\n");
 		return -1 ;
@@ -230,8 +252,8 @@ int read_nofillgap(dictionary	*ini, struct input_commons &com){
 
 	b = iniparser_getboolean(ini, "commons:nofill_gap", 0);
 	//if(b!=0){
-		//printf("nofill_gap:    [%d]\n", b);
-		com.NOFILLGAP=b;
+	//printf("nofill_gap:    [%d]\n", b);
+	com.NOFILLGAP=b;
 	//}
 	//NOFILLGAP = 0 ;
 
@@ -355,8 +377,8 @@ int read_map_flagged_data(dictionary	*ini, struct input_commons &com){
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", 0);
 	//if(b!=0){
-		//printf("map_flagged_data:    [%d]\n", b);
-		com.flgdupl=b;
+	//printf("map_flagged_data:    [%d]\n", b);
+	com.flgdupl=b;
 	//}//flgdupl = False ;
 
 	return 0;
@@ -428,7 +450,7 @@ int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut){
 
 }
 
-
+/*
 int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP){
 
 
@@ -459,7 +481,7 @@ int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP){
 
 	return 0;
 
-}
+}*/
 
 int read_baseline(dictionary	*ini, struct user_options &u_opt){
 
@@ -467,8 +489,8 @@ int read_baseline(dictionary	*ini, struct user_options &u_opt){
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", 0);
 	//if(b!=0){
-		//printf("no_baseline:    [%d]\n", b);
-		u_opt.NORMLIN=b;
+	//printf("no_baseline:    [%d]\n", b);
+	u_opt.NORMLIN=b;
 	//}
 	//NORMLIN = False ;
 
@@ -482,8 +504,8 @@ int read_correlation(dictionary	*ini, struct user_options &u_opt){
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", 1);
 	//if(b!=1){
-		//printf("correlation:    [%d]\n", b);
-		u_opt.CORRon=b;
+	//printf("correlation:    [%d]\n", b);
+	u_opt.CORRon=b;
 	//}//CORRon = True
 
 	return 0;
@@ -495,8 +517,8 @@ int read_remove_poly(dictionary	*ini, struct user_options &u_opt){
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
 	//if(b!=1){
-		//printf("remove_poly:    [%d]\n", b);
-		u_opt.remove_polynomia=b;
+	//printf("remove_poly:    [%d]\n", b);
+	u_opt.remove_polynomia=b;
 	//}//remove_poly = True
 
 	return 0;
@@ -509,8 +531,8 @@ int read_projgaps(dictionary	*ini, struct user_options &u_opt){
 
 	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:project_gaps", 0);
 	//if(b!=0){
-		//printf("projgaps:    [%d]\n", b);
-		u_opt.projgaps=b;
+	//printf("projgaps:    [%d]\n", b);
+	u_opt.projgaps=b;
 	//}//projgaps= False
 
 	return 0 ;
@@ -601,21 +623,21 @@ int read_mixmatfile(dictionary	*ini, string &MixMatfile){
 	char *s;
 
 	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
-		if(s==NULL){
-			printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_estim_PS:noise_estim\n");
-			return -1;
-		}
-		str=(string)s;
-		if(str.size()!=0){
-			printf("noise_estim :      [%s]\n", s);
-			MixMatfile=s;
+	if(s==NULL){
+		printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_estim_PS:noise_estim\n");
+		return -1;
+	}
+	str=(string)s;
+	if(str.size()!=0){
+		printf("noise_estim :      [%s]\n", s);
+		MixMatfile=s;
 
-		}else{
-			printf("You must give filename containing the mixing matrix of noise components : noise_estim\n");
-			return(-1);
-		}// MixMatfile = Mixlaboca
+	}else{
+		printf("You must give filename containing the mixing matrix of noise components : noise_estim\n");
+		return(-1);
+	}// MixMatfile = Mixlaboca
 
-		return 0;
+	return 0;
 }
 
 int read_directories(dictionary	*ini, struct directories &dir){

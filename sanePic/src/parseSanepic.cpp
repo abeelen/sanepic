@@ -5,18 +5,25 @@
  *      Author: matthieu
  */
 
+#include <iostream>
+
 #include "parseSanepic.h"
-#include "mpi_architecture_builder.h"
-#include "inputFileIO.h"
 #include "parser_functions.h"
 
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
+
+using namespace std;
+
 int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<struct box> & boxFile,std::vector<string> &extentnoiseSP, std::vector<double> &fcut)
+		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut)
 {
 
 	dictionary	*	ini ;
 
-	int nnf=0; /*! extentnoiseSp_list number of elements*/
+	//int nnf=0; /*! extentnoiseSp_list number of elements*/
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -49,8 +56,8 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	if(read_user_options(ini,u_opt)==-1)
 		return -1;
 
-	if(read_noise_file_list(ini, extentnoiseSP)==-1)
-		return -1;
+	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
+		return -1;*/
 
 	if(read_noise_cut_freq(ini, fcut)==-1)
 		return -1;
@@ -66,39 +73,42 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	print_parser(u_opt);
 	// TODO : ajout print_iterw ?
 
+
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+	det.ndet = det.boloname.size();	// ndet = number of detectors
 
 	// Check improper usage
-	if (samples_struct.ntotscan == 0) {
+	if (det.ndet== 0) {
 		cerr << "Must provide at least one channel.\n\n";
 		return -1;
 		//usage(argv[0]);
 	}
 
+	if(samples_struct.ntotscan == 0){
+		cerr << "Must provide at least one scan.\n\n";
+		return -1;
+	}
 
-	// ndet = number of detectors
-
-	det.ndet = det.boloname.size();
 
 
 	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 	printf("Number of bolometers : %ld\n",det.ndet);
 
 	//nnf = number of noise PS files
-	nnf = (int)extentnoiseSP.size();
+	//nnf = (int)extentnoiseSP.size();
 
 	//nnf=1; // Debug
-	if (nnf != 1 && nnf != samples_struct.ntotscan){
+	/*if (nnf != 1 && nnf != samples_struct.ntotscan){
 		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
 		return -1;
-	}
+	}*/
 
 	//if only one extension for all the noisePS file : extend to all the scans
-	if (nnf == 1 && samples_struct.ntotscan > 1)
-		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);
+	/*if (nnf == 1 && samples_struct.ntotscan > 1)
+		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);*/
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
-	if (((int)fcut.size()!=nnf)&&((long)fcut.size()!=samples_struct.ntotscan)){
+	if ((long)fcut.size()!=samples_struct.ntotscan){
 		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
 		exit(0);
 	}

@@ -14,9 +14,16 @@
 #ifndef SANEPOS_PREPROCESS_H_
 #define SANEPOS_PREPROCESS_H_
 
-#include "mpi_architecture_builder.h"
+#include <string>
+#include <vector>
 
-using namespace std;
+
+extern "C" {
+	#include <wcslib/wcs.h>
+}
+
+
+
 
 /*!
  *  find_coordinates_in_map : Output : ra_min, ra_max, dec_min, dec_max
@@ -57,24 +64,21 @@ using namespace std;
 //		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl,int factdupl, long addnpix, unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
 //		long *indpsrc, long npixsrc, int &flagon,bool &pixout);
 
-void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+void computePixelIndex(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
+		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
 		unsigned short *&mask,
 		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
 		long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
 
-void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+void computePixelIndex_HIPE(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
+		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
 		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
 		unsigned short *&mask,
 		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
 		long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
 
-
-// TODO: Remove this
-//int map_offsets(string file_frame_offsets, long ntotscan, float *&scoffsets, foffset *&foffsets, long *fframes, int rank);
 
 #endif /* SANEPOS_PREPROCESS_H_ */

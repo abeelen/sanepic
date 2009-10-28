@@ -29,6 +29,8 @@ extern "C"{
 #include "inputFileIO.h"
 #include "parsePos.h"
 
+using namespace std;
+
 /*int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
 		long &ntotscan, long &ndet,
 		std::vector<string> &bolonames, long *&nsamples,

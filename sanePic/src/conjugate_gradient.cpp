@@ -6,43 +6,23 @@
  */
 
 
-//TODO : Clean this include list
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <cstdlib>
-#include <sstream>
-#include "todprocess.h"
-#include "map_making.h"
-
-#include "binaryFileIO.h"
-#include "dataIO.h"
-#include "imageIO.h"
-#include "inline_IO2.h"
-
-#include "parseSanepic.h"
-#include "sanepic_preprocess.h"
-
-#include "Corr_preprocess.h"
-#include "NoCorr_preprocess.h"
-#include <time.h>
-#include <list>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "conjugate_gradient.h"
 
-extern "C" {
-#include <fftw3.h>
-#include "wcslib/wcs.h"
-}
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <cmath>
+
+#include "imageIO.h"
+#include "Corr_preprocess.h"
+#include "NoCorr_preprocess.h"
+
 
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
+
+using namespace std;
 
 void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long iframe_min, long iframe_max,
 		long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
@@ -137,7 +117,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 			// preconditioner computation : Mp
 			if (CORRon){
-				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
+				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe, bolonames);
 				// read pointing + deproject + fourier transform
 
 				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
@@ -231,7 +211,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 				if (CORRon){
-					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
+					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe,bolonames);
 					// read pointing + deproject + fourier transform
 
 					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
@@ -290,7 +270,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
 
 					if (CORRon){
-						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe);
+						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe,bolonames);
 						// read pointing + deproject + fourier transform
 
 						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
@@ -668,13 +648,13 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 			}
 		}
 
-//
-//		//////// test pour sanePS
-//		fp = fopen("test_signal_pic.txt","w");
-//		for (int i =0;i<npix;i++)
-//			fprintf(fp,"%lf\n",S[i]);
-//		fclose(fp);
-//		////////////////////////////////////
+		//
+		//		//////// test pour sanePS
+		//		fp = fopen("test_signal_pic.txt","w");
+		//		for (int i =0;i<npix;i++)
+		//			fprintf(fp,"%lf\n",S[i]);
+		//		fclose(fp);
+		//		////////////////////////////////////
 
 		fname = '!' + outdir + "optimMap_flux.fits";
 		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);

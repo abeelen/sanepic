@@ -11,13 +11,11 @@
 #include <vector>
 #include <string>
 
-#include "todprocess.h"
-#include "map_making.h"
-#include "inline_IO2.h"
 
-void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir,  string dirfile,
-		 std::vector<string> bolonames, string *fits_table,
+
+void do_PtNd_nocorr(double *PNd, std::string *extentnoiseSp_all, std::string noiseSppreffile,
+		std::string dir,  std::string dirfile,
+		 std::vector<std::string> bolonames, std::string *fits_table,
 		double f_lppix, double f_lppix_Nk,
 		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
 		int fillg, long ns, long napod, long ndet,
@@ -26,8 +24,8 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 
-void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
-		string dirfile, std::vector<string> bolonames, double f_lppix,
+void do_PtNPS_nocorr(double *S, std::string *extentnoiseSp_all, std::string noiseSppreffile, std::string dir,
+		std::string dirfile, std::vector<std::string> bolonames, double f_lppix,
 		double fsamp, bool flgdupl, int factdupl, long ns,
 		long ndet, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits);

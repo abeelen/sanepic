@@ -5,18 +5,29 @@
  *      Author: matthieu
  */
 
-#include "inputFileIO.h"
+
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "parsePS.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
 
+extern "C"{
+#include "iniparser.h"
+#include "dictionary.h"
+}
+
+using namespace std;
+
 int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<string> &extentnoiseSP, string &MixMatfile, string &ellFile, string &signame)
+		struct detectors &det,string &MixMatfile, string &ellFile, string &signame)
 
 {
 	dictionary	*	ini ;
 
-	int nnf=0; // extentnoiseSp_list number of elements
+	//int nnf=0; // extentnoiseSp_list number of elements
 
 
 	// load dictionnary
@@ -50,8 +61,8 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt, struct di
 	if(read_user_options(ini,u_opt)==-1)
 		return -1;
 
-	if(read_noise_file_list(ini, extentnoiseSP)==-1)
-		return -1;
+	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
+		return -1;*/
 
 	if(read_ell_file(ini, ellFile)==-1)
 		return -1;
@@ -88,16 +99,18 @@ int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt, struct di
 		return -1;
 	}
 
+	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+	printf("Number of bolometers : %ld\n",det.ndet);
 
-	nnf = (int)extentnoiseSP.size();
+	//nnf = (int)extentnoiseSP.size();
 	//nnf=1; // Temporarily
-	if (nnf != 1 && nnf != samples_struct.ntotscan){
+	/*if (nnf != 1 && nnf != samples_struct.ntotscan){
 		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
 		exit(1);
 	}
 
 	if (nnf == 1 && samples_struct.ntotscan > 1)
-		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);
+		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);*/
 
 	//  printf("%d\n",nnf);
 

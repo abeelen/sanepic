@@ -1,5 +1,14 @@
 
-//#include "../nrutils/nrutil.h"
+
+
+#include <iostream>
+//#include <cstdlib>
+#include <string>
+#include <fstream>
+#include <cmath>
+#include <fftw3.h>
+#include <vector>
+#include <gsl/gsl_math.h>
 
 #include "todprocess.h"
 
@@ -903,7 +912,7 @@ void dindgen(int nn, double *y)
 void fillgaps(double y[], int ndata, double* yout,  short* flag, double sign)
 {
 	// data are assumed to vary linearly in every window
-	// TODO : CHECK que c'est pas plus court avec les new en dehors boucle
+
 
 	int count, countp, countm, seedpass;
 	bool sp;

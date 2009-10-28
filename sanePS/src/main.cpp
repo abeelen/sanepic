@@ -7,30 +7,20 @@
 
 #include <iostream>
 #include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <list>
 #include <vector>
 #include <string>
-#include <cmath>
-#include <algorithm>
-
-#include <time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 
 
 
 
-#include "dataIO.h"
+
+
 #include "imageIO.h"
 #include "inline_IO2.h"
-
 #include "mpi_architecture_builder.h"
 #include "parsePS.h"
 #include "estimPS.h"
-#include "todprocess.h"
+
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -83,8 +73,6 @@ int main(int argc, char *argv[])
 	com.flgdupl = 0; // 1 if flagged data are put in a separate map
 	int flagon;
 	long long ind_size;
-
-	//int samples_per_frames=20;
 	long long *indpix;
 
 	samples_struct.ntotscan=0; // total number of scans
@@ -111,32 +99,19 @@ int main(int argc, char *argv[])
 	string MixMatfile = "NOFILE";
 	string signame;
 
-	//std::vector<long> /*fframes_vec,nsamples_vec,*/xxi, xxf, yyi, yyf; // box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y)
-	std::vector<string> extentnoiseSP;
-	//std::vector<string> bolonames;
-	//std::vector<string> fitsvect, noisevect;
-	//std::vector<long> scans_index;
-
-	// data parameters
-	//	long *fframes  ; // first frames table ff_in list -> fframes
-	//long *nsamples ; // number of samples table nf_in list -> nsamples
+	//	std::vector<string> extentnoiseSP;
 
 
-	string *extentnoiseSp_all;
+	//string *extentnoiseSp_all;
 	//time t2, t3, t4, t5, dt;
 
 
-	long iframe_min, iframe_max;
-
-
-	//pixdeg = -1.0; // "Size of pixels (deg)"
-
+	long iframe_min=0, iframe_max=0;
 
 	// main loop variables
 	double *S;
 
-
-
+	string fname;
 
 
 	int parsed=0;
@@ -146,7 +121,7 @@ int main(int argc, char *argv[])
 	} else {
 
 		parsed=parse_sanePS_ini_file(argv[1], u_opt, dir, samples_struct,com,det,
-				extentnoiseSP, MixMatfile, ellFile, signame);
+				MixMatfile, ellFile, signame);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -159,8 +134,10 @@ int main(int argc, char *argv[])
 	}
 
 	//TODO : Check in the parser if we have more than one bolometer....
+	long *frames_index;
 
-	extentnoiseSp_all = new string[samples_struct.ntotscan];
+	frames_index = new long [samples_struct.ntotscan];
+	//extentnoiseSp_all = new string[samples_struct.ntotscan];
 
 	//string *fits_table,*noise_table;
 	//long *index_table;
@@ -170,7 +147,7 @@ int main(int argc, char *argv[])
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(extentnoiseSP,  extentnoiseSp_all);
+	//vector2array(extentnoiseSP,  extentnoiseSp_all);
 
 
 	cout << samples_struct.nsamples[0] << endl;
@@ -214,7 +191,7 @@ int main(int argc, char *argv[])
 		//cout << tancoord[0] << " " << tancoord[1] << endl;
 		//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 		struct wcsprm * wcs;
-		read_MapHeader(dir.outdir,wcs, &NAXIS1, &NAXIS2);
+		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
 		//delete [] tancoord;
 		//delete [] tanpix;
@@ -231,19 +208,12 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	/********************* Define parallelization scheme   *******/
-
-	//long *frnum;
-	//frnum = new long[ntotscan+1];
-
-	//	if (rank == 0){
 
 	int test=0;
-	string fname;
 	fname = dir.outdir + parallel_scheme_filename;
 	cout << fname << endl;
-	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,
-			samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
 	if(test==-1){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -251,53 +221,17 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	cout << "Et ca donne ca !" << endl;
-
-	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
-	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-
-	//	}
-
-	//	MPI_Barrier(MPI_COMM_WORLD);
-	//if(rank==0){
-	//MPI_Bcast(nsamples,ntotscan,MPI_UNSIGNED_LONG,0,MPI_COMM_WORLD);
-	// MPI_Bcast(fframes,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//MPI_Bcast(index_table,ntotscan,MPI_LONG,0,MPI_COMM_WORLD);
-	//}
-
-	cout << "mon rank : " << rank << endl;
-
-	iframe_min = -1;
-	//iframe_max = -1;
-
-	for(int ii=0;ii<samples_struct.ntotscan;ii++){
-		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
-			iframe_min=ii;
-			break;
-		}
-	}
-
-	iframe_max=iframe_min;
-	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
-		if(samples_struct.index_table[iframe_max]!=rank){
-			iframe_max--;
-			break;
-		}
-
-	iframe_max++;
-
-	cout << rank << " iframe_min : " << iframe_min << endl;
-	cout << rank << " iframe_max : " << iframe_max << endl;
-
-	for(int ii=0;ii<samples_struct.ntotscan;ii++)
-		samples_struct.fits_table[ii] = dir.dirfile + samples_struct.fits_table[ii];
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
+	//convert vector to standard C array to speed up memory accesses
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
+
+	for(long ii=0; ii<samples_struct.ntotscan;ii++)
+		frames_index[ii] = ii;
+
 #endif
 
 	string fits_filename;
@@ -308,7 +242,7 @@ int main(int argc, char *argv[])
 			ns = samples_struct.nsamples[iframe];
 			//			ff = fframes[iframe];
 			ff = iframe;
-			extentnoiseSp = extentnoiseSp_all[iframe];
+			extentnoiseSp = samples_struct.noise_table[iframe];
 			fits_filename=samples_struct.fits_table[iframe];
 
 			cout << ff ;
@@ -364,12 +298,14 @@ int main(int argc, char *argv[])
 	//clean up
 	//	delete [] fframes;
 	delete [] samples_struct.nsamples;
-	delete [] extentnoiseSp_all;
+	//delete [] extentnoiseSp_all;
 	delete [] S;
 
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 	delete [] samples_struct.noise_table;
+
+	delete [] frames_index;
 
 	return 0;
 }

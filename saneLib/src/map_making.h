@@ -1,14 +1,10 @@
 #ifndef MAP_MAKING
 #define MAP_MAKING
 
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
+
 #include <string>
 #include <fftw3.h>
 
-//#include "/fir_data/patanch/numrec/inc/nrutil.h"
-//#include <matpack/matpack.h>
 
 #define D2PI 6.2831853071795864769252867665590057683943387987502
 
@@ -89,7 +85,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 //void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
-void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
+void readNSpectrum(std::string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
 
 
 /*

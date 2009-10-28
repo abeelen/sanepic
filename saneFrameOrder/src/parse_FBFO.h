@@ -8,30 +8,9 @@
 #ifndef PARSE_FBFO_H_
 #define PARSE_FBFO_H_
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstdlib>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <unistd.h>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <math.h>
-#include "dataIO.h"
-#include "mpi_architecture_builder.h"
+//#include <string>
 
-
-extern "C"{
-#include "iniparser.h"
-#include "dictionary.h"
-}
-
-using namespace std;
-
-int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples,
-		std::vector<string> &fitsvect,std::vector<string> &noisevect,std::vector<long> &scans_index);
+int parse_FBFO(char * ini_name, std::string &tmp_dir, long &ntotscan, long *&nsamples,
+		std::vector<std::string> &fitsvect,std::vector<std::string> &noisevect,std::vector<long> &scans_index);
 
 #endif /* PARSE_FBFO_H_ */

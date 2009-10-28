@@ -4,10 +4,16 @@
  *  Created on: 28 mai 2009
  *      Author: matthieu
  */
-
+#include <iostream>
 #include <vector>
 #include <string>
 
+#include <fftw3.h>
+#include <gsl/gsl_math.h>
+
+#include "todprocess.h"
+#include "map_making.h"
+#include "inline_IO2.h"
 #include "dataIO.h"
 #include "NoCorr_preprocess.h"
 
@@ -101,7 +107,7 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 		//// Read pointing
-		read_samptopix(ns, samptopix, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe,bolonames);
 
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
@@ -213,7 +219,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 	for (long idet=0;idet<ndet;idet++){
 		field = bolonames[idet];
 
-		read_samptopix(ns, samptopix, dir, idet, iframe);
+		read_samptopix(ns, samptopix, dir, idet, iframe,bolonames);
 		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
 		fp = fopen(testfile,"r");
 		fread(samptopix,sizeof(long),ns,fp);

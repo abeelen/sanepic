@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
 		fname = outdir + parallel_scheme_filename;
 
 		/********************* Define parallelization scheme   *******/
-//		cout << ntotscan << endl;
-//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
+		//		cout << ntotscan << endl;
+		//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
 		//getchar();
 		/*for (int ii=0; ii<ntotscan; ii++) {
 			nsamples[ii] *= 20;      // convert nframes to nsamples
@@ -117,22 +117,22 @@ int main(int argc, char *argv[])
 		find_best_order_frames(ruleorder, frnum, nsamples, ntotscan, size);
 		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
 
-//		cout << size << endl;
-//		cout << ntotscan << endl;
-//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
-//		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
-//		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
-// out << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
+		//		cout << size << endl;
+		//		cout << ntotscan << endl;
+		//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
+		//		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
+		//		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
+		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
 		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
 
 		//write parallel schema in a file
 		  parsed=write_ParallelizationScheme(fname, ruleorder, frnum, nsamples, ntotscan, size, fitsvect, noisevect, scans_index);
 		if(parsed==-1){
-		  MPI_Barrier(MPI_COMM_WORLD);
-		  MPI_Finalize();
-		  cerr << "merde" << endl;
-		  exit(0);
+			cerr << "merde" << endl;
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(0);
 		}
 		delete [] frnum;
 		delete [] ruleorder;
