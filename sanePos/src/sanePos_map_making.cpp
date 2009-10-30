@@ -20,9 +20,14 @@ extern "C" {
 using namespace std;
 
 
-void computeMapMinima(std::vector<string> bolonames, string *fits_table,
-		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
+//void computeMapMinima(std::vector<string> bolonames, string *fits_table,
+//		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
+//		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
+
+void computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
+		long iframe_min, long iframe_max, double pixdeg,
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
+{
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
 	// output or update (ra|dec)_(min|max)
@@ -40,12 +45,12 @@ void computeMapMinima(std::vector<string> bolonames, string *fits_table,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=fits_table[iframe];
+		fits_file=samples_struct.fits_table[iframe];
 
 		double *ra, *dec, *phi, **offsets;
 		short *flpoint;
 
-		long ns = nsamples[iframe];
+		long ns = samples_struct.nsamples[iframe];
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...

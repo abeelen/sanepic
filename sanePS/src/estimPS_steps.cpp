@@ -62,17 +62,23 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 	}
 
 
-//	if (ncomp2 < ncomp) ncomp = ncomp2;
+	//	if (ncomp2 < ncomp) ncomp = ncomp2;
 
 }
 
-void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long NAXIS1, long NAXIS2, long long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, /*string bextension, string fextension,*/
-		string dirfile, string dir, long iframe, double *S, long long *indpix,  bool NORMLIN,
-		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
-		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename){
+//void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long NAXIS1, long NAXIS2, long long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, /*string bextension, string fextension,*/
+//		string dirfile, string dir, long iframe, double *S, long long *indpix,  bool NORMLIN,
+//		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
+//		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename)
+
+void common_mode_computation(struct detectors det, struct user_options u_opt, struct input_commons com,
+		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
+		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
+		double &factapod, string fits_filename)
+{
 	//*************************** Read data and compute components
 
-	// commonm2, samptopix, Ps, data, data_lp, fdata1, flag, bfilter, cov, uvec,p,ivec, icov, factapod
+	// samptopix, Ps, data, data_lp, fdata1, bfilter, cov, uvec,p,ivec, icov
 
 	//TODO : The beginning of this function look a lot like write_ftrProcesdata
 	//       Check and replace/reuse if possible...
@@ -89,65 +95,80 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 
 	fftw_plan fftplan;
 
-	sign = new double[ndet];
+
+	double *data, *data_lp, *Ps, *bfilter;
+	long long *samptopix; // sample to pixel projection matrix
+	double **Cov, **iCov;
+	double *p, *uvec, *ivec;
+
+
+	fftw_complex *fdata1;
+
+
+	int factdupl = 1;
+	if(com.flgdupl==1) factdupl = 2;
+
+
+	data = new double[ns]; // raw data
+	data_lp = new double[ns]; // data low passed
+	Ps = new double[ns]; // prewhitened noise ?
+	samptopix = new long long[ns]; // sample to pixel proj matrix
+	bfilter = new double[ns/2+1]; // buttter filter values
+	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
+
+
+	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
+	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
+	p = new double[ncomp];
+	uvec = new double[ncomp];
+	ivec = new double[ncomp];
+
+
+	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
+	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
+
+
+	for(long ii=0;ii<ns/2+1;ii++)
+		bfilter[ii] = 1.0;
+
+
+	sign = new double[det.ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
 
 	// loop over detectors
-	for (long idet=0;idet<ndet;idet++){
+	for (long idet=0;idet<det.ndet;idet++){
 
-		field = bolonames[idet];
+		field = det.boloname[idet];
 
 
-		//TODO : sanePS should use the fits file, not the binary file
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+"_data", 'd');
+
 		read_signal_from_fits(fits_filename, data, field);
 
-
-		//if (fextension != "NOFLAG"){
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+"_flag",  'c');
 		read_flag_from_fits(fits_filename ,field, flag, ns2);
-
-		/*} else {
-			//      printf("NOFLAG\n");
-			for (long ii=0;ii<ns;ii++)
-				flag[ii] = 0;
-		}*/
-
-		/*if (cextension != "NOCALP"){
-				read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
-			} else {
-				//      printf("NOCALP\n");
-				for (ii=0;ii<ns/20;ii++)
-					calp[ii] = 1.0;
-			}*/
 
 
 		//TODO: subtract the signal only if needed
 
-        if (S != NULL){
+		if (S != NULL){
 
-		//******************************* subtract signal
-		//TODO: samptopix should then NOT be in the calling of the function,
-		//      only need in deproject
-		//Read pointing data
-		read_samptopix(ns, samptopix,  dir, idet, iframe, bolonames);
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"r");
-			fread(samptopix,sizeof(long),ns,fp);
-			fclose(fp);*/
+			//******************************* subtract signal
+			//TODO: samptopix should then NOT be in the calling of the function,
+			//      only need in deproject
+			//Read pointing data
+			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe, det.boloname);
 
-		//TODO : Check this function on what it does/should do
-		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,flgdupl,factdupl);
+			//TODO : Check this function on what it does/should do
+			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,com.flgdupl,factdupl);
 
-		for(long ii=0;ii<ns;ii++)
-			data[ii] = data[ii] - Ps[ii];
-        }
-        //TODO : the order of the baseline should be in the ini file
-        //TODO : but this is the special case of estimPS
-		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
-				NORMLIN,NOFILLGAP,remove_polynomia);
+			for(long ii=0;ii<ns;ii++)
+				data[ii] = data[ii] - Ps[ii];
+		}
+		//TODO : the order of the baseline should be in the ini file
+		//TODO : but this is the special case of estimPS
+		MapMakPreProcessData(data,flag,ns,com.napod,4,1.0,data_lp,bfilter,
+				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
@@ -164,15 +185,12 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 		fftw_destroy_plan(fftplan);
 
 
-		write_fdata(ns, fdata1,  dir, idet, ff, bolonames);
+		write_fdata(ns, fdata1,  dir.tmp_dir, idet, ff, det.boloname);
 		/*for(long ii=0;ii<ns/2+1;ii++){
 				fdata_buffer[idet*(ns/2+1)+ii][0]=fdata1[ii][0];
 				fdata_buffer[idet*(ns/2+1)+ii][1]=fdata1[ii][1];
 			}*/
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"w");
-			fwrite(fdata1,sizeof(double), (ns/2+1)*2, fp);
-			fclose(fp);*/
+
 
 
 		/// compute sigma of the noise
@@ -207,7 +225,7 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 	/////////// AtN-1A
 	for (long jj=0;jj<ncomp;jj++)
 		for (long kk=0;kk<ncomp;kk++)
-			for (long ii=0;ii<ndet;ii++)
+			for (long ii=0;ii<det.ndet;ii++)
 				Cov[jj][kk] += mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii];
 
 
@@ -234,9 +252,9 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 
 
 
-	factapod = 0.0;
-	for (long ii=0;ii<ns;ii++)
-		factapod += apodwind[ii]*apodwind[ii]/ns; // factapod ?? apodization factor ?
+	//	factapod = 0.0;
+	//	for (long ii=0;ii<ns;ii++)
+	//		factapod += apodwind[ii]*apodwind[ii]/ns; // factapod ?? apodization factor ?
 
 
 
@@ -251,6 +269,19 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 
 
 	delete [] sign;
+
+	delete [] data ;
+	delete [] data_lp ;
+	delete [] Ps ;
+	delete [] samptopix;
+	delete [] bfilter ;
+	delete [] fdata1 ;
+	delete [] p ;
+	delete [] uvec ;
+	delete [] ivec;
+
+	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
 
 	//----------------------------------- END -------------------------------//
@@ -260,12 +291,18 @@ void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long
 
 
 
-void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string tmp_dir, /*string bextension, string fextension,*/ long &nbins,
-		long &nbins2, long ns, long ff, long ndet, long NAXIS1, long NAXIS2, long long npix,long napod, double *&ell, double **&SpN_all, double *data, /* short *flag,*/
-		long long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long long *indpix, bool NORMLIN,
-		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
-		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
+//void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string tmp_dir, /*string bextension, string fextension,*/ long &nbins,
+//		long &nbins2, long ns, long ff, long ndet, long NAXIS1, long NAXIS2, long long npix,long napod, double *&ell, double *data, /* short *flag,*/
+//		long long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long long *indpix, bool NORMLIN,
+//		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
+//		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
 
+void estimate_noise_PS(struct detectors det, struct directories dir, struct input_commons com,
+		struct user_options u_opt, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
+		double *apodwind, long ncomp, double **mixmat, double **commonm2,
+		double factapod,double **Rellth, double **N, double **P, string fits_filename)
+{
 
 	string nameSpfile, field;
 	string testfile;
@@ -274,6 +311,32 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	long ns2;
 
 	short *flag;
+
+	double *data, *data_lp, *Ps, *bfilter;
+	double  *commontmp;
+	double *Nell, *Nk;
+	long long *samptopix; // sample to pixel projection matrix
+
+
+	int factdupl = 1;
+	if(com.flgdupl==1) factdupl = 2;
+
+
+	data = new double[ns]; // raw data
+	data_lp = new double[ns]; // data low passed
+	Ps = new double[ns]; // prewhitened noise ?
+	samptopix = new long long[ns]; // sample to pixel proj matrix
+	bfilter = new double[ns/2+1]; // buttter filter values
+	commontmp = new double[ns]; //
+
+	Nell = new double[nbins]; // binned noise PS
+	Nk = new double[ns/2+1]; // noise PS
+
+	for(long ii=0;ii<ns/2+1;ii++)
+		bfilter[ii] = 1.0;
+
+
+	fill(commontmp,commontmp+ns,0.0);
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
@@ -284,32 +347,14 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 	/////////////////////////////////////// loop again over detectors
-	for (long idet=0;idet<ndet;idet++){
+	for (long idet=0;idet<det.ndet;idet++){
 
-		field = bolonames[idet];
+		field = det.boloname[idet];
 
 		//TODO: should read data from fits file
 		read_signal_from_fits(fits_filename, data, field);
 
 		read_flag_from_fits(fits_filename ,field, flag, ns2);
-
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
-
-		/*if (fextension != "NOFLAG"){
-			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
-		} else {
-			//      printf("NOFLAG\n");
-			for (long ii=0;ii<ns;ii++)
-				flag[ii] = 0;
-		}*/
-
-		/*if (cextension != "NOCALP"){
-			read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
-		} else {
-			//      printf("NOCALP\n");
-			for (ii=0;ii<ns/20;ii++)
-				calp[ii] = 1.0;
-		}*/
 
 
 		//TODO : This computation is already done when computing the common mode
@@ -317,13 +362,10 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 		//******************************* subtract signal
 
 		//Read pointing data
-		read_samptopix(ns, samptopix,  dir, idet, iframe,bolonames);
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);*/
+		read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe,det.boloname);
 
-		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,flgdupl,factdupl);
+
+		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,com.flgdupl,factdupl);
 
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -331,8 +373,8 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 
-		MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,1.0,data_lp,bfilter,
-				NORMLIN,NOFILLGAP,remove_polynomia);
+		MapMakPreProcessData(data,flag,ns,com.napod,4,1.0,data_lp,bfilter,
+				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 
 
 
@@ -350,12 +392,12 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 		/// measure power spectrum of the uncorrelated part of the noise
-		noisepectrum_estim(data,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(data,ns,ell,(int)nbins,u_opt.fsamp,NULL,Nell,Nk);
 
 		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
 		for (long ii=0;ii<nbins;ii++){
-			Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
+			Rellth[idet*det.ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 	}
@@ -368,7 +410,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ns;jj++)
 			commontmp[jj]=commonm2[ii][jj];
-		noisepectrum_estim(commontmp,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(commontmp,ns,ell,(int)nbins,u_opt.fsamp,NULL,Nell,Nk);
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
 
@@ -387,7 +429,7 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 		// write on disk uncorralated part
-		temp_stream << outdirSpN + "Nellc_" << ii << "_" << ff << ".bi";
+		temp_stream << dir.outdir + "Nellc_" << ii << "_" << ff << ".bi";
 		// récupérer une chaîne de caractères
 		testfile= temp_stream.str();
 		// Clear ostringstream buffer
@@ -407,71 +449,81 @@ void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string ext
 
 
 
-	for (long ii=0;ii<ndet;ii++)
-		for (long kk=0;kk<ndet;kk++)
+	for (long ii=0;ii<det.ndet;ii++)
+		for (long kk=0;kk<det.ndet;kk++)
 			for (long ll=0;ll<ncomp;ll++)
 				for (long jj=0;jj<nbins;jj++)
-					Rellth[ii*ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
+					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
+
+	delete [] data ;
+	delete [] data_lp ;
+	delete [] Ps ;
+	delete [] samptopix;
+	delete [] bfilter ;
+	delete [] commontmp;
+	delete [] Nell;
+	delete [] Nk;
 	//----------------------------------- END -------------------------------//
 }
 
 
-void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, long ncomp, double **mixmat,double fsamp,
-		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
-		double *SPref, std::vector<std::string> bolonames){
+//void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, long ncomp, double **mixmat,double fsamp,
+//		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
+//		double *SPref, std::vector<std::string> bolonames)
+
+void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
+		double factapod,double **Rellexp, double **N, double **P, double *SPref)
+{
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
 	double *data1d; // buffer used to write down 1d array
-	data1d = new double[ndet*nbins];
+	data1d = new double[det.ndet*nbins];
 	string testfile;
+	fftw_complex *fdata1, *fdata2;
+	double * Nell, *Nk;
+
+	Nell = new double[nbins]; // binned noise PS
+	Nk = new double[ns/2+1]; // noise PS
+
+	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
+	fdata2 = new fftw_complex[ns/2+1];
 
 	FILE *fp;
 
 	/////////////////////////////////////// loop again over detectors
-	for (long idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		// read data from disk
-		read_fdata(ns, fdata1, "fdata_",  dir, idet1, ff, bolonames);
+		read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, ff, det.boloname);
 
 		/*for(long ii=0;ii<ns/2+1;ii++){
 			fdata1[ii][0]=fdata_buffer[(ns/2+1)*idet1+ii][0];
 			fdata1[ii][1]=fdata_buffer[(ns/2+1)*idet1+ii][1];
 		}*/
 
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet1,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(fdata1,sizeof(double), (ns/2+1)*2, fp);
-		fclose(fp);*/
 
-
-		for (long idet2=0;idet2<ndet;idet2++) {
+		for (long idet2=0;idet2<det.ndet;idet2++) {
 
 			// read data from disk
-			read_fdata(ns, fdata2, "fdata_",  dir, idet2, ff, bolonames);
+			read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, ff, det.boloname);
 
 			/*for(long ii=0;ii<ns/2+1;ii++){
 						fdata2[ii][0]=fdata_buffer[(ns/2+1)*idet2+ii][0];
 						fdata2[ii][1]=fdata_buffer[(ns/2+1)*idet2+ii][1];
-					}*/
-
-			/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",ff,"_",idet2,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"r");
-			fread(fdata2,sizeof(double), (ns/2+1)*2, fp);
-			fclose(fp);*/
-
+	}*/
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
 
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
+				Rellexp[idet1*det.ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
 
-		cout << "Computing Rellexp :" << idet1*100./ndet << "%\r" << flush ;
+		cout << "Computing Rellexp :" << idet1*100./det.ndet << "%\r" << flush ;
 
 	}
 
@@ -483,14 +535,14 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 		if ( isnan(SPref[ii]) || isinf(SPref[ii]))
 			cout << " Problem in the first detector power spectrum\n";
 
-	for (long idet1=0;idet1<ndet;idet1++)
-		for (long idet2=0;idet2<ndet;idet2++)
+	for (long idet1=0;idet1<det.ndet;idet1++)
+		for (long idet2=0;idet2<det.ndet;idet2++)
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*ndet+idet2][ii] = Rellexp[idet1*ndet+idet2][ii]/SPref[ii]; // normalize to first detector
+				Rellexp[idet1*det.ndet+idet2][ii] = Rellexp[idet1*det.ndet+idet2][ii]/SPref[ii]; // normalize to first detector
 	for (long jj=0;jj<ncomp;jj++)
 		for (long ii=0;ii<nbins;ii++)
 			P[jj][ii] = P[jj][ii]/SPref[ii]; // normalize common mode part
-	for (long jj=0;jj<ndet;jj++)
+	for (long jj=0;jj<det.ndet;jj++)
 		for (long ii=0;ii<nbins;ii++)
 			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
@@ -506,7 +558,7 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	//// write Rellexp to disk and also first guess of parameters
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
 
-	temp_stream << outdirSpN + "Rellexp_" << ff << ".txt";
+	temp_stream << dir.outdir + "Rellexp_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -514,21 +566,21 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 	fp = fopen(testfile.c_str(),"w");
 	for (long jj=0;jj<nbins;jj++)
-		for (long ii=0;ii<ndet;ii++)
-			for (long kk=0;kk<ndet;kk++)
-				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]); // cross power spectrum
+		for (long ii=0;ii<det.ndet;ii++)
+			for (long kk=0;kk<det.ndet;kk++)
+				fprintf(fp,"%10.15g \t",Rellexp[ii*det.ndet+kk][jj]); // cross power spectrum
 	fprintf(fp,"\n");
 	fclose(fp);
 
 	//sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Ninit_" << ff << ".txt";
+	temp_stream << dir.outdir + "Ninit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ndet;ii++){
+	for (long ii=0;ii<det.ndet;ii++){
 		for (long jj=0;jj<nbins;jj++)
 			fprintf(fp,"%10.15g \t",N[ii][jj]); // uncorralated part of the noise
 		fprintf(fp,"\n");
@@ -536,23 +588,23 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 	fclose(fp);
 
 
-	for (long i=0; i< ndet; i++)
+	for (long i=0; i< det.ndet; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
 	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Ninit_" << ff << ".fits";
+	temp_stream << dir.outdir + "Ninit_" << ff << ".fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
-	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
+	write_psd_tofits(testfile.c_str(),det.ndet,nbins,'d', data1d); //resized uncorralated part
 
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "Pinit_" << ff << ".txt";
+	temp_stream << dir.outdir + "Pinit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -567,14 +619,14 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "Ainit_" << ff << ".txt";
+	temp_stream << dir.outdir + "Ainit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ndet;ii++)
+	for (long ii=0;ii<det.ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++){
 			fprintf(fp,"%10.15g \t",mixmat[ii][jj]); // mixing matrix
 			fprintf(fp,"\n");
@@ -584,14 +636,18 @@ void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *el
 
 
 	delete [] data1d;
-
+	delete [] fdata1;
+	delete [] fdata2;
+	delete [] Nell;
+	delete [] Nk;
 	//----------------------------------- END -------------------------------//
 }
 
 
-void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp, long ff,
-		string outdirSpN,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N, double **Cov, double *p,
-		double *uvec, double *ivec, double **iCov, double *SPref, double *ell){
+void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
+		long ff, string outdirSpN,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N,
+		double *SPref, double *ell)
+{
 
 
 	//***** Fourth part
@@ -619,6 +675,24 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 		nbins2 = ib+1;
 		ib++;
 	}
+
+
+
+	double **Cov, **iCov;
+	double *p, *uvec, *ivec;
+
+
+
+	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
+	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
+	p = new double[ncomp];
+	uvec = new double[ncomp];
+	ivec = new double[ncomp];
+
+
+	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
+	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
+
 
 	/////// to be removed:
 	//nbins2 = nbins;
@@ -971,6 +1045,13 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 	//cleaning up
 
+	delete [] p ;
+	delete [] uvec ;
+	delete [] ivec;
+
+	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+
 	delete [] iN;
 	delete [] Pr;
 	free_dmatrix(Rxs,0,ndet-1 ,0,ncomp-1);
@@ -1105,6 +1186,8 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	free_dmatrix(iRhR,0,ndet-1,0,ndet-1);
 
 
+
+
 	return f;
 
 }
@@ -1138,9 +1221,9 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
-		long nbins, double *ell, double **mixmat, double **Rellth, double **Rellexp, long ncomp, long ndet,double **N, double *SPref,
-		double **P){
+void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, double *ell, double **mixmat,
+		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P)
+{
 
 
 	std::ostringstream temp_stream;
@@ -1159,7 +1242,7 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 
 	//string tempo;
 	//tempo = nameSpfile;
-	write_CovMatrix(nameSpfile, bolonames, nbins, ell, Rellth);
+	write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth);
 
 
 	temp_stream << outdirSpN + "Ell_" << ff << ".psd";
@@ -1187,19 +1270,19 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 
 	fp = fopen(nameSpfile.c_str(),"w");
 
-	for (long idet1=0;idet1<ndet;idet1++){
-		for (long idet2=0;idet2<ndet;idet2++){
+	for (long idet1=0;idet1<det.ndet;idet1++){
+		for (long idet2=0;idet2<det.ndet;idet2++){
 
 			///// write power spectrum to disk
-			tempstr1 = bolonames[idet1];
-			tempstr2 = bolonames[idet2];
+			tempstr1 = det.boloname[idet1];
+			tempstr2 = det.boloname[idet2];
 			//sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"-",tempstr2.c_str(),"_",ff,"_exp.psd");
 			//fp = fopen(nameSpfile,"w");
 			fprintf(fp,"%s%s%s\n",tempstr1.c_str(),"-",tempstr2.c_str());
 			fprintf(fp,"%d\n",(int)nbins);
 			for (long ii=0;ii<nbins;ii++){
 				fprintf(fp,"%g\t",ell[ii]);
-				fprintf(fp,"%10.15g\n",(Rellexp[idet1*ndet+idet2][ii]+Rellexp[idet2*ndet+idet1][ii])/2.0*SPref[ii]);
+				fprintf(fp,"%10.15g\n",(Rellexp[idet1*(det.ndet)+idet2][ii]+Rellexp[idet2*(det.ndet)+idet1][ii])/2.0*SPref[ii]);
 			}
 			fprintf(fp,"%g\n",ell[nbins]);
 			//fprintf(fp,"\n");
@@ -1218,7 +1301,7 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ndet;ii++)
+	for (long ii=0;ii<det.ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++)
 			fprintf(fp,"%10.15g \n",mixmat[ii][jj]);
 	fprintf(fp,"\n");
@@ -1228,9 +1311,9 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 
 	//TODO : One should define a fits format for that
 	//**************** Write component power spectra to disk
-	for (long idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<det.ndet;idet1++){
 
-		tempstr1 = bolonames[idet1];
+		tempstr1 = det.boloname[idet1];
 		//sprintf(nameSpfile,"%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"_uncnoise",ff,".psd");
 
 		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << ".psd";
@@ -1250,8 +1333,8 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 		fclose(fp);
 	}
 
-	data1d = new double[ndet*nbins];
-	for (long i=0; i< ndet; i++)
+	data1d = new double[det.ndet*nbins];
+	for (long i=0; i< det.ndet; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
@@ -1261,7 +1344,7 @@ void write_to_disk(string outdirSpN, long ff, std::vector<string> bolonames,
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
 	temp_stream.str("");
-	write_psd_tofits(testfile,nbins,ndet,'d',data1d);
+	write_psd_tofits(testfile,nbins,det.ndet,'d',data1d);
 	delete [] data1d;
 
 

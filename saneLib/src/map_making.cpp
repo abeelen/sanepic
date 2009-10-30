@@ -1034,7 +1034,7 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 
-
+// TODO : struct can be used here ??
 void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 

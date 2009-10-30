@@ -367,9 +367,6 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 		}
 	}
 
-
-
-
 	delete [] ellm;
 
 }
@@ -592,16 +589,6 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 		// suppress effect of aafilter on the Noise Sp
 		for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
-
-
-
-
-
-
-
-
-
-
 
 
 

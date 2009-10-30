@@ -349,12 +349,9 @@ int main(int argc, char *argv[])
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
 			//TODO : WHY fillg is hardcoded to 2 ????
-			write_ftrProcesdata(NULL,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-					npixsrc,samples_struct.ntotscan,addnpix,com.flgdupl,factdupl,
-					2, dir.tmp_dir, dir.dirfile,
-					det.boloname,samples_struct.fits_table, f_lppix,ns,
-					com.napod,det.ndet,u_opt.NORMLIN,com.NOFILLGAP, u_opt.remove_polynomia,
-					iframe);
+			write_ftrProcesdata(NULL,u_opt,samples_struct,com,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					npixsrc,addnpix,f_lppix,ns,	iframe);
+
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -384,8 +381,8 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
-			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,dir.tmp_dir,prefixe,/*termin_internal,*/det.boloname,f_lppix_Nk,
-					u_opt.fsamp,ns,det.ndet/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+					u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -399,10 +396,9 @@ int main(int argc, char *argv[])
 		} else {
 
 
-			do_PtNd_nocorr(PNd, samples_struct.noise_table,dir.tmp_dir,dir.tmp_dir,/*termin_internal,*/dir.dirfile,
-					det.boloname,samples_struct.fits_table,f_lppix,f_lppix_Nk,u_opt.fsamp,samples_struct.ntotscan,addnpix,
-					com.flgdupl,factdupl,2,ns,com.napod,det.ndet/*,size_det,rank_det*/,indpix,indpsrc,
-					NAXIS1, NAXIS2,npix,npixsrc,u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,iframe,NULL);
+			do_PtNd_nocorr(PNd, dir.tmp_dir,u_opt,samples_struct,com,
+					det,f_lppix,f_lppix_Nk,addnpix,
+					ns/*,size_det,rank_det*/,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
 		}

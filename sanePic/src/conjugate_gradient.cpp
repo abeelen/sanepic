@@ -24,23 +24,25 @@
 
 using namespace std;
 
-void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long iframe_min, long iframe_max,
-		long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
-		long long *indpix,
-		struct wcsprm * wcs, long NAXIS1, long NAXIS2,
-		int factdupl, string tmp_dir, long ndet,
-		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames, int iterw,
-		long long *indpsrc, long long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
-		string dirfile, double *&PNdtot, long ntotscan,long long addnpix,bool NORMLIN,bool NOFILLGAP,
-		long napod,bool remove_polynomia, string outdir, string *fits_table){
+//void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long iframe_min, long iframe_max,
+//		long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
+//		long long *indpix,
+//		struct wcsprm * wcs, long NAXIS1, long NAXIS2,
+//		int factdupl, string tmp_dir, long ndet,
+//		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames, int iterw,
+//		long long *indpsrc, long long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
+//		string dirfile, double *&PNdtot, long ntotscan,long long addnpix,bool NORMLIN,bool NOFILLGAP,
+//		long napod,bool remove_polynomia, string outdir, string *fits_table)
+
+void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commons com,struct detectors det,
+		struct directories dir,struct user_options u_opt, long long npix, double* &S,long iframe_min, long iframe_max,
+		std::vector<double> fcut, long long *indpix, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
+		int iterw, long long *indpsrc, long long npixsrc, int flagon, int rank,
+		double *&PNdtot, long long addnpix)
+{
 
 	FILE *fp;
-	//char testfile[100];
 
-
-	//char iterchar[30];
-	//char iframechar[30];
-	//string iterstr, iframestr;
 	bool fru;
 	string fname, testfile;
 	ostringstream temp_stream;
@@ -60,10 +62,8 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 	long ns;
 	long long npixeff;
 
-	//double errarcsec = 15.0; // rejection criteria : scerr[ii] > errarcsec, sample is rejected
-	// source error
-
-	//time t1,t2;
+	int factdupl = 1;
+	if(com.flgdupl==1) factdupl = 2;
 
 	// memory allocs
 	r           = new double[npix];
@@ -81,10 +81,10 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 	map1d       = new double[NAXIS1*NAXIS2];
 
-	for (int idupl = 0;idupl<=flgdupl;idupl++){
+	for (int idupl = 0;idupl<=com.flgdupl;idupl++){
 
 		//Conjugate gradien Inversion
-		if (projgaps || !flagon){
+		if (u_opt.projgaps || !flagon){
 			npixeff = npix;
 		} else {
 			npixeff = npix-1;
@@ -108,26 +108,35 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 		prefixe = "fPs_";
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-			ns = nsamples[iframe];
-			f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
+			ns = samples_struct.nsamples[iframe];
+			f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
 
 
 			//    cout << "[" << rank << "] " << iframe << "/" << iframe_max << endl;
 
 
 			// preconditioner computation : Mp
-			if (CORRon){
-				write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe, bolonames);
+			if (u_opt.CORRon){
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
 				// read pointing + deproject + fourier transform
 
-				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-						f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+				//				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames, // TODO : replace all do_PtNd par la new version avec les struct
+				//						f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+						u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+				//				do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+				//								u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 				// return Pnd = At N-1 d
 			} else {
 
-				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-						f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,indpix,
-						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
+				//				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
+				//						f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,indpix,
+				//						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
+
+				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
+						u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+						iframe, PtNPmatS, Mp, hits);
 			}
 
 		} // end of iframe loop
@@ -197,7 +206,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !flgdupl)) || (!idupl && var_n/var0 > 1e-4)){
+		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){
 			// added brackets in order to avoid warning, mat-27/05
 
 			fill(q,q+npixeff,0.0); // q <= A*d
@@ -206,22 +215,29 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 			prefixe = "fPs_";
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-				ns = nsamples[iframe];
+				ns = samples_struct.nsamples[iframe];
 				//				ff = fframes[iframe];
-				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
+				f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
 
-				if (CORRon){
-					write_tfAS(d,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe,bolonames);
+				if (u_opt.CORRon){
+					write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
 					// read pointing + deproject + fourier transform
 
-					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
+					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+
+					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+							u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
-					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-							f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/indpix,
-							NAXIS1, NAXIS2,npix,iframe,q,NULL,NULL);
+					//					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
+					//							f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/indpix,
+					//							NAXIS1, NAXIS2,npix,iframe,q,NULL,NULL);
+
+					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det,f_lppix_Nk,
+							u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+							iframe, q, NULL, NULL);
 				}
 			} // end of iframe loop
 
@@ -265,23 +281,29 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-					ns = nsamples[iframe];
+					ns = samples_struct.nsamples[iframe];
 					//					ff = fframes[iframe];
-					f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
+					f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
 
-					if (CORRon){
-						write_tfAS(S,indpix,NAXIS1, NAXIS2,npix,flgdupl,factdupl, tmp_dir,ns,ndet,iframe,bolonames);
+					if (u_opt.CORRon){
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
 						// read pointing + deproject + fourier transform
 
-						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
-								f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
-								NULL,NULL);
+						//						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
+						//								f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
+						//								NULL,NULL);
+						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+								u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
-						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-								f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/
-								indpix,NAXIS1, NAXIS2,npix,iframe,PtNPmatS,NULL,NULL);
+						//						do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
+						//								f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/
+						//								indpix,NAXIS1, NAXIS2,npix,iframe,PtNPmatS,NULL,NULL);
+
+						do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
+								u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+								iframe, PtNPmatS, NULL, NULL);
 					}
 				} // end of iframe loop
 
@@ -359,7 +381,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					}
 
 
-					fname = '!' + outdir + "optimMap_" + "_noisevar.fits"; // write preconditioner
+					fname = '!' + dir.outdir + "optimMap_" + "_noisevar.fits"; // write preconditioner
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
@@ -373,7 +395,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 							}
 						}
 					}
-					fname = '!' + outdir + "binMap_" + "_flux.fits";
+					fname = '!' + dir.outdir + "binMap_" + "_flux.fits";
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
@@ -390,7 +412,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					}
 
 					if (addnpix){
-						for (long iframe = 0;iframe<ntotscan;iframe++){
+						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 							for (long ii=0; ii<NAXIS1; ii++) {
 								for (long jj=0; jj<NAXIS2; jj++) {
 									mi = jj*NAXIS1 + ii;
@@ -401,7 +423,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 						}
 					}
 
-					fname = '!' + outdir + "optimMap_" + "_hits.fits";
+					fname = '!' + dir.outdir + "optimMap_" + "_hits.fits";
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
@@ -413,7 +435,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					}
 
 					if (addnpix){
-						for (long iframe = 0;iframe<ntotscan;iframe++){
+						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 							for (long ii=0; ii<NAXIS1; ii++) {
 								for (long jj=0; jj<NAXIS2; jj++) {
 									mi = jj*NAXIS1 + ii;
@@ -423,7 +445,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 							}
 						}
 
-						fname = '!' + outdir + "optimMap_" + "_invnoisevaruncpix.fits";
+						fname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
 						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 					}
@@ -446,7 +468,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					/*sprintf(iterchar,"%d",iter);
 					iterstr = iterchar;
 					fname = '!' + outdir + "optimMap_" + "_flux" + iterstr + "b.fits";*/
-					temp_stream << "!" + outdir + "optimMap_" + "flux" << iter << "b.fits";
+					temp_stream << "!" + dir.outdir + "optimMap_" + "flux" << iter << "b.fits";
 
 
 					// récupérer une chaîne de caractères
@@ -456,7 +478,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-					if (flgdupl){
+					if (com.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
@@ -472,7 +494,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
 						fname = '!' + outdir + "optimMap_" + "_fluxflags" + iterstr + "b.fits";*/
-						temp_stream << "!" + outdir + "optimMap_" + "_fluxflags" << iter << "b.fits";
+						temp_stream << "!" + dir.outdir + "optimMap_" + "_fluxflags" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -488,7 +510,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 								map1d[mi] = 0.0;
 							}
 						}
-						for (long iframe = 0;iframe<ntotscan;iframe++){
+						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 							for (long ii=0; ii<NAXIS1; ii++) {
 								for (long jj=0; jj<NAXIS2; jj++) {
 									mi = jj*NAXIS1 + ii;
@@ -503,7 +525,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
 						fname = '!' + outdir + "optimMap_" + termin + "_fluxuncpix_" + iterstr + "b.fits";*/
-						temp_stream << "!" + outdir + "optimMap_" + "_fluxuncpix_" << iter << "b.fits";
+						temp_stream << "!" + dir.outdir + "optimMap_" + "_fluxuncpix_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -518,7 +540,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 
 				//	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"ConvFile_",termin.c_str(),".txt");
-				temp_stream << outdir + "ConvFile.txt";
+				temp_stream << dir.outdir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
 				testfile= temp_stream.str();
@@ -554,7 +576,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 
 
-		if  ((projgaps || (flgdupl)) && !idupl){
+		if  ((u_opt.projgaps || (com.flgdupl)) && !idupl){
 
 
 			fill(PNd,PNd+npix,0.0);
@@ -563,28 +585,37 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-				ns = nsamples[iframe];
+				ns = samples_struct.nsamples[iframe];
 				//				ff = fframes[iframe];
-				f_lppix = f_lp*double(ns)/fsamp;
-				f_lppix_Nk = fcut[iframe]*double(ns)/fsamp;
+				f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp;
+				f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
 
-				if (CORRon){
+				if (u_opt.CORRon){
 
-					write_ftrProcesdata(S,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
-							tmp_dir,dirfile,bolonames,fits_table,f_lppix,ns,
-							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
+					//					write_ftrProcesdata(S,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
+					//							tmp_dir,dirfile,bolonames,fits_table,f_lppix,ns,
+					//							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
+
+					write_ftrProcesdata(S,u_opt,samples_struct,com,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+							npixsrc,addnpix,f_lppix,ns,	iframe);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
-					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+					//					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
+					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+							u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+
 					// return Pnd = At N-1 d
 				} else {
 
-					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,
-							bolonames, fits_table, f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
-							flgdupl,factdupl,2,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
-							NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
+					//					do_PtNd_nocorr(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,
+					//							bolonames, fits_table, f_lppix,f_lppix_Nk,fsamp,ntotscan,addnpix,
+					//							flgdupl,factdupl,2,ns,napod,ndet,/*size_det,rank_det,*/indpix,indpsrc,
+					//							NAXIS1, NAXIS2,npix,npixsrc,NORMLIN,NOFILLGAP,remove_polynomia,iframe,S);
+
+					do_PtNd_nocorr(PNd,dir.tmp_dir,u_opt,samples_struct,com,det, f_lppix, f_lppix_Nk,
+							addnpix, ns,indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc, iframe, S);
 				}
 			} // end of iframe loop
 
@@ -610,7 +641,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 #endif
 
 	//sprintf(testfile,"%s%s%s%s",outdir.c_str(),"testfile_",termin.c_str(),".txt");
-	temp_stream << outdir + "testfile.txt";
+	temp_stream << dir.outdir + "testfile.txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -656,7 +687,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 		//		fclose(fp);
 		//		////////////////////////////////////
 
-		fname = '!' + outdir + "optimMap_flux.fits";
+		fname = '!' + dir.outdir + "optimMap_flux.fits";
 		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 
@@ -672,12 +703,12 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 		}
 
 
-		fname = '!' + outdir + "optimMap_noisevar.fits";
+		fname = '!' + dir.outdir + "optimMap_noisevar.fits";
 		//		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 		if (addnpix){
-			for (long iframe = 0;iframe<ntotscan;iframe++){
+			for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 				fru = 0;
 				for (long ii=0; ii<NAXIS1; ii++) {
 					for (long jj=0; jj<NAXIS2; jj++) {
@@ -694,7 +725,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 
 				if (fru){
 
-					temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
+					temp_stream << "!" + dir.outdir + "optimMap_flux_fr" << iframe << ".fits";
 					// récupérer une chaîne de caractères
 					fname= temp_stream.str();
 					// Clear ostringstream buffer
@@ -713,7 +744,7 @@ void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long if
 					}
 
 					//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-					temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
+					temp_stream << "!" + dir.outdir + "optimMap_noisevar_fr" << iframe << ".fits";
 
 					// récupérer une chaîne de caractères
 					fname= temp_stream.str();

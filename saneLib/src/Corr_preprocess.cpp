@@ -23,16 +23,14 @@
 using namespace std;
 
 
-void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, int factdupl,
-		string dir, long ns, long ndet, long iframe, std::vector<string> bolonames){
+//void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+//		bool flgdupl, string dir, long ns, long ndet, long iframe, std::vector<string> bolonames)
+
+void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, string dir, long ns, long iframe)
+{
 
 
-	//long idet1;
-	//long ndata = ns+2*marge;
-
-	//FILE *fp;
-	//char testfile[100];
 
 	double *Ps;
 	long long *samptopix;
@@ -44,16 +42,15 @@ void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long lon
 	Ps = new double[ns];
 	fdata = new fftw_complex[ns/2+1];
 
+	int factdupl = 1;
+	if(flgdupl==1)  factdupl = 2;
+
 
 	//for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
-	for (long idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, idet1, iframe, bolonames);
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);*/
+		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
 
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
@@ -63,11 +60,7 @@ void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long lon
 		fftw_destroy_plan(fftplan);
 
 
-		write_fPs(ns, fdata, dir, idet1, iframe, bolonames);
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fPs_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"w");
-		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
-		fclose(fp);*/
+		write_fPs(ns, fdata, dir, idet1, iframe, det.boloname);
 
 	}
 
@@ -78,19 +71,23 @@ void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long lon
 }
 
 
-void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
-		int fillg, string dir, string dirfile,
-		std::vector<string> bolonames,string *fits_table, double f_lppix, long ns,
-		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia,
-		long iframe){
+//void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+//		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
+//		int fillg, string dir, string dirfile,
+//		std::vector<string> bolonames,string *fits_table, double f_lppix, long ns,
+//		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia,
+//		long iframe)
+
+void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples samples_struct, struct input_commons com,
+		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
+		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe)
+{
 
 
 	//long ii, idet1;
 	//long ndata = ns+2*marge;
 
-	double *data,/* *calp,*/ *bfilter, *data_lp, *Ps;
-	//unsigned char *rejectsamp;
+	double *data, *bfilter, *data_lp, *Ps;
 	short *flpoint, *flag;
 	long long *samptopix;
 
@@ -110,7 +107,7 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 	//calp =  new double[ns];
 	//flag =  new unsigned char[ns];
 	//flpoint = new unsigned char[ns];
-//	flag = new short[ns];
+	//	flag = new short[ns];
 	flpoint = new short[ns];
 	//rejectsamp = new unsigned char[ns];
 
@@ -124,33 +121,26 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 	data2= new double[ns];
 	flag2 = new unsigned char[ns];
 
-	fits_filename = fits_table[iframe];
+	int factdupl = 1;
+	if(com.flgdupl==1)		factdupl = 2;
+
+	fits_filename = samples_struct.fits_table[iframe];
 	cout << "fits file : " << fits_filename << endl;
 
-	for (long idet1=0;idet1<ndet;idet1++){
+	for (long idet1=0;idet1<det.ndet;idet1++){
 
-		field1 = bolonames[idet1];
-		//     cout << "Inside write_ftrProcessdata " << endl;
-		//    cout << " field 1 : " << field1 << endl;
+		field1 = det.boloname[idet1];
 
 		if (S != NULL){
-			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
 			// TODO: What is the point of this ?? Do we really need this ?
 			read_flpoint_from_fits(fits_filename, flpoint);
-			//cout << "S != NULL !!!!!!\n";
 			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
 		}
 
-		//ff=0;
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, data2, field1+"_data", 'd');
-		//cout << "data2 : " <<  setprecision(14)  << data2[0] << " " << data2[1] << " " << data2[2] << " "  << data2[ns -1] << endl;
 		read_signal_from_fits(fits_filename, data, field1);
 
 		//cout << "data : " <<  setprecision(14)  << data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
-		//if (fextension != "NOFLAG"){
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, flag2, field1+"_flag",  'c');
 		//cout << "flag2 : " << flag2[0] <<  flag2[1] << flag2[2] << flag2[ns -1] << endl;
 		long test_ns;
 		read_flag_from_fits(fits_filename , field1, flag, test_ns);
@@ -164,48 +154,19 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 				cout << "flag!=flag2" << " ii : " << ii << " : "<< flag[ii] << flag2[ii] << endl;
 				//getchar();
 			}*/
-		/*} else {
-			//      printf("NOFLAG\n");
-			for (long ii=0;ii<ns;ii++)
-				flag[ii] = 0;
-		}*/
-
-
-		//getchar();
-
-		//if (cextension != "NOCALP"){
-		//read_data_std(dirfile, ff, 0, ns/20, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
-		//read_data_std(dirfile, ff, 0, ns/samples_per_frame, calp, field1+cextension, 'd'); // attention avec le samples_per_frame !!!
-		//} else {
-		//      printf("NOCALP\n");
-		//for (ii=0;ii<ns/20;ii++)
-		//for (ii=0;ii<ns/samples_per_frame;ii++) // attention 20 avant
-		//calp[ii] = 1.0;
-		//}
 
 
 
 		if (S != NULL){
 			//// Read pointing
-			read_samptopix(ns, samptopix, /* termin, */ dir, idet1, iframe, bolonames);
-
-			/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-			fp = fopen(testfile,"r");
-			fread(samptopix,sizeof(long),ns,fp);
-			fclose(fp);*/
+			read_samptopix(ns, samptopix, tmp_dir, idet1, iframe, det.boloname);
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
-
-			//for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
-			/*for (long ii=0;ii<ns;ii++)
-				//if ((flag[ii] & 1) != 0  || (flpoint[ii] & 1) != 0 || (scerr[ii] > errarcsec))
-				if ((flag[ii] == 1) || (flpoint[ii] == 1))
-					rejectsamp[ii] = 1;*/
 		}
 
 
@@ -214,12 +175,12 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 		//TODO : Changed here to poly of order 1 to test.... Should be in the ini file !!!
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,1,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP,remove_polynomia,Ps);
+			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
+					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,1,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP,remove_polynomia);
+			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
+					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 		}
 
 		//cout << "data apres map : " << setprecision(14)  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
@@ -230,51 +191,44 @@ void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long 
 		fftw_destroy_plan(fftplan);
 
 		//write fourier transform to disk
-		write_fdata(ns, fdata, /* termin, */ dir, idet1, iframe, bolonames);
-		//fdatas[idet1][]
-
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"fdata_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"w");
-		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
-		fclose(fp);*/
+		write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
 
 	}
 
 
-	//delete[] scerr;
+
 	delete[] data;
 	delete[] data_lp;
-	//delete[] calp;
 	delete[] flag;
 	delete[] flpoint;
 	delete[] samptopix;
 	delete[] Ps;
 	delete[] bfilter;
 	delete[] fdata;
-	//delete[] rejectsamp;
-
 
 }
 
 
 
 
-void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string prefixe,  std::vector<string> bolonames,
-		double f_lppix, double fsamp, long ns, long ndet,
+//void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
+//		string dir, string prefixe,  std::vector<string> bolonames,
+//		double f_lppix, double fsamp, long ns, long ndet,
+//		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
+//		double *Mp, long *hits)
+void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
+		struct detectors det, double f_lppix, double fsamp, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		double *Mp, long *hits){
+		double *Mp, long *hits)
+
+{
 
 
 	long  nbins;
-	//double dnbins;
-	//long ndata = ns+2*marge;
 	string field1, field2;
 	string extentNoiseSp;
 
 	string nameSpfile;
-	//char testfile[100];
-	//FILE *fp;
 
 	long long *samptopix;
 	double *ell, *SpN, *bfilter, *bfilter_, *Nk, *Nd;
@@ -295,14 +249,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 	double **SpN_all;
 
-	//long ndet2;
-	//time_t t1,t2,t3,t4;
-
-	//FILE *fp;
-
-
 	for (long ii=0;ii<ns/2+1;ii++){
-		//powered=pow(double(ii)/f_lppix, 16);
 		powered=gsl_pow_int(double(ii)/f_lppix,16);
 		bfilter[ii] = powered /(1.0+powered);
 	}
@@ -313,45 +260,25 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 	//cout << rank << " " << size << endl;
 
 	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
-	for (long idet1=0;idet1<ndet;idet1++){
-		field1 = bolonames[idet1];
+	for (long idet1=0;idet1<det.ndet;idet1++){
+		field1 = det.boloname[idet1];
 		//cout << field1 << endl;
 
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, /* termin,*/ dir, idet1, iframe, bolonames);
+		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
 
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet1,"_",termin.c_str(),".bi");
-		if ((fp = fopen(testfile,"r"))!=NULL){
-			fread(samptopix,sizeof(long),ns,fp);
-			fclose(fp);
-		}else{
-			cerr << "ERROR: Can't find Read pointing data file " << testfile << ". Exiting. \n";
-			exit(1);
-		}*/
-
-		//cout << "samptopix" << endl;
 
 		//**************************************** Noise power spectrum
 		extentNoiseSp = extentnoiseSp_all[iframe];
-		nameSpfile = noiseSppreffile + field1 + "-all" + extentNoiseSp;
-
-		//cout << nameSpfile << endl;
-
-		//		sprintf(nameSpfile,"%s%s%s%s",noiseSppreffile.c_str(),field1.c_str(),"-all",extentnoiseSp.c_str());
-
-		//cout << "avant read" << endl;
+		nameSpfile = dir + field1 + "-all" + extentNoiseSp;
 
 		//read noise PS file
 		long ndet2;
-		read_InvNoisePowerSpectra(noiseSppreffile, field1,  extentNoiseSp, &nbins, &ndet2, &ell, &SpN_all);
-		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+		read_InvNoisePowerSpectra(dir, field1,  extentNoiseSp, &nbins, &ndet2, &ell, &SpN_all);
+		if(det.ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 		SpN = new double[nbins];
-
-
-		//*****************************************
-
 
 
 		//Init N-1d
@@ -361,27 +288,12 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 		}
 
 
-
-		for (long idet2=0;idet2<ndet;idet2++){
-			field2 = bolonames[idet2];
-
-
-
+		for (long idet2=0;idet2<det.ndet;idet2++){
+			field2 = det.boloname[idet2];
 
 
 			//read Fourier transform of the data
-			read_fdata(ns, fdata, prefixe, /* termin, */ dir, idet2, iframe, bolonames);
-
-			/*sprintf(testfile,"%s%s%s%ld%s%ld%s%s%s",dir.c_str(),prefixe.c_str(),"_",iframe,"_",idet2,"_",termin.c_str(),".bi");
-			if((fp = fopen(testfile,"r"))!=NULL){
-				fread(fdata,sizeof(double), (ns/2+1)*2, fp);
-				fclose(fp);
-			}else{
-				cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
-				exit(1);
-			}*/
-			//cout << "apres fdata" << endl;
-
+			read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
 
 
 			//****************** Cross power spectrum of the noise  ***************//
@@ -389,8 +301,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 				SpN[ii] = SpN_all[idet2][ii];
 				//cout << SpN[ii] << " ";
 			}
-			//cout << endl;
-			//getchar();
+
 
 
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
@@ -420,12 +331,9 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 
 		}// end of idet2 loop
 
-		//cout << "fftw" << endl;
 		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
-		//cout << "apres fftw" << endl;
-
 
 		for (long ii=0;ii<ns;ii++){
 			if ((ii < 0) || (ii >= ns)){
@@ -442,11 +350,10 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
 			}
 		}
 
-		//cout << "avant delete" << endl;
+
 		delete[] ell;
 		delete[] SpN;
-		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
-		//cout << "delete" << endl;
+		free_dmatrix(SpN_all,0,det.ndet-1,0,nbins-1);
 
 
 	}// end of idet1 loop

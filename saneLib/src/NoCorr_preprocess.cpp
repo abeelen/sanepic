@@ -20,29 +20,30 @@
 
 using namespace std;
 
-void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		string dir, string dirfile,
-		std::vector<string> bolonames, string *fits_table,
-		double f_lppix, double f_lppix_Nk,
-		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-		int fillg, long ns, long napod, long ndet,
-		long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-		long long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S){
+//void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
+//		string dir, string dirfile,
+//		std::vector<string> bolonames, string *fits_table,
+//		double f_lppix, double f_lppix_Nk,
+//		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
+//		int fillg, long ns, long napod, long ndet,
+//		long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+//		long long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S)
+
+void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
+		struct samples samples_struct, struct input_commons com, struct detectors det, double f_lppix, double f_lppix_Nk,
+		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+		long long npixsrc, long iframe, double *S)
+{
 
 
-
-	//long ii, idet;
-	//long ndata = ns+2*marge;
 	string field;
 	string extentnoiseSp;
 
 	string nameSpfile;
-	//char nameSpfile[100];
-	//char testfile[100];
+
 
 	long long *samptopix;
-	double *bfilter, *Nk, *data, *data_lp, /* *calp,*/ *Ps;
-	//unsigned char *rejectsamp;
+	double *bfilter, *Nk, *data, *data_lp, *Ps;
 	short *flag, *flpoint;
 	double powered;
 
@@ -50,95 +51,63 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	bfilter = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 
-	//scerr = new double[ns];
+
 	data =  new double[ns];
 	data_lp = new double[ns];
-	//calp =  new double[ns];
-	//flag =  new unsigned char[ns];
 	flpoint = new short[ns];
-//	flag =  new short[ns];
-	//flpoint = new unsigned char[ns];
-
-	//rejectsamp = new unsigned char[ns];
 	Ps = new double[ns];
+
+	int factdupl = 1;
+	if (com.flgdupl) factdupl=2;
+
 
 	string fits_filename;
 
-	//FILE *fp;
-
-	fits_filename = fits_table[iframe];
+	fits_filename = samples_struct.fits_table[iframe];
 
 
 	//for (long idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-	for (long idet=0;idet<ndet;idet++){
-		field = bolonames[idet];
+	for (long idet=0;idet<det.ndet;idet++){
+		field = det.boloname[idet];
 
 
 
 		if (S != NULL){
-			//read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, 'd');
-			//read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
 			read_flpoint_from_fits(fits_filename, flpoint);
 		}
 
 		read_signal_from_fits(fits_filename, data, field);
 
-		//read_data_std(dirfile, ff, shift_data_to_point, ns, data, field+bextension, 'd');
 
 		long test_ns;
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
 		// TODO : Test sizes...
 
-		/*if (fextension != "NOFLAG"){
-			read_data_std(dirfile, ff, shift_data_to_point, ns, flag, field+fextension,  'c');
-		} else {
-			//      printf("NOFLAG\n");
-			for (long ii=0;ii<ns;ii++)
-				flag[ii] = 0;
-		}*/
-
-		//if (cextension != "NOCALP"){
-		//	read_data_std(dirfile, ff, 0, ns/20, calp, field+cextension, 'd');
-		//} else {
-		//      printf("NOCALP\n");
-		//for (ii=0;ii<ns/20;ii++)
-		//	calp[ii] = 1.0;
-		//}
 
 
 		//// Read pointing
-		read_samptopix(ns, samptopix, dir, idet, iframe,bolonames);
-
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);*/
+		read_samptopix(ns, samptopix, tmp_dir, idet, iframe,det.boloname);
 
 
 		if (S != NULL){
 
 			if (addnpix){
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl,ntotscan,indpsrc,npixsrc);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 			} else {
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,fillg,factdupl);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
 
-			//	for (long ii=0;ii<ns;ii++) rejectsamp[ii] = 0;
-			//for (long ii=0;ii<ns;ii++)
-			//if ((flag[ii] & 1) != 0 ||  (flpoint[ii] & 1) != 0 || (scerr[ii] > errarcsec))
-			//if ((flag[ii] ==1) ||  (flpoint[ii] == 1))
-			//rejectsamp[ii] = 1;
 		}
 
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP,remove_polynomia,Ps);
+			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter,
+					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,/*calp,*/ns,napod,4,f_lppix,data_lp,bfilter,
-					NORMLIN,NOFILLGAP,remove_polynomia);
+			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter,
+					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 		}
 
 
@@ -154,10 +123,10 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 		//****************** Compute (or read) input power spectrum of the NOISE  ***************//
-		extentnoiseSp = extentnoiseSp_all[iframe];
-		nameSpfile = noiseSppreffile + field + extentnoiseSp;
-		//sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
-		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
+		extentnoiseSp = samples_struct.noise_table[iframe];
+		nameSpfile = tmp_dir + field + extentnoiseSp;
+
+		readNSpectrum(nameSpfile,bfilter,ns,u_opt.fsamp,Nk);
 
 
 		//********************** compute P^t N-1 d ************************//
@@ -170,13 +139,13 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 	delete[] samptopix;
 	delete[] bfilter;
 	delete[] Nk;
-	//delete[] scerr;
+
 	delete[] data;
 	delete[] data_lp;
-	//delete[] calp;
+
 	delete[] flag;
 	delete[] flpoint;
-	//delete[] rejectsamp;
+
 	delete[] Ps;
 
 
@@ -186,21 +155,23 @@ void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffi
 
 
 
-void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
-		/* string termin, */ string dirfile, std::vector<string> bolonames, double f_lppix,
-		double fsamp, bool flgdupl, int factdupl, long ns,
-		long ndet, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		long iframe, double *PtNPmatS, double *Mp, long *hits){
+//void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffile, string dir,
+//		/* string termin, */ string dirfile, std::vector<string> bolonames, double f_lppix,
+//		double fsamp, bool flgdupl, int factdupl, long ns,
+//		long ndet, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+//		long iframe, double *PtNPmatS, double *Mp, long *hits)
 
+void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct directories dir,
+		struct detectors det,double f_lppix,double fsamp, bool flgdupl, long ns,
+		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		long iframe, double *PtNPmatS, double *Mp, long *hits)
 
+{
 
-	//long ii, idet;
-	//long ndata = ns;
 	string field;
 	string extentnoiseSp;
 	string nameSpfile;
-	//char nameSpfile[100];
-	//char testfile[100];
+
 
 	long long *samptopix;
 	double *bfilter, *Nk, *Ps;
@@ -211,19 +182,16 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 	Nk = new double[ns/2+1];
 	Ps = new double[ns];
 
-	//FILE *fp;
 
+	int factdupl = 1;
+	if(flgdupl==1) factdupl = 2;
 
 
 	//for (long idet=rank*ndet/size;idet<(rank+1)*ndet/size;idet++){
-	for (long idet=0;idet<ndet;idet++){
-		field = bolonames[idet];
+	for (long idet=0;idet<det.ndet;idet++){
+		field = det.boloname[idet];
 
-		read_samptopix(ns, samptopix, dir, idet, iframe,bolonames);
-		/*sprintf(testfile,"%s%s%ld%s%ld%s%s%s",dir.c_str(),"samptopix_",iframe,"_",idet,"_",termin.c_str(),".bi");
-		fp = fopen(testfile,"r");
-		fread(samptopix,sizeof(long),ns,fp);
-		fclose(fp);*/
+		read_samptopix(ns, samptopix, dir.tmp_dir, idet, iframe,det.boloname);
 
 
 		// AS
@@ -239,7 +207,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, string noiseSppreffil
 
 		extentnoiseSp = extentnoiseSp_all[iframe];
 		//sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
-		nameSpfile = noiseSppreffile + field + extentnoiseSp;
+		nameSpfile = dir.tmp_dir + field + extentnoiseSp;
 		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
 

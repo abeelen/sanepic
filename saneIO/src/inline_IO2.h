@@ -16,8 +16,6 @@ extern "C" {
 }
 
 
-//using namespace std;
-
 // sanePos functions
 
 /*!

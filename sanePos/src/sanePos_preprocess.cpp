@@ -327,13 +327,19 @@ using namespace std;
 //
 
 
-void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
-		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,
-		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
-		long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout){
+//void computePixelIndex(long ntotscan,string outdir, std::vector<string> bolonames,
+//		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+//		struct wcsprm & wcs, long NAXIS1, long NAXIS2,unsigned short *&mask,
+//		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
+//		long long addnpix, long long *&pixon, int rank,
+//		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+
+void computePixelIndex(string outdir, std::vector<string> bolonames,
+		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,unsigned short *&mask,
+		int factdupl,long long addnpix, long long *&pixon, int rank,
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+{
 
 	/*!
 	 * \fn Get coordinates of pixels that are seen
@@ -346,14 +352,14 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 	long ndet = bolonames.size();
 
 	string field;
-
 	string fits_file;
+
 	long ns;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=fits_table[iframe];
-		ns = nsamples[iframe];
+		fits_file=samples_struct.fits_table[iframe];
+		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec, *phi, **offsets;
 		short *flpoint;
@@ -485,9 +491,9 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
-				if (NOFILLGAP && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
+				if (com.NOFILLGAP && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
 
-				if ((ii < napod) || (ii >= ns-napod)) bolo_flag[ii] = 3;
+				if ((ii < com.napod) || (ii >= ns-com.napod)) bolo_flag[ii] = 3;
 
 			}
 
@@ -522,7 +528,7 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 
 				case 1:	   // sample is flagged
 
-					if (flgdupl){ // if flagged pixels are in a duplicated map
+					if (com.flgdupl){ // if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii]; // index in the second map...
 						pixon[NAXIS1*NAXIS2 + ll] += 1;
 						samptopix[ii] = NAXIS1*NAXIS2 + ll;
@@ -569,13 +575,20 @@ void computePixelIndex(long ntotscan,string outdir, std::vector<string> boloname
 	} // end of iframe loop
 }
 
-void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bolonames,
-		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
-		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,
-		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
-		long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout){
+//void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bolonames,
+//		string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+//		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+//		unsigned short *&mask,
+//		long napod, bool NOFILLGAP,bool flgdupl, int factdupl,
+//		long long addnpix, long long *&pixon, int rank,
+//		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+
+void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
+		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,unsigned short *&mask,
+		int factdupl,long long addnpix, long long *&pixon, int rank,
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+{
 
 	/*!
 	 * \fn Get coordinates of pixels that are seen
@@ -595,8 +608,8 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=fits_table[iframe];
-		ns = nsamples[iframe];
+		fits_file=samples_struct.fits_table[iframe];
+		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec;
 		short *flag;
@@ -695,9 +708,9 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))         bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >=  NAXIS2)) bolo_flag[ii] = 2;
-				if (NOFILLGAP && (bolo_flag[ii] == 1 ))       bolo_flag[ii] = 2;
+				if (com.NOFILLGAP && (bolo_flag[ii] == 1 ))       bolo_flag[ii] = 2;
 
-				if ((ii < napod) || (ii >= ns-napod)) bolo_flag[ii] = 3;
+				if ((ii < com.napod) || (ii >= ns-com.napod)) bolo_flag[ii] = 3;
 
 			}
 
@@ -732,7 +745,7 @@ void computePixelIndex_HIPE(long ntotscan,string outdir, std::vector<string> bol
 
 				case 1:	   // sample is flagged
 
-					if (flgdupl){ // if flagged pixels are in a duplicated map
+					if (com.flgdupl){ // if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii]; // index in the second map...
 						pixon[NAXIS1*NAXIS2 + ll] += 1;
 						samptopix[ii] = NAXIS1*NAXIS2 + ll;

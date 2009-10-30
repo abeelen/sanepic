@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
 	//for(long ii=0; ii<samples_struct.ntotscan;ii++)
-		//frames_index[ii] = ii;
+	//frames_index[ii] = ii;
 
 #endif
 
@@ -390,8 +390,12 @@ int main(int argc, char *argv[])
 	// (3 - define center of the map and radius -> define map parameters from that)
 
 
-	computeMapMinima(det.boloname,samples_struct.fits_table,
-			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
+	//	computeMapMinima(det.boloname,samples_struct.fits_table,
+	//			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
+	//			ra_min,ra_max,dec_min,dec_max);
+
+	computeMapMinima(det.boloname,samples_struct,
+			iframe_min,iframe_max,com.pixdeg,
 			ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
@@ -491,11 +495,10 @@ int main(int argc, char *argv[])
 	//cout << "avant compute" << endl;
 	printf("[%2.2i] Compute Pixels Indices\n",rank);
 
-	computePixelIndex(samples_struct.ntotscan,dir.tmp_dir, det.boloname,
-			samples_struct.fits_table, iframe_min, iframe_max, samples_struct.nsamples,
+	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+			com,iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
-			mask,
-			com.napod, com.NOFILLGAP, com.flgdupl,factdupl,
+			mask,factdupl,
 			addnpix, pixon, rank,
 			indpsrc, npixsrc, flagon, pixout);
 

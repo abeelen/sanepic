@@ -69,7 +69,6 @@ int main(int argc, char *argv[])
 	u_opt.NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
 	com.NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
 	u_opt.remove_polynomia=1;
-	int factdupl = 1;
 	com.flgdupl = 0; // 1 if flagged data are put in a separate map
 	int flagon;
 	long long ind_size;
@@ -98,12 +97,6 @@ int main(int argc, char *argv[])
 
 	string MixMatfile = "NOFILE";
 	string signame;
-
-	//	std::vector<string> extentnoiseSP;
-
-
-	//string *extentnoiseSp_all;
-	//time t2, t3, t4, t5, dt;
 
 
 	long iframe_min=0, iframe_max=0;
@@ -137,18 +130,10 @@ int main(int argc, char *argv[])
 	long *frames_index;
 
 	frames_index = new long [samples_struct.ntotscan];
-	//extentnoiseSp_all = new string[samples_struct.ntotscan];
-
-	//string *fits_table,*noise_table;
-	//long *index_table;
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new long[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
-
-	//convert vector to standard C array to speed up memory accesses
-	//vector2array(extentnoiseSP,  extentnoiseSp_all);
-
 
 	cout << samples_struct.nsamples[0] << endl;
 
@@ -161,16 +146,11 @@ int main(int argc, char *argv[])
 	S = new double[npix];
 
 
-	//signame = "optimMap_sanepic_flux.fits";
-	//signame = "NOSIGFILE";
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if(signame != "NOSIGFILE"){
 		// if second launch of estimPS, read S and nn in the previously generated fits map
 
-		//int npix2;
-		//long nn2;
-		//read_signal(npix2,S,signame);
 		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
 		FILE * fp;
 		fp = fopen("test_signal.txt","w");
@@ -182,29 +162,18 @@ int main(int argc, char *argv[])
 		cout << setprecision(10) << S[0] << endl;
 		cout <<  setprecision(10) << S[1] << endl;
 	}else{
-		// read nn in InfoPoiting
 
 		// TODO : Should change to use the wcs structure
-		// read nn, coordsyst, tanpix, tancoord
-		//		read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, NULL, NULL); //juste to read nn
-		//cout << tanpix[0] << " " << tanpix[1] << endl;
-		//cout << tancoord[0] << " " << tancoord[1] << endl;
-		//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 		struct wcsprm * wcs;
 		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
-		//delete [] tancoord;
-		//delete [] tanpix;
 
 		for(long ii=0;ii<npix;ii++)
 			S[ii]=0.0;
 	}
 
 
-	//cout << "Map size :" << nn << "x" << nn << endl;
-	//getchar();
 	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
-	//	getchar();
 
 #ifdef USE_MPI
 
@@ -212,7 +181,6 @@ int main(int argc, char *argv[])
 	int test=0;
 	fname = dir.outdir + parallel_scheme_filename;
 	cout << fname << endl;
-	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
 	if(test==-1){
@@ -240,7 +208,6 @@ int main(int argc, char *argv[])
 	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = samples_struct.nsamples[iframe];
-			//			ff = fframes[iframe];
 			ff = iframe;
 			extentnoiseSp = samples_struct.noise_table[iframe];
 			fits_filename=samples_struct.fits_table[iframe];
@@ -252,11 +219,9 @@ int main(int argc, char *argv[])
 			cout << extentnoiseSp ;
 			cout << endl;
 
-			EstimPowerSpectra(u_opt.fsamp, ns, ff, det.ndet, NAXIS1,NAXIS2, npix, com.napod,
-					iframe, com.flgdupl, factdupl, indpix,
-					S, MixMatfile, det.boloname, dir.dirfile, ellFile,
-					dir.tmp_dir, u_opt.NORMLIN, com.NOFILLGAP,u_opt.remove_polynomia, dir.tmp_dir,
-					extentnoiseSp, dir.outdir,fits_filename);
+			EstimPowerSpectra(u_opt,det,dir,com, ns, ff, NAXIS1,NAXIS2, npix,
+								iframe, indpix,	S, MixMatfile, ellFile,
+								extentnoiseSp, fits_filename);
 			// fsamp = bolometers sampling freq
 			// ns = number of samples in the "iframe" scan
 			// ff = first sample number
@@ -296,9 +261,7 @@ int main(int argc, char *argv[])
 #endif
 
 	//clean up
-	//	delete [] fframes;
 	delete [] samples_struct.nsamples;
-	//delete [] extentnoiseSp_all;
 	delete [] S;
 
 	delete [] samples_struct.fits_table;

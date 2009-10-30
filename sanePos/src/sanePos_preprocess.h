@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include "mpi_architecture_builder.h"
 
 
 extern "C" {
@@ -64,21 +65,31 @@ extern "C" {
 //		long napod, double errarcsec, bool NOFILLGAP,bool flgdupl,int factdupl, long addnpix, unsigned char *&rejectsamp, long *&samptopix, long *&pixon, int rank,
 //		long *indpsrc, long npixsrc, int &flagon,bool &pixout);
 
-void computePixelIndex(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
-		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
-		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,
-		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
-		long long addnpix, long long *&pixon, int rank,
+//void computePixelIndex(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
+//		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+//		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+//		unsigned short *&mask,
+//		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
+//		long long addnpix, long long *&pixon, int rank,
+//		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
+//
+//void computePixelIndex_HIPE(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
+//		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
+//		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
+//		unsigned short *&mask,
+//		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
+//		long long addnpix, long long *&pixon, int rank,
+//		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
+
+void computePixelIndex(std::string outdir, std::vector<std::string> bolonames,
+		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,unsigned short *&mask,
+		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
 
-void computePixelIndex_HIPE(long ntotscan,std::string outdir, std::vector<std::string> bolonames,
-		std::string *fits_table, long iframe_min, long iframe_max, long *nsamples,
-		struct wcsprm & wcs, long NAXIS1, long NAXIS2,
-		unsigned short *&mask,
-		long napod,  bool NOFILLGAP,bool flgdupl, int factdupl,
-		long long addnpix, long long *&pixon, int rank,
+void computePixelIndex_HIPE(std::string outdir, std::vector<std::string> bolonames,
+		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct wcsprm & wcs, long NAXIS1, long NAXIS2,unsigned short *&mask,
+		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
-
-
 #endif /* SANEPOS_PREPROCESS_H_ */

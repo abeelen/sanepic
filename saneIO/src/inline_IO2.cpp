@@ -28,7 +28,7 @@ extern "C" {
 using namespace std;
 
 
-//TODO : Read/Write size of the array
+
 void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<string> bolonames) {
 	FILE *fp;
 	// créer un flux de sortie
@@ -40,7 +40,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 	std::string temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))!=NULL){
-		//fwrite(&ns,sizeof(long),fp);
+		fwrite(&ns,sizeof(long),1,fp);
 		fwrite(samptopix,sizeof(long long), ns, fp);
 		fclose(fp);
 	}else{
@@ -55,6 +55,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 	temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+		fprintf(fp,"%ld ",ns);
 		for(long ii = 0; ii< ns; ii++)
 			fprintf(fp,"%lld ",samptopix[ii]);
 		fclose(fp);
@@ -68,6 +69,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
+	long ns2;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
@@ -77,8 +79,14 @@ void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, lo
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"r"))){
-		//read(&ns,sizeof(long),fp);
-		result = fread(samptopix,sizeof(long long),ns,fp);
+		result = fread(&ns2,sizeof(long),1,fp);
+		if(ns==ns2)
+			result = fread(samptopix,sizeof(long long),ns,fp);
+		else{
+			fclose(fp);
+			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
+			exit(0);
+		}
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile << endl;
@@ -174,7 +182,7 @@ void write_PNd(double *PNd, long long npix,  string outdir) {
 	}
 }
 
-
+// correlation between npix here and npix in Indpix file is done in sanePic (main.cpp)
 void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 	FILE *fp;
 	string testfile2;
@@ -193,10 +201,10 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 	}
 
 }
-//TODO: Read/Write the size of the array, and check at reading
+
 void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
-	//long data_size;
+	long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
@@ -206,8 +214,8 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		//data_size = (ns/2+1)*2;
-		//fwrite(&data_size,sizeof(long),fp);
+		data_size = (ns/2+1)*2;
+		fwrite(&data_size,sizeof(long),1,fp);
 		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
 		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
 		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
@@ -224,8 +232,9 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 	// récupérer une chaîne de caractères
 	testfile = oss.str();
 	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		//data_size = (ns/2+1)*2;
-		//fwrite(&data_size,sizeof(long),fp);
+		data_size = (ns/2+1)*2;
+
+		fprintf(fp,"%ld ",data_size);
 		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
 		for(int ii=0;ii<(ns/2+1);ii++){
 			fprintf(fp,"%lf ",fdata[ii][0]);
@@ -262,11 +271,11 @@ void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSp
 	//
 }
 
-*/
+ */
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
-	//long data_size;
+	long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
@@ -277,9 +286,13 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"r"))!=NULL){
-		//fread(&data_size,sizeof(long),fp);
-		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
-		result = fread(fdata,sizeof(double), (ns/2+1)*2, fp);
+		fread(&data_size,sizeof(long),1,fp);
+		if (data_size!=(ns/2+1)*2){
+			cerr << "Error. fdata size does not correspond to expected size : " << data_size << " != " << (ns/2+1)*2 << endl;
+			fclose(fp);
+			exit(1);
+		}
+		result = fread(fdata,sizeof(double), data_size, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
@@ -287,10 +300,10 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 	}
 }
 
-//TODO : Read/Write size of the array and check at reading
+
 void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
-	//long data_size;
+	long data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
@@ -300,10 +313,10 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"w"))!=NULL){
-		//data_size = (ns/2+1)*2;
-		//fwrite(&data_size,sizeof(long),fp);
+		data_size = (ns/2+1)*2;
+		fwrite(&data_size,sizeof(long),1,fp);
 		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
-		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
+		fwrite(fdata,sizeof(double), data_size, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
@@ -369,24 +382,4 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 	fclose(fp);
 
 }
-/*
-void write_signal(int npix, double *S, string signame){
-	FILE *fp;
 
-	if((fp=fopen(signame.c_str(),"w")) == NULL){
-		fwrite(&npix,sizeof(int),1,fp);
-		fwrite(S,sizeof(double),npix,fp);
-	}
-}
-
-void read_signal(int &npix, double *&S, string signame){
-	FILE *fp;
-	size_t result;
-
-	if((fp=fopen(signame.c_str(),"r")) == NULL){
-		result = fread(&npix,sizeof(int),1,fp);
-		S = new double[npix];
-		result = fread(S,sizeof(double),npix,fp);
-	}
-}
-*/

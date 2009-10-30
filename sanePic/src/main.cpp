@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 	//main conjugate gradient loop
 	//************************************************************************//
 	//************************************************************************//
+
 	struct user_options u_opt;
 	struct samples samples_struct;
 	struct input_commons com;
@@ -108,8 +109,7 @@ int main(int argc, char *argv[])
 	long long ind_size; /*! indpix read size */
 	long NAXIS1, NAXIS2;
 	long long npix; /*! nn = side of the map, npix = number of filled pixels */
-	//	double *tancoord; /*! tangent point coordinates */
-	//	double *tanpix; /*! tangent pixel */
+
 
 	//internal data params
 	u_opt.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
@@ -123,15 +123,12 @@ int main(int argc, char *argv[])
 
 
 	string field; /*! actual boloname in the bolo loop */
-	//string *extentnoiseSp_all; /*! noise file name */
-	//string extentnoiseSp; /*! noise file */
 	string prefixe; /*! prefix used for temporary name file creation */
 
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 	//std::vector<string> extentnoiseSP; /*! noise filenames vector of string */
 	std::vector<struct box> boxFile;
 
-	//time t2, t3, t4, t5, dt;
 
 
 	// main loop variables
@@ -147,12 +144,9 @@ int main(int argc, char *argv[])
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		exit(0);
 	} else {
-		//parse_sanePos_ini_file(argv[1]);
+
 		int parsed=1;
 
-		/*parsed=parse_sanePic_ini_file(argv[1],pixdeg,shift_data_to_point,napod,fsamp,NOFILLGAP,NORMLIN,projgaps,remove_polynomia,flgdupl,
-				CORRon,iterw, ntotscan,ndet,f_lp,dirfile,outdir,tmp_dir,
-				termin,MixMatfile,bolonames,fframes,nsamples,fname,xxi,xxf,yyi,yyf,fcut,extentnoiseSP, fitsvect, noisevect, scans_index);*/
 		parsed=parse_sanePic_ini_file(argv[1],u_opt,iterw, dir, samples_struct,com,
 				det,boxFile, fcut);
 		if (parsed==-1){
@@ -167,60 +161,19 @@ int main(int argc, char *argv[])
 	}
 	////////////////////////////////////////////////////////////////
 
-	//if (u_opt.CORRon) printf("[%2.2i] CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-	//if (!(u_opt.CORRon)) printf("[%2.2i] NO CORRELATIONS BETWEEN DETECTORS INCLUDED\n", rank);
-
-
-	/*if (com.napod){
-		printf("[%2.2i] Data are apodized\n", rank);
-	} else {
-		printf("[%2.2i] Data are not apodized\n", rank);
-	}
-
-
-	if (com.pixdeg < 0){
-		cerr << "ERROR: enter pixel size -p keyword\n";
-		exit(1);
-	}
-
-	if (u_opt.fsamp<=0.0){
-		cerr << "ERROR: enter a correct sampling frequency -R keyword\n";
-		exit(1);
-	}
-	 */
-
-
-	//long *frames_index;
 
 	//frames_index = new long [samples_struct.ntotscan];
 	//extentnoiseSp_all = new string[samples_struct.ntotscan];
 
 
-	//string *fits_table;
-	//long *index_table;
-
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new long[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
-	// convert vectors to regular arrays
-	//vector2array(nsamples_vec, nsamples);
-	//vector2array(fframes_vec,  fframes);
 
 	//vector2array(extentnoiseSP,  extentnoiseSp_all);
-
-	//	cout << fframes[0] << endl;
 	cout << samples_struct.nsamples[0] << endl;
 
-	/*
-
-	if (u_opt.NORMLIN)
-		printf("NO BASELINE REMOVED\n");
-
-
-	if (u_opt.projgaps)
-		printf("Flaged data are binned. iterative solution to fill gaps with noise only.\n");
-	 */
 
 	/********************* Define parallelization scheme   *******/
 
@@ -386,49 +339,25 @@ int main(int argc, char *argv[])
 	fill(S,S+npix,0.0);
 
 	// conjugate GRADIENT LOOP
-	sanepic_conjugate_gradient(com.flgdupl, npix, S, iframe_min, iframe_max,
-			samples_struct.nsamples, fcut,u_opt.f_lp, u_opt.fsamp,
-			indpix,
-			wcs, NAXIS1, NAXIS2,
-			factdupl, dir.tmp_dir, det.ndet,
-			samples_struct.noise_table,dir.tmp_dir, det.boloname, iterw,
-			indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
-			dir.dirfile, PNdtot, samples_struct.ntotscan,addnpix,u_opt.NORMLIN,com.NOFILLGAP,
-			com.napod, u_opt.remove_polynomia, dir.outdir,samples_struct.fits_table);
+//	sanepic_conjugate_gradient(com.flgdupl, npix, S, iframe_min, iframe_max,
+//			samples_struct.nsamples, fcut,u_opt.f_lp, u_opt.fsamp,
+//			indpix,
+//			wcs, NAXIS1, NAXIS2,
+//			factdupl, dir.tmp_dir, det.ndet,
+//			samples_struct.noise_table,dir.tmp_dir, det.boloname, iterw,
+//			indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
+//			dir.dirfile, PNdtot, samples_struct.ntotscan,addnpix,u_opt.NORMLIN,com.NOFILLGAP,
+//			com.napod, u_opt.remove_polynomia, dir.outdir,samples_struct.fits_table);
 
-	//
-	//
-	//string signame;
-	//signame = tmp_dir + "Signal_internal_data.bin";
-	//write_signal(npix, S, signame);
-
-
-
-	//	//*******************************************************************//
-	//	//******************  Update noise power spectra  *******************//
-	//
-	//	if (doInitPS){
-	//		//printf("EstimPS will be run  with this mixing matrix file : %s\n",MixMatfile.c_str());
-	//
-	//		if (MixMatfile != "NOFILE"){
-	//			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-	//				ns = nsamples[iframe];
-	//				ff = fframes[iframe];
-	//				extentnoiseSp = extentnoiseSp_all[iframe];
-	//
-	//				EstimPowerSpectra(fsamp,ns,ff,ndet,nn,npix,napod,iframe,flgdupl,factdupl,indpix,S,
-	//						/*MixMatfile,*/bolonames,dirfile,bextension,fextension,shift_data_to_point,
-	//						tmp_dir,termin,termin_internal,NORMLIN,NOFILLGAP,remove_polynomia,tmp_dir,extentnoiseSp,outdir);
-	//
-	//			}
-	//		}
-	//	}
+	sanepic_conjugate_gradient(samples_struct,com,det,dir,u_opt, npix, S, iframe_min, iframe_max,
+			fcut,indpix,wcs, NAXIS1, NAXIS2, iterw,
+			indpsrc, npixsrc,flagon, rank, PNdtot, addnpix);
 
 
 
 	//******************************************************************//
 	//******************************************************************//
-	//*********************** End of program *************************//
+	//*********************** End of program ***************************//
 	//******************************************************************//
 	//******************************************************************//
 
@@ -448,17 +377,13 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] S;
-	//	delete [] fframes;
+
 	delete [] samples_struct.nsamples;
-
-
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 	delete [] samples_struct.noise_table;
 
-	//delete [] extentnoiseSp_all;
-	//	delete [] tanpix;
-	//	delete [] tancoord;
+
 	delete [] indpsrc;
 	delete [] indpix;
 	delete [] PNdtot;
