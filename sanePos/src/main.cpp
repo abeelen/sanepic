@@ -34,6 +34,8 @@ extern "C" {
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include <algorithm>
+#include <fstream>
 #endif
 
 using namespace std;
@@ -134,7 +136,7 @@ int main(int argc, char *argv[])
 	struct wcsprm wcs;    // wcs structure of the image
 	long NAXIS1, NAXIS2;  // size of the image
 
-	double ra_min, ra_max, dec_min, dec_max; /*! ra/dec min/max coordinates of the map*/
+	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /*! ra/dec min/max coordinates of the map*/
 	//float *scoffsets; /*! source offsets depending on wavelength */
 	//scoffsets = new float[6];  useless now !
 
@@ -150,6 +152,7 @@ int main(int argc, char *argv[])
 
 
 	string fname; /*! parallel scheme file name */
+	ofstream file;
 
 
 	unsigned short *mask;
@@ -193,7 +196,7 @@ int main(int argc, char *argv[])
 				bolonames,nsamples,boxFile,fitsvect,scans_index);*/
 
 		parsed=parse_sanePos_ini_file(argv[1],com,dir,
-				det, samples_struct, boxFile);
+				det, samples_struct, boxFile, rank);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -210,7 +213,7 @@ int main(int argc, char *argv[])
 	//fname = tmp_dir + parallel_scheme_filename;
 
 	///////////////: debug ///////////////////////////////
-	cout << "ntotscan : " << samples_struct.ntotscan << endl;
+	//	cout << "ntotscan : " << samples_struct.ntotscan << endl;
 	/*
 
 	std::vector<long>::iterator it;
@@ -259,59 +262,191 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-	/********************* Define parallelization scheme   *******/
 
-	int test=0;
-	fname = dir.outdir + parallel_scheme_filename;
-	cout << fname << endl;
-	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
-	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
-	if(test==-1){
+	if(samples_struct.scans_index.size()==0){
+
+		int test=0;
+		fname = dir.outdir + parallel_scheme_filename;
+		cout << fname << endl;
+		//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+
+		if(test==-1){
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(1);
+		}
+	}else{
+		long size_tmp = 0;
+		int return_error = 0;
+		int num_frame = 0;
+		char c;
+		vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
+
+		if(rank==0){
+			//check the processor order given is correct
+			//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+
+			struct sortclass_long sortobject;
+			sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+
+			std::vector<long>::iterator it;
+			//			int size_tmp=0;
+
+			// using default comparison:
+			it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
+			size_tmp = it - samples_struct.scans_index.begin();
+
+			cout << "size unique : " << size_tmp << endl;
+
+			cout << size << " vs size : " <<  size_tmp << endl;
+
+			if((size_tmp)>size){
+				cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+				return_error =1;
+			}else{
+
+				samples_struct.scans_index.resize( size_tmp );
+
+				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+
+
+				if((size_tmp)<size){
+					cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+					cout << "Do you wish to continue ? (y/n)\n";
+					c=getchar();
+					switch (c){
+					case('y') :
+						cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+					break;
+					default:
+						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+						return_error =1;
+						break;
+					}
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]==0)
+							num_frame++;
+
+					if(num_frame==0){
+						cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+						return_error =1;
+					}
+
+
+				}else{
+
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]!=ii){
+							cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
+							return_error =1;
+						}
+				}
+			}
+		}
+
+
+
+
+
+		if(rank==0){
+
+			string outfile = dir.outdir + samples_struct.filename;
+			cout << "outfile : " << outfile;
+			file.open(outfile.c_str(), ios::out);
+			if(!file.is_open()){
+				cerr << "File [" << fname << "] Invalid." << endl;
+				return_error = 1;
+			}
+		}
+
+
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		exit(1);
-	}
+		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
 
-	cout << "mon rank : " << rank << "Et ca donne ca au final !" << endl;
+		if(return_error>0){
+			MPI_Finalize();
+			exit(0);
 
-	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
-	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-
-
-	/*
-
-	iframe_min = -1;
-	//iframe_max = -1;
-
-	for(long ii=0;ii<samples_struct.ntotscan;ii++){
-		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
-			iframe_min=ii;
-			break;
-		}
-	}
-
-	iframe_max=iframe_min;
-	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
-		if(samples_struct.index_table[iframe_max]!=rank){
-			iframe_max--;
-			break;
 		}
 
-	iframe_max++;
+		string temp;
+		size_t found;
 
-	cout << rank << " iframe_min : " << iframe_min << endl;
-	cout << rank << " iframe_max : " << iframe_max << endl;
+		num_frame=0;
+		iframe_min=0;
+		iframe_max=0;
 
-	for(long ii=0;ii<samples_struct.ntotscan;ii++)
-		samples_struct.fits_table[ii] = dir.dirfile + samples_struct.fits_table[ii];
-	 */
+		long * nsamples_temp;
+		nsamples_temp = new long[samples_struct.ntotscan];
 
+		for(long jj = 0; jj<samples_struct.ntotscan; jj++)
+			nsamples_temp[jj]= samples_struct.nsamples[jj];
+
+
+		for(long ii = 0; ii<size; ii++){
+			if(rank==ii)
+				iframe_min=num_frame;
+			for(long jj = 0; jj<samples_struct.ntotscan; jj++){
+				if(samples_struct.index_table[jj]==ii){
+
+					samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
+					samples_struct.noise_table[num_frame]=samples_struct.noisevect[jj];
+					samples_struct.nsamples[num_frame]=nsamples_temp[jj];
+					if(rank==0){
+						temp = samples_struct.fits_table[num_frame];
+						found=temp.find_last_of('/');
+						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+
+					}
+					num_frame++;
+				}
+			}
+			if(rank==ii)
+				iframe_max=num_frame;
+		}
+
+	}
+
+	if(rank==0){
+		file.close();
+		cout << "on aura : \n";
+		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+		//cout << samples_struct.filename << endl;
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (iframe_max==iframe_min){ // test
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+		//		MPI_Finalize();
+		//		exit(0);
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	for(long ii=0;ii<size;ii++){
+		if(rank==ii)
+			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
+		else
+			MPI_Barrier(MPI_COMM_WORLD);
+	}
+
+	//////// temp
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Finalize();
+	//	exit(0);
+
+	//	MPI_Barrier(MPI_COMM_WORLD);
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
+
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
@@ -323,10 +458,11 @@ int main(int argc, char *argv[])
 
 
 
-	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
+
+	//	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
 	/************************ Look for distriBoxution failure *******************************/
-	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > samples_struct.ntotscan){
+	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
 	}
@@ -339,7 +475,7 @@ int main(int argc, char *argv[])
 
 
 	/********** Allocate memory ***********/
-	printf("[%2.2i] Allocating Memory\n",rank);
+	//	printf("[%2.2i] Allocating Memory\n",rank);
 
 	// seek maximum number of samples
 	//	ns = *max_elements(nsamples, nsamples+ntotscan);
@@ -379,8 +515,8 @@ int main(int argc, char *argv[])
 	//********************************************************************************
 	//*************  find coordinates of pixels in the map
 	//********************************************************************************
-
-	printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
 
 	//	bool default_projection = 1;
 
@@ -394,22 +530,29 @@ int main(int argc, char *argv[])
 	//			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
 	//			ra_min,ra_max,dec_min,dec_max);
 
-	computeMapMinima(det.boloname,samples_struct,
-			iframe_min,iframe_max,com.pixdeg,
-			ra_min,ra_max,dec_min,dec_max);
+	if(iframe_min!=iframe_max)
+		computeMapMinima(det.boloname,samples_struct,
+				iframe_min,iframe_max,com.pixdeg,
+				ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
+	cout << rank << "avant le reduce !" << endl;
+	//	if(iframe_min!=iframe_max){
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
 	MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 	MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
 	MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+	//	}
 
+	cout <<  rank << "apres le reduce !" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
+	cout <<  rank << "apres le bcast !" << endl;
 #else
 	gra_min=ra_min;
 	gra_max=ra_max;
@@ -428,6 +571,7 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
 
+	//	exit(0);
 
 	computeMapHeader(com.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
@@ -493,20 +637,21 @@ int main(int argc, char *argv[])
 
 
 	//cout << "avant compute" << endl;
-	printf("[%2.2i] Compute Pixels Indices\n",rank);
+	if(iframe_min!=iframe_max){
+		printf("[%2.2i] Compute Pixels Indices\n",rank);
 
-	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
-			com,iframe_min, iframe_max,
-			wcs, NAXIS1, NAXIS2,
-			mask,factdupl,
-			addnpix, pixon, rank,
-			indpsrc, npixsrc, flagon, pixout);
 
+		computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+				com,iframe_min, iframe_max,
+				wcs, NAXIS1, NAXIS2,
+				mask,factdupl,
+				addnpix, pixon, rank,
+				indpsrc, npixsrc, flagon, pixout);
+	}
 
 
 
 #ifdef USE_MPI
-
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 	// TODO : pointer assignement only ?
@@ -545,7 +690,9 @@ int main(int argc, char *argv[])
 	}
 
 	t3=time(NULL);
-	cout << "temps de traitement : " << t3-t2 << " sec" << endl;
+
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] Temps de traitement : %d sec",rank,(int)(t3-t2));
 
 
 
@@ -555,7 +702,8 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	printf("[%2.2i] Cleaning up\n",rank);
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] Cleaning up\n",rank);
 
 	// TODO : Check all variable declaration/free
 	// clean up
@@ -571,7 +719,8 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.index_table;
 	//delete [] frames_index;
 
-	printf("[%2.2i] End of sanePos\n",rank);
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] End of sanePos\n",rank);
 
 	return 0;
 }

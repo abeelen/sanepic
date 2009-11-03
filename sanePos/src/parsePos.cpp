@@ -37,7 +37,7 @@ using namespace std;
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)*/
 int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
 		struct detectors &det,struct samples &samples_struct,
-		std::vector<struct box> &boxFile)
+		std::vector<struct box> &boxFile, int rank)
 {
 
 	dictionary	*	ini ;
@@ -59,30 +59,31 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 	printf("sanepic_compute_positions:\n");
 
 
-	if(read_directories(ini, dir)==-1)
+	if(read_directories(ini, dir, rank)==-1)
 		return -1;
 
-	if(read_commons(ini, com)==-1)
+	if(read_commons(ini, com, rank)==-1)
 		return -1;
 
-	if(read_channel_list(ini,det.boloname)==-1)
+	if(read_channel_list(ini,det.boloname, rank)==-1)
 		return -1;
 
-	if(read_fits_file_list(ini, dir,samples_struct)==-1)
+	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
 		return -1;
 
-	if(read_box_coord(ini,boxFile)==-1)
+	if(read_box_coord(ini,boxFile, rank)==-1)
 		return -1;
 
 
 
+	if(rank==0){
 
+		printf("\nsanePos parser operations completed :\n");
+		cout << "You have specified the following options : \n";
 
-	printf("\nsanePos parser operations completed :\n");
-	cout << "You have specified the following options : \n";
-
-	print_directories(dir);
-	print_commons(com);
+		print_directories(dir);
+		print_commons(com);
+	}
 
 	/*
 	if (tmpcount == 1 || tmpcount == 2 || tmpcount == 3){
@@ -111,7 +112,7 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 		u_opt.coordscorner[3] = u_opt.srccoord[1];
 	}
 
-*/
+	 */
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 	det.ndet = (long)((det.boloname).size());
@@ -124,9 +125,10 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 
 	//cout << "framegiven : " << samples_vct.framegiven << endl;
 
-
-	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-	printf("Number of bolometers : %ld\n",det.ndet);
+	if(rank==0){
+		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+		printf("Number of bolometers : %ld\n",det.ndet);
+	}
 
 	iniparser_freedict(ini);
 	return 0 ;

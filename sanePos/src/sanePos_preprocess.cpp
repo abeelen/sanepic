@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 #include "sanePos_map_making.h"
 #include "dataIO.h"

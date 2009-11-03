@@ -19,6 +19,6 @@
  */
 int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
 		struct detectors &det,struct samples &samples_struct,
-		std::vector<struct box> &boxFile);
+		std::vector<struct box> &boxFile, int rank);
 
 #endif /* PARSEPOS_H_ */
