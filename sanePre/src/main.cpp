@@ -25,6 +25,8 @@ extern "C" {
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include <algorithm>
+#include <fstream>
 //#include "mpi_architecture_builder.h"
 #endif
 
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
 	string fname;
 	string prefixe; /*! prefix used for temporary name file creation*/
 
-
+	ofstream file;
 
 	/* Parser inputs */
 	std::vector<struct box> boxFile;
@@ -144,7 +146,7 @@ int main(int argc, char *argv[])
 
 		int parsed=1;
 		parsed=parse_sanePre_ini_file(argv[1],u_opt, dir, samples_struct,com,
-				det,boxFile, fcut);
+				det,boxFile, fcut, rank);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -159,10 +161,10 @@ int main(int argc, char *argv[])
 
 	// processing begins here
 	t2=time(NULL);
-
-	long *frames_index;
-
-	frames_index = new long [samples_struct.ntotscan];
+	//
+	//	long *frames_index;
+	//
+	//	frames_index = new long [samples_struct.ntotscan];
 
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
@@ -175,7 +177,8 @@ int main(int argc, char *argv[])
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
-	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
+	if(rank==0)
+		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 
 	//************************************* Deal with masking the point sources
@@ -226,18 +229,170 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	int test=0;
-	fname = dir.outdir + parallel_scheme_filename;
-	cout << fname << endl;
-	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
-	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+	if(samples_struct.scans_index.size()==0){
 
-	if(test==-1){
+		int test=0;
+		fname = dir.outdir + parallel_scheme_filename;
+		cout << fname << endl;
+		//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+
+		if(test==-1){
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(1);
+		}
+	}else{
+		long size_tmp = 0;
+		int return_error = 0;
+		int num_frame = 0;
+		char c;
+		vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
+
+		if(rank==0){
+			//check the processor order given is correct
+			//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+
+			struct sortclass_long sortobject;
+			sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+
+			std::vector<long>::iterator it;
+			//			int size_tmp=0;
+
+			// using default comparison:
+			it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
+			size_tmp = it - samples_struct.scans_index.begin();
+
+			cout << "size unique : " << size_tmp << endl;
+
+			cout << size << " vs size : " <<  size_tmp << endl;
+
+			if((size_tmp)>size){
+				cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+				return_error =1;
+			}else{
+
+				samples_struct.scans_index.resize( size_tmp );
+
+				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+
+
+				if((size_tmp)<size){
+					cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+					cout << "Do you wish to continue ? (y/n)\n";
+					c=getchar();
+					switch (c){
+					case('y') :
+						cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+					break;
+					default:
+						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+						return_error =1;
+						break;
+					}
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]==0)
+							num_frame++;
+
+					if(num_frame==0){
+						cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+						return_error =1;
+					}
+
+
+				}else{
+
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]!=ii){
+							cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
+							return_error =1;
+						}
+				}
+			}
+		}
+
+
+
+
+
+		if(rank==0){
+
+			string outfile = dir.outdir + samples_struct.filename;
+			cout << "outfile : " << outfile;
+			file.open(outfile.c_str(), ios::out);
+			if(!file.is_open()){
+				cerr << "File [" << fname << "] Invalid." << endl;
+				return_error = 1;
+			}
+		}
+
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		exit(1);
+		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
+
+		if(return_error>0){
+			MPI_Finalize();
+			exit(0);
+
+		}
+
+		string temp;
+		size_t found;
+
+		num_frame=0;
+		iframe_min=0;
+		iframe_max=0;
+
+		for(long ii = 0; ii<size; ii++){
+			if(rank==ii)
+				iframe_min=num_frame;
+			for(long jj = 0; jj<samples_struct.ntotscan; jj++){
+				if(samples_struct.index_table[jj]==ii){
+
+					samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
+					samples_struct.noise_table[num_frame]=samples_struct.noisevect[jj];
+					if(rank==0){
+						temp = samples_struct.fits_table[num_frame];
+						found=temp.find_last_of('/');
+						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+
+					}
+					num_frame++;
+				}
+			}
+			if(rank==ii)
+				iframe_max=num_frame;
+		}
+
 	}
 
+	if(rank==0){
+		file.close();
+		cout << "on aura : \n";
+		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+
+		//cout << samples_struct.filename << endl;
+	}
+
+	if (iframe_max==iframe_min){ // test
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	for(long ii=0;ii<size;ii++){
+		if(rank==ii)
+			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
+		else
+			MPI_Barrier(MPI_COMM_WORLD);
+	}
+
+	//////// temp
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+	exit(0);
 
 #else
 	iframe_min = 0;
@@ -248,11 +403,12 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
-	for(long ii=0; ii<samples_struct.ntotscan;ii++)
-		frames_index[ii] = ii;
+	//	for(long ii=0; ii<samples_struct.ntotscan;ii++)
+	//		frames_index[ii] = ii;
 
 
 #endif
+
 
 
 	//At N-1 D memory allocation
@@ -348,7 +504,6 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			//TODO : WHY fillg is hardcoded to 2 ????
 			write_ftrProcesdata(NULL,u_opt,samples_struct,com,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe);
 
@@ -428,7 +583,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
-		write_PNd(PNdtot,npix,/*termin_internal,*/dir.tmp_dir);
+		write_PNd(PNdtot,npix,dir.tmp_dir);
 
 
 		cout << "naive step" << endl;
@@ -499,7 +654,7 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
-	delete [] frames_index;
+	//	delete [] frames_index;
 
 
 	cout << "[" << rank << "] End of Init Loop" << endl;

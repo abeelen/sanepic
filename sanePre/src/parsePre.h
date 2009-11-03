@@ -27,6 +27,6 @@
 */
 
 int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut);
+		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut, int rank);
 
 #endif /* PARSEPRE_H_ */
