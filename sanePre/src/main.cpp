@@ -129,7 +129,6 @@ int main(int argc, char *argv[])
 	string fname;
 	string prefixe; /*! prefix used for temporary name file creation*/
 
-	ofstream file;
 
 	/* Parser inputs */
 	std::vector<struct box> boxFile;
@@ -229,12 +228,14 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
+	ofstream file;
+
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
 		fname = dir.outdir + parallel_scheme_filename;
 		cout << fname << endl;
-		//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
@@ -319,7 +320,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename;
+			string outfile = dir.outdir + samples_struct.filename + "_sanepre.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
@@ -327,6 +328,7 @@ int main(int argc, char *argv[])
 				return_error = 1;
 			}
 		}
+
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -344,6 +346,13 @@ int main(int argc, char *argv[])
 		iframe_min=0;
 		iframe_max=0;
 
+		long * nsamples_temp;
+		nsamples_temp = new long[samples_struct.ntotscan];
+
+		for(long jj = 0; jj<samples_struct.ntotscan; jj++)
+			nsamples_temp[jj]= samples_struct.nsamples[jj];
+
+
 		for(long ii = 0; ii<size; ii++){
 			if(rank==ii)
 				iframe_min=num_frame;
@@ -352,6 +361,7 @@ int main(int argc, char *argv[])
 
 					samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
 					samples_struct.noise_table[num_frame]=samples_struct.noisevect[jj];
+					samples_struct.nsamples[num_frame]=nsamples_temp[jj];
 					if(rank==0){
 						temp = samples_struct.fits_table[num_frame];
 						found=temp.find_last_of('/');
@@ -372,12 +382,16 @@ int main(int argc, char *argv[])
 		cout << "on aura : \n";
 		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
 		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-
+		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
 		//cout << samples_struct.filename << endl;
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
+
 	if (iframe_max==iframe_min){ // test
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+		//		MPI_Finalize();
+		//		exit(0);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -390,10 +404,11 @@ int main(int argc, char *argv[])
 	}
 
 	//////// temp
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
-	exit(0);
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Finalize();
+	//	exit(0);
 
+	//	MPI_Barrier(MPI_COMM_WORLD);
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
@@ -441,7 +456,8 @@ int main(int argc, char *argv[])
 	//************************************************************************//
 	//************************************************************************//
 
-	printf("[%2.2i] Pre-processing of the data\n",rank);
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] Pre-processing of the data\n",rank);
 
 	/*fftw_complex **fdatas;
 	long nsamp_max=0;
@@ -465,7 +481,8 @@ int main(int argc, char *argv[])
 		f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp; // noise PS threshold freq, in terms of samples
 
-		printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+		if(iframe_min!=iframe_max)
+			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
 
 
 		// if there is correlation between detectors
@@ -514,7 +531,8 @@ int main(int argc, char *argv[])
 			t3=time(NULL);
 
 			//debug : computation time
-			cout << "temps : " << t3-t2 << " sec\n";
+			if(iframe_min!=iframe_max)
+				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
 
 			// PNd = npix dimension, initialised to 0.0
 			// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
@@ -563,8 +581,8 @@ int main(int argc, char *argv[])
 
 
 
-
-	printf("[%2.2i] End of Pre-Processing\n",rank);
+	if(iframe_min!=iframe_max)
+		printf("[%2.2i] End of Pre-Processing\n",rank);
 
 #ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -624,7 +642,7 @@ int main(int argc, char *argv[])
 		fnaivname = '!' + dir.outdir + "naivMaphits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-
+		delete [] map1d;
 		printf("End of saneNaiv\n");
 
 	}
@@ -633,7 +651,8 @@ int main(int argc, char *argv[])
 	//Processing stops here
 	t3=time(NULL);
 	//debug : computation time
-	cout << "temps : " << t3-t2 << " sec\n";
+	if(iframe_min!=iframe_max)
+		cout << "temps : " << t3-t2 << " sec\n";
 
 
 	// clean up
