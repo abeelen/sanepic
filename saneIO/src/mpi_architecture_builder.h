@@ -26,6 +26,10 @@ struct sortclass_int {
 	bool operator() (int i,int j) { return (i<j);}
 };
 
+struct sortclass_long {
+	bool operator() (long i,long j) { return (i<j);}
+};
+
 struct sortclass_string {
 	bool operator() (std::string i,std::string j) { return (i<j);}
 };
@@ -46,6 +50,7 @@ struct samples {
 	long *index_table;
 	long *nsamples;
 	long ntotscan;
+	std::string filename;
 };
 
 struct detectors {
@@ -89,6 +94,8 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
+
+// TODO : include struct ?
 int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
 		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<long> &scans_index);
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
@@ -103,7 +110,7 @@ int define_parallelization_scheme(int rank,std::string fname,std::string dirfile
 ///////////////////////////
 
 long readFitsLength(std::string filename);
-void readFrames(std::vector<std::string> &inputFiles, long *& nsamples);
+void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
 void read_fits_list(std::string fname, std::vector<std::string> &fitsfiles, std::vector<std::string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
 
 void readBoxFile(std::string filename, std::vector<struct box> & boxList);

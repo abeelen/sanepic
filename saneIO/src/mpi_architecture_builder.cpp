@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cstring>
 
 
 //#include "time.h"
@@ -318,9 +319,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 
 	cout << "file " << fname << endl;
 
-	//std::vector<string> fitsvect_temp;
-	//std::vector<string> noisevect_temp;
-	//std::vector<long> scans_index_temp;
+
 	string *fitsvect_temp, *noisevect_temp;
 	long *scans_index_temp;
 	string temp;
@@ -367,41 +366,11 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	}
 
 	for (long ii=0;ii<ntotscan;ii++){
-		// fitsvect[ii] = fitsvect_temp[ii];
-		//noisevect[ii] = noisevect_temp[ii];
-		//scans_index[ii] = scans_index_temp[ii];
 		file << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << scans_index_temp[ii] << endl;
 		//cout << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << endl;
 	}
 
 	file.close();
-
-	// test
-	/*int ii;
-	fprintf(fp,"%d\n",size);
-	fprintf(fp,"%ld\n",ntotscan);
-	for (ii=0;ii<ntotscan; ii++)
-		fprintf(fp,"%ld ",ns[ii]);
-	fprintf(fp,"\n");
-	for (ii=0;ii<ntotscan; ii++)
-		fprintf(fp,"%ld ",position[ii]);
-	fprintf(fp,"\n");
-	for (ii=0;ii<ntotscan+1; ii++)
-		fprintf(fp,"%ld ",frnum[ii]);
-	fprintf(fp,"\n");*/
-
-	//
-	//fwrite(&size,     sizeof(int),  1, fp);
-	//fwrite(&ntotscan, sizeof(long), 1, fp);
-
-	//fwrite(ns,        sizeof(long), ntotscan,fp);
-	//fwrite(position,       sizeof(long), ntotscan,fp);
-	//fwrite(frnum,     sizeof(long), ntotscan+1,fp);
-
-
-
-
-	//fclose(fp);
 
 	delete [] fitsvect_temp;
 	delete [] noisevect_temp;
@@ -444,8 +413,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 {
 
 
-
-
 	std::vector<string> fits_dummy;
 	std::vector<string> noise_dummy;
 	std::vector<long> index_dummy;
@@ -456,11 +423,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	bool framegiven;
 	long *nsamples_dummy;
 	string temp;
-
-	//string *fits_table, *noise_table;
-	//long *index_table;
-
-
 
 	read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven);
 
@@ -497,33 +459,35 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
 	sort((samples_struct.fitsvect).begin(), (samples_struct.fitsvect).end(), sortobject);
 
-	cout << "comparaison triée : " << endl;
+	//	cout << "comparaison triée : " << endl;
 
-	for(int ii=0;ii<samples_struct.ntotscan;ii++)
-		if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
-			cout << fits_dummy[ii] << endl;
-			cout << samples_struct.fitsvect[ii] << endl;
-			return -1;
-		}
+
 
 
 	if ((int)((samples_struct.noisevect).size())>0){
-
-		cout << "comparaison triée bruit : " << endl;
 
 		sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
 		sort ((samples_struct.noisevect).begin(), (samples_struct.noisevect).end(), sortobject);
 
 		for(int ii=0;ii<samples_struct.ntotscan;ii++)
-			if(noise_dummy[ii]!=samples_struct.noisevect[ii]){
+			if((noise_dummy[ii]!=samples_struct.noisevect[ii])||(fits_dummy[ii]!=samples_struct.fitsvect[ii])){
+				cout << "comparaison triée : " << endl;
 				cout << noise_dummy[ii] << endl;
 				cout << samples_struct.noisevect[ii] << endl;
+				cout << fits_dummy[ii] << endl;
+				cout << samples_struct.fitsvect[ii] << endl;
+				return -1;
+			}
+	}else{
+		for(int ii=0;ii<samples_struct.ntotscan;ii++)
+			if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
+				cout << "comparaison triée : " << endl;
+				cout << fits_dummy[ii] << endl;
+				cout << samples_struct.fitsvect[ii] << endl;
 				return -1;
 			}
 	}
 
-	//struct sortclass_int sortobject;
-	//sort(index_dummy.begin(), index_dummy.end(), sortobject);
 	size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
 	cout << size << " vs size : " <<  size_tmp+1 << endl;
@@ -537,11 +501,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	for(int ii=0;ii<samples_struct.ntotscan;ii++)
 		samples_struct.nsamples[ii]=nsamples_dummy[ii];
 
-
-
-	//exit(0);
-
-
 	return 0;
 }
 
@@ -550,27 +509,12 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 //int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table, long iframe_min, long iframe_max){
 int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
-	// cout << "avant check" << endl;
 	cout << "rank" << rank << endl;
-	// if (rank == 0){
-	//cout << "avant check" << endl;
 	int test=0;
-	//long *ruleorder ;
-	//long *fframesorder ;
-	//long *nsamplesorder ;
-	//string *extentnoiseSp_allorder;
 
 	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);
 	if (test==-1)
 		return test;
-	// reorder nsamples
-	//find_best_order_frames(ruleorder,frnum,nsamples,ntotscan,size);
-	//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
-
-
-	// }else{
-	//	*frnum = new long[ntotscan+1];
-	// }
 
 
 
@@ -585,7 +529,6 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 	cout << "mon rank : " << rank << endl;
 
 	iframe_min = -1;
-	//iframe_max = -1;
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++){
 		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
@@ -715,11 +658,10 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 	framegiven=0;
 
-	string s,p, line, temp;
+	string s, p, line, temp;
 	long d;
 	char *pch;
 	int nb_elem = 0;
-	//int num=0; // framecounter
 
 	// count number of elements on the first line !
 	getline(file, line);
@@ -760,12 +702,9 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 			cout << "2 : " << s << " " << p << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);}
-		//frameorder.push_back(num++); }
 		break;
 
 	case 1:
-		//noisefiles.push_back("read_file_in_the_ini");
-
 		while(file >> s){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
@@ -774,7 +713,6 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 			cout << "1 : " << s << endl;
 			fitsfiles.push_back(s);}
-		//frameorder.push_back(num++); }
 		break;
 
 	default:
