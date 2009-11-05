@@ -180,64 +180,194 @@ int main(int argc, char *argv[])
 	/********************* Define parallelization scheme   *******/
 
 #ifdef USE_MPI
-	int test=0;
-	fname = dir.outdir + parallel_scheme_filename;
-	cout << fname << endl;
-	//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
-	test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+	ofstream file;
 
-	if(test==-1){
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		exit(1);
-	}
+	if(samples_struct.scans_index.size()==0){
 
-	/*cout << "mon rank : " << rank << "Et ca donne ca au final !" << endl;
+		int test=0;
+		fname = dir.outdir + parallel_scheme_filename;
+		cout << fname << endl;
 
-		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-		cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
-		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-	 */
+		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
-	/*
+		if(test==-1){
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(1);
+		}
+	}else{
+		long size_tmp = 0;
+		int return_error = 0;
+		int num_frame = 0;
+		char c;
+		vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
 
-		iframe_min = -1;
-		//iframe_max = -1;
+		if(rank==0){
+			//check the processor order given is correct
+			//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
-		for(long ii=0;ii<samples_struct.ntotscan;ii++){
-			if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
-				iframe_min=ii;
-				break;
+			struct sortclass_long sortobject;
+			sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+
+			std::vector<long>::iterator it;
+			//			int size_tmp=0;
+
+			// using default comparison:
+			it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
+			size_tmp = it - samples_struct.scans_index.begin();
+
+			cout << "size unique : " << size_tmp << endl;
+
+			cout << size << " vs size : " <<  size_tmp << endl;
+
+			if((size_tmp)>size){
+				cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+				return_error =1;
+			}else{
+
+				samples_struct.scans_index.resize( size_tmp );
+
+				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+
+
+				if((size_tmp)<size){
+					cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+					cout << "Do you wish to continue ? (y/n)\n";
+					c=getchar();
+					switch (c){
+					case('y') :
+						cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+					break;
+					default:
+						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+						return_error =1;
+						break;
+					}
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]==0)
+							num_frame++;
+
+					if(num_frame==0){
+						cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+						return_error =1;
+					}
+
+
+				}else{
+
+
+					for(long ii=0;ii<size_tmp;ii++)
+						if(samples_struct.scans_index[ii]!=ii){
+							cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
+							return_error =1;
+						}
+				}
 			}
 		}
 
-		iframe_max=iframe_min;
-		for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
-			if(samples_struct.index_table[iframe_max]!=rank){
-				iframe_max--;
-				break;
+
+
+
+
+		if(rank==0){
+
+			string outfile = dir.outdir + samples_struct.filename + "_sanepre.txt";
+			cout << "outfile : " << outfile;
+			file.open(outfile.c_str(), ios::out);
+			if(!file.is_open()){
+				cerr << "File [" << fname << "] Invalid." << endl;
+				return_error = 1;
 			}
+		}
 
-		iframe_max++;
 
-		cout << rank << " iframe_min : " << iframe_min << endl;
-		cout << rank << " iframe_max : " << iframe_max << endl;
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
 
-		for(long ii=0;ii<samples_struct.ntotscan;ii++)
-			samples_struct.fits_table[ii] = dir.dirfile + samples_struct.fits_table[ii];
-	 */
+		if(return_error>0){
+			MPI_Finalize();
+			exit(0);
+
+		}
+
+		string temp;
+		size_t found;
+
+		num_frame=0;
+		iframe_min=0;
+		iframe_max=0;
+
+		long * nsamples_temp;
+		nsamples_temp = new long[samples_struct.ntotscan];
+
+		for(long jj = 0; jj<samples_struct.ntotscan; jj++)
+			nsamples_temp[jj]= samples_struct.nsamples[jj];
+
+
+		for(long ii = 0; ii<size; ii++){
+			if(rank==ii)
+				iframe_min=num_frame;
+			for(long jj = 0; jj<samples_struct.ntotscan; jj++){
+				if(samples_struct.index_table[jj]==ii){
+
+					samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
+					samples_struct.noise_table[num_frame]=samples_struct.noisevect[jj];
+					samples_struct.nsamples[num_frame]=nsamples_temp[jj];
+					if(rank==0){
+						temp = samples_struct.fits_table[num_frame];
+						found=temp.find_last_of('/');
+						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+
+					}
+					num_frame++;
+				}
+			}
+			if(rank==ii)
+				iframe_max=num_frame;
+		}
+
+	}
+
+	if(rank==0){
+		file.close();
+		cout << "on aura : \n";
+		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+		//cout << samples_struct.filename << endl;
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (iframe_max==iframe_min){ // test
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+		//		MPI_Finalize();
+		//		exit(0);
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	for(long ii=0;ii<size;ii++){
+		if(rank==ii)
+			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
+		else
+			MPI_Barrier(MPI_COMM_WORLD);
+	}
+
+	//////// temp
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Finalize();
+	//	exit(0);
 
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
+
+	//convert vector to standard C array to speed up memory accesses
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
-
-	/*for(long ii=0; ii<samples_struct.ntotscan;ii++)
-		frames_index[ii] = ii;*/
-
 
 #endif
 
@@ -341,15 +471,15 @@ int main(int argc, char *argv[])
 	fill(S,S+npix,0.0);
 
 	// conjugate GRADIENT LOOP
-//	sanepic_conjugate_gradient(com.flgdupl, npix, S, iframe_min, iframe_max,
-//			samples_struct.nsamples, fcut,u_opt.f_lp, u_opt.fsamp,
-//			indpix,
-//			wcs, NAXIS1, NAXIS2,
-//			factdupl, dir.tmp_dir, det.ndet,
-//			samples_struct.noise_table,dir.tmp_dir, det.boloname, iterw,
-//			indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
-//			dir.dirfile, PNdtot, samples_struct.ntotscan,addnpix,u_opt.NORMLIN,com.NOFILLGAP,
-//			com.napod, u_opt.remove_polynomia, dir.outdir,samples_struct.fits_table);
+	//	sanepic_conjugate_gradient(com.flgdupl, npix, S, iframe_min, iframe_max,
+	//			samples_struct.nsamples, fcut,u_opt.f_lp, u_opt.fsamp,
+	//			indpix,
+	//			wcs, NAXIS1, NAXIS2,
+	//			factdupl, dir.tmp_dir, det.ndet,
+	//			samples_struct.noise_table,dir.tmp_dir, det.boloname, iterw,
+	//			indpsrc, npixsrc,flagon, u_opt.projgaps, rank, u_opt.CORRon,
+	//			dir.dirfile, PNdtot, samples_struct.ntotscan,addnpix,u_opt.NORMLIN,com.NOFILLGAP,
+	//			com.napod, u_opt.remove_polynomia, dir.outdir,samples_struct.fits_table);
 
 	sanepic_conjugate_gradient(samples_struct,com,det,dir,u_opt, npix, S, iframe_min, iframe_max,
 			fcut,indpix,wcs, NAXIS1, NAXIS2, iterw,
