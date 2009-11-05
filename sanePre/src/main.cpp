@@ -21,6 +21,9 @@ extern "C" {
 }
 
 
+//temp
+#include <fstream>
+
 
 
 #ifdef USE_MPI
@@ -455,10 +458,12 @@ int main(int argc, char *argv[])
 	//Pre-processing of the data
 	//************************************************************************//
 	//************************************************************************//
-
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Pre-processing of the data\n",rank);
-
+#else
+	printf("[%2.2i] Pre-processing of the data\n",rank);
+#endif
 	/*fftw_complex **fdatas;
 	long nsamp_max=0;
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -481,9 +486,12 @@ int main(int argc, char *argv[])
 		f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp; // noise PS threshold freq, in terms of samples
 
+#ifdef USE_MPI
 		if(iframe_min!=iframe_max)
 			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
-
+#else
+		printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+#endif
 
 		// if there is correlation between detectors
 		if (u_opt.CORRon){
@@ -527,13 +535,17 @@ int main(int argc, char *argv[])
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
+//			cout << "avant time ! \n";
 			//Processing stops here
 			t3=time(NULL);
 
 			//debug : computation time
+#ifdef USE_MPI
 			if(iframe_min!=iframe_max)
 				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
-
+#else
+			cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
+#endif
 			// PNd = npix dimension, initialised to 0.0
 			// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
 			// noiseSppreffile = noise power spectrum file suffix = path
@@ -581,15 +593,18 @@ int main(int argc, char *argv[])
 
 
 
+
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] End of Pre-Processing\n",rank);
 
-#ifdef USE_MPI
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
+	printf("[%2.2i] End of Pre-Processing\n",rank);
+
 	for(unsigned long ii=0;ii<npix;ii++){
 		hitstot[ii]=hits[ii];
 		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
@@ -603,6 +618,18 @@ int main(int argc, char *argv[])
 		// write (At N-1 d) in a file
 		write_PNd(PNdtot,npix,dir.tmp_dir);
 
+		//temp
+		ofstream filee;
+
+		//temp
+		string outfile = dir.outdir + "test_Pnd_Mp.txt";
+		//cout << "outfile : " << outfile;
+		filee.open(outfile.c_str(), ios::out);
+		if(!filee.is_open()){
+			cerr << "File [" << fname << "] Invalid." << endl;
+			exit(0);
+		}
+
 
 		cout << "naive step" << endl;
 		string fnaivname;
@@ -615,16 +642,20 @@ int main(int argc, char *argv[])
 			for (long jj=0; jj<NAXIS2; jj++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					//if(hits[indpix[mi]]>0)
+					//if(hitstot[indpix[mi]]>0)
 					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
+					filee /*<< PNdtot[indpix[mi]] << endl;" " */<< Mptot[indpix[mi]] << endl;
+					//					getchar();
 				} else {
-					map1d[mi] = NAN;
+					map1d[mi] = 0;
 				}
 			}
 		}
 
+		filee.close();
 		fnaivname = '!' + dir.outdir + "naivMap.fits";
 		cout << fnaivname << endl;
+		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 
@@ -634,7 +665,7 @@ int main(int argc, char *argv[])
 				if (indpix[mi] >= 0){
 					map1d[mi] = hitstot[indpix[mi]];
 				} else {
-					map1d[mi] = NAN;
+					map1d[mi] = 0;
 				}
 			}
 		}
@@ -650,10 +681,14 @@ int main(int argc, char *argv[])
 
 	//Processing stops here
 	t3=time(NULL);
+
 	//debug : computation time
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		cout << "temps : " << t3-t2 << " sec\n";
-
+#else
+	cout << "temps : " << t3-t2 << " sec\n";
+#endif
 
 	// clean up
 	delete [] PNd;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 #include "todprocess.h"
 #include "map_making.h"
@@ -1035,7 +1036,7 @@ void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *re
 
 
 // TODO : struct can be used here ??
-void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns, int napod,
+void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
@@ -1046,6 +1047,9 @@ void MapMakPreProcessData(double *data,  short *flag, /*double *calp, */long ns,
 
 	data_out = new double[ns];
 	data_out_lp = new double[ns];
+
+	fill(data_out,data_out+ns,0.0);
+	fill(data_out_lp,data_out_lp+ns,0.0);
 
 
 	//*********************************************************************

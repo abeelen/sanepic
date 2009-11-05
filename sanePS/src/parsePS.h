@@ -26,7 +26,7 @@
 		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);*/
 
 int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::string &MixMatfile, std::string &ellFile, std::string &signame);
+		struct detectors &det, std::string &MixMatfile, std::string &ellFile, std::string &signame, int rank);
 
 
 #endif /* PARSEPPS_H_ */

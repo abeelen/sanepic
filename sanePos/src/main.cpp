@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename;
+			string outfile = dir.outdir + samples_struct.filename + "_sanepos.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
 				ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
-	cout << rank << "avant le reduce !" << endl;
+//	cout << rank << "avant le reduce !" << endl;
 	//	if(iframe_min!=iframe_max){
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -545,14 +545,14 @@ int main(int argc, char *argv[])
 	MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 	//	}
 
-	cout <<  rank << "apres le reduce !" << endl;
+//	cout <<  rank << "apres le reduce !" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
-	cout <<  rank << "apres le bcast !" << endl;
+//	cout <<  rank << "apres le bcast !" << endl;
 #else
 	gra_min=ra_min;
 	gra_max=ra_max;
@@ -692,7 +692,7 @@ int main(int argc, char *argv[])
 	t3=time(NULL);
 
 	if(iframe_min!=iframe_max)
-		printf("[%2.2i] Temps de traitement : %d sec",rank,(int)(t3-t2));
+		printf("[%2.2i] Temps de traitement : %d sec\n",rank,(int)(t3-t2));
 
 
 

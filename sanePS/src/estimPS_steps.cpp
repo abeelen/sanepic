@@ -281,8 +281,9 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 	delete [] ivec;
 
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
+
 
 	//----------------------------------- END -------------------------------//
 
@@ -303,6 +304,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
 {
+
 
 	string nameSpfile, field;
 	string testfile;
@@ -593,7 +595,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 			data1d[i*nbins+j] = N[i][j];
 
 	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << dir.outdir + "Ninit_" << ff << ".fits";
+	temp_stream << "!" + dir.outdir + "Ninit_" << ff << ".fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -1050,7 +1052,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	delete [] ivec;
 
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
+	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 
 	delete [] iN;
 	delete [] Pr;
@@ -1234,7 +1236,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	FILE *fp;
 	double *data1d;
 
-	temp_stream << outdirSpN + "BoloPS" << ff << "_psd.fits";
+	temp_stream << "!" + outdirSpN + "BoloPS" << ff << "_psd.fits";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1339,7 +1341,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
 	//sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Nfinal_" << ff << "_uncnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_uncnoise.fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -1378,7 +1380,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
 	//sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << outdirSpN + "Nfinal_" << ff << "_cnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_cnoise.fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();

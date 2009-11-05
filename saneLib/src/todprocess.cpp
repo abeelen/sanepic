@@ -2,7 +2,8 @@
 
 
 #include <iostream>
-//#include <cstdlib>
+#include <cstdlib>
+#include <cmath>
 #include <string>
 #include <fstream>
 #include <cmath>
@@ -468,6 +469,9 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 	ellm = new double[nbins];
 	logSpN = new double[nbins];
+
+	fill(ellm,ellm+nbins,0.0);
+	fill(logSpN,logSpN+nbins,0.0);
 
 
 	for (int ii=0;ii<nbins;ii++)

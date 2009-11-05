@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 #include "Corr_preprocess.h"
 #include "covMatrixIO.h"
@@ -15,6 +16,10 @@
 #include "inline_IO2.h"
 #include "todprocess.h"
 #include "map_making.h"
+
+
+//temp
+#include <fstream>
 
 #include <gsl/gsl_math.h>
 #include <fftw3.h>
@@ -88,7 +93,8 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	//long ndata = ns+2*marge;
 
 	double *data, *bfilter, *data_lp, *Ps;
-	short *flpoint, *flag;
+	short *flag;
+	//	short *flpoint;
 	long long *samptopix;
 
 	fftw_plan fftplan;
@@ -100,6 +106,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	//char testfile[100];
 
 	//FILE *fp;
+//	cout << "avant les alloc" << endl;
 
 	//scerr = new double[ns];
 	data =  new double[ns];
@@ -107,8 +114,8 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	//calp =  new double[ns];
 	//flag =  new unsigned char[ns];
 	//flpoint = new unsigned char[ns];
-	//	flag = new short[ns];
-	flpoint = new short[ns];
+	flag = new short[ns];
+	//	flpoint = new short[ns];
 	//rejectsamp = new unsigned char[ns];
 
 	samptopix = new long long[ns];
@@ -116,10 +123,27 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	bfilter = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
 
-	unsigned char *flag2;
-	double *data2;
-	data2= new double[ns];
-	flag2 = new unsigned char[ns];
+	//	unsigned char *flag;
+	//	double *data2;
+	//	data2= new double[ns];
+	//	flag = new unsigned char[ns];
+
+//	cout << "avant les fill" << endl;
+
+	fill(flag,flag+ns,0);
+	fill(data,data+ns,0.0);
+	fill(data_lp,data_lp+ns,0.0);
+	fill(Ps,Ps+ns,0.0);
+	fill(bfilter,bfilter+(ns/2+1),0.0);
+	fill(samptopix,samptopix+ns,0);
+	//	fill(flpoint,flpoint+ns,0);
+
+	for (long ii=0;ii<ns/2+1;ii++){
+		fdata[ii][0] = 0.0;
+		fdata[ii][1] = 0.0;
+	}
+
+//	cout << "apres les fill" << endl;
 
 	int factdupl = 1;
 	if(com.flgdupl==1)		factdupl = 2;
@@ -130,30 +154,37 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		field1 = det.boloname[idet1];
+				cout << field1 << endl;
 
-		if (S != NULL){
-			// TODO: What is the point of this ?? Do we really need this ?
-			read_flpoint_from_fits(fits_filename, flpoint);
-			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
+
+		//		fill(data,data+ns,0.0);
+		//		fill(data_lp,data_lp+ns,0.0);
+		//		fill(Ps,Ps+ns,0.0);
+		//		fill(bfilter,bfilter+ns,0.0);
+		//		fill(samptopix,samptopix+ns,0);
+		//		fill(flpoint,flpoint+ns,0);
+
+		for (long ii=0;ii<ns/2+1;ii++){
+			fdata[ii][0] = 0.0;
+			fdata[ii][1] = 0.0;
 		}
+		//		cout << field1 << "  apres ALLOC "  << endl;
+
+//		if (S != NULL){
+//			// TODO: What is the point of this ?? Do we really need this ?
+//			//			read_flpoint_from_fits(fits_filename, flpoint);
+//			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
+//		}
 
 		read_signal_from_fits(fits_filename, data, field1);
 
-		//cout << "data : " <<  setprecision(14)  << data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
-		//cout << "flag2 : " << flag2[0] <<  flag2[1] << flag2[2] << flag2[ns -1] << endl;
 		long test_ns;
 		read_flag_from_fits(fits_filename , field1, flag, test_ns);
-		//TODO : Test the size of the output
+		if(test_ns!=ns)
+			cerr << "Error. the number of samples between the fits file and the flag table is different. Exiting\n";
 
-		//cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
 
-		//cout << "idet : " << idet1 << endl;
-		/*for(int ii=0;ii<ns;ii++)
-			if(((flag[ii]) == (flag2[ii]))){
-				cout << "flag!=flag2" << " ii : " << ii << " : "<< flag[ii] << flag2[ii] << endl;
-				//getchar();
-			}*/
 
 
 
@@ -175,12 +206,15 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		//TODO : Changed here to poly of order 1 to test.... Should be in the ini file !!!
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
+			cout << "S !=NULL\n";
 			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
+			//			cout << "avant mapmake\n";
 			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
+			//			cout << "apres mapmake\n";
 		}
 
 		//cout << "data apres map : " << setprecision(14)  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
@@ -190,22 +224,28 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
+		//		cout << "write fdata_" << iframe << "_" << idet1 << endl;
+
 		//write fourier transform to disk
 		write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
 
+//		cout << "write fdata_" << iframe << "_" << idet1 << endl;
 	}
 
 
+//	cout << "avant les clean" << endl;
 
 	delete[] data;
 	delete[] data_lp;
 	delete[] flag;
-	delete[] flpoint;
+	//	delete[] flpoint;
 	delete[] samptopix;
 	delete[] Ps;
 	delete[] bfilter;
 	delete[] fdata;
 
+//	cout << "apres les clean" << endl;
+//	getchar();
 }
 
 
@@ -222,7 +262,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 		double *Mp, long *hits)
 
 {
-
+//	cout << "dans do_ptnd\n";
 
 	long  nbins;
 	string field1, field2;
@@ -256,14 +296,28 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 	for (long ii=0;ii<ns/2+1;ii++)
 		bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
 
+	fill(Nd,Nd+ns,0.0);
+	fill(Nk,Nk+(ns/2+1),0.0);
+	fill(samptopix,samptopix+ns,0);
+
+	for (long ii=0;ii<ns/2+1;ii++){
+		fdata[ii][0] = 0.0;
+		fdata[ii][1] = 0.0;
+	}
+
+
+
+
 
 	//cout << rank << " " << size << endl;
 
 	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 	for (long idet1=0;idet1<det.ndet;idet1++){
 		field1 = det.boloname[idet1];
-		//cout << field1 << endl;
+		cout << field1 << endl;
 
+
+		fill(samptopix,samptopix+ns,0);
 
 		//Read pointing data
 		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
@@ -279,18 +333,27 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 		if(det.ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 		SpN = new double[nbins];
-
+		fill(SpN,SpN+nbins,0.0);
 
 		//Init N-1d
 		for (long ii=0;ii<ns/2+1;ii++){
-			Ndf[ii][0] = 0;
-			Ndf[ii][1] = 0;
+			Ndf[ii][0] = 0.0;
+			Ndf[ii][1] = 0.0;
 		}
 
+//		if(idet1>0)
+//			cout << "avant double boucle" << endl;
 
 		for (long idet2=0;idet2<det.ndet;idet2++){
 			field2 = det.boloname[idet2];
 
+			fill(Nd,Nd+ns,0.0);
+			fill(Nk,Nk+(ns/2+1),0.0);
+
+			for (long ii=0;ii<ns/2+1;ii++){
+				fdata[ii][0] = 0.0;
+				fdata[ii][1] = 0.0;
+			}
 
 			//read Fourier transform of the data
 			read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
@@ -309,12 +372,29 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 
-			for (long jj=0;jj<ns/2+1;jj++)
+			//
+			//			//temp
+			//			ofstream filee;
+			//
+			//			//temp
+			//			string outfile = dir + field1 + "_" + field2 + extentNoiseSp + ".txt";
+			//			//cout << "outfile : " << outfile;
+			//			filee.open(outfile.c_str(), ios::out);
+			//			if(!filee.is_open()){
+			//				cerr << "File [" << outfile << "] Invalid." << endl;
+			//				exit(0);
+			//			}
+
+
+			for (long jj=0;jj<ns/2+1;jj++){
+				//				filee << Nk[jj] << " ";
 				if (isnan(Nk[jj])) {
 					printf("isnan has been found : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 					exit(1);
 				}
+			}
 
+			//			filee.close();
 			//********************************* compute N^-1 d  ***********************//
 			for (long ii=0;ii<ns/2+1;ii++){
 				Ndf[ii][0] += fdata[ii][0]*Nk[ii];

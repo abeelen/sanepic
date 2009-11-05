@@ -18,7 +18,7 @@ extern "C"{
 using namespace std;
 
 int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut)
+		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut, int rank)
 {
 
 	dictionary	*	ini ;
@@ -38,41 +38,43 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 
 	printf("\nsanepic_conjugate_gradient:\n");
 
-	if(read_directories(ini, dir)==-1)
+	if(read_directories(ini, dir, rank)==-1)
 		return -1;
 
-	if(read_commons(ini, com)==-1)
+	if(read_commons(ini, com, rank)==-1)
 		return -1;
 
-	if(read_channel_list(ini,det.boloname)==-1)
+	if(read_channel_list(ini,det.boloname, rank)==-1)
 		return -1;
 
-	if(read_fits_file_list(ini, dir,samples_struct)==-1)
+	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
 		return -1;
 
-	if(read_box_coord(ini,boxFile)==-1)
+	if(read_box_coord(ini,boxFile, rank)==-1)
 		return -1;
 
-	if(read_user_options(ini,u_opt)==-1)
+	if(read_user_options(ini,u_opt, rank)==-1)
 		return -1;
 
 	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
 		return -1;*/
 
-	if(read_noise_cut_freq(ini, fcut)==-1)
+	if(read_noise_cut_freq(ini, fcut, rank)==-1)
 		return -1;
 
-	if(read_iter(ini, iterw)==-1)
+	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
 
-	printf("\nsanePre parser operations completed :\n");
-	cout << "You have specified the following options : \n\n";
+	if(rank==0){
 
-	print_directories(dir);
-	print_commons(com);
-	print_parser(u_opt);
-	// TODO : ajout print_iterw ?
+		printf("\nsanePre parser operations completed :\n");
+		cout << "You have specified the following options : \n\n";
 
+		print_directories(dir);
+		print_commons(com);
+		print_parser(u_opt);
+		// TODO : ajout print_iterw ?
+	}
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 	det.ndet = det.boloname.size();	// ndet = number of detectors
@@ -90,9 +92,10 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	}
 
 
-
-	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-	printf("Number of bolometers : %ld\n",det.ndet);
+	if(rank==0){
+		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+		printf("Number of bolometers : %ld\n",det.ndet);
+	}
 
 	//nnf = number of noise PS files
 	//nnf = (int)extentnoiseSP.size();

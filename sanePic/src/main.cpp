@@ -24,6 +24,8 @@
 
 #ifdef USE_MPI
 #include "mpi.h"
+#include <algorithm>
+#include <fstream>
 #endif
 
 
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
 		int parsed=1;
 
 		parsed=parse_sanePic_ini_file(argv[1],u_opt,iterw, dir, samples_struct,com,
-				det,boxFile, fcut);
+				det,boxFile, fcut, rank);
 		if (parsed==-1){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
