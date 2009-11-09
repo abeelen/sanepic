@@ -103,6 +103,12 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		fill(Mptot,Mptot+npix,0.0);
 		fill(hits,hits+npix,0);
 		fill(hitstot,hitstot+npix,0);
+		fill(r,r+npix,0.0);
+		fill(d,d+npix,0.0);
+		fill(s,s+npix,0.0);
+		fill(PtNPmatS,PtNPmatS+npix,0.0);
+		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+		fill(PNd,PNd+npix,0.0);
 
 
 		prefixe = "fPs_";
@@ -173,6 +179,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			for (long ii=0;ii<npixeff;ii++)
 				r[ii] = PNdtot[ii] - PtNPmatStot[ii]; // r = b - Ax
 
+//			cout << r[0] << " " << r[1] << " " << r[2] << " " << endl;
+
 			for (long ii=0;ii<npixeff;ii++)
 				d[ii] =  Mptot[ii] * r[ii]; // d = M-1 * r
 
@@ -180,6 +188,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			delta_n = 0.0;
 			for (long ii=0;ii<npixeff;ii++)
 				delta_n += r[ii]*d[ii]; // delta_new = rT * d
+
+//			cout << "delta_n : " << delta_n << endl;
 
 			var_n = 0.0;
 			for (long ii=0;ii<npixeff;ii++)
@@ -220,7 +230,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
 
 				if (u_opt.CORRon){
-					write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
 					// read pointing + deproject + fourier transform
 
 					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
@@ -260,6 +270,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 					rtq += qtot[ii] * d[ii]; // rtq = (dT * q)
 
 				alpha = delta_n/rtq; // alpha <= delta_new / (dT * q)
+//				cout << "rtq : " << rtq << endl;
+//				cout << "alpha : " << alpha << endl;
 
 
 				for (long ii=0;ii<npixeff;ii++)

@@ -111,7 +111,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);*/
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
-	if ((long)fcut.size()!=samples_struct.ntotscan){
+	if ((int)fcut.size()==0){
 		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
 		exit(0);
 	}

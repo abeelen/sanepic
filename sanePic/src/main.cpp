@@ -430,10 +430,10 @@ int main(int argc, char *argv[])
 
 	// read npix, PNdtot from file
 	read_PNd(PNdtot, npix,  dir.tmp_dir);
-	/*for (int ii=0;ii<20;ii++)
-			cout << PNdtot[ii] << " ";
-		cout << endl << "avant read indpix\n";
-		exit(0);*/
+//	for (int ii=0;ii<20;ii++)
+//			cout << PNdtot[ii] << " ";
+//		cout << endl << "avant read indpix\n";
+//		getchar();
 
 
 
