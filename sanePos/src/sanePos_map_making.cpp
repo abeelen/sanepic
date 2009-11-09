@@ -382,6 +382,13 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	}
 
 	//	wcsprt(&wcs);
+	delete [] phi;
+	delete [] theta;
+	delete [] x;
+	delete [] y;
+	delete [] status;
+	delete [] lon;
+	delete [] lat;
 
 }
 

@@ -34,8 +34,8 @@ extern "C" {
 
 #ifdef USE_MPI
 #include "mpi.h"
-#include <algorithm>
-#include <fstream>
+//#include <algorithm>
+//#include <fstream>
 #endif
 
 using namespace std;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
 
 	string fname; /*! parallel scheme file name */
-	ofstream file;
+	//	ofstream file;
 
 
 	unsigned short *mask;
@@ -263,7 +263,10 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
+	ofstream file;
 
+
+	// User has not given a processor order
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
@@ -277,7 +280,12 @@ int main(int argc, char *argv[])
 			MPI_Finalize();
 			exit(1);
 		}
+		// user has given a processor order
 	}else{
+		//		int test=0;
+		//		test = verify_parallelization_scheme(rank,dir.outdir,samples_struct, size, iframe_min, iframe_max);
+
+
 		long size_tmp = 0;
 		int return_error = 0;
 		int num_frame = 0;
@@ -350,15 +358,13 @@ int main(int argc, char *argv[])
 
 
 
-
-
 		if(rank==0){
 
 			string outfile = dir.outdir + samples_struct.filename + "_sanepos.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
-				cerr << "File [" << fname << "] Invalid." << endl;
+				cerr << "File [" << outfile << "] Invalid." << endl;
 				return_error = 1;
 			}
 		}
@@ -515,8 +521,12 @@ int main(int argc, char *argv[])
 	//********************************************************************************
 	//*************  find coordinates of pixels in the map
 	//********************************************************************************
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Finding coordinates of pixels in the map\n",rank);
+#else
+	printf("Finding coordinates of pixels in the map\n");
+#endif
 
 	//	bool default_projection = 1;
 
@@ -529,14 +539,15 @@ int main(int argc, char *argv[])
 	//	computeMapMinima(det.boloname,samples_struct.fits_table,
 	//			iframe_min,iframe_max,samples_struct.nsamples,com.pixdeg,
 	//			ra_min,ra_max,dec_min,dec_max);
-
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
+#endif
 		computeMapMinima(det.boloname,samples_struct,
 				iframe_min,iframe_max,com.pixdeg,
 				ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
-//	cout << rank << "avant le reduce !" << endl;
+	//	cout << rank << "avant le reduce !" << endl;
 	//	if(iframe_min!=iframe_max){
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -545,14 +556,14 @@ int main(int argc, char *argv[])
 	MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 	//	}
 
-//	cout <<  rank << "apres le reduce !" << endl;
+	//	cout <<  rank << "apres le reduce !" << endl;
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 	MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
-//	cout <<  rank << "apres le bcast !" << endl;
+	//	cout <<  rank << "apres le bcast !" << endl;
 #else
 	gra_min=ra_min;
 	gra_max=ra_max;
@@ -570,8 +581,6 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
 		printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 	}
-
-	//	exit(0);
 
 	computeMapHeader(com.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
@@ -624,21 +633,29 @@ int main(int argc, char *argv[])
 	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
 	pixon = new long long[sky_size];
-	pixon_tot = new long long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
-	fill(pixon_tot,pixon_tot+(sky_size),0);
+
+#ifdef USE_MPI
+	if(rank==0){
+		pixon_tot = new long long[sky_size];
+		fill(pixon_tot,pixon_tot+(sky_size),0);
+	}
+#endif
 
 
 	//**********************************************************************************
 	// Compute pixels indices
 	//**********************************************************************************
 
-	//	//TODO: check from here and below
 
 
-	//cout << "avant compute" << endl;
+
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max){
 		printf("[%2.2i] Compute Pixels Indices\n",rank);
+#else
+		printf("Compute Pixels Indices\n");
+#endif
 
 
 		computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
@@ -647,20 +664,23 @@ int main(int argc, char *argv[])
 				mask,factdupl,
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout);
-	}
+
 
 
 
 #ifdef USE_MPI
-	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-#else
-	// TODO : pointer assignement only ?
-	for(long long ii=0;ii<sky_size;ii++){
-		pixon_tot[ii]=pixon[ii];
 	}
+	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+	delete [] pixon;
+#else
+
+	pixon_tot=pixon;
+	//	for(long long ii=0;ii<sky_size;ii++){
+	//		pixon_tot[ii]=pixon[ii];
+	//	}
 #endif
 
-	delete [] pixon;
+	//	delete [] pixon;
 
 
 	npix = 0;
@@ -691,36 +711,44 @@ int main(int argc, char *argv[])
 
 	t3=time(NULL);
 
-	if(iframe_min!=iframe_max)
-		printf("[%2.2i] Temps de traitement : %d sec\n",rank,(int)(t3-t2));
-
-
-
 
 #ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
+	if(iframe_min!=iframe_max){
+		printf("[%2.2i] Temps de traitement : %d sec\n",rank,(int)(t3-t2));
+		printf("[%2.2i] Cleaning up\n",rank);
+	}
+#else
+	printf("Temps de traitement : %d sec\n",(int)(t3-t2));
+	printf("Cleaning up\n");
 #endif
 
-	if(iframe_min!=iframe_max)
-		printf("[%2.2i] Cleaning up\n",rank);
-
-	// TODO : Check all variable declaration/free
 	// clean up
 	delete [] mask;
-	delete [] pixon_tot;
 	delete [] coordscorner;
 	delete [] samples_struct.nsamples;
-	if(rank==0)
+
+#ifdef USE_MPI
+	if(rank==0){
 		delete [] indpix;
+		delete [] pixon_tot;
+	}
+#else
+	delete [] pixon;
+#endif
+
 	delete [] indpsrc;
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.index_table;
-	//delete [] frames_index;
 
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] End of sanePos\n",rank);
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+#else
+	printf("End of sanePos\n");
+#endif
 
 	return 0;
 }

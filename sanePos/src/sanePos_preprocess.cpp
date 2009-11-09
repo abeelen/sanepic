@@ -572,6 +572,9 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		delete [] ra;
 		delete [] dec;
 		delete [] flpoint;
+		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
+		delete [] cosphi;
+		delete [] sinphi;
 
 	} // end of iframe loop
 }
