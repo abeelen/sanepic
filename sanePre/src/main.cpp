@@ -406,6 +406,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 	}
 
+	delete [] nsamples_temp;
 	//////// temp
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	//	MPI_Finalize();
@@ -428,29 +429,32 @@ int main(int argc, char *argv[])
 #endif
 
 
-
 	//At N-1 D memory allocation
 	PNd = new double[npix];
 
 	// global At N-1 D malloc for mpi
-
-	PNdtot = new double[npix];
 	hits=new long[npix];
-	hitstot=new long[npix];
-
 	Mp = new double[npix];
-	Mptot = new double[npix];
-
-
 
 	// initialisation to 0.0
 	fill(PNd,PNd+npix,0.0);
-	fill(PNdtot,PNdtot+npix,0.0);
 	fill(hits,hits+npix,0);
-	fill(hitstot,hitstot+npix,0);
 	fill(Mp,Mp+npix,0.0);
-	fill(Mptot,Mptot+npix,0.0);
 
+
+#ifdef USE_MPI
+
+	if(rank==0){
+		PNdtot = new double[npix];
+		hitstot=new long[npix];
+		Mptot = new double[npix];
+
+		fill(PNdtot,PNdtot+npix,0.0);
+		fill(hitstot,hitstot+npix,0);
+		fill(Mptot,Mptot+npix,0.0);
+	}
+
+#endif
 
 
 	//************************************************************************//
@@ -535,7 +539,7 @@ int main(int argc, char *argv[])
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
-//			cout << "avant time ! \n";
+			//			cout << "avant time ! \n";
 			//Processing stops here
 			t3=time(NULL);
 
@@ -603,13 +607,16 @@ int main(int argc, char *argv[])
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
-	printf("[%2.2i] End of Pre-Processing\n",rank);
+	printf("End of Pre-Processing\n");
 
-	for(unsigned long ii=0;ii<npix;ii++){
-		hitstot[ii]=hits[ii];
-		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
-		Mptot[ii]=Mp[ii];
-	}
+	hitstot=hits;
+	PNdtot=PNd;
+	Mptot=Mp;
+	//	for(unsigned long ii=0;ii<npix;ii++){
+	//		hitstot[ii]=hits[ii];
+	//		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
+	//		Mptot[ii]=Mp[ii];
+	//	}
 #endif
 
 
@@ -619,16 +626,13 @@ int main(int argc, char *argv[])
 		write_PNd(PNdtot,npix,dir.tmp_dir);
 
 		//temp
-		ofstream filee;
-
-		//temp
-		string outfile = dir.outdir + "test_Pnd_Mp.txt";
-		//cout << "outfile : " << outfile;
-		filee.open(outfile.c_str(), ios::out);
-		if(!filee.is_open()){
-			cerr << "File [" << fname << "] Invalid." << endl;
-			exit(0);
-		}
+		//		ofstream filee;
+		//		string outfile = dir.outdir + "test_Pnd_Mp.txt";
+		//		filee.open(outfile.c_str(), ios::out);
+		//		if(!filee.is_open()){
+		//			cerr << "File [" << fname << "] Invalid." << endl;
+		//			exit(0);
+		//		}
 
 
 		cout << "naive step" << endl;
@@ -642,9 +646,8 @@ int main(int argc, char *argv[])
 			for (long jj=0; jj<NAXIS2; jj++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					//if(hitstot[indpix[mi]]>0)
 					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
-					filee /*<< PNdtot[indpix[mi]] << endl;" " */<< Mptot[indpix[mi]] << endl;
+					//					filee /*<< PNdtot[indpix[mi]] << endl;" " */<< Mptot[indpix[mi]] << endl;
 					//					getchar();
 				} else {
 					map1d[mi] = 0;
@@ -652,7 +655,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		filee.close();
+		//		filee.close();
 		fnaivname = '!' + dir.outdir + "naivMap.fits";
 		cout << fnaivname << endl;
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
@@ -685,20 +688,23 @@ int main(int argc, char *argv[])
 	//debug : computation time
 #ifdef USE_MPI
 	if(iframe_min!=iframe_max)
-		cout << "temps : " << t3-t2 << " sec\n";
+		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
+
+	if(rank==0){
+		// clean up
+		delete [] PNdtot;
+		delete [] Mptot;
+		delete [] hitstot;
+
+	}
 #else
-	cout << "temps : " << t3-t2 << " sec\n";
+	cout << "Time : " << t3-t2 << " sec\n";
 #endif
 
 	// clean up
 	delete [] PNd;
-	delete [] PNdtot;
-
 	delete [] Mp;
-	delete [] Mptot;
-
 	delete [] hits;
-	delete [] hitstot;
 
 
 	delete [] samples_struct.nsamples;
@@ -708,13 +714,15 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
-	//	delete [] frames_index;
 
 
-	cout << "[" << rank << "] End of Init Loop" << endl;
+
 
 #ifdef USE_MPI
+	printf("[%2.2i] End of sanePre \n",rank);
 	MPI_Finalize();
+#else
+	printf("End of sanePre \n");
 #endif
 
 

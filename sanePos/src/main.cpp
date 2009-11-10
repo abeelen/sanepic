@@ -443,6 +443,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 	}
 
+	delete [] nsamples_temp;
 	//////// temp
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	//	MPI_Finalize();
@@ -698,6 +699,7 @@ int main(int argc, char *argv[])
 		 * flagon : if some pixels are apodized or outside the map
 		 */
 		write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon);
+		delete [] indpix;
 	}
 
 
@@ -729,7 +731,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	if(rank==0){
-		delete [] indpix;
 		delete [] pixon_tot;
 	}
 #else
