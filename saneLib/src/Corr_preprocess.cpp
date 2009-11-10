@@ -47,6 +47,13 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	Ps = new double[ns];
 	fdata = new fftw_complex[ns/2+1];
 
+	fill(samptopix,samptopix+ns,0);
+	fill(Ps,Ps+ns,0.0);
+	for(long ii =0; ii<ns/2+1;ii++){
+		fdata[ii][0]=0.0;
+		fdata[ii][1]=0.0;
+	}
+
 	int factdupl = 1;
 	if(flgdupl==1)  factdupl = 2;
 
@@ -57,6 +64,10 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		//Read pointing data
 		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
 
+//		cout << "samptopix : " << endl;
+//		cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
+
+		// temporary down
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
@@ -154,7 +165,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		field1 = det.boloname[idet1];
-				cout << field1 << endl;
+//				cout << field1 << endl;
 
 
 		//		fill(data,data+ns,0.0);
@@ -207,12 +218,12 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			cout << "S !=NULL\n";
-			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
 			//			cout << "avant mapmake\n";
-			MapMakPreProcessData(data,flag,ns,com.napod,1,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 			//			cout << "apres mapmake\n";
 		}
@@ -314,10 +325,10 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 	for (long idet1=0;idet1<det.ndet;idet1++){
 		field1 = det.boloname[idet1];
-		cout << field1 << endl;
+//		cout << field1 << endl;
 
 
-		fill(samptopix,samptopix+ns,0);
+//		fill(samptopix,samptopix+ns,0);
 
 		//Read pointing data
 		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);

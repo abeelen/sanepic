@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
 	struct wcsprm wcs;    // wcs structure of the image
 	long NAXIS1, NAXIS2;  // size of the image
 
+
+	// System should be IEEE 754 complient (TODO : add in the doc)
 	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /*! ra/dec min/max coordinates of the map*/
 	//float *scoffsets; /*! source offsets depending on wavelength */
 	//scoffsets = new float[6];  useless now !

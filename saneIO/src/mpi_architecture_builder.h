@@ -107,6 +107,7 @@ int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum
 //int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table);
 int check_ParallelizationScheme(std::string fname, std::string dirfile,struct samples &samples_struct, int size);
 int define_parallelization_scheme(int rank,std::string fname,std::string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max);
+int verify_parallelization_scheme(int rank, std::string outdir,struct samples samples_struct, int size, long iframe_min, long iframe_max);
 ///////////////////////////
 
 long readFitsLength(std::string filename);

@@ -121,6 +121,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	}
 
 	delete [] temp;
+
 }
 
 void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, short *&FLAG, long &ns){

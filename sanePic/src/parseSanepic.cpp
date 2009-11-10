@@ -73,7 +73,6 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 		print_directories(dir);
 		print_commons(com);
 		print_parser(u_opt);
-		// TODO : ajout print_iterw ?
 	}
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();

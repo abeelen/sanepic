@@ -22,7 +22,7 @@ extern "C" {
 
 
 //temp
-#include <fstream>
+//#include <fstream>
 
 
 
@@ -30,7 +30,6 @@ extern "C" {
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
-//#include "mpi_architecture_builder.h"
 #endif
 
 using namespace std;

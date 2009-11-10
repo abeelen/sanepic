@@ -322,6 +322,29 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
 		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
 		exit(1);
 	}
+
+
+	oss.str("");
+	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".txt";
+
+	// récupérer une chaîne de caractères
+	testfile = oss.str();
+	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+		data_size = (ns/2+1)*2;
+
+		fprintf(fp,"%ld ",data_size);
+		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
+		for(int ii=0;ii<(ns/2+1);ii++){
+			fprintf(fp,"%lf ",fdata[ii][0]);
+			fprintf(fp,"%lf ",fdata[ii][1]);}
+
+		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
+		fclose(fp);
+	}else{
+		cerr << "ERROR : Could not open " << testfile << endl;
+		exit(0);
+	}
+
 }
 
 
