@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio> // for printf
 
 #include "sanePos_map_making.h"
 #include "dataIO.h"

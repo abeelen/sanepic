@@ -10,7 +10,12 @@
 //#include "time.h"
 //#include "dataIO.h"
 #include "mpi_architecture_builder.h"
+
+
+#ifdef USE_MPI
 #include "mpi.h"
+#endif
+
 
 
 extern "C" {

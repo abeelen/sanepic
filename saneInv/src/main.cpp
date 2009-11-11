@@ -7,7 +7,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <cstdlib> // for exit()
+#include <cstdio>  // for printf()
 
 
 using namespace std;

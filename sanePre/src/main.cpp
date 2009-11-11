@@ -331,6 +331,12 @@ int main(int argc, char *argv[])
 			}
 		}
 
+	int test=0;
+	string fname;
+	fname = dir.outdir + parallel_scheme_filename;
+	cout << fname << endl;
+	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,
+			samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
