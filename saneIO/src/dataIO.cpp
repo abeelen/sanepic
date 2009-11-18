@@ -108,6 +108,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	// read the Channel List
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel Offsets", NULL, &status))
 		fits_report_error(stderr, status);
+
 	// match read offsets with requested offsets
 	for (long idet=0;idet<ndet;idet++){
 
@@ -121,6 +122,10 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	}
 
 	delete [] temp;
+
+	if (fits_close_file(fptr, &status))
+			fits_report_error(stderr, status);
+
 
 }
 
@@ -177,6 +182,9 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	for (long ii = 0; ii<ns; ii++)
 		if (isnan(RA[ii]) || isnan(DEC[ii]))
 			FLAG[ii] = 1;
+
+	if (fits_close_file(fptr, &status))
+			fits_report_error(stderr, status);
 
 }
 

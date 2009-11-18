@@ -433,9 +433,13 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven);
 
 	cout <<" readed list : " << endl;
-	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
-	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
-	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
+	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
+		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
+
+
+	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
+	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
+	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
 	cout << "framegiven : " << framegiven << endl;
 
 	if((framegiven==0)||((int)fits_dummy.size()==0))
@@ -577,74 +581,74 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 	vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
 
 	//if(rank==0){
-		//check the processor order given is correct
-		//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+	//check the processor order given is correct
+	//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
-		struct sortclass_long sortobject;
-		sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+	struct sortclass_long sortobject;
+	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
-		std::vector<long>::iterator it;
-		//			int size_tmp=0;
+	std::vector<long>::iterator it;
+	//			int size_tmp=0;
 
-		// using default comparison:
-		it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
-		size_tmp = it - samples_struct.scans_index.begin();
+	// using default comparison:
+	it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
+	size_tmp = it - samples_struct.scans_index.begin();
 
-		cout << "size unique : " << size_tmp << endl;
+	cout << "size unique : " << size_tmp << endl;
 
-		cout << size << " vs size : " <<  size_tmp << endl;
+	cout << size << " vs size : " <<  size_tmp << endl;
 
-		if((size_tmp)>size){
-			cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-			return return_error =1;
+	if((size_tmp)>size){
+		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+		return return_error =1;
+	}else{
+
+		samples_struct.scans_index.resize( size_tmp );
+
+		cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+
+
+		if((size_tmp)<size){
+			cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+			cout << "Do you wish to continue ? (y/n)\n";
+			c=getchar();
+			switch (c){
+			case('y') :
+				cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+			break;
+			default:
+				cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+				return return_error =1;
+				break;
+			}
+
+			for(long ii=0;ii<size_tmp;ii++)
+				if(samples_struct.scans_index[ii]==0)
+					num_frame++;
+
+			if(num_frame==0){
+				cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+				return return_error =1;
+			}
+
+
 		}else{
 
-			samples_struct.scans_index.resize( size_tmp );
 
-			cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
-
-
-			if((size_tmp)<size){
-				cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
-				cout << "Do you wish to continue ? (y/n)\n";
-				c=getchar();
-				switch (c){
-				case('y') :
-					cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
-				break;
-				default:
-					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
-					return return_error =1;
-					break;
-				}
-
-				for(long ii=0;ii<size_tmp;ii++)
-					if(samples_struct.scans_index[ii]==0)
-						num_frame++;
-
-				if(num_frame==0){
-					cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+			for(long ii=0;ii<size_tmp;ii++)
+				if(samples_struct.scans_index[ii]!=ii){
+					cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
 					return return_error =1;
 				}
-
-
-			}else{
-
-
-				for(long ii=0;ii<size_tmp;ii++)
-					if(samples_struct.scans_index[ii]!=ii){
-						cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
-						return return_error =1;
-					}
-			}
 		}
-//	}
+	}
+	//	}
 
 
 
 	if(rank==0){
 
-		string outfile = outdir + samples_struct.filename + "_sanepos.txt";
+		string outfile = outdir + samples_struct.filename + ".txt";
 		cout << "outfile : " << outfile;
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
@@ -654,14 +658,14 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 	}
 
 
-//	MPI_Barrier(MPI_COMM_WORLD);
-//	MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
+	//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
 
-//	if(return_error>0){
-//		MPI_Finalize();
-//		exit(0);
-//
-//	}
+	//	if(return_error>0){
+	//		MPI_Finalize();
+	//		exit(0);
+	//
+	//	}
 
 	string temp;
 	size_t found;
@@ -701,31 +705,31 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 
 
-//	if(rank==0){
-//		file.close();
-//		cout << "on aura : \n";
-//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-//		//cout << samples_struct.filename << endl;
-//	}
+	//	if(rank==0){
+	//		file.close();
+	//		cout << "on aura : \n";
+	//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+	//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+	//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+	//		//cout << samples_struct.filename << endl;
+	//	}
 
-//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Barrier(MPI_COMM_WORLD);
 
-//	if (iframe_max==iframe_min){ // test
-//		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-//		//		MPI_Finalize();
-//		//		exit(0);
-//	}
+	//	if (iframe_max==iframe_min){ // test
+	//		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+	//		//		MPI_Finalize();
+	//		//		exit(0);
+	//	}
 
-//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Barrier(MPI_COMM_WORLD);
 
-//	for(long ii=0;ii<size;ii++){
-//		if(rank==ii)
-//			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
-//		else
-//			MPI_Barrier(MPI_COMM_WORLD);
-//	}
+	//	for(long ii=0;ii<size;ii++){
+	//		if(rank==ii)
+	//			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
+	//		else
+	//			MPI_Barrier(MPI_COMM_WORLD);
+	//	}
 
 	return 0;
 
@@ -751,9 +755,21 @@ long readFitsLength(string filename){
 	// ... and check for the NAXIS2 keyword...
 	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ns, (char *) &comment, &status))
 		fits_report_error(stderr, status);
-	return ns;
 
-	free(comment);
+
+	//	cout << "avant free\n";
+
+	//	free(comment);
+
+	//	cout << "fits close\n";
+
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	//	cout << "fits closed\n";
+
+
+	return ns;
 }
 
 void readFrames(std::vector<string> &inputList, long *& nsamples){
@@ -857,8 +873,10 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		exit(0);
 	}
 
+
 	cout << "read fits list ok !!!\n";
 	file.close();
+
 
 }
 
@@ -890,5 +908,7 @@ void readBoxFile(string filename, std::vector<struct box> & boxList){
 
 		boxList.push_back(ibox);
 	}
+
+	file.close();
 
 }

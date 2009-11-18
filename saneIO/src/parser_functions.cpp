@@ -168,16 +168,18 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 	if(str.size()!=0){
 		samples_str.filename=str;
 		read_fits_list(str, samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, samples_str.framegiven);
-		//cout << "fitsvect " << fitsvect[0] << " " << fitsvect[1] << " " << fitsvect[2] << " " << fitsvect[3] << endl;
-		//cout << "noisevect " << noisevect[0] << " " << noisevect[1] << " " << noisevect[2] << " " << noisevect[3] << endl;
-		//cout << "scans_index " << scans_index[0] << " " << scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
+		cout << "fitsvect " << samples_str.fitsvect[0] << endl; //" " << samples_str.fitsvect[1] << " " << samples_str.fitsvect[2] << " " << samples_str.fitsvect[3] << endl;
+		cout << "noisevect " << samples_str.noisevect[0] << endl; //" " << samples_str.noisevect[1] << " " << samples_str.noisevect[2] << " " << samples_str.noisevect[3] << endl;
+		cout << "scans_index " << samples_str.scans_index[0] << endl; //" " << samples_str.scans_index[1] << " " << samples_str.scans_index[2] << " " << samples_str.scans_index[3] << endl;
 
 		for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
-			//cout << u_opt.dirfile + fitsvect[ii] << endl;
+			cout << dir.dirfile + samples_str.fitsvect[ii] << endl;
 			samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
 		}
 
 		readFrames(samples_str.fitsvect, samples_str.nsamples);
+
+		cout << "after read frames\n";
 
 		if((int)(samples_str.noisevect).size()==0){ // if no noise file is given in fits_filelist
 			// read the noise file name in the ini file
