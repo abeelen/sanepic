@@ -29,11 +29,6 @@ void write_indpix(long long ind_size, long long npix, long long *indpix,  std::s
 
 //sanePre functions
 
-/*!
- * Reads Pointing information from the InfoPoiting file
- * Returns nn, coordsyst, tanpix, tancoord
- */
-// void read_info_pointing(int &NAXIS1, int &NAXIS2, string outdir, double *tanpix, double *tancoord);
 
 //void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
 

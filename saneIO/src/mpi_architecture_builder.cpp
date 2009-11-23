@@ -237,7 +237,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
+#ifdef DEBUG_PRINT
 	printf("max range min = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+#endif
 	//	getchar();
 
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
@@ -290,8 +292,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 		for(long kk=0;kk<ntotscan;kk++)
 			if (sizeperproc[kk] > 0.5)
 				stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
-
+#ifdef DEBUG_PRINT
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+#endif
 		//		getchar();
 	}
 
@@ -301,7 +304,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	delete [] sizeperproc;
 	delete [] dat_compare;
 
+#ifdef DEBUG_PRINT
 	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
+#endif
 
 }
 
@@ -323,7 +328,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 		return -1;
 	}
 
-	cout << "file " << fname << endl;
+	cout << "parallelization scheme file " << fname << endl;
 
 
 	string *fitsvect_temp, *noisevect_temp;
@@ -363,8 +368,9 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 			scans_index_temp[jj]=val_proc;
 		val_proc++;
 	}
-
+#ifdef DEBUG_PRINT
 	cout << "nb proc : " << val_proc << endl;
+#endif
 
 	if(val_proc>size){
 		cerr << "Error in frame order repartition, number of processor are not equal to mpi size\n";
@@ -381,7 +387,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	delete [] fitsvect_temp;
 	delete [] noisevect_temp;
 
-	cout << "fin fonction\n";
+	//	cout << "fin fonction\n";
 
 	return 0;
 
@@ -432,15 +438,18 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 	read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven);
 
+#ifdef DEBUG_PRINT
 	cout <<" readed list : " << endl;
 	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
 		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
-
+#endif
 
 	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
 	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
 	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
+#ifdef DEBUG_PRINT
 	cout << "framegiven : " << framegiven << endl;
+#endif
 
 	if((framegiven==0)||((int)fits_dummy.size()==0))
 		return -1;
@@ -462,8 +471,10 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 	readFrames( fits_dummy, nsamples_dummy);
 
+#ifdef DEBUG_PRINT
 	cout << "ntotscan" << endl;
 	cout << samples_struct.ntotscan << " vs " << ntotscan_dummy << endl;
+#endif
 
 	struct sortclass_string sortobject;
 	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
@@ -481,26 +492,34 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 		for(int ii=0;ii<samples_struct.ntotscan;ii++)
 			if((noise_dummy[ii]!=samples_struct.noisevect[ii])||(fits_dummy[ii]!=samples_struct.fitsvect[ii])){
+#ifdef DEBUG_PRINT
 				cout << "comparaison triée : " << endl;
 				cout << noise_dummy[ii] << endl;
 				cout << samples_struct.noisevect[ii] << endl;
 				cout << fits_dummy[ii] << endl;
 				cout << samples_struct.fitsvect[ii] << endl;
+#endif
+				cerr << "Parallelscheme file and " << fname << " do not have the same sample files or noise files. Exiting\n";
 				return -1;
 			}
 	}else{
 		for(int ii=0;ii<samples_struct.ntotscan;ii++)
 			if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
+#ifdef DEBUG_PRINT
 				cout << "comparaison triée : " << endl;
 				cout << fits_dummy[ii] << endl;
 				cout << samples_struct.fitsvect[ii] << endl;
+#endif
+				cerr << "Parallelscheme file and " << fname << " do not have the same sample files. Exiting\n";
 				return -1;
 			}
 	}
 
 	size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
+#ifdef DEBUG_PRINT
 	cout << size << " vs size : " <<  size_tmp+1 << endl;
+#endif
 
 	if((size_tmp+1)!=size){
 		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
@@ -527,7 +546,7 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 		return test;
 
 
-
+#ifdef DEBUG_PRINT
 	cout << "Et ca donne ca !" << endl;
 
 	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
@@ -537,6 +556,8 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 
 
 	cout << "mon rank : " << rank << endl;
+
+#endif
 
 	iframe_min = -1;
 
@@ -556,8 +577,10 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 
 	iframe_max++;
 
+#ifdef DEBUG_PRINT
 	cout << rank << " iframe_min : " << iframe_min << endl;
 	cout << rank << " iframe_max : " << iframe_max << endl;
+#endif
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++)
 		samples_struct.fits_table[ii] = dirfile + samples_struct.fits_table[ii];
@@ -594,9 +617,11 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 	it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
 	size_tmp = it - samples_struct.scans_index.begin();
 
+#ifdef DEBUG_PRINT
 	cout << "size unique : " << size_tmp << endl;
 
 	cout << size << " vs size : " <<  size_tmp << endl;
+#endif
 
 	if((size_tmp)>size){
 		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
@@ -873,8 +898,10 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		exit(0);
 	}
 
-
+#ifdef DEBUG_PRINT
 	cout << "read fits list ok !!!\n";
+#endif
+
 	file.close();
 
 

@@ -48,6 +48,8 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 		exit(0);
 	}
 
+
+#ifdef DEBUG_PRINT
 	oss.str("");
 
 	// debug
@@ -63,6 +65,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 		cerr << "ERROR : Could not find " << temp << endl;
 		exit(0);
 	}
+#endif
 }
 
 
@@ -112,6 +115,7 @@ void write_indpix(long long ind_size, long long npix, long long *indpix, string 
 		exit(0);
 	}
 
+#ifdef DEBUG_PRINT
 	//Debug
 	testfile2 = outdir + "Indpix_for_conj_grad.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
@@ -125,6 +129,8 @@ void write_indpix(long long ind_size, long long npix, long long *indpix, string 
 		cerr << "ERROR : Could not find " << testfile2 << endl;
 		exit(0);
 	}
+
+#endif
 }
 
 void read_indpix(long long &ind_size, long long &npix, long long *&indpix, string outdir, int &flagon) {
@@ -164,7 +170,7 @@ void write_PNd(double *PNd, long long npix,  string outdir) {
 		exit(0);
 	}
 
-
+#ifdef DEBUG_PRINT
 	//Debug
 	testfile2 = outdir + "PNdCorr.txt";
 
@@ -180,6 +186,8 @@ void write_PNd(double *PNd, long long npix,  string outdir) {
 		cerr << "ERROR : Could not find " << testfile2 << endl;
 		exit(0);
 	}
+
+#endif
 }
 
 // correlation between npix here and npix in Indpix file is done in sanePic (main.cpp)
@@ -225,6 +233,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 		exit(0);
 	}
 
+#ifdef DEBUG_PRINT
 	// Debug
 	oss.str("");
 	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".txt";
@@ -238,7 +247,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
 		for(int ii=0;ii<(ns/2+1);ii++){
 			fprintf(fp,"%lf ",fdata[ii][0]);
-			fprintf(fp,"%lf ",fdata[ii][1]);}
+			fprintf(fp,"%lf \n",fdata[ii][1]);}
 
 		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
 		fclose(fp);
@@ -246,32 +255,11 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 		cerr << "ERROR : Could not open " << testfile << endl;
 		exit(0);
 	}
+#endif
 
 }
 
-/*
-void read_noise_file(long &nbins, double *&ell, double **&SpN_all, string nameSpfile, long ndet) {
-	//
-	FILE *fp;
-	double dnbins;
-	size_t result;
-	//
-	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
-		cerr << "ERROR: Can't find noise power spectra file " << nameSpfile << " , check -k or -K in command line. Exiting. \n";
-		exit(1);
-	}
-	result = fread(&dnbins,sizeof(double), 1, fp);
-	nbins = (long)dnbins;
-	SpN_all = dmatrix((long)0,ndet-1,(long)0,nbins-1);
-	ell = new double[nbins+1];
-	result = fread(ell,sizeof(double), nbins+1, fp);
-	result = fread(*SpN_all,sizeof(double), nbins*ndet, fp);
-	fclose(fp);
-	//
-	//
-}
 
- */
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
@@ -323,7 +311,7 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
 		exit(1);
 	}
 
-
+#ifdef DEBUG_PRINT
 	oss.str("");
 	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".txt";
 
@@ -344,40 +332,9 @@ void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long ifra
 		cerr << "ERROR : Could not open " << testfile << endl;
 		exit(0);
 	}
+#endif
 
 }
-
-
-////TODO : SHOULD NOT BE NEEDED, all the info are elsewhere...
-//void write_info_for_second_part(string outdir,  long NAXIS1, long NAXIS2, long long npix,
-//		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix){
-//
-//	//char testfile[100];
-//	FILE *fp;
-//	string testfile;
-//
-//	testfile = outdir + "InfoFor2ndStep.txt";
-//	//sprintf(testfile,"%s%s%s%s",outdir.c_str(),"InfoFor2ndStep_",termin.c_str(),".txt");
-//	if((fp = fopen(testfile.c_str(),"w"))==NULL){
-//		cerr << "Cannot open file :" << testfile << "\tExiting." << endl;
-//		exit(1);
-//	}
-//	fprintf(fp,"%d\n",NAXIS1);
-//	fprintf(fp,"%d\n",NAXIS2);
-//	fprintf(fp,"%d\n",npix);
-//	fprintf(fp,"%lf\n",pixdeg);
-//	fprintf(fp,"%lf\n",tancoord[0]);
-//	fprintf(fp,"%lf\n",tancoord[1]);
-//	fprintf(fp,"%lf\n",tanpix[0]);
-//	fprintf(fp,"%lf\n",tanpix[1]);
-//	fprintf(fp,"%d\n",coordsyst);
-//	fprintf(fp,"%i\n",flagon);
-//	fprintf(fp,"\n");
-//	for (long ii=0;ii<NAXIS1*NAXIS2;ii++)
-//		fprintf(fp,"%ld\n",indpix[ii]);
-//	fclose(fp);
-//
-//}
 
 void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 {

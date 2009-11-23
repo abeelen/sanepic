@@ -23,8 +23,7 @@ void print_fits_error(int status){
 }
 
 
-//TODO : Not used anymore, remove
-void write_fits(string fname, double pixsize, long nx, long ny,
+/*void write_fits(string fname, double pixsize, long nx, long ny,
 		double *tancoord, double *tanpix, int coordsyst, char dtype, void *data)
 {
 	// all angles in degrees
@@ -140,7 +139,7 @@ void write_fits(string fname, double pixsize, long nx, long ny,
 	if(fits_close_file(fp, &fits_status))
 		print_fits_error(fits_status);
 
-}
+}*/
 
 //TODO : check and optimize
 void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data)
