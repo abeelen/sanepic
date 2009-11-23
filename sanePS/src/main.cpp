@@ -326,6 +326,7 @@ int main(int argc, char *argv[])
 				iframe_max=num_frame;
 		}
 
+		delete [] nsamples_temp;
 	}
 
 	if(rank==0){
@@ -367,14 +368,15 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-
+	cout << iframe_min << " " << iframe_max << endl;
+	exit(0);
 
 #endif
 
 	string fits_filename;
 
 	// TODO: useless test
-	if (MixMatfile != "NOFILE"){
+//	if (MixMatfile != "NOFILE"){
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = samples_struct.nsamples[iframe];
 			ff = iframe;
@@ -419,7 +421,7 @@ int main(int argc, char *argv[])
 			// extentnoiseSp = noise file
 			// outdir = output directory
 		}
-	}
+//	}
 
 
 

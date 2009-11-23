@@ -200,11 +200,12 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 	delete [] commonm_f;
 	//delete [] flag;
 	//	delete [] bfilter;
+	delete [] SPref;
 	delete [] apodwind;
 	delete [] Nell;
 	free_dmatrix(Rellexp,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
 	free_dmatrix(Rellth,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
-	free_dmatrix(mixmat,0,det.ndet-1,0,20);
+	free_dmatrix(mixmat,0,det.ndet-1,0,ncomp-1);
 	//delete [] sign;
 //	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 //	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
