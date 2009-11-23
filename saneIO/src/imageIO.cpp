@@ -178,7 +178,6 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	// Transform wcsprm struture to header
 	if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
 		printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
-		fits_delete_file(fp, &fits_status);
 		exit(fits_status);
 	}
 
@@ -251,8 +250,8 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 		fits_read_pix(fptr, TDOUBLE, fpixel, NAXIS2, NULL, map[i], NULL, &status);
 	}
 
-//	cout << "map" << endl;
-//	cout << map[100][100] << endl;
+	//	cout << "map" << endl;
+	//	cout << map[100][100] << endl;
 
 	int uu=1;
 
@@ -355,7 +354,7 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * 
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
 	}
 	delete[] memblock;
-//	free(comment);
+	//	free(comment);
 
 }
 

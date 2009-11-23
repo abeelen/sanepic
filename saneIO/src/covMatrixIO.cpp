@@ -41,7 +41,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 
 		if (line == bolo1bolo2) {
 			getline(Spfile, line);
-			*nbins = atoi(line.c_str());
+ *nbins = atoi(line.c_str());
 			for (long ii = 0; ii < *nbins; ii++) {
 				getline(Spfile, line);
 				sscanf(line.c_str(), "%lf%lf", &dummy1, &dummy2);
@@ -58,7 +58,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 	Spfile.close();
 
 }
-*/
+ */
 
 void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
 /*
@@ -216,20 +216,20 @@ void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, doubl
 
 	if (fits_create_file(&fptr, fname.c_str(), &status))
 		fits_report_error(stderr, status);
-//	// ---------------------------------------------
-//	// write the Channel List
-//
-//	char *ttype[] = { (char*) "NAME" };
-//	char *tform[] = { tableFormat(bolos) };
-//	char *tunit[] = { (char*) "None" };
-//	char **data;
-//	data = vString2carray(bolos);
-//
-//	fits_create_tbl(fptr, BINARY_TBL, ndet, 1, ttype, tform, tunit,
-//			(char*)"Channel List", &status);
-//	fits_write_col(fptr, TSTRING, 1, 1, 1, ndet, data, &status);
-//	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
-//			(char *) "physical unit of the field", &status);
+	//	// ---------------------------------------------
+	//	// write the Channel List
+	//
+	//	char *ttype[] = { (char*) "NAME" };
+	//	char *tform[] = { tableFormat(bolos) };
+	//	char *tunit[] = { (char*) "None" };
+	//	char **data;
+	//	data = vString2carray(bolos);
+	//
+	//	fits_create_tbl(fptr, BINARY_TBL, ndet, 1, ttype, tform, tunit,
+	//			(char*)"Channel List", &status);
+	//	fits_write_col(fptr, TSTRING, 1, 1, 1, ndet, data, &status);
+	//	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+	//			(char *) "physical unit of the field", &status);
 
 	// ---------------------------------------------
 	// write the Ells
@@ -248,59 +248,60 @@ void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, doubl
 	// write the spectras
 
 	meanEll = new double[nbins];
-    for (long ibin=0; ibin < nbins; ibin++)
-  	  meanEll[ibin] = (ell[ibin]+ell[ibin+1])/2;
+	for (long ibin=0; ibin < nbins; ibin++)
+		meanEll[ibin] = (ell[ibin]+ell[ibin+1])/2;
 
 
-  	  double *data;
+	double *data;
 	for (long idet1 = 0; idet1 < ndet; idet1++){
-		    string field1 = bolos[idet1];
+		string field1 = bolos[idet1];
 
-	fits_create_tbl(fptr, BINARY_TBL, 0, 0, NULL, NULL, NULL,
-		(char *) field1.c_str(), &status);
+		fits_create_tbl(fptr, BINARY_TBL, 0, 0, NULL, NULL, NULL,
+				(char *) field1.c_str(), &status);
 
-	fits_insert_col(fptr, 1, (char*) "Mean Frequency", (char *) "D", &status);
-	fits_write_col(fptr, TDOUBLE, 1, 1, 1, nbins, meanEll, &status);
-	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",	(char *) "physical unit of the field", &status);
+		fits_insert_col(fptr, 1, (char*) "Mean Frequency", (char *) "D", &status);
+		fits_write_col(fptr, TDOUBLE, 1, 1, 1, nbins, meanEll, &status);
+		fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",	(char *) "physical unit of the field", &status);
 
 
 
-		    for (long idet2 = 0; idet2 < ndet; idet2++){
-		      string field2 = bolos[idet2];
-		      string field = field1+"_"+field2;
+		for (long idet2 = 0; idet2 < ndet; idet2++){
+			string field2 = bolos[idet2];
+			string field = field1+"_"+field2;
 
-		      data = new double[nbins];
-		      for (long ibin=0; ibin < nbins; ibin++)
-		    	  data[ibin] = Rellth[idet1][idet2*nbins + ibin];
+			data = new double[nbins];
+			for (long ibin=0; ibin < nbins; ibin++)
+				data[ibin] = Rellth[idet1][idet2*nbins + ibin];
 
-		      int colnum = idet2+2;
-		      fits_insert_col(fptr, colnum, (char*) field.c_str(), (char *) "D", &status);
-		      fits_write_col(fptr, TDOUBLE, colnum, 1, 1, nbins, data, &status);
-//TODO: check unit
-		      char tunit[9];
-		      sprintf(tunit, "TUNIT%d", colnum);
-		      fits_write_key(fptr, TSTRING, tunit, (char *) "Jy/sqrt(Hz)",
-						  (char *) "physical unit of the field", &status);
+			int colnum = idet2+2;
+			fits_insert_col(fptr, colnum, (char*) field.c_str(), (char *) "D", &status);
+			fits_write_col(fptr, TDOUBLE, colnum, 1, 1, nbins, data, &status);
+			//TODO: check unit
+			char tunit[9];
+			sprintf(tunit, "TUNIT%d", colnum);
+			fits_write_key(fptr, TSTRING, tunit, (char *) "Jy/sqrt(Hz)",
+					(char *) "physical unit of the field", &status);
 
-		      delete [] data;
-		    }
+			delete [] data;
+		}
 
-		  }
+	}
 
-//	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
-//			(char *) "Covariance Matrices",
-//			(char *) "name of this binary table extension", &status);
-//	fits_write_comment(
-//			fptr,
-//			(char *) "This contains the Fourrier transform of the covariance matrices",
-//			&status);
-//	fits_write_comment(
-//			fptr,
-//			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
-//			&status);
+	//	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+	//			(char *) "Covariance Matrices",
+	//			(char *) "name of this binary table extension", &status);
+	//	fits_write_comment(
+	//			fptr,
+	//			(char *) "This contains the Fourrier transform of the covariance matrices",
+	//			&status);
+	//	fits_write_comment(
+	//			fptr,
+	//			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
+	//			&status);
 
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
+
 
 
 }
@@ -401,7 +402,7 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	size_t result;
 
 	filename = outputDir + boloName + "-all_Inv" + suffix;
-//	cout << filename << endl;
+	//	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename
 		<< endl;
@@ -420,12 +421,12 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
 	for (long i=0; i<(*ndet); i++)
 		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
-//
-//	for (int i=0; i< *nbins; i++)
-//		cout << (*SpN_all)[0][i] << " ";
-//	cout << endl;
-//
-//	cout << "here final" << endl;
+	//
+	//	for (int i=0; i< *nbins; i++)
+	//		cout << (*SpN_all)[0][i] << " ";
+	//	cout << endl;
+	//
+	//	cout << "here final" << endl;
 
 	fclose(fp);
 
@@ -453,7 +454,7 @@ void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, string outpu
 	for (long idet=0;idet<ndet;idet++)
 		for (int icomp=0;icomp<ncomp;icomp++)
 			fwrite(&mixmat[idet][icomp],sizeof(double),1,fp); // writes the mixmat element by element
-			// TODO : verify if it is faster to read line by line due to dmatrix allocation
+	// TODO : verify if it is faster to read line by line due to dmatrix allocation
 
 	//close file
 	fclose(fp);
