@@ -55,8 +55,10 @@ int read_data_std(std::string fname, int frame, int fs, int ns, void* data, std:
 int read_data(std::string fname, int frame, int fs, int ns, void* data, std::string field, char type); // on garde
 
 
-double randg_value(long nombre, int seedpass); // on garde
-double* rand(long nombre, int seed);	// on garde
+double randg_value(long nombre, int seedpass);
+double* randg(long nombre, int seedpass);
+double* rand(long nombre, int seed);
+
 
 //void minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag = NULL); // on garde
 

@@ -329,7 +329,7 @@ void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
 
 
 }
-*/
+ */
 
 
 
@@ -581,7 +581,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	N_ = new double[ndata];
 	pixpos = new long long [ndata];
 
-
+	// TODO : ajouter les fill
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){
@@ -1060,16 +1060,15 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii];
 	}
-	//cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
-	//cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
-	//getchar();
+	//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
+	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+
+	//	getchar();
 
 	if(remove_polynomia){
 		//remove polynomia
 		remove_poly(data,ns,orderpoly,data_out,0);
-
-
 
 		//Used to correct from time varying calibration
 		// now this is done to copy data_out in data
@@ -1077,6 +1076,8 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 			data[ii] = data_out[ii]/**calp[ii/20]*/;
 	}
 
+	//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
+	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
 	//linear prediction
 	for (long ii=0;ii<ns;ii++)
@@ -1094,6 +1095,9 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	}
 
 
+//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
+//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
+
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
 		butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
@@ -1105,26 +1109,29 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	}
 
 
+//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
 
 	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data_lp[ii] - Ps[ii];
 
+
 	//******************* process gaps
 	if (NOFILLGAP == 0){
 		for (long ii=0;ii<ns;ii++)
 			data_out[ii] = data_lp[ii];
+//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
 		fillgaps(data_out,ns,data,flag,0);
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data[ii];
 	}
 
+//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
 	if (Ps != NULL){
 		//linear prediction
 
 		for (long ii=0;ii<ns;ii++)
-			//if (flag[ii] == 0)
 			data_lp[ii] = data_lp[ii] + Ps[ii];
 	}
 

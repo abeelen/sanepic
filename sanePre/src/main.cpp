@@ -22,7 +22,7 @@ extern "C" {
 
 
 //temp
-//#include <fstream>
+#include <fstream>
 
 
 
@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
 
 
 	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
-	double *Mp,*Mptot;
+	double *Mp, *Mptot;
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 	unsigned short *mask;
-	long *hits,*hitstot; /*! naivmap parameters : hits count */
+	long *hits, *hitstot; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string fname;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 
 	// TODO: Is it really needed here ?
 	//projection vector
-	indpix=new long long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
+	//	indpix=new long long[factdupl*NAXIS1*NAXIS2+2 + addnpix];
 
 	//read projection vector from a file
 	read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
@@ -331,12 +331,12 @@ int main(int argc, char *argv[])
 			}
 		}
 
-	int test=0;
-	string fname;
-	fname = dir.outdir + parallel_scheme_filename;
-	cout << fname << endl;
-	test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,
-			samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
+		int test=0;
+		string fname;
+		fname = dir.outdir + parallel_scheme_filename;
+		cout << fname << endl;
+		test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,
+				samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 						temp = samples_struct.fits_table[num_frame];
 						found=temp.find_last_of('/');
 						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
-
+						cout << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
 					}
 					num_frame++;
 				}
@@ -383,15 +383,17 @@ int main(int argc, char *argv[])
 				iframe_max=num_frame;
 		}
 
+		delete [] nsamples_temp;
+
 	}
 
 	if(rank==0){
 		file.close();
-		cout << "on aura : \n";
-		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-		//cout << samples_struct.filename << endl;
+		//		cout << "on aura : \n";
+		//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+		//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+		//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+		//		//cout << samples_struct.filename << endl;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -411,7 +413,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 	}
 
-	delete [] nsamples_temp;
+
 	//////// temp
 	//	MPI_Barrier(MPI_COMM_WORLD);
 	//	MPI_Finalize();
@@ -419,20 +421,37 @@ int main(int argc, char *argv[])
 
 	//	MPI_Barrier(MPI_COMM_WORLD);
 #else
+
+	fname = dir.outdir + parallel_scheme_filename;
+	int test=0;
+	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
+	if (test==-1){
+		cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
+		exit(0);
+	}
+
+	// add reading parallel scheme procedure !
+
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
-	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-	vector2array(samples_struct.scans_index,  samples_struct.index_table);
+	//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+	//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
+	//	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
 	//	for(long ii=0; ii<samples_struct.ntotscan;ii++)
 	//		frames_index[ii] = ii;
 
+	cout <<" final list : " << endl;
+	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
+		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
+		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
+	}
 
 #endif
 
+	//exit(0);
 
 	//At N-1 D memory allocation
 	PNd = new double[npix];
@@ -617,6 +636,8 @@ int main(int argc, char *argv[])
 	hitstot=hits;
 	PNdtot=PNd;
 	Mptot=Mp;
+//	cout << PNd[0] << " " << PNd[1000] << " " << PNd[20000] << endl;
+//	cout << PNdtot[0] << " " << PNdtot[1000] << " " << PNdtot[20000] << endl;
 	//	for(unsigned long ii=0;ii<npix;ii++){
 	//		hitstot[ii]=hits[ii];
 	//		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
@@ -631,13 +652,13 @@ int main(int argc, char *argv[])
 		write_PNd(PNdtot,npix,dir.tmp_dir);
 
 		//temp
-		//		ofstream filee;
-		//		string outfile = dir.outdir + "test_Pnd_Mp.txt";
-		//		filee.open(outfile.c_str(), ios::out);
-		//		if(!filee.is_open()){
-		//			cerr << "File [" << fname << "] Invalid." << endl;
-		//			exit(0);
-		//		}
+		ofstream filee;
+		string outfile = dir.outdir + "test_Pnd_Mp.txt";
+		filee.open(outfile.c_str(), ios::out);
+		if(!filee.is_open()){
+			cerr << "File [" << fname << "] Invalid." << endl;
+			exit(0);
+		}
 
 
 		cout << "naive step" << endl;
@@ -652,7 +673,7 @@ int main(int argc, char *argv[])
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
 					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
-					//					filee /*<< PNdtot[indpix[mi]] << endl;" " */<< Mptot[indpix[mi]] << endl;
+					filee << PNdtot[indpix[mi]] << " " << Mptot[indpix[mi]] << endl;
 					//					getchar();
 				} else {
 					map1d[mi] = 0;
@@ -660,7 +681,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		//		filee.close();
+		filee.close();
+
 		fnaivname = '!' + dir.outdir + "naivMap.fits";
 		cout << fnaivname << endl;
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
@@ -720,7 +742,11 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 
+	wcsfree(wcs);
 
+	//	delete [] PNdtot;
+	//	delete [] Mptot;
+	//	delete [] hitstot;
 
 
 #ifdef USE_MPI
