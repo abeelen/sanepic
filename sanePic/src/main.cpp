@@ -18,7 +18,9 @@
 #include "imageIO.h"
 #include "inline_IO2.h"
 
-
+extern "C" {
+#include "wcslib/wcshdr.h"
+}
 
 
 
@@ -78,7 +80,7 @@ int main(int argc, char *argv[])
 	struct directories dir;
 	struct detectors det;
 
-
+	int nwcs;
 
 	//DEFAULT PARAMETERS
 	com.napod = 0; /*!  number of samples to apodize */
@@ -272,7 +274,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename + "_sanepre.txt";
+			string outfile = dir.outdir + samples_struct.filename + "_sanepic.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
@@ -327,6 +329,8 @@ int main(int argc, char *argv[])
 				iframe_max=num_frame;
 		}
 
+		delete [] nsamples_temp;
+
 	}
 
 	if(rank==0){
@@ -378,7 +382,7 @@ int main(int argc, char *argv[])
 
 	//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
 	struct wcsprm * wcs;
-	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
+	read_MapHeader(dir.tmp_dir,wcs,&nwcs, &NAXIS1, &NAXIS2);
 
 	// read nn, coordsyst, tanpix, tancoord
 	//	read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
@@ -430,10 +434,10 @@ int main(int argc, char *argv[])
 
 	// read npix, PNdtot from file
 	read_PNd(PNdtot, npix,  dir.tmp_dir);
-//	for (int ii=0;ii<20;ii++)
-//			cout << PNdtot[ii] << " ";
-//		cout << endl << "avant read indpix\n";
-//		getchar();
+	//	for (int ii=0;ii<20;ii++)
+	//			cout << PNdtot[ii] << " ";
+	//		cout << endl << "avant read indpix\n";
+	//		getchar();
 
 
 
@@ -520,8 +524,12 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] PNdtot;
 
+	delete [] mask;
+
 	//delete [] frames_index;
 
+	//	wcsfree(wcs);
+	wcsvfree(&nwcs, &wcs);
 
 
 

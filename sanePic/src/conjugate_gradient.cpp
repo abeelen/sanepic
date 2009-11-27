@@ -41,8 +41,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		double *&PNdtot, long long addnpix)
 {
 
-	FILE *fp;
 
+	FILE *fp;
 	bool fru;
 	string fname, testfile;
 	ostringstream temp_stream;
@@ -179,7 +179,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			for (long ii=0;ii<npixeff;ii++)
 				r[ii] = PNdtot[ii] - PtNPmatStot[ii]; // r = b - Ax
 
-//			cout << r[0] << " " << r[1] << " " << r[2] << " " << endl;
+			//			cout << r[0] << " " << r[1] << " " << r[2] << " " << endl;
 
 			for (long ii=0;ii<npixeff;ii++)
 				d[ii] =  Mptot[ii] * r[ii]; // d = M-1 * r
@@ -189,7 +189,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			for (long ii=0;ii<npixeff;ii++)
 				delta_n += r[ii]*d[ii]; // delta_new = rT * d
 
-//			cout << "delta_n : " << delta_n << endl;
+			//			cout << "delta_n : " << delta_n << endl;
 
 			var_n = 0.0;
 			for (long ii=0;ii<npixeff;ii++)
@@ -216,9 +216,10 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){
+		while(((iter < 2) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
 			// added brackets in order to avoid warning, mat-27/05
-
+			if(iter==2)
+				break;
 			fill(q,q+npixeff,0.0); // q <= A*d
 			fill(qtot,qtot+npixeff,0.0);
 
@@ -270,8 +271,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 					rtq += qtot[ii] * d[ii]; // rtq = (dT * q)
 
 				alpha = delta_n/rtq; // alpha <= delta_new / (dT * q)
-//				cout << "rtq : " << rtq << endl;
-//				cout << "alpha : " << alpha << endl;
+				//				cout << "rtq : " << rtq << endl;
+				//				cout << "alpha : " << alpha << endl;
 
 
 				for (long ii=0;ii<npixeff;ii++)
@@ -785,5 +786,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 	delete [] hits;
 	delete [] hitstot;
 	delete [] map1d;
+
+	delete [] PNd;
 
 }
