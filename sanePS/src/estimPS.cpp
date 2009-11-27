@@ -52,15 +52,15 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 
 
 	// data, data low passed, Prewhitened signal ? ,apodization window, ?, ?, butter filter values, first detector PS (in the cross correlation estimation part)
-	double /**data, *data_lp, *Ps, *calp, */*apodwind,*commonm_f, /**bfilter, */*SPref;
+	double /**data, *data_lp, *Ps, *calp, */*apodwind,/**commonm_f, *//**bfilter, */*SPref;
 	//	long long *samptopix; // sample to pixel projection matrix
 	//unsigned char *flag; // flag array
 	//	short *flag;
 	double /***commonm,*/ **commonm2,/* **common_f,*/ **vect; // ?
 	double **P, **N, **Rellth, **Rellexp; // Rellth = covariance matrix
 	//	double /***Cov, **iCov, **iCov2,*/; //mixing matrix, AtN-1A, inverted AtN-1A, ?, SpN_all = PS for the bolo (ndet, nbins)
-	double *Nk; // Noise power spectrum
-	double *ell, /**SpN,*/ *Nell; // ell = bins values, Nell = binned noise PS
+//	double *Nk; // Noise power spectrum
+	double *ell; /**SpN,*/ /**Nell;*/ // ell = bins values, Nell = binned noise PS
 	double **mixmat; // initialized to NULL to avoid warning, "mixmat may be used uninitialized" ...
 	//	double *p, *uvec, *ivec;
 
@@ -83,7 +83,7 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 	//	data_lp = new double[ns]; // data low passed
 	//	Ps = new double[ns]; // prewhitened noise ?
 	//	commontmp = new double[ns]; // useless
-	commonm_f = new double[ns]; // useless
+//	commonm_f = new double[ns]; // useless
 	//flag = new unsigned char[ns]; // flag array
 	//flag = new short[ns];
 	//	samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -121,7 +121,7 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 
 	init2D_double(commonm2,0,0,ncomp,ns,0.0);
 	//	fill(commontmp,commontmp+ns,0.0);
-	fill(commonm_f,commonm_f+ns,0.0);
+//	fill(commonm_f,commonm_f+ns,0.0);
 	//	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
 	//	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
@@ -197,12 +197,12 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 	//	delete [] Ps;
 	//	delete [] samptopix;
 	//	delete [] commontmp;
-	delete [] commonm_f;
+//	delete [] commonm_f;
 	//delete [] flag;
 	//	delete [] bfilter;
 	delete [] SPref;
 	delete [] apodwind;
-	delete [] Nell;
+//	delete [] Nell;
 	free_dmatrix(Rellexp,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
 	free_dmatrix(Rellth,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
 	free_dmatrix(mixmat,0,det.ndet-1,0,ncomp-1);
@@ -217,7 +217,7 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 	free_dmatrix(commonm2,0,ncomp,0,ns-1);
 	//free_dmatrix(common_f,0,ncomp,0,ns-1);
 	free_dmatrix(vect,0,ncomp-1,0,det.ndet-1);
-	delete [] Nk;
+//	delete [] Nk;
 	delete [] ell;
 	free_dmatrix(P,0,ncomp-1,0,nbins-1);
 	free_dmatrix(N,0,det.ndet-1,0,nbins-1);

@@ -22,6 +22,12 @@
 #include "estimPS.h"
 
 
+extern "C" {
+#include "wcslib/wcs.h"
+#include "wcslib/wcshdr.h"
+}
+
+
 #ifdef USE_MPI
 #include "mpi.h"
 #include <algorithm>
@@ -65,6 +71,8 @@ int main(int argc, char *argv[])
 	struct detectors det;
 
 
+	int nwcs;
+
 	//DEFAULT PARAMETERS
 	com.napod = 0; // number of samples to apodize
 	u_opt.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
@@ -107,6 +115,8 @@ int main(int argc, char *argv[])
 	double *S;
 
 	string fname;
+
+	struct wcsprm * wcs;
 
 
 	int parsed=0;
@@ -166,8 +176,8 @@ int main(int argc, char *argv[])
 	}else{
 
 		// TODO : Should change to use the wcs structure
-		struct wcsprm * wcs;
-		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
+
+		read_MapHeader(dir.tmp_dir,wcs,&nwcs, &NAXIS1, &NAXIS2);
 
 
 		for(long ii=0;ii<npix;ii++)
@@ -369,59 +379,59 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 	cout << iframe_min << " " << iframe_max << endl;
-	exit(0);
+	//	exit(0);
 
 #endif
 
 	string fits_filename;
 
 	// TODO: useless test
-//	if (MixMatfile != "NOFILE"){
-		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-			ns = samples_struct.nsamples[iframe];
-			ff = iframe;
-			extentnoiseSp = samples_struct.noise_table[iframe];
-			fits_filename=samples_struct.fits_table[iframe];
+	//	if (MixMatfile != "NOFILE"){
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		ns = samples_struct.nsamples[iframe];
+		ff = iframe;
+		extentnoiseSp = samples_struct.noise_table[iframe];
+		fits_filename=samples_struct.fits_table[iframe];
 
-			cout << ff ;
-			cout << " " ;
-			cout << ns ;
-			cout << " " ;
-			cout << extentnoiseSp ;
-			cout << endl;
+		cout << ff ;
+		cout << " " ;
+		cout << ns ;
+		cout << " " ;
+		cout << extentnoiseSp ;
+		cout << endl;
 
-			EstimPowerSpectra(u_opt,det,dir,com, ns, ff, NAXIS1,NAXIS2, npix,
-					iframe, indpix,	S, MixMatfile, ellFile,
-					extentnoiseSp, fits_filename);
-			// fsamp = bolometers sampling freq
-			// ns = number of samples in the "iframe" scan
-			// ff = first sample number
-			// ndet = total number of detectors
-			// nn = side of the map
-			// npix = total number of filled pixels
-			// napod = number of border pixels used to apodize data
-			// iframe == scan number
-			// flgdupl = flagged data map duplication indicator
-			// factdupl = duplication factor (1 or 2)
-			// indpix = pixels index
-			// S = Pnd
-			// MixMatfile = this file contains the number of components that interviene in the common-mode component of the noise
-			// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
-			// bolonames = detectors names
-			// dirfile = data directory
-			// bextension = -B option : "_data" for example
-			// fextension = "NOFLAG" or -G option ("_flag" for example)
-			// cextension = "NOCALP" or -R option ("_calp" for example)
-			// shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
-			// poutdir = outpout dir or current path (default)
-			// termin = output file suffix
-			// NORMLIN = baseline is remove from the data, default =0, option -L
-			// NOFILLGAP = fill the gap ? default yes => 0
-			// tmp_dir = noise power spectrum file suffix = path
-			// extentnoiseSp = noise file
-			// outdir = output directory
-		}
-//	}
+		EstimPowerSpectra(u_opt,det,dir,com, ns, ff, NAXIS1,NAXIS2, npix,
+				iframe, indpix,	S, MixMatfile, ellFile,
+				extentnoiseSp, fits_filename);
+		// fsamp = bolometers sampling freq
+		// ns = number of samples in the "iframe" scan
+		// ff = first sample number
+		// ndet = total number of detectors
+		// nn = side of the map
+		// npix = total number of filled pixels
+		// napod = number of border pixels used to apodize data
+		// iframe == scan number
+		// flgdupl = flagged data map duplication indicator
+		// factdupl = duplication factor (1 or 2)
+		// indpix = pixels index
+		// S = Pnd
+		// MixMatfile = this file contains the number of components that interviene in the common-mode component of the noise
+		// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
+		// bolonames = detectors names
+		// dirfile = data directory
+		// bextension = -B option : "_data" for example
+		// fextension = "NOFLAG" or -G option ("_flag" for example)
+		// cextension = "NOCALP" or -R option ("_calp" for example)
+		// shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
+		// poutdir = outpout dir or current path (default)
+		// termin = output file suffix
+		// NORMLIN = baseline is remove from the data, default =0, option -L
+		// NOFILLGAP = fill the gap ? default yes => 0
+		// tmp_dir = noise power spectrum file suffix = path
+		// extentnoiseSp = noise file
+		// outdir = output directory
+	}
+	//	}
 
 
 
@@ -440,6 +450,10 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.noise_table;
 
 	delete [] frames_index;
+
+	delete [] indpix;
+	if(signame == "NOSIGFILE")
+		wcsvfree(&nwcs, &wcs);
 
 	return 0;
 }

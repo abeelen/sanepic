@@ -167,7 +167,7 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 		}
 		//TODO : the order of the baseline should be in the ini file
 		//TODO : but this is the special case of estimPS
-		MapMakPreProcessData(data,flag,ns,com.napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,1.0,data_lp,bfilter,
 				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
@@ -210,6 +210,7 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
+		delete [] flag; // ajout mat 26/11
 
 	}
 
@@ -375,7 +376,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 
 
 
-		MapMakPreProcessData(data,flag,ns,com.napod,4,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,1.0,data_lp,bfilter,
 				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 
 
@@ -402,6 +403,8 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 			Rellth[idet*det.ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
+
+		delete [] flag;
 	}
 
 
@@ -1050,6 +1053,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	delete [] p ;
 	delete [] uvec ;
 	delete [] ivec;
+	delete [] w;
 
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
@@ -1388,5 +1392,6 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	write_psd_tofits(testfile,nbins,ncomp,'d',data1d);
 
 
+	delete [] data1d;
 
 }
