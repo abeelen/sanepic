@@ -18,6 +18,7 @@
 extern "C" {
 #include "nrutil.h"
 #include "wcslib/wcs.h"
+#include "wcslib/wcshdr.h"
 }
 
 
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 	com.napod = 0; /*! number of samples to apodize*/
 	u_opt.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
 
-
+	int nwcs;
 
 	//Parser parameter (Program options)
 	long iframe_min=0, iframe_max=0; /*!  min and max number of frame (used with mpi) */
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
 	if (com.flgdupl) factdupl = 2;
 
 	struct wcsprm * wcs;
-	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
+	read_MapHeader(dir.tmp_dir,wcs, &nwcs,&NAXIS1, &NAXIS2);
 
 	if(rank==0)
 		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
@@ -636,8 +637,8 @@ int main(int argc, char *argv[])
 	hitstot=hits;
 	PNdtot=PNd;
 	Mptot=Mp;
-//	cout << PNd[0] << " " << PNd[1000] << " " << PNd[20000] << endl;
-//	cout << PNdtot[0] << " " << PNdtot[1000] << " " << PNdtot[20000] << endl;
+	//	cout << PNd[0] << " " << PNd[1000] << " " << PNd[20000] << endl;
+	//	cout << PNdtot[0] << " " << PNdtot[1000] << " " << PNdtot[20000] << endl;
 	//	for(unsigned long ii=0;ii<npix;ii++){
 	//		hitstot[ii]=hits[ii];
 	//		PNdtot[ii]=PNd[ii]; // fill PNdtot with PNd in case mpi is not used
@@ -676,7 +677,7 @@ int main(int argc, char *argv[])
 					filee << PNdtot[indpix[mi]] << " " << Mptot[indpix[mi]] << endl;
 					//					getchar();
 				} else {
-					map1d[mi] = 0;
+					map1d[mi] = NAN;
 				}
 			}
 		}
@@ -695,12 +696,12 @@ int main(int argc, char *argv[])
 				if (indpix[mi] >= 0){
 					map1d[mi] = hitstot[indpix[mi]];
 				} else {
-					map1d[mi] = 0;
+					map1d[mi] = NAN;
 				}
 			}
 		}
 
-		fnaivname = '!' + dir.outdir + "naivMaphits.fits";
+		fnaivname = '!' + dir.outdir + "hits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 		delete [] map1d;
@@ -733,6 +734,7 @@ int main(int argc, char *argv[])
 	delete [] Mp;
 	delete [] hits;
 
+	delete [] mask;
 
 	delete [] samples_struct.nsamples;
 	delete [] indpix;
@@ -742,8 +744,8 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 
-	wcsfree(wcs);
-
+	//	wcsfree(wcs);
+	wcsvfree(&nwcs, &wcs);
 	//	delete [] PNdtot;
 	//	delete [] Mptot;
 	//	delete [] hitstot;
