@@ -40,7 +40,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 			if (listOut[idetOut] == listIn[idetIn]){
 				indexIn[idetOut] = idetIn;
 				break; } // ajout mat 27/07
-			}
+		}
 	}
 
 	// Check for missing data
@@ -66,7 +66,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 			}
 		}
 	}
-/*
+	/*
 	// memory allocation
 	mixmat=dmatrix(0,ndetOut - 1, 0, ncomp-1);
 
@@ -138,6 +138,12 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 				(*MatrixOut)[idet1][idet2 * nbins + ibin] = iMat_k[idet1][idet2];
 
 	}
+
+	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
+	free_dmatrix(iMat_k,0, ndet - 1, 0, ndet - 1);
+	delete [] p;
+	delete [] ivec;
+	delete [] uvec;
 
 }
 

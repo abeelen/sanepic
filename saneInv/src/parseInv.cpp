@@ -7,6 +7,12 @@
 
 #include "parseInv.h"
 
+
+//#include <tchar.h>
+//#include <windows.h>
+//#include <stdlib.h>
+//#include <stdio.h>
+#include <iostream>
 #include <string>
 
 extern "C"{
@@ -16,6 +22,8 @@ extern "C"{
 
 
 using namespace std;
+
+std::string		Basename(std::string path);
 
 int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, string &noiseSp_dir_output, string &extentnoiseSp)
 {
@@ -47,6 +55,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	if(s!=NULL){
 		printf("cov_matrix_file: [%s]\n",s);
 		fname=s;
+//		Basename(fname);
 		//read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a noise covariance matrix file to invert : sanepic_inv_matrix:cov_matrix_file\n");
@@ -86,3 +95,32 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 
 	return 0;
 }
+
+
+std::string		Basename(std::string path)
+{
+	std::string		Result;
+
+
+
+	char * pch;
+	char * temp=NULL;
+	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
+	pch = strtok ((char*)path.c_str(),".");
+	while (pch != NULL)
+	{
+		if (strcmp (pch,(char*)"fits") == 0)
+			break;
+		temp=pch;
+		printf ("%s\n",temp);
+		pch = strtok (NULL, ".");
+
+	}
+	cout << "result : " << temp << endl;
+	getchar();
+	//	Result = fname;
+	//	Result += ext;
+	return Result;
+
+}
+

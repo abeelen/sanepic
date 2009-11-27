@@ -11,6 +11,11 @@
 #include <cstdio>  // for printf()
 
 
+extern "C" {
+#include "nrutil.h"
+#include "nrcode.h"
+}
+
 using namespace std;
 
 
@@ -23,6 +28,7 @@ int main(int argc, char *argv[]) {
 	 * -nbins = number of bins (Ell)
 	 */
 	long ndet, ndetOrig, nbins;
+	int nbolos;
 
 	double *ell; /*! bins values */
 	/*!
@@ -89,6 +95,15 @@ int main(int argc, char *argv[]) {
 
 	// write Reduced mixing matrix in a binary file
 	//write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
+
+	printf("END OF SANEINV \n");
+
+	nbolos = (int) channelIn.size();
+
+	free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
+	free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
+	free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
+	delete [] ell;
 
 	return 0;
 }
