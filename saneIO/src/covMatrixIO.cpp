@@ -164,9 +164,10 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 	bolos.resize(nBolos);
 	for (int i = 0; i < nBolos; i++) {
 		bolos[i] = data[i];
-		free(data[i]);
+//		free(data[i]);
 	}
-	free(data);
+//	free(data);
+	delete [] data;
 
 	// ---------------------------------------------
 	// read the Ell
