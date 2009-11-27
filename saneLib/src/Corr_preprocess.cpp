@@ -231,12 +231,12 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			cout << "S !=NULL\n";
-			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter, // default poly order = 4
+			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
 			//			cout << "avant mapmake\n";
-			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter, // default poly order = 4
+			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 			//			cout << "apres mapmake\n";
 		}

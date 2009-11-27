@@ -102,11 +102,11 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter,
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,com.napod,4,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter,
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
 		}
 

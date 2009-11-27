@@ -1119,6 +1119,7 @@ void fillgaps(double y[], int ndata, double* yout, short* flag, double sign)
 
 	//init random generator
 	valtemp = randg(1,0);
+	delete [] valtemp;
 
 
 	////copy data
