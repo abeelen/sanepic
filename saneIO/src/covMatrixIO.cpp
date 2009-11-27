@@ -124,6 +124,7 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
+	delete [] data;
 
 }
 

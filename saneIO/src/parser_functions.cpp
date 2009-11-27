@@ -181,7 +181,7 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 		readFrames(samples_str.fitsvect, samples_str.nsamples);
 
-//		cout << "after read frames\n";
+		//		cout << "after read frames\n";
 
 		if((int)(samples_str.noisevect).size()==0){ // if no noise file is given in fits_filelist
 			// read the noise file name in the ini file
@@ -534,12 +534,20 @@ int read_correlation(dictionary	*ini, struct user_options &u_opt, int rank){
 
 int read_remove_poly(dictionary	*ini, struct user_options &u_opt, int rank){
 
-	bool b;
-
-	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
+//	bool b = 1;
+	int	i = -1;
+	//	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
+	i = iniparser_getint(ini, "sanepic_preprocess:poly_order", -1);
 	//if(b!=1){
 	//printf("remove_poly:    [%d]\n", b);
-	u_opt.remove_polynomia=b;
+	if(i>=0){
+		u_opt.remove_polynomia=1;
+		u_opt.poly_order=i;
+		cout << "poly_order : " << u_opt.poly_order << endl;
+	}else{
+		u_opt.remove_polynomia=0;
+//		u_opt.poly_order=4;
+	}
 	//}//remove_poly = True
 
 	return 0;
@@ -793,7 +801,7 @@ void print_parser(struct user_options u_opt){
 		cout << "A baseline will be removed from the data (default)\n";
 
 	if(u_opt.remove_polynomia)
-		cout << "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment\n";
+		cout << "Remove a " << u_opt.poly_order <<  " order polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment\n";
 	else
 		cout << "No polynomia will be used\n";
 

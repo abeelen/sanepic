@@ -530,6 +530,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	for(int ii=0;ii<samples_struct.ntotscan;ii++)
 		samples_struct.nsamples[ii]=nsamples_dummy[ii];
 
+	delete [] nsamples_dummy;
 	return 0;
 }
 
@@ -591,7 +592,7 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 }
 
 
-int verify_parallelization_scheme(int rank, string outdir,struct samples samples_struct, int size, long iframe_min, long iframe_max){
+int verify_parallelization_scheme(int rank, string outdir,struct samples samples_struct, int size, long &iframe_min, long &iframe_max){
 
 
 	ofstream file;
@@ -603,9 +604,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 	char c;
 	vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
 
-	//if(rank==0){
-	//check the processor order given is correct
-	//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+	//	if(rank==0){
 
 	struct sortclass_long sortobject;
 	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
@@ -634,19 +633,20 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 
 		if((size_tmp)<size){
-			cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
-			cout << "Do you wish to continue ? (y/n)\n";
-			c=getchar();
-			switch (c){
-			case('y') :
-				cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
-			break;
-			default:
-				cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
-				return return_error =1;
+			if(rank==0){
+				cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+				cout << "Do you wish to continue ? (y/n)\n";
+				c=getchar();
+				switch (c){
+				case('y') :
+					cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 				break;
+				default:
+					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+					return return_error =1;
+					break;
+				}
 			}
-
 			for(long ii=0;ii<size_tmp;ii++)
 				if(samples_struct.scans_index[ii]==0)
 					num_frame++;
@@ -673,7 +673,8 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 	if(rank==0){
 
-		string outfile = outdir + samples_struct.filename + ".txt";
+		//		string outfile = outdir + samples_struct.filename + ".txt";
+		string outfile = outdir + parallel_scheme_filename;
 		cout << "outfile : " << outfile;
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
@@ -728,33 +729,10 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 			iframe_max=num_frame;
 	}
 
+	delete [] nsamples_temp;
 
-
-	//	if(rank==0){
-	//		file.close();
-	//		cout << "on aura : \n";
-	//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-	//		//cout << samples_struct.filename << endl;
-	//	}
-
-	//	MPI_Barrier(MPI_COMM_WORLD);
-
-	//	if (iframe_max==iframe_min){ // test
-	//		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-	//		//		MPI_Finalize();
-	//		//		exit(0);
-	//	}
-
-	//	MPI_Barrier(MPI_COMM_WORLD);
-
-	//	for(long ii=0;ii<size;ii++){
-	//		if(rank==ii)
-	//			cout << "[ " << rank << " ]. iframe min : " << iframe_min << " iframemax : " << iframe_max << endl;
-	//		else
-	//			MPI_Barrier(MPI_COMM_WORLD);
-	//	}
+	if(rank==0)
+		file.close();
 
 	return 0;
 

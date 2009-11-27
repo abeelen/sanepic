@@ -317,13 +317,13 @@ void print_MapHeader(struct wcsprm *wcs){
 
 }
 
-void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){
+void read_MapHeader(string outdir, struct wcsprm * & wcs,int *nwcs, long * NAXIS1, long * NAXIS2){
 
 	outdir = outdir + "mapHeader.keyrec";
 
 	FILE *fin;
 	char *memblock;
-	int size, nkeyrec, nreject, nwcs, status;
+	int size, nkeyrec, nreject, status;
 	size_t result;
 
 	fin = fopen(outdir.c_str(),"r");
@@ -350,7 +350,7 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * 
 	fclose (fin);
 	/* Parse the primary header of the FITS file. */
 	/* -2 to handle the firts two NAXIS? keyword */
-	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
+	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, nwcs, &wcs))) {
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
 	}
 	delete[] memblock;

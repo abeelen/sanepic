@@ -20,7 +20,7 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix);
 
 void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2);
-void read_MapHeader(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
+void read_MapHeader(string outdir, struct wcsprm *& wcs,int *nwcs,  long *NAXIS1, long *NAXIS2);
 void print_MapHeader(struct wcsprm * wcs);
 
 
