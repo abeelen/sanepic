@@ -46,9 +46,9 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 	bool fru;
 	string fname, testfile;
 	ostringstream temp_stream;
-	double *PtNPmatS,  *PtNPmatStot, *r, *q, *qtot, *d, *Mp, *Mptot, *s;
+	double *PtNPmatS,  *PtNPmatStot=NULL, *r, *q, *qtot=NULL, *d, *Mp, *Mptot=NULL, *s; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
-	long *hits, *hitstot;
+	long *hits, *hitstot=NULL;
 	double *PNd;
 
 	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0;
@@ -68,15 +68,15 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 	// memory allocs
 	r           = new double[npix];
 	q           = new double[npix];
-	qtot        = new double[npix];
+	//	qtot        = new double[npix];
 	d           = new double[npix];
 	Mp          = new double[npix];
-	Mptot       = new double[npix];
+	//	Mptot       = new double[npix];
 	s           = new double[npix];
 	PtNPmatS    = new double[npix];
-	PtNPmatStot = new double[npix];
+	//	PtNPmatStot = new double[npix];
 	hits        = new long[npix];
-	hitstot     = new long[npix];
+	//	hitstot     = new long[npix];
 	PNd         = new double[npix];
 
 	map1d       = new double[NAXIS1*NAXIS2];
@@ -98,16 +98,16 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		//t1 = time(0);
 
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
-		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+		//		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
-		fill(Mptot,Mptot+npix,0.0);
+		//		fill(Mptot,Mptot+npix,0.0);
 		fill(hits,hits+npix,0);
-		fill(hitstot,hitstot+npix,0);
+		//		fill(hitstot,hitstot+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
 		fill(s,s+npix,0.0);
-		fill(PtNPmatS,PtNPmatS+npix,0.0);
-		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+		//		fill(PtNPmatS,PtNPmatS+npix,0.0);
+		//		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 		fill(PNd,PNd+npix,0.0);
 
 
@@ -151,15 +151,31 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 
 #ifdef USE_MPI
+
+		if(rank==0){
+			PtNPmatStot = new double[npix];
+			hitstot=new long[npix];
+			Mptot = new double[npix];
+			qtot = new double[npix];
+
+			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+			fill(hitstot,hitstot+npix,0);
+			fill(Mptot,Mptot+npix,0.0);
+			fill(qtot,qtot+npix,0.0);
+		}
+
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 		MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 		MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 		// TODO : just a pointer assignment ?
 		for(long ii=0;ii<npix;ii++){
-			PtNPmatStot[ii]=PtNPmatS[ii]; // ajout Mat 02/06
-			hitstot[ii]=hits[ii];
-			Mptot[ii]=Mp[ii];
+			//			PtNPmatStot[ii]=PtNPmatS[ii]; // ajout Mat 02/06
+			//			hitstot[ii]=hits[ii];
+			//			Mptot[ii]=Mp[ii];
+			PtNPmatStot=PtNPmatS; // ajout Mat 02/06
+			hitstot=hits;
+			Mptot=Mp;
 		}
 #endif
 
@@ -216,12 +232,12 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
+		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
 			// added brackets in order to avoid warning, mat-27/05
-			if(iter==2)
-				break;
+//			if(iter==2)
+//				break;
 			fill(q,q+npixeff,0.0); // q <= A*d
-			fill(qtot,qtot+npixeff,0.0);
+			//fill(qtot,qtot+npixeff,0.0);
 
 			prefixe = "fPs_";
 
@@ -260,7 +276,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 #else
 			//TODO : Just a pointer assignment ?
 			for(long ii=0;ii<npix;ii++)
-				qtot[ii]=q[ii]; // ajout mat 02/06
+				qtot=q; // ajout mat 02/06
 #endif
 
 
@@ -325,7 +341,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 				for(long ii=0;ii<npixeff;ii++)
-					PtNPmatStot[ii]=PtNPmatS[ii];
+					PtNPmatStot=PtNPmatS;
 #endif
 
 
@@ -639,7 +655,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			for(long ii=0;ii<npix;ii++)
-				PNdtot[ii]=PNd[ii]; // ajout Mat 02/07
+				PNdtot=PNd; // ajout Mat 02/07
 #endif
 		}
 
@@ -772,19 +788,24 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 	// end of write map function
 
-
+#ifdef USE_MPI
+	delete [] qtot;
+	delete [] Mptot;
+	delete [] PtNPmatStot;
+	delete [] hitstot;
+#endif
 
 	delete [] r;
 	delete [] q;
-	delete [] qtot;
+
 	delete [] d;
 	delete [] Mp;
-	delete [] Mptot;
+
 	delete [] s;
 	delete [] PtNPmatS;
-	delete [] PtNPmatStot;
+
 	delete [] hits;
-	delete [] hitstot;
+
 	delete [] map1d;
 
 	delete [] PNd;
