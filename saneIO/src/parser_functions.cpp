@@ -145,7 +145,7 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank)
 //	str=(string)s;
 	if(str.size()!=0){
 		if(rank==0)
-			printf("channel file : [%s]\n",str.c_str());
+//			printf("channel file : [%s]\n",str.c_str());
 		read_strings((string)s, bolonames);
 	}else{
 		if(rank==0)
@@ -163,13 +163,15 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 	char *s;
 	string str;
 
-	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
-		return -1;
-	}
-	str=(string)s;
+	str = read_parser_string(ini, "commons:fits_filelist", rank);
+
+//	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		samples_str.filename=str;
 		read_fits_list(str, samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, samples_str.framegiven);
@@ -223,17 +225,21 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 int read_pixel_size(dictionary	*ini, struct input_commons &com, int rank){
 
-	char *s;
+//	char *s;
 	string str;
 	const char* temp;
 
-	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line in the ini file corresponding to pixel size : sanepic_compute_positions:pixsize\n");
-		return -1;
-	}
-	str=(string)s;
+	str = read_parser_string(ini, "sanepic_compute_positions:pixsize", rank);
+
+
+
+//	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line in the ini file corresponding to pixel size : sanepic_compute_positions:pixsize\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		temp=str.c_str();
 		com.pixdeg=atof(temp);
@@ -445,15 +451,17 @@ int read_filter_frequency(dictionary	*ini, struct user_options &u_opt, int rank)
 int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut, int rank){
 
 	string str;
-	char *s;
+//	char *s;
+	str = read_parser_string(ini, "sanepic_preprocess:fcut_file", rank);
 
-	s = iniparser_getstring(ini, "sanepic_preprocess:fcut_file",NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line corresponding to noise cut frequency file in the parser file : sanepic_preprocess:fcut_file\n");
-		return -1;
-	}
-	str=(string)s;
+
+//	s = iniparser_getstring(ini, "sanepic_preprocess:fcut_file",NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line corresponding to noise cut frequency file in the parser file : sanepic_preprocess:fcut_file\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		//printf("fcut file : [%s]\n",s);
 		//read frame file function
@@ -592,14 +600,17 @@ int read_ell_file(dictionary	*ini, string &ellFile, int rank){
 	string str;
 	char *s;
 
-	s = iniparser_getstring(ini, "sanepic_estim_PS:ell_file",NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line in ini file corresponding to a ell file :sanepic_estim_PS:ell_file\n");
-		return -1;
-	}
-	ellFile=(string)s;
-	if(ellFile.size()!=0){
+	str = read_parser_string(ini, "sanepic_estim_PS:ell_file", rank);
+
+//	s = iniparser_getstring(ini, "sanepic_estim_PS:ell_file",NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line in ini file corresponding to a ell file :sanepic_estim_PS:ell_file\n");
+//		return -1;
+//	}
+//	ellFile=(string)s;
+	if(str.size()!=0){
+		ellFile=str;
 		//printf("ell File: [%s]\n",s);
 	}else{
 		if(rank==0)
@@ -615,15 +626,17 @@ int read_map_file(dictionary	*ini, string &signame, int rank){
 
 
 	string str;
-	char *s;
+//	char *s;
 
-	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:map_file", NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line corresponding to the fits map file (created by sanePic) in the ini file : sanepic_estim_PS:map_file\n");
-		return -1;
-	}
-	str=(string)s;
+	str = read_parser_string(ini, "sanepic_estim_PS:map_file", rank);
+
+//	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:map_file", NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line corresponding to the fits map file (created by sanePic) in the ini file : sanepic_estim_PS:map_file\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		if(rank==0)
 			printf("noise_estim :      [%s]\n", s);
@@ -689,7 +702,7 @@ string read_parser_string(dictionary	*ini, string line, int rank){
 	s = iniparser_getstring(ini, line.c_str(), NULL);
 		if(s==NULL){
 			if(rank==0)
-				cout <<"You must add a line in ini file specifying a data directory : " << line << endl;
+				cout <<"You must add a line in ini file specifying : " << line << endl;
 			return NULL;
 		}
 		str=(string)s;
