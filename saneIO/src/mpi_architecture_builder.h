@@ -96,7 +96,7 @@ int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
 
-// TODO : include struct ?
+
 int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
 		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<long> &scans_index);
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);

@@ -76,6 +76,8 @@ int read_commons(dictionary	*ini, struct input_commons &commons, int rank);
 
 int read_user_options(dictionary *ini,struct user_options &u_opt, int rank);
 
+std::string read_parser_string(dictionary	*ini, std::string line, int rank);
+
 void print_commons(struct input_commons commons);
 
 void print_directories(struct directories dir);

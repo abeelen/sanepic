@@ -32,19 +32,22 @@ using namespace std;
 
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 
-	char *s;
+//	char *s;
 	string str;
 
-	s = iniparser_getstring(ini, "commons:data_directory", NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line in ini file specifying a data directory : commons:data_directory\n");
-		return -1;
-	}
-	str=(string)s;
+
+	str = read_parser_string(ini, "commons:data_directory", rank);
+
+//	s = iniparser_getstring(ini, "commons:data_directory", NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line in ini file specifying a data directory : commons:data_directory\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		//printf("data_directory : [%s]\n",s);
-		dir.dirfile = s;
+		dir.dirfile = str;
 	}else{
 		if(rank==0)
 			printf("You must specify a data directory : commons:data_directory\n");
@@ -129,18 +132,20 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank){
 
 	string str;
-	char *s;
+//	char *s;
 
-	s = iniparser_getstring(ini, "commons:channel",NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line in ini file corresponding to a bolometer file : commons:channel\n");
-		return -1;
-	}
-	str=(string)s;
+	str = read_parser_string(ini, "commons:channel", rank);
+
+//	s = iniparser_getstring(ini, "commons:channel",NULL);
+//	if(s==NULL){
+//		if(rank==0)
+//			printf("You must add a line in ini file corresponding to a bolometer file : commons:channel\n");
+//		return -1;
+//	}
+//	str=(string)s;
 	if(str.size()!=0){
 		if(rank==0)
-			printf("channel file : [%s]\n",s);
+			printf("channel file : [%s]\n",str.c_str());
 		read_strings((string)s, bolonames);
 	}else{
 		if(rank==0)
@@ -675,6 +680,20 @@ int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 	}// MixMatfile = Mixlaboca
 
 	return 0;
+}
+
+string read_parser_string(dictionary	*ini, string line, int rank){
+	char *s;
+	string str;
+
+	s = iniparser_getstring(ini, line.c_str(), NULL);
+		if(s==NULL){
+			if(rank==0)
+				cout <<"You must add a line in ini file specifying a data directory : " << line << endl;
+			return NULL;
+		}
+		str=(string)s;
+		return str;
 }
 
 int read_directories(dictionary	*ini, struct directories &dir, int rank){

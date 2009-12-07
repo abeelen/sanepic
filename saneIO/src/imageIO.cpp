@@ -157,7 +157,7 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	char *header, *hptr;
 	int nkeyrec;
 	// create fits file
-	if ( fits_create_file(&fp, fname.c_str(), &fits_status) ) // TODO : add exit procedure
+	if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
 		print_fits_error(fits_status);
 
 	// create fits image (switch on data type)
