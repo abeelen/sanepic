@@ -24,16 +24,6 @@
 
 using namespace std;
 
-//void sanepic_conjugate_gradient(bool flgdupl, long long npix, double* &S,long iframe_min, long iframe_max,
-//		long *nsamples, std::vector<double> fcut,double f_lp,double fsamp,
-//		long long *indpix,
-//		struct wcsprm * wcs, long NAXIS1, long NAXIS2,
-//		int factdupl, string tmp_dir, long ndet,
-//		string *extentnoiseSp_all,string noiseSppreffile, std::vector<string> bolonames, int iterw,
-//		long long *indpsrc, long long npixsrc, int flagon, bool projgaps, int rank, bool CORRon,
-//		string dirfile, double *&PNdtot, long ntotscan,long long addnpix,bool NORMLIN,bool NOFILLGAP,
-//		long napod,bool remove_polynomia, string outdir, string *fits_table)
-
 void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commons com,struct detectors det,
 		struct directories dir,struct user_options u_opt, long long npix, double* &S,long iframe_min, long iframe_max,
 		std::vector<double> fcut, long long *indpix, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
@@ -83,6 +73,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 	for (int idupl = 0;idupl<=com.flgdupl;idupl++){
 
+
+
 		//Conjugate gradien Inversion
 		if (u_opt.projgaps || !flagon){
 			npixeff = npix;
@@ -126,19 +118,11 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
 				// read pointing + deproject + fourier transform
 
-				//				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames, // TODO : replace all do_PtNd par la new version avec les struct
-				//						f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
-
-				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,det,f_lppix_Nk,
 						u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
-				//				do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-				//								u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+
 				// return Pnd = At N-1 d
 			} else {
-
-				//				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-				//						f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,indpix,
-				//						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
 
 				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
 						u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
@@ -156,12 +140,11 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			PtNPmatStot = new double[npix];
 			hitstot=new long[npix];
 			Mptot = new double[npix];
-			qtot = new double[npix];
 
+			// TODO : Is it really necessary to initialize those variables ?
 			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 			fill(hitstot,hitstot+npix,0);
 			fill(Mptot,Mptot+npix,0.0);
-			fill(qtot,qtot+npix,0.0);
 		}
 
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -169,14 +152,14 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 		// TODO : just a pointer assignment ?
-		for(long ii=0;ii<npix;ii++){
-			//			PtNPmatStot[ii]=PtNPmatS[ii]; // ajout Mat 02/06
-			//			hitstot[ii]=hits[ii];
-			//			Mptot[ii]=Mp[ii];
-			PtNPmatStot=PtNPmatS; // ajout Mat 02/06
-			hitstot=hits;
-			Mptot=Mp;
-		}
+		//		for(long ii=0;ii<npix;ii++){
+		//			PtNPmatStot[ii]=PtNPmatS[ii]; // ajout Mat 02/06
+		//			hitstot[ii]=hits[ii];
+		//			Mptot[ii]=Mp[ii];
+		PtNPmatStot=PtNPmatS; // ajout Mat 02/06
+		hitstot=hits;
+		Mptot=Mp;
+		//		}
 #endif
 
 		// intitialisation of the Conjugate gradient with preconditioner
@@ -234,10 +217,9 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
 			// added brackets in order to avoid warning, mat-27/05
-//			if(iter==2)
-//				break;
+			//			if(iter==2)
+			//				break;
 			fill(q,q+npixeff,0.0); // q <= A*d
-			//fill(qtot,qtot+npixeff,0.0);
 
 			prefixe = "fPs_";
 
@@ -272,11 +254,15 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 
 #ifdef USE_MPI
+			if(rank==0){
+				qtot = new double[npix];
+				// TODO : Is it really necessary to initialize those variables ?
+				fill(qtot,qtot+npix,0.0);
+			}
+
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			//TODO : Just a pointer assignment ?
-			for(long ii=0;ii<npix;ii++)
-				qtot=q; // ajout mat 02/06
+			qtot=q;
 #endif
 
 
@@ -296,6 +282,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 			}
 
 #ifdef USE_MPI
+			// Distribute the map to everyone
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
@@ -340,8 +327,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 #ifdef USE_MPI
 				MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-				for(long ii=0;ii<npixeff;ii++)
-					PtNPmatStot=PtNPmatS;
+				//				for(long ii=0;ii<npixeff;ii++)
+				PtNPmatStot=PtNPmatS;
 #endif
 
 
@@ -397,6 +384,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				//      printf("[%2.2i] iter = %d, crit = %10.15g, crit2 = %10.15g     \n",rank, iter,var_n/var0,delta_n/delta0);
 
 
+				//TODO : Do we really need that ? Should be covered by sanePre
 				if (iter == 0){
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
@@ -410,51 +398,54 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 					}
 
 
-					fname = '!' + dir.outdir + "optimMap_" + "_noisevar.fits"; // write preconditioner
+					fname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-					for (long ii=0; ii<NAXIS1 ; ii++){
-						for (long jj=0; jj<NAXIS2; jj++){
-							mi = jj*NAXIS1 + ii;
-							if (indpix[mi] >= 0){
-								map1d[mi] = Mptot[indpix[mi]] * PNdtot[indpix[mi]];
-							} else {
-								map1d[mi] = NAN;
-							}
-						}
-					}
-					fname = '!' + dir.outdir + "binMap_" + "_flux.fits";
-					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+					// TODO: Should not be to much different from a naive map...
+					//					for (long ii=0; ii<NAXIS1 ; ii++){
+					//						for (long jj=0; jj<NAXIS2; jj++){
+					//							mi = jj*NAXIS1 + ii;
+					//							if (indpix[mi] >= 0){
+					//								map1d[mi] = Mptot[indpix[mi]] * PNdtot[indpix[mi]];
+					//							} else {
+					//								map1d[mi] = NAN;
+					//							}
+					//						}
+					//					}
+					//					fname = '!' + dir.outdir + "binMap_" + "_flux.fits";
+					//					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					//					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-
-					for (long ii=0; ii<NAXIS1; ii++) {
-						for (long jj=0; jj<NAXIS2; jj++) {
-							mi = jj*NAXIS1 + ii;
-							if (indpix[mi] >= 0){
-								map1d[mi] = hitstot[indpix[mi]];
-							} else {
-								map1d[mi] = 0.0;
-							}
-						}
-					}
-
-					if (addnpix){
-						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-							for (long ii=0; ii<NAXIS1; ii++) {
-								for (long jj=0; jj<NAXIS2; jj++) {
-									mi = jj*NAXIS1 + ii;
-									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1))
-										map1d[mi] += hitstot[indpix[indpsrc[mi]+factdupl*NAXIS2*NAXIS2+iframe*npixsrc]];
-								}
-							}
-						}
-					}
-
-					fname = '!' + dir.outdir + "optimMap_" + "_hits.fits";
-					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+					// TODO: Remove this, done in sanePre
+					//
+					//					for (long ii=0; ii<NAXIS1; ii++) {
+					//						for (long jj=0; jj<NAXIS2; jj++) {
+					//							mi = jj*NAXIS1 + ii;
+					//							if (indpix[mi] >= 0){
+					//								map1d[mi] = hitstot[indpix[mi]];
+					//							} else {
+					//								map1d[mi] = 0.0;
+					//							}
+					//						}
+					//					}
+					//					//TODO : Treat the 2 pixels properly
+					//
+					//					if (addnpix){
+					//						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+					//							for (long ii=0; ii<NAXIS1; ii++) {
+					//								for (long jj=0; jj<NAXIS2; jj++) {
+					//									mi = jj*NAXIS1 + ii;
+					//									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1))
+					//										map1d[mi] += hitstot[indpix[indpsrc[mi]+factdupl*NAXIS2*NAXIS2+iframe*npixsrc]];
+					//								}
+					//							}
+					//						}
+					//					}
+					//
+					//					fname = '!' + dir.outdir + "optimMap_" + "_hits.fits";
+					//					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+					//					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
@@ -463,13 +454,15 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						}
 					}
 
+					//TODO : Treat the 2 pixels properly
 					if (addnpix){
 						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 							for (long ii=0; ii<NAXIS1; ii++) {
 								for (long jj=0; jj<NAXIS2; jj++) {
 									mi = jj*NAXIS1 + ii;
-									if ((indpsrc[mi] != -1) && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1))
-										map1d[mi] += 1.0/Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]];
+									long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+									if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
+										map1d[mi] += 1.0/Mptot[indpix[ll]];
 								}
 							}
 						}
@@ -479,7 +472,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 					}
 
-				}
+				} // end of if (iter == 0)
+
 				if (iterw && (iter % iterw) == 0){
 
 					// make the map
@@ -512,7 +506,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
 								if (indpix[mi] >= 0){
-									map1d[mi] = -S[indpix[mi+NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
+									map1d[mi] = S[indpix[mi+NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
 								} else {
 									map1d[mi] = 0.0;
 								}
@@ -523,7 +517,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
 						fname = '!' + outdir + "optimMap_" + "_fluxflags" + iterstr + "b.fits";*/
-						temp_stream << "!" + dir.outdir + "optimMap_" + "_fluxflags" << iter << "b.fits";
+						temp_stream << "!" + dir.outdir + "optimMap_fluxflags_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -532,20 +526,25 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 					}
+
+
+
 					if (addnpix){
-						for (long ii=0; ii<NAXIS1 ; ii++){
-							for (long jj=0; jj<NAXIS2 ; jj++){
+						// initialize the container
+						for (long jj=0; jj<NAXIS2 ; jj++){
+							for (long ii=0; ii<NAXIS1 ; ii++){
 								mi = jj*NAXIS1 + ii;
 								map1d[mi] = 0.0;
 							}
 						}
+						// loop thru frame to coadd all pixels
 						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 							for (long ii=0; ii<NAXIS1; ii++) {
 								for (long jj=0; jj<NAXIS2; jj++) {
 									mi = jj*NAXIS1 + ii;
-									if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
-										map1d[mi] += -S[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]]/Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc]];
-									}
+									long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+									if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
+										map1d[mi] += S[indpix[ll]]/Mptot[mi];;
 								}
 							}
 						}
@@ -554,7 +553,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						/*sprintf(iterchar,"%d",iter);
 						iterstr = iterchar;
 						fname = '!' + outdir + "optimMap_" + termin + "_fluxuncpix_" + iterstr + "b.fits";*/
-						temp_stream << "!" + dir.outdir + "optimMap_" + "_fluxuncpix_" << iter << "b.fits";
+						temp_stream << "!" + dir.outdir + "optimMap_fluxuncpix_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -564,8 +563,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 					}
-				}
-
+				} // end of if (iterw && (iter % iterw) == 0)
 
 
 				//	sprintf(testfile,"%s%s%s%s",outdir.c_str(),"ConvFile_",termin.c_str(),".txt");
@@ -579,7 +577,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				fprintf(fp,"iter = %d, crit = %10.15g, crit2 = %10.15g\n",iter,var_n/var0, delta_n/delta0);
 				fclose(fp);
 
-			}
+			} // end of if (rank == 0)
 
 
 #ifdef USE_MPI
@@ -654,8 +652,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 #ifdef USE_MPI
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			for(long ii=0;ii<npix;ii++)
-				PNdtot=PNd; // ajout Mat 02/07
+				PNdtot=PNd;
 #endif
 		}
 
@@ -699,7 +696,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 		for (long ii=0; ii<NAXIS1; ii++) {
 			for (long jj=0; jj<NAXIS2; jj++) {
-				mi = jj*NAXIS1 + ii; // mat 30/09
+				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
 					map1d[mi] = S[indpix[mi]];
 				} else {
@@ -707,14 +704,6 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				}
 			}
 		}
-
-		//
-		//		//////// test pour sanePS
-		//		fp = fopen("test_signal_pic.txt","w");
-		//		for (int i =0;i<npix;i++)
-		//			fprintf(fp,"%lf\n",S[i]);
-		//		fclose(fp);
-		//		////////////////////////////////////
 
 		fname = '!' + dir.outdir + "optimMap_flux.fits";
 		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
@@ -738,13 +727,12 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 
 		if (addnpix){
 			for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-				fru = 0;
 				for (long ii=0; ii<NAXIS1; ii++) {
 					for (long jj=0; jj<NAXIS2; jj++) {
 						mi = jj*NAXIS1 + ii;
-						if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
-							fru = 1;
-							map1d[mi] = -S[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+npixsrc*iframe]];
+						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+						if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
+							map1d[mi] = S[ll]];
 						} else {
 							map1d[mi] = 0.0;
 						}
@@ -752,41 +740,38 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 				}
 
 
-				if (fru){
 
-					temp_stream << "!" + dir.outdir + "optimMap_flux_fr" << iframe << ".fits";
-					// récupérer une chaîne de caractères
-					fname= temp_stream.str();
-					// Clear ostringstream buffer
-					temp_stream.str("");
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+				temp_stream << "!" + dir.outdir + "optimMap_flux_fr" << iframe << ".fits";
+				// récupérer une chaîne de caractères
+				fname= temp_stream.str();
+				// Clear ostringstream buffer
+				temp_stream.str("");
+				write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-					for (long ii=0; ii<NAXIS1; ii++) {
-						for (long jj=0; jj<NAXIS2; jj++) {
-							mi = jj*NAXIS1 + ii;
-							if ((indpsrc[mi] != -1)  && (indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+iframe*npixsrc] != -1)){
-								map1d[mi] = Mptot[indpix[indpsrc[mi]+factdupl*NAXIS1*NAXIS2+npixsrc*iframe]];
-							} else {
-								map1d[mi] = 0.0;
-							}
+				for (long ii=0; ii<NAXIS1; ii++) {
+					for (long jj=0; jj<NAXIS2; jj++) {
+						mi = jj*NAXIS1 + ii;
+						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+						if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
+							map1d[mi] = Mptot[indpix[ll]];
+						} else {
+							map1d[mi] = 0.0;
 						}
 					}
-
-					//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-					temp_stream << "!" + dir.outdir + "optimMap_noisevar_fr" << iframe << ".fits";
-
-					// récupérer une chaîne de caractères
-					fname= temp_stream.str();
-					// Clear ostringstream buffer
-					temp_stream.str("");
-					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 				}
+
+				//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
+				temp_stream << "!" + dir.outdir + "optimMap_noisevar_fr" << iframe << ".fits";
+
+				// récupérer une chaîne de caractères
+				fname= temp_stream.str();
+				// Clear ostringstream buffer
+				temp_stream.str("");
+				//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
+				write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 			}
 		}
-	}
-
-	// end of write map function
+	} // end of write map function
 
 #ifdef USE_MPI
 	delete [] qtot;
@@ -807,7 +792,6 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct input_commo
 	delete [] hits;
 
 	delete [] map1d;
-
 	delete [] PNd;
 
 }

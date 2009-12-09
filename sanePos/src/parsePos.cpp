@@ -71,8 +71,8 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
 		return -1;
 
-	if(read_box_coord(ini,boxFile, rank)==-1)
-		return -1;
+//	if(read_box_coord(ini,boxFile, rank)==-1)
+//		return -1;
 
 
 

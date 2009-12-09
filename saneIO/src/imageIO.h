@@ -15,12 +15,13 @@ extern "C" {
 void print_fits_error(int status);
 //void write_fits(string fname, double pixsize, long nx, long ny, double *tancoord, double *tanpix, int coordsyst, char dtype, void *data);
 void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, char dtype, void *data);
+int read_mask_wcs(string fname, string extname, /*char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data);
 
 //TODO : Rewrite this one...
 void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix);
 
-void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2);
-void read_MapHeader(string outdir, struct wcsprm *& wcs,int *nwcs,  long *NAXIS1, long *NAXIS2);
+void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
+void read_MapHeader(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
 void print_MapHeader(struct wcsprm * wcs);
 
 

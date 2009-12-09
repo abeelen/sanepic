@@ -70,9 +70,6 @@ int main(int argc, char *argv[])
 	struct directories dir;
 	struct detectors det;
 
-
-	int nwcs;
-
 	//DEFAULT PARAMETERS
 	com.napod = 0; // number of samples to apodize
 	u_opt.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
@@ -177,7 +174,7 @@ int main(int argc, char *argv[])
 
 		// TODO : Should change to use the wcs structure
 
-		read_MapHeader(dir.tmp_dir,wcs,&nwcs, &NAXIS1, &NAXIS2);
+		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
 
 		for(long ii=0;ii<npix;ii++)
@@ -379,8 +376,6 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 	cout << iframe_min << " " << iframe_max << endl;
-	//	exit(0);
-
 #endif
 
 	string fits_filename;
@@ -452,8 +447,9 @@ int main(int argc, char *argv[])
 	delete [] frames_index;
 
 	delete [] indpix;
-	if(signame == "NOSIGFILE")
+	if(signame == "NOSIGFILE"){
+		int nwcs = 1;
 		wcsvfree(&nwcs, &wcs);
-
+	}
 	return 0;
 }

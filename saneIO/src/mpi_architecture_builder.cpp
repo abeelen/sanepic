@@ -442,6 +442,13 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	cout <<" readed list : " << endl;
 	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
 		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
+
+
+	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
+	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
+	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
+	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
+		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
 #endif
 
 	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
@@ -752,25 +759,15 @@ long readFitsLength(string filename){
 		fits_report_error(stderr, status);
 
 	// Go to the signal Extension ...
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "signal", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status))
 		fits_report_error(stderr, status);
 
-	// ... and check for the NAXIS2 keyword...
-	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ns, (char *) &comment, &status))
+	// ... and check for the NAXIS1 keyword...
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns, (char *) &comment, &status))
 		fits_report_error(stderr, status);
-
-
-	//	cout << "avant free\n";
-
-	//	free(comment);
-
-	//	cout << "fits close\n";
 
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
-
-	//	cout << "fits closed\n";
-
 
 	return ns;
 }
@@ -811,10 +808,10 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	// count number of elements on the first line !
 	getline(file, line);
 	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str()," ,-\t");
+	pch = strtok ((char*) line.c_str()," ,;\t");
 
 	while (pch != NULL) {
-		pch = strtok (NULL, " ,-\t");
+		pch = strtok (NULL, " ,;\t");
 		nb_elem++; 	}
 
 	// set pointer back to the beginning of file in order to parse the first line too
@@ -875,6 +872,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
 		exit(0);
 	}
+
 
 #ifdef DEBUG_PRINT
 	cout << "read fits list ok !!!\n";

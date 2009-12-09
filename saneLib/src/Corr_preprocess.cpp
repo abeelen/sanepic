@@ -53,10 +53,9 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		fdata[ii][0]=0.0;
 		fdata[ii][1]=0.0;
 	}
-
-	int factdupl = 1;
-	if(flgdupl==1)  factdupl = 2;
-
+	// map duplication factor
+	int factdupl;
+	(flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
 
 	//for (idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 	for (long idet1=0;idet1<det.ndet;idet1++){
@@ -120,7 +119,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	//	cout << "avant les alloc" << endl;
 
 	//scerr = new double[ns];
-	data =  new double[ns];
+//	data =  new double[ns];
 	data_lp = new double[ns];
 	//calp =  new double[ns];
 	//flag =  new unsigned char[ns];
@@ -139,10 +138,10 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	//	data2= new double[ns];
 	//	flag = new unsigned char[ns];
 
-	//	cout << "avant les fill" << endl;
+//	cout << "avant les fill" << endl;
 
-	//fill(flag,flag+ns,0);
-	fill(data,data+ns,0.0);
+//	fill(flag,flag+ns,0);
+//	fill(data,data+ns,0.0);
 	fill(data_lp,data_lp+ns,0.0);
 	fill(Ps,Ps+ns,0.0);
 	fill(bfilter,bfilter+(ns/2+1),0.0);
@@ -154,7 +153,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		fdata[ii][1] = 0.0;
 	}
 
-	//	cout << "apres les fill" << endl;
+//	cout << "apres les fill" << endl;
 
 	int factdupl = 1;
 	if(com.flgdupl==1)		factdupl = 2;
@@ -165,7 +164,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		field1 = det.boloname[idet1];
-		//				cout << field1 << endl;
+//				cout << field1 << endl;
 
 
 		//		fill(data,data+ns,0.0);
@@ -181,69 +180,53 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		}
 		//		cout << field1 << "  apres ALLOC "  << endl;
 
-		//		if (S != NULL){
-		//			// TODO: What is the point of this ?? Do we really need this ?
-		//			//			read_flpoint_from_fits(fits_filename, flpoint);
-		//			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
-		//		}
-
-		read_signal_from_fits(fits_filename, data, field1);
-
-//		if (idet1==114)
-//			for(int ii=0;ii<ns;ii++)
-//				if(data[ii]!=0){
-//					cout << data[ii] << " " << ii;
-//					getchar();
-//				}
-		//			cout << data[0] << " " << data[1] << " " << data[2] << " " << data[3] << " " << data[4] << endl;
-		//		getchar();
-
+//		if (S != NULL){
+//			// TODO: What is the point of this ?? Do we really need this ?
+//			//			read_flpoint_from_fits(fits_filename, flpoint);
+//			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
+//		}
 
 		long test_ns;
-		read_flag_from_fits(fits_filename , field1, flag, test_ns);
-		if(test_ns!=ns)
-			cerr << "Error. the number of samples between the fits file and the flag table is different. Exiting\n";
-
-//		if (idet1==114)
-//			cout << flag[0] << " " << flag[1] << " " << flag[2] << endl;
-		//		getchar();
-
-
-
-		if (S != NULL){
-			//// Read pointing
-			read_samptopix(ns, samptopix, tmp_dir, idet1, iframe, det.boloname);
-
-			//TODO : Fix that... same number of argument... not the same calling as in sanePS
-			if (addnpix){
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
-			} else {
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
-			}
+		read_signal_from_fits(fits_filename, field1, data, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+			exit(-1);
 		}
 
-//		if (idet1==114)
-//			cout << "114\n";
+		read_flag_from_fits(fits_filename , field1, flag, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
-		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
-		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
-		//TODO : Changed here to poly of order 1 to test.... Should be in the ini file !!!
+
+		//********************  pre-processing of data ********************//
+
 		if (S != NULL){
-			//********************  pre-processing of data ********************//
+
+			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
+			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
+
 			cout << "S !=NULL\n";
+			// Read pointing
+			read_samptopix(ns, samptopix, tmp_dir, idet1, iframe, det.boloname);
+			//TODO : Fix that... same number of argument... not the same calling as in sanePS
+			// Deproject
+			if (addnpix)
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
+			else
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
+
+			//********************  pre-processing of data ********************//
 			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
 		}
 		else {
-			//			cout << "avant mapmake\n";
 			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
-			//			cout << "apres mapmake\n";
 		}
-//		if (idet1==114){
-//			cout << "data apres map : " /*<< setprecision(14)*/  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
-//			getchar();
-//		}
+
+		//cout << "data apres map : " << setprecision(14)  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
 
 		//Fourier transform of the data
 		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
@@ -255,6 +238,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 		//write fourier transform to disk
 		write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
 
+		delete [] data;
 		delete [] flag;
 		//		cout << "write fdata_" << iframe << "_" << idet1 << endl;
 	}
@@ -262,7 +246,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 
 	//	cout << "avant les clean" << endl;
 
-	delete[] data;
+//	delete[] data;
 	delete[] data_lp;
 	//	delete[] flag;
 	//	delete[] flpoint;
@@ -271,25 +255,16 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 	delete[] bfilter;
 	delete[] fdata;
 
-	//	cout << "apres les clean" << endl;
-	//	getchar();
+//	cout << "apres les clean" << endl;
+//	getchar();
 }
 
-
-
-
-//void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-//		string dir, string prefixe,  std::vector<string> bolonames,
-//		double f_lppix, double fsamp, long ns, long ndet,
-//		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-//		double *Mp, long *hits)
 void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 		struct detectors det, double f_lppix, double fsamp, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits)
 
 {
-	//	cout << "dans do_ptnd\n";
 
 	long  nbins;
 	string field1, field2;
@@ -316,6 +291,7 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 
 	double **SpN_all;
 
+	//TODO : This is a butterworth filter.... why not use butterworth()
 	for (long ii=0;ii<ns/2+1;ii++){
 		powered=gsl_pow_int(double(ii)/f_lppix,16);
 		bfilter[ii] = powered /(1.0+powered);
@@ -341,10 +317,6 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 	//for (long idet1=rank*ndet/size;idet1<(rank+1)*ndet/size;idet1++){
 	for (long idet1=0;idet1<det.ndet;idet1++){
 		field1 = det.boloname[idet1];
-		//		cout << field1 << endl;
-
-
-		//		fill(samptopix,samptopix+ns,0);
 
 		//Read pointing data
 		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
@@ -393,25 +365,10 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 			}
 
 
-
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
-
-			//
-			//			//temp
-			//			ofstream filee;
-			//
-			//			//temp
-			//			string outfile = dir + field1 + "_" + field2 + extentNoiseSp + ".txt";
-			//			//cout << "outfile : " << outfile;
-			//			filee.open(outfile.c_str(), ios::out);
-			//			if(!filee.is_open()){
-			//				cerr << "File [" << outfile << "] Invalid." << endl;
-			//				exit(0);
-			//			}
-
 
 			for (long jj=0;jj<ns/2+1;jj++){
 				//				filee << Nk[jj] << endl;
@@ -424,16 +381,8 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 			//			filee.close();
 			//********************************* compute N^-1 d  ***********************//
 			for (long ii=0;ii<ns/2+1;ii++){
-				Ndf[ii][0] += (fdata[ii][0]*Nk[ii]);
-				Ndf[ii][1] += (fdata[ii][1]*Nk[ii]);
-				if((Ndf[ii][0]>1e245)||(Ndf[ii][0]<-1e245)||(Ndf[ii][1]>1e245)||(Ndf[ii][1]<-1e245)){
-					cout << "idet1 : " << det.boloname[idet1] << " idet2 : " << det.boloname[idet2] << " ii : " << ii << endl;
-					cout << Ndf[ii][0] << " ";
-					cout << Ndf[ii][1] << endl;
-					cout << "fdata : " << fdata[ii][0] << " ";
-					cout << fdata[ii][1] << endl;
-					getchar();
-				}
+				Ndf[ii][0] += fdata[ii][0]*Nk[ii];
+				Ndf[ii][1] += fdata[ii][1]*Nk[ii];
 			}
 
 
@@ -445,9 +394,6 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 
 
 		}// end of idet2 loop
-
-		// dEBUG
-
 
 		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
@@ -476,15 +422,12 @@ void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
 
 	}// end of idet1 loop
 
-
 	delete[] samptopix;
 	delete[] Nd;
+//	delete[] bfilter_; // For some reason there is a double free on this one....
 	delete[] bfilter;
-	delete[] bfilter_;
 	delete[] Nk;
 	delete[] fdata;
 	delete[] Ndf;
 
-
 }
-

@@ -8,6 +8,7 @@
 #include "psdIO.h"
 #include "imageIO.h"
 
+//TODO : Is it really needed ?
 void write_psd_tofits(string fname, long nx, long ny,
 		char dtype, void * psd1d) {
 

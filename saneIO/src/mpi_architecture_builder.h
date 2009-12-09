@@ -12,16 +12,6 @@
 #include <string>
 
 
-struct corner{
-	double x;
-	double y;
-};
-
-struct box {
-	struct corner blc;
-	struct corner trc;
-};
-
 struct sortclass_int {
 	bool operator() (int i,int j) { return (i<j);}
 };
@@ -33,49 +23,6 @@ struct sortclass_long {
 struct sortclass_string {
 	bool operator() (std::string i,std::string j) { return (i<j);}
 };
-
-struct directories {
-	std::string dirfile;
-	std::string outdir;
-	std::string tmp_dir;
-};
-
-struct samples {
-	std::vector<std::string> fitsvect;
-	std::vector<std::string> noisevect;
-	std::vector<long> scans_index;
-	bool framegiven;
-	std::string *fits_table;
-	std::string *noise_table;
-	long *index_table;
-	long *nsamples;
-	long ntotscan;
-	std::string filename;
-};
-
-struct detectors {
-	long ndet;
-	std::vector<std::string> boloname;
-};
-
-struct input_commons {
-	long napod;
-	bool NOFILLGAP;
-	bool flgdupl;
-	double pixdeg;
-};
-
-struct user_options {
-	double fsamp;
-	bool NORMLIN;
-	bool remove_polynomia;
-	int poly_order;
-	bool CORRon;
-	double f_lp;
-	//std::string noiseSppreffile;
-	bool projgaps;
-};
-
 
 template<class T> void vector2array(std::vector<T> vect, T* a)
 {
@@ -96,7 +43,7 @@ int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
 
-
+// TODO : include struct ?
 int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
 		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<long> &scans_index);
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);

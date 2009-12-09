@@ -665,376 +665,6 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 }
 
-/*
-
-
-void compute_diagPtNPCorr_msk(double *Nk, unsigned char *mask, long iframe,
-		unsigned char *rejectsamp, unsigned char *binsamp,
-		long ndata, long marge, int *xx, int *yy, int nn,
-		long *indpix, int npix, double f_lppix, double *dPtNP){
-
-
-	long ii, k, kk, kk2, ipix, ii2, ndataf;
-	long *pixpos;
-	long count, count_;
-	long *pixtosamp;
-
-
-	//fft stuff
-	fftw_complex  *Nk_;
-	double *N_;
-	fftw_plan fftplan;
-
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	pixpos = new long[ndata];
-	//pixtosamp = new long[ndata];
-
-
-	// N^-1
-	for (k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = abs(Nk[k]);
-		Nk_[k][1] = 0.0;
-	}
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-
-
-
-
-
-
-	for (ii=-marge;ii<ndata-marge;ii++){
-		if ((ii < 0) || (ii >= ndata-2*marge)){
-			pixpos[ii+marge] = npix-2;
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					pixpos[ii+marge] = npix-2;
-				} else {
-					if (mask[yy[ii]*nn + xx[ii]] == 1){
-						pixpos[ii+marge] = indpix[yy[ii]*nn + xx[ii]];
-					} else {
-						pixpos[ii+marge] = indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])];
-						//printf("%d\n",indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])]);
-					}
-				}
-			}
-			else {
-				pixpos[ii+marge] = npix-1;
-			}
-		}
-	}
-
-
-	data_compare = new long[ndata];
-	pixtosamp = new long[ndata];
-
-
-
-	for (ii=0;ii<ndata;ii++)
-		pixtosamp[ii] = ii;
-
-	for (ii=0;ii<ndata;ii++)
-		data_compare[ii] = pixpos[ii];
-
-
-
-	qsort(pixtosamp,ndata,sizeof(long),compare_global_array_long);
-	qsort(data_compare,ndata,sizeof(long),compare_long);
-
-
-
-	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
-
-	count = 0;
-
-
-	//printf("NPIX = %d\n",npix);
-
-
-
-	for (ipix=data_compare[0];ipix<npix;ipix++){
-
-		count_ = count;
-
-		while((count < ndata) && (data_compare[count] == ipix))
-			count++;
-
-		if (count-count_ > 0){
-			for (ii=count_;ii<count;ii++){
-				ii2 = pixtosamp[ii];
-				if ((ipix == npix-2) || (ipix == npix-1)){ //This is just to avoid spending to much time computing this pixel
-					dPtNP[ipix] += N_[0];
-					//printf("TEST");
-				} else {
-					for (kk=count_;kk<count;kk++){
-						kk2 = pixtosamp[kk];
-						if (abs(kk2-ii2) < ndataf)
-							dPtNP[ipix] += N_[abs(ii2-kk2)];
-					}
-				}
-			}
-		}
-	}
-
-
-	delete[] N_;
-	delete[] Nk_;
-	delete[] pixpos;
-	delete[] pixtosamp;
-	delete[] data_compare;
-
-
-	//clean up
-	fftw_destroy_plan(fftplan);
-
-
-}
-
-
-
-
- */
-
-
-
-/*
-
-void compute_diagPtNPCorr_new(double *Nk, unsigned char *rejectsamp,
-		unsigned char *binsamp, long ndata,
-		long marge, int *xx, int *yy, int nn, long *indpix,
-		int npix, int npixmap, double f_lppix, double *dPtNP, long *countreject){
-
-
-	long ii, k, kk, kk2, ipix, ii2, ndataf;
-	long *pixpos;
-	long count, count_;
-	long *pixtosamp;
-
-
-	//fft stuff
-	fftw_complex  *Nk_;
-	double *N_;
-	fftw_plan fftplan;
-
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	pixpos = new long[ndata];
-	//pixtosamp = new long[ndata];
-
-
-	// N^-1
-	for (k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = abs(Nk[k]);
-		Nk_[k][1] = 0.0;
-	}
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-
-
-
-
-
-
-	for (ii=-marge;ii<ndata-marge;ii++){
-		if ((ii < 0) || (ii >= ndata-2*marge)){
-			pixpos[ii+marge] = npix-2;
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					pixpos[ii+marge] = npix-2;
-				} else {
-					pixpos[ii+marge] = indpix[yy[ii]*nn + xx[ii]];
-				}
-			}
-			else {
-				pixpos[ii+marge] = npixmap-1+ *countreject;
- *countreject = *countreject+1;
-			}
-		}
-	}
-
-
-	data_compare = new long[ndata];
-	pixtosamp = new long[ndata];
-
-
-
-	for (ii=0;ii<ndata;ii++)
-		pixtosamp[ii] = ii;
-
-	for (ii=0;ii<ndata;ii++)
-		data_compare[ii] = pixpos[ii];
-
-
-
-	qsort(pixtosamp,ndata,sizeof(long),compare_global_array_long);
-	qsort(data_compare,ndata,sizeof(long),compare_long);
-
-
-
-	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
-
-	count = 0;
-
-	for (ipix=data_compare[0];ipix<npix;ipix++){
-
-		count_ = count;
-
-		while((count < ndata) && (data_compare[count] == ipix))
-			count++;
-
-		if (count-count_ > 0){
-			for (ii=count_;ii<count;ii++){
-				ii2 = pixtosamp[ii];
-				if ((ipix == npix-2) || (ipix == npix-1)){ //This is just to avoid spending to much time computing this pixel
-					dPtNP[ipix] += N_[0];
-					//printf("TEST");
-				} else {
-					for (kk=count_;kk<count;kk++){
-						kk2 = pixtosamp[kk];
-						if (abs(kk2-ii2) < ndataf)
-							dPtNP[ipix] += N_[abs(ii2-kk2)];
-					}
-				}
-			}
-		}
-	}
-
-
-	delete[] N_;
-	delete[] Nk_;
-	delete[] pixpos;
-	delete[] pixtosamp;
-	delete[] data_compare;
-
-
-	//clean up
-	fftw_destroy_plan(fftplan);
-
-
-}
-
-
-
-
-
-
- */
-
-/*
-
-void compute_PtNP_corr(double *Nk, unsigned char *rejectsamp1, unsigned char *rejectsamp2,
-		unsigned char *binsamp1, unsigned char *binsamp2,
-		long ndata, long marge, int *xx1, int *yy1, int *xx2, int *yy2,
-		int nn, long *indpix, int npix, double f_lppix, double *PtNP){
-
-
-
-
-
-	long ii, k, jj, kk, ll, ll2, indPtNP;
-	int *pixpos1, *pixpos2;
-
-	//fft stuff
-	fftw_complex  *Nk_;
-	double *N_;
-	fftw_plan fftplan;
-
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	pixpos1 = new int[ndata];
-	pixpos2 = new int[ndata];
-
-
-
-	// N^-1
-	for (k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = Nk[k];
-		Nk_[k][1] = 0.0;
-		//printf("Nk[%d] = %lf\n",k,Nk[k]*(double)ndata*(double)ndata);
-	}
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-
-
-
-
-	for (ii=-marge;ii<ndata-marge;ii++){
-		if ((ii < 0) || (ii >= ndata-2*marge)){
-			pixpos1[ii+marge] = npix-2;
-			pixpos2[ii+marge] = npix-2;
-		} else {
-			if (rejectsamp1[ii] == 0){
-				if (binsamp1[ii] == 1){
-					pixpos1[ii+marge] = npix-2;
-				} else {
-					pixpos1[ii+marge] = indpix[yy1[ii]*nn + xx1[ii]];
-				}
-			}
-			else {
-				pixpos1[ii+marge] = npix-1;
-			}
-			if (rejectsamp2[ii] == 0){
-				if (binsamp2[ii] == 1){
-					pixpos2[ii+marge] = npix-2;
-				} else {
-					pixpos2[ii+marge] = indpix[yy2[ii]*nn + xx2[ii]];
-				}
-			}
-			else {
-				pixpos2[ii+marge] = npix-1;
-			}
-		}
-	}
-
-
-
-
-
-	for (ii=0;ii<ndata;ii++){
-		ll = pixpos1[ii];
-		ll2 = ll*(ll+1)/2;
-		for (kk=MAX(ii-(ndata)/MAX(2,int(f_lppix+0.5)),0);kk<=ii;kk++){
-			//for (kk=0;kk<=ii;kk++){
-			jj = pixpos2[kk];
-			if (ll < jj){
-				indPtNP = jj*(jj+1)/2 + ll;
-			}else{
-				indPtNP = ll2 + jj;
-			}
-			PtNP[indPtNP] += N_[ii-kk];
-			if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
-		}
-		if ((ii % 20000) == 0)
-			printf("%lf \n",pow((double)ii/double(ndata),2));
-	}
-
-
-	delete[] N_;
-	delete[] Nk_;
-	delete[] pixpos1;
-	delete[] pixpos2;
-
-	//clean up
-	fftw_destroy_plan(fftplan);
-
-
-
-
-
-}
-
-
-
-
-
-
- */
-
-
-
 
 void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
@@ -1061,17 +691,9 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 			data[ii] = data_out[ii];
 	}
 
-	//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
-	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
-
-	//	getchar();
-
 	if(remove_polynomia){
-		//remove polynomia
+		//remove polynomia to correct from time varying calibration
 		remove_poly(data,ns,orderpoly,data_out,0);
-
-		//Used to correct from time varying calibration
-		// now this is done to copy data_out in data
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii]/**calp[ii/20]*/;
 	}
@@ -1094,10 +716,6 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 			data_lp[ii] -= aa*(double)ii+bb;
 	}
 
-
-//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
-//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
-
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
 		butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
@@ -1109,7 +727,7 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	}
 
 
-//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
+	//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
 
 	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
@@ -1120,17 +738,16 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	if (NOFILLGAP == 0){
 		for (long ii=0;ii<ns;ii++)
 			data_out[ii] = data_lp[ii];
-//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
+		//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
 		fillgaps(data_out,ns,data,flag,0);
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data[ii];
 	}
 
-//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
 	if (Ps != NULL){
 		//linear prediction
-
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data_lp[ii] + Ps[ii];
 	}
@@ -1248,10 +865,6 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 
 
-
-
-
-
 void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
 	// TODO : no apodization factor correction here ??
@@ -1317,11 +930,6 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 
-
-
-
-
-
 //void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 
@@ -1369,103 +977,36 @@ void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, do
 }
 
 
-
-
-
-/*
-void readalldata(long ff, long ns, string field, string ra_field, string dec_field, string phi_field,
-		string scerr_field, string flpoint_field, string dirfile,
-		string bextension, string fextension, string cextension, double *data,
-		double *calp, double *ra, double *dec, double *phi,
-		double *scerr, unsigned char *flpoint, unsigned char *flag, int shift_data_to_point)
-{
-
-
-	long ii;
-
-	char type = 'd';
-
-	string bolofield;
-	string flagfield;
-	string calfield;
-
-
-	bolofield = field+bextension;
-
-
-
-	if (cextension != "NOCALP")
-		calfield  = field+cextension;
-	if (fextension != "NOFLAG")
-		flagfield = field+fextension;
-
-
-
-	read_data_std(dirfile, ff, shift_data_to_point, ns, data, bolofield,     type);
-	if (cextension != "NOCALP"){
-		read_data_std(dirfile, ff, 0, ns/20, calp, calfield, type);
-	} else {
-		//printf("NOCALP\n");
-		for (ii=0;ii<ns/20;ii++)
-			calp[ii] = 1.0;
-	}
-	read_data_std(dirfile, ff, 0, ns, ra,   ra_field,  type);
-	read_data_std(dirfile, ff, 0, ns, dec,  dec_field, type);
-	read_data_std(dirfile, ff, 0, ns, phi,  phi_field, type);
-	read_data_std(dirfile, ff, 0, ns, scerr, scerr_field, type);
-	read_data_std(dirfile, ff, 0, ns, flpoint, flpoint_field, 'c');
-	for (ii=0;ii<ns;ii++)
-		if (isnan(ra[ii]) || isnan(dec[ii]))
-			flpoint[ii] = 1;
-	if (fextension != "NOFLAG"){
-		read_data_std(dirfile, ff, shift_data_to_point, ns, flag, flagfield,  'c');
-	} else {
-		//printf("NOFLAG\n");
-		for (ii=0;ii<ns;ii++)
-			flag[ii] = 0;
-	}
-
-
-
-
-}
- */
-
 void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2, long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long long *indpsrc, long long npixsrc){
 
 
 	double a, b;
 	//long ll;
 
-
-
-
 	for (long long ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			Ps[ii] = S[npix-2];
-		} else {
-			Ps[ii] = S[indpix[samptopix[ii]]];
 
-			// in case we replaced flagged data
-			if ((flgdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
-				if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
-					Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
-				} else {
-					a = 0.0;
-					b = 0.0;
-					if (ntotscan){
-						for (long iframe=0;iframe<ntotscan;iframe++){
-							if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
-								a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
-								b++;
-							}
+		Ps[ii] = S[indpix[samptopix[ii]]];
+
+		// in case we replaced flagged data
+		if ((flgdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
+			if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
+				Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
+			} else {
+				a = 0.0;
+				b = 0.0;
+				if (ntotscan){
+					for (long iframe=0;iframe<ntotscan;iframe++){
+						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
+							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
+							b++;
 						}
 					}
-					if (b > 0.5)
-						Ps[ii] = a/b;
 				}
+				if (b > 0.5)
+					Ps[ii] = a/b;
 			}
 		}
+
 	}
 
 }

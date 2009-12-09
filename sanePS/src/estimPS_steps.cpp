@@ -90,7 +90,7 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 	double sign0=1;
 	double **commonm;
 
-	long ns2;
+//	long ns2;
 	short *flag;
 
 	fftw_plan fftplan;
@@ -109,7 +109,7 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 	if(com.flgdupl==1) factdupl = 2;
 
 
-	data = new double[ns]; // raw data
+//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // prewhitened noise ?
 	samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -143,10 +143,19 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 		field = det.boloname[idet];
 
 
+		long test_ns;
+		read_signal_from_fits(fits_filename, field, data, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
-		read_signal_from_fits(fits_filename, data, field);
+		read_flag_from_fits(fits_filename , field, flag, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
-		read_flag_from_fits(fits_filename ,field, flag, ns2);
 
 
 		//TODO: subtract the signal only if needed
@@ -311,7 +320,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 	string testfile;
 	std::ostringstream temp_stream; // used to remove sprintf horror
 	FILE *fp;
-	long ns2;
+//	long ns2;
 
 	short *flag;
 
@@ -325,7 +334,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 	if(com.flgdupl==1) factdupl = 2;
 
 
-	data = new double[ns]; // raw data
+//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // prewhitened noise ?
 	samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -354,10 +363,18 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 
 		field = det.boloname[idet];
 
-		//TODO: should read data from fits file
-		read_signal_from_fits(fits_filename, data, field);
+		long test_ns;
+		read_signal_from_fits(fits_filename, field, data, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
-		read_flag_from_fits(fits_filename ,field, flag, ns2);
+		read_flag_from_fits(fits_filename , field, flag, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
 
 		//TODO : This computation is already done when computing the common mode

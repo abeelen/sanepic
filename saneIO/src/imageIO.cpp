@@ -9,6 +9,7 @@ using namespace std;
 extern "C" {
 #include <fitsio.h>
 #include <nrutil.h>
+#include "wcslib/wcslib.h"
 #include "wcslib/wcs.h"
 #include "wcslib/wcshdr.h"
 }
@@ -22,124 +23,6 @@ void print_fits_error(int status){
 	return;
 }
 
-
-/*void write_fits(string fname, double pixsize, long nx, long ny,
-		double *tancoord, double *tanpix, int coordsyst, char dtype, void *data)
-{
-	// all angles in degrees
-	// coordcenter is a 2-element array containing RA/DEC (or l/b) of the central pixel
-
-	fitsfile *fp;
-	int fits_status = 0;
-
-	long naxis = 2;           // number of dimensions
-	long naxes[] = {nx, ny};  // size of dimensions
-	long fpixel[] = {1, 1};   // index for write_pix
-	long ndata = nx * ny;     // number of data points
-
-	double dtmp;
-	char *strx, *stry;
-
-
-	// create fits file
-	if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
-		print_fits_error(fits_status);
-
-	// create fits image (switch on data type)
-	switch (dtype) {
-	case 'd':    // double
-		if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
-			print_fits_error(fits_status);
-		break;
-	case 'l':    // long
-		if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
-			print_fits_error(fits_status);
-		break;
-	default:
-		printf("write_fits: data type %c not supported. Exiting.\n",dtype);
-		exit(1);
-	}
-
-	// write date to file
-	if ( fits_write_date(fp, &fits_status) )
-		print_fits_error(fits_status);
-
-	// write map parameters (keywords)
-	if ( fits_write_key(fp, TLONG, (char*)"NROW", &nx, (char*)"Number of rows", &fits_status) )
-		print_fits_error(fits_status);
-
-	if ( fits_write_key(fp, TLONG, (char*)"NCOL", &ny, (char*)"Number of columns", &fits_status) )
-		print_fits_error(fits_status);
-
-	if ( fits_write_key(fp, TDOUBLE, (char*)"PIXSIZE", &pixsize, (char*)"Size of pixels (deg)", &fits_status) )
-		print_fits_error(fits_status);
-
-	if ( fits_write_comment(fp, "Galactic coordinates",  &fits_status) )
-		print_fits_error(fits_status);
-
-	dtmp = (tanpix[0]); // 0-based index to 1
-	if ( fits_write_key(fp, TDOUBLE, (char*)"CRPIX1", &dtmp, (char*)"X PIXEL OF TANGENT POINT", &fits_status) )
-		print_fits_error(fits_status);
-
-	dtmp = (tanpix[1]); // 0-based index to 1
-	if ( fits_write_key(fp, TDOUBLE, (char*)"CRPIX2", &dtmp, (char*)"Y PIXEL OF TANGENT POINT", &fits_status) )
-		print_fits_error(fits_status);
-
-	dtmp = -pixsize;
-	if ( fits_write_key(fp, TDOUBLE, (char*)"CDELT1", &dtmp, (char*)"COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
-			&fits_status) )
-		print_fits_error(fits_status);
-
-	if ( fits_write_key(fp, TDOUBLE, (char*)"CDELT2", &pixsize, (char*)"COORD VALUE INCR DEG/PIXEL AT ORIGIN ON LINE AXIS",
-			&fits_status) )
-		print_fits_error(fits_status);
-
-	if (coordsyst == 2){
-		if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL1", tancoord, (char*)"GLON AT TANGENT POINT (DEG)", &fits_status) )
-			print_fits_error(fits_status);
-
-		if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL2", tancoord+1, (char*)"GLAT AT TANGENT POINT (DEG)", &fits_status) )
-			print_fits_error(fits_status);
-
-		strx = (char *)"GLON-TAN";
-		stry = (char *)"GLAT-TAN";
-
-	} else {
-		if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL1", tancoord, (char*)"RA AT TANGENT POINT (DEG)", &fits_status) )
-			print_fits_error(fits_status);
-
-		if ( fits_write_key(fp, TDOUBLE, (char*)"CRVAL2", tancoord+1, (char*)"DEC AT TANGENT POINT (DEG)", &fits_status) )
-			print_fits_error(fits_status);
-
-		strx = (char *)"RA---TAN";
-		stry = (char *)"DEC--TAN";
-
-	}
-
-	if ( fits_write_key(fp, TSTRING, (char*)"CTYPE1", strx, (char*)"TANGENT PLANE PROJECTION", &fits_status) )
-		print_fits_error(fits_status);
-
-	if ( fits_write_key(fp, TSTRING, (char*)"CTYPE2", stry, (char*)"TANGENT PLANE PROJECTION", &fits_status) )
-		print_fits_error(fits_status);
-
-
-	// write map data
-	switch (dtype) {
-	case 'd':    // double
-		if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) )
-			print_fits_error(fits_status);
-		break;
-	case 'l':    // long
-		if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) )
-			print_fits_error(fits_status);
-		break;
-	}
-
-	// close file
-	if(fits_close_file(fp, &fits_status))
-		print_fits_error(fits_status);
-
-}*/
 
 //TODO : check and optimize
 void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data)
@@ -157,7 +40,7 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	char *header, *hptr;
 	int nkeyrec;
 	// create fits file
-	if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
+	if ( fits_create_file(&fp, fname.c_str(), &fits_status) ) // TODO : add exit procedure
 		print_fits_error(fits_status);
 
 	// create fits image (switch on data type)
@@ -210,6 +93,88 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 		print_fits_error(fits_status);
 }
 
+int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data)
+/*
+ * Read the extension 'extname' from the 'fname' fits file, extension must be a 2D image
+ * Return a wcs structure, the size of the image, the image data type and image itself cast to int, float or double
+ */
+{
+	fitsfile *fptr;
+	int status = 0, anynul, wcsstatus[NWCSFIX];
+	char *header;
+	int nkeyrec, nwcs, nreject;
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+
+	// Open the fits file...
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ... and move to the 'extname'
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), NULL, &status))
+		fits_report_error(stderr, status);
+
+	// Retrieve the image size
+	if (fits_get_img_size(fptr, 2, naxes, &status))
+		fits_report_error(stderr, status);
+
+	NAXIS1 = naxes[0];
+	NAXIS2 = naxes[1];
+	// Allocate the image container and read its depending on the type
+//	switch (dtype) {
+//	case 's':
+		data = new short[NAXIS1*NAXIS2];
+		if (fits_read_pix(fptr, TSHORT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
+			fits_report_error(stderr, status);
+//		break;
+//	case 'i':
+//		data = new int[NAXIS1*NAXIS2];
+//		if (fits_read_pix(fptr, TINT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
+//			fits_report_error(stderr, status);
+//		break;
+//	case 'f':
+//		data = new float[NAXIS1*NAXIS2];
+//		if (fits_read_pix(fptr, TFLOAT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
+//			fits_report_error(stderr, status);
+//		break;
+//	case 'd':
+//		data = new double[NAXIS1*NAXIS2];
+//		if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
+//			fits_report_error(stderr, status);
+//		break;
+//	default:
+//		print_fits_error(BAD_DATATYPE);
+//	}
+
+	// retrieve the wcs header
+	if (fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status))
+		fits_report_error(stderr, status);
+
+	if (( status = wcspih(header, nkeyrec, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
+		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
+	}
+
+	if ((status = wcsfix(7, 0, wcs, wcsstatus))) {
+	      for (long ii = 0; ii < NWCSFIX; ii++) {
+	         if (wcsstatus[ii] > 0) {
+	            fprintf(stderr, "wcsfix ERROR %d: %s.\n", status, wcsfix_errmsg[wcsstatus[ii]]);
+	         }
+	      }
+	}
+
+	if ((status= wcsset(wcs))) {
+		printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
+	}
+
+	if (fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	free(header);
+	return(0);
+}
+
+
+
+
 //TODO : This function should be more generalized
 void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix)
 /*
@@ -226,15 +191,8 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	// ---------------------------------------------
-	// read the Channel List
-
 	if (fits_movabs_hdu(fptr, 1, NULL, &status))
 		fits_report_error(stderr, status);
-
-	//fits_get_num_rows(fptr, &nn2, &status);
-
-	//cout << "nn2 : " << nn2;
 
 	fits_get_img_size(fptr, 2, naxes, &status);
 	cout << naxes[0] << " " << naxes[1] << endl;
@@ -249,9 +207,6 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 		fpixel[1] = i + 1;
 		fits_read_pix(fptr, TDOUBLE, fpixel, NAXIS2, NULL, map[i], NULL, &status);
 	}
-
-	//	cout << "map" << endl;
-	//	cout << map[100][100] << endl;
 
 	int uu=1;
 
@@ -273,13 +228,13 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 }
 
 
-void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2){
+void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 
 	FILE *fout;
 	int nkeyrec, status;
 	char *header, *hptr;
 
-	if ((status = wcshdo(WCSHDO_all, &wcs, &nkeyrec, &header))) {
+	if ((status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header))) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
 		exit(0);
 	}
@@ -287,7 +242,7 @@ void save_MapHeader(string outdir, struct wcsprm wcs, long NAXIS1, long NAXIS2){
 
 	outdir=outdir + "mapHeader.keyrec";
 	fout = fopen(outdir.c_str(),"w");
-	if (fout==NULL) {fputs ("File error on mapHeader.keyrec",stderr); exit (1);}
+	if (fout==NULL) {fputs ("File error on mapHeader.keyrec\n",stderr); exit (1);}
 
 	fprintf(fout,"NAXIS1  = %20ld / %-47s\n",NAXIS1,"length of data axis 1");
 	fprintf(fout,"NAXIS2  = %20ld / %-47s\n",NAXIS2,"length of data axis 2");
@@ -317,13 +272,13 @@ void print_MapHeader(struct wcsprm *wcs){
 
 }
 
-void read_MapHeader(string outdir, struct wcsprm * & wcs,int *nwcs, long * NAXIS1, long * NAXIS2){
+void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){
 
 	outdir = outdir + "mapHeader.keyrec";
 
 	FILE *fin;
 	char *memblock;
-	int size, nkeyrec, nreject, status;
+	int size, nkeyrec, nreject, nwcs, status;
 	size_t result;
 
 	fin = fopen(outdir.c_str(),"r");
@@ -350,7 +305,7 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs,int *nwcs, long * NAXIS
 	fclose (fin);
 	/* Parse the primary header of the FITS file. */
 	/* -2 to handle the firts two NAXIS? keyword */
-	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, nwcs, &wcs))) {
+	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
 	}
 	delete[] memblock;

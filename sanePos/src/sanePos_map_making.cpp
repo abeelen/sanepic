@@ -57,9 +57,9 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
 
-//		for (unsigned long idet = 0; idet < ndet; idet++){
-//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
-//		}
+		//		for (unsigned long idet = 0; idet < ndet; idet++){
+		//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
+		//		}
 
 		// read reference position
 		long test_ns;
@@ -162,29 +162,36 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 }
 
-void minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array){
+int minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array){
 
-  // First unflagged data
-  long ii=0;
-  while(flag[ii] != 0 && ii < size)
-    ii++;
+	// First unflagged data
 
-  // Start values
-  min_array = array[ii];
-  max_array = array[ii];
+	long ii=0;
+	while(flag[ii] != 0 && ii < size)
+		ii++;
+
+	// Everything is flagged
+	if (ii == size)
+		return EXIT_FAILURE;
+
+	// Start values
+	min_array = array[ii];
+	max_array = array[ii];
 
 
-  // Scan the array
-  while(ii++ < size-1) 	{
-    if (flag[ii] == 0){
-      if (array[ii] > max_array) max_array = array[ii];
-      if (array[ii] < min_array) min_array = array[ii];
-    }
-  }
+	// Scan the array
+	while(ii++ < size-1) 	{
+		if (flag[ii] == 0){
+			if (array[ii] > max_array) max_array = array[ii];
+			if (array[ii] < min_array) min_array = array[ii];
+		}
+	}
+
+	return EXIT_SUCCESS;
 }
 
-void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
-		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
+void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_struct,
+		long iframe_min, long iframe_max, double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
@@ -206,10 +213,10 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=fits_table[iframe];
+		fits_file=samples_struct.fits_table[iframe];
 
 
-		long ns = nsamples[iframe];
+		long ns = samples_struct.nsamples[iframe];
 
 		for (long idet=0; idet < ndet; idet++){
 
@@ -235,22 +242,24 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
+			//
+			//			for (int ii=0; ii<50; ii++)
+			//				cout << ii << " " << ra[ii] << " " << flag[ii] <<endl;
+			//			exit(0);
 
-			//				  for (int ii=0; ii<50; ii++)
-			//		    cout << ii << " " << ra[ii] << " " << flag[ii] <<endl;
-			//		 exit(0);
-			minmax_flag(ra,flag,ns,lra_min,lra_max);
-			minmax_flag(dec,flag,ns,ldec_min,ldec_max);
 
-			// cout << field << " " << ns << " " <<ns2 <<endl;
-			//			cout << field << " " << lra_max << " " << lra_min << " " << ldec_max << " " << ldec_min << endl;
+			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
+					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
 
-			if (ra_max < lra_max)    ra_max = lra_max;
-			if (ra_min > lra_min)    ra_min = lra_min;
-			if (dec_max < ldec_max) dec_max = ldec_max;
-			if (dec_min > ldec_min) dec_min = ldec_min;
+				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
 
-			//			cout << " field : " << field << " ra_min  : " << lra_min << " ra_max : " << lra_max << " dec_min : " << ldec_min << " dec_max : " << ldec_max << endl;
+			} else {
+
+				if (ra_max < lra_max)    ra_max = lra_max;
+				if (ra_min > lra_min)    ra_min = lra_min;
+				if (dec_max < ldec_max) dec_max = ldec_max;
+				if (dec_min > ldec_min) dec_min = ldec_min;
+			}
 
 			delete [] ra;
 			delete [] dec;
@@ -262,7 +271,6 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
 
 
 	}
-
 
 	/// add a small interval of 10 arcmin
 	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
@@ -279,7 +287,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, string *fits_table,
 
 
 void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coordscorner,
-		struct wcsprm &wcs, long &NAXIS1, long &NAXIS2){
+		struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2){
 
 	int NAXIS = 2; // image
 	int wcsstatus;
@@ -294,16 +302,16 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	double dec_mean = (dec_max+dec_min)/2.0;
 
 	// Construct the wcsprm structure
-	wcs.flag = -1;
-	wcsini(1, NAXIS, &wcs);
+	wcs->flag = -1;
+	wcsini(1, NAXIS, wcs);
 
 	// Pixel size in deg
-	for (int ii = 0; ii < NAXIS; ii++) wcs.cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
-	for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs.cunit[ii], "deg");
+	for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
+	for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs->cunit[ii], "deg");
 
 	// This will be the reference center of the map
-	wcs.crval[0] = ra_mean;
-	wcs.crval[1] = dec_mean;
+	wcs->crval[0] = ra_mean;
+	wcs->crval[1] = dec_mean;
 
 	// Axis label
 	if (strcmp(ctype, "EQ") == 0){
@@ -311,10 +319,10 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 		char NAME[2][16] = {"Right Ascension","Declination"};
 
 		for (int ii = 0; ii < NAXIS; ii++) {
-			strcpy(wcs.ctype[ii], &TYPE[ii][0]);
-			strncat(wcs.ctype[ii],"-",1);
-			strncat(wcs.ctype[ii],prjcode, 3);
-			strcpy(wcs.cname[ii], &NAME[ii][0]);
+			strcpy(wcs->ctype[ii], &TYPE[ii][0]);
+			strncat(wcs->ctype[ii],"-",1);
+			strncat(wcs->ctype[ii],prjcode, 3);
+			strcpy(wcs->cname[ii], &NAME[ii][0]);
 		}
 	}
 
@@ -323,15 +331,15 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 		char NAME[2][19] = {"Galactic Longitude", "Galactic Latitude"};
 
 		for (int ii = 0; ii < NAXIS; ii++) {
-			strcpy(wcs.ctype[ii], &TYPE[ii][0]);
-			strncat(wcs.ctype[ii],"-",1);
-			strncat(wcs.ctype[ii],prjcode, 3);
-			strcpy(wcs.cname[ii], &NAME[ii][0]);
+			strcpy(wcs->ctype[ii], &TYPE[ii][0]);
+			strncat(wcs->ctype[ii],"-",1);
+			strncat(wcs->ctype[ii],prjcode, 3);
+			strcpy(wcs->cname[ii], &NAME[ii][0]);
 		}
 	}
 
 	// Set the structure to have the celestial projection routine in order to ....
-	if ((wcsstatus = wcsset(&wcs))) {
+	if ((wcsstatus = wcsset(wcs))) {
 		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
 	}
 
@@ -360,7 +368,7 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	y      = new double [nStep*nStep];
 	status = new int    [nStep*nStep];
 
-	if (cels2x(&wcs.cel, nStep, nStep, 1, 1, lon, lat, phi, theta, x, y, status) == 1) {
+	if (cels2x(&(wcs->cel), nStep, nStep, 1, 1, lon, lat, phi, theta, x, y, status) == 1) {
 		printf("ERROR 1: %s\n", prj_errmsg[1]);
 	}
 
@@ -375,10 +383,10 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 
 	// Save it as the center of the image
 
-	wcs.crpix[0] = NAXIS1*1./2;
-	wcs.crpix[1] = NAXIS2*1./2;
+	wcs->crpix[0] = NAXIS1*1./2;
+	wcs->crpix[1] = NAXIS2*1./2;
 
-	if ((wcsstatus = wcsset(&wcs))) {
+	if ((wcsstatus = wcsset(wcs))) {
 		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
 	}
 

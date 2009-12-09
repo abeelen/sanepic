@@ -20,15 +20,6 @@
 
 using namespace std;
 
-//void do_PtNd_nocorr(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-//		string dir, string dirfile,
-//		std::vector<string> bolonames, string *fits_table,
-//		double f_lppix, double f_lppix_Nk,
-//		double fsamp, long ntotscan, long addnpix, bool flgdupl, int factdupl,
-//		int fillg, long ns, long napod, long ndet,
-//		long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-//		long long npixsrc, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, long iframe, double *S)
-
 void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 		struct samples samples_struct, struct input_commons com, struct detectors det, double f_lppix, double f_lppix_Nk,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
@@ -52,7 +43,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 	Nk = new double[ns/2+1];
 
 
-	data =  new double[ns];
+//	data =  new double[ns];
 	data_lp = new double[ns];
 	flpoint = new short[ns];
 	Ps = new double[ns];
@@ -76,12 +67,20 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 			read_flpoint_from_fits(fits_filename, flpoint);
 		}
 
-		read_signal_from_fits(fits_filename, data, field);
-
 
 		long test_ns;
+		read_signal_from_fits(fits_filename, field, data, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
+
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
-		// TODO : Test sizes...
+		if (test_ns != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
+
 
 
 

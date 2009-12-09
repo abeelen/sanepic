@@ -27,14 +27,14 @@ void computeMapMinima(std::vector<std::string> bolonames, struct samples samples
 		long iframe_min, long iframe_max, double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-void computeMapMinima_HIPE(std::vector<std::string> bolonames, std::string *fits_table,
-		long iframe_min, long iframe_max, long *nsamples,double pixdeg,
+void computeMapMinima_HIPE(std::vector<std::string> bolonames, struct samples samples_struct,
+		long iframe_min, long iframe_max, double pixdeg,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-void minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array);
+int minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array);
 
 void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coordscorner,
-		struct wcsprm &wcs, long &NAXIS1, long &NAXIS2);
+		struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2);
 
 ////TODO: slalib routine, will disapear
 //double slaDranrm ( double angle );

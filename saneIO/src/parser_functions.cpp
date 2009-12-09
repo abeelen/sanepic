@@ -32,7 +32,7 @@ using namespace std;
 
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 
-//	char *s;
+	char *s;
 	string str;
 
 
@@ -435,7 +435,7 @@ int read_filter_frequency(dictionary	*ini, struct user_options &u_opt, int rank)
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:filter_frequency", -1.0);
-	if (d<=0.0){
+	if (d<0.0){
 		if(rank==0)
 			printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
 		return -1;
@@ -833,7 +833,7 @@ void print_parser(struct user_options u_opt){
 		cout << "A baseline will be removed from the data (default)\n";
 
 	if(u_opt.remove_polynomia)
-		cout << "Remove a " << u_opt.poly_order <<  " order polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment\n";
+		cout << "Polynomia order :  " << u_opt.poly_order << endl;
 	else
 		cout << "No polynomia will be used\n";
 

@@ -98,6 +98,41 @@ void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, lo
 }
 
 
+void write_indpsrc(long long map_size, long long  npixsrc, long long * indpsrc, std::string outdir){
+	FILE *fp;
+	string testfile = outdir+"indpsrc.bin";
+
+	if((fp = fopen(testfile.c_str(),"w"))!=NULL){
+			fwrite(&map_size,sizeof(long long),1,fp);
+			fwrite(&npixsrc, sizeof(long long),1,fp);
+			fwrite(indpsrc,sizeof(long long), map_size, fp);
+			fclose(fp);
+		}else{
+			cerr << "ERROR : Could not open " << testfile << endl;
+			exit(0);
+		}
+}
+
+
+void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc, std::string outdir){
+	FILE *fp;
+	string testfile;
+	size_t result;
+
+	testfile = outdir + "indpsrc.bin";
+	if ((fp = fopen(testfile.c_str(),"r"))!=NULL){
+		result = fread(&map_size,sizeof(long long),1,fp);
+		result = fread(&npixsrc,sizeof(long long),1,fp);
+		indpsrc = new long long[map_size];
+		result = fread(indpsrc,sizeof(long long), map_size, fp);
+		fclose(fp);
+	}else{
+		cerr << "Error : cannot find indpsrc.bin file at " << testfile << endl;
+		exit(0);
+	}
+}
+
+
 void write_indpix(long long ind_size, long long npix, long long *indpix, string outdir, int flagon) {
 	FILE *fp;
 	string testfile2;

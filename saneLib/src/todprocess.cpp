@@ -383,6 +383,7 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
 
+	//TODO : Comment all variable, understand what this is really doing, test & optimize
 	/////////////////
 	//
 	// ell is an array of double, units are Hz
@@ -502,7 +503,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 
-
+//TODO : Bad Coding, Test & Choose one, comment the other one.
 		if (0){
 
 			for (int ii=0;ii<nbins;ii++)
@@ -901,197 +902,6 @@ void dindgen(int nn, double *y)
 }
 
 
-
-/*
-void fillgaps(double y[], int ndata, double* yout,  short* flag, double sign)
-{
-	// data are assumed to vary linearly in every window
-
-
-	int count, countp, countm, seedpass;
-	bool sp;
-
-	seedpass = 0;
-
-	//// interval to cut when an event is detected
-	//int margcut_m = 15;
-	//int margcut_p = 30;
-	int margfit   = 20;
-
-	double *xx, *yy, *seriep, *seriem, *tempdata1, *tempdata2, *xx2;
-	double *a;
-	double valtemp;
-
-	a = new double[2];
-	a[0]=0.0;
-	a[1]=0.0;
-	// schema memoire a changé 19/08
-	xx=new double [margfit*2];
-	yy=new double [margfit*2];
-
-	seriem = new double[margfit];
-	tempdata1 = new double[margfit];
-	seriep = new double[margfit];
-	tempdata2 = new double[margfit];
-
-	fill(xx,xx+margfit*2,0.0);
-	fill(yy,yy+margfit*2,0.0);
-	fill(seriem,seriem+margfit,0.0);
-	fill(tempdata1,tempdata1+margfit,0.0);
-	fill(seriep,seriep+margfit,0.0);
-	fill(tempdata2,tempdata2+margfit,0.0);
-
-	// fin changement
-
-//	ofstream fichier;
-//	string fname= "log_flag_short.txt";
-//	fichier.open(fname.c_str(), ios::out);
-
-	//init random generator
-	valtemp = randg_value(1,0);
-//	cout << "valtemp : " << valtemp << endl;
-
-
-
-	////copy data
-	for (int i=0;i<ndata;i++)
-		yout[i] = y[i];
-
-	count = 0;
-	sp = 0;
-	countm = 0;
-	//while ((countm<margfit) && (flag[countm] & 0))
-	while ((countm<margfit) && (flag[countm] != 0))
-		countm++;
-
-//	fichier << countm << " ";
-
-	for (int i=0;i<ndata;i++){
-		//if (flag[i] & 1){
-		if (flag[i] == 1){
-			count++;
-			sp = 0;
-		}
-		else{
-			sp = 1;
-		}
-
-//		fichier << count << " ";
-		if (sp && count){
-			countp = 0;
-			//while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] & 1) == 0){
-			while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] != 1)){
-				countp++;
-				if (i+countp >= ndata) printf("SDHFIDF\n");
-			}
-//			fichier << countp << " ";
-
-			//cout << "alloc p : " << countp <<  " soit " << (countp)*4 <<  endl;
-			//cout << "alloc m : " << countm <<  " soit " << (countm)*4 <<  endl;
-			//cout << "alloc : " << count << " soit " << count << endl;
-			//getchar();
-
-			//xx = new double[countp+countm]; // on peut sortir xx et yy de la boucle  car taille max de 20
-			//yy = new double[countp+countm]; // en effet, countp et countm < 20 quoi qu'il arrive : faut juste verif que resultats identiques !
-			xx2 = new double[count];
-			fill(xx2,xx2+count,0.0);
-
-			if (countm > 0){
-				//	seriem = new double[countm];
-				//	tempdata1 = new double[countm];
-				dindgen(countm,seriem);
-				cutdata(y,i-count-countm,i-count-1,tempdata1);
-			}
-			if (countp > 0){
-				//	seriep = new double[countp];
-				//	tempdata2 = new double[countp];
-				dindgen(countp,seriep);
-				cutdata(y,i,i+countp-1,tempdata2);
-			}
-
-
-
-			if (countm && countp){
-				mergedata(seriem,countm,seriep,countp,xx);
-				mergedata(tempdata1,countm,tempdata2,countp,yy);
-			} else {
-				if (countm){
-					for (int j=0;j<countm;j++){
-						xx[j] = seriem[j];
-						yy[j] = tempdata1[j];
-					}
-				}
-				if (countp){
-					for (int j=0;j<countp;j++){
-						xx[j] = seriep[j];
-						yy[j] = tempdata2[j];
-					}
-				}
-			}
-
-
-			if (countp){
-				for (int j=0;j<countp;j++){
-					xx[countm+j] += double(countm+count);
-				}
-			}
-
-			dpolyfit(xx,yy,countp+countm,1,a);
-
-
-			dindgen(count,xx2);
-			for (int j=0;j<count;j++){
-				xx2[j] += double(countm);
-			}
-			for (int j=0;j<count;j++){
-				valtemp = randg_value(1,-1);
-//				cout << "valtemp : " << valtemp << endl;
-				yout[i+j-count] = a[0]+a[1]*xx2[j] + sign*valtemp;//[0];
-				//delete [] valtemp;
-			}
-
-
-//			if (countp>0){
-//				delete[] seriep;
-//				delete[] tempdata2;
-//			}
-//			if (countm>0){
-//				delete[] seriem;
-//				delete[] tempdata1;
-//			}
-			//delete[] xx;
-			//delete[] yy;
-			delete[] xx2;
-
-			for(int ii=0;ii<margfit;ii++){
-				xx[ii]=0;
-				yy[ii]=0;
-			}
-
-			countm = countp;
-
-			countp = 0;
-			count = 0;
-			sp = 0;
-
-		}
-	}
-
-//	fichier.close();
-
-	delete[] a;
-	delete[] xx;
-	delete[] yy;
-	delete[] seriep;
-	delete[] tempdata2;
-	delete[] seriem;
-	delete[] tempdata1;
-
-	//printf("ok\n");
-	//getchar();
-
-
-}*/
 
 
 void fillgaps(double y[], int ndata, double* yout, short* flag, double sign)

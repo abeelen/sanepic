@@ -26,11 +26,7 @@ extern "C" {
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
 void write_indpix(long long ind_size, long long npix, long long *indpix,  std::string outdir, int flagon);
-
-//sanePre functions
-
-
-//void read_indpix(long ind_size, int &npix, long *&indpix, string termin, string outdir, int &flagon);
+void read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::string outdir, int &flagon);
 
 /*!
  * Reads indpix from a binary file \n
@@ -39,7 +35,11 @@ void write_indpix(long long ind_size, long long npix, long long *indpix,  std::s
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::string outdir, int &flagon);
+
+void write_indpsrc(long long map_size,  long long  npixsrc, long long * indpsrc,   std::string outdir);
+void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,   std::string outdir);
+
+
 
 /*!
  * Writes PNd in a binary file \n
