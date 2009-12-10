@@ -87,14 +87,8 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 }
 
 
-//void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-//		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
-//		int fillg, string dir, string dirfile,
-//		std::vector<string> bolonames,string *fits_table, double f_lppix, long ns,
-//		long napod, long ndet, bool NORMLIN, bool NOFILLGAP, bool remove_polynomia,
-//		long iframe)
 
-void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples samples_struct, struct input_commons com,
+void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe)
 {
@@ -157,7 +151,7 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 //	cout << "apres les fill" << endl;
 
 	int factdupl = 1;
-	if(com.flgdupl==1)		factdupl = 2;
+	if(pos_param.flgdupl==1)		factdupl = 2;
 
 	fits_filename = samples_struct.fits_table[iframe];
 	cout << "fits file : " << fits_filename << endl;
@@ -219,12 +213,12 @@ void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples sa
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
-					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
+					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
-					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
+					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 		}
 
 		//cout << "data apres map : " << setprecision(14)  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;

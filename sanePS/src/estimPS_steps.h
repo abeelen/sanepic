@@ -26,12 +26,7 @@
 
 void read_mixmat_file(std::string MixMatfile, std::string dir, double **&mixmat, long ndet, long ncomp);
 
-//void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long NAXIS1,long NAXIS2, long long npix, bool flgdupl, int factdupl, std::vector<std::string> bolonames,/* string bextension, string fextension,*/
-//		std::string dirfile, std::string dir, long iframe, double *S, long long *indpix,  bool NORMLIN,
-//		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp,  /*short *flag,*/
-//		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod ,fftw_complex *fdata1, std::string fits_filename);
-
-void common_mode_computation(struct detectors det, struct user_options u_opt, struct input_commons com,
+void common_mode_computation(struct detectors det, struct param_process proc_param,
 		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, std::string fits_filename);
@@ -42,8 +37,8 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 //		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
 //		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P,  std::string outdirSpN,std::string fits_filename);
 
-void estimate_noise_PS(struct detectors det, struct directories dir, struct input_commons com,
-		struct user_options u_opt, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+void estimate_noise_PS(struct detectors det, struct directories dir,
+		struct param_process proc_param, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, std::string fits_filename);

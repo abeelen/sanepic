@@ -16,20 +16,7 @@ extern "C" {
 #include "nrutil.h"
 }
 
-//void do_PtNd(double *PNd, std::string *extentnoiseSp_all, std::string noiseSppreffile,
-//		std::string dir, std::string prefixe, std::vector<std::string> bolonames,
-//		double f_lppix, double fsamp,  long ns, long ndet,
-//		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-//		double *Mp, long *hits);
-
-//void write_ftrProcesdata(double *S, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-//		long long npixsrc, long ntotscan, long long addnpix, bool flgdupl, int factdupl,
-//		int fillg, std::string dir, std::string dirfile,
-//		std::vector<std::string> bolonames,std::string *fits_table, double f_lppix,  long ns,
-//		long napod, long ndet, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia,
-//		long iframe);
-
-void write_ftrProcesdata(double *S, struct user_options u_opt, struct samples samples_struct, struct input_commons com,
+void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		std::string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe);
 

@@ -32,11 +32,11 @@ extern "C"{
 
 using namespace std;
 
-/*int parse_sanePos_ini_file(char * ini_name,struct user_options_sanepos &u_opt,
+/*int parse_sanePos_ini_file(char * ini_name,struct param_process_sanepos &proc_param,
 		long &ntotscan, long &ndet,
 		std::vector<string> &bolonames, long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)*/
-int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct directories &dir,
+int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions pos_param, struct directories &dir,
 		struct detectors &det,struct samples &samples_struct,
 		std::vector<struct box> &boxFile, int rank)
 {
@@ -57,13 +57,15 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 
 
 	/* Get sanepic_compute_positions attributes */
-	printf("sanepic_compute_positions:\n");
+	printf("sanePos:\n");
 
+	if(read_param_positions(ini, pos_param, rank)==-1)
+		return -1;
 
 	if(read_directories(ini, dir, rank)==-1)
 		return -1;
 
-	if(read_commons(ini, com, rank)==-1)
+	if(read_param_process(ini, proc_param, rank)==-1)
 		return -1;
 
 	if(read_channel_list(ini,det.boloname, rank)==-1)
@@ -72,10 +74,6 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
 		return -1;
 
-//	if(read_box_coord(ini,boxFile, rank)==-1)
-//		return -1;
-
-
 
 	if(rank==0){
 
@@ -83,7 +81,7 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 		cout << "You have specified the following options : \n";
 
 		print_directories(dir);
-		print_commons(com);
+		print_process_param(proc_param);
 	}
 
 	/*
@@ -99,18 +97,18 @@ int parse_sanePos_ini_file(char * ini_name,struct input_commons &com, struct dir
 
 
 	//if (tmpcount == 4)
-		//u_opt.bfixc = 1;
+		//proc_param.bfixc = 1;
 
 	if (tmpcount2 == 3){
 		if (tmpcount == 4){
 			cerr << "ERROR: Conflicting input parameter: RA_min RA_max DEC_min DEC_max keywords are not compatible with RA_source DEc_source map_radius keywords . Exiting. \n";
 			return -1 ;
 		}
-		//u_opt.bfixc = 1;
-		u_opt.coordscorner[0] = u_opt.srccoord[0];
-		u_opt.coordscorner[1] = u_opt.srccoord[0];
-		u_opt.coordscorner[2] = u_opt.srccoord[1];
-		u_opt.coordscorner[3] = u_opt.srccoord[1];
+		//proc_param.bfixc = 1;
+		proc_param.coordscorner[0] = proc_param.srccoord[0];
+		proc_param.coordscorner[1] = proc_param.srccoord[0];
+		proc_param.coordscorner[2] = proc_param.srccoord[1];
+		proc_param.coordscorner[3] = proc_param.srccoord[1];
 	}
 
 	 */

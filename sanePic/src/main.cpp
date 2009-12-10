@@ -77,27 +77,24 @@ int main(int argc, char *argv[])
 	//************************************************************************//
 	//************************************************************************//
 
-	struct user_options u_opt;
+	struct param_process proc_param;
 	struct samples samples_struct;
-	struct input_commons com;
+	struct param_positions pos_param;
 	struct directories dir;
 	struct detectors det;
 
 	//TODO : why do we need to define the default value here... should be in the parser...
 	//DEFAULT PARAMETERS
-	com.napod = 0; /*!  number of samples to apodize */
-	u_opt.fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
-	u_opt.projgaps = 0; /*!1: data flagged are put in a single pixel  (assume no signal in this pixel),
-	0: data flagged are not reprojected */
+	proc_param.napod = 0; /*!  number of samples to apodize */
+	proc_param.fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
 
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int iterw = 10; /*!  period in iterations to which the data are written to disk, 0 = no intermediate map to be written*/
-	u_opt.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	com.NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
-	com.flgdupl = 0; /*!  1 if flagged data are put in a separate map */
-	u_opt.remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
-	u_opt.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
+	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	proc_param.NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
+	proc_param.remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
+	proc_param.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
 	int factdupl = 1; /*! map duplication factor */
 	long long addnpix=0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
 	long long npixsrc = 0; /*! number of pix in box constraint */
@@ -109,8 +106,6 @@ int main(int argc, char *argv[])
 
 
 	// map making parameters
-	com.pixdeg=-1.0; /*! size of pixels (degree) */
-
 	long long npix2; /*! used to check PNd reading was correct */
 	long long ind_size; /*! indpix read size */
 	long NAXIS1, NAXIS2;
@@ -118,7 +113,7 @@ int main(int argc, char *argv[])
 
 
 	//internal data params
-	u_opt.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
+	proc_param.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
 
 
 
@@ -133,7 +128,6 @@ int main(int argc, char *argv[])
 
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 	//std::vector<string> extentnoiseSP; /*! noise filenames vector of string */
-	std::vector<struct box> boxFile;
 
 
 
@@ -153,8 +147,8 @@ int main(int argc, char *argv[])
 
 		int parsed=1;
 
-		parsed=parse_sanePic_ini_file(argv[1],u_opt,iterw, dir, samples_struct,com,
-				det,boxFile, fcut, rank);
+		parsed=parse_sanePic_ini_file(argv[1],proc_param,iterw, dir, samples_struct,
+				det, fcut, rank);
 		if (parsed==-1){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -382,12 +376,12 @@ int main(int argc, char *argv[])
 	//	tancoord = new double[2];
 	//	tanpix = new double[2];
 
-	//	read_info_pointing(NAXIS1, NAXIS2, u_opt.outdir, tanpix, tancoord);
+	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.outdir, tanpix, tancoord);
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
 	// read nn, coordsyst, tanpix, tancoord
-	//	read_info_pointing(NAXIS1, NAXIS2, u_opt.tmp_dir, tanpix, tancoord);
+	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.tmp_dir, tanpix, tancoord);
 	//cout << tanpix[0] << " " << tanpix[1] << endl;
 	//cout << tancoord[0] << " " << tancoord[1] << endl;
 
@@ -406,7 +400,7 @@ int main(int argc, char *argv[])
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
-	if (com.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
+	if (pos_param.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
 
 	// read indpix
 	read_indpix(ind_size, npix, indpix,  dir.tmp_dir, flagon);
@@ -487,12 +481,12 @@ int main(int argc, char *argv[])
 
 	map1d       = new double[NAXIS1*NAXIS2];
 
-	for (int idupl = 0;idupl<=com.flgdupl;idupl++){
+	for (int idupl = 0;idupl<=pos_param.flgdupl;idupl++){
 
 
 
 		//Conjugate gradien Inversion
-		if (u_opt.projgaps || !flagon){
+		if (pos_param.projgaps || !flagon){
 			npixeff = npix;
 		} else {
 			npixeff = npix-1;
@@ -517,21 +511,21 @@ int main(int argc, char *argv[])
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = samples_struct.nsamples[iframe];
-			f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
+			f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 
 			// preconditioner computation : Mp
-			if (u_opt.CORRon){
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
+			if (proc_param.CORRon){
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
 				// read pointing + deproject + fourier transform
 
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						u_opt.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+						proc_param.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 
 				// return Pnd = At N-1 d
 			} else {
 				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
-						u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+						proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
 						iframe, PtNPmatS, Mp, hits);
 			}
 
@@ -612,26 +606,26 @@ int main(int argc, char *argv[])
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !com.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
+		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 				ns = samples_struct.nsamples[iframe];
 				//				ff = fframes[iframe];
-				f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
+				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
-				if (u_opt.CORRon){
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
+				if (proc_param.CORRon){
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
 					// read pointing + deproject + fourier transform
 
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir, "fPs_" ,det,f_lppix_Nk,
-							u_opt.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							proc_param.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
 					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det,f_lppix_Nk,
-							u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+							proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
 							iframe, q, NULL, NULL);
 				}
 			} // end of iframe loop
@@ -684,19 +678,19 @@ int main(int argc, char *argv[])
 
 					ns = samples_struct.nsamples[iframe];
 					//					ff = fframes[iframe];
-					f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
+					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
-					if (u_opt.CORRon){
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,com.flgdupl, dir.tmp_dir,ns,iframe);
+					if (proc_param.CORRon){
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
 						// read pointing + deproject + fourier transform
 
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir, "fPs_",det,f_lppix_Nk,
-								u_opt.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+								proc_param.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
 						do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
-								u_opt.fsamp, com.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
+								proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
 								iframe, PtNPmatS, NULL, NULL);
 					}
 				} // end of iframe loop
@@ -879,7 +873,7 @@ int main(int argc, char *argv[])
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-					if (com.flgdupl){
+					if (pos_param.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
@@ -981,7 +975,7 @@ int main(int argc, char *argv[])
 
 
 
-		if  ((u_opt.projgaps || (com.flgdupl)) && !idupl){
+		if  ((pos_param.projgaps || (pos_param.flgdupl)) && !idupl){
 
 
 			fill(PNd,PNd+npix,0.0);
@@ -991,21 +985,21 @@ int main(int argc, char *argv[])
 
 				ns = samples_struct.nsamples[iframe];
 				//				ff = fframes[iframe];
-				f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp;
-				f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp;
+				f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp;
+				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
-				if (u_opt.CORRon){
-					write_ftrProcesdata(S,u_opt,samples_struct,com,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+				if (proc_param.CORRon){
+					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns,	iframe);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							u_opt.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							proc_param.fsamp,ns,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 
 					// return Pnd = At N-1 d
 				} else {
-					do_PtNd_nocorr(PNd,dir.tmp_dir,u_opt,samples_struct,com,det, f_lppix, f_lppix_Nk,
+					do_PtNd_nocorr(PNd,dir.tmp_dir,proc_param, pos_param, samples_struct,det, f_lppix, f_lppix_Nk,
 							addnpix, ns,indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc, iframe, S);
 				}
 			} // end of iframe loop
@@ -1171,7 +1165,7 @@ int main(int argc, char *argv[])
 	// TODO : This will be rewrite differently
 	//	if (rank == 0){
 	//		//write infos for second part
-	//		write_info_for_second_part(u_opt.outdir, NAXIS1, NAXIS2, npix,u_opt.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+	//		write_info_for_second_part(proc_param.outdir, NAXIS1, NAXIS2, npix,proc_param.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	//	}
 
 #ifdef USE_MPI

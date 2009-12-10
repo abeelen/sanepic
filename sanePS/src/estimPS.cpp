@@ -33,7 +33,7 @@ using namespace std;
 //		string extentnoiseSp, string outdirSpN, string fits_filename)
 
 
-void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct directories dir,struct input_commons com,
+void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		long long *indpix, double *S, string MixMatfile,string ellFile, string extentnoiseSp,string fits_filename)
 {
@@ -70,7 +70,7 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 	//fdata_buffer= new fftw_complex[(ns/2+1)*ndet];
 
 	int factdupl = 1;
-	if(com.flgdupl==1) factdupl = 2;
+	if(pos_param.flgdupl==1) factdupl = 2;
 
 
 	time_t t1;
@@ -145,79 +145,42 @@ void EstimPowerSpectra(struct user_options u_opt,struct detectors det,struct dir
 
 
 	// compute common mode commonm2
-	//	common_mode_computation(ndet, ns, ff, NAXIS1,NAXIS2, npix, flgdupl, factdupl, bolonames,
-	//			dirfile, tmp_dir, iframe, S, indpix,  NORMLIN,
-	//			NOFILLGAP, remove_polynomia, napod, mixmat, ncomp, commonm2, samptopix, Ps, data, data_lp,
-	//			bfilter, Cov, uvec, p, ivec, iCov, fdata1,fits_filename);
 
-	common_mode_computation(det,u_opt,com,dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
+	common_mode_computation(det,proc_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
 			mixmat, ncomp, commonm2, factapod, fits_filename);
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
-	//	estimate_noise_PS(bolonames, dirfile, extentnoiseSp, tmp_dir, nbins,
-	//			nbins2, ns, ff, ndet, NAXIS1, NAXIS2, npix,napod, ell, data,
-	//			samptopix, tmp_dir, S, iframe,  Ps, data_lp, bfilter, indpix, NORMLIN,
-	//			NOFILLGAP, remove_polynomia,flgdupl, factdupl, apodwind, ncomp, mixmat, commonm2, fsamp,
-	//			Nk, Nell, factapod,Rellth, N, commontmp, P,  outdirSpN,fits_filename);
-
-	estimate_noise_PS(det, dir, com, u_opt, nbins, nbins2, ns, ff, NAXIS1,
+	estimate_noise_PS(det, dir, proc_param, nbins, nbins2, ns, ff, NAXIS1,
 			NAXIS2, npix, ell, S, iframe,indpix, apodwind, ncomp, mixmat, commonm2,
 			factapod,Rellth, N, P, fits_filename);
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
-	//	estimate_CovMat_of_Rexp(nbins, ns, ff, ndet, ell, tmp_dir,  ncomp, mixmat,fsamp,
-	//			Nk, Nell, factapod, Rellexp, N, P,  outdirSpN, fdata1, fdata2, SPref, bolonames);
 
-	estimate_CovMat_of_Rexp(dir, det, nbins, ns, ff, ell, ncomp, mixmat, u_opt.fsamp,
+	estimate_CovMat_of_Rexp(dir, det, nbins, ns, ff, ell, ncomp, mixmat, proc_param.fsamp,
 			factapod, Rellexp, N, P, SPref);
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
 
 
-	//	expectation_maximization_algorithm(fcut, nbins, ndet, ncomp,ns, fsamp, ff,
-	//			outdirSpN,  Rellexp, Rellth, mixmat,P,N, Cov, p, uvec, ivec, iCov, SPref, ell);
-
-	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, u_opt.fsamp, ff,
+	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp, ff,
 			dir.outdir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
 
-	//	write_to_disk(outdirSpN, ff,  bolonames,nbins, ell, mixmat, Rellth,
-	//			Rellexp, ncomp, ndet, N, SPref,P);
 	write_to_disk(dir.outdir, ff, det,nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 
 
-	//	delete [] data;
-	//	delete [] data_lp;
-//	delete [] fdata1;
-//	delete [] fdata2;
-	//	delete [] Ps;
-	//	delete [] samptopix;
-	//	delete [] commontmp;
-//	delete [] commonm_f;
-	//delete [] flag;
-	//	delete [] bfilter;
 	delete [] SPref;
 	delete [] apodwind;
-//	delete [] Nell;
 	free_dmatrix(Rellexp,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
 	free_dmatrix(Rellth,0,(det.ndet)*(det.ndet)-1,0,nbins-1);
 	free_dmatrix(mixmat,0,det.ndet-1,0,ncomp-1);
-	//delete [] sign;
-//	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-//	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
-	//free_dmatrix(iCov2,0,ncomp-1,0,ncomp-1);
-	//	delete [] p;
-	//	delete [] uvec;
-	//	delete [] ivec;
-	//free_dmatrix(commonm,0,ncomp,0,ns-1);
+
 	free_dmatrix(commonm2,0,ncomp,0,ns-1);
-	//free_dmatrix(common_f,0,ncomp,0,ns-1);
 	free_dmatrix(vect,0,ncomp-1,0,det.ndet-1);
-//	delete [] Nk;
 	delete [] ell;
 	free_dmatrix(P,0,ncomp-1,0,nbins-1);
 	free_dmatrix(N,0,det.ndet-1,0,nbins-1);

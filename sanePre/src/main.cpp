@@ -81,26 +81,25 @@ int main(int argc, char *argv[])
 #endif
 
 
-	struct user_options u_opt;
+	struct param_process proc_param;
 	struct samples samples_struct;
-	struct input_commons com;
+	struct param_positions pos_param;
 	struct directories dir;
 	struct detectors det;
 
 
 	//DEFAULT PARAMETERS
-	com.napod = 0; /*! number of samples to apodize*/
-	u_opt.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
+	proc_param.napod = 0; /*! number of samples to apodize*/
+	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
 
 	//Parser parameter (Program options)
 	long iframe_min=0, iframe_max=0; /*!  min and max number of frame (used with mpi) */
-	u_opt.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	com.NOFILLGAP = 0; /*! fill the gap ? default is YES*/
-	com.flgdupl = 0; /*! 1 if flagged data are put in a separate map*/
+	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	proc_param.NOFILLGAP = 0; /*! fill the gap ? default is YES*/
 	int factdupl=1; /*! map duplication factor */
 	int flagon = 0; /*! if a data is flagged */
-	u_opt.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
-	u_opt.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
 
 
 	samples_struct.ntotscan=0; /*! total number of scans*/
@@ -116,7 +115,7 @@ int main(int argc, char *argv[])
 	//internal data params
 	long ns; /*! number of samples for this scan, first frame number of this scan*/
 	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
-	u_opt.f_lp = 0.0; // low pass filter frequency
+	proc_param.f_lp = 0.0; // low pass filter frequency
 
 	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
@@ -132,7 +131,6 @@ int main(int argc, char *argv[])
 
 
 	/* Parser inputs */
-	std::vector<struct box> boxFile;
 	std::vector<double> fcut; /* noise cutting frequency */
 
 	// Processing time estimation
@@ -145,8 +143,8 @@ int main(int argc, char *argv[])
 	} else {
 
 		int parsed=1;
-		parsed=parse_sanePre_ini_file(argv[1],u_opt, dir, samples_struct,com,
-				det,boxFile, fcut, rank);
+		parsed=parse_sanePre_ini_file(argv[1],proc_param, pos_param, dir, samples_struct,
+				det, fcut, rank);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -172,7 +170,7 @@ int main(int argc, char *argv[])
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 
-	if (com.flgdupl) factdupl = 2;
+	if (pos_param.flgdupl) factdupl = 2;
 
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
@@ -194,7 +192,7 @@ int main(int argc, char *argv[])
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
-	if (com.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
+	if (pos_param.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
 
 	//read projection vector from a file
 	read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
@@ -473,14 +471,14 @@ int main(int argc, char *argv[])
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
-		f_lppix = u_opt.f_lp*double(ns)/u_opt.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = fcut[iframe]*double(ns)/u_opt.fsamp; // noise PS threshold freq, in terms of samples
+		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
+		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
 		if(iframe_min!=iframe_max)
 			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
 
 		// if there is correlation between detectors
-		if (u_opt.CORRon){
+		if (proc_param.CORRon){
 			// var double *S =  NULL
 			// indpix = pixel indice
 			// indpsrc = box crossing constraint removal pixel indice
@@ -515,7 +513,7 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata(NULL,u_opt,samples_struct,com,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param, dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe);
 
 			// fillgaps + butterworth filter + fourier transform
@@ -550,7 +548,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+					proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -564,7 +562,7 @@ int main(int argc, char *argv[])
 		} else {
 
 
-			do_PtNd_nocorr(PNd, dir.tmp_dir,u_opt,samples_struct,com,
+			do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param, samples_struct,
 					det,f_lppix,f_lppix_Nk,addnpix,
 					ns/*,size_det,rank_det*/,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation

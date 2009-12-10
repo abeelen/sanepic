@@ -883,6 +883,8 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 }
 
+
+
 void readBoxFile(string filename, std::vector<struct box> & boxList){
 	// Read a file with 4 number on a line, describing the boxes
 	// 2 numbers for the bottom_left_corner (blc)

@@ -83,23 +83,22 @@ int main(int argc, char *argv[])
 #endif
 
 
-	//struct user_options_sanepos u_opt;
+	//struct param_process_sanepos proc_param;
 	struct samples samples_struct;
-	struct input_commons com;
+	struct param_process proc_param;
+	struct param_positions pos_param;
 	struct directories dir;
 	struct detectors det;
 
 	//TODO : Why the defaults are here ????
 	//DEFAULT PARAMETERS
-	com.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
-	com.pixdeg = -1.0; /*! "Size of pixels (deg)"*/
+	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
-	com.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
-	com.flgdupl = 0; /*! 1 if flagged data are put in a separate map */
+	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 
 
 	//set coordinate system
@@ -147,10 +146,10 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 		int parsed=1;
-		/*parsed=parse_sanePos_ini_file(argv[1],u_opt,ntotscan,ndet,
+		/*parsed=parse_sanePos_ini_file(argv[1],proc_param,ntotscan,ndet,
 				bolonames,nsamples,boxFile,fitsvect,scans_index);*/
 
-		parsed=parse_sanePos_ini_file(argv[1],com,dir,
+		parsed=parse_sanePos_ini_file(argv[1],proc_param, pos_param, dir,
 				det, samples_struct, boxFile, rank);
 
 		if (parsed==-1){
@@ -288,10 +287,10 @@ int main(int argc, char *argv[])
 		//TODO : Should not be needed ! computeMapMinima should skip the loop
 		if(iframe_min!=iframe_max)
 //			computeMapMinima_HIPE(det.boloname,samples_struct,
-//					iframe_min,iframe_max,com.pixdeg,
+//					iframe_min,iframe_max,pos_param.pixdeg,
 //					ra_min,ra_max,dec_min,dec_max);
 			computeMapMinima(det.boloname,samples_struct,
-					iframe_min,iframe_max,com.pixdeg,
+					iframe_min,iframe_max,pos_param.pixdeg,
 					ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
@@ -326,7 +325,7 @@ int main(int argc, char *argv[])
 			printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 		}
 
-		computeMapHeader(com.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
+		computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
 		npixsrc = 0;
 		// Initialize the masks
@@ -382,7 +381,7 @@ int main(int argc, char *argv[])
 
 	// map duplication factor
 	int factdupl;
-	(com.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
+	(pos_param.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
 
 	// pixon indicates pixels that are seen
 	// factdupl if flagged data are to be projected onto a separete map
@@ -402,7 +401,7 @@ int main(int argc, char *argv[])
 
 
 	computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
-			com,iframe_min, iframe_max,
+			proc_param, pos_param, iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
 			mask,factdupl,
 			addnpix, pixon, rank,

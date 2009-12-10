@@ -37,21 +37,23 @@ struct detectors {
 	std::vector<std::string> boloname;
 };
 
-struct input_commons {
-	long napod;
-	bool NOFILLGAP;
-	bool flgdupl;
+
+struct param_positions {
+	std::string maskfile;
 	double pixdeg;
+	bool flgdupl;
+	bool projgaps;
 };
 
-struct user_options {
+struct param_process {
+	long napod;
+	bool NOFILLGAP;
 	double fsamp;
 	bool NORMLIN;
 	bool remove_polynomia;
 	int poly_order;
 	bool CORRon;
 	double f_lp;
-	bool projgaps;
 };
 
 

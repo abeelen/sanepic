@@ -20,12 +20,7 @@
  * missing in the ini file !
  * - Initialise sanePS variable
  */
-/*int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt,
-		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, long *&nsamples, std::vector<string> &extentnoiseSP, string &MixMatfile, string & ellFile, string &signame,
-		std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);*/
-
-int parse_sanePS_ini_file(char * ini_name, struct user_options &u_opt, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
+int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, struct directories &dir, struct samples &samples_struct,
 		struct detectors &det, std::string &MixMatfile, std::string &ellFile, std::string &signame, int rank);
 
 

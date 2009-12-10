@@ -21,7 +21,7 @@
 using namespace std;
 
 void computePixelIndex(string outdir, std::vector<string> bolonames,
-		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
@@ -177,9 +177,9 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
-				if (com.NOFILLGAP && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
+				if (proc_param.NOFILLGAP && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
 
-				if ((ii < com.napod) || (ii >= ns-com.napod)) bolo_flag[ii] = 3;
+				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod)) bolo_flag[ii] = 3;
 
 			}
 
@@ -209,7 +209,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 				case 1:												// sample is flagged
 
-					if (com.flgdupl)								// if flagged pixels are in a duplicated map
+					if (pos_param.flgdupl)								// if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii] + NAXIS1*NAXIS2;	// index in the second map...
 					else											// else every flagged sample is projected to the same pixel (outside the map)
 						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
@@ -253,7 +253,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 }
 
 void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
-		struct samples samples_struct, struct input_commons com, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
@@ -379,9 +379,9 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))            bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >=  NAXIS2))  bolo_flag[ii] = 2;
-				if (com.NOFILLGAP && (bolo_flag[ii] == 1 ))      bolo_flag[ii] = 2;
+				if (proc_param.NOFILLGAP && (bolo_flag[ii] == 1 ))      bolo_flag[ii] = 2;
 
-				if ((ii < com.napod) || (ii >= ns-com.napod))    bolo_flag[ii] = 3;
+				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod))    bolo_flag[ii] = 3;
 
 			}
 
@@ -411,7 +411,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 				case 1:												// sample is flagged
 
-					if (com.flgdupl)								// if flagged pixels are in a duplicated map
+					if (pos_param.flgdupl)								// if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii] + NAXIS1*NAXIS2;	// index in the second map...
 					else											// else every flagged sample is projected to the same pixel (outside the map)
 						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;

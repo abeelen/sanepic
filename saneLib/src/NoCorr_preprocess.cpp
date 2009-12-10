@@ -20,8 +20,8 @@
 
 using namespace std;
 
-void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
-		struct samples samples_struct, struct input_commons com, struct detectors det, double f_lppix, double f_lppix_Nk,
+void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param, struct param_positions pos_param,
+		struct samples samples_struct, struct detectors det, double f_lppix, double f_lppix_Nk,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
 		long long npixsrc, long iframe, double *S)
 {
@@ -49,7 +49,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 	Ps = new double[ns];
 
 	int factdupl = 1;
-	if (com.flgdupl) factdupl=2;
+	if (pos_param.flgdupl) factdupl=2;
 
 
 	string fits_filename;
@@ -101,12 +101,12 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter,
-					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia,Ps);
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
+					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,f_lppix,data_lp,bfilter,
-					u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
+					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 		}
 
 
@@ -125,7 +125,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct user_options u_opt,
 		extentnoiseSp = samples_struct.noise_table[iframe];
 		nameSpfile = tmp_dir + field + extentnoiseSp;
 
-		readNSpectrum(nameSpfile,bfilter,ns,u_opt.fsamp,Nk);
+		readNSpectrum(nameSpfile,bfilter,ns,proc_param.fsamp,Nk);
 
 
 		//********************** compute P^t N-1 d ************************//

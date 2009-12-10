@@ -20,13 +20,7 @@
  * - Initialise sanePre variable
  */
 
-/*int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt,
-		long &ntotscan, long &ndet,
-		std::vector<string> &bolonames, long *&nsamples,
-		std::vector<struct box> & boxFile,std::vector<string> &extentnoiseSP, std::vector<double> &fcut, std::vector<string> &fitsvect,std::vector<string> &noisevect, std::vector<long> &scans_index);
-*/
-
-int parse_sanePre_ini_file(char * ini_name,struct user_options &u_opt, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut, int rank);
+int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, struct directories &dir, struct samples &samples_struct,
+		struct detectors &det, std::vector<double> &fcut, int rank);
 
 #endif /* PARSEPRE_H_ */

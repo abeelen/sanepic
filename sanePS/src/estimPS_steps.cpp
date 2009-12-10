@@ -71,7 +71,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 //		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
 //		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename)
 
-void common_mode_computation(struct detectors det, struct user_options u_opt, struct input_commons com,
+void common_mode_computation(struct detectors det, struct param_process proc_param,
 		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
@@ -106,7 +106,7 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 
 
 	int factdupl = 1;
-	if(com.flgdupl==1) factdupl = 2;
+	if(pos_param.flgdupl==1) factdupl = 2;
 
 
 //	data = new double[ns]; // raw data
@@ -169,15 +169,15 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe, det.boloname);
 
 			//TODO : Check this function on what it does/should do
-			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,com.flgdupl,factdupl);
+			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
 		}
 		//TODO : the order of the baseline should be in the ini file
 		//TODO : but this is the special case of estimPS
-		MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,1.0,data_lp,bfilter,
-				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
+		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
+				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
@@ -308,8 +308,8 @@ void common_mode_computation(struct detectors det, struct user_options u_opt, st
 //		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
 //		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
 
-void estimate_noise_PS(struct detectors det, struct directories dir, struct input_commons com,
-		struct user_options u_opt, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+void estimate_noise_PS(struct detectors det, struct directories dir,
+		struct param_process proc_param, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
@@ -331,7 +331,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 
 
 	int factdupl = 1;
-	if(com.flgdupl==1) factdupl = 2;
+	if(pos_param.flgdupl==1) factdupl = 2;
 
 
 //	data = new double[ns]; // raw data
@@ -385,7 +385,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 		read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe,det.boloname);
 
 
-		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,com.flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
 		for(long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -393,8 +393,8 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 
 
 
-		MapMakPreProcessData(data,flag,ns,com.napod,u_opt.poly_order,1.0,data_lp,bfilter,
-				u_opt.NORMLIN,com.NOFILLGAP,u_opt.remove_polynomia);
+		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
+				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
 
 
@@ -412,7 +412,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 
 
 		/// measure power spectrum of the uncorrelated part of the noise
-		noisepectrum_estim(data,ns,ell,(int)nbins,u_opt.fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(data,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
 
 		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
@@ -432,7 +432,7 @@ void estimate_noise_PS(struct detectors det, struct directories dir, struct inpu
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ns;jj++)
 			commontmp[jj]=commonm2[ii][jj];
-		noisepectrum_estim(commontmp,ns,ell,(int)nbins,u_opt.fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(commontmp,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
 

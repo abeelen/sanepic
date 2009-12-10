@@ -13,8 +13,8 @@
 #include "mpi_architecture_builder.h"
 
 
-void do_PtNd_nocorr(double *PNd,std::string tmp_dir, struct user_options u_opt,
-		struct samples samples_struct, struct input_commons com, struct detectors det, double f_lppix, double f_lppix_Nk,
+void do_PtNd_nocorr(double *PNd,std::string tmp_dir, struct param_process proc_param, struct param_positions pos_param,
+		struct samples samples_struct, struct detectors det, double f_lppix, double f_lppix_Nk,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
 		long long npixsrc, long iframe, double *S);
 

@@ -18,8 +18,8 @@ extern "C"{
 
 using namespace std;
 
-int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iterw, struct directories &dir, struct samples &samples_struct,struct input_commons &com,
-		struct detectors &det, std::vector<struct box> & boxFile, std::vector<double> &fcut, int rank)
+int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int &iterw, struct directories &dir, struct samples &samples_struct,
+		struct detectors &det, std::vector<double> &fcut, int rank)
 {
 
 	dictionary	*	ini ;
@@ -42,7 +42,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	if(read_directories(ini, dir, rank)==-1)
 		return -1;
 
-	if(read_commons(ini, com, rank)==-1)
+	if(read_param_process(ini, proc_param, rank)==-1)
 		return -1;
 
 	if(read_channel_list(ini,det.boloname, rank)==-1)
@@ -51,11 +51,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
 		return -1;
 
-	if(read_box_coord(ini,boxFile, rank)==-1)
-		return -1;
 
-	if(read_user_options(ini,u_opt, rank)==-1)
-		return -1;
 
 	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
 		return -1;*/
@@ -72,8 +68,7 @@ int parse_sanePic_ini_file(char * ini_name,struct user_options &u_opt, int &iter
 		cout << "You have specified the following options : \n\n";
 
 		print_directories(dir);
-		print_commons(com);
-		print_parser(u_opt);
+		print_param_process(proc_param);
 	}
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();

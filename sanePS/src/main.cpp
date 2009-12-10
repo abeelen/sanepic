@@ -64,19 +64,19 @@ int main(int argc, char *argv[])
 #endif
 
 
-	struct user_options u_opt;
+	struct param_process proc_param;
 	struct samples samples_struct;
-	struct input_commons com;
+	struct param_process com;
+	struct param_position pos_param;
 	struct directories dir;
 	struct detectors det;
 
 	//DEFAULT PARAMETERS
-	com.napod = 0; // number of samples to apodize
-	u_opt.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
-	u_opt.NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
-	com.NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
-	u_opt.remove_polynomia=1;
-	com.flgdupl = 0; // 1 if flagged data are put in a separate map
+	proc_param.napod = 0; // number of samples to apodize
+	proc_param.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
+	proc_param.NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
+	proc_param.NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
+	proc_param.remove_polynomia=1;
 	int flagon;
 	long long ind_size;
 	long long *indpix;
@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
 
 
 	// map making parameters
-	com.pixdeg=-1.0; // size of pixels (degree)
 
 
 	long NAXIS1, NAXIS2;
@@ -122,8 +121,9 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 
-		parsed=parse_sanePS_ini_file(argv[1], u_opt, dir, samples_struct,com,det,
+		parsed=parse_sanePS_ini_file(argv[1], proc_param, dir, samples_struct,det,
 				MixMatfile, ellFile, signame, rank);
+
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 		cout << extentnoiseSp ;
 		cout << endl;
 
-		EstimPowerSpectra(u_opt,det,dir,com, ns, ff, NAXIS1,NAXIS2, npix,
+		EstimPowerSpectra(proc_param,det,dir, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
 				extentnoiseSp, fits_filename);
 		// fsamp = bolometers sampling freq
