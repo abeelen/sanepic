@@ -10,7 +10,7 @@
 
 #include <vector>
 #include <string>
-
+#include "struct_definition.h"
 
 struct sortclass_int {
 	bool operator() (int i,int j) { return (i<j);}

@@ -15,6 +15,7 @@
 
 
 #include "mpi_architecture_builder.h"
+#include "struct_definition.h"
 
 #include "dataIO.h"
 #include "imageIO.h"

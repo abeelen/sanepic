@@ -11,64 +11,13 @@
 
 #include <string>
 #include <vector>
-
-struct corner{
-	double x;
-	double y;
-};
-
-struct box {
-	struct corner blc;
-	struct corner trc;
-};
-
-
-struct directories {
-	std::string dirfile;
-	std::string outdir;
-	std::string tmp_dir;
-};
-
-struct samples {
-	std::vector<std::string> fitsvect;
-	std::vector<std::string> noisevect;
-	std::vector<long> scans_index;
-	bool framegiven;
-	std::string *fits_table;
-	std::string *noise_table;
-	long *index_table;
-	long *nsamples;
-	long ntotscan;
-	std::string filename;
-};
-
-struct detectors {
-	long ndet;
-	std::vector<std::string> boloname;
-};
-
-struct input_commons {
-	long napod;
-	bool NOFILLGAP;
-	bool flgdupl;
-	double pixdeg;
-};
-
-struct user_options {
-	double fsamp;
-	bool NORMLIN;
-	bool remove_polynomia;
-	int poly_order;
-	bool CORRon;
-	double f_lp;
-	bool projgaps;
-};
-
+#include "struct_definition.h"
 
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
 }
+
 
 
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank);
@@ -126,6 +75,8 @@ int read_directories(dictionary	*ini, struct directories &dir, int rank);
 int read_commons(dictionary	*ini, struct input_commons &commons, int rank);
 
 int read_user_options(dictionary *ini,struct user_options &u_opt, int rank);
+
+int read_parser_string(dictionary	*ini, std::string line, int rank, std::string str);
 
 void print_commons(struct input_commons commons);
 

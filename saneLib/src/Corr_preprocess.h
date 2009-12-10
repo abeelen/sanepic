@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-#include "mpi_architecture_builder.h"
+#include "struct_definition.h"
 
 extern "C" {
 #include "nrutil.h"

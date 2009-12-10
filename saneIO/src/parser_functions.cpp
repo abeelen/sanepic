@@ -27,32 +27,22 @@ extern "C"{
 
 #include "inputFileIO.h"
 #include "parser_functions.h"
+#include "struct_definition.h"
+//TODO : Shall we move read_fits_file here ?
+#include "mpi_architecture_builder.h"
 
 using namespace std;
 
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 
-	char *s;
 	string str;
 
+	if(read_parser_string(ini, "commons:data_directory", rank, str))
+		return 1;
 
-	str = read_parser_string(ini, "commons:data_directory", rank);
-
-//	s = iniparser_getstring(ini, "commons:data_directory", NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line in ini file specifying a data directory : commons:data_directory\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		//printf("data_directory : [%s]\n",s);
-		dir.dirfile = str;
-	}else{
-		if(rank==0)
-			printf("You must specify a data directory : commons:data_directory\n");
-		return -1 ;
-	}//./RCW_120_M/
+	if (str[str.length()-1] != '/')
+		str = str + '/';
+	dir.dirfile = str;
 
 	return 0;
 }
@@ -60,11 +50,8 @@ int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 
 int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 
-
-
-	char *s, *pPath;
+	char *pPath;
 	string str;
-
 
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
@@ -72,28 +59,20 @@ int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 		if(rank==0)
 			printf ("The current path is: %s\n",pPath);
 	}else{
-		//#else
-
-		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-		if(s==NULL){
-			if(rank==0){
-				printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-				cout << "Using default output directory : " << dir.dirfile << endl;
-			}
-			dir.tmp_dir=dir.dirfile;
-		}else{
-			str=(string)s;
-			if(str.size()!=0){
-				//printf("temp_dir : [%s]\n",s);
-				dir.tmp_dir=s;
-			}else{
-				if(rank==0)
-					cout << "Warning : The line corresponding to temporary directory in the ini file is clear : Using default output directory : " << dir.dirfile << endl;
-				dir.tmp_dir=dir.dirfile;
-			}//output_dir = ./RCW_120_M/ ;
-		}
+		if (read_parser_string(ini, "commons:temp_dir",rank,str))
+			return 1;
+		// TODO: Do we want this ???
+		//		if(s==NULL){
+		//			if(rank==0){
+		//				printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
+		//				cout << "Using default output directory : " << dir.dirfile << endl;
+		//			}
+		//			dir.tmp_dir=dir.dirfile;
+		//		}else{
+		if (str[str.length()-1] != '/')
+			str = str + '/';
+		dir.tmp_dir=str;
 	}
-
 
 	return 0;
 }
@@ -101,57 +80,37 @@ int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 
 int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 
-	char *s;
 	string str;
 
+	if(read_parser_string(ini, "commons:data_directory", rank, str))
+		return 1;
 
-	s = iniparser_getstring(ini, "commons:output_dir",NULL);
-	if(s==NULL){
-		if(rank==0){
-			printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-			cout << "Using default output directory : " << dir.dirfile << endl;
-		}
-		dir.outdir=dir.dirfile;
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			//printf("output_dir : [%s]\n",s);
-			dir.outdir=s;
-		}else{
-			if(rank==0)
-				cout << "Using default output directory : " << dir.dirfile << endl;
-			dir.outdir=dir.dirfile;
-		}//output_dir = ./RCW_120_M/ ;
-	}
-
+	// TODO: Do we really want this ??
+	//	if(s==NULL){
+	//		if(rank==0){
+	//			printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
+	//			cout << "Using default output directory : " << dir.dirfile << endl;
+	//		}
+	//		dir.outdir=dir.dirfile;
+	//	}else{
+	if (str[str.length()-1] != '/')
+		str = str + '/';
+	dir.outdir=str;
 	return 0;
-
 }
 
 
 int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank){
 
 	string str;
-//	char *s;
+	//	char *s;
 
-	str = read_parser_string(ini, "commons:channel", rank);
+	if(read_parser_string(ini, "commons:channel", rank, str))
+		return 1;
 
-//	s = iniparser_getstring(ini, "commons:channel",NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line in ini file corresponding to a bolometer file : commons:channel\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		if(rank==0)
-//			printf("channel file : [%s]\n",str.c_str());
-		read_strings((string)s, bolonames);
-	}else{
-		if(rank==0)
-			printf("You must specify a bolometer file : commons:channel\n");
-		return -1 ;
-	}//	channel =./RCW_120_M/bolos_commons.txt ;
+	//TODO : Why only rank 0 ?
+	if(rank==0)
+		read_strings(str, bolonames);
 
 	return 0;
 
@@ -160,93 +119,61 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank)
 
 int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str, int rank){
 
-	char *s;
 	string str;
 
-	str = read_parser_string(ini, "commons:fits_filelist", rank);
+	if(read_parser_string(ini, "commons:fits_filelist", rank, str))
+		return 1;
 
-//	s = iniparser_getstring(ini, "commons:fits_filelist",NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line in the ini file corresponding to a frame file : commons:fits_filelist\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		samples_str.filename=str;
-		read_fits_list(str, samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, samples_str.framegiven);
-		//		cout << "fitsvect " << samples_str.fitsvect[0] << endl; //" " << samples_str.fitsvect[1] << " " << samples_str.fitsvect[2] << " " << samples_str.fitsvect[3] << endl;
-		//		cout << "noisevect " << samples_str.noisevect[0] << endl; //" " << samples_str.noisevect[1] << " " << samples_str.noisevect[2] << " " << samples_str.noisevect[3] << endl;
-		//		cout << "scans_index " << samples_str.scans_index[0] << endl; //" " << samples_str.scans_index[1] << " " << samples_str.scans_index[2] << " " << samples_str.scans_index[3] << endl;
 
-		for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
+	samples_str.filename=str;
+
+	// TODO: read_fits_list should return an error in case...
+	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
+	read_fits_list(samples_str.filename, \
+			samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
+			samples_str.framegiven);
+
+
+	for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
 #ifdef DEBUG_PRINT
-			cout << dir.dirfile + samples_str.fitsvect[ii] << endl;
+		cout << dir.dirfile + samples_str.fitsvect[ii] << endl;
 #endif
-			samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
-		}
+		samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
+	}
 
-		readFrames(samples_str.fitsvect, samples_str.nsamples);
+	// Populate the nsamples vector
+	readFrames(samples_str.fitsvect, samples_str.nsamples);
 
-		//		cout << "after read frames\n";
 
-		if((int)(samples_str.noisevect).size()==0){ // if no noise file is given in fits_filelist
-			// read the noise file name in the ini file
-			s = iniparser_getstring(ini, "commons:noise_prefixe",NULL);
-			if(s==NULL){
-				if(rank==0)
-					printf("You must add a line in the ini file corresponding to a frame file : commons:noise_prefixe\n");
-				return -1;
-			}
-			str=(string)s;
-			if(str.size()!=0){
-				samples_str.noisevect.push_back(str);
-				// meme fichier de bruit pour tous les scans
-				(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+	// read the possible noise file from the ini file
 
-			}else{
-				if(rank==0)
-					printf("You must specify a fits noise filename : commons:noise_prefixe\n");
-				return -1 ;
-			}//frame_file =./RCW_120_M/fits_files.txt ;
-		}
 
-	}else{
-		if(rank==0)
-			printf("You must specify a fits filelist : commons:fits_filelist\n");
-		return -1 ;
-	}//frame_file =./RCW_120_M/fits_files.txt ;
+	// if no noise file is given in fits_filelist
+	if((int)(samples_str.noisevect).size()==0 ){
 
+		// read the noise file name in the ini file
+		if(read_parser_string(ini, "commons:noise_prefixe",rank,str))
+			return 1;
+			samples_str.noisevect.push_back(str);
+			// meme fichier de bruit pour tous les scans
+			(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+	}
 
 	return 0;
-
 }
-
 
 int read_pixel_size(dictionary	*ini, struct input_commons &com, int rank){
 
-//	char *s;
+	//	char *s;
 	string str;
-	const char* temp;
 
-	str = read_parser_string(ini, "sanepic_compute_positions:pixsize", rank);
+	if (read_parser_string(ini, "sanepic_compute_positions:pixsize", rank,str))
+			return 1;
 
+	com.pixdeg=atof(str.c_str());
 
-
-//	s = iniparser_getstring(ini, "sanepic_compute_positions:pixsize",NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line in the ini file corresponding to pixel size : sanepic_compute_positions:pixsize\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		temp=str.c_str();
-		com.pixdeg=atof(temp);
-		//cout << "Pixsize : " << setprecision(str.size()) << u_opt.pixdeg << endl;
-	}else{
-		if(rank==0)
-			printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
+	if(com.pixdeg < 0 && rank==0){
+		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
 		return -1 ;
 	}
 
@@ -259,14 +186,12 @@ int read_apodize_samples(dictionary	*ini, struct input_commons &com, int rank){
 	int i;
 
 	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
-	if(i>0){
-		//printf("apodize_Nsamples :      [%d]\n", i);
-		com.napod=i;
-	}else{
-		if(rank==0)
-			printf("You must choose a number of samples to apodize commons:apodize_Nsamples\n");
-		return -1 ;
-	}//apodize_Nsamples = 100 ;
+	com.napod=i;
+
+	if( i<0 && rank==0 ){
+		printf("You must choose a positive number of samples to apodize\n");
+		return 1 ;
+	}
 
 	return 0;
 
@@ -274,14 +199,7 @@ int read_apodize_samples(dictionary	*ini, struct input_commons &com, int rank){
 
 int read_nofillgap(dictionary	*ini, struct input_commons &com, int rank){
 
-	bool b;
-
-	b = iniparser_getboolean(ini, "commons:nofill_gap", 0);
-	//if(b!=0){
-	//printf("nofill_gap:    [%d]\n", b);
-	com.NOFILLGAP=b;
-	//}
-	//NOFILLGAP = 0 ;
+	com.NOFILLGAP = iniparser_getboolean(ini, "commons:nofill_gap", 0);
 
 	return 0;
 
@@ -290,123 +208,25 @@ int read_nofillgap(dictionary	*ini, struct input_commons &com, int rank){
 
 int read_box_coord(dictionary	*ini, std::vector<struct box> &boxFile, int rank){
 
-	char *s;
 	string str;
 
-	s = iniparser_getstring(ini, (char*)"commons:box_coord_file", NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("Warning : The line corresponding to box_coord_file in the ini file has been erased : commons:box_coord_file\n");
-	}else{
-		str=(string)s;
-		if(str.size()!=0){
-			//printf("box_coord_file :      [%ld]\n", atol(s));
+	if (read_parser_string(ini, "commons:box_coord_file", rank, str))
+		return 1;
 
-			//std::vector<box> boxList;
-			readBoxFile(str, boxFile);
-		}
-	}
+	readBoxFile(str, boxFile);
+
 
 	return 0;
 }
 
-/*
-int read_RA_DEC_min_max(dictionary	*ini, struct user_options_sanepos &u_opt, int &tmpcount){
-
-	double d;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_min", 0.0);
-	if(d!=0.0){
-		//printf("RA_min :      [%g]\n", d);
-		u_opt.coordscorner[0] = d;
-		tmpcount += 1;
-	}//RA_min =  ;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_max", 0.0);
-	if(d!=0.0){
-		//printf("RA_max :      [%g]\n", d);
-		u_opt.coordscorner[1] = d;
-		tmpcount += 1;
-	}//RA_max =  ;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_min", 0.0);
-	if(d!=0.0){
-		//printf("DEC_min :      [%g]\n", d);
-		u_opt.coordscorner[2] = d;
-		tmpcount += 1;
-	}
-	//DEC_min =  ;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_max", 0.0);
-	if(d!=0.0){
-		//printf("DEC_max :      [%g]\n", d);
-		u_opt.coordscorner[3] = d;
-		tmpcount += 1;
-	}//DEC_max =  ;
-
-	return 0;
-}
-
-
-int read_RA_DEC_radius_source(dictionary	*ini, struct user_options_sanepos &u_opt, int tmpcount){
-
-	int tmpcount2=0;
-	double d;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:RA_source", 0.0);
-	if(d!=0.0){
-		//printf("RA_source :      [%g]\n", d);
-		u_opt.srccoord[0]=d;
-		tmpcount2 += 1;
-	}//RA_source =  ;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:DEC_source", 0.0);
-	if(d!=0.0){
-		//printf("DEC_source :      [%g]\n", d);
-		u_opt.srccoord[1]=d;
-		tmpcount2 += 1;
-	}//DEC_source =  ;
-
-	d = iniparser_getdouble(ini, (char*)"sanepic_compute_positions:map_radius", 0.0);
-	if(d!=0.0){
-		//printf("map_radius :      [%g]\n", d);
-		u_opt.radius=d;
-		tmpcount2 += 1;
-	}//map_radius =  ;
-
-
-	if (tmpcount2 == 1 || tmpcount2 == 2){
-		cerr << "ERROR: None or all the following keywords must be set: RA_source DEC_source map_radius. Exiting. \n";
-		return -1 ;
-	}
-
-
-	if (tmpcount2 == 3){
-		if (tmpcount == 4){
-			cerr << "ERROR: Conflicting input parameter: RA_min RA_max DEC_min DEC_max keywords are not compatible with RA_source DEc_source map_radius keywords . Exiting. \n";
-			return -1 ;
-		}
-		//u_opt.bfixc = 1;
-		u_opt.coordscorner[0] = u_opt.srccoord[0];
-		u_opt.coordscorner[1] = u_opt.srccoord[0];
-		u_opt.coordscorner[2] = u_opt.srccoord[1];
-		u_opt.coordscorner[3] = u_opt.srccoord[1];
-	}
-
-	return 0;
-
-}
- */
 
 int read_map_flagged_data(dictionary	*ini, struct input_commons &com, int rank){
 
 	bool b;
 
 	b = iniparser_getboolean(ini, "commons:map_flagged_data", 0);
-	//if(b!=0){
-	//printf("map_flagged_data:    [%d]\n", b);
+
 	com.flgdupl=b;
-	//}//flgdupl = False ;
 
 	return 0;
 }
@@ -420,11 +240,10 @@ int read_sampling_frequency(dictionary	*ini, struct user_options &u_opt, int ran
 	if (d<=0.0){
 		if(rank==0)
 			printf("sampling_frequency cannot be negative or 0 ! Or maybe you forgot to mention sampling frequency \n");
-		return -1;
-	}else{
-		//printf("sampling_frequency  :   [%g]\n", d);
+		return 1;
+	}else
 		u_opt.fsamp=d;
-	}//sampling_frequency = 25.0 ;
+
 
 	return 0;
 }
@@ -438,7 +257,7 @@ int read_filter_frequency(dictionary	*ini, struct user_options &u_opt, int rank)
 	if (d<0.0){
 		if(rank==0)
 			printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
-		return -1;
+		return 1;
 	}else{
 		//printf("filter_frequency  :   [%g]\n", d);
 		u_opt.f_lp=d;
@@ -451,34 +270,19 @@ int read_filter_frequency(dictionary	*ini, struct user_options &u_opt, int rank)
 int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut, int rank){
 
 	string str;
-//	char *s;
-	str = read_parser_string(ini, "sanepic_preprocess:fcut_file", rank);
 
+	if (read_parser_string(ini, "sanepic_preprocess:fcut_file", rank, str))
+		return 1;
 
-//	s = iniparser_getstring(ini, "sanepic_preprocess:fcut_file",NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line corresponding to noise cut frequency file in the parser file : sanepic_preprocess:fcut_file\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		//printf("fcut file : [%s]\n",s);
-		//read frame file function
-		std::vector<string> dummy2;
-		read_strings(str,dummy2);
-		if(((int)dummy2.size())==0){
-			if(rank==0)
-				printf("You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n");
-			return -1;}
-		for(int ii=0; ii<(int)dummy2.size(); ii++)
-			fcut.push_back(atof(dummy2[ii].c_str()));
+	std::vector<string> dummy2;
+	read_strings(str,dummy2);
 
-	}else{
+	if(((int)dummy2.size())==0){
 		if(rank==0)
-			printf("You must specify a noise cut frequency file : sanepic_preprocess:fcut_file\n");
-		return -1;
-	}//frame_file =./RCW_120_M/fcut_file.txt ;
+			printf("You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n");
+		return 1;}
+	for(int ii=0; ii<(int)dummy2.size(); ii++)
+		fcut.push_back(atof(dummy2[ii].c_str()));
 
 	return 0;
 
@@ -547,7 +351,7 @@ int read_correlation(dictionary	*ini, struct user_options &u_opt, int rank){
 
 int read_remove_poly(dictionary	*ini, struct user_options &u_opt, int rank){
 
-//	bool b = 1;
+	//	bool b = 1;
 	int	i = -1;
 	//	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
 	i = iniparser_getint(ini, "sanepic_preprocess:poly_order", -1);
@@ -559,7 +363,7 @@ int read_remove_poly(dictionary	*ini, struct user_options &u_opt, int rank){
 		cout << "poly_order : " << u_opt.poly_order << endl;
 	}else{
 		u_opt.remove_polynomia=0;
-//		u_opt.poly_order=4;
+		//		u_opt.poly_order=4;
 	}
 	//}//remove_poly = True
 
@@ -600,23 +404,10 @@ int read_ell_file(dictionary	*ini, string &ellFile, int rank){
 	string str;
 	char *s;
 
-	str = read_parser_string(ini, "sanepic_estim_PS:ell_file", rank);
+	if (read_parser_string(ini, "sanepic_estim_PS:ell_file", rank, str))
+		return 1;
 
-//	s = iniparser_getstring(ini, "sanepic_estim_PS:ell_file",NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line in ini file corresponding to a ell file :sanepic_estim_PS:ell_file\n");
-//		return -1;
-//	}
-//	ellFile=(string)s;
-	if(str.size()!=0){
-		ellFile=str;
-		//printf("ell File: [%s]\n",s);
-	}else{
-		if(rank==0)
-			printf("You must specify a ell file : sanepic_estim_PS:ell_file\n");
-		return -1 ;
-	}//	channel =./RCW_120_M/bolos_commons.txt ;
+	ellFile=str;
 
 	return 0;
 }
@@ -626,26 +417,12 @@ int read_map_file(dictionary	*ini, string &signame, int rank){
 
 
 	string str;
-//	char *s;
 
-	str = read_parser_string(ini, "sanepic_estim_PS:map_file", rank);
-
-//	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:map_file", NULL);
-//	if(s==NULL){
-//		if(rank==0)
-//			printf("You must add a line corresponding to the fits map file (created by sanePic) in the ini file : sanepic_estim_PS:map_file\n");
-//		return -1;
-//	}
-//	str=(string)s;
-	if(str.size()!=0){
-		if(rank==0)
-			printf("noise_estim :      [%s]\n", s);
-		signame=s;
-
-	}else{
+	if (read_parser_string(ini,"sanepic_estim_PS:map_file", rank,str)){
 		signame="NOSIGFILE";
-	}//
-
+	}else{
+		signame=str;
+	}
 	return 0;
 }
 
@@ -654,18 +431,10 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 	string str;
 	char*s;
 
-	s = iniparser_getstring(ini, "sanepic_inv_matrix:cov_matrix_file",NULL);
-	if(s!=NULL){
-		if(rank==0)
-			printf("cov_matrix_file: [%s]\n",s);
-		fname=s;
-		//read_strings((string)s, bolonames);
-	}else{
-		if(rank==0)
-			printf("You must specify a noise covariance matrix file to invert : sanepic_inv_matrix:cov_matrix_file\n");
-		return(-1);
-	}//	fname = ./RCW_120_M/BoloPS0sanepic_binary.psd
+	if (read_parser_string(ini, "sanepic_inv_matrix:cov_matrix_file",rank,str))
+			return 1;
 
+	fname=s;
 	return 0;
 
 }
@@ -673,97 +442,52 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 
 	string str;
-	char *s;
+	if (read_parser_string(ini,"sanepic_estim_PS:noise_estim", rank,str))
+			return 1;
 
-	s = iniparser_getstring(ini, (char*)"sanepic_estim_PS:noise_estim", NULL);
-	if(s==NULL){
-		if(rank==0)
-			printf("You must add a line corresponding to the mixing matrix of noise components in the ini file : sanepic_estim_PS:noise_estim\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		printf("noise_estim :      [%s]\n", s);
-		MixMatfile=s;
-
-	}else{
-		if(rank==0)
-			printf("You must give filename containing the mixing matrix of noise components : noise_estim\n");
-		return(-1);
-	}// MixMatfile = Mixlaboca
-
+	MixMatfile=str;
 	return 0;
 }
 
-string read_parser_string(dictionary	*ini, string line, int rank){
+int read_parser_string(dictionary	*ini, string line, int rank, string str){
 	char *s;
-	string str;
 
 	s = iniparser_getstring(ini, line.c_str(), NULL);
-		if(s==NULL){
-			if(rank==0)
-				cout <<"You must add a line in ini file specifying : " << line << endl;
-			return NULL;
-		}
-		str=(string)s;
-		return str;
+	if(s==NULL){
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : " << line << endl;
+		return 1;
+	}
+	str=(string)s;
+	return 0;
 }
 
 int read_directories(dictionary	*ini, struct directories &dir, int rank){
 
-	if(read_dirfile(ini, dir, rank)==-1)
-		return -1;
+	return read_dirfile(ini, dir, rank) || \
+	read_tmpdir(ini, dir, rank)  || \
+	read_outdir(ini, dir, rank);
 
-	if(read_tmpdir(ini, dir, rank)==-1)
-		return -1;
-
-	if(read_outdir(ini, dir, rank)==-1)
-		return -1;
-
-	return 0;
 }
 
 int read_commons(dictionary	*ini, struct input_commons &commons, int rank){
 
-	if(read_map_flagged_data(ini,  commons, rank))
-		return -1;
+	return read_map_flagged_data(ini,  commons, rank) || \
+	read_pixel_size(ini,  commons, rank)       || \
+	read_apodize_samples(ini, commons, rank)   || \
+	read_nofillgap(ini, commons, rank);
 
-	if(read_pixel_size(ini,  commons, rank))
-		return -1;
-
-	if(read_apodize_samples(ini, commons, rank))
-		return -1;
-
-	if(read_nofillgap(ini, commons, rank))
-		return -1;
-
-	return 0;
 }
 
 int read_user_options(dictionary *ini,struct user_options &u_opt, int rank){
 
+	return read_sampling_frequency(ini, u_opt, rank) || \
+	read_filter_frequency(ini, u_opt, rank)   || \
+	read_baseline(ini, u_opt, rank)           || \
+	read_correlation(ini, u_opt, rank)        || \
+	read_remove_poly(ini, u_opt, rank)        || \
+	read_projgaps(ini, u_opt, rank);
 
-	if(read_sampling_frequency(ini, u_opt, rank)==-1)
-		return -1;
-
-	if(read_filter_frequency(ini, u_opt, rank)==-1)
-		return -1;
-
-	if(read_baseline(ini, u_opt, rank)==-1)
-		return -1;
-
-	if(read_correlation(ini, u_opt, rank)==-1)
-		return -1;
-
-	if(read_remove_poly(ini, u_opt, rank)==-1)
-		return -1;
-
-	if(read_projgaps(ini, u_opt, rank)==-1)
-		return -1;
-
-
-
-	return 0;
 }
 
 void print_commons(struct input_commons commons){

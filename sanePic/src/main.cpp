@@ -19,6 +19,7 @@
 #include "NoCorr_preprocess.h"
 #include "parseSanepic.h"
 #include "mpi_architecture_builder.h"
+#include "struct_definition.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"

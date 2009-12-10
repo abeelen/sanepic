@@ -9,6 +9,7 @@
 
 #include "parseSanepic.h"
 #include "parser_functions.h"
+#include "struct_definition.h"
 
 extern "C"{
 #include "iniparser.h"

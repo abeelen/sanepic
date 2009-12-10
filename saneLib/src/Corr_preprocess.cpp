@@ -16,6 +16,7 @@
 #include "inline_IO2.h"
 #include "todprocess.h"
 #include "map_making.h"
+#include "struct_definition.h"
 
 
 //temp

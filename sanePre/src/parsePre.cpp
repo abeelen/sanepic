@@ -11,6 +11,7 @@
 
 #include "parsePre.h"
 #include "parser_functions.h"
+#include "struct_definition.h"
 
 
 extern "C"{
