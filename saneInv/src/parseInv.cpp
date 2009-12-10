@@ -12,6 +12,7 @@
 //#include <windows.h>
 //#include <stdlib.h>
 //#include <stdio.h>
+#include "parser_functions.h"
 #include <iostream>
 #include <string>
 
@@ -23,14 +24,14 @@ extern "C"{
 
 using namespace std;
 
-std::string		Basename(std::string path);
 
-int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, string &noiseSp_dir_output, string &extentnoiseSp)
+int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &samples_struct,struct directories &dir,string &boloname, string &noiseSp_dir_output, string &base)
 {
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
 	char		*	s ;
+//	string base;
 
 
 	// load dictionnary
@@ -51,15 +52,15 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 		return(-1);
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
-	s = iniparser_getstring(ini, "sanepic_inv_matrix:cov_matrix_file",NULL);
+//	s = iniparser_getstring(ini, "sanepic_inv_matrix:cov_matrix_file",NULL);
+	s = iniparser_getstring(ini, "commons:noise_prefixe",NULL);
 	if(s!=NULL){
 		printf("cov_matrix_file: [%s]\n",s);
 		fname=s;
-//		Basename(fname);
-		//read_strings((string)s, bolonames);
+//		base=Basename(fname);
 	}else{
-		printf("You must specify a noise covariance matrix file to invert : sanepic_inv_matrix:cov_matrix_file\n");
-		return(-1);
+		printf("Warning ! You must specify a noise covariance matrix file to invert : commons:noise_prefixe or put the information in the fits filelist\n");
+//		return(-1);
 	}//	fname = ./RCW_120_M/BoloPS0sanepic_binary.psd
 
 	char * pPath;
@@ -80,15 +81,22 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 	}
 
 
-	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_prefixe",NULL); // TODO : change to noise_prefixe_file
-	if(s!=NULL){
-		printf("noise_prefixe: [%s]\n",s);
-		extentnoiseSp=s;
-		//read_strings((string)s, bolonames);
-	}else{
-		printf("You must specify a output directory : sanepic_inv_matrix:noise_prefixe\n");
-		return(-1);
-	}//	extentnoiseSp = NoisePS
+	if(read_directories(ini, dir, 0)==-1)
+		return -1;
+
+	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
+		return -1;
+
+
+	//	s = iniparser_getstring(ini, "sanepic_inv_matrix:noise_prefixe",NULL);
+	//	if(s!=NULL){
+	//		printf("noise_prefixe: [%s]\n",s);
+	//		extentnoiseSp=s;
+	//		//read_strings((string)s, bolonames);
+	//	}else{
+	//		printf("You must specify a output directory : sanepic_inv_matrix:noise_prefixe\n");
+	//		return(-1);
+	//	}//	extentnoiseSp = NoisePS
 
 	// cleaning up
 	iniparser_freedict(ini);
@@ -98,29 +106,34 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,string &boloname, stri
 
 
 std::string		Basename(std::string path)
+//std::string		Basename(char* path)
 {
-	std::string		Result;
+//	std::string		Result;
 
 
 
-	char * pch;
+	char * pch=NULL;
 	char * temp=NULL;
-	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
-	pch = strtok ((char*)path.c_str(),".");
+	string basename;
+//	string temp_str=path;
+//	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
+	pch = strtok ((char*)path.c_str(),"/.");
 	while (pch != NULL)
 	{
 		if (strcmp (pch,(char*)"fits") == 0)
 			break;
 		temp=pch;
-		printf ("%s\n",temp);
-		pch = strtok (NULL, ".");
+//		printf ("%s\n",temp);
+		pch = strtok (NULL, "/.");
 
 	}
-	cout << "result : " << temp << endl;
-	getchar();
+//	cout << "result : " << temp << endl;
+	basename = (string)temp;
+//	cout << basename << endl;
+//		getchar();
 	//	Result = fname;
 	//	Result += ext;
-	return Result;
+	return basename;
 
 }
 

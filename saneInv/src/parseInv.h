@@ -17,6 +17,7 @@
  * missing in the ini file !
  * - Initialise saneInv variable
  */
-int parse_saneInv_ini_file(char * ini_name, std::string &fname,std::string &boloname, std::string &noiseSp_dir_output, std::string &extentnoiseSp);
-
+int parse_saneInv_ini_file(char * ini_name, std::string &fname,struct samples &samples_struct,struct directories &dir,std::string &boloname, std::string &noiseSp_dir_output, std::string &extentnoiseSp);
+std::string		Basename(std::string path);
+//std::string		Basename(char * path);
 #endif /* PARSEINV_H_ */
