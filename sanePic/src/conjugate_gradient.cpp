@@ -18,22 +18,23 @@
 #include "NoCorr_preprocess.h"
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 #include "mpi.h"
 #endif
 
 using namespace std;
 
-void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors det,
-		struct directories dir,struct param_process proc_param, long long npix, double* &S,long iframe_min, long iframe_max,
-		std::vector<double> fcut, long long *indpix, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
-		int iterw, long long *indpsrc, long long npixsrc, int flagon, int rank,
-		double *&PNdtot, long long addnpix)
+
+void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_positions pos_param,
+		struct detectors det, struct directories dir, struct param_process proc_param, long long npix, double* &S,
+		long iframe_min, long iframe_max, std::vector<double> fcut, long long *indpix, struct wcsprm * wcs,
+		long NAXIS1, long NAXIS2, int iterw, long long *indpsrc, long long npixsrc, int flagon, int rank, int size,
+	    double *&PNdtot, long long addnpix)
 {
 
 
 	FILE *fp;
-	bool fru;
+	//bool fru;
 	string fname, testfile;
 	ostringstream temp_stream;
 	double *PtNPmatS,  *PtNPmatStot=NULL, *r, *q, *qtot=NULL, *d, *Mp, *Mptot=NULL, *s; // =NULL to avoid warnings
@@ -46,7 +47,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 	long mi;
 	double *map1d;
-	string prefixe;
+
 	int iter;
 	double  f_lppix_Nk,f_lppix;
 	long ns;
@@ -58,15 +59,11 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 	// memory allocs
 	r           = new double[npix];
 	q           = new double[npix];
-	//	qtot        = new double[npix];
 	d           = new double[npix];
 	Mp          = new double[npix];
-	//	Mptot       = new double[npix];
 	s           = new double[npix];
 	PtNPmatS    = new double[npix];
-	//	PtNPmatStot = new double[npix];
 	hits        = new long[npix];
-	//	hitstot     = new long[npix];
 	PNd         = new double[npix];
 
 	map1d       = new double[NAXIS1*NAXIS2];
@@ -90,20 +87,14 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 		//t1 = time(0);
 
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
-		//		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
-		//		fill(Mptot,Mptot+npix,0.0);
 		fill(hits,hits+npix,0);
-		//		fill(hitstot,hitstot+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
 		fill(s,s+npix,0.0);
-		//		fill(PtNPmatS,PtNPmatS+npix,0.0);
-		//		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 		fill(PNd,PNd+npix,0.0);
 
 
-		prefixe = "fPs_";
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 			ns = samples_struct.nsamples[iframe];
@@ -115,14 +106,27 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon){
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 				// read pointing + deproject + fourier transform
 
-				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,det,f_lppix_Nk,
-						proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+				//				do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames, // TODO : replace all do_PtNd par la new version avec les struct
+				//						f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 
+#ifdef PARA_BOLO
+//				cout << "rank " << rank << " a fini et attend ! \n";
+				MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+				//				do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+				//								u_opt.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 				// return Pnd = At N-1 d
 			} else {
+
+				//				do_PtNPS_nocorr(S,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
+				//						f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,indpix,
+				//						NAXIS1, NAXIS2,npix,iframe,PtNPmatS,Mp,hits);
 
 				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
 						proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
@@ -134,32 +138,30 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 		//cout << "do_ptnd" << endl;
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 
 		if(rank==0){
 			PtNPmatStot = new double[npix];
 			hitstot=new long[npix];
 			Mptot = new double[npix];
+			qtot = new double[npix];
 
 			// TODO : Is it really necessary to initialize those variables ?
 			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 			fill(hitstot,hitstot+npix,0);
 			fill(Mptot,Mptot+npix,0.0);
+			fill(qtot,qtot+npix,0.0);
 		}
 
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 		MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 		MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-		// TODO : just a pointer assignment ?
-		//		for(long ii=0;ii<npix;ii++){
-		//			PtNPmatStot[ii]=PtNPmatS[ii]; // ajout Mat 02/06
-		//			hitstot[ii]=hits[ii];
-		//			Mptot[ii]=Mp[ii];
-		PtNPmatStot=PtNPmatS; // ajout Mat 02/06
-		hitstot=hits;
-		Mptot=Mp;
-		//		}
+
+			PtNPmatStot=PtNPmatS; // ajout Mat 02/06
+			hitstot=hits;
+			Mptot=Mp;
+
 #endif
 
 		// intitialisation of the Conjugate gradient with preconditioner
@@ -201,7 +203,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 		}
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&var0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 		MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -220,8 +222,9 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 			//			if(iter==2)
 			//				break;
 			fill(q,q+npixeff,0.0); // q <= A*d
+			//fill(qtot,qtot+npixeff,0.0);
 
-			prefixe = "fPs_";
+
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 				ns = samples_struct.nsamples[iframe];
@@ -229,14 +232,18 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 				if (proc_param.CORRon){
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 					// read pointing + deproject + fourier transform
 
 					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 
-					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-							proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+#ifdef PARA_BOLO
+//					cout << "rank " << rank << " a fini et attend ! \n";
+					MPI_Barrier(MPI_COMM_WORLD);
+#endif
+					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 					// return Pnd = At N-1 d
 				} else {
 
@@ -253,16 +260,13 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 
 
-#ifdef USE_MPI
-			if(rank==0){
-				qtot = new double[npix];
-				// TODO : Is it really necessary to initialize those variables ?
-				fill(qtot,qtot+npix,0.0);
-			}
-
+#if defined(USE_MPI) || defined(PARA_BOLO)
+			//cout << " q reduction\n";
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			qtot=q;
+			//TODO : Just a pointer assignment ?
+//			for(long ii=0;ii<npix;ii++)
+				qtot=q; // ajout mat 02/06
 #endif
 
 
@@ -281,9 +285,9 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 					S[ii] += alpha*d[ii]; // x = x + alpha * d, x = S = signal
 			}
 
-#ifdef USE_MPI
-			// Distribute the map to everyone
+#if defined(USE_MPI) || defined(PARA_BOLO)
 			MPI_Barrier(MPI_COMM_WORLD);
+			//cout << rank << " S bcast\n";
 			MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
 
@@ -292,8 +296,8 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
 				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
-				fill(PtNPmatStot,PtNPmatStot+npixeff,0.0);
-				prefixe = "fPs_";
+				//fill(PtNPmatStot,PtNPmatStot+npixeff,0.0);
+
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
@@ -302,14 +306,19 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 					if (proc_param.CORRon){
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe);
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 						// read pointing + deproject + fourier transform
 
 						//						do_PtNd(PtNPmatS,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,
 						//								f_lppix_Nk,fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,
 						//								NULL,NULL);
-						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-								proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+
+#ifdef PARA_BOLO
+//						cout << "rank " << rank << " a fini et attend ! \n";
+						MPI_Barrier(MPI_COMM_WORLD);
+#endif
+						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 						// return Pnd = At N-1 d
 					} else {
 
@@ -324,11 +333,11 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 				} // end of iframe loop
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
+//				cout << rank << " PtNPmatS reduction\n";
 				MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-				//				for(long ii=0;ii<npixeff;ii++)
-				PtNPmatStot=PtNPmatS;
+					PtNPmatStot=PtNPmatS;
 #endif
 
 
@@ -580,7 +589,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 			} // end of if (rank == 0)
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 			MPI_Bcast(d ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -607,8 +616,6 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 
 			fill(PNd,PNd+npix,0.0);
-			fill(PNdtot,PNdtot+npix,0.0);
-			prefixe = "fdata_";
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
@@ -619,21 +626,29 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 				if (proc_param.CORRon){
 
+					//					write_ftrProcesdata(S,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,ntotscan,addnpix,flgdupl,factdupl,2,
+					//							tmp_dir,dirfile,bolonames,fits_table,f_lppix,ns,
+					//							napod,ndet,NORMLIN,NOFILLGAP,remove_polynomia,iframe);
 
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-							npixsrc,addnpix,f_lppix,ns,	iframe);
+							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
 					//					do_PtNd(PNd,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
-					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-							proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+#ifdef PARA_BOLO
+					//cout << "rank " << rank << " a fini et attend ! \n";
+					MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
+							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 
 					// return Pnd = At N-1 d
 				} else {
 
-					do_PtNd_nocorr(PNd,dir.tmp_dir,proc_param, pos_param, samples_struct,com,det, f_lppix, f_lppix_Nk,
+					do_PtNd_nocorr(PNd,dir.tmp_dir,proc_param, pos_param, samples_struct,det, f_lppix, f_lppix_Nk,
 							addnpix, ns,indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc, iframe, S);
 				}
 			} // end of iframe loop
@@ -641,10 +656,10 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-				PNdtot=PNd;
+				PNdtot=PNd; // ajout Mat 02/07
 #endif
 		}
 
@@ -654,7 +669,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -724,7 +739,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 						mi = jj*NAXIS1 + ii;
 						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
 						if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
-							map1d[mi] = S[ll]];
+							map1d[mi] = S[ll];
 						} else {
 							map1d[mi] = 0.0;
 						}
@@ -763,9 +778,11 @@ void sanepic_conjugate_gradient(struct samples samples_struct,struct detectors d
 				write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 			}
 		}
-	} // end of write map function
+	}
 
-#ifdef USE_MPI
+	// end of write map function
+
+#if defined(USE_MPI) || defined(PARA_BOLO)
 	delete [] qtot;
 	delete [] Mptot;
 	delete [] PtNPmatStot;
