@@ -38,7 +38,7 @@ using namespace std;
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)*/
 int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions pos_param, struct directories &dir,
 		struct detectors &det,struct samples &samples_struct,
-		std::vector<struct box> &boxFile, int rank)
+		int rank)
 {
 
 	dictionary	*	ini ;
@@ -81,7 +81,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 		cout << "You have specified the following options : \n";
 
 		print_directories(dir);
-		print_process_param(proc_param);
+		print_param_process(proc_param);
 	}
 
 	/*

@@ -198,7 +198,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 				// image1        + crossing constrain removal + flagged pixel
 				// NAXIS1*NAXIS2 + addnpix*nframe             + 1
 
-				long long ll;
+				long long ll=0;
 				switch (bolo_flag[ii]) {
 				case 0:			// sample is not rejected
 
@@ -334,7 +334,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			if ((status = wcss2p(wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
 				printf("   wcss2p(1) ERROR %2d \n", status);
 				for (long ii=0; ii<ns; ii++)
-					printf("   wcsstatus (%li): 2d\n",ii,wcsstatus[ii]);
+					printf("   wcsstatus (%li): %2d\n",ii,wcsstatus[ii]);
 				continue;
 			}
 			//			cout << "after reproject" << endl;
@@ -400,7 +400,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 				// image1        + crossing constrain removal + flagged pixel
 				// NAXIS1*NAXIS2 + addnpix*nframe             + 1
 
-				long long ll;
+				long long ll=0;
 				switch (bolo_flag[ii]) {
 				case 0:			// sample is not rejected
 

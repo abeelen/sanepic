@@ -77,7 +77,7 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 		cout << "You have specified the following options : \n\n";
 
 		print_directories(dir);
-		print_process_param(proc_param);
+		print_param_process(proc_param);
 
 	}
 

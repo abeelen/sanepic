@@ -71,7 +71,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 //		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
 //		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename)
 
-void common_mode_computation(struct detectors det, struct param_process proc_param,
+void common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
 		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
@@ -174,8 +174,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
 		}
-		//TODO : the order of the baseline should be in the ini file
-		//TODO : but this is the special case of estimPS
+
+		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
@@ -308,8 +308,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 //		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
 //		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
 
-void estimate_noise_PS(struct detectors det, struct directories dir,
-		struct param_process proc_param, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+void estimate_noise_PS(struct detectors det, struct param_process proc_param,struct param_positions pos_param,
+		struct directories dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)

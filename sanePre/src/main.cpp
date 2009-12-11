@@ -28,7 +28,7 @@ extern "C" {
 
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	int size;/*!< number of processors */
 	int rank;
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 	// int tag = 10;
 	//MPI_Status status;
 
@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
 	//DEFAULT PARAMETERS
 	proc_param.napod = 0; /*! number of samples to apodize*/
 	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
+
+	int nwcs=1;
 
 	//Parser parameter (Program options)
 	long iframe_min=0, iframe_max=0; /*!  min and max number of frame (used with mpi) */
@@ -120,10 +122,10 @@ int main(int argc, char *argv[])
 	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
 
-	double *PNd, *PNdtot; /*!  projected noised data, and global Pnd for mpi utilization */
-	double *Mp, *Mptot;
+	double *PNd, *PNdtot=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
+	double *Mp, *Mptot=NULL;
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
-	long *hits, *hitstot; /*! naivmap parameters : hits count */
+		long *hits, *hitstot=NULL; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string fname;
@@ -147,7 +149,7 @@ int main(int argc, char *argv[])
 				det, fcut, rank);
 
 		if (parsed==-1){
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -173,7 +175,9 @@ int main(int argc, char *argv[])
 	if (pos_param.flgdupl) factdupl = 2;
 
 	struct wcsprm * wcs;
-	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
+	read_MapHeader(dir.tmp_dir,wcs,&NAXIS1, &NAXIS2);
+
+	//	cout << "nwcs : " << nwcs << endl;
 
 	if(rank==0)
 		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
@@ -309,12 +313,6 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		int test=0;
-		string fname;
-		fname = dir.outdir + parallel_scheme_filename;
-		cout << fname << endl;
-		test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,
-				samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -399,7 +397,18 @@ int main(int argc, char *argv[])
 
 	//	MPI_Barrier(MPI_COMM_WORLD);
 #else
+#ifdef PARA_BOLO
+	//convert vector to standard C array to speed up memory accesses
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
+	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
+	cout <<" final list : " << endl;
+	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
+		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
+		//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
+	}
+#else
 	fname = dir.outdir + parallel_scheme_filename;
 	int test=0;
 	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
@@ -408,6 +417,13 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
+	cout <<" final list : " << endl;
+	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
+		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
+		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
+	}
+
+#endif
 	// add reading parallel scheme procedure !
 
 	iframe_min = 0;
@@ -421,11 +437,6 @@ int main(int argc, char *argv[])
 	//	for(long ii=0; ii<samples_struct.ntotscan;ii++)
 	//		frames_index[ii] = ii;
 
-	cout <<" final list : " << endl;
-	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
-		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
-		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
-	}
 
 #endif
 
@@ -443,6 +454,20 @@ int main(int argc, char *argv[])
 	fill(hits,hits+npix,0);
 	fill(Mp,Mp+npix,0.0);
 
+
+#if defined(USE_MPI) || defined(PARA_BOLO)
+
+	if(rank==0){
+		PNdtot = new double[npix];
+		hitstot=new long[npix];
+		Mptot = new double[npix];
+
+		fill(PNdtot,PNdtot+npix,0.0);
+		fill(hitstot,hitstot+npix,0);
+		fill(Mptot,Mptot+npix,0.0);
+	}
+
+#endif
 
 
 	//************************************************************************//
@@ -513,8 +538,8 @@ int main(int argc, char *argv[])
 			// A fdata buffer will be used to avoid binary writing
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
-			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param, dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-					npixsrc,addnpix,f_lppix,ns,	iframe);
+			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size);
 
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -526,7 +551,10 @@ int main(int argc, char *argv[])
 			//debug : computation time
 			if(iframe_min!=iframe_max)
 				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
-
+#ifdef PARA_BOLO
+			//cout << "rank " << rank << " a fini et attend ! \n";
+			MPI_Barrier(MPI_COMM_WORLD);
+#endif
 			// PNd = npix dimension, initialised to 0.0
 			// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
 			// noiseSppreffile = noise power spectrum file suffix = path
@@ -548,7 +576,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns/*,size_det,rank_det*/,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -562,7 +590,7 @@ int main(int argc, char *argv[])
 		} else {
 
 
-			do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param, samples_struct,
+			do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param,samples_struct,
 					det,f_lppix,f_lppix_Nk,addnpix,
 					ns/*,size_det,rank_det*/,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
@@ -574,26 +602,17 @@ int main(int argc, char *argv[])
 
 
 
+
+#if defined(USE_MPI) || defined(PARA_BOLO)
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] End of Pre-Processing\n",rank);
-
-#ifdef USE_MPI
-
-	if(rank==0){
-		PNdtot = new double[npix];
-		hitstot=new long[npix];
-		Mptot = new double[npix];
-
-		fill(PNdtot,PNdtot+npix,0.0);
-		fill(hitstot,hitstot+npix,0);
-		fill(Mptot,Mptot+npix,0.0);
-	}
 
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
+	printf("End of Pre-Processing\n");
 
 	hitstot=hits;
 	PNdtot=PNd;
@@ -630,6 +649,8 @@ int main(int argc, char *argv[])
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
 					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
+					//					filee << PNdtot[indpix[mi]] << " " << Mptot[indpix[mi]] << endl;
+					//					getchar();
 				} else {
 					map1d[mi] = NAN;
 				}
@@ -680,11 +701,9 @@ int main(int argc, char *argv[])
 	t3=time(NULL);
 
 	//debug : computation time
-
+#if defined(USE_MPI) || defined(PARA_BOLO)
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
-
-#ifdef USE_MPI
 
 	if(rank==0){
 		// clean up
@@ -693,6 +712,8 @@ int main(int argc, char *argv[])
 		delete [] hitstot;
 
 	}
+#else
+	cout << "Time : " << t3-t2 << " sec\n";
 #endif
 
 	// clean up
@@ -710,15 +731,16 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.index_table;
 
 	//	wcsfree(wcs);
-	int nwcs = 1;
 	wcsvfree(&nwcs, &wcs);
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) || defined(PARA_BOLO)
+	printf("[%2.2i] End of sanePre \n",rank);
 	MPI_Finalize();
+#else
+	printf("End of sanePre \n");
 #endif
 
-	printf("[%2.2i] End of sanePre \n",rank);
 
 	return 0;
 }

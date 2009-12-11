@@ -66,8 +66,7 @@ int main(int argc, char *argv[])
 
 	struct param_process proc_param;
 	struct samples samples_struct;
-	struct param_process com;
-	struct param_position pos_param;
+	struct param_positions pos_param;
 	struct directories dir;
 	struct detectors det;
 
@@ -395,7 +394,7 @@ int main(int argc, char *argv[])
 		cout << extentnoiseSp ;
 		cout << endl;
 
-		EstimPowerSpectra(proc_param,det,dir, ns, ff, NAXIS1,NAXIS2, npix,
+		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
 				extentnoiseSp, fits_filename);
 		// fsamp = bolometers sampling freq

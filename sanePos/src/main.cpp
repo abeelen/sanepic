@@ -24,6 +24,7 @@
 extern "C" {
 #include "nrutil.h"
 #include "wcslib/wcs.h"
+#include "wcslib/wcshdr.h"
 }
 
 
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
 	string flagfield; /*! flagfield = field+fextension;*/
 
 	//TODO : Get rid of this
-	std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
+	//std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
 
 	//TODO : Debug this...
 	time_t t2, t3;//, t3, t4, t5, dt;
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
 				bolonames,nsamples,boxFile,fitsvect,scans_index);*/
 
 		parsed=parse_sanePos_ini_file(argv[1],proc_param, pos_param, dir,
-				det, samples_struct, boxFile, rank);
+				det, samples_struct, rank);
 
 		if (parsed==-1){
 #ifdef USE_MPI
@@ -478,8 +479,9 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.index_table;
 
-	wcsfree(wcs);
-
+	//wcsfree(wcs);
+	int nwcs=1;
+	wcsvfree(&nwcs, &wcs);
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();

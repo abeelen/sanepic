@@ -581,7 +581,9 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	N_ = new double[ndata];
 	pixpos = new long long [ndata];
 
-	// TODO : ajouter les fill
+	// ajout mat 30/11
+	fill(N_,N_+ndata,0.0);
+	fill(pixpos,pixpos+ndata,0);
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){

@@ -25,15 +25,7 @@ using namespace std;
 
 
 
-//void EstimPowerSpectra(double fsamp, long ns, long ff, long ndet, long NAXIS1, long NAXIS2, long long npix, long napod,
-//		long iframe, bool flgdupl, int factdupl, long long *indpix,
-//		double *S, string MixMatfile, std::vector<string> bolonames, string dirfile, string ellFile, /* string bextension,
-//		string fextension,*/  string dir,
-//		bool NORMLIN, bool NOFILLGAP, bool remove_polynomia, string tmp_dir,
-//		string extentnoiseSp, string outdirSpN, string fits_filename)
-
-
-void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir,
+void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir, struct param_positions pos_param,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		long long *indpix, double *S, string MixMatfile,string ellFile, string extentnoiseSp,string fits_filename)
 {
@@ -68,10 +60,6 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 //	fftw_complex *fdata1, *fdata2; // fourier transform of the data
 	//fftw_complex *fdata_buffer ;
 	//fdata_buffer= new fftw_complex[(ns/2+1)*ndet];
-
-	int factdupl = 1;
-	if(pos_param.flgdupl==1) factdupl = 2;
-
 
 	time_t t1;
 
@@ -146,12 +134,12 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 
 	// compute common mode commonm2
 
-	common_mode_computation(det,proc_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
+	common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
 			mixmat, ncomp, commonm2, factapod, fits_filename);
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
-	estimate_noise_PS(det, dir, proc_param, nbins, nbins2, ns, ff, NAXIS1,
+	estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, ff, NAXIS1,
 			NAXIS2, npix, ell, S, iframe,indpix, apodwind, ncomp, mixmat, commonm2,
 			factapod,Rellth, N, P, fits_filename);
 

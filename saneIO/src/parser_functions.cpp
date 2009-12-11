@@ -343,7 +343,7 @@ int read_ell_file(dictionary	*ini, string &ellFile, int rank){
 
 
 	string str;
-	char *s;
+	//char *s;
 
 	if (read_parser_string(ini, "sanepic_estim_PS:ell_file", rank, str))
 		return 1;
@@ -370,12 +370,12 @@ int read_map_file(dictionary	*ini, string &signame, int rank){
 int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 
 	string str;
-	char*s;
+	//char*s;
 
 	if (read_parser_string(ini, "sanepic_inv_matrix:cov_matrix_file",rank,str))
 		return 1;
 
-	fname=s;
+	fname=str;
 	return 0;
 
 }
@@ -445,6 +445,7 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:project_gaps", 0);
 	pos_param.projgaps=b;
 
+	return 0;
 }
 
 void print_param_positions(struct param_positions &pos_param) {
