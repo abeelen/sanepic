@@ -51,10 +51,10 @@
 <listOptionValue builtIn="false" value="saneLib"/>
 </option>
 <option id="gnu.cpp.link.option.paths.2007143920" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.318677241" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.link.option.shared.1314471731" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared"/>
@@ -1533,10 +1533,10 @@
 <listOptionValue builtIn="false" value="saneLib"/>
 </option>
 <option id="gnu.cpp.link.option.paths.248166048" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.1597289596" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.link.option.shared.996450794" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared"/>

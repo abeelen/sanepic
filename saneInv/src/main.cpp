@@ -10,7 +10,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
-
+#include <algorithm>
 
 extern "C" {
 #include "nrutil.h"

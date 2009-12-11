@@ -39,7 +39,7 @@
 <option id="gnu.cpp.compiler.option.preprocessor.def.1348998067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="DEBUG_PRINT"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.1114274031" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.1114274031" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2069977360" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.1075604675" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug">
@@ -62,8 +62,8 @@
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
 <option id="gnu.cpp.link.option.paths.350351108" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Releaes}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.930804334" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -1556,8 +1556,8 @@
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
 <option id="gnu.cpp.link.option.paths.1930379328" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.1602170517" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -2308,8 +2308,8 @@
 <listOptionValue builtIn="false" value="cfitsio"/>
 </option>
 <option id="gnu.cpp.link.option.paths.738720667" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/lib"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.756003670" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>

@@ -63,9 +63,9 @@
 <listOptionValue builtIn="false" value="fftw3"/>
 </option>
 <option id="gnu.cpp.link.option.paths.265886019" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.2012464156" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
@@ -1845,9 +1845,9 @@
 <listOptionValue builtIn="false" value="fftw3"/>
 </option>
 <option id="gnu.cpp.link.option.paths.1211651230" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.513215951" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
@@ -3632,9 +3632,9 @@
 <listOptionValue builtIn="false" value="fftw3"/>
 </option>
 <option id="gnu.cpp.link.option.paths.453318813" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.1518488382" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
