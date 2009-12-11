@@ -28,7 +28,11 @@ extern "C" {
 
 
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef PARA_BOLO
+#define USE_MPI
+#endif
+
+#ifdef USE_MPI
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
@@ -55,7 +59,7 @@ int main(int argc, char *argv[])
 
 	int size;//, size_det;
 	int rank;//, rank_det;
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	// int tag = 10;
 	//MPI_Status status;
 
@@ -153,7 +157,7 @@ int main(int argc, char *argv[])
 		parsed=parse_sanePic_ini_file(argv[1],proc_param,iterw, dir, samples_struct,
 				det, fcut, rank);
 		if (parsed==-1){
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -180,7 +184,7 @@ int main(int argc, char *argv[])
 
 	/********************* Define parallelization scheme   *******/
 
-#ifdef USE_MPI
+#if defined(USE_MPI) && !defined(PARA_BOLO)
 	ofstream file;
 
 	if(samples_struct.scans_index.size()==0){
@@ -364,7 +368,7 @@ int main(int argc, char *argv[])
 	//	exit(0);
 
 #else
-#ifdef PARA_BOLO
+#if defined(USE_MPI) && defined(PARA_BOLO)
 	//convert vector to standard C array to speed up memory accesses
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
@@ -574,7 +578,7 @@ int main(int argc, char *argv[])
 			//cout << "do_ptnd" << endl;
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 
 			if(rank==0){
 				PtNPmatStot = new double[npix];
@@ -639,7 +643,7 @@ int main(int argc, char *argv[])
 
 			}
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(&var0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 			MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -695,7 +699,7 @@ int main(int argc, char *argv[])
 
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 				//cout << " q reduction\n";
 				MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	#else
@@ -718,7 +722,7 @@ int main(int argc, char *argv[])
 						S[ii] += alpha*d[ii]; // x = x + alpha * d, x = S = signal
 				}
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 				MPI_Barrier(MPI_COMM_WORLD);
 				//cout << rank << " S bcast\n";
 				MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -758,7 +762,7 @@ int main(int argc, char *argv[])
 					} // end of iframe loop
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 	//				cout << rank << " PtNPmatS reduction\n";
 					MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	#else
@@ -967,7 +971,7 @@ int main(int argc, char *argv[])
 				} // end of if (rank == 0)
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 				MPI_Bcast(d ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -1024,7 +1028,7 @@ int main(int argc, char *argv[])
 
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 				MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	#else
 					PNdtot=PNd; // ajout Mat 02/07
@@ -1037,7 +1041,7 @@ int main(int argc, char *argv[])
 
 
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 	#endif
 
@@ -1148,7 +1152,7 @@ int main(int argc, char *argv[])
 
 		// end of write map function
 
-	#if defined(USE_MPI) || defined(PARA_BOLO)
+	#ifdef USE_MPI
 		delete [] qtot;
 		delete [] Mptot;
 		delete [] PtNPmatStot;
@@ -1187,7 +1191,7 @@ int main(int argc, char *argv[])
 	//		write_info_for_second_part(proc_param.outdir, NAXIS1, NAXIS2, npix,proc_param.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	//	}
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1213,7 +1217,7 @@ int main(int argc, char *argv[])
 
 
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	MPI_Finalize();
 #endif
 

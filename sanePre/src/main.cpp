@@ -21,14 +21,19 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-
+#ifdef PARA_BOLO
+#define USE_MPI
+#endif
 
 //temp
 #include <fstream>
 
 
+#ifdef PARA_BOLO
+#define USE_MPI
+#endif
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
@@ -63,7 +68,7 @@ int main(int argc, char *argv[])
 	int size;/*!< number of processors */
 	int rank;
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	// int tag = 10;
 	//MPI_Status status;
 
@@ -125,7 +130,7 @@ int main(int argc, char *argv[])
 	double *PNd, *PNdtot=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
 	double *Mp, *Mptot=NULL;
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
-		long *hits, *hitstot=NULL; /*! naivmap parameters : hits count */
+	long *hits, *hitstot=NULL; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string fname;
@@ -149,7 +154,7 @@ int main(int argc, char *argv[])
 				det, fcut, rank);
 
 		if (parsed==-1){
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -210,7 +215,7 @@ int main(int argc, char *argv[])
 	//TODO: check the noise matrix file at the beginning of each frame/start of the program...
 
 
-#ifdef USE_MPI
+#if defined(USE_MPI) && ! defined(PARA_BOLO)
 
 	ofstream file;
 
@@ -397,7 +402,7 @@ int main(int argc, char *argv[])
 
 	//	MPI_Barrier(MPI_COMM_WORLD);
 #else
-#ifdef PARA_BOLO
+#if defined(USE_MPI) && defined(PARA_BOLO)
 	//convert vector to standard C array to speed up memory accesses
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
@@ -455,7 +460,7 @@ int main(int argc, char *argv[])
 	fill(Mp,Mp+npix,0.0);
 
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 
 	if(rank==0){
 		PNdtot = new double[npix];
@@ -603,7 +608,7 @@ int main(int argc, char *argv[])
 
 
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] End of Pre-Processing\n",rank);
 
@@ -701,7 +706,7 @@ int main(int argc, char *argv[])
 	t3=time(NULL);
 
 	//debug : computation time
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
 
@@ -734,7 +739,7 @@ int main(int argc, char *argv[])
 	wcsvfree(&nwcs, &wcs);
 
 
-#if defined(USE_MPI) || defined(PARA_BOLO)
+#ifdef USE_MPI
 	printf("[%2.2i] End of sanePre \n",rank);
 	MPI_Finalize();
 #else
