@@ -25,7 +25,7 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &samples_struct,struct directories &dir,string &boloname, string &noiseSp_dir_output, string &base)
+int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &samples_struct,struct directories &dir,string &boloname, string &base)
 {
 	dictionary	*	ini ;
 
@@ -63,26 +63,27 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &sample
 //		return(-1);
 	}//	fname = ./RCW_120_M/BoloPS0sanepic_binary.psd
 
-	char * pPath;
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL){
-		noiseSp_dir_output=pPath;
-		printf ("The current path is: %s\n",pPath);
-	}else{
-		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
-		if(s!=NULL){
-			printf("noise_out_dir: [%s]\n",s);
-			noiseSp_dir_output=s;
-			//read_strings((string)s, bolonames);
-		}else{
-			printf("You must specify a output directory : commons:temp_dir\n");
-			return(-1);
-		}//	noiseSp_dir_output = ./RCW_120_M/
-	}
+//	char * pPath;
+//	pPath = getenv ("TMPBATCH");
+//	if (pPath!=NULL){
+//		noiseSp_dir_output=pPath;
+//		printf ("The current path is: %s\n",pPath);
+//	}else{
+//		s = iniparser_getstring(ini, "commons:temp_dir",NULL);
+//		if(s!=NULL){
+//			printf("noise_out_dir: [%s]\n",s);
+//			noiseSp_dir_output=s;
+//			//read_strings((string)s, bolonames);
+//		}else{
+//			printf("You must specify a output directory : commons:temp_dir\n");
+//			return(-1);
+//		}//	noiseSp_dir_output = ./RCW_120_M/
+//	}
 
 
 	if(read_directories(ini, dir, 0)==-1)
 		return -1;
+
 
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;

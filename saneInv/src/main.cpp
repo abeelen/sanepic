@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 	 */
 	double **Rellth, **RellthOrig, **iRellth/*,**mixmatOrig,**mixmat*/;
 
-	string noiseSp_dir_output;/*! output directory */
+//	string noiseSp_dir_output;/*! output directory */
 	string base_name="";/*! output noise file suffix */
 	string fname; /*! covariance matrix fits filename */
 	string fname2;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	} else {
 		int parsed=1;
-		parsed=parse_saneInv_ini_file(argv[1], fname,samples_struct,dir, boloname, noiseSp_dir_output, base_name);
+		parsed=parse_saneInv_ini_file(argv[1], fname,samples_struct,dir, boloname, base_name);
 
 
 		if (parsed==-1){
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 
 	//	cout << "fname" << endl;
 	//	cout << fname << endl;
-	cout << noiseSp_dir_output + "bolonum_" + base_name + extname << endl;
+	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
 	cout << (int)samples_struct.noisevect.size() << endl;
 
 
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 		fname+=(string)samples_struct.noisevect[ii];
 //		cout << fname << endl;
 		base_name=Basename(fname);
-//		cout << base_name << endl;
+		cout << base_name << endl;
 
 		fname2=(string)samples_struct.noisevect[ii];
 //		cout << fname2 << endl;
@@ -136,8 +136,9 @@ int main(int argc, char *argv[]) {
 		// Inverse reduced covariance Matrix : Returns iRellth
 		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
+//		cout << dir.tmp_dir + base_name + extname << endl;
 		// write inversed noisePS in a binary file for each detector
-		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, noiseSp_dir_output, base_name + extname);
+		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
 
 		// write Reduced mixing matrix in a binary file
 		//write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
