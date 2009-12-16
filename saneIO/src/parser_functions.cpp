@@ -29,6 +29,8 @@ int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 	if(read_parser_string(ini, "commons:data_directory", rank, str))
 		return 1;
 
+	cout << str << endl;
+
 	if (str[str.length()-1] != '/')
 		str = str + '/';
 	dir.dirfile = str;
@@ -85,6 +87,7 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 	if (str[str.length()-1] != '/')
 		str = str + '/';
 	dir.outdir=str;
+
 	return 0;
 }
 
@@ -112,7 +115,6 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	if(read_parser_string(ini, "commons:fits_filelist", rank, str))
 		return 1;
-
 
 	samples_str.filename=str;
 
@@ -390,7 +392,7 @@ int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 	return 0;
 }
 
-int read_parser_string(dictionary	*ini, string line, int rank, string str){
+int read_parser_string(dictionary	*ini, string line, int rank, string &str){
 	char *s;
 
 	s = iniparser_getstring(ini, line.c_str(), NULL);
@@ -405,8 +407,9 @@ int read_parser_string(dictionary	*ini, string line, int rank, string str){
 
 int read_directories(dictionary	*ini, struct directories &dir, int rank){
 
+
 	return read_dirfile(ini, dir, rank) || \
-	read_tmpdir(ini, dir, rank)  || \
+	read_tmpdir(ini, dir, rank)  ||	\
 	read_outdir(ini, dir, rank);
 
 }

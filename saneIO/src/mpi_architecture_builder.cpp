@@ -759,12 +759,16 @@ long readFitsLength(string filename){
 		fits_report_error(stderr, status);
 
 	// Go to the signal Extension ...
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status);
+		exit(0);
+	}
 
 	// ... and check for the NAXIS1 keyword...
-	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns, (char *) &comment, &status))
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ns, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
+		exit(0);
+	}
 
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);

@@ -47,7 +47,7 @@ int read_cov_matrix_file(dictionary	*ini, std::string &fname, int rank);
 int read_mixmatfile(dictionary	*ini, std::string &MixMatfile, int rank);
 int read_directories(dictionary	*ini, struct directories &dir, int rank);
 
-int read_parser_string(dictionary	*ini, std::string line, int rank, std::string str);
+int read_parser_string(dictionary	*ini, std::string line, int rank, std::string &str);
 int read_param_process(dictionary *ini,struct param_process &proc_param, int rank);
 int read_param_positions(dictionary *ini, struct param_positions & pos_param, int rank);
 
