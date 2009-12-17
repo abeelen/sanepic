@@ -42,7 +42,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel Offsets", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channels Offsets", NULL, &status))
 		fits_report_error(stderr, status);
 
 	// match read offsets with requested offsets

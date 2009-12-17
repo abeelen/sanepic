@@ -147,7 +147,7 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel list", NULL, &status)){
 		fits_report_error(stderr, status);
 		exit(0);
 	}
