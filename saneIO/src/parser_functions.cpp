@@ -392,6 +392,40 @@ int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 	return 0;
 }
 
+int read_ncomp(dictionary	*ini, long &ncomp, int rank){
+
+	double d;
+
+	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:ncomp", -1.0);
+		if (d<0.0){
+			if(rank==0)
+				printf("number of component cannot be negative ! or maybe you have to mention it in the ini file \n");
+			return 1;
+		}else{
+
+			ncomp=(long)d;
+		}
+
+		return 0;
+}
+
+
+int read_fcut(dictionary	*ini, double &fcut, int rank){
+
+	double d;
+
+	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:fcut", 12.0);
+		if (d<0.0){
+			if(rank==0)
+				printf("noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n");
+			return 1;
+		}else{
+			fcut=d;
+		} // default = 12
+
+		return 0;
+}
+
 int read_parser_string(dictionary	*ini, string line, int rank, string &str){
 	char *s;
 

@@ -45,6 +45,9 @@ int read_ell_file(dictionary	*ini, std::string &ellFile, int rank);
 int read_map_file(dictionary	*ini, std::string &signame, int rank);
 int read_cov_matrix_file(dictionary	*ini, std::string &fname, int rank);
 int read_mixmatfile(dictionary	*ini, std::string &MixMatfile, int rank);
+int read_ncomp(dictionary	*ini, long &ncomp, int rank);
+int read_fcut(dictionary	*ini, double &fcut, int rank);
+
 int read_directories(dictionary	*ini, struct directories &dir, int rank);
 
 int read_parser_string(dictionary	*ini, std::string line, int rank, std::string &str);
