@@ -20,7 +20,7 @@
 #include "parseSanepic.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
-//#include "conjugate_gradient.h"
+#include "write_maps_to_disk.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -832,23 +832,7 @@ int main(int argc, char *argv[])
 						//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
-						// TODO: Should not be to much different from a naive map...
-						//					for (long ii=0; ii<NAXIS1 ; ii++){
-						//						for (long jj=0; jj<NAXIS2; jj++){
-						//							mi = jj*NAXIS1 + ii;
-						//							if (indpix[mi] >= 0){
-						//								map1d[mi] = Mptot[indpix[mi]] * PNdtot[indpix[mi]];
-						//							} else {
-						//								map1d[mi] = NAN;
-						//							}
-						//						}
-						//					}
-						//					fname = '!' + dir.outdir + "binMap_" + "_flux.fits";
-						//					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-						//					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-
-
-						for (long ii=0; ii<NAXIS1; ii++) {
+								for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
 								map1d[mi] = 0.0;
@@ -1035,8 +1019,6 @@ int main(int argc, char *argv[])
 	#endif
 			}
 
-
-
 		}// end of idupl loop
 
 
@@ -1045,112 +1027,17 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 	#endif
 
-		temp_stream << dir.outdir + "testfile.txt";
-
-		// récupérer une chaîne de caractères
-		testfile= temp_stream.str();
-		// Clear ostringstream buffer
-		temp_stream.str("");
-		fp = fopen(testfile.c_str(),"a");
-		fprintf(fp,"test avant ecriture \n");
-		fclose(fp);
-
-
-		//TODO : Should be outside of this function
-		// write map function : NAXIS1, NAXIS2, S, indpix, outdir, termin, addnpix, ntotscan,
-		// pixdeg, tancoord, tanpix, coordsyst, Mptot, indpsrc, npixsrc, factdupl,
-		//
 
 		//******************************  write final map in file ********************************
 
-
-
 		if (rank == 0){
-
 			printf(" after CC INVERSION %lld\n",npix*(npix+1)/2);
 
-			//TODO : writing the maps should NOT be here...
-			//TODO : In general separate the reading/writing from the computation
-
-			for (long ii=0; ii<NAXIS1; ii++) {
-				for (long jj=0; jj<NAXIS2; jj++) {
-					mi = jj*NAXIS1 + ii;
-					if (indpix[mi] >= 0){
-						map1d[mi] = S[indpix[mi]];
-					} else {
-						map1d[mi] = NAN;
-					}
-				}
-			}
-
-			fname = '!' + dir.outdir + "optimMap_flux.fits";
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+			write_maps_to_disk(S, NAXIS1, NAXIS2, dir.outdir, indpix, indpsrc,
+					Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan, wcs);
+		}// end of rank==0
 
 
-			for (long ii=0; ii<NAXIS1; ii++) {
-				for (long jj=0; jj<NAXIS2; jj++) {
-					mi = jj*NAXIS1 + ii;
-					if (indpix[mi] >= 0){
-						map1d[mi] = Mptot[indpix[mi]];
-					} else {
-						map1d[mi] = NAN;
-					}
-				}
-			}
-
-
-			fname = '!' + dir.outdir + "optimMap_noisevar.fits";
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-
-			if (addnpix){
-				for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-					for (long ii=0; ii<NAXIS1; ii++) {
-						for (long jj=0; jj<NAXIS2; jj++) {
-							mi = jj*NAXIS1 + ii;
-							long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-							if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
-								map1d[mi] = S[ll];
-							} else {
-								map1d[mi] = 0.0;
-							}
-						}
-					}
-
-
-
-					temp_stream << "!" + dir.outdir + "optimMap_flux_fr" << iframe << ".fits";
-					// récupérer une chaîne de caractères
-					fname= temp_stream.str();
-					// Clear ostringstream buffer
-					temp_stream.str("");
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-
-					for (long ii=0; ii<NAXIS1; ii++) {
-						for (long jj=0; jj<NAXIS2; jj++) {
-							mi = jj*NAXIS1 + ii;
-							long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-							if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
-								map1d[mi] = Mptot[indpix[ll]];
-							} else {
-								map1d[mi] = 0.0;
-							}
-						}
-					}
-
-					//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-					temp_stream << "!" + dir.outdir + "optimMap_noisevar_fr" << iframe << ".fits";
-
-					// récupérer une chaîne de caractères
-					fname= temp_stream.str();
-					// Clear ostringstream buffer
-					temp_stream.str("");
-					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-				}
-			}
-		}
-
-		// end of write map function
 
 	#ifdef USE_MPI
 		delete [] qtot;
@@ -1209,9 +1096,6 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] PNdtot;
 
-	//delete [] frames_index;
-
-	//	wcsfree(wcs);
 	wcsvfree(&nwcs, &wcs);
 
 
