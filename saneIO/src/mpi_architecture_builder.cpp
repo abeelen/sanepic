@@ -311,7 +311,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 }
 
 int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
-		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<long> &scans_index)
+		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<int> &scans_index)
 // Write the Parrallelization Scheme for further use.
 {
 	//FILE *fp;
@@ -332,13 +332,13 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 
 
 	string *fitsvect_temp, *noisevect_temp;
-	long *scans_index_temp;
+	int *scans_index_temp;
 	string temp;
 	size_t found;
 
 	fitsvect_temp = new string [ntotscan];
 	noisevect_temp = new string [ntotscan];
-	scans_index_temp = new long [ntotscan];
+	scans_index_temp = new int [ntotscan];
 
 	//cout << "write" << endl;
 	//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
@@ -357,7 +357,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 		// scans_index_temp[ii] = scans_index[position[ii]];
 	}
 
-	long val_proc = 0;
+	int val_proc = 0;
 	//scans_index[0] = 0;
 
 	for (long ii=1;ii<ntotscan+1;ii++){
@@ -427,7 +427,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 	std::vector<string> fits_dummy;
 	std::vector<string> noise_dummy;
-	std::vector<long> index_dummy;
+	std::vector<int> index_dummy;
 	long ntotscan_dummy;
 	long size_tmp;
 	//size_t found;
@@ -609,14 +609,13 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 	int return_error = 0;
 	int num_frame = 0;
 	char c;
-	vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
-
+	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 	//	if(rank==0){
 
-	struct sortclass_long sortobject;
+	struct sortclass_int sortobject;
 	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
-	std::vector<long>::iterator it;
+	std::vector<int>::iterator it;
 	//			int size_tmp=0;
 
 	// using default comparison:
@@ -792,7 +791,7 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 
 
 
-void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<long> &frameorder, bool &framegiven) {
+void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
 
 
 
@@ -807,7 +806,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 	framegiven=0;
 
 	string s, p, line, temp;
-	long d;
+	int d;
 	char *pch;
 	int nb_elem = 0;
 

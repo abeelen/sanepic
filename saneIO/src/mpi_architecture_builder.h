@@ -45,7 +45,7 @@ double randg_archi(long nombre, int seedpass);
 
 // TODO : include struct ?
 int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
-		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<long> &scans_index);
+		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<int> &scans_index);
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
 //int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
 //int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
@@ -60,7 +60,7 @@ int verify_parallelization_scheme(int rank, std::string outdir,struct samples sa
 
 long readFitsLength(std::string filename);
 void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
-void read_fits_list(std::string fname, std::vector<std::string> &fitsfiles, std::vector<std::string> &noisefiles, std::vector<long> &frameorder, bool &framegiven);
+void read_fits_list(std::string fname, std::vector<std::string> &fitsfiles, std::vector<std::string> &noisefiles, std::vector<int> &frameorder, bool &framegiven);
 
 void readBoxFile(std::string filename, std::vector<struct box> & boxList);
 

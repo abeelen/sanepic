@@ -22,11 +22,11 @@ struct directories {
 struct samples {
 	std::vector<std::string> fitsvect;
 	std::vector<std::string> noisevect;
-	std::vector<long> scans_index;
+	std::vector<int> scans_index;
 	bool framegiven;
 	std::string *fits_table;
 	std::string *noise_table;
-	long *index_table;
+	int *index_table;
 	long *nsamples;
 	long ntotscan;
 	std::string filename;

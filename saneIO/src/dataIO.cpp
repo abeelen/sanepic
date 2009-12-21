@@ -116,11 +116,10 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
-	// TODO: Should not be there
-	// check for bad values
-	for (long ii = 0; ii<ns; ii++)
-		if (isnan(RA[ii]) || isnan(DEC[ii]))
-			FLAG[ii] = 1;
+//	// check for bad values
+//	for (long ii = 0; ii<ns; ii++)
+//		if (isnan(RA[ii]) || isnan(DEC[ii]))
+//			FLAG[ii] = 1;
 
 	if (fits_close_file(fptr, &status))
 			fits_report_error(stderr, status);

@@ -11,6 +11,6 @@
 //#include <string>
 
 int parse_FBFO(char * ini_name, std::string &tmp_dir, long &ntotscan, long *&nsamples,
-		std::vector<std::string> &fitsvect,std::vector<std::string> &noisevect,std::vector<long> &scans_index);
+		std::vector<std::string> &fitsvect,std::vector<std::string> &noisevect,std::vector<int> &scans_index);
 
 #endif /* PARSE_FBFO_H_ */

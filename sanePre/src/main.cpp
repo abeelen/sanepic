@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
-	samples_struct.index_table= new long[samples_struct.ntotscan];
+	samples_struct.index_table= new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 
@@ -237,16 +237,16 @@ int main(int argc, char *argv[])
 		int return_error = 0;
 		int num_frame = 0;
 		char c;
-		vector2array(samples_struct.scans_index,  samples_struct.index_table); // TODO : passer index_table en int plutot que long
+		vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
 		if(rank==0){
 			//check the processor order given is correct
 			//			size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
-			struct sortclass_long sortobject;
+			struct sortclass_int sortobject;
 			sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
-			std::vector<long>::iterator it;
+			std::vector<int>::iterator it;
 			//			int size_tmp=0;
 
 			// using default comparison:
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 			nsamples_temp[jj]= samples_struct.nsamples[jj];
 
 
-		for(long ii = 0; ii<size; ii++){
+		for(int ii = 0; ii<size; ii++){
 			if(rank==ii)
 				iframe_min=num_frame;
 			for(long jj = 0; jj<samples_struct.ntotscan; jj++){

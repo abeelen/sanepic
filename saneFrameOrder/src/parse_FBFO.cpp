@@ -38,7 +38,7 @@ extern "C"{
 using namespace std;
 
 int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples,
-		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<long> &scans_index)
+		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<int> &scans_index)
 {
 	dictionary	*	ini ;
 

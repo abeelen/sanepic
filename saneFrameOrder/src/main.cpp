@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
 		std::vector<string> fitsvect;
 		std::vector<string> noisevect;
-		std::vector<long> scans_index;
+		std::vector<int> scans_index;
 		//	vector<long>::iterator it;
 
 		//std::vector<long> fframes_vec, nsamples_vec;

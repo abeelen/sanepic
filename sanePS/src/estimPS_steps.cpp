@@ -1381,8 +1381,6 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
-		//sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
-
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
 
 		// récupérer une chaîne de caractères
@@ -1390,12 +1388,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		temp_stream.str("");
 
 		fp = fopen(nameSpfile.c_str(),"w");
-		//fprintf(fp,"%d\n",nbins);
 		for (long ii=0;ii<nbins;ii++){
-			//fprintf(fp,"%g\t",ell[ii]);
 			fprintf(fp,"%10.15g\n",P[jj][ii]*SPref[ii]);
 		}
-		//fprintf(fp,"%g\n",ell[nbins]);
 		fprintf(fp,"\n");
 		fclose(fp);
 	}

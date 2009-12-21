@@ -8,7 +8,6 @@
 
 using namespace std;
 
-//TODO : Not used
 //struct foffset {
 //	long frame;
 //	float pitch;

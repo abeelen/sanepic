@@ -133,9 +133,6 @@ int main(int argc, char *argv[])
 	string bolofield; /*! bolofield = boloname + bextension */
 	string flagfield; /*! flagfield = field+fextension;*/
 
-	//TODO : Get rid of this
-	//std::vector<struct box> boxFile; /*! box for crossing constraints removal coordinates lists (left x, right x, top y, bottom y) */
-
 	//TODO : Debug this...
 	time_t t2, t3;//, t3, t4, t5, dt;
 
@@ -168,7 +165,7 @@ int main(int argc, char *argv[])
 
 	samples_struct.fits_table  = new string[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
-	samples_struct.index_table = new long[samples_struct.ntotscan];
+	samples_struct.index_table = new int[samples_struct.ntotscan];
 
 
 
@@ -401,7 +398,7 @@ int main(int argc, char *argv[])
 		printf("[%2.2i] Compute Pixels Indices\n",rank);
 
 
-	computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
+	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
 			proc_param, pos_param, iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
 			mask,factdupl,
