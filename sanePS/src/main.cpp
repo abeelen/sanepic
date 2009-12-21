@@ -109,6 +109,9 @@ int main(int argc, char *argv[])
 	// main loop variables
 	double *S;
 
+	long ncomp;
+	double fcut;
+
 	string fname;
 
 	struct wcsprm * wcs;
@@ -121,7 +124,7 @@ int main(int argc, char *argv[])
 	} else {
 
 		parsed=parse_sanePS_ini_file(argv[1], proc_param, dir, samples_struct,det,
-				MixMatfile, ellFile, signame, rank);
+				MixMatfile, ellFile, signame, rank, ncomp, fcut);
 
 
 		if (parsed==-1){
@@ -396,7 +399,7 @@ int main(int argc, char *argv[])
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
-				extentnoiseSp, fits_filename);
+				extentnoiseSp, fits_filename, ncomp, fcut);
 		// fsamp = bolometers sampling freq
 		// ns = number of samples in the "iframe" scan
 		// ff = first sample number

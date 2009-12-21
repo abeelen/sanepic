@@ -23,7 +23,7 @@ extern "C"{
 using namespace std;
 
 int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, struct directories &dir, struct samples &samples_struct,
-		struct detectors &det,string &MixMatfile, string &ellFile, string &signame, int rank)
+		struct detectors &det,string &MixMatfile, string &ellFile, string &signame, int rank, long &ncomp, double &fcut)
 
 {
 	dictionary	*	ini ;
@@ -70,6 +70,12 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 		return -1;
 
 	if(read_mixmatfile(ini, MixMatfile, rank)==-1)
+		return -1;
+
+	if(read_ncomp(ini, ncomp, rank)==-1)
+		return -1;
+
+	if(read_fcut(ini, fcut, rank)==-1)
 		return -1;
 
 	if(rank==0){

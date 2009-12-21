@@ -7,12 +7,16 @@
 
 #include "estimPS.h"
 
+// temp
+#include <iostream>
+
 #include <vector>
 #include <string>
 
 #include "todprocess.h"
 #include "inputFileIO.h"
 #include "estimPS_steps.h"
+
 
 extern "C" {
 #include <fitsio.h>
@@ -27,15 +31,15 @@ using namespace std;
 
 void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir, struct param_positions pos_param,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		long long *indpix, double *S, string MixMatfile,string ellFile, string extentnoiseSp,string fits_filename)
+		long long *indpix, double *S, string MixMatfile,string ellFile, string extentnoiseSp,string fits_filename, long ncomp, double fcut)
 {
 
 
-	// TODO: move this to the ini file....
-	double fcut = 12; //fixed here to be sure that the code will not focus on high freq
-	// TODO : add it in the ini file
-	long ncomp = 1;
+
+	//double fcut = 12; //fixed here to be sure that the code will not focus on high freq
+	//long ncomp = 1;
 	//long ncomp2 = 0;
+
 	//TODO : read nbins/ell in the ini file, not even in the fits file
 	long nbins = 500;
 	long nbins2; // readed bins in mixmatfile
@@ -137,6 +141,8 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 	common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
 			mixmat, ncomp, commonm2, factapod, fits_filename);
 
+	cout << "after common\n";
+	getchar();
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
 	estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, ff, NAXIS1,

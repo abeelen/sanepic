@@ -136,6 +136,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
+	// test
+	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 
 	// loop over detectors
 	for (long idet=0;idet<det.ndet;idet++){
@@ -189,9 +191,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 		//       BUT it is done differently than power spectrum estimation WHY ?
 		// TODO: Check how to speed up ffts :  why destroy all plan ?
 		// compute fft and save data to disk for later
-		fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
+//		fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
-		fftw_destroy_plan(fftplan);
+//		fftw_destroy_plan(fftplan);
 
 
 		write_fdata(ns, fdata1,  dir.tmp_dir, idet, ff, det.boloname);
@@ -222,6 +224,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 		delete [] flag; // ajout mat 26/11
 
 	}
+
+	//test
+	fftw_destroy_plan(fftplan);
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)

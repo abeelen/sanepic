@@ -21,7 +21,7 @@
  * - Initialise sanePS variable
  */
 int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, struct directories &dir, struct samples &samples_struct,
-		struct detectors &det, std::string &MixMatfile, std::string &ellFile, std::string &signame, int rank);
+		struct detectors &det, std::string &MixMatfile, std::string &ellFile, std::string &signame, int rank, long &ncomp, double &fcut);
 
 
 #endif /* PARSEPPS_H_ */
