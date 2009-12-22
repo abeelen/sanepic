@@ -18,7 +18,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int &iterw, struct directories &dir, struct samples &samples_struct,
+int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, int &iterw, struct directories &dir, struct samples &samples_struct,
 		struct detectors &det, std::vector<double> &fcut, int rank)
 {
 
@@ -34,6 +34,22 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int
 		return -1 ;
 	}
 
+
+
+	//DEFAULT PARAMETERS
+	proc_param.napod = 0; /*!  number of samples to apodize */
+	proc_param.fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
+	iterw = 10; /*!  period in iterations to which the data are written to disk, 0 = no intermediate map to be written*/
+	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	proc_param.NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
+	proc_param.remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
+	proc_param.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
+	proc_param.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
+	pos_param.flgdupl = 0; // map duplication boolean
+
+	samples_struct.ntotscan=0; /*! total number of scans */
+	det.ndet=0; /*! number of channels */
+
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
@@ -43,6 +59,9 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int
 		return -1;
 
 	if(read_param_process(ini, proc_param, rank)==-1)
+		return -1;
+
+	if(read_param_positions(ini, pos_param, rank)==-1)
 		return -1;
 
 	if(read_channel_list(ini,det.boloname, rank)==-1)
@@ -69,6 +88,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int
 
 		print_directories(dir);
 		print_param_process(proc_param);
+		print_param_process(proc_param);
 	}
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
@@ -92,18 +112,6 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, int
 		printf("Number of bolometers : %ld\n",det.ndet);
 	}
 
-	//nnf = number of noise PS files
-	//nnf = (int)extentnoiseSP.size();
-
-	//nnf=1; // Debug
-	/*if (nnf != 1 && nnf != samples_struct.ntotscan){
-		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
-		return -1;
-	}*/
-
-	//if only one extension for all the noisePS file : extend to all the scans
-	/*if (nnf == 1 && samples_struct.ntotscan > 1)
-		extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);*/
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
 	if ((int)fcut.size()==0){

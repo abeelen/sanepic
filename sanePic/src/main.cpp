@@ -89,27 +89,12 @@ int main(int argc, char *argv[])
 	struct detectors det;
 
 	int nwcs=1;
-
-	//TODO : why do we need to define the default value here... should be in the parser...
-	//DEFAULT PARAMETERS
-	proc_param.napod = 0; /*!  number of samples to apodize */
-	proc_param.fsamp = 0.0; //25.0; /*!  sampling frequency : BLAST Specific */
-
+	int iterw;
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
-	int iterw = 10; /*!  period in iterations to which the data are written to disk, 0 = no intermediate map to be written*/
-	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	proc_param.NOFILLGAP = 0; /*!  fill the gap ? default is YES (debug parameter) */
-	proc_param.remove_polynomia = 1; /*! Remove a fitted polynomia from the data ? */
-	proc_param.CORRon = 1; /*!  correlation included in the analysis (=1), else 0, default 0 */
 	int factdupl = 1; /*! map duplication factor */
 	long long addnpix=0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
 	long long npixsrc = 0; /*! number of pix in box constraint */
-
-
-
-	samples_struct.ntotscan=0; /*! total number of scans */
-	det.ndet=0; /*! number of channels */
 
 
 	// map making parameters
@@ -119,15 +104,9 @@ int main(int argc, char *argv[])
 	long long npix; /*! nn = side of the map, npix = number of filled pixels */
 
 
-	//internal data params
-	proc_param.f_lp=0.0; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples */
-
-
-
 
 	double *PNdtot; /*! to deal with mpi parallelization : Projected noised data */
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
-
 
 
 	string field; /*! actual boloname in the bolo loop */
@@ -154,7 +133,7 @@ int main(int argc, char *argv[])
 
 		int parsed=1;
 
-		parsed=parse_sanePic_ini_file(argv[1],proc_param,iterw, dir, samples_struct,
+		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
 				det, fcut, rank);
 		if (parsed==-1){
 #ifdef USE_MPI
