@@ -49,7 +49,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		fits_file=samples_struct.fits_table[iframe];
 
 		double *ra, *dec, *phi, **offsets;
-		short *flpoint;
+//		short *flpoint;
 
 		long ns = samples_struct.nsamples[iframe];
 
@@ -63,7 +63,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 		// read reference position
 		long test_ns;
-		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, flpoint, test_ns);
+		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame position" << endl;
 			cerr << "Check !!" << endl;
@@ -143,7 +143,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		delete [] ra;
 		delete [] dec;
 		delete [] phi;
-		delete [] flpoint;
+//		delete [] flpoint;
 
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}

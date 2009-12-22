@@ -48,7 +48,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec, *phi, **offsets;
-		short *flpoint;
+		short *flag;
 
 
 		// read bolo offsets
@@ -57,13 +57,18 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 		// read reference position
 		long test_ns;
-		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, flpoint, test_ns);
+		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
 			exit(-1);
 		}
 
+		read_flag_from_fits(fits_file, field, flag, test_ns);
+		if (test_ns != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
 
 
 		// find the pointing solution at each time stamp for each detector
@@ -173,7 +178,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 			for (long ii=0; ii<ns; ii++){
 
-				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
+				if (flag[ii] == 1) bolo_flag[ii] = 1;
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
@@ -244,7 +249,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		}//end of idet loop
 		delete [] ra;
 		delete [] dec;
-		delete [] flpoint;
+		delete [] flag;
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 		delete [] cosphi;
 		delete [] sinphi;
@@ -312,7 +317,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			}
 			read_flag_from_fits(fits_file, field, flag, test_ns);
 			if (test_ns != ns) {
-				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
 			for (long ii=0; ii <ns; ii++){

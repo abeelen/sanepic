@@ -91,23 +91,16 @@ int main(int argc, char *argv[])
 	struct directories dir;
 	struct detectors det;
 
-	//TODO : Why the defaults are here ????
-	//DEFAULT PARAMETERS
-	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
+
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
-
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
-	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 
 
 	//set coordinate system
 	double *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
 	coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
-
-	samples_struct.ntotscan=0; /*! total number of scans */
-	det.ndet=0; /*! number of channels used*/
 
 	long long npix; /*! npix = number of filled pixels */
 	long long npixsrc; /*! number of pixels included in Crossing Constraint Removal */
