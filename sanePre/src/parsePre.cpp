@@ -38,6 +38,24 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 		return -1 ;
 	}
 
+	//DEFAULT PARAMETERS
+	proc_param.napod = 0; /*! number of samples to apodize*/
+	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
+
+	//Parser parameter (Program options)
+	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	proc_param.NOFILLGAP = 0; /*! fill the gap ? default is YES*/
+	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	proc_param.f_lp = 0.0; // low pass filter frequency
+	pos_param.flgdupl = 0; // map duplication factor
+
+
+	samples_struct.ntotscan=0; /*! total number of scans*/
+	det.ndet=0; /*! number of channels*/
+
+
+
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 

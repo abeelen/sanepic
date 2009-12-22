@@ -93,24 +93,13 @@ int main(int argc, char *argv[])
 	struct detectors det;
 
 
-	//DEFAULT PARAMETERS
-	proc_param.napod = 0; /*! number of samples to apodize*/
-	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
-
+	// default parameters
 	int nwcs=1;
-
-	//Parser parameter (Program options)
 	long iframe_min=0, iframe_max=0; /*!  min and max number of frame (used with mpi) */
-	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-	proc_param.NOFILLGAP = 0; /*! fill the gap ? default is YES*/
 	int factdupl=1; /*! map duplication factor */
 	int flagon = 0; /*! if a data is flagged */
-	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
-	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
 
 
-	samples_struct.ntotscan=0; /*! total number of scans*/
-	det.ndet=0; /*! number of channels*/
 
 
 	long NAXIS1, NAXIS2;
@@ -122,7 +111,7 @@ int main(int argc, char *argv[])
 	//internal data params
 	long ns; /*! number of samples for this scan, first frame number of this scan*/
 	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
-	proc_param.f_lp = 0.0; // low pass filter frequency
+
 
 	//fftw_complex *fdata_buffer; /*! buffer used to store all the fdata arrays instead of writing on disk */
 
@@ -177,7 +166,7 @@ int main(int argc, char *argv[])
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 
-	if (pos_param.flgdupl) factdupl = 2;
+	if (pos_param.flgdupl) factdupl = 2;// -M =1, default 0 : if flagged data are put in a duplicated map
 
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs,&NAXIS1, &NAXIS2);
@@ -201,7 +190,6 @@ int main(int argc, char *argv[])
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
-	if (pos_param.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
 
 	//read projection vector from a file
 	read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
