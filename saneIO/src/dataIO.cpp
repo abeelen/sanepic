@@ -457,3 +457,49 @@ void read_dec_from_fits(string filename, string field, double *& dec, long & ns)
 
 }
 
+
+void read_time_from_fits(string filename, double *& time, long ns){
+
+	// HIPE like format
+
+	fitsfile *fptr;
+	int status = 0;
+	int ns_test = 0;
+	char comment[80];
+//	int anynul;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// Move ptr to signal hdu
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status))
+		fits_report_error(stderr, status);
+
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns_test, (char *) &comment, &status)){
+		fits_report_error(stderr, status);
+		cout << "naxis\n";
+		exit(0);
+	}
+
+	if(ns!=ns_test){
+		cout << "time image has a wrong size : " << ns_test << " != " << ns << endl;
+		exit(0);
+	}
+
+	// ---------------------------------------------
+	// Allocate Memory
+	time = new double[ns];
+
+	// ---------------------------------------------
+	// Retrieve the corresponding row
+	if(fits_read_col(fptr, TDOUBLE, 2, 1, 1, ns_test, NULL, time, 0, &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+}
+

@@ -26,6 +26,6 @@ void read_flag_from_fits(string filename, string field, short *& mask, long & ns
 void read_channels(fitsfile *fptr, char **& data, long &nBolos);
 long find_channel_index(fitsfile *fptr, const char * field);
 
-
+void read_time_from_fits(string filename, double *& time, long ns);
 
 #endif /* DATAIO_H_ */
