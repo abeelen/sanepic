@@ -30,10 +30,12 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	fitsfile *fptr;
 	int status = 0;
 	int colnum;
-	double * temp;
-	temp = new double[2];
+	double * temp_dx,*temp_dy;
+	char comment[80];
+	int ndet_total;
 
 	long ndet = bolonames.size();
+	long indice;
 
 	offsets = dmatrix((long)0,ndet-1,(long)0,2-1);
 
@@ -42,30 +44,80 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channels Offsets", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status))
 		fits_report_error(stderr, status);
+
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ndet_total, (char *) &comment, &status)){
+		fits_report_error(stderr, status);
+		cout << "naxis\n";
+		exit(0);
+	}
+
+
+	temp_dx = new double[ndet_total];
+	temp_dy = new double[ndet_total];
+
+	fits_get_colnum(fptr, CASEINSEN, (char *) "DX", &colnum, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dx, 0, &status);
+
+	fits_get_colnum(fptr, CASEINSEN, (char *) "DY", &colnum, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dy, 0, &status);
 
 	// match read offsets with requested offsets
 	for (long idet=0;idet<ndet;idet++){
 
-
-		fits_get_colnum(fptr, CASEINSEN, (char *) bolonames[idet].c_str(), &colnum, &status);
-		fits_read_col(fptr, TDOUBLE, colnum, 1, 1, 2, NULL, temp, 0, &status);
+		indice = find_channel_index(fptr, (char *) bolonames[idet].c_str());
 
 		// transform arcsec to deg
-		for (int ii=0; ii<2; ii++)	offsets[idet][ii] = temp[ii]/3600;
+		offsets[idet][0] = temp_dx[indice]/3600;
+		offsets[idet][1] = temp_dy[indice]/3600;
 
 	}
 
-	delete [] temp;
+	delete [] temp_dx;
+	delete [] temp_dy;
 
 	if (fits_close_file(fptr, &status))
-			fits_report_error(stderr, status);
+		fits_report_error(stderr, status);
 
+	//		fitsfile *fptr;
+	//		int status = 0;
+	//		int colnum;
+	//		double * temp;
+	//		temp = new double[2];
+	//
+	//		long ndet = bolonames.size();
+	//
+	//		offsets = dmatrix((long)0,ndet-1,(long)0,2-1);
+	//
+	//		if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	//			fits_report_error(stderr, status);
+	//
+	//		// ---------------------------------------------
+	//		// read the Channel List
+	//		if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status))
+	//			fits_report_error(stderr, status);
+	//
+	//		// match read offsets with requested offsets
+	//		for (long idet=0;idet<ndet;idet++){
+	//
+	//
+	//			fits_get_colnum(fptr, CASEINSEN, (char *) bolonames[idet].c_str(), &colnum, &status);
+	//			fits_read_col(fptr, TDOUBLE, colnum, 1, 1, 2, NULL, temp, 0, &status);
+	//
+	//			// transform arcsec to deg
+	//			for (int ii=0; ii<2; ii++)	offsets[idet][ii] = temp[ii]/3600;
+	//
+	//		}
+	//
+	//		delete [] temp;
+	//
+	//		if (fits_close_file(fptr, &status))
+	//				fits_report_error(stderr, status);
 
 }
 
-void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, short *&FLAG, long &ns){
+void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	fitsfile *fptr;
@@ -78,7 +130,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 
 	// ---------------------------------------------
 	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Reference Position", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
 		fits_report_error(stderr, status);
 
 	// Retrieve size of the array and ...
@@ -88,7 +140,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	RA   = new double[ns];
 	DEC  = new double[ns];
 	PHI  = new double[ns];
-	FLAG = new short[ns];
+	//	FLAG = new short[ns];
 
 	// Read RA
 	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
@@ -110,23 +162,22 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
-	// TODO: Does not exist anymore...
 	// Read FLAG
-	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
-	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
+	//	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
+	//	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	//	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
-//	// check for bad values
-//	for (long ii = 0; ii<ns; ii++)
-//		if (isnan(RA[ii]) || isnan(DEC[ii]))
-//			FLAG[ii] = 1;
+	//	// check for bad values
+	//	for (long ii = 0; ii<ns; ii++)
+	//		if (isnan(RA[ii]) || isnan(DEC[ii]))
+	//			FLAG[ii] = 1;
 
 	if (fits_close_file(fptr, &status))
-			fits_report_error(stderr, status);
+		fits_report_error(stderr, status);
 
 }
 
-
+// TODO : useless now ?
 void read_flpoint_from_fits(string filename, short *FLAG){
 
 	fitsfile *fptr;
@@ -294,10 +345,13 @@ long find_channel_index(fitsfile *fptr, const char * field){
 	//find the fits index of the bolo and return it
 	//fits index are 1 indexed, so indexes starts at 1
 	for (idet = 1; idet <= nBolos; idet++)
-		if (strcmp(field,data[idet-1]) == 0)
+		if (strcmp(field,data[idet-1]) == 0){
+			delete [] data;
 			return idet;
+		}
 
 	cout << "EE - " << field << " not found" << endl;
+	delete [] data;
 	return -1L;
 
 }
