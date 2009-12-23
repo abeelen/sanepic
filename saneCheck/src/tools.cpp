@@ -234,6 +234,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 	double *ra;
 	double *dec,*phi;
 	double **offsets;
+	double *time;
 
 	//	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 	//		fits_report_error(stderr, status);
@@ -305,11 +306,18 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 	// check nans in time constant
 
-	//	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
-	//		fits_report_error(stderr, status);
-	//		cout << "\"time\" was not found, or his Type should be image" << endl;
-	//		exit(0);
-	//	}
+	read_time_from_fits(fname, time, ns);
+	for(long jj=0;jj<ns;jj++){
+//		cout << time[jj] << endl;
+//		getchar();
+		if(isnan(time[jj])){
+			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
+			exit(0);
+		}
+	}
+
+	delete [] time;
+
 
 
 
