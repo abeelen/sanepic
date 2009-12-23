@@ -70,19 +70,9 @@ int main(int argc, char *argv[])
 	struct directories dir;
 	struct detectors det;
 
-	//DEFAULT PARAMETERS
-	proc_param.napod = 0; // number of samples to apodize
-	proc_param.fsamp = 0.0; //25.0; // sampling frequency : BLAST Specific
-	proc_param.NORMLIN = 0; // baseline is removed from the data, NORMLIN = 1 else 0
-	proc_param.NOFILLGAP = 0; // fill the gap ? default is YES (debug parameter)
-	proc_param.remove_polynomia=1;
 	int flagon;
 	long long ind_size;
 	long long *indpix;
-
-	samples_struct.ntotscan=0; // total number of scans
-	det.ndet=0; // number of channels
-
 
 	// map making parameters
 
