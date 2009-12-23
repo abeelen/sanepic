@@ -8,6 +8,7 @@
 #include "tools.h"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <cmath>
@@ -308,8 +309,8 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 	read_time_from_fits(fname, time, ns);
 	for(long jj=0;jj<ns;jj++){
-//		cout << time[jj] << endl;
-//		getchar();
+		//		cout << time[jj] << endl;
+		//		getchar();
 		if(isnan(time[jj])){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
 			exit(0);
@@ -439,4 +440,38 @@ int check_flag(string fname,struct detectors det,long ns, string outname){
 	fclose(fp);
 
 	return 0;
+}
+
+
+void check_time_gaps(string fname,long ns){
+
+
+	double *time;
+	double sum=0.0, mean=0.0, std=0.0, three_times_sigma=0.0;
+
+
+	read_time_from_fits(fname, time, ns);
+	for(long jj=0;jj<ns;jj++){
+		sum+=time[jj];
+	}
+	mean = sum/ns;
+//	cout << "mean :" << mean << endl;
+
+	for(long jj=0;jj<ns;jj++)
+		std+=(time[jj]-mean)*(time[jj]-mean);
+
+	std=sqrt(std/ns);
+//	cout << "std :" << std << endl;
+
+	three_times_sigma=std*3;
+
+	for(long jj=0;jj<ns-1;jj++){
+		if((time[jj+1]-time[jj])>three_times_sigma)
+			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << setprecision(8) << (time[jj+1]-time[jj]) << endl;
+	}
+
+
+	delete [] time;
+
+
 }

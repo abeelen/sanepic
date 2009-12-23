@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 //		cout << "after hdu\n";
 		check_NaN(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
 //		cout << "after nan\n";
-
+		check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii]);
 		temp = samples_struct.fitsvect[ii];
 		found=temp.find_last_of('/');
 		outname = dir.outdir + temp.substr(found+1) + "_bolos_flag.txt";
