@@ -232,6 +232,8 @@ void check_NaN(string fname,long ns,struct detectors det){
 	double *signal;
 	short *flag;
 	double *ra;
+	double *dec,*phi;
+	double **offsets;
 
 	//	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 	//		fits_report_error(stderr, status);
@@ -245,23 +247,53 @@ void check_NaN(string fname,long ns,struct detectors det){
 	//	}
 
 	for(int ii=0;ii<det.ndet;ii++){
-		read_ra_from_fits(fname , det.boloname[ii], ra, ns_test);
-		for(long jj=0;jj<ns_test;jj++)
+		read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test);
+		//		read_ra_from_fits(fname , det.boloname[ii], ra, ns_test);
+		for(long jj=0;jj<ns_test;jj++){
 			if(ra[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 				exit(0);
 			}
+			if(isnan(ra[jj])){
+				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+			if(dec[jj]==NAN){
+				cout << "Warning ! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+			if(isnan(dec[jj])){
+				cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+			if(phi[jj]==NAN){
+				cout << "Warning ! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+			if(isnan(phi[jj])){
+				cout << "Warning <! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+		}
+
 		delete [] ra;
+		delete [] dec;
+		delete [] phi;
 	}
 
 
 	//check nans in offsets
 
-	//	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){
-	//		fits_report_error(stderr, status);
-	//		cout << "\"offsets\" was not found, or his Type should be Binary table" << endl;
-	//		exit(0);
-	//	}
+	read_all_bolo_offsets_from_fits(fname, det.boloname, offsets);
+
+	for(int ii=0;ii<det.ndet;ii++)
+		if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){
+			cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
+			exit(0);
+		}
+
+
+	free_dmatrix(offsets,(long)0,det.ndet-1,(long)0,2-1);
 
 	//check nans in channels
 
@@ -285,11 +317,16 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 	for(int ii=0;ii<det.ndet;ii++){
 		read_signal_from_fits(fname, det.boloname[ii], signal,ns_test);
-		for(long jj=0;jj<ns_test;jj++)
+		for(long jj=0;jj<ns_test;jj++){
 			if(signal[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 				exit(0);
 			}
+			if(isnan(signal[jj])){
+				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				exit(0);
+			}
+		}
 		delete [] signal;
 	}
 
@@ -303,6 +340,10 @@ void check_NaN(string fname,long ns,struct detectors det){
 		for(int kk=0;kk<ns;kk++){
 			if(flag[kk]==NAN){
 				cout << "Warning ! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
+				exit(0);
+			}
+			if(isnan(flag[kk])){
+				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
 				exit(0);
 			}
 		}
