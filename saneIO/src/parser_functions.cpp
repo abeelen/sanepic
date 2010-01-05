@@ -73,7 +73,7 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 
 	string str;
 
-	if(read_parser_string(ini, "commons:data_directory", rank, str))
+	if(read_parser_string(ini, "commons:output_dir", rank, str))
 		return 1;
 
 	// TODO: Do we really want this ??
