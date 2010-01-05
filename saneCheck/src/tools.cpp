@@ -237,16 +237,6 @@ void check_NaN(string fname,long ns,struct detectors det){
 	double **offsets;
 	double *time;
 
-	//	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
-	//		fits_report_error(stderr, status);
-
-	//check nans in ref position
-
-	//	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
-	//		fits_report_error(stderr, status);
-	//		cout << "\"reference position\" was not found, or his Type should be Binary table" << endl;
-	//		exit(0);
-	//	}
 
 	for(int ii=0;ii<det.ndet;ii++){
 		read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test);
@@ -365,7 +355,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 }
 
-int check_flag(string fname,struct detectors det,long ns, string outname){
+int check_flag(string fname,struct detectors det,long ns, string outname,std::vector<std::string> &bolos_global,std::vector<std::string> &bolos_global_80){
 
 	short *flag;
 	short sum=0;
@@ -375,6 +365,9 @@ int check_flag(string fname,struct detectors det,long ns, string outname){
 	long ii=1;
 	long tt=0;
 	long rr=0;
+	//	long bolo_count=0,bolo_count_80=0;
+	//	std::vector<std::string> bolo_bad;
+	//	std::vector<std::string> bolo_bad_80;
 
 
 	fp=fopen(outname.c_str(),"w");
@@ -389,12 +382,6 @@ int check_flag(string fname,struct detectors det,long ns, string outname){
 		sum=0;
 		//		cout << "jj : " << jj << endl;
 		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
-		//		cout << "ns " << ns << endl;
-		//		cout << flag[0] << " " << flag[1] << " " << flag[2] << " " << flag[3] << endl;
-		//		for(int kk=0;kk<ns;kk++){
-		//			if(flag[kk]==NAN)
-		//				cout << "Warning ! there is a NaN in the flag field of " << det.boloname[jj] << endl;
-		//		}
 
 		while(ii<ns-1){
 
@@ -424,10 +411,12 @@ int check_flag(string fname,struct detectors det,long ns, string outname){
 		if(sum==ns){
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
 			fprintf(fp, "%s\n", (char*)(det.boloname[jj].c_str()));
+			bolos_global.push_back(det.boloname[jj]);
 		}else{
-			if(sum>80*ns/100)
+			if(sum>80*ns/100){
 				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
-			else if(sum>50*ns/100)
+				bolos_global_80.push_back(det.boloname[jj]);
+			}else if(sum>50*ns/100)
 				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
 		}
 
@@ -446,32 +435,69 @@ int check_flag(string fname,struct detectors det,long ns, string outname){
 void check_time_gaps(string fname,long ns){
 
 
-	double *time;
+	double *time,*diff;
 	double sum=0.0, mean=0.0, std=0.0, three_times_sigma=0.0;
 
 
 	read_time_from_fits(fname, time, ns);
-	for(long jj=0;jj<ns;jj++){
-		sum+=time[jj];
-	}
-	mean = sum/ns;
-//	cout << "mean :" << mean << endl;
-
-	for(long jj=0;jj<ns;jj++)
-		std+=(time[jj]-mean)*(time[jj]-mean);
-
-	std=sqrt(std/ns);
-//	cout << "std :" << std << endl;
-
-	three_times_sigma=std*3;
+	diff = new double [ns-1];
 
 	for(long jj=0;jj<ns-1;jj++){
-		if((time[jj+1]-time[jj])>three_times_sigma)
-			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << setprecision(8) << (time[jj+1]-time[jj]) << endl;
+		diff[jj]=(time[jj+1]-time[jj]);
+		sum+=diff[jj];
+
+	}
+	mean = sum/(ns-1);
+	cout << "mean :" << fixed << setprecision(15) <<  mean << endl;
+
+	for(long jj=0;jj<ns-1;jj++)
+		std+=(diff[jj]-mean)*(diff[jj]-mean);
+
+	std=sqrt(std/(ns-1));
+	cout << "sigma :" << fixed << setprecision(15) <<  std << endl;
+
+	three_times_sigma=std*3;
+	cout << "3 * sigma :" << fixed << setprecision(15) << three_times_sigma << endl << endl  << endl;
+
+
+	for(long jj=0;jj<ns-1;jj++){
+		//		if((jj>14800)&&(jj<14900))
+		//			cout << fixed << setprecision(15) << diff[jj] << endl;
+		if((diff[jj])>three_times_sigma)
+			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << fixed <<  setprecision(8) << (time[jj+1]-time[jj]) << endl;
 	}
 
-
+	//	getchar();
 	delete [] time;
 
 
 }
+
+
+void log_gen(std::vector<string> &bolo_, string outname){
+
+
+	FILE *fp;
+
+	struct sortclass_string sortobject;
+	sort(bolo_.begin(), bolo_.end(), sortobject);
+
+	std::vector<string>::iterator it;
+	std::vector<string>::iterator it2;
+
+	// using default comparison:
+	it2 = unique(bolo_.begin(), bolo_.end());
+
+	if ((it2-bolo_.begin())>0){
+
+		fp=fopen(outname.c_str(),"w");
+
+		for (it=bolo_.begin(); it != it2; it++) {
+			fprintf(fp, "%s\n", (char*)((*it).c_str()));
+		}
+
+		fclose(fp);
+	}
+
+}
+

@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	parsed=parse_saneCheck_ini_file(argv[1],dir,
 			det, samples_struct, rank);
 
-//	outname = dir.outdir;
+	//	outname = dir.outdir;
 
 	//cout << samples_struct.fitsvect.size() << endl;
 
@@ -56,21 +56,33 @@ int main(int argc, char *argv[]) {
 
 	//	cout << "ntotscan : " << samples_struct.ntotscan;
 
-
+	std::vector<std::string> bolo_bad;
+	std::vector<std::string> bolo_bad_80;
 
 	for(int ii=0;ii<samples_struct.ntotscan;ii++){
 
+		cout << endl << endl << "Checking : " << samples_struct.fitsvect[ii] << endl;
+
 		check_hdu(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
-//		cout << "after hdu\n";
 		check_NaN(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
-//		cout << "after nan\n";
 		check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii]);
+
 		temp = samples_struct.fitsvect[ii];
 		found=temp.find_last_of('/');
 		outname = dir.outdir + temp.substr(found+1) + "_bolos_flag.txt";
 		cout << outname << endl;
-		checked=check_flag(samples_struct.fitsvect[ii],det, samples_struct.nsamples[ii],outname);
+
+		checked=check_flag(samples_struct.fitsvect[ii],det, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
 	}
+
+
+
+	// generating log files :
+	outname = dir.outdir + "bolo_totally_flagged.txt";
+	log_gen(bolo_bad,outname);
+
+	outname = dir.outdir + "bolo_80_percent_flagged.txt";
+	log_gen(bolo_bad_80,outname);
 
 
 	//cleaning
