@@ -36,7 +36,7 @@ using namespace std;
 		long &ntotscan, long &ndet,
 		std::vector<string> &bolonames, long *&nsamples,
 		std::vector<struct box> &boxFile, std::vector<string> &fitsvect, std::vector<long> &scans_index)*/
-int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions pos_param, struct directories &dir,
+int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, struct directories &dir,
 		struct detectors &det,struct samples &samples_struct,
 		int rank)
 {
@@ -50,6 +50,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
+
 
 
 	// default values :

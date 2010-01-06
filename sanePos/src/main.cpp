@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
 	struct detectors det;
 
 
-
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
@@ -277,12 +276,12 @@ int main(int argc, char *argv[])
 
 		//TODO : Should not be needed ! computeMapMinima should skip the loop
 		if(iframe_min!=iframe_max)
-//			computeMapMinima_HIPE(det.boloname,samples_struct,
-//					iframe_min,iframe_max,pos_param.pixdeg,
-//					ra_min,ra_max,dec_min,dec_max);
-			computeMapMinima(det.boloname,samples_struct,
-					iframe_min,iframe_max,pos_param.pixdeg,
+			computeMapMinima_HIPE(det.boloname,samples_struct,
+					iframe_min,iframe_max,
 					ra_min,ra_max,dec_min,dec_max);
+//			computeMapMinima(det.boloname,samples_struct,
+//					iframe_min,iframe_max,
+//					ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
 
@@ -315,6 +314,7 @@ int main(int argc, char *argv[])
 			printf("[%2.2i] ra  = [ %7.3f, %7.3f ] \n",rank, gra_min, gra_max );
 			printf("[%2.2i] dec = [ %7.3f, %7.3f ] \n",rank, gdec_min, gdec_max);
 		}
+
 
 		computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
@@ -390,8 +390,7 @@ int main(int argc, char *argv[])
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Compute Pixels Indices\n",rank);
 
-
-	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+	computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
 			proc_param, pos_param, iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
 			mask,factdupl,
@@ -440,7 +439,7 @@ int main(int argc, char *argv[])
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	if(rank==0){
 		printf("[%2.2i] Total number of detectors : %d\t Total number of Scans : %d \n",rank,(int)det.ndet, (int) samples_struct.ntotscan);
-		printf("[%2.2i] Size of the map : %ld x %ld (using %lld pixels)\n",rank, NAXIS1, NAXIS2, sky_size);
+		printf("[%2.2i] Size of the map : %ld x %ld (using %lld pixels from which %lld are masked pixels)\n",rank, NAXIS1, NAXIS2, sky_size,addnpix);
 		printf("[%2.2i] Total Number of filled pixels : %lld\n",rank, npix);
 	}
 

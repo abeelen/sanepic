@@ -10,6 +10,7 @@
 #include <cstdio> // for printf
 
 #include "sanePos_map_making.h"
+#include "imageIO.h"
 #include "dataIO.h"
 
 extern "C" {
@@ -26,7 +27,7 @@ using namespace std;
 //		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 
 void computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
-		long iframe_min, long iframe_max, double pixdeg,
+		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 {
 
@@ -191,7 +192,7 @@ int minmax_flag(double  *& array, short *& flag, long size, double & min_array, 
 }
 
 void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_struct,
-		long iframe_min, long iframe_max, double pixdeg,
+		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
@@ -214,7 +215,6 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
-
 
 		long ns = samples_struct.nsamples[iframe];
 
@@ -242,10 +242,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
-			//
-			//			for (int ii=0; ii<50; ii++)
-			//				cout << ii << " " << ra[ii] << " " << flag[ii] <<endl;
-			//			exit(0);
+
 
 
 			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
@@ -254,7 +251,6 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
 
 			} else {
-
 				if (ra_max < lra_max)    ra_max = lra_max;
 				if (ra_min > lra_min)    ra_min = lra_min;
 				if (dec_max < ldec_max) dec_max = ldec_max;
@@ -287,7 +283,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 
 
 void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coordscorner,
-		struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2){
+		struct wcsprm * &wcs, long &NAXIS1, long &NAXIS2){
 
 	int NAXIS = 2; // image
 	int wcsstatus;
@@ -301,9 +297,12 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	double ra_mean  = (ra_max+ra_min)/2.0;      // RA in deg
 	double dec_mean = (dec_max+dec_min)/2.0;
 
+
 	// Construct the wcsprm structure
+	wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
 	wcs->flag = -1;
 	wcsini(1, NAXIS, wcs);
+
 
 	// Pixel size in deg
 	for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;

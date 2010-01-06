@@ -178,6 +178,8 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 			for (long ii=0; ii<ns; ii++){
 
+				// TODO : Update this to read the flag corresponding to the channel...
+//				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
 				if (flag[ii] == 1) bolo_flag[ii] = 1;
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
