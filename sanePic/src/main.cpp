@@ -1,12 +1,3 @@
-/*
- * sanepic_Main_Loop.cpp
- *
- *  Created on: 29 mai 2009
- *      Author: matthieu
- */
-
-
-
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -904,7 +895,14 @@ int main(int argc, char *argv[])
 									}
 								}
 							}
-
+							// replace the non observed pixels by NAN
+							for (long ii=0; ii<NAXIS1; ii++) {
+								for (long jj=0; jj<NAXIS2; jj++) {
+									mi = jj*NAXIS1 + ii;
+									if (map1d[mi] == 0.0)
+										map1d[mi] = NAN;
+								}
+							}
 
 							temp_stream << "!" + dir.outdir + "optimMap_fluxuncpix_" << iter << "b.fits";
 
@@ -996,6 +994,8 @@ int main(int argc, char *argv[])
 	#endif
 			}
 
+
+
 		}// end of idupl loop
 
 
@@ -1073,6 +1073,9 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] PNdtot;
 
+	//delete [] frames_index;
+
+	//	wcsfree(wcs);
 	wcsvfree(&nwcs, &wcs);
 
 
