@@ -6,7 +6,7 @@
  */
 
 #include "parseInv.h"
-
+#include "inputFileIO.h"
 
 //#include <tchar.h>
 //#include <windows.h>
@@ -20,7 +20,6 @@ extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
 }
-
 
 using namespace std;
 
@@ -105,36 +104,4 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &sample
 	return 0;
 }
 
-
-std::string		Basename(std::string path)
-//std::string		Basename(char* path)
-{
-//	std::string		Result;
-
-
-
-	char * pch=NULL;
-	char * temp=NULL;
-	string basename;
-//	string temp_str=path;
-//	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
-	pch = strtok ((char*)path.c_str(),"/.");
-	while (pch != NULL)
-	{
-		if (strcmp (pch,(char*)"fits") == 0)
-			break;
-		temp=pch;
-//		printf ("%s\n",temp);
-		pch = strtok (NULL, "/.");
-
-	}
-//	cout << "result : " << temp << endl;
-	basename = (string)temp;
-//	cout << basename << endl;
-//		getchar();
-	//	Result = fname;
-	//	Result += ext;
-	return basename;
-
-}
 

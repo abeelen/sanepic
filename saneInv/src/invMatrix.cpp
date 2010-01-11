@@ -13,15 +13,8 @@ extern "C" {
 using namespace std;
 
 void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
-		std::vector<string> listOut, double ***MatrixOut/*,double **mixmatOrig, int ncomp, double **&mixmat*/)
+		std::vector<string> listOut, double ***MatrixOut)
 
-/*
- * Take a subsample of MatrixIn[ndet^2,nbins] by matching listIn & listOut
- * ouput MatrixOut[ndet,ndet*nbins]
- *  &
- *  Take a subsample of Mixing_matrix[ndet,ncomp] by matching listIn & listOut
- * ouput Mixmat[ndet,ncomp]
- */
 {
 	std::vector<int> indexIn; /*! Used to match input and output channels */
 	long ndetIn = listIn.size(); /*! Input number of channels*/
@@ -66,14 +59,6 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 			}
 		}
 	}
-	/*
-	// memory allocation
-	mixmat=dmatrix(0,ndetOut - 1, 0, ncomp-1);
-
-	// match input and output channels in the mixing matrix
-	for(long ii=0; ii < ndetOut;ii++)
-		for(int jj=0; jj < ncomp; jj++)
-			mixmat[ii][jj]=mixmatOrig[indexIn[ii]][jj];*/
 }
 
 

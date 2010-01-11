@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 	string fname2;
 	//	char* fname_temp;
 	string boloname;/*! channels list file */
-	string extname = "-all_InvNoisePS";
+	string extname = "_InvNoisePS";
 
 	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
 	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 		fname="";
 		fname+=(string)samples_struct.noisevect[ii];
 //		cout << fname << endl;
-		base_name=Basename(fname);
+		base_name=FitsBasename(fname);
 		cout << base_name << endl;
 
 		fname2=(string)samples_struct.noisevect[ii];
@@ -139,9 +139,6 @@ int main(int argc, char *argv[]) {
 //		cout << dir.tmp_dir + base_name + extname << endl;
 		// write inversed noisePS in a binary file for each detector
 		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
-
-		// write Reduced mixing matrix in a binary file
-		//write_ReducedMixingMatrix(mixmat,ndet,ncomp,noiseSp_dir_output);
 
 	}
 
