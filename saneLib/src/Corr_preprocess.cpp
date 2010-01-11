@@ -14,6 +14,7 @@
 #include "covMatrixIO.h"
 #include "dataIO.h"
 #include "inline_IO2.h"
+#include "inputFileIO.h"
 #include "todprocess.h"
 #include "map_making.h"
 #include "struct_definition.h"
@@ -28,6 +29,9 @@
 
 using namespace std;
 
+#ifdef PARA_BOLO
+#define USE_MPI
+#endif
 
 //void write_tfAS(double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 //		bool flgdupl, string dir, long ns, long ndet, long iframe, std::vector<string> bolonames)
@@ -296,7 +300,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		//		double f_lppix, double fsamp, long ns, long ndet,
 		//		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		//		double *Mp, long *hits)
-		void do_PtNd(double *PNd, string *extentnoiseSp_all, string dir, string prefixe,
+		void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 				struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 				long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 				double *Mp, long *hits)
@@ -367,12 +371,13 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 
 					//**************************************** Noise power spectrum
-					extentNoiseSp = extentnoiseSp_all[iframe];
-					nameSpfile = dir + field1 + "-all" + extentNoiseSp;
+					string extname = "_InvNoisePS";
+					//string suffix = Basename(noise_table[iframe]) + extname;
+					string suffix = FitsBasename(noise_table[iframe]) + extname;
 
 					//read noise PS file
 					long ndet2;
-					read_InvNoisePowerSpectra(dir, field1,  extentNoiseSp, &nbins, &ndet2, &ell, &SpN_all);
+					read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all);
 					if(det.ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 					SpN = new double[nbins];
