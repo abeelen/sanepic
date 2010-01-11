@@ -56,39 +56,20 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 
 
 	/* Get sanepic_preprocess attributes */
-	printf("\nSanepic Noise Estimation Procedure:\n");
+	if(rank==0)
+		printf("\nSanepic Noise Estimation Procedure:\n");
 
 
-	if(read_directories(ini, dir, rank)==-1)
-		return -1;
-
-	if(read_param_process(ini, proc_param, rank)==-1)
-		return -1;
-
-	if(read_channel_list(ini,det.boloname, rank)==-1)
-		return -1;
-
-	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
-		return -1;
-
-	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
-		return -1;*/
-
-	if(read_ell_file(ini, ellFile, rank)==-1)
-		return -1;
-
-
-	if(read_map_file(ini, signame, rank)==-1)
-		return -1;
-
-	if(read_mixmatfile(ini, MixMatfile, rank)==-1)
-		return -1;
-
-	if(read_ncomp(ini, ncomp, rank)==-1)
-		return -1;
-
-	if(read_fcut(ini, fcut, rank)==-1)
-		return -1;
+	if( read_directories(ini, dir, rank) ||
+			read_param_process(ini, proc_param, rank) ||
+			read_channel_list(ini,det.boloname, rank) ||
+			read_fits_file_list(ini, dir,samples_struct, rank) ||
+			read_ell_file(ini, ellFile, rank) ||
+			read_map_file(ini, signame, rank) ||
+			read_mixmatfile(ini, MixMatfile, rank)||
+			read_ncomp(ini, ncomp, rank) ||
+			read_fcut(ini, fcut, rank) )
+		exit(1);
 
 	if(rank==0){
 		printf("\nsanePS parser operations completed :\n");
@@ -104,8 +85,8 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 	det.ndet = det.boloname.size();	// ndet = number of detectors
 
 	// Check improper usage
-	if (det.ndet== 0) {
-		cerr << "Must provide at least one channel.\n\n";
+	if (det.ndet < 2) {
+		cerr << "Must provide at least two channels.\n\n";
 		return -1;
 		//usage(argv[0]);
 	}

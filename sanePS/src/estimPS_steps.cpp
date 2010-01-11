@@ -90,7 +90,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	double sign0=1;
 	double **commonm;
 
-//	long ns2;
+	//	long ns2;
 	short *flag;
 
 	fftw_plan fftplan;
@@ -109,7 +109,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	if(pos_param.flgdupl==1) factdupl = 2;
 
 
-//	data = new double[ns]; // raw data
+	//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // prewhitened noise ?
 	samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -136,8 +136,6 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
-	// test
-//	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 
 	// loop over detectors
 	for (long idet=0;idet<det.ndet;idet++){
@@ -162,8 +160,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 		//TODO: subtract the signal only if needed
 
-		if (S != NULL){
-
+		if (!S){
 			//******************************* subtract signal
 			//TODO: samptopix should then NOT be in the calling of the function,
 			//      only need in deproject
@@ -224,9 +221,6 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 		delete [] flag; // ajout mat 26/11
 
 	}
-
-	//test
-//	fftw_destroy_plan(fftplan);
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -325,7 +319,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 	string testfile;
 	std::ostringstream temp_stream; // used to remove sprintf horror
 	FILE *fp;
-//	long ns2;
+	//	long ns2;
 
 	short *flag;
 
@@ -339,7 +333,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 	if(pos_param.flgdupl==1) factdupl = 2;
 
 
-//	data = new double[ns]; // raw data
+	//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // prewhitened noise ?
 	samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -386,16 +380,16 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 		//       reuse the fdata if possible?
 		//******************************* subtract signal
 
-		//Read pointing data
-		read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe,det.boloname);
+		if (!S){
+			//Read pointing data
+			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe,det.boloname);
 
+			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
-		deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
+			for(long ii=0;ii<ns;ii++)
+				data[ii] = data[ii] - Ps[ii];
 
-		for(long ii=0;ii<ns;ii++)
-			data[ii] = data[ii] - Ps[ii];
-
-
+		}
 
 
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
@@ -1381,6 +1375,8 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
+		//sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
+
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
 
 		// récupérer une chaîne de caractères
@@ -1388,9 +1384,12 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		temp_stream.str("");
 
 		fp = fopen(nameSpfile.c_str(),"w");
+		//fprintf(fp,"%d\n",nbins);
 		for (long ii=0;ii<nbins;ii++){
+			//fprintf(fp,"%g\t",ell[ii]);
 			fprintf(fp,"%10.15g\n",P[jj][ii]*SPref[ii]);
 		}
+		//fprintf(fp,"%g\n",ell[nbins]);
 		fprintf(fp,"\n");
 		fclose(fp);
 	}

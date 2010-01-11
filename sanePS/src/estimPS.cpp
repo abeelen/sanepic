@@ -35,12 +35,6 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 {
 
 
-
-	//double fcut = 12; //fixed here to be sure that the code will not focus on high freq
-	//long ncomp = 1;
-	//long ncomp2 = 0;
-
-	//TODO : read nbins/ell in the ini file, not even in the fits file
 	long nbins = 500;
 	long nbins2; // readed bins in mixmatfile
 	double factapod= 0.0;
@@ -141,8 +135,6 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 	common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
 			mixmat, ncomp, commonm2, factapod, fits_filename);
 
-	cout << "after common\n";
-	getchar();
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
 	estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, ff, NAXIS1,

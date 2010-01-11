@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
 	// main loop variables
 	double *S;
 
+
 	long ncomp;
 	double fcut;
 
@@ -136,21 +137,14 @@ int main(int argc, char *argv[])
 	samples_struct.index_table= new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
-	cout << samples_struct.nsamples[0] << endl;
-
-
-
-	// TODO : Should not be here
-	// TODO : Ugly fix... remove this for the moment
-	read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
-
-	S = new double[npix];
-
-
-
 	//First time run S=0, after sanepic, S = Pure signal
 	if(signame != "NOSIGFILE"){
 		// if second launch of estimPS, read S and nn in the previously generated fits map
+		cout << "Reading maps ??" << endl;
+		S = new double[npix];
+
+		// read pixel indexes
+		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
 
 		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
 		FILE * fp;
@@ -160,21 +154,10 @@ int main(int argc, char *argv[])
 
 		fclose(fp);
 
-		cout << setprecision(10) << S[0] << endl;
-		cout <<  setprecision(10) << S[1] << endl;
-	}else{
+		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
-		// TODO : Should change to use the wcs structure
-
-		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
-
-
-		for(long ii=0;ii<npix;ii++)
-			S[ii]=0.0;
 	}
 
-
-	cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 #ifdef USE_MPI
 
@@ -379,13 +362,6 @@ int main(int argc, char *argv[])
 		ff = iframe;
 		extentnoiseSp = samples_struct.noise_table[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
-
-		cout << ff ;
-		cout << " " ;
-		cout << ns ;
-		cout << " " ;
-		cout << extentnoiseSp ;
-		cout << endl;
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
