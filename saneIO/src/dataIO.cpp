@@ -49,7 +49,6 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ndet_total, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
-		cout << "naxis\n";
 		exit(0);
 	}
 
@@ -57,10 +56,10 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	temp_dx = new double[ndet_total];
 	temp_dy = new double[ndet_total];
 
-	fits_get_colnum(fptr, CASEINSEN, (char *) "DX", &colnum, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char *) "dX", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dx, 0, &status);
 
-	fits_get_colnum(fptr, CASEINSEN, (char *) "DY", &colnum, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char *) "dY", &colnum, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dy, 0, &status);
 
 	// match read offsets with requested offsets
@@ -140,7 +139,6 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	RA   = new double[ns];
 	DEC  = new double[ns];
 	PHI  = new double[ns];
-	//	FLAG = new short[ns];
 
 	// Read RA
 	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
@@ -162,15 +160,6 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
-	// Read FLAG
-	//	fits_get_colnum(fptr, CASEINSEN, (char*) "FLAG", &colnum, &status);
-	//	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	//	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
-
-	//	// check for bad values
-	//	for (long ii = 0; ii<ns; ii++)
-	//		if (isnan(RA[ii]) || isnan(DEC[ii]))
-	//			FLAG[ii] = 1;
 
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);

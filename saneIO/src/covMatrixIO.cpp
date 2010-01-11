@@ -144,13 +144,11 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel list", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", NULL, &status))
 		fits_report_error(stderr, status);
-		exit(0);
-	}
+
 
 
 	fits_get_num_rows(fptr, &nBolos, &status);
@@ -177,11 +175,8 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 
 	// ---------------------------------------------
 	// read the Ell
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Frequency", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Frequency", NULL, &status))
 		fits_report_error(stderr, status);
-		cout << "freq" << endl;
-		exit(0);
-	}
 
 	fits_get_img_size(fptr, 1, naxes, &status);
 	nbins = naxes[0] - 1;
@@ -190,16 +185,12 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 
 	// ---------------------------------------------
 	// read the spectras
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", NULL, &status))
 		fits_report_error(stderr, status);
-		exit(0);
-	}
 
 	fits_get_img_size(fptr, 2, naxes, &status);
-	if (naxes[1] != nBolos*nBolos || naxes[0] != nbins){
+	if (naxes[1] != nBolos*nBolos || naxes[0] != nbins)
 		fits_report_error(stderr,213);
-		exit(0);
-	}
 
 	Rellth = dmatrix(0, nBolos * nBolos - 1, 0, nbins - 1);
 
@@ -208,10 +199,8 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 		fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, (Rellth)[i], NULL, &status);
 	}
 
-	if (fits_close_file(fptr, &status)){
+	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
-		exit(0);
-	}
 
 }
 
@@ -387,7 +376,6 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 
 		// open file
 		filename = outputDir + bolos[idet] + "_" + suffix;
-//		cout << filename << endl;
 		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
 			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
 			exit(1);
@@ -419,7 +407,7 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	FILE *fp;
 	size_t result;
 
-	filename = outputDir + boloName + "-all_Inv" + suffix;
+	filename = outputDir + boloName + "_" + suffix;
 	//	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename

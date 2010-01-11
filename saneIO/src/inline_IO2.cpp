@@ -239,7 +239,7 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 		result = fread(PNdtot,sizeof(double),npix,fp);
 		fclose(fp);
 	}else{
-		cerr << "Error. Unable to find file : " << testfile2 << endl;
+		cerr << "Error. Unable to read file : " << testfile2 << endl;
 		exit(0);
 	}
 
@@ -264,7 +264,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not open " << testfile << endl;
+		cerr << "ERROR : Could not write " << testfile << endl;
 		exit(0);
 	}
 
@@ -309,7 +309,7 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"r"))!=NULL){
-		fread(&data_size,sizeof(long),1,fp);
+		result = fread(&data_size,sizeof(long),1,fp);
 		if (data_size!=(ns/2+1)*2){
 			cerr << "Error. fdata size does not correspond to expected size : " << data_size << " != " << (ns/2+1)*2 << endl;
 			fclose(fp);

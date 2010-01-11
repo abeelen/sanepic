@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 #include "inputFileIO.h"
 
@@ -69,3 +70,67 @@ void read_double(string fname, double *& array, long & size){
 	for (long ii=0; ii< size; ii++)
 		array[ii] = temp[ii];
 }
+
+
+std::string		Basename(std::string path)
+//std::string		Basename(char* path)
+{
+	//	std::string		Result;
+
+	cout << "starts with :" << path << ":" << endl;
+
+
+	char * pch=NULL;
+	char * temp=NULL;
+	//	char * tmp=NULL;
+	string basename;
+	//	strcpy(path.c_str(),tmp);
+	//	string temp_str=path;
+	//	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
+	pch = strtok ((char *) path.c_str(),"/.");
+	while (pch != NULL)
+	{
+		if (strcmp (pch,(char*)"fits") == 0)
+			break;
+		temp=pch;
+		//		printf ("%s\n",temp);
+		pch = strtok (NULL, "/.");
+
+	}
+
+	//	cout << "result : " << temp << endl;
+	basename = (string)temp;
+	cout << "result :" << basename << ":" << endl;
+	//		getchar();
+	//	Result = fname;
+	//	Result += ext;
+	return basename;
+
+}
+
+std::string FitsBasename(std::string path)
+{
+//	cout << "FitsBasename starts with :" << path << ":" << endl;
+
+	size_t found;
+	string filename;
+
+	// Strip the path and get the filename
+	// Find the last " directory separator
+	found = path.find_last_of("/\\");
+
+	if (found != string::npos)
+		filename = 	path.substr(found+1);
+	else
+		filename = path;
+
+	// Strip the file extension (whatever is after the last ".fits"
+
+	found = filename.find_last_of(".fits");
+	if (found != string::npos)
+			filename = 	filename.substr(0,found-4);
+
+//	cout << "FitsBasename ends with :" << filename << ":" << endl;
+	return filename;
+}
+

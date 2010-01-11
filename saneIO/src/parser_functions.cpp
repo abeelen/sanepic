@@ -29,8 +29,6 @@ int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 	if(read_parser_string(ini, "commons:data_directory", rank, str))
 		return 1;
 
-	cout << str << endl;
-
 	if (str[str.length()-1] != '/')
 		str = str + '/';
 	dir.dirfile = str;
@@ -87,7 +85,6 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 	if (str[str.length()-1] != '/')
 		str = str + '/';
 	dir.outdir=str;
-
 	return 0;
 }
 
@@ -115,6 +112,7 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	if(read_parser_string(ini, "commons:fits_filelist", rank, str))
 		return 1;
+
 
 	samples_str.filename=str;
 
@@ -296,10 +294,8 @@ int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", 1);
-	//if(b!=1){
-	//printf("correlation:    [%d]\n", b);
 	proc_param.CORRon=b;
-	//}//CORRon = True
+
 
 	return 0;
 }
@@ -385,10 +381,12 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 
 	string str;
-	if (read_parser_string(ini,"sanepic_estim_PS:noise_estim", rank,str))
-		return 1;
+	if (read_parser_string(ini,"sanepic_estim_PS:noise_estim", rank,str)){
+		MixMatfile = "NOFILE";
+	}else{
+		MixMatfile = str;
+	}
 
-	MixMatfile=str;
 	return 0;
 }
 
@@ -426,24 +424,28 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 		return 0;
 }
 
-int read_parser_string(dictionary	*ini, string line, int rank, string &str){
+int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 	char *s;
-
 	s = iniparser_getstring(ini, line.c_str(), NULL);
+
+	// Key is not present :
 	if(s==NULL){
 		if(rank==0)
 			cout <<"You must add a line in ini file specifying : " << line << endl;
 		return 1;
 	}
+	// Key is empy...
+	if (s[0] == '\0')
+		return 1;
+
 	str=(string)s;
 	return 0;
 }
 
 int read_directories(dictionary	*ini, struct directories &dir, int rank){
 
-
 	return read_dirfile(ini, dir, rank) || \
-	read_tmpdir(ini, dir, rank)  ||	\
+	read_tmpdir(ini, dir, rank)  || \
 	read_outdir(ini, dir, rank);
 
 }
@@ -455,6 +457,7 @@ int read_param_process(dictionary *ini,struct param_process &proc_param, int ran
 	read_sampling_frequency(ini, proc_param, rank)     || \
 	read_filter_frequency(ini, proc_param, rank)       || \
 	read_baseline(ini, proc_param, rank)               || \
+	read_correlation(ini,proc_param,rank)              ||\
 	read_remove_poly(ini, proc_param, rank);
 
 
@@ -469,6 +472,7 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 	if (read_parser_string(ini, "sanepic_compute_positions:pixsize", rank,str))
 		return 1;
 	pos_param.pixdeg=atof(str.c_str());
+
 	if(pos_param.pixdeg < 0 && rank==0){
 		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
 		return -1 ;
