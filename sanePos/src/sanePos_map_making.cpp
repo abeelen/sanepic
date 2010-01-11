@@ -10,7 +10,6 @@
 #include <cstdio> // for printf
 
 #include "sanePos_map_making.h"
-#include "imageIO.h"
 #include "dataIO.h"
 
 extern "C" {
@@ -37,6 +36,8 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	string fits_file;
 
 	long ndet = bolonames.size();
+	string field; // test
+	//	double *ra_off,*dec_off; // test
 
 
 	// Define default values
@@ -50,7 +51,6 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		fits_file=samples_struct.fits_table[iframe];
 
 		double *ra, *dec, *phi, **offsets;
-//		short *flpoint;
 
 		long ns = samples_struct.nsamples[iframe];
 
@@ -81,7 +81,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 		for (long ii=0; ii <ns; ii++){
 
-			celestial.ref[0] =  ra[ii]*15.;
+			celestial.ref[0] =  ra[ii]*15.0;
 			celestial.ref[1] =  dec[ii];
 			celset(&celestial);
 
@@ -98,8 +98,11 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 			for (long idet=0;idet<ndet;idet++){
 
+				field = bolonames[idet];
+
 				double sinphi = sin(phi[ii]/180.0*M_PI);
 				double cosphi = cos(phi[ii]/180.0*M_PI);
+
 
 				//TODO : check this -1 factor... just a stupid convention...
 				offxx[idet] = (cosphi * offsets[idet][0]
@@ -115,10 +118,16 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 				continue;
 			}
 
+//			for(int i=0;i<ndet;i++)
+//				if(status[i]>0)
+//					cout << ii <<  " " << ii << " " << status[i] << endl;
+
 			delete [] offxx;;
 			delete [] offyy;
 			delete [] lon;
 			delete [] lat;
+
+
 
 			// find coordinates min and max
 			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
@@ -127,11 +136,25 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
 
 
+			//			//test
+			//			double lra_max;
+			//			double lra_min;
+			//			double ldec_max;
+			//			double ldec_min;
+			//
+			//			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
+			//					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
+			//
+			//				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
+			//
+			//			} else {
+
+
 			if (ra_max < lra_max)    ra_max = lra_max;
 			if (ra_min > lra_min)    ra_min = lra_min;
 			if (dec_max < ldec_max) dec_max = ldec_max;
 			if (dec_min > ldec_min) dec_min = ldec_min;
-
+			//			}
 
 			delete [] ra_deg;
 			delete [] dec_deg;
@@ -144,22 +167,29 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		delete [] ra;
 		delete [] dec;
 		delete [] phi;
-//		delete [] flpoint;
+		//		delete [] flpoint;
 
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
 	//TODO : The interval has to be increased or some pixels will be outside the map... NOT UNDERSTOOD WHY...
 	// add a small interval of 1 arcmin
-	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
 	dec_min = dec_min - 6.0/60.0;
 	dec_max = dec_max + 6.0/60.0;
+	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+
+
+	/// add a small interval of 2 arcmin
+	//	  ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	//	  ra_max = ra_max + 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	//	  dec_min = dec_min - 2.0/60.0;
+	//	  dec_max = dec_max + 2.0/60.0;
 
 	ra_min  = ra_min/15; // in hour
 	ra_max  = ra_max/15;
-	dec_min = dec_min;
-	dec_max = dec_max;
+	//	dec_min = dec_min;
+	//	dec_max = dec_max;
 
 }
 
@@ -244,13 +274,13 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			}
 
 
-
 			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
 					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
 
 				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
 
 			} else {
+
 				if (ra_max < lra_max)    ra_max = lra_max;
 				if (ra_min > lra_min)    ra_min = lra_min;
 				if (dec_max < ldec_max) dec_max = ldec_max;
@@ -297,12 +327,10 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	double ra_mean  = (ra_max+ra_min)/2.0;      // RA in deg
 	double dec_mean = (dec_max+dec_min)/2.0;
 
-
 	// Construct the wcsprm structure
 	wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
 	wcs->flag = -1;
 	wcsini(1, NAXIS, wcs);
-
 
 	// Pixel size in deg
 	for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;

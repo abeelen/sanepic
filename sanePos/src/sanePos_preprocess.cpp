@@ -48,27 +48,32 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec, *phi, **offsets;
-		short *flag;
+		//		short *flag;
 
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
+		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
 		// read reference position
 		long test_ns;
 		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
+		//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
 			exit(-1);
 		}
 
-		read_flag_from_fits(fits_file, field, flag, test_ns);
-		if (test_ns != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
-		}
+		// had nothing to do here !
+		//		read_flag_from_fits(fits_file, field, flag, test_ns);
+		//		cout << "after read flag\n";
+		//
+		//		if (test_ns != ns) {
+		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+		//			exit(-1);
+		//		}
 
 
 		// find the pointing solution at each time stamp for each detector
@@ -114,8 +119,8 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			xx     = new long long[ns];
 			yy     = new long long[ns];
 			wcsstatus = new int[ns];
-			// First deproject the bolometer position ....
 
+			// First deproject the bolometer position ....
 			for (long ii=0; ii <ns; ii++){
 
 				celestial.ref[0] =  ra[ii]*15.;
@@ -176,11 +181,12 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			}
 
 
+
 			for (long ii=0; ii<ns; ii++){
 
 				// TODO : Update this to read the flag corresponding to the channel...
-//				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
-				if (flag[ii] == 1) bolo_flag[ii] = 1;
+				//				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
+				if (bolo_flag[ii] != 0) bolo_flag[ii] = 1;
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
@@ -227,6 +233,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
 					pixout = 1; 									// pixel is out of map
 					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, ii,xx[ii],yy[ii]);
+					getchar();
 					break;
 				case 3:												// apodized data -> flag
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
@@ -251,7 +258,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		}//end of idet loop
 		delete [] ra;
 		delete [] dec;
-		delete [] flag;
+		//		delete [] flag;
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 		delete [] cosphi;
 		delete [] sinphi;
