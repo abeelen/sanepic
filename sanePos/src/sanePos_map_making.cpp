@@ -36,7 +36,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	string fits_file;
 
 	long ndet = bolonames.size();
-	string field; // test
+	//	string field; // test
 	//	double *ra_off,*dec_off; // test
 
 
@@ -98,7 +98,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 			for (long idet=0;idet<ndet;idet++){
 
-				field = bolonames[idet];
+				//				field = bolonames[idet];
 
 				double sinphi = sin(phi[ii]/180.0*M_PI);
 				double cosphi = cos(phi[ii]/180.0*M_PI);
@@ -110,17 +110,23 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 				offyy[idet] =  sinphi * offsets[idet][0]
 				                                      + cosphi * offsets[idet][1];
 
+//				cout << offxx[idet] << " " << offyy[idet] << endl;
+
 			}
 
 
-			if (celx2s(&celestial, ndet, 1, 0, 1, offxx, offyy, lon, lat, ra_deg, dec_deg, status) == 1) {
+			if (celx2s(&celestial, ndet, 0, 1, 1, offxx, offyy, lon, lat, ra_deg, dec_deg, status) == 1) {
 				printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
 				continue;
 			}
 
 //			for(int i=0;i<ndet;i++)
-//				if(status[i]>0)
-//					cout << ii <<  " " << ii << " " << status[i] << endl;
+//				cout << lon[i] << " " << lat[i] << endl;
+
+
+			//			for(int i=0;i<ndet;i++)
+			//				if(status[i]>0)
+			//					cout << ii <<  " " << ii << " " << status[i] << endl;
 
 			delete [] offxx;;
 			delete [] offyy;
@@ -129,11 +135,24 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 
 
+//			for(int i=0;i<ndet;i++)
+//				cout << ra_deg[i] << endl;
+//			cout << endl;
+//
+//			for(int i=0;i<ndet;i++)
+//				cout << dec_deg[i] << endl;
+//			cout << endl;
 			// find coordinates min and max
 			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
 			double lra_min  = *min_element(ra_deg, ra_deg+ndet);
 			double ldec_max = *max_element(dec_deg, dec_deg+ndet);
 			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
+
+//			cout << lra_min << " " << lra_max << endl;
+//
+//			cout << ldec_min << " " << ldec_max << endl;
+//			getchar();
+
 
 
 			//			//test
@@ -174,11 +193,10 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 	//TODO : The interval has to be increased or some pixels will be outside the map... NOT UNDERSTOOD WHY...
 	// add a small interval of 1 arcmin
-	dec_min = dec_min - 6.0/60.0;
-	dec_max = dec_max + 6.0/60.0;
 	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
 	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-
+	dec_min = dec_min - 6.0/60.0;
+	dec_max = dec_max + 6.0/60.0;
 
 	/// add a small interval of 2 arcmin
 	//	  ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
@@ -188,8 +206,8 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 	ra_min  = ra_min/15; // in hour
 	ra_max  = ra_max/15;
-	//	dec_min = dec_min;
-	//	dec_max = dec_max;
+	dec_min = dec_min;
+	dec_max = dec_max;
 
 }
 
