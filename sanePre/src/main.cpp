@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	//	cout << size << endl;
 	//	cout << rank << endl;
-	cout << "rank " << rank << " size : " << size << endl;
+//	cout << "rank " << rank << " size : " << size << endl;
 
 	if(rank==0)
 		printf("\n sanepic_preprocess\n");
@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-	cout << "rank " << rank << " frame : " << iframe_min << " " << iframe_max << endl;
+//	cout << "rank " << rank << " frame : " << iframe_min << " " << iframe_max << endl;
 	//exit(0);
 
 	//At N-1 D memory allocation
@@ -449,7 +449,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	cout << "dedans\n";
 	if(rank==0){
 		PNdtot = new double[npix];
 		hitstot=new long[npix];
@@ -542,10 +541,10 @@ int main(int argc, char *argv[])
 			t3=time(NULL);
 
 			//debug : computation time
-			if(rank==0)
-				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
+//			if(rank==0)
+//				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
 #ifdef PARA_BOLO
-			//cout << "rank " << rank << " a fini et attend ! \n";
+//			cout << "rank " << rank << " a fini et attend ! \n";
 			MPI_Barrier(MPI_COMM_WORLD);
 #endif
 			// PNd = npix dimension, initialised to 0.0
