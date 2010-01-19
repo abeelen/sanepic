@@ -12,10 +12,15 @@
 #include "sanePos_map_making.h"
 #include "dataIO.h"
 
+
 extern "C" {
 #include "nrutil.h"
 #include <wcslib/cel.h>
 #include <wcslib/wcs.h>
+#include <wcslib/sph.h>
+#include <wcslib/wcsmath.h>
+#include <wcslib/wcstrig.h>
+#include <wcslib/prj.h>
 }
 
 using namespace std;
@@ -36,7 +41,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	string fits_file;
 
 	long ndet = bolonames.size();
-	//	string field; // test
+		string field; // test
 	//	double *ra_off,*dec_off; // test
 
 
@@ -58,9 +63,9 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
 
-		//		for (unsigned long idet = 0; idet < ndet; idet++){
-		//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
-		//		}
+//		for (long idet = 0; idet < ndet; idet++){
+//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
+//		}
 
 		// read reference position
 		long test_ns;
@@ -71,9 +76,9 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 			exit(-1);
 		}
 
-
 		// find the pointing solution at each time stamp for each detector
 		struct celprm celestial;
+		//		struct prjprm celestial;
 		celini(&celestial);
 
 		// TODO: use the PRJCODE read from the file...
@@ -83,9 +88,13 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 			celestial.ref[0] =  ra[ii]*15.0;
 			celestial.ref[1] =  dec[ii];
-			celset(&celestial);
+			//			celestial.ref[2] =  180.0;
+			//			celestial.ref[3] =  dec[ii];
+			if(celset(&celestial))
+				cout << "problem celset\n";
 
 			double * offxx, *offyy, *lon, *lat, *ra_deg, *dec_deg;
+
 			int * status;
 			offxx   = new double[ndet];
 			offyy   = new double[ndet];
@@ -98,19 +107,15 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 			for (long idet=0;idet<ndet;idet++){
 
-				//				field = bolonames[idet];
 
 				double sinphi = sin(phi[ii]/180.0*M_PI);
 				double cosphi = cos(phi[ii]/180.0*M_PI);
-
 
 				//TODO : check this -1 factor... just a stupid convention...
 				offxx[idet] = (cosphi * offsets[idet][0]
 				                                      - sinphi * offsets[idet][1])*-1;
 				offyy[idet] =  sinphi * offsets[idet][0]
 				                                      + cosphi * offsets[idet][1];
-
-//				cout << offxx[idet] << " " << offyy[idet] << endl;
 
 			}
 
@@ -120,60 +125,25 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 				continue;
 			}
 
-//			for(int i=0;i<ndet;i++)
-//				cout << lon[i] << " " << lat[i] << endl;
 
-
-			//			for(int i=0;i<ndet;i++)
-			//				if(status[i]>0)
-			//					cout << ii <<  " " << ii << " " << status[i] << endl;
-
-			delete [] offxx;;
+			delete [] offxx;
 			delete [] offyy;
 			delete [] lon;
 			delete [] lat;
 
 
 
-//			for(int i=0;i<ndet;i++)
-//				cout << ra_deg[i] << endl;
-//			cout << endl;
-//
-//			for(int i=0;i<ndet;i++)
-//				cout << dec_deg[i] << endl;
-//			cout << endl;
 			// find coordinates min and max
 			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
 			double lra_min  = *min_element(ra_deg, ra_deg+ndet);
 			double ldec_max = *max_element(dec_deg, dec_deg+ndet);
 			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
 
-//			cout << lra_min << " " << lra_max << endl;
-//
-//			cout << ldec_min << " " << ldec_max << endl;
-//			getchar();
-
-
-
-			//			//test
-			//			double lra_max;
-			//			double lra_min;
-			//			double ldec_max;
-			//			double ldec_min;
-			//
-			//			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
-			//					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
-			//
-			//				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
-			//
-			//			} else {
-
 
 			if (ra_max < lra_max)    ra_max = lra_max;
 			if (ra_min > lra_min)    ra_min = lra_min;
 			if (dec_max < ldec_max) dec_max = ldec_max;
 			if (dec_min > ldec_min) dec_min = ldec_min;
-			//			}
 
 			delete [] ra_deg;
 			delete [] dec_deg;
@@ -186,7 +156,6 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		delete [] ra;
 		delete [] dec;
 		delete [] phi;
-		//		delete [] flpoint;
 
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
@@ -199,10 +168,10 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	dec_max = dec_max + 6.0/60.0;
 
 	/// add a small interval of 2 arcmin
-	//	  ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	//	  ra_max = ra_max + 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	//	  dec_min = dec_min - 2.0/60.0;
-	//	  dec_max = dec_max + 2.0/60.0;
+	//	ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	//	ra_max = ra_max + 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
+	//	dec_min = dec_min - 2.0/60.0;
+	//	dec_max = dec_max + 2.0/60.0;
 
 	ra_min  = ra_min/15; // in hour
 	ra_max  = ra_max/15;
@@ -392,7 +361,7 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	// .... calculate the size of the map if necessary :
 	// As the map could be distorded, deproject the grid into a plane to get the size of the map
 
-	// TODO : instead of testing a gird of nStep x nStep points
+	// TODO : instead of testing a grid of nStep x nStep points
 	//        	just test the edges
 	int nStep = 30;
 

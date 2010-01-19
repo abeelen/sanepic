@@ -133,7 +133,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 				offyy =  sinphi[ii] * offsets[idet][0]
 				                                    + cosphi[ii] * offsets[idet][1];
 
-				if (celx2s(&celestial, 1, 0, 1, 1, &offxx, &offyy, &lon, &lat, &ra_deg, &dec_deg, &status) == 1) {
+				if (celx2s(&celestial, 1, 0, 0, 0, &offxx, &offyy, &lon, &lat, &ra_deg, &dec_deg, &status) == 1) {
 					printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
 					continue;
 				}
@@ -153,10 +153,10 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 				yy[ii]  = (long long) (pixcrd[2*ii+1]-0.5);
 			}
 
-//						for (unsigned long ii = 0; ii < 20; ii++){
-//							cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-//							cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-//						}
+			//						for (unsigned long ii = 0; ii < 20; ii++){
+			//							cout << world[2*ii] << " " << world[2*ii+1] << " : ";
+			//							cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
+			//						}
 
 			delete [] world;
 			delete [] imgcrd;

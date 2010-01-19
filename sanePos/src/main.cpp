@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 	coordscorner[3] = gdec_max;
 
 	if (rank == 0) {
-		printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max );
+		printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max);
 		printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
 	}
 
