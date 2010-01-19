@@ -139,7 +139,7 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 	long nBolos, repeat, width;
 	int colnum, typecode;
 
-	cout << fname << endl;
+//	cout << fname << endl;
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);

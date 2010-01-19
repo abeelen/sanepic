@@ -66,10 +66,10 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	for (long idet=0;idet<ndet;idet++){
 
 		indice = find_channel_index(fptr, (char *) bolonames[idet].c_str());
-
+//		cout << bolonames[idet] << " " << indice << endl;
 		// transform arcsec to deg
-		offsets[idet][0] = temp_dx[indice]/3600;
-		offsets[idet][1] = temp_dy[indice]/3600;
+		offsets[idet][0] = temp_dx[indice-1]/3600;
+		offsets[idet][1] = temp_dy[indice-1]/3600;
 
 	}
 
@@ -148,7 +148,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	//TODO: Remove this step
 	// transform RA in hours
 	for(long ii = 0; ii<ns; ii++)
-		RA[ii]=RA[ii]/15;
+		RA[ii]=RA[ii]/15.0;
 
 	// Read DEC
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);

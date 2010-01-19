@@ -45,8 +45,8 @@ int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		dir.tmp_dir=pPath;
-		if(rank==0)
-			printf ("The current path is: %s\n",pPath);
+		//		if(rank==0)
+		//			printf ("The current path is: %s\n",pPath);
 	}else{
 		if (read_parser_string(ini, "commons:temp_dir",rank,str))
 			return 1;
@@ -97,8 +97,8 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank)
 	if(read_parser_string(ini, "commons:channel", rank, str))
 		return 1;
 
-	//TODO : Why only rank 0 ?
-	if(rank==0)
+
+	//	if(rank==0)
 		read_strings(str, bolonames);
 
 	return 0;
@@ -112,7 +112,6 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	if(read_parser_string(ini, "commons:fits_filelist", rank, str))
 		return 1;
-
 
 	samples_str.filename=str;
 
@@ -296,7 +295,6 @@ int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank
 	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", 1);
 	proc_param.CORRon=b;
 
-
 	return 0;
 }
 
@@ -311,7 +309,7 @@ int read_remove_poly(dictionary	*ini, struct param_process &proc_param, int rank
 	if(i>=0){
 		proc_param.remove_polynomia=1;
 		proc_param.poly_order=i;
-		cout << "poly_order : " << proc_param.poly_order << endl;
+		//cout << "poly_order : " << proc_param.poly_order << endl;
 	}else{
 		proc_param.remove_polynomia=0;
 		//		proc_param.poly_order=4;
@@ -395,16 +393,16 @@ int read_ncomp(dictionary	*ini, long &ncomp, int rank){
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:ncomp", -1.0);
-		if (d<0.0){
-			if(rank==0)
-				printf("number of component cannot be negative ! or maybe you have to mention it in the ini file \n");
-			return 1;
-		}else{
+	if (d<0.0){
+		if(rank==0)
+			printf("number of component cannot be negative ! or maybe you have to mention it in the ini file \n");
+		return 1;
+	}else{
 
-			ncomp=(long)d;
-		}
+		ncomp=(long)d;
+	}
 
-		return 0;
+	return 0;
 }
 
 
@@ -421,7 +419,7 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 			fcut=d;
 		} // default = 12
 
-		return 0;
+	return 0;
 }
 
 int read_parser_string(dictionary	*ini, string line, int rank, string & str){
@@ -445,7 +443,7 @@ int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 int read_directories(dictionary	*ini, struct directories &dir, int rank){
 
 	return read_dirfile(ini, dir, rank) || \
-	read_tmpdir(ini, dir, rank)  || \
+	read_tmpdir(ini, dir, rank)  ||	\
 	read_outdir(ini, dir, rank);
 
 }
@@ -491,15 +489,17 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 
 void print_param_positions(struct param_positions &pos_param) {
 
-	cout << "You have specified a pixel size : [" << setprecision(14) << pos_param.pixdeg << " deg]\n";
+	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
 
 	if(pos_param.flgdupl)
-		cout << "Flagged data are put in a separate map : map_flagged_data = True\n";
+		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";
 
 	if(pos_param.projgaps)
-		cout << "Gaps are projected to a pixel in the map, gap filling of noise only is performed iteratively\n";
+		cout << "GAP FILLING : " << setw(10) << "PROJECTED\n";
 	else
-		cout << "Gaps are NOT projected to a pixel in the map (default)\n";
+		cout << "GAP FILLING : " << setw(10) << "NOT projected (default)\n";
+
+	cout << endl;
 
 }
 
@@ -507,42 +507,47 @@ void print_param_positions(struct param_positions &pos_param) {
 void print_param_process(struct param_process & proc_param){
 
 
-	if(proc_param.napod>0)
-		cout << "You have specified a number of samples to apodize : [" << proc_param.napod << "]\n";
+
 
 	if(proc_param.NOFILLGAP)
-		cout << "You have set nofill_gap to True : the gaps in data timeline will NOT be filled\n";
+		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL NOT be filled\n";
 	else
-		cout << "You have set nofill_gap to False (default) : the gaps in data timeline will be filled\n";
+		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL be filled\n";
 
-
-	cout << "You have chosen a sampling frequency equal to : [" << proc_param.fsamp << " Hz]\n";
 
 	if(proc_param.NORMLIN)
-		cout << "No baseline will be removed from the data\n";
+		cout << "Baseline : " << setw(10) << "NOT removed from the data\n";
 	else
-		cout << "A baseline will be removed from the data (default)\n";
+		cout << "Baseline : " << setw(10) << "WILL BE removed from the data (default)\n";
 
-	if(proc_param.remove_polynomia)
-		cout << "Polynomia order :  " << proc_param.poly_order << endl;
-	else
-		cout << "No polynomia will be used\n";
 
 	if(proc_param.CORRon)
-		cout << "Correlations between detectors are included in the analysis\n";
+		cout << "Correlations : " << setw(10) << "INCLUDED in the analysis\n";
 	else
-		cout << "Correlations between detectors are NOT included in the analysis\n";
+		cout << "Correlations : " << setw(10) << "NOT INCLUDED in the analysis\n";
 
-	cout << "Frequency of the high pass filter applied to the data : [" << proc_param.f_lp << " Hz]\n";
+	if(proc_param.remove_polynomia)
+		cout << "Polynomia order : " << setw(18) << proc_param.poly_order << endl;
+	else
+		cout << "Polynomia : " << setw(10) << "No polynomia will be used\n";
+
+	if(proc_param.napod>0)
+		cout << "Number of samples to apodize : " << setw(7) << proc_param.napod << "\n";
+
+	cout << "HP Filter Frequency : " << setw(18) << proc_param.f_lp << " Hz\n";
+
+	cout << "Sampling frequency : " << setw(16) <<proc_param.fsamp << " Hz\n";
 
 
+	cout << endl;
 }
 
 void print_directories(struct directories dir){
 
-	cout << "Data directory : [" << dir.dirfile << "]\n";
-	cout << "Temporary directory : [" << dir.tmp_dir << "]\n";
-	cout << "Output directory : [" << dir.outdir << "]\n";
+	cout << "Data directory : " << dir.dirfile << "\n";
+	cout << "Temporary directory : " << dir.tmp_dir << "\n";
+	cout << "Output directory : " << dir.outdir << "\n";
+	cout << endl;
 
 }
 

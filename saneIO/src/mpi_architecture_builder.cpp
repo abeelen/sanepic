@@ -12,9 +12,9 @@
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 
-#ifdef USE_MPI
-#include "mpi.h"
-#endif
+//#ifdef USE_MPI
+//#include "mpi.h"
+//#endif
 
 
 
@@ -454,12 +454,14 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
 	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
 	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
-#ifdef DEBUG_PRINT
+	#ifdef DEBUG_PRINT
 	cout << "framegiven : " << framegiven << endl;
-#endif
+	#endif
 
-	if((framegiven==0)||((int)fits_dummy.size()==0))
+	if((framegiven==0)||((int)fits_dummy.size()==0)){
+		cerr << "The file " << fname <<  " is empty\n.Exiting\n";
 		return -1;
+	}
 
 	ntotscan_dummy=(long)fits_dummy.size();
 	if(samples_struct.ntotscan!=ntotscan_dummy){
@@ -469,7 +471,8 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 	vector2array(fits_dummy, samples_struct.fits_table);
 	vector2array(noise_dummy, samples_struct.noise_table);
-	vector2array(index_dummy,  samples_struct.index_table);
+	if(index_dummy.size()>0)
+		vector2array(index_dummy,  samples_struct.index_table);
 
 	for(int ii=0;ii<(int)fits_dummy.size();ii++){
 		//	cout << dirfile + fits_dummy[ii] << endl;
@@ -522,15 +525,17 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 			}
 	}
 
-	size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+	if(index_dummy.size()>0){
+		size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
 
 #ifdef DEBUG_PRINT
-	cout << size << " vs size : " <<  size_tmp+1 << endl;
+		cout << size << " vs size : " <<  size_tmp+1 << endl;
 #endif
 
-	if((size_tmp+1)!=size){
-		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-		return -1;
+		if((size_tmp+1)!=size){
+			cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+			return -1;
+		}
 	}
 
 
@@ -681,7 +686,8 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 		//		string outfile = outdir + samples_struct.filename + ".txt";
 		string outfile = outdir + parallel_scheme_filename;
-		cout << "outfile : " << outfile;
+		//		cout << "outfile : " << outfile;
+
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
 			cerr << "File [" << outfile << "] Invalid." << endl;
@@ -831,7 +837,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-			cout << "3 : " << s << " " << p << " " << d << endl;
+//			cout << "3 : " << s << " " << p << " " << d << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);
 			frameorder.push_back(d);
@@ -846,7 +852,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 			if (found == 0) continue;
 
-			cout << "2 : " << s << " " << p << endl;
+//			cout << "2 : " << s << " " << p << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);}
 		break;
@@ -858,7 +864,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-			cout << "1 : " << s << endl;
+//			cout << "1 : " << s << endl;
 			fitsfiles.push_back(s);}
 		break;
 
