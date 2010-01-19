@@ -34,7 +34,8 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 	ini = iniparser_load(ini_name);
 
 	if (ini==NULL) { // if dictionnary was not found, return an error message and exit
-		fprintf(stderr, "cannot parse file: %s\n", ini_name);
+		if(rank==0)
+			fprintf(stderr, "cannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
 
@@ -61,7 +62,7 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 
 
 	/* Get sanepic_preprocess attributes */
-	printf("\n[%d] sanepic_preprocess\n",rank);
+
 
 	if(read_directories(ini, dir,rank)==-1)
 		return -1;
@@ -98,13 +99,16 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	// Check improper usage
 	if (det.ndet== 0) {
-		cerr << "Must provide at least one channel.\n\n";
+		if(rank==0){
+			cerr << "Must provide at least one channel.\n\n";
+		}
 		return -1;
 		//usage(argv[0]);
 	}
 
 	if(samples_struct.ntotscan == 0){
-		cerr << "Must provide at least one scan.\n\n";
+		if(rank==0)
+			cerr << "Must provide at least one scan.\n\n";
 		return -1;
 	}
 
@@ -113,20 +117,6 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 		printf("Number of bolometers : %ld\n",det.ndet);
 	}
 
-
-
-	//nnf = number of noise PS files
-	//	nnf = (int)extentnoiseSP.size();
-
-	//nnf=1; // Debug
-	/*	if (nnf != 1 && nnf != samples_struct.ntotscan){
-		cerr << "ERROR: There should be one noise power spectrum file per scan, or a single one for all the scans. Check -K options" << endl;
-		return -1;
-	}*/
-
-	//if only one extension for all the noisePS file : extend to all the scans
-	//if (nnf == 1 && samples_struct.ntotscan > 1)
-	//extentnoiseSP.resize(samples_struct.ntotscan, extentnoiseSP[0]);
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
 	if ((int)fcut.size()==0){

@@ -20,6 +20,7 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
+// not sure this is needed
 #ifdef PARA_BOLO
 #define USE_MPI
 #endif
@@ -27,10 +28,6 @@ extern "C" {
 //temp
 #include <fstream>
 
-
-#ifdef PARA_BOLO
-#define USE_MPI
-#endif
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -75,12 +72,17 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << size << endl;
-	cout << rank << endl;
+	//	cout << size << endl;
+	//	cout << rank << endl;
+	cout << "rank " << rank << " size : " << size << endl;
+
+	if(rank==0)
+		printf("\n sanepic_preprocess\n");
 
 #else
 	size = 1;
 	rank = 0;
+	printf("\n sanepic_preprocess\n");
 	cout << "Mpi is not used for this step" << endl;
 #endif
 
@@ -133,7 +135,8 @@ int main(int argc, char *argv[])
 
 	// Parse ini file
 	if (argc<2) {
-		printf("Please run %s using a *.ini file\n",argv[0]);
+		if(rank==0)
+			printf("Please run %s using a *.ini file\n",argv[0]);
 		exit(0);
 	} else {
 
@@ -179,7 +182,8 @@ int main(int argc, char *argv[])
 	long long test_size;
 	read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir);
 	if(test_size != NAXIS1*NAXIS2){
-		cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
+		if(rank==0)
+			cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
 		exit(0);
 	}
 	// each frame contains npixsrc pixels with index indsprc[] for which
@@ -195,7 +199,8 @@ int main(int argc, char *argv[])
 
 	// Check indpix readed size = expected size
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
-		cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
+		if(rank==0)
+			cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
 		exit(0);
 	}
 
@@ -395,23 +400,24 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
-	cout <<" final list : " << endl;
-	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
-		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
-		//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
-	}
+	//	cout <<" final list : " << endl;
+	//	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
+	//		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
+	//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
+	//}
 #else
 	fname = dir.outdir + parallel_scheme_filename;
 	int test=0;
 	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
 	if (test==-1){
-		cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
+		if(rank==0)
+			cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
 		exit(0);
 	}
 
-	cout <<" final list : " << endl;
+	//	cout <<" final list : " << endl;
 	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
-		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
+		//		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
 		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
 	}
 
@@ -421,17 +427,11 @@ int main(int argc, char *argv[])
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
-	//convert vector to standard C array to speed up memory accesses
-	//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
-	//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-	//	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-
-	//	for(long ii=0; ii<samples_struct.ntotscan;ii++)
-	//		frames_index[ii] = ii;
-
 
 #endif
 
+
+	cout << "rank " << rank << " frame : " << iframe_min << " " << iframe_max << endl;
 	//exit(0);
 
 	//At N-1 D memory allocation
@@ -449,6 +449,7 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
+	cout << "dedans\n";
 	if(rank==0){
 		PNdtot = new double[npix];
 		hitstot=new long[npix];
@@ -467,8 +468,8 @@ int main(int argc, char *argv[])
 	//Pre-processing of the data
 	//************************************************************************//
 	//************************************************************************//
-	if(iframe_min!=iframe_max)
-		printf("[%2.2i] Pre-processing of the data\n",rank);
+	if(rank==0)
+		printf("Pre-processing of the data\n");
 
 	/*fftw_complex **fdatas;
 	long nsamp_max=0;
@@ -541,7 +542,7 @@ int main(int argc, char *argv[])
 			t3=time(NULL);
 
 			//debug : computation time
-			if(iframe_min!=iframe_max)
+			if(rank==0)
 				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
 #ifdef PARA_BOLO
 			//cout << "rank " << rank << " a fini et attend ! \n";
@@ -596,23 +597,19 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-	if(iframe_min!=iframe_max)
-		printf("[%2.2i] End of Pre-Processing\n",rank);
-
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
-	printf("End of Pre-Processing\n");
-
 	hitstot=hits;
 	PNdtot=PNd;
 	Mptot=Mp;
 
 #endif
 
-
+	if(rank==0)
+		printf("End of Pre-Processing\n");
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
@@ -627,8 +624,8 @@ int main(int argc, char *argv[])
 		//			exit(0);
 		//		}
 
-
-		cout << "naive step" << endl;
+		if(rank==0)
+			cout << "naive step" << endl;
 		string fnaivname;
 		double *map1d;
 		long long mi;
@@ -727,7 +724,8 @@ int main(int argc, char *argv[])
 
 
 		delete [] map1d;
-		printf("End of saneNaiv\n");
+		if(rank==0)
+			printf("End of saneNaiv\n");
 
 	}
 	/* ---------------------------------------------------------------------------------------------*/
@@ -748,7 +746,7 @@ int main(int argc, char *argv[])
 
 	}
 #else
-	cout << "Time : " << t3-t2 << " sec\n";
+	cout << "Total Time : " << t3-t2 << " sec\n";
 #endif
 
 	// clean up
@@ -770,12 +768,11 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-	printf("[%2.2i] End of sanePre \n",rank);
 	MPI_Finalize();
-#else
-	printf("End of sanePre \n");
 #endif
 
+	if(rank==0)
+		printf("End of sanePre \n");
 
 	return 0;
 }
