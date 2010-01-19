@@ -584,7 +584,7 @@ int main(int argc, char *argv[])
 
 			do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param,samples_struct,
 					det,f_lppix,f_lppix_Nk,addnpix,
-					ns/*,size_det,rank_det*/,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL);
+					ns/*,size_det,rank_det*/,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
 		}
