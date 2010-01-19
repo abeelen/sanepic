@@ -30,6 +30,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	ini = iniparser_load(ini_name);
 
 	if (ini==NULL) {
+		if(rank==0)
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
@@ -53,7 +54,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);
 
-	printf("\nsanepic_conjugate_gradient:\n");
+
 
 	if(read_directories(ini, dir, rank)==-1)
 		return -1;
@@ -96,12 +97,14 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	// Check improper usage
 	if (det.ndet== 0) {
+		if(rank==0)
 		cerr << "Must provide at least one channel.\n\n";
 		return -1;
 		//usage(argv[0]);
 	}
 
 	if(samples_struct.ntotscan == 0){
+		if(rank==0)
 		cerr << "Must provide at least one scan.\n\n";
 		return -1;
 	}
@@ -115,6 +118,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
 	if ((int)fcut.size()==0){
+		if(rank==0)
 		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
 		exit(0);
 	}
