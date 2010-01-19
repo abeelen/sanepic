@@ -29,7 +29,7 @@
 
 using namespace std;
 
-#ifdef PARA_BOLO
+#if defined(PARA_BOLO) && ! defined(USE_MPI)
 #define USE_MPI
 #endif
 
@@ -70,6 +70,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 #endif
 
 
+
 			//Read pointing data
 			read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
 
@@ -102,12 +103,9 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	{
 
 
-		//long ii, idet1;
-		//long ndata = ns+2*marge;
 
 		double *data, *bfilter, *data_lp, *Ps;
 		short *flag;
-		//	short *flpoint;
 		long long *samptopix;
 
 		fftw_plan fftplan;
@@ -116,47 +114,23 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 		string field1, fits_filename;
 
-		//char testfile[100];
-
-		//FILE *fp;
-		//	cout << "avant les alloc" << endl;
-
-		//scerr = new double[ns];
-		//	data =  new double[ns];
 		data_lp = new double[ns];
-		//calp =  new double[ns];
-		//flag =  new unsigned char[ns];
-		//flpoint = new unsigned char[ns];
-		//flag = new short[ns];
-		//	flpoint = new short[ns];
-		//rejectsamp = new unsigned char[ns];
 
 		samptopix = new long long[ns];
 		Ps = new double[ns];
 		bfilter = new double[ns/2+1];
 		fdata = new fftw_complex[ns/2+1];
 
-		//	unsigned char *flag;
-		//	double *data2;
-		//	data2= new double[ns];
-		//	flag = new unsigned char[ns];
-
-		//	cout << "avant les fill" << endl;
-
-		//fill(flag,flag+ns,0);
-		//fill(data,data+ns,0.0);
 		fill(data_lp,data_lp+ns,0.0);
 		fill(Ps,Ps+ns,0.0);
 		fill(bfilter,bfilter+(ns/2+1),0.0);
 		fill(samptopix,samptopix+ns,0);
-		//	fill(flpoint,flpoint+ns,0);
 
 		for (long ii=0;ii<ns/2+1;ii++){
 			fdata[ii][0] = 0.0;
 			fdata[ii][1] = 0.0;
 		}
 
-		//	cout << "apres les fill" << endl;
 
 		int factdupl = 1;
 		if(pos_param.flgdupl==1)		factdupl = 2;
@@ -174,13 +148,9 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				field1 = det.boloname[idet1];
 				//				cout << field1 << endl;
 
+//				if (rank==1)
+//					cout << idet1 << endl;
 
-				//		fill(data,data+ns,0.0);
-				//		fill(data_lp,data_lp+ns,0.0);
-				//		fill(Ps,Ps+ns,0.0);
-				//		fill(bfilter,bfilter+ns,0.0);
-				//		fill(samptopix,samptopix+ns,0);
-				//		fill(flpoint,flpoint+ns,0);
 
 				for (long ii=0;ii<ns/2+1;ii++){
 					fdata[ii][0] = 0.0;
@@ -188,11 +158,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				}
 				//		cout << field1 << "  apres ALLOC "  << endl;
 
-				//		if (S != NULL){
-				//			// TODO: What is the point of this ?? Do we really need this ?
-				//			//			read_flpoint_from_fits(fits_filename, flpoint);
-				//			//cout << "flpoint : " << flpoint[0] <<  flpoint[1] << flpoint[2] << flpoint[3] << endl;
-				//		}
 
 
 				long test_ns;
@@ -202,14 +167,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 					exit(-1);
 				}
 
-				//		if (idet1==114)
-				//			for(int ii=0;ii<ns;ii++)
-				//				if(data[ii]!=0){
-				//					cout << data[ii] << " " << ii;
-				//					getchar();
-				//				}
-				//			cout << data[0] << " " << data[1] << " " << data[2] << " " << data[3] << " " << data[4] << endl;
-				//		getchar();
 				read_flag_from_fits(fits_filename , field1, flag, test_ns);
 				if (test_ns != ns) {
 					cerr << "Read flag does not correspond to frame size : Check !!" << endl;
@@ -220,9 +177,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 
 
-				//		if (idet1==114)
-				//			cout << flag[0] << " " << flag[1] << " " << flag[2] << endl;
-				//		getchar();
 
 				//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 				//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
@@ -240,73 +194,50 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 					}
 				}
 
-				//		if (idet1==114)
-				//			cout << "114\n";
 
 				//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 				//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 
 				if (S != NULL){
 					//********************  pre-processing of data ********************//
-					cout << "S !=NULL\n";
 					MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 							proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
 				}
 				else {
-					//			cout << "avant mapmake\n";
 					MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
 							proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
-					//			cout << "apres mapmake\n";
 				}
-				//		if (idet1==114){
-				//			cout << "data apres map : " /*<< setprecision(14)*/  << data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[3] << endl;
-				//			getchar();
-				//		}
 
 				//Fourier transform of the data
 				fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
 				fftw_execute(fftplan);
 				fftw_destroy_plan(fftplan);
 
-				//		cout << "write fdata_" << iframe << "_" << idet1 << endl;
 
 				//write fourier transform to disk
 				write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
 
 				delete [] flag;
 				delete [] data;
-				//		cout << "write fdata_" << iframe << "_" << idet1 << endl;
 			}
 
 
-			//	cout << "avant les clean" << endl;
 
-			//delete[] data;
 			delete[] data_lp;
-			//	delete[] flag;
-			//	delete[] flpoint;
 			delete[] samptopix;
 			delete[] Ps;
 			delete[] bfilter;
 			delete[] fdata;
 
-			//	cout << "apres les clean" << endl;
-			//	getchar();
 		}
 
 
-		//void do_PtNd(double *PNd, string *extentnoiseSp_all, string noiseSppreffile,
-		//		string dir, string prefixe,  std::vector<string> bolonames,
-		//		double f_lppix, double fsamp, long ns, long ndet,
-		//		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		//		double *Mp, long *hits)
 		void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 				struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 				long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 				double *Mp, long *hits)
 
 		{
-			//	cout << "dans do_ptnd\n";
 
 			long  nbins;
 			string field1, field2;
@@ -345,16 +276,11 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 			fill(Nk,Nk+(ns/2+1),0.0);
 			fill(samptopix,samptopix+ns,0);
 
-			//	for (long ii=0;ii<ns/2+1;ii++){
-			//		fdata[ii][0] = 0.0;
-			//		fdata[ii][1] = 0.0;
-			//	}
+
+//			cout << "do_ptnd " << rank << endl;
 
 
 
-
-
-			//cout << rank << " " << size << endl;
 #ifdef PARA_BOLO
 			for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
 #else
@@ -364,7 +290,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 					//		cout << field1 << endl;
 
 
-					//		fill(samptopix,samptopix+ns,0);
 
 					//Read pointing data
 					read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
@@ -389,8 +314,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 						Ndf[ii][1] = 0.0;
 					}
 
-					//		if(idet1>0)
-					//			cout << "avant double boucle" << endl;
 
 					for (long idet2=0;idet2<det.ndet;idet2++){
 						field2 = det.boloname[idet2];
@@ -398,10 +321,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 						fill(Nd,Nd+ns,0.0);
 						fill(Nk,Nk+(ns/2+1),0.0);
 
-						//			for (long ii=0;ii<ns/2+1;ii++){
-						//				fdata[ii][0] = 0.0;
-						//				fdata[ii][1] = 0.0;
-						//			}
 
 						//read Fourier transform of the data
 						read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
@@ -410,7 +329,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 						//****************** Cross power spectrum of the noise  ***************//
 						for (int ii=0;ii<nbins;ii++){
 							SpN[ii] = SpN_all[idet2][ii];
-							//cout << SpN[ii] << " ";
 						}
 
 
@@ -421,39 +339,19 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 						//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 
 						//
-						//			//temp
-						//			ofstream filee;
-						//
-						//			//temp
-						//			string outfile = dir + field1 + "_" + field2 + extentNoiseSp + ".txt";
-						//			//cout << "outfile : " << outfile;
-						//			filee.open(outfile.c_str(), ios::out);
-						//			if(!filee.is_open()){
-						//				cerr << "File [" << outfile << "] Invalid." << endl;
-						//				exit(0);
-						//			}
 
 
 						for (long jj=0;jj<ns/2+1;jj++){
-							//				filee << Nk[jj] << endl;
 							if (isnan(Nk[jj])) {
 								printf("isnan has been found : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 								exit(1);
 							}
 						}
 
-						//			filee.close();
 						//********************************* compute N^-1 d  ***********************//
 						for (long ii=0;ii<ns/2+1;ii++){
 							Ndf[ii][0] += (fdata[ii][0]*Nk[ii]);
 							Ndf[ii][1] += (fdata[ii][1]*Nk[ii]);
-							//if((Ndf[ii][0]>1e245)||(Ndf[ii][0]<-1e245)||(Ndf[ii][1]>1e245)||(Ndf[ii][1]<-1e245)){
-							//cout << "idet1 : " << det.boloname[idet1] << " idet2 : " << det.boloname[idet2] << " ii : " << ii << endl;
-							//cout << Ndf[ii][0] << " ";
-							//cout << Ndf[ii][1] << endl;
-							//cout << "fdata : " << fdata[ii][0] << " ";
-							//cout << fdata[ii][1] << endl;
-							//getchar();
 						}
 
 
@@ -475,11 +373,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 					fftw_destroy_plan(fftplan);
 
 					for (long ii=0;ii<ns;ii++){
-						//			if ((ii < 0) || (ii >= ns)){
-						//				PNd[npix-2] += Nd[ii];
-						//			} else {
 						PNd[indpix[samptopix[ii]]] += Nd[ii]; // Nd real
-						//			}
 					}
 
 					//compute hit counts

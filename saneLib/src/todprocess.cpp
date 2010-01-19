@@ -503,69 +503,69 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 
-//TODO : Bad Coding, Test & Choose one, comment the other one.
-		if (0){
 
-			for (int ii=0;ii<nbins;ii++)
-				logSpN[ii] = log(abs(SpN[ii]));
-			//////////////////////////////////////////  log-log interpolation
-			for (int ibin=0;ibin<nbins-1;ibin++){
-				ellmin = ellm[ibin];
-				ellmax = ellm[ibin+1];
-				kmin = ellmin*ns/fsamp;
-				kmax = ellmax*ns/fsamp;
-				lkmin = log(kmin);
-				lkmax = log(kmax);
-				if (abs(SpN[ibin]) > 0){
-					a = (logSpN[ibin+1] - logSpN[ibin])/(lkmax-lkmin);
-					b = logSpN[ibin];
-				} else {
-					a = 0;
-					b = 0;
-				}
-				for (long k=(long)kmin;k<long(kmax);k++){
-					if (SpN[ibin] > 0)
-						Nk[k] = exp(a*(log((double)k)-lkmin)+b)/double(ns);
-					else {
-						if (SpN[ibin] < 0){
-							Nk[k] = -exp(a*(log((double)k)-lkmin)+b)/double(ns);
-						} else {
-							Nk[k] = 0.0;
-						}
-					}
-					//apply filter
-					Nk[k] *= gsl_pow_2(bfilter[k]);
+		//		if (0){
+		//
+		//			for (int ii=0;ii<nbins;ii++)
+		//				logSpN[ii] = log(abs(SpN[ii]));
+		//			//////////////////////////////////////////  log-log interpolation
+		//			for (int ibin=0;ibin<nbins-1;ibin++){
+		//				ellmin = ellm[ibin];
+		//				ellmax = ellm[ibin+1];
+		//				kmin = ellmin*ns/fsamp;
+		//				kmax = ellmax*ns/fsamp;
+		//				lkmin = log(kmin);
+		//				lkmax = log(kmax);
+		//				if (abs(SpN[ibin]) > 0){
+		//					a = (logSpN[ibin+1] - logSpN[ibin])/(lkmax-lkmin);
+		//					b = logSpN[ibin];
+		//				} else {
+		//					a = 0;
+		//					b = 0;
+		//				}
+		//				for (long k=(long)kmin;k<long(kmax);k++){
+		//					if (SpN[ibin] > 0)
+		//						Nk[k] = exp(a*(log((double)k)-lkmin)+b)/double(ns);
+		//					else {
+		//						if (SpN[ibin] < 0){
+		//							Nk[k] = -exp(a*(log((double)k)-lkmin)+b)/double(ns);
+		//						} else {
+		//							Nk[k] = 0.0;
+		//						}
+		//					}
+		//					//apply filter
+		//					Nk[k] *= gsl_pow_2(bfilter[k]);
+		//
+		//				}
+		//			}
+		//		}else{
 
-				}
+
+
+
+
+		/////////////  linear interpolation
+		for (int ibin=0;ibin<nbins-1;ibin++){
+			ellmin = ellm[ibin];
+			ellmax = ellm[ibin+1];
+			kmin = ellmin*ns/fsamp;
+			kmax = ellmax*ns/fsamp;
+			if (abs(SpN[ibin]) > 0){
+				a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
+				b = SpN[ibin]/double(ns);
+			} else {
+				a = 0.0;
+				b = 0.0;
 			}
-		}else{
+			for (long k=long(kmin+1);k<=long(kmax);k++){
+				Nk[k] = (a*((double)k-kmin)+b);
 
+				//apply filter
+				Nk[k] *= gsl_pow_2(bfilter[k]);
 
-
-
-
-			/////////////  linear interpolation
-			for (int ibin=0;ibin<nbins-1;ibin++){
-				ellmin = ellm[ibin];
-				ellmax = ellm[ibin+1];
-				kmin = ellmin*ns/fsamp;
-				kmax = ellmax*ns/fsamp;
-				if (abs(SpN[ibin]) > 0){
-					a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
-					b = SpN[ibin]/double(ns);
-				} else {
-					a = 0.0;
-					b = 0.0;
-				}
-				for (long k=long(kmin+1);k<=long(kmax);k++){
-					Nk[k] = (a*((double)k-kmin)+b);
-
-					//apply filter
-					Nk[k] *= gsl_pow_2(bfilter[k]);
-
-				}
 			}
 		}
+		//		}
 
 
 
@@ -1023,7 +1023,7 @@ void fillgaps(double y[], int ndata, double* yout, short* flag, double sign)
 			for (j=0;j<count;j++){
 				valtemp = randg(1,-1);
 				yout[i+j-count] = a[0]+a[1]*xx2[j] + sign*valtemp[0];
-					delete [] valtemp;
+				delete [] valtemp;
 			}
 
 
