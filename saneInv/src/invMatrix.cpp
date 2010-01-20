@@ -84,7 +84,8 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
-		cout << "Progress : " << ibin * 100. / nbins << " %\r" << flush;
+		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
+		//		cout << "\r " << flush;
 
 		// Matrix preparation
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
@@ -123,6 +124,8 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 				(*MatrixOut)[idet1][idet2 * nbins + ibin] = iMat_k[idet1][idet2];
 
 	}
+
+	cout << "Progress : 100.00% \r" << flush;
 
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
 	free_dmatrix(iMat_k,0, ndet - 1, 0, ndet - 1);

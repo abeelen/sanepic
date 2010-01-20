@@ -22,6 +22,8 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
+	printf("Begin of saneInv\n\n");
+
 	// data parameters
 	/*!
 	 * -ndet = number of detectors to output
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
 	 */
 	double **Rellth, **RellthOrig, **iRellth/*,**mixmatOrig,**mixmat*/;
 
-//	string noiseSp_dir_output;/*! output directory */
+	//	string noiseSp_dir_output;/*! output directory */
 	string base_name="";/*! output noise file suffix */
 	string fname; /*! covariance matrix fits filename */
 	string fname2;
@@ -77,22 +79,24 @@ int main(int argc, char *argv[]) {
 	std::vector<string>::iterator it;
 	long size_tmp;
 
-	//	cout << "fname" << endl;
-	//	cout << fname << endl;
-	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
-	cout << (int)samples_struct.noisevect.size() << endl;
+//	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
+//	cout << (int)samples_struct.noisevect.size() << endl;
 
 
 	it = unique(samples_struct.noisevect.begin(), samples_struct.noisevect.end());
 	size_tmp = it - samples_struct.noisevect.begin();
-	cout << size_tmp << endl;
+//	cout << size_tmp << endl;
 	if(size_tmp==1){
 		n_iter=1;
-		cout << "n_iter " <<  n_iter << endl;
+		cout << "The same covariance Matrix will be inverted for all the scans" << endl;
 	}else{
 
 		n_iter = (int)samples_struct.noisevect.size();
-		cout << "n_iter " <<  n_iter << endl;
+		if(n_iter==0){
+			cerr << "Warning. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
+			exit(1);
+		}
+		cout << n_iter << " covariance Matrix will be inverted" << endl;
 	}
 
 
@@ -109,13 +113,12 @@ int main(int argc, char *argv[]) {
 	for(int ii=0; ii<n_iter; ii++){
 		fname="";
 		fname+=(string)samples_struct.noisevect[ii];
-//		cout << fname << endl;
 		base_name=FitsBasename(fname);
-		cout << base_name << endl;
+//		cout << base_name << endl;
 
 		fname2=(string)samples_struct.noisevect[ii];
-//		cout << fname2 << endl;
-//		cout << samples_struct.noisevect[ii] << endl;
+		//		cout << fname2 << endl;
+		//		cout << samples_struct.noisevect[ii] << endl;
 
 		//		getchar();
 
@@ -128,7 +131,7 @@ int main(int argc, char *argv[]) {
 		// total number of detectors in the covmatrix fits file
 		ndetOrig = channelIn.size();
 		printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
-//		getchar();
+		//		getchar();
 
 		//Deal with bolometer reduction and fill Rellth and mixmat
 		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
@@ -136,13 +139,13 @@ int main(int argc, char *argv[]) {
 		// Inverse reduced covariance Matrix : Returns iRellth
 		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
-//		cout << dir.tmp_dir + base_name + extname << endl;
+		//		cout << dir.tmp_dir + base_name + extname << endl;
 		// write inversed noisePS in a binary file for each detector
 		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
 
 	}
 
-	printf("END OF SANEINV \n");
+	printf("\nEND OF SANEINV \n");
 
 	nbolos = (int) channelIn.size();
 
