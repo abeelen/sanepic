@@ -97,9 +97,7 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank)
 	if(read_parser_string(ini, "commons:channel", rank, str))
 		return 1;
 
-
-	//	if(rank==0)
-		read_strings(str, bolonames);
+	read_strings(str, bolonames);
 
 	return 0;
 
@@ -140,11 +138,13 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 	if((int)(samples_str.noisevect).size()==0 ){
 
 		// read the noise file name in the ini file
-		if(read_parser_string(ini, "commons:noise_prefixe",rank,str))
+		if(read_parser_string(ini, "sanepic_inv_matrix:cov_matrix_file",rank,str))
 			return 1;
 		samples_str.noisevect.push_back(str);
-		// meme fichier de bruit pour tous les scans
-		(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+
+		if((int)((samples_str.fitsvect).size())>1)
+			// meme fichier de bruit pour tous les scans
+			(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
 	}
 
 	return 0;
@@ -411,13 +411,13 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:fcut", 12.0);
-		if (d<0.0){
-			if(rank==0)
-				printf("noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n");
-			return 1;
-		}else{
-			fcut=d;
-		} // default = 12
+	if (d<0.0){
+		if(rank==0)
+			printf("noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n");
+		return 1;
+	}else{
+		fcut=d;
+	} // default = 12
 
 	return 0;
 }
@@ -432,7 +432,7 @@ int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 			cout <<"You must add a line in ini file specifying : " << line << endl;
 		return 1;
 	}
-	// Key is empy...
+	// Key is empty...
 	if (s[0] == '\0')
 		return 1;
 
