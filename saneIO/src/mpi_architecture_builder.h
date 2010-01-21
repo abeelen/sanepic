@@ -44,8 +44,10 @@ double randg_archi(long nombre, int seedpass);
 
 
 // TODO : include struct ?
-int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
-		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<int> &scans_index);
+//int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
+//		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<int> &scans_index);
+int write_ParallelizationScheme(std::string fname, long *position, long *frnum, int size, struct samples samples_struct);
+
 //void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
 //int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
 //int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);

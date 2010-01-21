@@ -134,7 +134,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 		ntot += ns[ii];
 
 
-	cout << ntot << endl;
+	//cout << ntot << endl;
 
 	maxproc = new double[nessai];
 	std = new double[nessai];
@@ -310,8 +310,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 }
 
-int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
-		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<int> &scans_index)
+//int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
+//		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<int> &scans_index)
+int write_ParallelizationScheme(string fname, long *position, long *frnum, int size, struct samples samples_struct)
 // Write the Parrallelization Scheme for further use.
 {
 	//FILE *fp;
@@ -336,23 +337,23 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	string temp;
 	size_t found;
 
-	fitsvect_temp = new string [ntotscan];
-	noisevect_temp = new string [ntotscan];
-	scans_index_temp = new int [ntotscan];
+	fitsvect_temp = new string [samples_struct.ntotscan];
+	noisevect_temp = new string [samples_struct.ntotscan];
+	scans_index_temp = new int [samples_struct.ntotscan];
 
-	//cout << "write" << endl;
-	//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
-	//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
+	cout << "write" << endl;
+	cout << samples_struct.fitsvect[0] << " "  << samples_struct.fitsvect[1] << endl;
+	cout << samples_struct.noisevect[0] << endl; //" "  << samples_struct.noisevect[1] << endl;
 
-	for (long ii=0;ii<ntotscan;ii++){
-		cout << position[ii] << endl;
-		temp = fitsvect[position[ii]];
+	for (long ii=0;ii<samples_struct.ntotscan;ii++){
+		//cout << position[ii] << endl;
+		temp = samples_struct.fitsvect[position[ii]];
 		found=temp.find_last_of('/');
 		// cout << " file: " << str.substr(found+1) << endl;
 
 
 		fitsvect_temp[ii] = temp.substr(found+1);
-		noisevect_temp[ii] = noisevect[position[ii]];
+		noisevect_temp[ii] = samples_struct.noisevect[position[ii]];
 		//cout << fitsvect_temp[ii] << " " << noisevect_temp[ii] << endl;
 		// scans_index_temp[ii] = scans_index[position[ii]];
 	}
@@ -360,7 +361,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	int val_proc = 0;
 	//scans_index[0] = 0;
 
-	for (long ii=1;ii<ntotscan+1;ii++){
+	for (long ii=1;ii<samples_struct.ntotscan+1;ii++){
 		if(frnum[ii]==0)
 			break;
 
@@ -372,12 +373,17 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	cout << "nb proc : " << val_proc << endl;
 #endif
 
+//	//DEBUG
+//	cout << fitsvect[0] << " "  << fitsvect[1] << endl;
+//	cout << noisevect[0] << " "  << noisevect[1] << endl;
+//	cout << scans_index[0] << " "  << scans_index[1] << endl;
+
 	if(val_proc>size){
 		cerr << "Error in frame order repartition, number of processor are not equal to mpi size\n";
 		return -1;
 	}
 
-	for (long ii=0;ii<ntotscan;ii++){
+	for (long ii=0;ii<samples_struct.ntotscan;ii++){
 		file << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << scans_index_temp[ii] << endl;
 		//cout << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << endl;
 	}
@@ -387,7 +393,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, long 
 	delete [] fitsvect_temp;
 	delete [] noisevect_temp;
 
-	//	cout << "fin fonction\n";
+	cout << "fin fonction\n";
 
 	return 0;
 
@@ -454,9 +460,9 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
 	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
 	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
-	#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT
 	cout << "framegiven : " << framegiven << endl;
-	#endif
+#endif
 
 	if((framegiven==0)||((int)fits_dummy.size()==0)){
 		cerr << "The file " << fname <<  " is empty\n.Exiting\n";
@@ -837,7 +843,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-//			cout << "3 : " << s << " " << p << " " << d << endl;
+			//			cout << "3 : " << s << " " << p << " " << d << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);
 			frameorder.push_back(d);
@@ -852,7 +858,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 
 			if (found == 0) continue;
 
-//			cout << "2 : " << s << " " << p << endl;
+			//			cout << "2 : " << s << " " << p << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);}
 		break;
@@ -864,7 +870,7 @@ void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<st
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-//			cout << "1 : " << s << endl;
+			//			cout << "1 : " << s << endl;
 			fitsfiles.push_back(s);}
 		break;
 
