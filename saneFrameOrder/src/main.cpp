@@ -20,6 +20,7 @@
 
 #include "parse_FBFO.h"
 #include "mpi_architecture_builder.h"
+#include "struct_definition.h"
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -30,7 +31,7 @@ using namespace std;
 
 
 struct sortclass {
-  bool operator() (int i,int j) { return (i<j);}
+	bool operator() (int i,int j) { return (i<j);}
 } sortobject;
 
 
@@ -44,92 +45,74 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 	// int tag = 10;
-//	MPI_Status status;
+	//	MPI_Status status;
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << "size : " << size << " rank : " << rank << endl;
+	if(rank==0)
+		cout << "size : " << size << " rank : " << rank << endl;
 
 	if(size==1) {cerr << "Please run mpirun -n# with # > 1\n"; MPI_Barrier(MPI_COMM_WORLD); MPI_Finalize(); exit(1);}
 
 	if (rank == 0){
 
-		long ntotscan;
-		long *nsamples; // number of samples table nsamples_vec -> nsamples
+		struct samples samples_struct;
+		struct directories dir;
+
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;
 
-		std::vector<string> fitsvect;
-		std::vector<string> noisevect;
-		std::vector<int> scans_index;
-		//	vector<long>::iterator it;
+		string fname;
 
-		//std::vector<long> fframes_vec, nsamples_vec;
-		string fname,outdir;
-
-		parsed=parse_FBFO(argv[1], outdir, ntotscan, nsamples, fitsvect, noisevect, scans_index);
+		parsed=parse_FBFO(argv[1],samples_struct,dir);
 		if (parsed==-1){
-			cerr << "Problem in the parse function. Exiting\n";
+			if(rank==0)
+				cerr << "Problem in the parse function. Exiting\n";
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 			exit(0);
 		}
 
-		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
-		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
 
-		if(scans_index.size()!=0){
-		  cerr << "You have already given processors order in the fits filelist. Exiting\n";
-		  sort (scans_index.begin(), scans_index.end(), sortobject);
-		  cout << scans_index[0] << " " <<  scans_index[1] << " " << scans_index[2] << " " << scans_index[3] << endl;
 
-		  //scans_index.unique();
-		  if (size!=(scans_index[scans_index.size()-1]+1))
-		    cout << "Warning, you have to run MPI with " << scans_index[scans_index.size()-1]+1 << " processors and you are currently running MPI with " << size << " processors\n";
-		  MPI_Barrier(MPI_COMM_WORLD);
-		  MPI_Finalize();
-		  exit(0);
+
+
+		if(samples_struct.scans_index.size()!=0){
+			cout << "non nul : " << samples_struct.scans_index.size() << endl;
+			cerr << "You have already given processors order in the fits filelist. Exiting\n";
+			sort (samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+
+			if (size!=(samples_struct.scans_index[samples_struct.scans_index.size()-1]+1))
+				cout << "Warning, you have to run MPI with " << samples_struct.scans_index[samples_struct.scans_index.size()-1]+1 << " processors and you are currently running MPI with " << size << " processors\n";
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(0);
 
 		}
 
 		//cout << ntotscan << endl;
 
-		//nsamples      = new long[ntotscan];
-		ruleorder     = new long[ntotscan];
-		frnum         = new long[ntotscan+1];
+		ruleorder     = new long[samples_struct.ntotscan];
+		frnum         = new long[samples_struct.ntotscan+1];
 
-		//vector2array(nsamples_vec,nsamples);
 
-		fname = outdir + parallel_scheme_filename;
+		fname = dir.outdir + parallel_scheme_filename;
+
 
 		/********************* Define parallelization scheme   *******/
-		//		cout << ntotscan << endl;
-		//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] <<  endl;
-		//getchar();
-		/*for (int ii=0; ii<ntotscan; ii++) {
-			nsamples[ii] *= 20;      // convert nframes to nsamples
-		}*/
-		//cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << endl;
-		// reorder nsamples
-		find_best_order_frames(ruleorder, frnum, nsamples, ntotscan, size);
-		//cout << "ruleorder : " << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " \n";
+		find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
 
-		//		cout << size << endl;
-		//		cout << ntotscan << endl;
-		//		cout << nsamples[0] << " " << nsamples[1] << " " << nsamples[2] << " " << nsamples[3] << endl;
-		//		cout << ruleorder[0] << " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << " \n";
-		//		cout << frnum[0] << " " << frnum[1] << " " << frnum[2] << " " << frnum[3] << " " << frnum[4] << endl;
-		//cout << fitsvect[0] << " "  << fitsvect[1] << " "  << fitsvect[2] << " "  << fitsvect[3] << endl;
-		//cout << noisevect[0] << " "  << noisevect[1] << " "  << noisevect[2] << " "  << noisevect[3] << endl;
-
+		//		cout << ruleorder[0] <<  " " << ruleorder[1] << endl;
+		//		cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] <<  endl;
 
 		//write parallel schema in a file
-		  parsed=write_ParallelizationScheme(fname, ruleorder, frnum, nsamples, ntotscan, size, fitsvect, noisevect, scans_index);
+		parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
 		if(parsed==-1){
-			cerr << "merde" << endl;
+			if(rank==0)
+				cerr << "PWrite parallelization Error !" << endl;
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 			exit(0);
@@ -152,4 +135,7 @@ int main(int argc, char *argv[])
 	// Close MPI process
 	MPI_Finalize();
 #endif
+
+	cout << "End of saneFrameOrder\n";
+	return 0;
 }

@@ -10,7 +10,8 @@
 
 //#include <string>
 
-int parse_FBFO(char * ini_name, std::string &tmp_dir, long &ntotscan, long *&nsamples,
-		std::vector<std::string> &fitsvect,std::vector<std::string> &noisevect,std::vector<int> &scans_index);
+//int parse_FBFO(char * ini_name, std::string &tmp_dir, long &ntotscan, long *&nsamples,
+//		std::vector<std::string> &fitsvect,std::vector<std::string> &noisevect,std::vector<int> &scans_index, int rank);
+int parse_FBFO(char * ini_name,struct samples &samples_struct,struct directories &dir);
 
 #endif /* PARSE_FBFO_H_ */
