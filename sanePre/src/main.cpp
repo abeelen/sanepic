@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 //	cout << "rank " << rank << " size : " << size << endl;
 
 	if(rank==0)
-		printf("\n sanepic_preprocess\n");
+		printf("\nsanepic_preprocess\n");
 
 #else
 	size = 1;
@@ -245,9 +245,9 @@ int main(int argc, char *argv[])
 			it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
 			size_tmp = it - samples_struct.scans_index.begin();
 
-			cout << "size unique : " << size_tmp << endl;
-
-			cout << size << " vs size : " <<  size_tmp << endl;
+//			cout << "size unique : " << size_tmp << endl;
+//
+//			cout << size << " vs size : " <<  size_tmp << endl;
 
 			if((size_tmp)>size){
 				cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
 
 				samples_struct.scans_index.resize( size_tmp );
 
-				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+//				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
 
 
 				if((size_tmp)<size){
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
 						temp = samples_struct.fits_table[num_frame];
 						found=temp.find_last_of('/');
 						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
-						cout << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+//						cout << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
 					}
 					num_frame++;
 				}
@@ -591,7 +591,6 @@ int main(int argc, char *argv[])
 
 
 	} // end of iframe loop
-
 
 
 
