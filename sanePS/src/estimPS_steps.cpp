@@ -45,18 +45,18 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 	//cout << "end : " << (MixMatfile[len-1]+MixMatfile[len]) << endl;
 
 	if(li==len-2){
-		cout << "fichier mixmat txt" << endl;
+//			cout << "fichier mixmat txt" << endl;
 		read_mixmat_txt(MixMatfile, ndet, ncomp,mixmat);
 	}else{
 		if (lo==len-2){
-			cout << "fichier mixmat bin" << endl;
+//				cout << "fichier mixmat bin" << endl;
 			read_ReducedMixingMatrix(mixmat,ndet2,ncomp3,dir);
 			ncomp2=(long)ncomp3;
 			if(ndet!=ndet2){
-				cout << "Error. The input number of detector and the number in mixing matrix file are different.\n";
+					cout << "Error. The input number of detector and the number in mixing matrix file are different.\n";
 				exit(0);}
 		}else{
-			cout << "Error, wrong type for Mixing matrix, please use txt or binary files.\n";
+				cout << "Error, wrong type for Mixing matrix, please use txt or binary files.\n";
 			exit(0);
 		}
 	}
@@ -136,6 +136,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
+	// test
+	//	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 
 	// loop over detectors
 	for (long idet=0;idet<det.ndet;idet++){
@@ -162,7 +164,6 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 		if (!S){
 			//******************************* subtract signal
-			//TODO: samptopix should then NOT be in the calling of the function,
 			//      only need in deproject
 			//Read pointing data
 			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe, det.boloname);
@@ -221,6 +222,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 		delete [] flag; // ajout mat 26/11
 
 	}
+
+	//test
+	//	fftw_destroy_plan(fftplan);
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -1375,8 +1379,6 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
-		//sprintf(nameSpfile,"%s%s%ld%s%ld%s",outdirSpN.c_str(),"Comp_",jj,"_uncnoise",ff,".psd");
-
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
 
 		// récupérer une chaîne de caractères
@@ -1384,12 +1386,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		temp_stream.str("");
 
 		fp = fopen(nameSpfile.c_str(),"w");
-		//fprintf(fp,"%d\n",nbins);
 		for (long ii=0;ii<nbins;ii++){
-			//fprintf(fp,"%g\t",ell[ii]);
 			fprintf(fp,"%10.15g\n",P[jj][ii]*SPref[ii]);
 		}
-		//fprintf(fp,"%g\n",ell[nbins]);
 		fprintf(fp,"\n");
 		fclose(fp);
 	}

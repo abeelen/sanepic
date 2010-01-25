@@ -56,10 +56,13 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	cout << size << endl;
 	cout << rank << endl;
+	if(rank==0)
+		printf("\nSanepic Noise Estimation Procedure:\n");
 
 #else
 	size = 1;
 	rank = 0;
+	printf("\nSanepic Noise Estimation Procedure:\n");
 	cout << "Mpi will not be used for the main loop" << endl;
 #endif
 
@@ -128,7 +131,6 @@ int main(int argc, char *argv[])
 
 	}
 
-	//TODO : Check in the parser if we have more than one bolometer....
 	long *frames_index;
 
 	frames_index = new long [samples_struct.ntotscan];
@@ -154,7 +156,8 @@ int main(int argc, char *argv[])
 
 		fclose(fp);
 
-		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
+		if(rank==0)
+			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
 
 	}
 
@@ -350,12 +353,11 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-	cout << iframe_min << " " << iframe_max << endl;
+//	cout << iframe_min << " " << iframe_max << endl;
 #endif
 
 	string fits_filename;
 
-	// TODO: useless test
 	//	if (MixMatfile != "NOFILE"){
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		ns = samples_struct.nsamples[iframe];
@@ -419,5 +421,6 @@ int main(int argc, char *argv[])
 		int nwcs = 1;
 		wcsvfree(&nwcs, &wcs);
 	}
+	printf("End of sanePS\n");
 	return 0;
 }
