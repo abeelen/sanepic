@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
 		fnaivname = '!' + dir.outdir + "naivMap.fits";
 		cout << fnaivname << endl;
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
-		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Naiv map",0);
+		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0);
 
 
 		for (long jj=0; jj<NAXIS2; jj++) {
@@ -677,7 +677,7 @@ int main(int argc, char *argv[])
 
 		fnaivname = dir.outdir + "naivMap.fits";
 //		fnaivname = '!' + dir.outdir + "hits.fits";
-		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Hits map",1);
+		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1);
 
 
 		for (long ii=0; ii<NAXIS1; ii++) {
@@ -694,7 +694,7 @@ int main(int argc, char *argv[])
 
 //		fnaivname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
 		//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Noisevar",1);
+		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Error",1);
 
 		for (long ii=0; ii<NAXIS1; ii++) {
 			for (long jj=0; jj<NAXIS2; jj++) {
