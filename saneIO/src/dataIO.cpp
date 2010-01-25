@@ -166,8 +166,8 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 
 }
 
-// TODO : useless now ?
-void read_flpoint_from_fits(string filename, short *FLAG){
+
+/*void read_flpoint_from_fits(string filename, short *FLAG){
 
 	fitsfile *fptr;
 	int status = 0;
@@ -191,7 +191,7 @@ void read_flpoint_from_fits(string filename, short *FLAG){
 	if(fits_close_file(fptr, &status)) // ajout mat 15/09
 		fits_report_error(stderr, status);
 
-}
+}*/
 
 
 void read_flag_from_fits(string filename, string field, short *& mask, long & ns){

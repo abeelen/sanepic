@@ -11,6 +11,7 @@
 //#include "dataIO.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
+#include "parser_functions.h"
 
 //#ifdef USE_MPI
 //#include "mpi.h"
@@ -373,10 +374,10 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	cout << "nb proc : " << val_proc << endl;
 #endif
 
-//	//DEBUG
-//	cout << fitsvect[0] << " "  << fitsvect[1] << endl;
-//	cout << noisevect[0] << " "  << noisevect[1] << endl;
-//	cout << scans_index[0] << " "  << scans_index[1] << endl;
+	//	//DEBUG
+	//	cout << fitsvect[0] << " "  << fitsvect[1] << endl;
+	//	cout << noisevect[0] << " "  << noisevect[1] << endl;
+	//	cout << scans_index[0] << " "  << scans_index[1] << endl;
 
 	if(val_proc>size){
 		cerr << "Error in frame order repartition, number of processor are not equal to mpi size\n";
@@ -442,7 +443,8 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	long *nsamples_dummy;
 	string temp;
 
-	read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven);
+	if(read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven))
+		return 1;
 
 #ifdef DEBUG_PRINT
 	cout <<" readed list : " << endl;
@@ -802,103 +804,6 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 }
 
 
-
-void read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
-
-
-
-	ifstream file;
-	file.open(fname.c_str(), ios::in);
-	if(!file.is_open()){
-		cerr << "File [" << fname << "] Invalid." << endl;
-		exit(-1);
-	}
-
-
-	framegiven=0;
-
-	string s, p, line, temp;
-	int d;
-	char *pch;
-	int nb_elem = 0;
-
-	// count number of elements on the first line !
-	getline(file, line);
-	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str()," ,;\t");
-
-	while (pch != NULL) {
-		pch = strtok (NULL, " ,;\t");
-		nb_elem++; 	}
-
-	// set pointer back to the beginning of file in order to parse the first line too
-	file.seekg (0, ios::beg);
-
-	switch(nb_elem) {
-	case 3:
-		framegiven=1;
-		while(file >> s >> p >> d) {
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-			if (found == 0) continue;
-
-			//			cout << "3 : " << s << " " << p << " " << d << endl;
-			fitsfiles.push_back(s);
-			noisefiles.push_back(p);
-			frameorder.push_back(d);
-		}
-		break;
-
-	case 2:
-		while(file >> s >> p){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-
-			if (found == 0) continue;
-
-			//			cout << "2 : " << s << " " << p << endl;
-			fitsfiles.push_back(s);
-			noisefiles.push_back(p);}
-		break;
-
-	case 1:
-		while(file >> s){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-			if (found == 0) continue;
-
-			//			cout << "1 : " << s << endl;
-			fitsfiles.push_back(s);}
-		break;
-
-	default:
-		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
-		exit(0);
-		break;
-	}
-
-	if(fitsfiles.size()==0){
-		cerr << "File [" << fname << "] must have at least one row. Exiting\n";
-		exit(0);
-	}
-
-	if (file>>s){
-		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
-		exit(0);
-	}
-
-
-#ifdef DEBUG_PRINT
-	cout << "read fits list ok !!!\n";
-#endif
-
-	file.close();
-
-
-}
 
 
 

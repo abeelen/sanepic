@@ -15,7 +15,7 @@ using namespace std;
 
 
 void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonames, double **& offsets);
-void read_flpoint_from_fits(string filename, short *FLAG);
+//void read_flpoint_from_fits(string filename, short *FLAG);
 void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns);
 
 void read_ra_from_fits(string filename, string field, double *& ra, long & ns);

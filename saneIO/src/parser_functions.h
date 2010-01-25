@@ -26,6 +26,7 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank);
 
 int read_channel_list(dictionary	*ini, std::vector<std::string> &bolonames, int rank);
 int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str, int rank);
+int read_fits_list(std::string fname, std::vector<std::string> &fitsfiles, std::vector<std::string> &noisefiles, std::vector<int> &frameorder, bool &framegiven);
 
 int read_apodize_samples(dictionary	*ini, struct param_process &com, int rank);
 int read_nofillgap(dictionary	*ini, struct param_process &com, int rank);

@@ -7,7 +7,9 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
+#include <string>
 
 extern "C"{
 #include "iniparser.h"
@@ -17,7 +19,6 @@ extern "C"{
 #include "inputFileIO.h"
 #include "parser_functions.h"
 #include "struct_definition.h"
-//TODO : Shall we move read_fits_file here ?
 #include "mpi_architecture_builder.h"
 
 using namespace std;
@@ -45,25 +46,17 @@ int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 	pPath = getenv ("TMPBATCH");
 	if (pPath!=NULL){
 		dir.tmp_dir=pPath;
-		//		if(rank==0)
-		//			printf ("The current path is: %s\n",pPath);
 	}else{
 		if (read_parser_string(ini, "commons:temp_dir",rank,str))
 			return 1;
-		// TODO: Do we want this ???
-		//		if(s==NULL){
-		//			if(rank==0){
-		//				printf("Warning : The line corresponding to temporary directory in the ini file has been erased : commons:output_dir\n");
-		//				cout << "Using default output directory : " << dir.dirfile << endl;
-		//			}
-		//			dir.tmp_dir=dir.dirfile;
-		//		}else{
+
 		if (str[str.length()-1] != '/')
 			str = str + '/';
 		dir.tmp_dir=str;
-	}
 
+	}
 	return 0;
+
 }
 
 
@@ -74,18 +67,11 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 	if(read_parser_string(ini, "commons:output_dir", rank, str))
 		return 1;
 
-	// TODO: Do we really want this ??
-	//	if(s==NULL){
-	//		if(rank==0){
-	//			printf("Warning : The line corresponding to output directory in the ini file has been erased : commons:output_dir\n");
-	//			cout << "Using default output directory : " << dir.dirfile << endl;
-	//		}
-	//		dir.outdir=dir.dirfile;
-	//	}else{
 	if (str[str.length()-1] != '/')
 		str = str + '/';
 	dir.outdir=str;
 	return 0;
+
 }
 
 
@@ -113,11 +99,11 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	samples_str.filename=str;
 
-	// TODO: read_fits_list should return an error in case...
 	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-	read_fits_list(samples_str.filename, \
+	if(read_fits_list(samples_str.filename, \
 			samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
-			samples_str.framegiven);
+			samples_str.framegiven)!=0)
+		return 1;
 
 
 	for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
@@ -149,6 +135,105 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	return 0;
 }
+
+
+int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
+
+
+
+	ifstream file;
+	file.open(fname.c_str(), ios::in);
+	if(!file.is_open()){
+		cerr << "File [" << fname << "] Invalid." << endl;
+		exit(-1);
+	}
+
+
+	framegiven=0;
+
+	string s, p, line, temp;
+	int d;
+	char *pch;
+	int nb_elem = 0;
+
+	// count number of elements on the first line !
+	getline(file, line);
+	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
+	pch = strtok ((char*) line.c_str()," ,;\t");
+
+	while (pch != NULL) {
+		pch = strtok (NULL, " ,;\t");
+		nb_elem++; 	}
+
+	// set pointer back to the beginning of file in order to parse the first line too
+	file.seekg (0, ios::beg);
+
+	switch(nb_elem) {
+	case 3:
+		framegiven=1;
+		while(file >> s >> p >> d) {
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			if (found == 0) continue;
+
+			//			cout << "3 : " << s << " " << p << " " << d << endl;
+			fitsfiles.push_back(s);
+			noisefiles.push_back(p);
+			frameorder.push_back(d);
+		}
+		break;
+
+	case 2:
+		while(file >> s >> p){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+
+			if (found == 0) continue;
+
+			//			cout << "2 : " << s << " " << p << endl;
+			fitsfiles.push_back(s);
+			noisefiles.push_back(p);}
+		break;
+
+	case 1:
+		while(file >> s){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			if (found == 0) continue;
+
+			//			cout << "1 : " << s << endl;
+			fitsfiles.push_back(s);}
+		break;
+
+	default:
+		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+		return 1;
+		break;
+	}
+
+	if(fitsfiles.size()==0){
+		cerr << "File [" << fname << "] must have at least one row. Exiting\n";
+		return 1;
+	}
+
+	if (file>>s){
+		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
+		return 1;
+	}
+
+
+#ifdef DEBUG_PRINT
+	cout << "read fits list ok !!!\n";
+#endif
+
+	file.close();
+
+	return 0;
+}
+
 
 int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int rank){
 

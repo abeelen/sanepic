@@ -395,7 +395,6 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 
 }
 
-// TODO : la fonction fait doublon avec read_noise_file dans inline_IO2.cpp, celle ci permet de read ndet en plus (depend du format d'ecriture)
 void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 		long * nbins, long * ndet, double ** ell, double *** SpN_all)
 /*
