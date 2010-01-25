@@ -932,7 +932,6 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 
-//void readNSpectrum(char *nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 
 	FILE *fp;
