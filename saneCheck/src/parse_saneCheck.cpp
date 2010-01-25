@@ -61,7 +61,16 @@ int parse_saneCheck_ini_file(char * ini_name, struct directories &dir,
 
 	//cout << "framegiven : " << samples_vct.framegiven << endl;
 
+
+
 	if(rank==0){
+
+		printf("\nsaneCheck parser operations completed :\n");
+		cout << "You have specified the following options : \n\n";
+
+		print_directories(dir);
+
+
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 		printf("Number of bolometers : %ld\n",det.ndet);
 	}

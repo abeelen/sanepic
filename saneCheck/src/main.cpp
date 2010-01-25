@@ -44,6 +44,8 @@ int main(int argc, char *argv[]) {
 	string temp;
 	size_t found;
 
+	printf("\nBeginning of saneCheck:\n\n");
+
 
 	parsed=parse_saneCheck_ini_file(argv[1],dir,
 			det, samples_struct, rank);
@@ -70,7 +72,7 @@ int main(int argc, char *argv[]) {
 		temp = samples_struct.fitsvect[ii];
 		found=temp.find_last_of('/');
 		outname = dir.outdir + temp.substr(found+1) + "_bolos_flag.txt";
-		cout << outname << endl;
+		cout << "Writing informations in :\n" << outname << endl << endl;
 
 		checked=check_flag(samples_struct.fitsvect[ii],det, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
 	}
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
 	//cleaning
 	delete [] samples_struct.nsamples;
 
-	cout << "End of saneCheck\n";
+	cout << "\nEnd of saneCheck\n";
 
 
 }

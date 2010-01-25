@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <cmath>
@@ -466,6 +467,8 @@ void check_time_gaps(string fname,long ns){
 		if((diff[jj])>three_times_sigma)
 			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << fixed <<  setprecision(8) << (time[jj+1]-time[jj]) << endl;
 	}
+
+	cout << endl;
 
 	//	getchar();
 	delete [] time;
