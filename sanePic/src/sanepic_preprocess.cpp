@@ -29,7 +29,6 @@ void sanepic_preprocess(int NAXIS1, int NAXIS2, std::vector<long> xxi, std::vect
 
 
 	//************************************* Deal with masking the point sources
-	// TODO: This is in sanePre AND sanePos... FIX THAT
 	// define the mask
 	mask = new unsigned char[NAXIS1*NAXIS2];
 	for (long ii=0;ii<NAXIS1*NAXIS2;ii++)

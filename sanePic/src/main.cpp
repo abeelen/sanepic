@@ -564,7 +564,6 @@ int main(int argc, char *argv[])
 			Mptot = new double[npix];
 			qtot = new double[npix];
 
-			// TODO : Is it really necessary to initialize those variables ?
 			//				fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 			//				fill(hitstot,hitstot+npix,0);
 			//				fill(Mptot,Mptot+npix,0.0);
