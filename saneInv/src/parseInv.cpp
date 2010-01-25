@@ -68,7 +68,7 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &sample
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;
 
-	printf("\nsaneInv parser operations completed :\n");
+//	printf("\nsaneInv parser operations completed :\n");
 	cout << "You have specified the following options : \n";
 
 	print_directories(dir);

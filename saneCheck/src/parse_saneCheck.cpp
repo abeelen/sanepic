@@ -65,7 +65,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct directories &dir,
 
 	if(rank==0){
 
-		printf("\nsaneCheck parser operations completed :\n");
+//		printf("\nsaneCheck parser operations completed :\n");
 		cout << "You have specified the following options : \n\n";
 
 		print_directories(dir);

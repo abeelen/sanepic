@@ -77,7 +77,13 @@ int main(int argc, char *argv[])
 		}
 
 
-
+		if(samples_struct.ntotscan<size){
+			cerr << "You must use at least " << size << " scans or reduce the number of processor to be used.\n";
+			cerr << "This number must be at least equal to the number of scans you are using : ie. " << samples_struct.ntotscan << endl;
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+			exit(0);
+		}
 
 
 		if(samples_struct.scans_index.size()!=0){
@@ -112,7 +118,7 @@ int main(int argc, char *argv[])
 		parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
 		if(parsed==-1){
 			if(rank==0)
-				cerr << "PWrite parallelization Error !" << endl;
+				cerr << "Write parallelization Error !" << endl;
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 			exit(0);
@@ -136,6 +142,7 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	cout << "End of saneFrameOrder\n";
+	if(rank==0)
+		cout << "End of saneFrameOrder\n";
 	return 0;
 }

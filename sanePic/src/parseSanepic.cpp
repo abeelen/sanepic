@@ -84,7 +84,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	if(rank==0){
 
-		printf("\nsanePre parser operations completed :\n");
+//		printf("\nsanePre parser operations completed :\n");
 		cout << "You have specified the following options : \n\n";
 
 		print_directories(dir);

@@ -69,7 +69,7 @@ int parse_FBFO(char * ini_name,struct samples &samples_struct,struct directories
 		return -1;
 
 
-	printf("\nsaneFrameOrder parser operations completed :\n");
+//	printf("\nsaneFrameOrder parser operations completed :\n");
 	cout << "You have specified the following options : \n\n";
 
 	print_directories(dir);

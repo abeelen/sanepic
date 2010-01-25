@@ -84,7 +84,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	if(rank==0){
 
-		printf("\nsanePos parser operations completed :\n");
+//		printf("\nsanePos parser operations completed :\n");
 		cout << "You have specified the following options : \n";
 
 		print_directories(dir);
