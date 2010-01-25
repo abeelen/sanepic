@@ -88,15 +88,15 @@ int main(int argc, char *argv[]) {
 //	cout << size_tmp << endl;
 	if(size_tmp==1){
 		n_iter=1;
-		cout << "The same covariance Matrix will be inverted for all the scans" << endl;
+		cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
 	}else{
 
 		n_iter = (int)samples_struct.noisevect.size();
 		if(n_iter==0){
-			cerr << "Warning. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
+			cerr << "WARNING. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
 			exit(1);
 		}
-		cout << n_iter << " covariance Matrix will be inverted" << endl;
+		cout << n_iter << " covariance Matrix will be inverted\n" << endl;
 	}
 
 
