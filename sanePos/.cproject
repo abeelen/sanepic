@@ -37,10 +37,11 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.413425531" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
+<listOptionValue builtIn="false" value="DEBUG_PRINT"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.404254142" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="USE_MPI"/>
+<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.debugging.gprof.1474718930" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.debugging.prof.907175754" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
@@ -794,6 +795,9 @@
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
+<option id="gnu.cpp.compiler.option.preprocessor.def.1226602444" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<listOptionValue builtIn="false" value="DEBUG_PRINT"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.852915525" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.842872005" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -1535,6 +1539,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.369763103" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
+<listOptionValue builtIn="false" value="DEBUG_PRINT"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.74319944" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
@@ -2287,6 +2292,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.84213683" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
+<listOptionValue builtIn="false" value="DEBUG_PRINT"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1329341962" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>

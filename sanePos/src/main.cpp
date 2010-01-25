@@ -122,14 +122,16 @@ int main(int argc, char *argv[])
 	long long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
 
 	long long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
-	long long *pixon_tot;
+
+	long long *pixon_tot=NULL;
 
 	string field; /*! actual boloname in the bolo loop */
 	string bolofield; /*! bolofield = boloname + bextension */
 	string flagfield; /*! flagfield = field+fextension;*/
 
-	//TODO : Debug this...
+#ifdef DEBUG_PRINT
 	time_t t2, t3;//, t3, t4, t5, dt;
+#endif
 
 	// -----------------------------------------------------------------------------//
 
@@ -156,7 +158,9 @@ int main(int argc, char *argv[])
 	}
 
 	// -----------------------------------------------------------------------------//
+#ifdef DEBUG_PRINT
 	t2=time(NULL);
+#endif
 
 	samples_struct.fits_table  = new string[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
@@ -200,14 +204,14 @@ int main(int argc, char *argv[])
 
 	}
 
-	if(rank==0){
-		//				file.close();
-		cout << "on aura : \n";
-		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-		//cout << samples_struct.filename << endl;
-	}
+	//	if(rank==0){
+	//		//				file.close();
+	//		cout << "on aura : \n";
+	//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+	//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+	//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+	//		//cout << samples_struct.filename << endl;
+	//	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -279,14 +283,13 @@ int main(int argc, char *argv[])
 
 
 
-	//TODO : Should not be needed ! computeMapMinima should skip the loop
-	if(iframe_min!=iframe_max)
-		//			computeMapMinima_HIPE(det.boloname,samples_struct,
-		//					iframe_min,iframe_max,
-		//					ra_min,ra_max,dec_min,dec_max);
-		computeMapMinima(det.boloname,samples_struct,
-				iframe_min,iframe_max,
-				ra_min,ra_max,dec_min,dec_max);
+	//	if(iframe_min!=iframe_max)
+	//			computeMapMinima_HIPE(det.boloname,samples_struct,
+	//					iframe_min,iframe_max,
+	//					ra_min,ra_max,dec_min,dec_max);
+	computeMapMinima(det.boloname,samples_struct,
+			iframe_min,iframe_max,
+			ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
 
@@ -412,9 +415,8 @@ int main(int argc, char *argv[])
 		fill(pixon_tot,pixon_tot+(sky_size),0);
 	}
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-	delete [] pixon;
+	//	delete [] pixon;
 #else
-
 	pixon_tot=pixon;
 #endif
 
@@ -450,7 +452,9 @@ int main(int argc, char *argv[])
 		printf("Total Number of filled pixels : %lld\n", npix);
 	}
 
+#ifdef DEBUG_PRINT
 	t3=time(NULL);
+#endif
 
 
 	//	if(iframe_min!=iframe_max){
@@ -465,12 +469,9 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.nsamples;
 
 	//TODO : NO !
-#ifdef USE_MPI
-	if(rank==0)
-		delete [] pixon_tot;
-#else
+	delete [] pixon_tot;
+
 	delete [] pixon;
-#endif
 
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.noise_table;
