@@ -856,7 +856,7 @@ int main(int argc, char *argv[])
 					// Clear ostringstream buffer
 					temp_stream.str("");
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
 
 					if (pos_param.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
@@ -878,7 +878,7 @@ int main(int argc, char *argv[])
 						// Clear ostringstream buffer
 						temp_stream.str("");
 						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",0);
 					}
 
 
@@ -918,7 +918,7 @@ int main(int argc, char *argv[])
 						// Clear ostringstream buffer
 						temp_stream.str("");
 						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 0);
 
 					}
 				} // end of if (iterw && (iter % iterw) == 0)
