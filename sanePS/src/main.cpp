@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	cout << size << endl;
-	cout << rank << endl;
+	//	cout << size << endl;
+	//	cout << rank << endl;
 	if(rank==0)
 		printf("\nSanepic Noise Estimation Procedure:\n");
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 
 		int test=0;
 		fname = dir.outdir + parallel_scheme_filename;
-		cout << fname << endl;
+		//		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
@@ -316,10 +316,10 @@ int main(int argc, char *argv[])
 
 	if(rank==0){
 		file.close();
-		cout << "on aura : \n";
-		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+		//		cout << "on aura : \n";
+		//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+		//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+		//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
 		//cout << samples_struct.filename << endl;
 	}
 
@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-//	cout << iframe_min << " " << iframe_max << endl;
+	//	cout << iframe_min << " " << iframe_max << endl;
 #endif
 
 	string fits_filename;
@@ -364,6 +364,7 @@ int main(int argc, char *argv[])
 		ff = iframe;
 		extentnoiseSp = samples_struct.noise_table[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
+		cout << rank << " " << fits_filename << endl;
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,

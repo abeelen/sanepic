@@ -722,7 +722,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	/////// to be removed:
 	//nbins2 = nbins;
 
-	printf("nbins2 = %ld                \n",nbins2);
+	printf("\nnbins2 = %ld                \n",nbins2);
 
 
 
