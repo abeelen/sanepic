@@ -31,8 +31,8 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	if (ini==NULL) {
 		if(rank==0)
-		fprintf(stderr, "cannot parse file: %s\n", ini_name);
-		return -1 ;
+			fprintf(stderr, "cannot parse file: %s\n", ini_name);
+		return 2 ;
 	}
 
 
@@ -57,19 +57,19 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 
 	if(read_directories(ini, dir, rank)==-1)
-		return -1;
+		return 2;
 
 	if(read_param_process(ini, proc_param, rank)==-1)
-		return -1;
+		return 2;
 
 	if(read_param_positions(ini, pos_param, rank)==-1)
-		return -1;
+		return 2;
 
 	if(read_channel_list(ini,det.boloname, rank)==-1)
-		return -1;
+		return 2;
 
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
-		return -1;
+		return 2;
 
 
 
@@ -77,15 +77,15 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 		return -1;*/
 
 	if(read_noise_cut_freq(ini, fcut, rank)==-1)
-		return -1;
+		return 2;
 
 	if(read_iter(ini, iterw, rank)==-1)
-		return -1;
+		return 2;
 
 	if(rank==0){
 
-//		printf("\nsanePre parser operations completed :\n");
-		cout << "You have specified the following options : \n\n";
+		//		printf("\nsanePre parser operations completed :\n");
+		cout << "\nYou have specified the following options : \n\n";
 
 		print_directories(dir);
 		print_param_process(proc_param);
@@ -98,15 +98,15 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	// Check improper usage
 	if (det.ndet== 0) {
 		if(rank==0)
-		cerr << "Must provide at least one channel.\n\n";
-		return -1;
+			cerr << "Must provide at least one channel.\n\n";
+		return 2;
 		//usage(argv[0]);
 	}
 
 	if(samples_struct.ntotscan == 0){
 		if(rank==0)
-		cerr << "Must provide at least one scan.\n\n";
-		return -1;
+			cerr << "Must provide at least one scan.\n\n";
+		return 2;
 	}
 
 
@@ -119,8 +119,8 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
 	if ((int)fcut.size()==0){
 		if(rank==0)
-		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
-		exit(0);
+			cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
+		return 2;
 	}
 
 	// if only one fcut, extend to all scans

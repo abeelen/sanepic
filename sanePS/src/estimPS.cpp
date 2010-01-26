@@ -68,7 +68,7 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 	time_t t1;
 
 
-	printf("Inside EstimPowerSpectra just at the beginning\n");
+	printf("\nEstimation procedure started : \n");
 	t1=time(NULL);
 
 	//	data = new double[ns]; // raw data

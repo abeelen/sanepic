@@ -59,12 +59,12 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	if(rank==0)
-		printf("\nsanepic_conjugate_gradient:\n");
+		printf("\nsanepic_conjugate_gradient:\n\n");
 
 #else
 	size = 1;
 	rank = 0;
-	printf("\nsanepic_conjugate_gradient:\n");
+	printf("\nsanepic_conjugate_gradient:\n\n");
 	cout << "Mpi will not be used for the main loop" << endl;
 #endif
 
@@ -118,28 +118,44 @@ int main(int argc, char *argv[])
 	string fname; /*! parallel scheme filename */
 
 
+	int parsed=0;
 
-	// Parse ini file
-	if (argc<2) {
-		if(rank==0)
-			printf("Please run %s using a *.ini file\n",argv[0]);
-		exit(0);
-	} else {
-
-		int parsed=1;
-
+	if (argc<2)
+		parsed=1;
+	else{
+		// Parse ini file
 		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
 				det, fcut, rank);
-		if (parsed==-1){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			exit(1);
-		}
-		//exit(0);
 
+		if(size>det.ndet) parsed=3;
 	}
+
+	if (parsed>0){
+		if (rank==0)
+			switch (parsed){
+
+			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+			break;
+
+			case 2 : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+			break;
+
+			default :;
+			}
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		exit(1);
+	}
+
+
+
+
 	////////////////////////////////////////////////////////////////
 
 
@@ -389,7 +405,7 @@ int main(int argc, char *argv[])
 	// cout << tancoord[0] << " " << tancoord[1] << endl;
 
 	if(rank==0)
-		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
+		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl;
 
 	long long test_size;
 	read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir);
@@ -445,7 +461,7 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0)
-		printf("Main Conjugate gradient loop\n");
+		printf("\nMain Conjugate gradient loop\n");
 
 	//MALLOC
 	S = new double[npix];
@@ -1092,7 +1108,7 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	cout << "End of sanePic" << endl;
+	cout << "\nEnd of sanePic" << endl;
 
 
 	return 0;

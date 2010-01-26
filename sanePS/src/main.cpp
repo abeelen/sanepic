@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 #else
 	size = 1;
 	rank = 0;
-	printf("\nSanepic Noise Estimation Procedure:\n");
+	printf("\nSanepic Noise Estimation Procedure:\n\n");
 	cout << "Mpi will not be used for the main loop" << endl;
 #endif
 
@@ -421,6 +421,6 @@ int main(int argc, char *argv[])
 		int nwcs = 1;
 		wcsvfree(&nwcs, &wcs);
 	}
-	printf("End of sanePS\n");
+	printf("\nEnd of sanePS\n");
 	return 0;
 }

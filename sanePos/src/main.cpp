@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
 	//	if (0){
 	//		if(iframe_min!=iframe_max)
 	if(rank==0)
-		printf("Determining the size of the map\n");
+		printf("\n\nDetermining the size of the map\n");
 	//	printf("[%2.2i] Determining the size of the map\n",rank);
 
 	// TODO: Different ways of computing the map parameters :
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
 
 
 	if (rank == 0) {
-		printf(" %ld x %ld pixels\n", NAXIS1, NAXIS2);
+		printf("Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
 	}
 
@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
 
 	//	if(iframe_min!=iframe_max)
 	if(rank==0)
-		printf("Compute Pixels Indices\n");
+		printf("\n\nCompute Pixels Indices\n");
 
 
 	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	if(rank==0){
-		printf("Total number of detectors : %d\t Total number of Scans : %d \n",(int)det.ndet, (int) samples_struct.ntotscan);
+		printf("Total number of detectors : %d\nTotal number of Scans : %d \n",(int)det.ndet, (int) samples_struct.ntotscan);
 		printf("Size of the map : %ld x %ld (using %lld pixels)\n", NAXIS1, NAXIS2, sky_size);
 		printf("Total Number of filled pixels : %lld\n", npix);
 	}
@@ -459,17 +459,14 @@ int main(int argc, char *argv[])
 
 	//	if(iframe_min!=iframe_max){
 	if(rank==0){
-		printf("Temps de traitement : %d sec\n",(int)(t3-t2));
-		printf("Cleaning up\n");
+		printf("\nTemps de traitement : %d sec\n",(int)(t3-t2));
+		printf("\nCleaning up\n");
 	}
 
 	// clean up
 	delete [] mask;
 	delete [] coordscorner;
 	delete [] samples_struct.nsamples;
-
-	//TODO : NO !
-	delete [] pixon_tot;
 
 	delete [] pixon;
 
@@ -480,13 +477,17 @@ int main(int argc, char *argv[])
 	//wcsfree(wcs);
 	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);
-#ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
-#endif
 
 	if(rank==0)
 		printf("End of sanePos\n");
+
+
+#ifdef USE_MPI
+	if(rank==0)
+		delete [] pixon_tot;
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+#endif
 
 	return 0;
 }

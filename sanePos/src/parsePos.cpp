@@ -47,7 +47,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 	ini = iniparser_load(ini_name);
 
 	if (ini==NULL) {
-		fprintf(stderr, "cannot parse file: %s\n", ini_name);
+		fprintf(stderr, "\ncannot parse file: %s\n", ini_name);
 		return -1 ;
 	}
 
@@ -85,7 +85,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 	if(rank==0){
 
 //		printf("\nsanePos parser operations completed :\n");
-		cout << "You have specified the following options : \n";
+		cout << "\nYou have specified the following options : \n";
 
 		print_directories(dir);
 		print_param_process(proc_param);

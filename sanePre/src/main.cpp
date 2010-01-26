@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	//	cout << size << endl;
 	//	cout << rank << endl;
-//	cout << "rank " << rank << " size : " << size << endl;
+	//	cout << "rank " << rank << " size : " << size << endl;
 
 	if(rank==0)
 		printf("\nsanepic_preprocess\n");
@@ -133,27 +133,41 @@ int main(int argc, char *argv[])
 	// Processing time estimation
 	time_t t2, t3;// t4, t5, dt;
 
-	// Parse ini file
-	if (argc<2) {
-		if(rank==0)
-			printf("Please run %s using a *.ini file\n",argv[0]);
-		exit(0);
-	} else {
+	int parsed=0;
 
-		int parsed=1;
+
+	if (argc<2)
+		parsed=1;
+	else {
+		// Parse ini file
 		parsed=parse_sanePre_ini_file(argv[1],proc_param, pos_param, dir, samples_struct,
 				det, fcut, rank);
 
-		if (parsed==-1){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			exit(1);
-		}
+		if(size>det.ndet) parsed=3;
 	}
 
+	if (parsed>0){
+		if (rank==0)
+			switch (parsed){
 
+			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+			break;
+
+			case 2 : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+			break;
+
+			default :;
+			}
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		exit(1);
+	}
 
 	// processing begins here
 	t2=time(NULL);
@@ -245,9 +259,9 @@ int main(int argc, char *argv[])
 			it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
 			size_tmp = it - samples_struct.scans_index.begin();
 
-//			cout << "size unique : " << size_tmp << endl;
-//
-//			cout << size << " vs size : " <<  size_tmp << endl;
+			//			cout << "size unique : " << size_tmp << endl;
+			//
+			//			cout << size << " vs size : " <<  size_tmp << endl;
 
 			if((size_tmp)>size){
 				cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
@@ -256,7 +270,7 @@ int main(int argc, char *argv[])
 
 				samples_struct.scans_index.resize( size_tmp );
 
-//				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+				//				cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
 
 
 				if((size_tmp)<size){
@@ -347,7 +361,7 @@ int main(int argc, char *argv[])
 						temp = samples_struct.fits_table[num_frame];
 						found=temp.find_last_of('/');
 						file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
-//						cout << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+						//						cout << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
 					}
 					num_frame++;
 				}
@@ -431,7 +445,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-//	cout << "rank " << rank << " frame : " << iframe_min << " " << iframe_max << endl;
+	//	cout << "rank " << rank << " frame : " << iframe_min << " " << iframe_max << endl;
 	//exit(0);
 
 	//At N-1 D memory allocation
@@ -468,7 +482,7 @@ int main(int argc, char *argv[])
 	//************************************************************************//
 	//************************************************************************//
 	if(rank==0)
-		printf("Pre-processing of the data\n");
+		printf("\nPre-processing of the data\n");
 
 	/*fftw_complex **fdatas;
 	long nsamp_max=0;
@@ -541,10 +555,10 @@ int main(int argc, char *argv[])
 			t3=time(NULL);
 
 			//debug : computation time
-//			if(rank==0)
-//				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
+			//			if(rank==0)
+			//				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
 #ifdef PARA_BOLO
-//			cout << "rank " << rank << " a fini et attend ! \n";
+			//			cout << "rank " << rank << " a fini et attend ! \n";
 			MPI_Barrier(MPI_COMM_WORLD);
 #endif
 			// PNd = npix dimension, initialised to 0.0
@@ -607,7 +621,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		printf("End of Pre-Processing\n");
+		printf("\nEnd of Pre-Processing\n");
 
 	if (rank == 0){
 		// write (At N-1 d) in a file
@@ -623,7 +637,7 @@ int main(int argc, char *argv[])
 		//		}
 
 		if(rank==0)
-			cout << "naive step" << endl;
+			cout << "\nNaive step :" << endl;
 		string fnaivname;
 		double *map1d;
 		long long mi;
@@ -646,7 +660,7 @@ int main(int argc, char *argv[])
 
 		//		filee.close();
 		fnaivname = '!' + dir.outdir + "naivMap.fits";
-		cout << fnaivname << endl;
+		cout << "Output file : " << fnaivname << endl;
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0);
 
@@ -676,7 +690,7 @@ int main(int argc, char *argv[])
 		}
 
 		fnaivname = dir.outdir + "naivMap.fits";
-//		fnaivname = '!' + dir.outdir + "hits.fits";
+		//		fnaivname = '!' + dir.outdir + "hits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1);
 
 
@@ -692,7 +706,7 @@ int main(int argc, char *argv[])
 		}
 
 
-//		fnaivname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
+		//		fnaivname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
 		//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Error",1);
 
@@ -716,7 +730,7 @@ int main(int argc, char *argv[])
 				}
 			}
 
-//			fnaivname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
+			//			fnaivname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
 			//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 			write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Invnoisevaruncpix",1);
 		}
@@ -724,7 +738,7 @@ int main(int argc, char *argv[])
 
 		delete [] map1d;
 		if(rank==0)
-			printf("End of saneNaiv\n");
+			printf("End of saneNaiv\n\n");
 
 	}
 	/* ---------------------------------------------------------------------------------------------*/
@@ -771,7 +785,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		printf("End of sanePre \n");
+		printf("\nEnd of sanePre \n");
 
 	return 0;
 }
