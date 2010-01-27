@@ -24,12 +24,13 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &samples_struct,struct directories &dir,string &boloname, string &base)
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct directories &dir,string &boloname, string &base)
 {
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
 	char		*	s ;
+	string str;
 	//	string base;
 
 
@@ -51,15 +52,10 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &sample
 		return(-1);
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
-	s = iniparser_getstring(ini, "commons:noise_prefixe",NULL);
-	if(s!=NULL){
-		fname=s;
-		//		base=Basename(fname);
-	}else{
-		printf("Warning ! You must specify a noise covariance matrix file to invert : commons:noise_prefixe or put the information in the fits filelist\n");
-		//		return(-1);
-	}//	fname = ./RCW_120_M/BoloPS0sanepic_binary.psd
+	if(read_parser_string(ini,"sanepic_inv_matrix:noise_dir", 0, str))
+		return -1;
 
+	dir.noise_dir=str;
 
 	if(read_directories(ini, dir, 0)==-1)
 		return -1;
@@ -68,10 +64,11 @@ int parse_saneInv_ini_file(char * ini_name, string &fname,struct samples &sample
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;
 
-//	printf("\nsaneInv parser operations completed :\n");
+	//	printf("\nsaneInv parser operations completed :\n");
 	cout << "You have specified the following options : \n";
 
 	print_directories(dir);
+	cout << "Noise directory : " << dir.noise_dir << endl;
 	//printf("cov_matrix_file: [%s]\n",s);
 
 	// cleaning up

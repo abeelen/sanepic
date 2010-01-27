@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	} else {
 		int parsed=1;
-		parsed=parse_saneInv_ini_file(argv[1], fname,samples_struct,dir, boloname, base_name);
+		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, boloname, base_name);
 
 
 		if (parsed==-1){
@@ -79,13 +79,13 @@ int main(int argc, char *argv[]) {
 	std::vector<string>::iterator it;
 	long size_tmp;
 
-//	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
-//	cout << (int)samples_struct.noisevect.size() << endl;
+	//	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
+	//	cout << (int)samples_struct.noisevect.size() << endl;
 
 
 	it = unique(samples_struct.noisevect.begin(), samples_struct.noisevect.end());
 	size_tmp = it - samples_struct.noisevect.begin();
-//	cout << size_tmp << endl;
+	//	cout << size_tmp << endl;
 	if(size_tmp==1){
 		n_iter=1;
 		cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
@@ -114,9 +114,9 @@ int main(int argc, char *argv[]) {
 		fname="";
 		fname+=(string)samples_struct.noisevect[ii];
 		base_name=FitsBasename(fname);
-//		cout << base_name << endl;
+		//		cout << base_name << endl;
 
-		fname2=(string)samples_struct.noisevect[ii];
+		fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
 		//		cout << fname2 << endl;
 		//		cout << samples_struct.noisevect[ii] << endl;
 
