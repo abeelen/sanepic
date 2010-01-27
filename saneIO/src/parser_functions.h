@@ -23,6 +23,7 @@ extern "C"{
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank);
 int read_tmpdir(dictionary	*ini, struct directories &dir, int rank);
 int read_outdir(dictionary	*ini, struct directories &dir, int rank);
+int read_outdir(dictionary	*ini, struct directories &dir, int rank);
 
 int read_channel_list(dictionary	*ini, std::vector<std::string> &bolonames, int rank);
 int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str, int rank);

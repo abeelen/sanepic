@@ -30,7 +30,7 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 
 	/* Some temporary variables to hold query results */
 	char		*	s ;
-	string str;
+
 	//	string base;
 
 
@@ -52,10 +52,6 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 		return(-1);
 	}//	channel =./RCW_120_M/bolos_commons.txt ;
 
-	if(read_parser_string(ini,"sanepic_inv_matrix:noise_dir", 0, str))
-		return -1;
-
-	dir.noise_dir=str;
 
 	if(read_directories(ini, dir, 0)==-1)
 		return -1;
@@ -68,7 +64,7 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 	cout << "You have specified the following options : \n";
 
 	print_directories(dir);
-	cout << "Noise directory : " << dir.noise_dir << endl;
+
 	//printf("cov_matrix_file: [%s]\n",s);
 
 	// cleaning up

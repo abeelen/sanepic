@@ -77,8 +77,8 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 			print_fits_error(fits_status);
 
 
-	fits_update_key(fp, TSTRING, "EXTNAME", (void*)(table_name.c_str()),
-			"table name", &fits_status);
+	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
+			(char *) "table name", &fits_status);
 
 	free(header);
 
@@ -327,7 +327,7 @@ void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2
 
 	outdir=outdir + "mapHeader.keyrec";
 	fout = fopen(outdir.c_str(),"w");
-	if (fout==NULL) {fputs ("File error on mapHeader.keyrec\n",stderr); exit (1);}
+	if (fout==NULL) {fputs ("Creation error : File error on mapHeader.keyrec\n",stderr); exit (1);}
 
 	fprintf(fout,"NAXIS1  = %20ld / %-47s\n",NAXIS1,"length of data axis 1");
 	fprintf(fout,"NAXIS2  = %20ld / %-47s\n",NAXIS2,"length of data axis 2");
@@ -367,7 +367,7 @@ void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * 
 	size_t result;
 
 	fin = fopen(outdir.c_str(),"r");
-	if (fin==NULL) {fputs ("File error on mapHeader.keyrec",stderr); exit (1);}
+	if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); exit (1);}
 
 	fseek(fin, 0L, SEEK_END);     /* Position to end of file */
 	size = ftell(fin);            /* Get file length */

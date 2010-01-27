@@ -342,9 +342,9 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	noisevect_temp = new string [samples_struct.ntotscan];
 	scans_index_temp = new int [samples_struct.ntotscan];
 
-	cout << "write" << endl;
-	cout << samples_struct.fitsvect[0] << " "  << samples_struct.fitsvect[1] << endl;
-	cout << samples_struct.noisevect[0] << endl; //" "  << samples_struct.noisevect[1] << endl;
+//	cout << "write" << endl;
+//	cout << samples_struct.fitsvect[0] << " "  << samples_struct.fitsvect[1] << endl;
+//	cout << samples_struct.noisevect[0] << endl; //" "  << samples_struct.noisevect[1] << endl;
 
 	for (long ii=0;ii<samples_struct.ntotscan;ii++){
 		//cout << position[ii] << endl;
@@ -394,7 +394,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	delete [] fitsvect_temp;
 	delete [] noisevect_temp;
 
-	cout << "fin fonction\n";
+//	cout << "fin fonction\n";
 
 	return 0;
 
@@ -559,7 +559,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 //int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table, long iframe_min, long iframe_max){
 int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
-	cout << "rank" << rank << endl;
+	//cout << "rank" << rank << endl;
 	int test=0;
 
 	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);

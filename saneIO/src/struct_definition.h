@@ -17,6 +17,7 @@ struct directories {
 	std::string dirfile;
 	std::string outdir;
 	std::string tmp_dir;
+	std::string noise_dir;
 };
 
 struct samples {

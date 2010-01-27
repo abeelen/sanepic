@@ -74,6 +74,19 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 
 }
 
+int read_noisedir(dictionary	*ini, struct directories &dir, int rank){
+
+	string str;
+
+	if(read_parser_string(ini, "sanepic_inv_matrix:noise_dir", rank, str))
+		return 1;
+
+	if (str[str.length()-1] != '/')
+		str = str + '/';
+	dir.noise_dir=str;
+	return 0;
+
+}
 
 int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank){
 
@@ -325,38 +338,6 @@ int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut, int rank){
 
 }
 
-/*
-int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP){
-
-
-	string str;
-	char *s;
-
-	s = iniparser_getstring(ini, "commons:noise_prefixe_file",NULL);
-	if(s==NULL){
-		printf("You must add a line corresponding to noise_prefixe file in the ini file : commons:noise_prefixe_file\n");
-		return -1;
-	}
-	str=(string)s;
-	if(str.size()!=0){
-		//printf("noise_prefixe_file : [%s]\n",s);
-		//extentnoiseSP.push_back(s);
-
-		std::vector<string> dummy3;
-		read_strings(str,dummy3);
-		if(((int)dummy3.size())==0){
-			printf("You must provide at least one noise prefixe (or one per scan) in noise_prefixe_file !\n");
-			return -1;}
-		for(int ii=0; ii<(int)dummy3.size(); ii++)
-			extentnoiseSP.push_back(dummy3[ii].c_str());
-	}else{
-		printf("you must specify noise_prefixe_file\n");
-		return -1;
-	}//noise_prefixe = NoisePS ;
-
-	return 0;
-
-}*/
 
 int read_baseline(dictionary	*ini, struct param_process &proc_param, int rank){
 
@@ -529,7 +510,8 @@ int read_directories(dictionary	*ini, struct directories &dir, int rank){
 
 	return read_dirfile(ini, dir, rank) || \
 	read_tmpdir(ini, dir, rank)  ||	\
-	read_outdir(ini, dir, rank);
+	read_outdir(ini, dir, rank) || \
+	read_noisedir(ini, dir, rank);
 
 }
 
@@ -632,6 +614,8 @@ void print_directories(struct directories dir){
 	cout << "Data directory : " << dir.dirfile << "\n";
 	cout << "Temporary directory : " << dir.tmp_dir << "\n";
 	cout << "Output directory : " << dir.outdir << "\n";
+	cout << "Noise directory : " << dir.noise_dir << endl;
+
 	cout << endl;
 
 }
