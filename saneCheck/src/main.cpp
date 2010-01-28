@@ -65,6 +65,8 @@ int main(int argc, char *argv[]) {
 
 		cout << endl << endl << "Checking : " << samples_struct.fitsvect[ii] << endl;
 
+		read_bolo_list(samples_struct.fitsvect[ii],det);
+
 		check_hdu(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
 		check_NaN(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
 		check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii]);

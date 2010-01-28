@@ -28,6 +28,70 @@ extern "C" {
 using namespace std;
 
 
+void read_bolo_list(string fname, struct detectors &det){
+
+	fitsfile *fptr;
+	int status = 0;
+	//	int colnum;
+	long ndet_test=0;
+	char **temp_bolo;
+
+	det.boloname.clear();
+
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	read_channels(fptr,temp_bolo, ndet_test);
+
+	//	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	//		fits_report_error(stderr, status);
+	//
+	//
+	//	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
+	//		fits_report_error(stderr, status);
+	//		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
+	//		//		exit(0);
+	//	}
+	//
+	//	colnum=0;
+	//	fits_get_num_cols(fptr, &colnum, &status);
+	//	if(colnum!=1){
+	//		cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAMES )" << endl;
+	//		//		exit(0);
+	//	}
+	//
+	//	ndet_test=0;
+	//	fits_get_num_rows(fptr, &ndet_test, &status);
+	//	if(ndet_test<=0){
+	//		cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
+	//		exit(0);
+	//	}
+	//	det.ndet=ndet_test;
+	//
+	//	colnum=0;
+	//	fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
+	//	if(colnum!=1){
+	//		cout << "\"NAMES\" table was not found in \"channels\"" << endl;
+	//		exit(0);
+	//	}
+	//
+	//	temp_bolo = new string[ndet_test];
+	//
+	//	fits_read_col(fptr, TSTRING, colnum, 1, 1, ndet_test, NULL, temp_bolo, 0, &status);
+
+
+	for (long ii=0; ii < ndet_test; ii++){
+//		cout << temp_bolo[ii] << endl;
+		det.boloname.push_back(temp_bolo[ii]);
+	}
+
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	delete [] temp_bolo;
+}
+
 void check_hdu(string fname,long ns,struct detectors det){
 
 	fitsfile *fptr;
@@ -45,114 +109,114 @@ void check_hdu(string fname,long ns,struct detectors det){
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"reference position\" was not found, or his Type should be Binary table" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	fits_get_num_rows(fptr, &ns_test, &status);
 	if(ns!=ns_test){
 		cout << "\"reference position\" has a wrong number of rows (must be equal to ns : " << ns << " )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	fits_get_num_cols(fptr, &colnum, &status);
 	if(colnum!=3){
 		cout << "\"reference position\" has a wrong number of cols (must be equal to 3 : RA, DEC, PHI )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 
 	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
 	if(colnum!=1){
 		cout << "\"RA\" was not found in \"reference position\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
 	if(colnum!=2){
 		cout << "\"DEC\" table was not found in \"reference position\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
 	if(colnum!=3){
 		cout << "\"PHI\" table was not found in \"reference position\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"offsets\" was not found, or his Type should be Binary table" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_num_cols(fptr, &colnum, &status);
 	if(colnum!=3){
 		cout << "\"offsets\" has a wrong number of cols (must be equal to 3 : NAME, DX, DY )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	fits_get_num_rows(fptr, &ndet_test, &status);
 	if(det.ndet!=ndet_test){
 		cout << "\"offsets\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
 	if(colnum!=1){
 		cout << "\"NAME\" table was not found in \"offsets\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DX", &colnum, &status);
 	if(colnum!=2){
 		cout << "\"DX\" table was not found in \"offsets\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DY", &colnum, &status);
 	if(colnum!=3){
 		cout << "\"DY\" table was not found in \"offsets\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_num_cols(fptr, &colnum, &status);
 	if(colnum!=1){
 		cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAMES )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	ndet_test=0;
 	fits_get_num_rows(fptr, &ndet_test, &status);
 	if(ndet_test!=det.ndet){
 		cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	colnum=0;
 	fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
 	if(colnum!=1){
 		cout << "\"NAMES\" table was not found in \"channels\"" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"time\" was not found, or his Type should be image" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 
@@ -161,14 +225,14 @@ void check_hdu(string fname,long ns,struct detectors det){
 	}
 	if(naxis!=1){
 		cout << "\"time\" has a wrong number of elements, should be equal to 1 " << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"signal\" was not found, or his Type should be image" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	if (fits_get_img_dim(fptr, &naxis, &status))
@@ -183,7 +247,7 @@ void check_hdu(string fname,long ns,struct detectors det){
 	//	cout << naxes[0] << " " << naxes[1] << endl;
 	if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
 		cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	naxes[0]=1;
@@ -193,7 +257,7 @@ void check_hdu(string fname,long ns,struct detectors det){
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status)){
 		fits_report_error(stderr, status);
 		cout << "\"mask\" was not found, or his Type should be image" << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 	if (fits_get_img_dim(fptr, &naxis, &status))
@@ -208,7 +272,7 @@ void check_hdu(string fname,long ns,struct detectors det){
 	//	cout << naxes[0] << " " << naxes[1] << endl;
 	if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
 		cout << "\"mask\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
-		exit(0);
+		//		exit(0);
 	}
 
 
@@ -245,27 +309,27 @@ void check_NaN(string fname,long ns,struct detectors det){
 		for(long jj=0;jj<ns_test;jj++){
 			if(ra[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(isnan(ra[jj])){
 				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(dec[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(isnan(dec[jj])){
 				cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(phi[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(isnan(phi[jj])){
 				cout << "Warning <! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 		}
 
@@ -282,7 +346,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 	for(int ii=0;ii<det.ndet;ii++)
 		if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){
 			cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
-			exit(0);
+			//			exit(0);
 		}
 
 
@@ -304,7 +368,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 		//		getchar();
 		if(isnan(time[jj])){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
-			exit(0);
+			//			exit(0);
 		}
 	}
 
@@ -320,11 +384,11 @@ void check_NaN(string fname,long ns,struct detectors det){
 		for(long jj=0;jj<ns_test;jj++){
 			if(signal[jj]==NAN){
 				cout << "Warning ! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(isnan(signal[jj])){
 				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				exit(0);
+				//				exit(0);
 			}
 		}
 		delete [] signal;
@@ -340,11 +404,11 @@ void check_NaN(string fname,long ns,struct detectors det){
 		for(int kk=0;kk<ns;kk++){
 			if(flag[kk]==NAN){
 				cout << "Warning ! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
-				exit(0);
+				//				exit(0);
 			}
 			if(isnan(flag[kk])){
 				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
-				exit(0);
+				//				exit(0);
 			}
 		}
 		delete [] flag;
