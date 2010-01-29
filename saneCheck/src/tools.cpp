@@ -28,6 +28,9 @@ extern "C" {
 using namespace std;
 
 
+
+
+
 void read_bolo_list(string fname, struct detectors &det){
 
 	fitsfile *fptr;
@@ -81,7 +84,7 @@ void read_bolo_list(string fname, struct detectors &det){
 
 
 	for (long ii=0; ii < ndet_test; ii++){
-//		cout << temp_bolo[ii] << endl;
+		//		cout << temp_bolo[ii] << endl;
 		det.boloname.push_back(temp_bolo[ii]);
 	}
 
