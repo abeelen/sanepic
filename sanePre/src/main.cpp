@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <ostream>
+#include <sstream>
 #include <time.h>
 #include <cmath>
 #include <vector>
@@ -169,8 +172,30 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	ofstream file_rank;
+	std::ostringstream oss;
+	string name_rank;
+	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
+	name_rank = oss.str();
+
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+
+
+
+	file_rank.open(name_rank.c_str(), ios::out & ios::trunc);
+	if(!file_rank.is_open()){
+		cerr << "File [" << file_rank << "] Invalid." << endl;
+		return -1;
+	}
+
 	// processing begins here
 	t2=time(NULL);
+
+	file_rank << "Opening file for writing debug at " << asctime (timeinfo)  << endl;
 	//
 	//	long *frames_index;
 	//
@@ -347,7 +372,7 @@ int main(int argc, char *argv[])
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++)
 			nsamples_temp[jj]= samples_struct.nsamples[jj];
 
-
+		file
 		for(int ii = 0; ii<size; ii++){
 			if(rank==ii)
 				iframe_min=num_frame;
@@ -545,7 +570,7 @@ int main(int argc, char *argv[])
 			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
 
 			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size);
+					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,file_rank);
 
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -558,7 +583,9 @@ int main(int argc, char *argv[])
 			//			if(rank==0)
 			//				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
 #ifdef PARA_BOLO
-			//			cout << "rank " << rank << " a fini et attend ! \n";
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
 			MPI_Barrier(MPI_COMM_WORLD);
 #endif
 			// PNd = npix dimension, initialised to 0.0
@@ -582,7 +609,7 @@ int main(int argc, char *argv[])
 			// *Mp = Null : la map ???
 			// *Hits = Null
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits/*,fdata_buffer*/);
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, file_rank/*,fdata_buffer*/);
 			// Returns Pnd = (At N-1 d)
 
 			// delete fdata buffer
@@ -750,6 +777,9 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	file_rank << "[ " << rank << " ] Finish Time : " << asctime (timeinfo) << endl;
 
 	if(rank==0){
 		// clean up
@@ -779,6 +809,7 @@ int main(int argc, char *argv[])
 	//	wcsfree(wcs);
 	wcsvfree(&nwcs, &wcs);
 
+	file_rank.close();
 
 #ifdef USE_MPI
 	MPI_Finalize();

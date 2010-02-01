@@ -18,10 +18,13 @@
 #include "todprocess.h"
 #include "map_making.h"
 #include "struct_definition.h"
+#include <time.h>
 
 
 //temp
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include <gsl/gsl_math.h>
 #include <fftw3.h>
@@ -99,7 +102,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 	void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 			string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-			long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size)
+			long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::ofstream &file)
 	{
 
 
@@ -113,6 +116,11 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 
 		string field1, fits_filename;
+
+
+
+
+
 
 		data_lp = new double[ns];
 
@@ -141,15 +149,25 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 #ifdef PARA_BOLO
 		for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
+			cout << "[ " << rank << " ] progression write_ftr : " << 100.0*(1.0-((double)(rank+1)-(double)idet1*(double)size/(double)det.ndet)) << " %" << endl;
+			std::ostringstream oss;
+			oss << tmp_dir + "fdata_" << iframe << "_" << det.boloname[idet1] << ".bi";
+			time_t rawtime;
+			struct tm * timeinfo;
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file << "Writing file : " << oss.str() << " at " << asctime (timeinfo) << endl;
 #else
 			for (long idet1=0;idet1<det.ndet;idet1++){
+				cout << "[ " << rank << " ] progression write_ftr : " << 100.0*(1.0-((double)(rank+1)-(double)idet1*(double)size/(double)det.ndet)) << " %" << endl;
 #endif
 
 				field1 = det.boloname[idet1];
 				//				cout << field1 << endl;
 
-//				if (rank==1)
-//					cout << idet1 << endl;
+				//				if (rank==1)
+				//					cout << idet1 << endl;
+
 
 
 				for (long ii=0;ii<ns/2+1;ii++){
@@ -213,13 +231,20 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				fftw_execute(fftplan);
 				fftw_destroy_plan(fftplan);
 
-
+#ifdef LARGE_MEMORY
+				for(long ii=0;ii<ns;ii++){
+					fdatas[(ns*idet1)+ii][0]=fdata[ii][0];
+					fdatas[(ns*idet1)+ii][1]=fdata[ii][1];
+				}
+#else
 				//write fourier transform to disk
 				write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
+#endif
+
 
 				delete [] flag;
 				delete [] data;
-			}
+			} // idet1
 
 
 
@@ -235,7 +260,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 				struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 				long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-				double *Mp, long *hits)
+				double *Mp, long *hits,std::ofstream &file/*,fftw_complex **fdatas*/)
 
 		{
 
@@ -277,14 +302,23 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 			fill(samptopix,samptopix+ns,0);
 
 
-//			cout << "do_ptnd " << rank << endl;
+			//			cout << "do_ptnd " << rank << endl;
 
 
 
 #ifdef PARA_BOLO
 			for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
+				cout << "[ " << rank << " ] progression do_ptNd : " << 100.0*(1.0-((double)(rank+1)-(double)idet1*(double)size/(double)det.ndet)) << " %" << endl;
+				std::ostringstream oss;
+				oss << "frame : " << iframe << " bolo : " << det.boloname[idet1];
+				time_t rawtime;
+				struct tm * timeinfo;
+				time ( &rawtime );
+				timeinfo = localtime ( &rawtime );
+				file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
 #else
 				for (long idet1=0;idet1<det.ndet;idet1++){
+					cout << "[ " << rank << " ] progression do_ptNd : " << 100.0*(1.0-((double)(rank+1)-(double)idet1*(double)size/(double)det.ndet)) << " %" << endl;
 #endif
 					field1 = det.boloname[idet1];
 					//		cout << field1 << endl;
@@ -324,6 +358,8 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 						//read Fourier transform of the data
 						read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
+
+
 
 
 						//****************** Cross power spectrum of the noise  ***************//
