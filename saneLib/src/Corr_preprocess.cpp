@@ -99,10 +99,15 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 	}
 
-
+#ifdef LARGE_MEMORY
+	void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
+			string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
+			long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::ofstream &file, fftw_complex *&fdatas)
+#else
 	void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 			string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 			long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::ofstream &file)
+#endif
 	{
 
 
@@ -116,10 +121,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 
 		string field1, fits_filename;
-
-
-
-
 
 
 		data_lp = new double[ns];
@@ -232,9 +233,9 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				fftw_destroy_plan(fftplan);
 
 #ifdef LARGE_MEMORY
-				for(long ii=0;ii<ns;ii++){
-					fdatas[(ns*idet1)+ii][0]=fdata[ii][0];
-					fdatas[(ns*idet1)+ii][1]=fdata[ii][1];
+				for(long ii=0;ii<(ns/2+1);ii++){
+					fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
+					fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
 				}
 #else
 				//write fourier transform to disk
@@ -256,12 +257,17 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 		}
 
-
+#ifdef LARGE_MEMORY
 		void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 				struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 				long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-				double *Mp, long *hits,std::ofstream &file/*,fftw_complex **fdatas*/)
-
+				double *Mp, long *hits,std::ofstream &file,fftw_complex *fdatas)
+#else
+		void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
+				struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
+				long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
+				double *Mp, long *hits,std::ofstream &file)
+#endif
 		{
 
 			long  nbins;
@@ -355,10 +361,15 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 						fill(Nd,Nd+ns,0.0);
 						fill(Nk,Nk+(ns/2+1),0.0);
 
-
+#ifdef LARGE_MEMORY
+						for(long ii=0;ii<(ns/2+1);ii++){
+							fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
+							fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
+						}
+#else
 						//read Fourier transform of the data
 						read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
-
+#endif
 
 
 

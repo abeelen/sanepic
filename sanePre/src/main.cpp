@@ -526,6 +526,12 @@ int main(int argc, char *argv[])
 	// loop over the scans
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
+#ifdef LARGE_MEMORY
+		fftw_complex  *fdata_buffer;
+		//if(rank==0)
+		fftw_complex *fdata_buffer_tot=NULL;
+#endif
+
 		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
@@ -566,12 +572,28 @@ int main(int argc, char *argv[])
 			// NOFILLGAP = fill the gap ? default yes => 0
 			// iframe = scan number : 0=> ntotscan
 
+#ifdef LARGE_MEMORY
 			// A fdata buffer will be used to avoid binary writing
-			//fdata_buffer = new fftw_complex[ndet*(ns/2+1)];
+			fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
+
+
+			if (rank==0){
+				fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
+				for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
+					fdata_buffer_tot[ii][0] = 0.0;
+					fdata_buffer_tot[ii][1] = 0.0;
+				}
+
+
+			}
+			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,file_rank,fdata_buffer);
+#else
+
 
 			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,file_rank);
-
+#endif
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 
@@ -586,7 +608,11 @@ int main(int argc, char *argv[])
 			time ( &rawtime );
 			timeinfo = localtime ( &rawtime );
 			file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+#ifdef LARGE_MEMORY
 			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+			MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
 #endif
 			// PNd = npix dimension, initialised to 0.0
 			// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
@@ -608,10 +634,14 @@ int main(int argc, char *argv[])
 			// iframe = indice du scan
 			// *Mp = Null : la map ???
 			// *Hits = Null
+#ifdef LARGE_MEMORY
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, file_rank/*,fdata_buffer*/);
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, file_rank,fdata_buffer);
 			// Returns Pnd = (At N-1 d)
-
+#else
+			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, file_rank);
+#endif
 			// delete fdata buffer
 			//delete [] fdata_buffer;
 
@@ -619,7 +649,11 @@ int main(int argc, char *argv[])
 								fsamp,ff,ns,ndet,size_det,rank_det,indpix,indpsrc,npixsrc,ntotscan,addnpix,flgdupl,factdupl,
 								2,errarcsec,dirfile,scerr_field,flpoint_field,bextension,fextension,shift_data_to_point,
 								napod,NORMLIN,NOFILLGAP,remove_polynomia,nn,npix,iframe,NULL,NULL);*/
-
+#ifdef LARGE_MEMORY
+			delete [] fdata_buffer;
+			if(rank==0)
+				delete [] fdata_buffer_tot;
+#endif
 		} else {
 
 
