@@ -993,7 +993,7 @@
 <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807">
-<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807" moduleId="org.eclipse.cdt.core.settings" name="Debug_bolo">
+<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807" moduleId="org.eclipse.cdt.core.settings" name="Debug_DEBUG">
 <externalSettings>
 <externalSetting>
 <entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/saneLib"/>
@@ -1010,7 +1010,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807" name="Debug_bolo" parent="cdt.managedbuild.config.gnu.exe.debug">
+<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807" name="Debug_DEBUG" parent="cdt.managedbuild.config.gnu.exe.debug">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1861419294.1549634807." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.416950729" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.1646652459" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
@@ -1026,8 +1026,7 @@
 <option id="gnu.cpp.compiler.option.debugging.gprof.2100162794" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.other.other.1040509859" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1900796866" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
-<listOptionValue builtIn="false" value="USE_MPI"/>
+<listOptionValue builtIn="false" value="DEBUG"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1967272901" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.103486636" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -1490,7 +1489,7 @@
 <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116">
-<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116" moduleId="org.eclipse.cdt.core.settings" name="Release_bolo">
+<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116" moduleId="org.eclipse.cdt.core.settings" name="Release_DEBUG">
 <externalSettings>
 <externalSetting>
 <entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/saneLib"/>
@@ -1507,7 +1506,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116" name="Release_bolo" parent="cdt.managedbuild.config.gnu.exe.release">
+<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116" name="Release_DEBUG" parent="cdt.managedbuild.config.gnu.exe.release">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.752476628" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.264426037" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
@@ -1522,8 +1521,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.other.other.2007645414" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1686551396" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
-<listOptionValue builtIn="false" value="USE_MPI"/>
+<listOptionValue builtIn="false" value="DEBUG"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.870668991" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
@@ -1984,7 +1982,7 @@
 <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842">
-<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" moduleId="org.eclipse.cdt.core.settings" name="Release_bolo_memory">
+<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" moduleId="org.eclipse.cdt.core.settings" name="Release_LARGE_MEMORY">
 <externalSettings>
 <externalSetting>
 <entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/saneLib"/>
@@ -2002,7 +2000,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" name="Release_bolo_memory" parent="cdt.managedbuild.config.gnu.exe.release">
+<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" name="Release_LARGE_MEMORY" parent="cdt.managedbuild.config.gnu.exe.release">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.1793934531" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.780424654" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
@@ -2017,9 +2015,8 @@
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1582423822" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1256441746" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
+<listOptionValue builtIn="false" value="DEBUG"/>
 <listOptionValue builtIn="false" value="LARGE_MEMORY"/>
-<listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.951237558" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
