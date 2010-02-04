@@ -372,7 +372,6 @@ int main(int argc, char *argv[])
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++)
 			nsamples_temp[jj]= samples_struct.nsamples[jj];
 
-		file
 		for(int ii = 0; ii<size; ii++){
 			if(rank==ii)
 				iframe_min=num_frame;
