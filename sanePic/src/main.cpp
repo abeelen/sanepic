@@ -1,7 +1,9 @@
 #include <iostream>
+#include <fstream>
+#include <ostream>
+#include <sstream>
 #include <vector>
 #include <iomanip>
-#include <sstream>
 #include <cmath>
 
 #include "imageIO.h"
@@ -156,6 +158,28 @@ int main(int argc, char *argv[])
 
 
 
+	ofstream file_rank;
+	std::ostringstream oss;
+	string name_rank;
+	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
+	name_rank = oss.str();
+
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+
+
+
+	file_rank.open(name_rank.c_str(), ios::out & ios::trunc);
+	if(!file_rank.is_open()){
+		cerr << "File [" << file_rank << "] Invalid." << endl;
+		return -1;
+	}
+
+
+	file_rank << "Opening file for writing debug at " << asctime (timeinfo)  << endl;
 	////////////////////////////////////////////////////////////////
 
 
@@ -538,6 +562,12 @@ int main(int argc, char *argv[])
 
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+#ifdef LARGE_MEMORY
+			fftw_complex  *fdata_buffer;
+			fftw_complex *fdata_buffer_tot=NULL;
+#endif
+
 			ns = samples_struct.nsamples[iframe];
 			f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
@@ -547,18 +577,52 @@ int main(int argc, char *argv[])
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon){
+#ifdef LARGE_MEMORY
+				// A fdata buffer will be used to avoid binary writing
+				fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
+
+
+				if (rank==0){
+					fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
+					for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
+						fdata_buffer_tot[ii][0] = 0.0;
+						fdata_buffer_tot[ii][1] = 0.0;
+					}
+
+
+				}
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
+#else
+
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 				// read pointing + deproject + fourier transform
+#endif
 
-
+#ifdef DEBUG
+				time ( &rawtime );
+				timeinfo = localtime ( &rawtime );
+				file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+#endif
 #ifdef PARA_BOLO
-				//				cout << "rank " << rank << " a fini et attend ! \n";
 				MPI_Barrier(MPI_COMM_WORLD);
 #endif
+#ifdef LARGE_MEMORY
+				MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+				MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits,file_rank,fdata_buffer);
+#else
 
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 				// return Pnd = At N-1 d
+#endif
+
+#ifdef LARGE_MEMORY
+				delete [] fdata_buffer;
+				if(rank==0)
+					delete [] fdata_buffer_tot;
+#endif
 			} else {
 
 
@@ -659,24 +723,68 @@ int main(int argc, char *argv[])
 
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+#ifdef LARGE_MEMORY
+				fftw_complex  *fdata_buffer;
+				//if(rank==0)
+				fftw_complex *fdata_buffer_tot=NULL;
+#endif
+
 				ns = samples_struct.nsamples[iframe];
 				//				ff = fframes[iframe];
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 				if (proc_param.CORRon){
+
+#ifdef LARGE_MEMORY
+					// A fdata buffer will be used to avoid binary writing
+					fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
+
+
+					if (rank==0){
+						fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
+						for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
+							fdata_buffer_tot[ii][0] = 0.0;
+							fdata_buffer_tot[ii][1] = 0.0;
+						}
+
+
+					}
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size, fdata_buffer);
+					// read pointing + deproject + fourier transform
+#else
 					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 					// read pointing + deproject + fourier transform
-
+#endif
 					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 
+#ifdef DEBUG
+					time ( &rawtime );
+					timeinfo = localtime ( &rawtime );
+					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+#endif
 #ifdef PARA_BOLO
-					//					cout << "rank " << rank << " a fini et attend ! \n";
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
+#ifdef LARGE_MEMORY
+					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, file_rank, fdata_buffer);
+#else
+
+
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+#endif
 					// return Pnd = At N-1 d
+
+#ifdef LARGE_MEMORY
+					delete [] fdata_buffer;
+					if(rank==0)
+						delete [] fdata_buffer_tot;
+#endif
 				} else {
 
 					//					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
@@ -729,22 +837,55 @@ int main(int argc, char *argv[])
 
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-
+#ifdef LARGE_MEMORY
+					fftw_complex  *fdata_buffer;
+					//if(rank==0)
+					fftw_complex *fdata_buffer_tot=NULL;
+#endif
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 					if (proc_param.CORRon){
+
+#ifdef LARGE_MEMORY
+						// A fdata buffer will be used to avoid binary writing
+						fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
+
+
+						if (rank==0){
+							fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
+							for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
+								fdata_buffer_tot[ii][0] = 0.0;
+								fdata_buffer_tot[ii][1] = 0.0;
+							}
+
+
+						}
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
+						// read pointing + deproject + fourier transform
+#else
 						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 						// read pointing + deproject + fourier transform
-
-
+#endif
+#ifdef DEBUG
+						time ( &rawtime );
+						timeinfo = localtime ( &rawtime );
+						file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+#endif
 #ifdef PARA_BOLO
-						//						cout << "rank " << rank << " a fini et attend ! \n";
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
+#ifdef LARGE_MEMORY
+						MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+						MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL,file_rank, fdata_buffer);
+						// return Pnd = At N-1 d
+#else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 						// return Pnd = At N-1 d
+#endif
 					} else {
 
 
@@ -978,6 +1119,11 @@ int main(int argc, char *argv[])
 			fill(PNd,PNd+npix,0.0);
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+#ifdef LARGE_MEMORY
+				fftw_complex  *fdata_buffer;
+				//if(rank==0)
+				fftw_complex *fdata_buffer_tot=NULL;
+#endif
 
 				ns = samples_struct.nsamples[iframe];
 				f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp;
@@ -985,26 +1131,62 @@ int main(int argc, char *argv[])
 
 				if (proc_param.CORRon){
 
+#ifdef LARGE_MEMORY
+					// A fdata buffer will be used to avoid binary writing
+					fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
 
+
+					if (rank==0){
+						fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
+						for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
+							fdata_buffer_tot[ii][0] = 0.0;
+							fdata_buffer_tot[ii][1] = 0.0;
+						}
+
+
+					}
+					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size,file_rank,fdata_buffer);
+					// fillgaps + butterworth filter + fourier transform
+					// "fdata_" files generation (fourier transform of the data)
+
+#else
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
-
-#ifdef PARA_BOLO
-					//cout << "rank " << rank << " a fini et attend ! \n";
-					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+#ifdef DEBUG
+					time ( &rawtime );
+					timeinfo = localtime ( &rawtime );
+					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+#endif
+#ifdef PARA_BOLO
+					MPI_Barrier(MPI_COMM_WORLD);
+#endif
+#ifdef LARGE_MEMORY
+					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
+							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, file_rank, fdata_buffer);
+#else
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
 
 					// return Pnd = At N-1 d
+
+#endif
 				} else {
 
 					do_PtNd_nocorr(PNd,dir.tmp_dir,proc_param, pos_param, samples_struct,det, f_lppix, f_lppix_Nk,
 							addnpix, ns,indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc, iframe, S,rank,size);
 				}
+#ifdef LARGE_MEMORY
+				delete [] fdata_buffer;
+				if(rank==0)
+					delete [] fdata_buffer_tot;
+#endif
 			} // end of iframe loop
 
 

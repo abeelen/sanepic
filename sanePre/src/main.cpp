@@ -592,7 +592,7 @@ int main(int argc, char *argv[])
 
 
 			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,file_rank);
+					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size);
 #endif
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -604,15 +604,17 @@ int main(int argc, char *argv[])
 			//debug : computation time
 			//			if(rank==0)
 			//				cout << " [ " << rank << " ] temps : " << t3-t2 << " sec\n";
-#ifdef PARA_BOLO
+#ifdef DEBUG
 			time ( &rawtime );
 			timeinfo = localtime ( &rawtime );
 			file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
-#ifdef LARGE_MEMORY
+#endif
+#ifdef PARA_BOLO
 			MPI_Barrier(MPI_COMM_WORLD);
+#endif
+#ifdef LARGE_MEMORY
 			MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 			MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-#endif
 #endif
 			// PNd = npix dimension, initialised to 0.0
 			// extentnoiseSp_all = list of power spectrum file names (for each scan or same PS for all the scans)
@@ -640,7 +642,7 @@ int main(int argc, char *argv[])
 			// Returns Pnd = (At N-1 d)
 #else
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, file_rank);
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
 #endif
 			// delete fdata buffer
 			//delete [] fdata_buffer;
