@@ -172,16 +172,20 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+
 #ifdef DEBUG
-	ofstream file_rank;
 	std::ostringstream oss;
 	string name_rank;
 	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
+#else
+	string name_rank = dir.outdir + "debug_sanePre.txt";
 
+#endif
+
+	ofstream file_rank;
 	time_t rawtime;
 	struct tm * timeinfo;
-
 	time ( &rawtime );
 	timeinfo = localtime ( &rawtime );
 
@@ -190,12 +194,8 @@ int main(int argc, char *argv[])
 		cerr << "File [" << file_rank << "] Invalid." << endl;
 		return -1;
 	}
-
 	file_rank << "Opening file for writing debug at " << asctime (timeinfo)  << endl;
 	file_rank.close();
-#else
-	string name_rank = dir.outdir + "debug_sanePre.txt";
-#endif
 
 	// processing begins here
 	t2=time(NULL);
