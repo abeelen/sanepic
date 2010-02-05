@@ -103,11 +103,11 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 #ifdef LARGE_MEMORY
 void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::ofstream &file, fftw_complex *&fdatas)
+		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname, fftw_complex *&fdatas)
 #else
 void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size)
+		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname)
 #endif
 {
 
@@ -123,6 +123,14 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 	string field1, fits_filename;
 
+#ifdef DEBUG
+	ofstream file;
+	file.open(fname.c_str(), ios::out | ios::app);
+	if(!file.is_open()){
+		cerr << "File [" << file << "] Invalid." << endl;
+		exit(0);
+	}
+#endif
 
 	data_lp = new double[ns];
 
@@ -254,18 +262,22 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	delete[] bfilter;
 	delete[] fdata;
 
+#ifdef DEBUG
+	file.close();
+#endif
+
 }
 
 #ifdef LARGE_MEMORY
 void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		double *Mp, long *hits,std::ofstream &file,fftw_complex *fdatas)
+		double *Mp, long *hits,std::string fname,fftw_complex *fdatas)
 #else
 void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		double *Mp, long *hits)
+		double *Mp, long *hits, string fname)
 #endif
 {
 
@@ -282,6 +294,15 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 	fftw_plan fftplan;
 	fftw_complex *fdata, *Ndf;
+
+#ifdef DEBUG
+	ofstream file;
+	file.open(fname.c_str(), ios::out | ios::app);
+	if(!file.is_open()){
+		cerr << "File [" << file << "] Invalid." << endl;
+		exit(0);
+	}
+#endif
 
 
 	samptopix = new long long[ns];
@@ -307,9 +328,6 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	fill(samptopix,samptopix+ns,0);
 
 
-	//			cout << "do_ptnd " << rank << endl;
-
-
 
 
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
@@ -329,9 +347,18 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 
 
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "before read samptopix : at " << asctime (timeinfo) << endl;
+#endif
 		//Read pointing data
 		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
-
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "After read samptopix : at " << asctime (timeinfo) << endl;
+#endif
 
 		//**************************************** Noise power spectrum
 		string extname = "_InvNoisePS";
@@ -340,7 +367,19 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 		//read noise PS file
 		long ndet2;
+
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "before read Invnoise : at " << asctime (timeinfo) << endl;
+#endif
+
 		read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all);
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "after read Invnoise : at " << asctime (timeinfo) << endl;
+#endif
 		if(det.ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 		SpN = new double[nbins];
@@ -377,13 +416,20 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 			}
 
 
-
+#ifdef DEBUG
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file << "before Invbinned : at " << asctime (timeinfo) << endl;
+#endif
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
-
-			//
+#ifdef DEBUG
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file << "after Invbinned : at " << asctime (timeinfo) << endl;
+#endif
 
 
 			for (long jj=0;jj<ns/2+1;jj++){
@@ -401,21 +447,39 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 
 
-
+#ifdef DEBUG
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file << "before compute diag : at " << asctime (timeinfo) << endl;
+#endif
 			//Compute weight map for preconditioner
 			if ((Mp != NULL) && (idet2 == idet1))
 				compute_diagPtNPCorr(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,f_lppix,Mp);
-			//
+#ifdef DEBUG
+			time ( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			file << "after compute diag : at " << asctime (timeinfo) << endl;
+#endif
 
 
 		}// end of idet2 loop
 
 		// dEBUG
 
-
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "before fft : at " << asctime (timeinfo) << endl;
+#endif
 		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
+
+#ifdef DEBUG
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		file << "after fft : at " << asctime (timeinfo) << endl;
+#endif
 
 		for (long ii=0;ii<ns;ii++){
 			PNd[indpix[samptopix[ii]]] += Nd[ii]; // Nd real
@@ -444,6 +508,10 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	delete[] Nk;
 	delete[] fdata;
 	delete[] Ndf;
+
+#ifdef DEBUG
+	file.close();
+#endif
 
 
 }
