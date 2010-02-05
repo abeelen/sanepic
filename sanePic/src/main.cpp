@@ -156,30 +156,30 @@ int main(int argc, char *argv[])
 	}
 
 
-
-
-	ofstream file_rank;
+#ifdef DEBUG
 	std::ostringstream oss;
 	string name_rank;
 	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
+#else
+	string name_rank = dir.outdir + "debug_sanePre.txt";
 
+#endif
+
+	ofstream file_rank;
 	time_t rawtime;
 	struct tm * timeinfo;
-
 	time ( &rawtime );
 	timeinfo = localtime ( &rawtime );
 
-
-
-	file_rank.open(name_rank.c_str(), ios::out & ios::trunc);
+	file_rank.open(name_rank.c_str(), ios::out | ios::trunc); //& ios::trunc
 	if(!file_rank.is_open()){
 		cerr << "File [" << file_rank << "] Invalid." << endl;
 		return -1;
 	}
-
-
 	file_rank << "Opening file for writing debug at " << asctime (timeinfo)  << endl;
+	file_rank.close();
+
 	////////////////////////////////////////////////////////////////
 
 
@@ -598,10 +598,13 @@ int main(int argc, char *argv[])
 				// read pointing + deproject + fourier transform
 #endif
 
+
 #ifdef DEBUG
 				time ( &rawtime );
 				timeinfo = localtime ( &rawtime );
-				file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+				file_rank.open(name_rank.c_str(), ios::out | ios::app);
+				file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
+				file_rank.close();
 #endif
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
@@ -610,11 +613,11 @@ int main(int argc, char *argv[])
 				MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 				MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits,file_rank,fdata_buffer);
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits,name_rank,fdata_buffer);
 #else
 
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits);
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
 				// return Pnd = At N-1 d
 #endif
 
@@ -758,11 +761,12 @@ int main(int argc, char *argv[])
 #endif
 					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
-
 #ifdef DEBUG
 					time ( &rawtime );
 					timeinfo = localtime ( &rawtime );
-					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+					file_rank.open(name_rank.c_str(), ios::out | ios::app);
+					file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
+					file_rank.close();
 #endif
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
@@ -771,12 +775,12 @@ int main(int argc, char *argv[])
 					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, file_rank, fdata_buffer);
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
 #else
 
 
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 #endif
 					// return Pnd = At N-1 d
 
@@ -870,7 +874,9 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 						time ( &rawtime );
 						timeinfo = localtime ( &rawtime );
-						file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+						file_rank.open(name_rank.c_str(), ios::out | ios::app);
+						file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
+						file_rank.close();
 #endif
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
@@ -879,11 +885,11 @@ int main(int argc, char *argv[])
 						MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 						MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL,file_rank, fdata_buffer);
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL,name_rank, fdata_buffer);
 						// return Pnd = At N-1 d
 #else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 						// return Pnd = At N-1 d
 #endif
 					} else {
@@ -1146,13 +1152,13 @@ int main(int argc, char *argv[])
 
 					}
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size,file_rank,fdata_buffer);
+							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size,name_rank,fdata_buffer);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 
 #else
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size);
+							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 #endif
@@ -1160,7 +1166,9 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 					time ( &rawtime );
 					timeinfo = localtime ( &rawtime );
+					file_rank.open(name_rank.c_str(), ios::out | ios::app);
 					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+					file_rank.close();
 #endif
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
@@ -1169,10 +1177,10 @@ int main(int argc, char *argv[])
 					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, file_rank, fdata_buffer);
+							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
 #else
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 
 					// return Pnd = At N-1 d
 
@@ -1264,6 +1272,20 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+
+#ifdef DEBUG
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+
+	file_rank.open(name_rank.c_str(), ios::out | ios::app);
+	if(!file_rank.is_open()){
+		cerr << "File [" << file_rank << "] Invalid." << endl;
+		return -1;
+	}
+
+	file_rank << "[ " << rank << " ] Finish Time : " << asctime (timeinfo) << endl;
+	file_rank.close();
+#endif
 
 	// clean up
 	delete [] S;
