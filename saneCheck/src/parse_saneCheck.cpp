@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include "dataIO.h"
+#include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
 

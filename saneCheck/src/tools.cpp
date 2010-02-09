@@ -36,54 +36,17 @@ void read_bolo_list(string fname, struct detectors &det){
 	fitsfile *fptr;
 	int status = 0;
 	//	int colnum;
-	long ndet_test=0;
+	//	long ndet_test=0;
 	char **temp_bolo;
 
-	det.boloname.clear();
+	//	det.boloname.clear();
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	read_channels(fptr,temp_bolo, ndet_test);
+	read_channels(fptr,temp_bolo, det.ndet);
 
-	//	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
-	//		fits_report_error(stderr, status);
-	//
-	//
-	//	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
-	//		fits_report_error(stderr, status);
-	//		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
-	//		//		exit(0);
-	//	}
-	//
-	//	colnum=0;
-	//	fits_get_num_cols(fptr, &colnum, &status);
-	//	if(colnum!=1){
-	//		cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAMES )" << endl;
-	//		//		exit(0);
-	//	}
-	//
-	//	ndet_test=0;
-	//	fits_get_num_rows(fptr, &ndet_test, &status);
-	//	if(ndet_test<=0){
-	//		cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
-	//		exit(0);
-	//	}
-	//	det.ndet=ndet_test;
-	//
-	//	colnum=0;
-	//	fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
-	//	if(colnum!=1){
-	//		cout << "\"NAMES\" table was not found in \"channels\"" << endl;
-	//		exit(0);
-	//	}
-	//
-	//	temp_bolo = new string[ndet_test];
-	//
-	//	fits_read_col(fptr, TSTRING, colnum, 1, 1, ndet_test, NULL, temp_bolo, 0, &status);
-
-
-	for (long ii=0; ii < ndet_test; ii++){
+	for (long ii=0; ii < det.ndet; ii++){
 		//		cout << temp_bolo[ii] << endl;
 		det.boloname.push_back(temp_bolo[ii]);
 	}
@@ -423,7 +386,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 }
 
-int check_flag(string fname,struct detectors det,long ns, string outname,std::vector<std::string> &bolos_global,std::vector<std::string> &bolos_global_80){
+void check_flag(string fname,struct detectors det,long ns, string outname,std::vector<std::string> &bolos_global,std::vector<std::string> &bolos_global_80){
 
 	short *flag;
 	short sum=0;
@@ -496,7 +459,6 @@ int check_flag(string fname,struct detectors det,long ns, string outname,std::ve
 
 	fclose(fp);
 
-	return 0;
 }
 
 

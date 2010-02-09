@@ -5,8 +5,10 @@
 #include "dataIO.h"
 #include "parse_saneCheck.h"
 #include "tools.h"
+#include "struct_definition.h"
 
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <cstdlib> // for exit()
@@ -34,7 +36,6 @@ int main(int argc, char *argv[]) {
 	//	int nbolos;
 	int rank = 0;
 	int parsed=1;
-	int checked = 0;
 
 	struct samples samples_struct;
 	struct directories dir;
@@ -58,25 +59,47 @@ int main(int argc, char *argv[]) {
 
 	//	cout << "ntotscan : " << samples_struct.ntotscan;
 
+	struct detectors bolo_fits;
 	std::vector<std::string> bolo_bad;
 	std::vector<std::string> bolo_bad_80;
+	//	std::vector<string>::iterator it;
+
+	int mycount;
 
 	for(int ii=0;ii<samples_struct.ntotscan;ii++){
 
 		cout << endl << endl << "Checking : " << samples_struct.fitsvect[ii] << endl;
 
-		read_bolo_list(samples_struct.fitsvect[ii],det);
+		read_bolo_list(samples_struct.fitsvect[ii],bolo_fits);
+		//		it=bolo_fits.boloname.begin();
 
-		check_hdu(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
-		check_NaN(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],det);
+		//		cout << bolo_fits.ndet << endl;
+		//		for(int uu =0;uu<bolo_fits.ndet; uu++)
+		//			cout << bolo_fits.boloname[uu] << " ";
+		//
+
+		for(int jj=0;jj< det.ndet; jj++){
+			mycount = (int) count (bolo_fits.boloname.begin(), bolo_fits.boloname.end(), det.boloname[jj]);
+			if(mycount==0)
+				cout << "Warning ! The detector " << det.boloname[jj] << " is not referenced in the fits " << samples_struct.fitsvect[ii] << endl << endl;
+		}
+
+		check_hdu(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+		check_NaN(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
 		check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii]);
+
+
 
 		temp = samples_struct.fitsvect[ii];
 		found=temp.find_last_of('/');
 		outname = dir.outdir + temp.substr(found+1) + "_bolos_flag.txt";
+
+		check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
+
 		cout << "Writing informations in :\n" << outname << endl << endl;
 
-		checked=check_flag(samples_struct.fitsvect[ii],det, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
+
+
 	}
 
 
