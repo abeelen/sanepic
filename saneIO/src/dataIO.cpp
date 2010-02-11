@@ -194,7 +194,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 }*/
 
 
-void read_flag_from_fits(string filename, string field, short *& mask, long & ns){
+void read_flag_from_fits(string filename, string field, int *& mask, long & ns){
 
 	// HIPE like format
 
@@ -227,13 +227,13 @@ void read_flag_from_fits(string filename, string field, short *& mask, long & ns
 	// ---------------------------------------------
 	// Allocate Memory
 	ns = naxes[0];
-	mask = new short[ns];
+	mask = new int[ns];
 
 	// ---------------------------------------------
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TSHORT, fpixel, ns, 0, mask, &anynul, &status))
+	if (fits_read_pix(fptr, TINT, fpixel, ns, 0, mask, &anynul, &status))
 		fits_report_error(stderr, status);
 
 	// ---------------------------------------------

@@ -35,7 +35,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 
 	long long *samptopix;
 	double *bfilter, *Nk, *data, *data_lp, *Ps;
-	short *flag;
+	int *flag;
 	double powered;
 
 	samptopix = new long long[ns];
@@ -80,7 +80,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 
 
 			//// Read pointing
-			read_samptopix(ns, samptopix, tmp_dir, idet, iframe,det.boloname);
+			read_samptopix(ns, samptopix, tmp_dir, iframe,det.boloname[idet]);
 
 
 			if (S != NULL){
@@ -181,7 +181,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 #endif
 				field = det.boloname[idet];
 
-				read_samptopix(ns, samptopix, dir.tmp_dir, idet, iframe,det.boloname);
+				read_samptopix(ns, samptopix, dir.tmp_dir, iframe,det.boloname[idet]);
 
 
 				// AS

@@ -21,7 +21,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 void read_ra_from_fits(string filename, string field, double *& ra, long & ns);
 void read_dec_from_fits(string filename, string field, double *& dec, long & ns);
 void read_signal_from_fits(string filename, string field, double *& signal, long & ns);
-void read_flag_from_fits(string filename, string field, short *& mask, long & ns);
+void read_flag_from_fits(string filename, string field, int *& mask, long & ns);
 
 void read_channels(fitsfile *fptr, char **& data, long &nBolos);
 long find_channel_index(fitsfile *fptr, const char * field);

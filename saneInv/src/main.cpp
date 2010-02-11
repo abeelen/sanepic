@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
 		int parsed=1;
 		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, boloname, base_name);
 
-
 		if (parsed==-1){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -113,6 +112,9 @@ int main(int argc, char *argv[]) {
 	for(int ii=0; ii<n_iter; ii++){
 		fname="";
 		fname+=(string)samples_struct.noisevect[ii];
+//		cout << fname << endl;
+		base_name=FitsBasename(fname);
+		cout << base_name << endl;
 		base_name=FitsBasename(fname);
 		//		cout << base_name << endl;
 

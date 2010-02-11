@@ -130,14 +130,14 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 
 	//TODO: factapod is computed once, but used twice, it can be computed here (mat 28/10)
 	//----------------------------------- READ MIXMAT PART -------------------------------//
-
+	cout << "1/6 - Reading Mixing Matrix" << endl;
 	read_mixmat_file(MixMatfile, dir.dirfile, mixmat, det.ndet,ncomp); // TODO : la mixmat doit etre dans dirfile ou dans tmp_dir ??
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 
 
 	// compute common mode commonm2
-
+	cout << "2/6 - Common Mode Computation" << endl;
 	common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, ff, NAXIS1, NAXIS2, npix, iframe, S, indpix,
 			mixmat, ncomp, commonm2, factapod, fits_filename);
 
@@ -145,24 +145,23 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 //	cout << "after common\n";
 //	getchar();
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
-
+	cout << "3/6 - Estimation of Noise Power Spectrum" << endl;
 	estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, ff, NAXIS1,
 			NAXIS2, npix, ell, S, iframe,indpix, apodwind, ncomp, mixmat, commonm2,
 			factapod,Rellth, N, P, fits_filename);
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
-
+	cout << "4/6 - Estimation of Covariance Matrix" << endl;
 	estimate_CovMat_of_Rexp(dir, det, nbins, ns, ff, ell, ncomp, mixmat, proc_param.fsamp,
 			factapod, Rellexp, N, P, SPref);
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
-
-
+	cout << "5/6 - Expectation Maximization" << endl;
 	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp, ff,
 			dir.outdir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
-
+	cout << "6/6 - Saving to disk" << endl;
 	write_to_disk(dir.outdir, ff, det,nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//

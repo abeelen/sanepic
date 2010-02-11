@@ -66,16 +66,6 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			exit(-1);
 		}
 
-		// had nothing to do here !
-		//		read_flag_from_fits(fits_file, field, flag, test_ns);
-		//		cout << "after read flag\n";
-		//
-		//		if (test_ns != ns) {
-		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-		//			exit(-1);
-		//		}
-
-
 		// find the pointing solution at each time stamp for each detector
 		struct celprm celestial;
 		celini(&celestial);
@@ -170,7 +160,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			// Combine position and bolo flags
 			// and check
 
-			short *bolo_flag;
+			int *bolo_flag;
 
 			long test_ns;
 			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
@@ -248,7 +238,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 			}
 
-			write_samptopix(ns, samptopix,  outdir, idet, iframe, bolonames);
+			write_samptopix(ns, samptopix,  outdir, iframe, bolonames[idet]);
 
 			delete [] bolo_flag;
 			delete [] samptopix;
@@ -295,7 +285,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec;
-		short *flag;
+		int *flag;
 
 		for (long idet = 0; idet<ndet; idet++){
 			string field = bolonames[idet];
@@ -376,7 +366,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			// Combine position and bolo flags
 			// and check
 
-			short *bolo_flag;
+			int *bolo_flag;
 
 			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
 
@@ -425,7 +415,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 				case 1:												// sample is flagged
 
-					if (pos_param.flgdupl)								// if flagged pixels are in a duplicated map
+					if (pos_param.flgdupl)							// if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii] + NAXIS1*NAXIS2;	// index in the second map...
 					else											// else every flagged sample is projected to the same pixel (outside the map)
 						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
@@ -450,7 +440,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			}
 
-			write_samptopix(ns, samptopix,  outdir, idet, iframe, bolonames);
+			write_samptopix(ns, samptopix,  outdir, iframe, bolonames[idet]);
 
 			delete [] bolo_flag;
 			delete [] samptopix;

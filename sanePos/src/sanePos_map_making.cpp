@@ -180,7 +180,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 }
 
-int minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array){
+int minmax_flag(double  *& array, int *& flag, long size, double & min_array, double &  max_array){
 
 	// First unflagged data
 
@@ -240,7 +240,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			field = bolonames[idet];
 
 			double *ra, *dec;
-			short *flag;
+			int *flag;
 			long test_ns;
 
 			read_ra_from_fits(fits_file, field, ra, test_ns);

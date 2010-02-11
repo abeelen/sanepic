@@ -70,7 +70,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
+		read_samptopix(ns, samptopix, dir, iframe, det.boloname[idet1]);
 
 		//		cout << "samptopix : " << endl;
 		//		cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
@@ -114,7 +114,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 
 	double *data, *bfilter, *data_lp, *Ps;
-	short *flag;
+	int *flag;
 	long long *samptopix;
 
 	fftw_plan fftplan;
@@ -210,9 +210,10 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 		if (S != NULL){
 			//// Read pointing
-			read_samptopix(ns, samptopix, tmp_dir, idet1, iframe, det.boloname);
+			read_samptopix(ns, samptopix, tmp_dir, iframe, field1);
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
+			//TODO : Why the flgdupl is SET to 2 ?
 			if (addnpix){
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 			} else {
@@ -226,11 +227,11 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
 					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter, // default poly order = 4
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
 					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 		}
 
@@ -353,7 +354,7 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		file << "before read samptopix : at " << asctime (timeinfo) << endl;
 #endif
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, idet1, iframe, det.boloname);
+		read_samptopix(ns, samptopix, dir, iframe, field1);
 #ifdef DEBUG
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
@@ -365,7 +366,7 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		//string suffix = Basename(noise_table[iframe]) + extname;
 		string suffix = FitsBasename(noise_table[iframe]) + extname;
 
-		//read noise PS file
+		//read noise PS file for idet1
 		long ndet2;
 
 #ifdef DEBUG

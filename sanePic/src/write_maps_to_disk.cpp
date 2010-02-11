@@ -18,6 +18,8 @@ using namespace std;
 void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan, struct wcsprm *wcs){
 
+
+
 	ostringstream temp_stream;
 	double *map1d;
 	string fname;

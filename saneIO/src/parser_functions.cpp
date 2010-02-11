@@ -23,6 +23,9 @@ extern "C"{
 
 using namespace std;
 
+//TODO: rank should NOT be passed here, instead use MPI_Comm_rank(MPI_COMM_WORLD,&rank); to get it IF necessary
+
+
 int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 
 	string str;
@@ -518,11 +521,11 @@ int read_directories(dictionary	*ini, struct directories &dir, int rank){
 int read_param_process(dictionary *ini,struct param_process &proc_param, int rank){
 
 	return read_apodize_samples(ini, proc_param, rank) || \
-	read_nofillgap(ini, proc_param, rank)              || \
-	read_sampling_frequency(ini, proc_param, rank)     || \
-	read_filter_frequency(ini, proc_param, rank)       || \
-	read_baseline(ini, proc_param, rank)               || \
-	read_correlation(ini,proc_param,rank)              ||\
+		read_nofillgap(ini, proc_param, rank)              || \
+		read_sampling_frequency(ini, proc_param, rank)     || \
+		read_filter_frequency(ini, proc_param, rank)       || \
+		read_baseline(ini, proc_param, rank)               || \
+		read_correlation(ini,proc_param,rank)              ||\
 	read_remove_poly(ini, proc_param, rank);
 
 
@@ -538,9 +541,13 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 		return 1;
 	pos_param.pixdeg=atof(str.c_str());
 
+	if (read_parser_string(ini,"sanepic_compute_positions:mask_file",rank,str))
+		return 1;
+	pos_param.maskfile=str;
+
 	if(pos_param.pixdeg < 0 && rank==0){
 		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
-		return -1 ;
+		return 1 ;
 	}
 
 	// Read what to do with flagged data : (default : 0 -- map in a single pixel)

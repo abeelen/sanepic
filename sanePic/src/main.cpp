@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 					c=getchar();
 					switch (c){
 					case('y') :
-						cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+										cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 					break;
 					default:
 						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
@@ -518,9 +518,6 @@ int main(int argc, char *argv[])
 	long ns;
 	long long npixeff;
 
-	//		int factdupl = 1;
-	if(pos_param.flgdupl==1) factdupl = 2;
-
 	// memory allocs
 	r           = new double[npix];
 	q           = new double[npix];
@@ -556,7 +553,6 @@ int main(int argc, char *argv[])
 		fill(hits,hits+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
-		fill(s,s+npix,0.0);
 		fill(PNd,PNd+npix,0.0);
 
 
@@ -671,10 +667,8 @@ int main(int argc, char *argv[])
 			for (long ii=0;ii<npixeff;ii++)
 				if (Mptot[ii] == 0)
 					printf("ERROR: Mp[%ld] has elements = 0\n",ii);
-
-
-			for (long ii=0;ii<npixeff;ii++)
-				Mptot[ii] = 1.0/Mptot[ii]; // M : preconditioner
+				else
+					Mptot[ii] = 1.0/Mptot[ii]; // M : preconditioner
 
 
 			for (long ii=0;ii<npixeff;ii++)
@@ -717,24 +711,18 @@ int main(int argc, char *argv[])
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){ // 2000
-			// added brackets in order to avoid warning, mat-27/05
-			//			if(iter==2)
-			//				break;
+		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){
+
 			fill(q,q+npixeff,0.0); // q <= A*d
-
-
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 #ifdef LARGE_MEMORY
 				fftw_complex  *fdata_buffer;
-				//if(rank==0)
 				fftw_complex *fdata_buffer_tot=NULL;
 #endif
 
 				ns = samples_struct.nsamples[iframe];
-				//				ff = fframes[iframe];
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 				if (proc_param.CORRon){
@@ -837,7 +825,7 @@ int main(int argc, char *argv[])
 			// every 10 iterations do ....
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
-				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
+//				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
 
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -946,60 +934,12 @@ int main(int argc, char *argv[])
 				for (long ii=0;ii<npixeff;ii++)
 					d[ii] = s[ii] + beta*d[ii]; // d = s + beta * d
 
-				cout << endl;
-				cout << "iter = " << iter;
-				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
-				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
-				cout << "\r " << flush;
 
 
-				// This part is now done in sanePre
-				//					if (iter == 0){
-				//						for (long ii=0; ii<NAXIS1; ii++) {
-				//							for (long jj=0; jj<NAXIS2; jj++) {
-				//								mi = jj*NAXIS1 + ii;
-				//								if (indpix[mi] >= 0){
-				//									map1d[mi] = Mptot[indpix[mi]];
-				//								} else {
-				//									map1d[mi] = NAN;
-				//								}
-				//							}
-				//						}
-				//
-				//
-				//						fname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
-				//						//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-				//						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-				//
-				//								for (long ii=0; ii<NAXIS1; ii++) {
-				//							for (long jj=0; jj<NAXIS2; jj++) {
-				//								mi = jj*NAXIS1 + ii;
-				//								map1d[mi] = 0.0;
-				//							}
-				//						}
-				//
-				//						if (addnpix){
-				//							for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-				//								for (long ii=0; ii<NAXIS1; ii++) {
-				//									for (long jj=0; jj<NAXIS2; jj++) {
-				//										mi = jj*NAXIS1 + ii;
-				//										long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-				//										if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
-				//											map1d[mi] += 1.0/Mptot[indpix[ll]];
-				//									}
-				//								}
-				//							}
-				//
-				//							fname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
-				//							//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-				//							write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
-				//						}
-				//
-				//					} // end of if (iter == 0)
+				if (iterw && (iter % iterw) == 0){ // saving iterated maps
 
-				if (iterw && (iter % iterw) == 0){
+					// Every iterw iteration compute the map and save it
 
-					// make the map
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
 							mi = jj*NAXIS1 + ii;
@@ -1013,12 +953,8 @@ int main(int argc, char *argv[])
 
 					temp_stream << "!" + dir.outdir + "optimMap_" + "flux" << iter << "b.fits";
 
-
-					// récupérer une chaîne de caractères
 					fname= temp_stream.str();
-					// Clear ostringstream buffer
 					temp_stream.str("");
-					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
 
 					if (pos_param.flgdupl){
@@ -1035,12 +971,8 @@ int main(int argc, char *argv[])
 
 
 						temp_stream << "!" + dir.outdir + "optimMap_fluxflags_" << iter << "b.fits";
-
-						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
-						// Clear ostringstream buffer
 						temp_stream.str("");
-						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",0);
 					}
 
@@ -1075,18 +1007,20 @@ int main(int argc, char *argv[])
 						}
 
 						temp_stream << "!" + dir.outdir + "optimMap_fluxuncpix_" << iter << "b.fits";
-
-						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
-						// Clear ostringstream buffer
 						temp_stream.str("");
-						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 0);
 
 					}
-				} // end of if (iterw && (iter % iterw) == 0)
+				} // end of saving iterated maps
 
 
+				cout << " - iter = " << iter;
+				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
+				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
+				cout << "\r " << flush;
+
+#ifdef DEBUG
 				temp_stream << dir.outdir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
@@ -1097,10 +1031,12 @@ int main(int argc, char *argv[])
 				fprintf(fp,"iter = %d, crit = %10.15g, crit2 = %10.15g\n",iter,var_n/var0, delta_n/delta0);
 				fclose(fp);
 
+#endif
 			} // end of if (rank == 0)
 
 
 #ifdef USE_MPI
+			// BCast updated criteria and map d
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 			MPI_Bcast(d ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -1222,6 +1158,14 @@ int main(int argc, char *argv[])
 
 	if (rank == 0){
 		printf(" after CC INVERSION %lld\n",npix*(npix+1)/2);
+
+#ifdef DEBUG
+		FILE * fp;
+		fp = fopen("output_signal.txt","w");
+		for (int i =0;i<npix;i++)
+			fprintf(fp,"%lf\n",S[i]);
+		fclose(fp);
+#endif
 
 		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.outdir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan, wcs);

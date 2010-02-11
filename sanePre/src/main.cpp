@@ -819,6 +819,7 @@ int main(int argc, char *argv[])
 	if(iframe_min!=iframe_max)
 		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
 
+
 	if(rank==0){
 		// clean up
 		delete [] PNdtot;

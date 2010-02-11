@@ -267,45 +267,39 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
  */
 {
 	fitsfile *fptr;
-	int status = 0;
+	int status = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long mi;
-	double **map;
+	double *map;
 
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
+	//TODO : This should be based on HDU name, not number
 	if (fits_movabs_hdu(fptr, 1, NULL, &status))
 		fits_report_error(stderr, status);
 
 	fits_get_img_size(fptr, 2, naxes, &status);
-	cout << naxes[0] << " " << naxes[1] << endl;
 
 	NAXIS1=(long)naxes[0];
 	NAXIS2=(long)naxes[1];
 
 	// Initialize the data container
-	map = dmatrix(0, NAXIS1 - 1, 0, NAXIS2 - 1);
+	map = new double [NAXIS1*NAXIS2];
 
-	for (int i = 0; i < NAXIS1; i++) {
-		fpixel[1] = i + 1;
-		fits_read_pix(fptr, TDOUBLE, fpixel, NAXIS2, NULL, map[i], NULL, &status);
-	}
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, map, &anynul, &status))
+		fits_report_error(stderr, status);
 
-	int uu=1;
 
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
-				S[indpix[mi]]= - map[jj][ii]; // TODO : suppress - // added minus mat 28_07
-				uu++;
+				S[indpix[mi]]= map[mi];
 			}
 		}
 	}
-	cout << npix << " " << uu << endl;
-
 
 	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);

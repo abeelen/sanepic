@@ -59,6 +59,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 	samples_struct.ntotscan=0; /*! total number of scans */
 	det.ndet=0; /*! number of channels used*/
 
+	pos_param.maskfile = "";
 
 	// printf dictionnary to stderr for debugging
 	//iniparser_dump(ini, stderr);

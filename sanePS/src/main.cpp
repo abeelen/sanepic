@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	long iframe_min=0, iframe_max=0;
 
 	// main loop variables
-	double *S;
+	double *S = NULL;
 
 
 	long ncomp;
@@ -141,23 +141,29 @@ int main(int argc, char *argv[])
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if(signame != "NOSIGFILE"){
+
+		//TODO : Add some check for the map size/iund_size/npix
+
+		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
+
 		// if second launch of estimPS, read S and nn in the previously generated fits map
-		cout << "Reading maps ??" << endl;
+		if(rank==0)
+			cout << "Reading model map : " << signame << endl;
 		S = new double[npix];
 
 		// read pixel indexes
-		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
-
 		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
+
+#ifdef DEBUG
 		FILE * fp;
-		fp = fopen("test_signal.txt","w");
+		fp = fopen("reconstructed_1dsignal.txt","w");
 		for (int i =0;i<npix;i++)
 			fprintf(fp,"%lf\n",S[i]);
-
 		fclose(fp);
+#endif
 
 		if(rank==0)
-			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl;
+			cout << "         map size : " << NAXIS1 << "x" << NAXIS2 << endl;
 
 	}
 
@@ -220,7 +226,7 @@ int main(int argc, char *argv[])
 					c=getchar();
 					switch (c){
 					case('y') :
-						cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+								cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 					break;
 					default:
 						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";

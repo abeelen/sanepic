@@ -668,7 +668,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 }
 
 
-void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
+void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
@@ -683,6 +683,14 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	fill(data_out,data_out+ns,0.0);
 	fill(data_out_lp,data_out_lp+ns,0.0);
 
+
+	//TODO : TEST : Change the removal of the map here
+	//TODO : Optimize the memory management here.... We have data/data_out/data_out_lp/data_lp
+	//TODO : This routine CHANGES *data : is this really wanted ?
+
+	if (Ps != NULL)
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data[ii] - Ps[ii];
 
 	//*********************************************************************
 
@@ -700,14 +708,9 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 			data[ii] = data_out[ii]/**calp[ii/20]*/;
 	}
 
-	//	cout << "flag : " << flag[0] <<  flag[1] << flag[2] << flag[ns -1] << endl;
-	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
-
 	//linear prediction
 	for (long ii=0;ii<ns;ii++)
 		data_lp[ii] = data[ii];
-
-
 
 
 	if (NORMLIN == 0){
@@ -729,24 +732,21 @@ void MapMakPreProcessData(double *data,  short *flag, long ns, int napod,
 	}
 
 
-	//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
-
-	if (Ps != NULL)
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data_lp[ii] - Ps[ii];
-
-
-	//******************* process gaps
-	if (NOFILLGAP == 0){
-		for (long ii=0;ii<ns;ii++)
-			data_out[ii] = data_lp[ii];
-		//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
-		fillgaps(data_out,ns,data,flag,0);
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data[ii];
-	}
-
-	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+//	//TODO : Why removing the data so late in the Pre Process ???
+//
+//	if (Ps != NULL)
+//		for (long ii=0;ii<ns;ii++)
+//			data_lp[ii] = data_lp[ii] - Ps[ii];
+//
+//
+//	//******************* process gaps
+//	if (NOFILLGAP == 0){
+//		for (long ii=0;ii<ns;ii++)
+//			data_out[ii] = data_lp[ii];
+//		fillgaps(data_out,ns,data,flag,0);
+//		for (long ii=0;ii<ns;ii++)
+//			data_lp[ii] = data[ii];
+//	}
 
 	if (Ps != NULL){
 		//linear prediction

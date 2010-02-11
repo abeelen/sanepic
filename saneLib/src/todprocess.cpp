@@ -904,7 +904,7 @@ void dindgen(int nn, double *y)
 
 
 
-void fillgaps(double y[], int ndata, double* yout, short* flag, double sign)
+void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
 {
 	// data are assumed to vary linearly in every window
 

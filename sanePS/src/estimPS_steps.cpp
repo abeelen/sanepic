@@ -91,7 +91,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	double **commonm;
 
 	//	long ns2;
-	short *flag;
+	int *flag;
 
 	fftw_plan fftplan;
 
@@ -162,11 +162,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 		//TODO: subtract the signal only if needed
 
-		if (!S){
-			//******************************* subtract signal
-			//      only need in deproject
+		if (S != NULL){
 			//Read pointing data
-			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe, det.boloname);
+			read_samptopix(ns, samptopix,  dir.tmp_dir, iframe, det.boloname[idet]);
 
 			//TODO : Check this function on what it does/should do
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -325,7 +323,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 	FILE *fp;
 	//	long ns2;
 
-	short *flag;
+	int *flag;
 
 	double *data, *data_lp, *Ps, *bfilter;
 	double  *commontmp;
@@ -339,13 +337,15 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 	//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
-	Ps = new double[ns]; // prewhitened noise ?
-	samptopix = new long long[ns]; // sample to pixel proj matrix
 	bfilter = new double[ns/2+1]; // buttter filter values
 	commontmp = new double[ns]; //
-
 	Nell = new double[nbins]; // binned noise PS
 	Nk = new double[ns/2+1]; // noise PS
+
+	if (S != NULL){
+		samptopix = new long long[ns]; // sample to pixel proj matrix
+		Ps = new double[ns];
+	}
 
 	for(long ii=0;ii<ns/2+1;ii++)
 		bfilter[ii] = 1.0;
@@ -384,9 +384,9 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 		//       reuse the fdata if possible?
 		//******************************* subtract signal
 
-		if (!S){
+		if (S != NULL){
 			//Read pointing data
-			read_samptopix(ns, samptopix,  dir.tmp_dir, idet, iframe,det.boloname);
+			read_samptopix(ns, samptopix,  dir.tmp_dir, iframe, field);
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
@@ -396,10 +396,9 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 		}
 
 
+
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
-
-
 
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii] * apodwind[ii];
@@ -412,8 +411,6 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 
 		// Noise power spectra
-
-
 		/// measure power spectrum of the uncorrelated part of the noise
 		noisepectrum_estim(data,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
 
@@ -481,11 +478,14 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
+	if (S != NULL){
 
-	delete [] data ;
+		delete [] Ps ;
+		delete [] samptopix;
+
+	}
 	delete [] data_lp ;
-	delete [] Ps ;
-	delete [] samptopix;
+	delete [] data ;
 	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;

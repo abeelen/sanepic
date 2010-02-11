@@ -29,12 +29,12 @@ using namespace std;
 
 
 
-void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<string> bolonames) {
+void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
 	FILE *fp;
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet] << ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << boloname << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string temp = oss.str();
@@ -69,14 +69,14 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long idet, l
 }
 
 
-void read_samptopix(long ns, long long *&samptopix, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
+void read_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
 	FILE *fp;
 	size_t result;
 	long ns2;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet]  << ".bi";
+	oss << outdir + "samptopix_" << iframe << "_" << boloname  << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();

@@ -62,7 +62,7 @@ void read_PNd(double *&PNdtot, long long &npix, std::string outdir);
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long iframe, std::string boloname);
 
 /*!
  * Reads samptopix from a binary file \n
@@ -71,7 +71,7 @@ void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long i
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void read_samptopix(long ns, long long *&samptopix, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+void read_samptopix(long ns, long long *&samptopix, std::string outdir, long iframe, std::string boloname);
 
 /*!
  * Writes fourier transform of the data in a binary file \n

@@ -39,7 +39,7 @@ void mergedata(double y1[], int ndata1, double y2[], int ndata2, double *yout); 
 void dindgen(int nn, double *y); // on peut garder
 
 
-void fillgaps(double y[], int ndata, double* yout,  short* flag, double sign); // fait par Patanchon
+void fillgaps(double y[], int ndata, double* yout,  int* flag, double sign); // fait par Patanchon
 
 
 void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite); // on garde ?

@@ -262,7 +262,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 	//	int naxis=0;
 	//	long naxes[2] = { 1, 1 };
 	double *signal;
-	short *flag;
+	int *flag;
 	double *ra;
 	double *dec,*phi;
 	double **offsets;
@@ -388,7 +388,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 void check_flag(string fname,struct detectors det,long ns, string outname,std::vector<std::string> &bolos_global,std::vector<std::string> &bolos_global_80){
 
-	short *flag;
+	int *flag;
 	short sum=0;
 	FILE * fp;
 

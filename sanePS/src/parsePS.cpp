@@ -60,14 +60,14 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 
 
 
-	if(read_directories(ini, dir, rank)==-1)
-		return -1;
+//	if(read_directories(ini, dir, rank)==-1)
+//		return -1;
 
-	if(read_param_process(ini, proc_param, rank)==-1)
-		return -1;
+//	if(read_param_process(ini, proc_param, rank)==-1)
+//		return -1;
 
-	if(read_channel_list(ini,det.boloname, rank)==-1)
-		return -1;
+	//	if(read_channel_list(ini,det.boloname, rank)==-1)
+	//	return -1;
 	if( read_directories(ini, dir, rank) ||
 			read_param_process(ini, proc_param, rank) ||
 			read_channel_list(ini,det.boloname, rank) ||

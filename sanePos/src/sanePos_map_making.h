@@ -31,7 +31,7 @@ void computeMapMinima_HIPE(std::vector<std::string> bolonames, struct samples sa
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-int minmax_flag(double  *& array, short *& flag, long size, double & min_array, double &  max_array);
+int minmax_flag(double  *& array, int *& flag, long size, double & min_array, double &  max_array);
 
 void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coordscorner,
 		struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2);

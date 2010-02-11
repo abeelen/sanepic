@@ -270,102 +270,100 @@ int main(int argc, char *argv[])
 	}
 
 
-	//	if (0){
-	//		if(iframe_min!=iframe_max)
-	if(rank==0)
-		printf("\n\nDetermining the size of the map\n");
-	//	printf("[%2.2i] Determining the size of the map\n",rank);
+	if (pos_param.maskfile == ""){
 
-	// TODO: Different ways of computing the map parameters :
-	// 1 - find minmax of the pointings on the sky -> define map parameters from that
-	// 2 - defined minmax of the map -> define map parameters from that
-	// (3 - define center of the map and radius -> define map parameters from that)
+		//		if(iframe_min!=iframe_max)
+		if(rank==0)
+			printf("\n\nDetermining the size of the map\n");
+		//	printf("[%2.2i] Determining the size of the map\n",rank);
+
+		// TODO: Different ways of computing the map parameters :
+		// 1 - find minmax of the pointings on the sky -> define map parameters from that
+		// 2 - defined minmax of the map -> define map parameters from that
+		// (3 - define center of the map and radius -> define map parameters from that)
 
 
 
-	//	if(iframe_min!=iframe_max)
-	//			computeMapMinima_HIPE(det.boloname,samples_struct,
-	//					iframe_min,iframe_max,
-	//					ra_min,ra_max,dec_min,dec_max);
-	computeMapMinima(det.boloname,samples_struct,
-			iframe_min,iframe_max,
-			ra_min,ra_max,dec_min,dec_max);
+		if(iframe_min!=iframe_max)
+			computeMapMinima_HIPE(det.boloname,samples_struct,
+					iframe_min,iframe_max,
+					ra_min,ra_max,dec_min,dec_max);
 
 #ifdef USE_MPI
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-	MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
-	MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-	MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+		MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+		MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+		MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-	MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-	MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-	MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 #else
-	gra_min=ra_min;
-	gra_max=ra_max;
-	gdec_min=dec_min;
-	gdec_max=dec_max;
+		gra_min=ra_min;
+		gra_max=ra_max;
+		gdec_min=dec_min;
+		gdec_max=dec_max;
 #endif
 
-	//set coordinates
-	coordscorner[0] = gra_min; // store ra/dec min/max of the final map
-	coordscorner[1] = gra_max;
-	coordscorner[2] = gdec_min;
-	coordscorner[3] = gdec_max;
+		//set coordinates
+		coordscorner[0] = gra_min; // store ra/dec min/max of the final map
+		coordscorner[1] = gra_max;
+		coordscorner[2] = gdec_min;
+		coordscorner[3] = gdec_max;
 
-	if (rank == 0) {
-		printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max);
-		printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
+		if (rank == 0) {
+			printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max);
+			printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
+		}
+
+		computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
+
+
+		npixsrc = 0;
+		// Initialize the masks
+		mask    = new short[NAXIS1*NAXIS2];
+		indpsrc = new long long[NAXIS1*NAXIS2];
+
+		for (long long ii=0; ii<NAXIS1*NAXIS2; ii++){
+			mask[ii]    =  0;
+			indpsrc[ii] = -1;
+		}
+
+	} else {
+		// Map header is determined from the mask file
+
+		//		if(iframe_min!=iframe_max)
+		if(rank==0)
+			cout << "Reading Mask map : " << pos_param.maskfile << endl;
+
+		string extname="mask";
+
+		if (read_mask_wcs(pos_param.maskfile, extname, /*(char) 's',*/ wcs, NAXIS1, NAXIS2, mask ))
+			cerr << "Error Reading Mask file" << endl;
+
+		npixsrc = 0;
+		indpsrc = new long long[NAXIS1*NAXIS2];
+		long long ll;
+
+		for (long jj=0; jj<NAXIS2; jj++) {
+			for (long ii=0; ii<NAXIS1; ii++) {
+				ll = NAXIS1*jj+ii;
+				if (mask[ll] != 0)
+					indpsrc[ll] = npixsrc++;
+				else
+					indpsrc[ll] = -1;
+			}
+		}
 	}
 
-	computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
-
-
-	npixsrc = 0;
-	// Initialize the masks
-	mask    = new short[NAXIS1*NAXIS2];
-	indpsrc = new long long[NAXIS1*NAXIS2];
-
-	for (long long ii=0; ii<NAXIS1*NAXIS2; ii++){
-		mask[ii]    =  0;
-		indpsrc[ii] = -1;
-	}
-
-	//	} else {
-	//		// Map header is determined from the mask file
-	//
-	//		if(iframe_min!=iframe_max)
-	//			printf("[%2.2i] Reading Mask map\n",rank);
-	//
-	//		string fname="mask_RCW120.fits";
-	//		string extname="mask";
-	//
-	//		if (read_mask_wcs(fname, extname, /*(char) 's',*/ wcs, NAXIS1, NAXIS2, mask ))
-	//			cerr << "Error Reading Mask file" << endl;
-	//
-	//		npixsrc = 0;
-	//		indpsrc = new long long[NAXIS1*NAXIS2];
-	//		long long ll;
-	//
-	//		for (long jj=0; jj<NAXIS2; jj++) {
-	//			for (long ii=0; ii<NAXIS1; ii++) {
-	//				ll = NAXIS1*jj+ii;
-	//				if (mask[ll] != 0)
-	//					indpsrc[ll] = npixsrc++;
-	//				else
-	//					indpsrc[ll] = -1;
-	//			}
-	//		}
-	//	}
-
 
 	if (rank == 0) {
-		printf("Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
+        printf("        Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
 	}
 
@@ -400,7 +398,7 @@ int main(int argc, char *argv[])
 		printf("\n\nCompute Pixels Indices\n");
 
 
-	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+	computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
 			proc_param, pos_param, iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
 			mask,factdupl,
