@@ -140,7 +140,7 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 	if((int)(samples_str.noisevect).size()==0 ){
 
 		// read the noise file name in the ini file
-		if(read_parser_string(ini, "sanepic_inv_matrix:cov_matrix_file",rank,str))
+		if(read_parser_string(ini, "saneInv:cov_matrix_file",rank,str))
 			return 1;
 		samples_str.noisevect.push_back(str);
 
@@ -290,7 +290,7 @@ int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, i
 
 	double d;
 
-	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:sampling_frequency", -1.0);
+	d = iniparser_getdouble(ini,(char*)"sanePre:sampling_frequency", -1.0);
 	if (d<=0.0){
 		if(rank==0)
 			printf("sampling_frequency cannot be negative or 0 ! Or maybe you forgot to mention sampling frequency \n");
@@ -306,7 +306,7 @@ int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int
 
 	double d;
 
-	d = iniparser_getdouble(ini,(char*)"sanepic_preprocess:filter_frequency", -1.0);
+	d = iniparser_getdouble(ini,(char*)"sanePre:filter_frequency", -1.0);
 	if (d<0.0){
 		if(rank==0)
 			printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
@@ -324,7 +324,7 @@ int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut, int rank){
 
 	string str;
 
-	if (read_parser_string(ini, "sanepic_preprocess:fcut_file", rank, str))
+	if (read_parser_string(ini, "sanePre:fcut_file", rank, str))
 		return 1;
 
 	std::vector<string> dummy2;
@@ -346,7 +346,7 @@ int read_baseline(dictionary	*ini, struct param_process &proc_param, int rank){
 
 	bool b;
 
-	b = iniparser_getboolean(ini, "sanepic_preprocess:no_baseline", 0);
+	b = iniparser_getboolean(ini, "sanePre:no_baseline", 0);
 	//if(b!=0){
 	//printf("no_baseline:    [%d]\n", b);
 	proc_param.NORMLIN=b;
@@ -361,7 +361,7 @@ int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank
 
 	bool b;
 
-	b = iniparser_getboolean(ini, "sanepic_preprocess:correlation", 1);
+	b = iniparser_getboolean(ini, "sanePre:correlation", 1);
 	proc_param.CORRon=b;
 
 	return 0;
@@ -372,7 +372,7 @@ int read_remove_poly(dictionary	*ini, struct param_process &proc_param, int rank
 	//	bool b = 1;
 	int	i = -1;
 	//	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
-	i = iniparser_getint(ini, "sanepic_preprocess:poly_order", -1);
+	i = iniparser_getint(ini, "sanePre:poly_order", -1);
 	//if(b!=1){
 	//printf("remove_poly:    [%d]\n", b);
 	if(i>=0){
@@ -394,7 +394,7 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 
 	int i;
 
-	i = iniparser_getint(ini, "sanepic_conjugate_gradient:iterW", 0);
+	i = iniparser_getint(ini, "sanePic:iterW", 0);
 	//if(isnan((double)i)){
 	if(i>0){
 		//printf("iterw :      [%d]\n", i);
@@ -410,7 +410,7 @@ int read_ell_file(dictionary	*ini, string &ellFile, int rank){
 	string str;
 	//char *s;
 
-	if (read_parser_string(ini, "sanepic_estim_PS:ell_file", rank, str))
+	if (read_parser_string(ini, "sanePS:ell_file", rank, str))
 		return 1;
 
 	ellFile=str;
@@ -424,7 +424,7 @@ int read_map_file(dictionary	*ini, string &signame, int rank){
 
 	string str;
 
-	if (read_parser_string(ini,"sanepic_estim_PS:map_file", rank,str)){
+	if (read_parser_string(ini,"sanePS:map_file", rank,str)){
 		signame="NOSIGFILE";
 	}else{
 		signame=str;
@@ -437,7 +437,7 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 	string str;
 	//char*s;
 
-	if (read_parser_string(ini, "sanepic_inv_matrix:cov_matrix_file",rank,str))
+	if (read_parser_string(ini, "saneInv:cov_matrix_file",rank,str))
 		return 1;
 
 	fname=str;
@@ -448,7 +448,7 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 
 	string str;
-	if (read_parser_string(ini,"sanepic_estim_PS:noise_estim", rank,str)){
+	if (read_parser_string(ini,"sanePS:noise_estim", rank,str)){
 		MixMatfile = "NOFILE";
 	}else{
 		MixMatfile = str;
@@ -461,7 +461,7 @@ int read_ncomp(dictionary	*ini, long &ncomp, int rank){
 
 	double d;
 
-	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:ncomp", -1.0);
+	d = iniparser_getdouble(ini,(char*)"sanePS:ncomp", -1.0);
 	if (d<0.0){
 		if(rank==0)
 			printf("number of component cannot be negative ! or maybe you have to mention it in the ini file \n");
@@ -479,7 +479,7 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 
 	double d;
 
-	d = iniparser_getdouble(ini,(char*)"sanepic_estim_PS:fcut", 12.0);
+	d = iniparser_getdouble(ini,(char*)"sanePS:fcut", 12.0);
 	if (d<0.0){
 		if(rank==0)
 			printf("noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n");
@@ -493,10 +493,12 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 
 int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 	char *s;
-	s = iniparser_getstring(ini, line.c_str(), NULL);
+	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
 
+//	cout << s << endl;
+//	getchar();
 	// Key is not present :
-	if(s==NULL){
+	if(s==(char*)NULL){
 		if(rank==0)
 			cout <<"You must add a line in ini file specifying : " << line << endl;
 		return 1;
@@ -537,7 +539,7 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 	bool b;
 
 	// read the pixelsize
-	if (read_parser_string(ini, "sanepic_compute_positions:pixsize", rank,str))
+	if (read_parser_string(ini, "sanePos:pixsize", rank,str))
 		return 1;
 	pos_param.pixdeg=atof(str.c_str());
 
@@ -555,7 +557,7 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 	pos_param.flgdupl=b;
 
 	// Read what to do with gaps : (default : 0 -- nogaps)
-	b = iniparser_getboolean(ini, "sanepic_conjugate_gradient:project_gaps", 0);
+	b = iniparser_getboolean(ini, "sanePic:project_gaps", 0);
 	pos_param.projgaps=b;
 
 	return 0;

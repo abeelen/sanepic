@@ -66,7 +66,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	for (long idet=0;idet<ndet;idet++){
 
 		indice = find_channel_index(fptr, (char *) bolonames[idet].c_str());
-//		cout << bolonames[idet] << " " << indice << endl;
+		//		cout << bolonames[idet] << " " << indice << endl;
 		// transform arcsec to deg
 		offsets[idet][0] = temp_dx[indice-1]/3600;
 		offsets[idet][1] = temp_dy[indice-1]/3600;
@@ -208,7 +208,7 @@ void read_flag_from_fits(string filename, string field, int *& mask, long & ns){
 
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
-	rowIndex = find_channel_index(fptr, field.c_str());
+	rowIndex = find_channel_index(fptr, field.c_str()); // TODO : test rowindex or rowindex -1 ??
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
@@ -288,6 +288,7 @@ void read_signal_from_fits(string filename, string field, double *& signal, long
 	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, signal, &anynul, &status))
 		fits_report_error(stderr, status);
 
+
 	// ---------------------------------------------
 	// close file
 	if(fits_close_file(fptr, &status))
@@ -330,16 +331,20 @@ long find_channel_index(fitsfile *fptr, const char * field){
 	// read the channel list
 	read_channels(fptr,data,nBolos);
 
-	long idet;
+	//	long idet;
 	//find the fits index of the bolo and return it
 	//fits index are 1 indexed, so indexes starts at 1
-	for (idet = 1; idet <= nBolos; idet++)
+	for (long idet = 1; idet <= nBolos; idet++)
 		if (strcmp(field,data[idet-1]) == 0){
+			for(long ii=0;ii<nBolos;ii++)
+				delete data[ii];
 			delete [] data;
 			return idet;
 		}
 
 	cout << "EE - " << field << " not found" << endl;
+	for(long ii=0;ii<nBolos;ii++)
+		delete data[ii];
 	delete [] data;
 	return -1L;
 
@@ -455,7 +460,7 @@ void read_time_from_fits(string filename, double *& time, long ns){
 	int status = 0;
 	int ns_test = 0;
 	char comment[80];
-//	int anynul;
+	//	int anynul;
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
