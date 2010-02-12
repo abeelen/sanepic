@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 					c=getchar();
 					switch (c){
 					case('y') :
-										cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+												cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 					break;
 					default:
 						cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
@@ -553,6 +553,7 @@ int main(int argc, char *argv[])
 		fill(hits,hits+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
+		fill(s,s+npix,0.0);
 		fill(PNd,PNd+npix,0.0);
 
 
@@ -693,7 +694,7 @@ int main(int argc, char *argv[])
 
 			delta0 = delta_n; // delta_0 <= delta_new
 			var0 = var_n;
-			printf("[%2.2i] var0 = %lf\n",rank, var0);
+			printf("var0 = %lf\n",var0);
 
 		}
 
@@ -779,9 +780,6 @@ int main(int argc, char *argv[])
 #endif
 				} else {
 
-					//					do_PtNPS_nocorr(d,extentnoiseSp_all,noiseSppreffile,tmp_dir,dirfile,bolonames,
-					//							f_lppix_Nk,fsamp,flgdupl,factdupl,ns,ndet,/*size_det,rank_det,*/indpix,
-					//							NAXIS1, NAXIS2,npix,iframe,q,NULL,NULL);
 
 					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det,f_lppix_Nk,
 							proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
@@ -793,10 +791,9 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-			//cout << " q reduction\n";
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			qtot=q; // ajout mat 02/06
+			qtot=q;
 #endif
 
 
@@ -825,7 +822,8 @@ int main(int argc, char *argv[])
 			// every 10 iterations do ....
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
-//				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
+				// TODO: Should NOT be initialized here...
+				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
 
 
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -1014,13 +1012,13 @@ int main(int argc, char *argv[])
 					}
 				} // end of saving iterated maps
 
-
-				cout << " - iter = " << iter;
+				//TODO : Homogenize the output
+				cout << "iter = " << iter;
 				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
 				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
-				cout << "\r " << flush;
+				cout << endl;
+//				cout << "\r " << flush;
 
-#ifdef DEBUG
 				temp_stream << dir.outdir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
@@ -1031,7 +1029,6 @@ int main(int argc, char *argv[])
 				fprintf(fp,"iter = %d, crit = %10.15g, crit2 = %10.15g\n",iter,var_n/var0, delta_n/delta0);
 				fclose(fp);
 
-#endif
 			} // end of if (rank == 0)
 
 
