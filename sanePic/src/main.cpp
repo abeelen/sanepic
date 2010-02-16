@@ -1019,6 +1019,12 @@ int main(int argc, char *argv[])
 				cout << endl;
 //				cout << "\r " << flush;
 
+				cout << endl;
+				cout << "iter = " << iter;
+				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
+				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
+				cout << "\r " << flush;
+
 				temp_stream << dir.outdir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères

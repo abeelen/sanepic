@@ -4029,7 +4029,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.18922247" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Release_LARGE_MEMORY}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Release_debug_log}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 </option>
