@@ -240,7 +240,7 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			field = bolonames[idet];
 
 			double *ra, *dec;
-			int *flag;
+			int *flag=NULL;
 			long test_ns;
 
 			read_ra_from_fits(fits_file, field, ra, test_ns);

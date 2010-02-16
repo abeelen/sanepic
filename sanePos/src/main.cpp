@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
 
 
 		if(iframe_min!=iframe_max)
-			computeMapMinima_HIPE(det.boloname,samples_struct,
+			computeMapMinima(det.boloname,samples_struct,
 					iframe_min,iframe_max,
 					ra_min,ra_max,dec_min,dec_max);
 
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 
 
 	if (rank == 0) {
-        printf("        Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
+        printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
 	}
 
@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
 		printf("\n\nCompute Pixels Indices\n");
 
 
-	computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
+	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
 			proc_param, pos_param, iframe_min, iframe_max,
 			wcs, NAXIS1, NAXIS2,
 			mask,factdupl,

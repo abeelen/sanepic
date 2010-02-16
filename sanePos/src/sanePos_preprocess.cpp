@@ -54,12 +54,12 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
-		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
+//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
 		// read reference position
 		long test_ns;
 		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
-		//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
+//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
@@ -160,11 +160,10 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			// Combine position and bolo flags
 			// and check
 
-			int *bolo_flag;
+			int *bolo_flag=NULL;
 
 			long test_ns;
 			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
-
 			if (test_ns != ns) {
 				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
 				exit(-1);
@@ -193,7 +192,6 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
-
 			samptopix = new long long[ns];
 
 			for (long ii=0 ; ii<ns; ii++){
@@ -285,7 +283,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 		ns = samples_struct.nsamples[iframe];
 
 		double *ra, *dec;
-		int *flag;
+		int *flag=NULL;
 
 		for (long idet = 0; idet<ndet; idet++){
 			string field = bolonames[idet];
@@ -366,7 +364,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			// Combine position and bolo flags
 			// and check
 
-			int *bolo_flag;
+			int *bolo_flag=NULL;
 
 			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
 
@@ -449,4 +447,5 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 		}
 	}
+
 }

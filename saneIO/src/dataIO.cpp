@@ -194,7 +194,7 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 }*/
 
 
-void read_flag_from_fits(string filename, string field, int *& mask, long & ns){
+void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// HIPE like format
 
