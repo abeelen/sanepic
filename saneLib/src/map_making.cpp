@@ -577,6 +577,12 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	double *N_;
 	fftw_plan fftplan;
 
+//	time_t rawtime;
+//	struct tm * timeinfo;
+//	time ( &rawtime );
+//	timeinfo = localtime ( &rawtime );
+//	file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
+
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
 	pixpos = new long long [ndata];

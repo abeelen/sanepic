@@ -33,14 +33,9 @@
 using namespace std;
 
 
-#ifdef LARGE_MEMORY
-void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, string dir, long ns, long iframe, int rank, int size,fftw_complex *&fPs_buffer)
-#else
-void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, string dir, long ns, long iframe, int rank, int size)
-#endif
 
+void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, string dir, long ns, long iframe, int rank, int size,fftw_complex *fPs_buffer)
 {
 
 
@@ -83,15 +78,14 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-#ifdef LARGE_MEMORY
-		for(long ii=0;ii<(ns/2+1);ii++){
-			fPs_buffer[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-			fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-		}
-#else
-		write_fPs(ns, fdata, dir, idet1, iframe, det.boloname);
+		if(fPs_buffer!=(fftw_complex*)NULL)
+			for(long ii=0;ii<(ns/2+1);ii++){
+				fPs_buffer[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
+				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
+			}
+		else
+			write_fPs(ns, fdata, dir, idet1, iframe, det.boloname);
 
-#endif
 	}
 
 	delete[] samptopix;
@@ -100,21 +94,15 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 
 }
 
-#ifdef LARGE_MEMORY
 void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname, fftw_complex *&fdatas)
-#else
-void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
-		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname)
-#endif
+		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname, fftw_complex *fdatas)
 {
 
 
 
 	double *data, *bfilter, *data_lp, *Ps;
-	int *flag;
+	int *flag=NULL;
 	long long *samptopix;
 
 	fftw_plan fftplan;
@@ -240,15 +228,14 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-#ifdef LARGE_MEMORY
-		for(long ii=0;ii<(ns/2+1);ii++){
-			fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-			fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-		}
-#else
-		//write fourier transform to disk
-		write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
-#endif
+		if(fdatas!=NULL)
+			for(long ii=0;ii<(ns/2+1);ii++){
+				fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
+				fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
+			}
+		else
+			//write fourier transform to disk
+			write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
 
 
 		delete [] flag;
@@ -269,17 +256,10 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 }
 
-#ifdef LARGE_MEMORY
 void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits,std::string fname,fftw_complex *fdatas)
-#else
-void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
-		struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
-		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		double *Mp, long *hits, string fname)
-#endif
 {
 
 	long  nbins;
@@ -399,15 +379,14 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
 
-#ifdef LARGE_MEMORY
-			for(long ii=0;ii<(ns/2+1);ii++){
-				fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
-				fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
-			}
-#else
-			//read Fourier transform of the data
-			read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
-#endif
+			if(fdatas!=(fftw_complex*)NULL)
+				for(long ii=0;ii<(ns/2+1);ii++){
+					fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
+					fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
+				}
+			else
+				//read Fourier transform of the data
+				read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
 
 
 
