@@ -814,6 +814,8 @@ int main(int argc, char *argv[])
 	//Processing stops here
 	t3=time(NULL);
 
+
+
 	//debug : computation time
 #ifdef USE_MPI
 	if(iframe_min!=iframe_max)
