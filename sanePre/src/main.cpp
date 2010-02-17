@@ -241,8 +241,10 @@ int main(int argc, char *argv[])
 
 	// Check indpix readed size = expected size
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
-		if(rank==0)
+		if(rank==0){
 			cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
+			cout << ind_size << " != "  << (factdupl*NAXIS1*NAXIS2+2 + addnpix) << " " << factdupl << " " << addnpix << endl;
+		}
 		exit(0);
 	}
 
@@ -732,6 +734,19 @@ int main(int argc, char *argv[])
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0);
 
+		for (long jj=0; jj<NAXIS2; jj++) {
+			for (long ii=0; ii<NAXIS1; ii++) {
+				mi = jj*NAXIS1 + ii;
+				if (indpix[mi] >= 0){
+					map1d[mi] = PNdtot[indpix[mi]]/hitstot[indpix[mi]];
+				} else {
+					map1d[mi] = 0;
+				}
+			}
+		}
+
+		fnaivname = dir.outdir + "naivMap.fits";
+		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Ultra Naiv",1);
 
 		for (long jj=0; jj<NAXIS2; jj++) {
 			for (long ii=0; ii<NAXIS1; ii++) {
@@ -757,7 +772,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		fnaivname = dir.outdir + "naivMap.fits";
+	//fnaivname = dir.outdir + "naivMap.fits";
 		//		fnaivname = '!' + dir.outdir + "hits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1);
 

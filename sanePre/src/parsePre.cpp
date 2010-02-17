@@ -91,6 +91,7 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 
 		print_directories(dir);
 		print_param_process(proc_param);
+		print_param_positions(pos_param);
 	}
 
 
