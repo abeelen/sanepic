@@ -81,7 +81,7 @@ int read_noisedir(dictionary	*ini, struct directories &dir, int rank){
 
 	string str;
 
-	if(read_parser_string(ini, "sanepic_inv_matrix:noise_dir", rank, str))
+	if(read_parser_string(ini, "saneInv:noise_dir", rank, str))
 		return 1;
 
 	if (str[str.length()-1] != '/')
@@ -495,8 +495,8 @@ int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 	char *s;
 	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
 
-//	cout << s << endl;
-//	getchar();
+	//	cout << s << endl;
+	//	getchar();
 	// Key is not present :
 	if(s==(char*)NULL){
 		if(rank==0)
@@ -523,17 +523,17 @@ int read_directories(dictionary	*ini, struct directories &dir, int rank){
 int read_param_process(dictionary *ini,struct param_process &proc_param, int rank){
 
 	return read_apodize_samples(ini, proc_param, rank) || \
-		read_nofillgap(ini, proc_param, rank)              || \
-		read_sampling_frequency(ini, proc_param, rank)     || \
-		read_filter_frequency(ini, proc_param, rank)       || \
-		read_baseline(ini, proc_param, rank)               || \
-		read_correlation(ini,proc_param,rank)              ||\
+	read_nofillgap(ini, proc_param, rank)              || \
+	read_sampling_frequency(ini, proc_param, rank)     || \
+	read_filter_frequency(ini, proc_param, rank)       || \
+	read_baseline(ini, proc_param, rank)               || \
+	read_correlation(ini,proc_param,rank)              ||\
 	read_remove_poly(ini, proc_param, rank);
 
 
 }
 
-int read_param_positions(dictionary *ini, struct param_positions & pos_param, int rank){
+int read_param_positions(dictionary *ini, struct param_positions &pos_param, int rank){
 
 	string str;
 	bool b;
@@ -543,9 +543,8 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 		return 1;
 	pos_param.pixdeg=atof(str.c_str());
 
-	if (read_parser_string(ini,"sanepic_compute_positions:mask_file",rank,str))
-		return 1;
-	pos_param.maskfile=str;
+	if (read_parser_string(ini,"sanePos:mask_file",rank,str)==0)
+		pos_param.maskfile=str;
 
 	if(pos_param.pixdeg < 0 && rank==0){
 		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
@@ -553,22 +552,25 @@ int read_param_positions(dictionary *ini, struct param_positions & pos_param, in
 	}
 
 	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
-	b = iniparser_getboolean(ini, "commons:map_flagged_data", 0);
+	b = (bool)iniparser_getboolean(ini, "commons:map_flagged_data", (bool)0);
 	pos_param.flgdupl=b;
 
-	// Read what to do with gaps : (default : 0 -- nogaps)
-	b = iniparser_getboolean(ini, "sanePic:project_gaps", 0);
+
+	// Read what to do with gaps : (default : 0 -- no projection)
+	b = (bool)iniparser_getboolean(ini, "sanePic:project_gaps", (bool)0);
 	pos_param.projgaps=b;
+
 
 	return 0;
 }
 
-void print_param_positions(struct param_positions &pos_param) {
+void print_param_positions(struct param_positions pos_param) {
 
 	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
 
 	if(pos_param.flgdupl)
 		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";
+
 
 	if(pos_param.projgaps)
 		cout << "GAP FILLING : " << setw(10) << "PROJECTED\n";
@@ -580,7 +582,7 @@ void print_param_positions(struct param_positions &pos_param) {
 }
 
 
-void print_param_process(struct param_process & proc_param){
+void print_param_process(struct param_process proc_param){
 
 
 

@@ -53,7 +53,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	oss.str("");
 
 	// debug
-	oss << outdir + "samptopix_" << iframe << "_" << bolonames[idet]  << ".txt";
+	oss << outdir + "samptopix_" << iframe << "_" << boloname  << ".txt";
 	temp = oss.str();
 
 	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
