@@ -493,7 +493,7 @@ void check_time_gaps(string fname,long ns){
 	for(long jj=0;jj<ns-1;jj++){
 		//		if((jj>14800)&&(jj<14900))
 		//			cout << fixed << setprecision(15) << diff[jj] << endl;
-		if((diff[jj])>three_times_sigma)
+		if(abs(diff[jj]-mean)!>three_times_sigma)
 			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << fixed <<  setprecision(8) << (time[jj+1]-time[jj]) << endl;
 	}
 
