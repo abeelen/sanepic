@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
 
 	string field; // actual boloname in the bolo loop
 	string ellFile; // file containing the ells
-	string extentnoiseSp; // noise file
 	string prefixe; // prefix used for temporary name file creation
 
 
@@ -368,13 +367,12 @@ int main(int argc, char *argv[])
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		ns = samples_struct.nsamples[iframe];
 		ff = iframe;
-		extentnoiseSp = samples_struct.noise_table[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
 		cout << rank << " " << fits_filename << endl;
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
-				extentnoiseSp, fits_filename, ncomp, fcut);
+				fits_filename, ncomp, fcut);
 		// fsamp = bolometers sampling freq
 		// ns = number of samples in the "iframe" scan
 		// ff = first sample number

@@ -31,11 +31,8 @@ using namespace std;
 
 void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir, struct param_positions pos_param,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		long long *indpix, double *S, string MixMatfile,string ellFile, string extentnoiseSp,string fits_filename, long ncomp, double fcut)
+		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut)
 {
-
-
-
 	//double fcut = 12; //fixed here to be sure that the code will not focus on high freq
 	//long ncomp = 1;
 	//long ncomp2 = 0;
@@ -109,7 +106,9 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 
 	commonm2 = dmatrix(0,ncomp,0,ns-1);
 
-
+	// One has to initialize the two matrices for each iteration...
+	init2D_double(Rellexp,0,0, (det.ndet)*(det.ndet),nbins ,0.0);
+	init2D_double(Rellth,0,0, (det.ndet)*(det.ndet),nbins ,0.0);
 
 	init2D_double(commonm2,0,0,ncomp,ns,0.0);
 	//	fill(commontmp,commontmp+ns,0.0);
@@ -131,7 +130,7 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 	//TODO: factapod is computed once, but used twice, it can be computed here (mat 28/10)
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 	cout << "1/6 - Reading Mixing Matrix" << endl;
-	read_mixmat_file(MixMatfile, dir.dirfile, mixmat, det.ndet,ncomp); // TODO : la mixmat doit etre dans dirfile ou dans tmp_dir ??
+	read_mixmat_file(MixMatfile, dir.dirfile, mixmat, det.ndet,ncomp);
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 

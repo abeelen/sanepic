@@ -33,33 +33,33 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 	//TODO : ndet is NOT to be read,
 	//////////////////////////////////////
 	// read mixing parameters
-	int len, li, lo;
-	len=MixMatfile.length();
-	long ndet2;
-	int ncomp3=0;
-	long ncomp2=0;
+//	int len, li, lo;
+//	len=MixMatfile.length();
+//	long ndet2;
+//	int ncomp3=0;
+//	long ncomp2=0;
 	//cout << MixMatfile << endl;
-	li = MixMatfile.rfind("xt");
-	lo= MixMatfile.rfind("bi");
+	//	li = MixMatfile.rfind("xt");
+	//	lo= MixMatfile.rfind("bi");
 	//cout << "len : " << len << endl;
 	//cout << "end : " << (MixMatfile[len-1]+MixMatfile[len]) << endl;
 
-	if(li==len-2){
-//			cout << "fichier mixmat txt" << endl;
-		read_mixmat_txt(MixMatfile, ndet, ncomp,mixmat);
-	}else{
-		if (lo==len-2){
-//				cout << "fichier mixmat bin" << endl;
-			read_ReducedMixingMatrix(mixmat,ndet2,ncomp3,dir);
-			ncomp2=(long)ncomp3;
-			if(ndet!=ndet2){
-					cout << "Error. The input number of detector and the number in mixing matrix file are different.\n";
-				exit(0);}
-		}else{
-				cout << "Error, wrong type for Mixing matrix, please use txt or binary files.\n";
-			exit(0);
-		}
-	}
+	//	if(li==len-2){
+	//			cout << "fichier mixmat txt" << endl;
+	read_mixmat_txt(MixMatfile, ndet, ncomp,mixmat);
+	//	}else{
+	//		if (lo==len-2){
+	////				cout << "fichier mixmat bin" << endl;
+	//			read_ReducedMixingMatrix(mixmat,ndet2,ncomp3,dir);
+	//			ncomp2=(long)ncomp3;
+	//			if(ndet!=ndet2){
+	//					cout << "Error. The input number of detector and the number in mixing matrix file are different.\n";
+	//				exit(0);}
+	//		}else{
+	//				cout << "Error, wrong type for Mixing matrix, please use txt or binary files.\n";
+	//			exit(0);
+	//		}
+	//	}
 
 
 	//	if (ncomp2 < ncomp) ncomp = ncomp2;
@@ -682,9 +682,6 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	long ib=0; // used as an iterator
 	//long iter;
 
-	std::ostringstream temp_stream;
-	string testfile;
-
 	double tottest=0.0;
 
 	double f;
@@ -753,19 +750,22 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 
 
-	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
-	temp_stream << outdirSpN + "weights_" << ff << ".txt";
-
-	// récupérer une chaîne de caractères
-	testfile= temp_stream.str();
-	temp_stream.str("");
-
-	fp = fopen(testfile.c_str(),"w");
-	for (long jj=0;jj<nbins2;jj++){
-		fprintf(fp,"%10.15g \t",w[jj]);
-	}
-	fprintf(fp,"\n");
-	fclose(fp);
+//	std::ostringstream temp_stream;
+//
+//	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
+//	temp_stream << outdirSpN + "weights_" << ff << ".txt";
+//
+//	string testfile;
+//// récupérer une chaîne de caractères
+//	testfile= temp_stream.str();
+//	temp_stream.str("");
+//
+//	fp = fopen(testfile.c_str(),"w");
+//	for (long jj=0;jj<nbins2;jj++){
+//		fprintf(fp,"%10.15g \t",w[jj]);
+//	}
+//	fprintf(fp,"\n");
+//	fclose(fp);
 
 
 	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;

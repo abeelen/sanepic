@@ -15,6 +15,6 @@
 
 void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir, struct param_positions pos_param,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		long long *indpix, double *S, std::string MixMatfile, std::string ellFile, std::string extentnoiseSp, std::string fits_filename, long ncomp, double fcut);
+		long long *indpix, double *S, std::string MixMatfile, std::string ellFile, std::string fits_filename, long ncomp, double fcut);
 
 #endif /* ESTIMPS_H_ */
