@@ -307,6 +307,7 @@ int main(int argc, char *argv[]) {
 
 		cout << min_sample << " " << max_sample << endl;
 
+
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 			fits_report_error(stderr, status);
 
@@ -316,97 +317,66 @@ int main(int argc, char *argv[]) {
 		//		char *header;
 		//		int nkeys=0;
 
+		// Copy primary Header
 		fits_copy_header(fptr, outfptr, &status);
 
-		double *RA, *DEC, *PHI;
-		double *RA_bis, *DEC_bis, *PHI_bis, *time_bis;
-		long ns_temp, ns_final;
 
-		read_ReferencePosition_from_fits(samples_struct.fitsvect[0], RA, DEC, PHI, ns_temp);
+		//		double *RA_bis, *DEC_bis, *PHI_bis, *time_bis;
+		long ns_final;
 
 		ns_final = max_sample - min_sample;
 		ns_final++;
-		RA_bis = new double [ns_final];
-		DEC_bis = new double [ns_final];
-		PHI_bis = new double [ns_final];
-		time_bis = new double [ns_final];
-
-		for(long ii = 0; ii< ns_final; ii++){
-			RA_bis[ii]=RA[ii]*15.0;
-			DEC_bis[ii]=DEC[ii];
-			PHI_bis[ii]=PHI[ii];
-			time_bis[ii]=time[ii];
-		}
 
 
 
-		fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
+		if(format_fits==1){ // HIPE format
+			cout << "HIPE format found\n";
 
+			// separate HIPE format tables
+			// 1 signal
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
-		// insert column
-		//fits_insert_col(fptr, 1, TDOUBLE, , &status);
-		fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, RA_bis, &status);
-		fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_final, DEC_bis, &status);
-		fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_final, PHI_bis, &status);
-		fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_final, (char*)"Number of rows", &status);
+			// 2 RA
 
+			// 3 DEC
 
+			// 4 mask
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
-		fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
+			// 5 time
+			copy_time(fptr, outfptr, time, ns_final);
 
-		for(int col=1;col<4;col++)
-			fits_copy_col(fptr, outfptr,  col, col,	0, &status);
+			// 6 channels
+			copy_channels(fptr, outfptr);
 
-		fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
+			// 7 ref pos
+			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], ns_final);
 
-
-		fits_copy_col(fptr, outfptr,  1, 1,	0, &status);
-
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
-
-		fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, time_bis, &status);
-		fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
-
-
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
-		fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
-
-		double *signal, *signal_bis;
-		signal_bis = new double [ns_final];
-		for(long jj=0;jj<det.ndet;jj++){
-
-			read_signal_from_fits(samples_struct.fitsvect[0], det.boloname[jj], signal, ns_temp);
-			for(long ii = 0; ii< ns_final; ii++)
-				signal_bis[ii]=signal[ii];
-
-			long fpixel[2]={1,jj+1};
-			//fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, time_bis, &status);
-			fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, signal_bis, &status);
-		}
+			// 8 offsets
+			copy_offsets( fptr, outfptr);
 
 
 
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status);
-		fits_copy_header(fptr, outfptr, &status);
-		fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
+		}else{ // sanepic format
+			cout << "SANEPIC format found\n";
 
+			// 1 ref pos
+			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], ns_final);
 
-		int *mask, *mask_bis;
-		mask_bis = new int [ns_final];
-		for(long jj=0;jj<det.ndet;jj++){
+			// 2 offsets
+			copy_offsets( fptr, outfptr);
 
-			read_flag_from_fits(samples_struct.fitsvect[0], det.boloname[jj], mask, ns_temp);
-			for(long ii = 0; ii< ns_final; ii++)
-				mask_bis[ii]=mask[ii];
+			// 3 channels
+			copy_channels(fptr, outfptr);
 
-			long fpixel[2]={1,jj+1};
-			//fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, time_bis, &status);
-			fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
+			// 4 time
+			copy_time(fptr, outfptr, time, ns_final);
+
+			// 5 signal
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+
+			// 6 mask
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 		}
 
 
@@ -416,47 +386,11 @@ int main(int argc, char *argv[]) {
 		if (fits_close_file(outfptr, &status))
 			fits_report_error(stderr, status);
 
-
-		if(format_fits==1){ // HIPE format
-			cout << "HIPE format found\n";
-
-			// separate HIPE format tables
-
-
-
-
-
-
-
-
-		}else{ // sanepic format
-			cout << "SANEPIC format found\n";
-		}
-
-		delete [] RA;
-		delete [] DEC;
-		delete [] PHI;
-		delete [] signal;
-		delete [] mask;
-		delete [] RA_bis;
-		delete [] DEC_bis;
-		delete [] PHI_bis;
-		delete [] time_bis;
-		delete [] signal_bis;
-		delete [] mask_bis;
-
 	}
 
-	//delete [] time_min;
 	delete [] time;
 	delete [] samples_struct.nsamples;
 
-	//	free_dmatrix(image,(long)0, ndet-1, (long)0, ns-1);
-	//	delete [] image;
-
-	//	delete [] time_global;
-	//delete [] format;
-	// separate common tables
 	cout << "End of saneSplit\n";
 
 }
