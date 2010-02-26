@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 
 		struct samples samples_struct;
-		struct directories dir;
+		struct common dir;
 
 		long *ruleorder ;
 		long *frnum ;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 		frnum         = new long[samples_struct.ntotscan+1];
 
 
-		fname = dir.outdir + parallel_scheme_filename;
+		fname = dir.output_dir + parallel_scheme_filename;
 
 
 		/********************* Define parallelization scheme   *******/

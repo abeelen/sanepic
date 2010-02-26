@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;
 	struct param_process proc_param;
 	struct param_positions pos_param;
-	struct directories dir;
+	struct common dir;
 	struct detectors det;
 
 
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
-		fname = dir.outdir + parallel_scheme_filename;
+		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
 		//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 		// user has given a processor order
 	}else{
 		int test=0;
-		test = verify_parallelization_scheme(rank,dir.outdir,samples_struct, size, iframe_min, iframe_max);
+		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
 
 
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 
 
 	ofstream file;
-	string outfile = dir.outdir + parallel_scheme_filename;
+	string outfile = dir.output_dir + parallel_scheme_filename;
 	cout << "outfile : " << outfile << endl;
 	file.open(outfile.c_str(), ios::out);
 	if(!file.is_open()){
@@ -284,10 +284,20 @@ int main(int argc, char *argv[])
 
 
 
-		if(iframe_min!=iframe_max)
-			computeMapMinima(det.boloname,samples_struct,
-					iframe_min,iframe_max,
-					ra_min,ra_max,dec_min,dec_max);
+		if(iframe_min!=iframe_max){
+			switch (pos_param.fileFormat) {
+			case 0:
+				computeMapMinima(det.boloname,samples_struct,
+						iframe_min,iframe_max,
+						ra_min,ra_max,dec_min,dec_max);
+				break;
+			case 1:
+				computeMapMinima_HIPE(det.boloname,samples_struct,
+						iframe_min,iframe_max,
+						ra_min,ra_max,dec_min,dec_max);
+				break;
+			}
+		}
 
 #ifdef USE_MPI
 
@@ -363,7 +373,7 @@ int main(int argc, char *argv[])
 
 
 	if (rank == 0) {
-        printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
+		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
 	}
 
@@ -397,14 +407,24 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		printf("\n\nCompute Pixels Indices\n");
 
-
-	computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
-			proc_param, pos_param, iframe_min, iframe_max,
-			wcs, NAXIS1, NAXIS2,
-			mask,factdupl,
-			addnpix, pixon, rank,
-			indpsrc, npixsrc, flagon, pixout);
-
+	switch (pos_param.fileFormat) {
+	case 0:
+		computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+				proc_param, pos_param, iframe_min, iframe_max,
+				wcs, NAXIS1, NAXIS2,
+				mask,factdupl,
+				addnpix, pixon, rank,
+				indpsrc, npixsrc, flagon, pixout);
+		break;
+	case 1:
+		computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
+				proc_param, pos_param, iframe_min, iframe_max,
+				wcs, NAXIS1, NAXIS2,
+				mask,factdupl,
+				addnpix, pixon, rank,
+				indpsrc, npixsrc, flagon, pixout);
+		break;
+	}
 
 
 #ifdef USE_MPI

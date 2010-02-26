@@ -19,7 +19,7 @@ void do_PtNd_nocorr(double *PNd,std::string tmp_dir, struct param_process proc_p
 		long long npixsrc, long iframe, double *S, int rank, int size);
 
 
-void do_PtNPS_nocorr(double *S, std::string *extentnoiseSp_all, struct directories dir,
+void do_PtNPS_nocorr(double *S, std::string *extentnoiseSp_all, struct common dir,
 		struct detectors det,double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *PtNPmatS, double *Mp, long *hits, int rank, int size);

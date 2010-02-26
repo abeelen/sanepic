@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	struct param_process proc_param;
 	struct samples samples_struct;
 	struct param_positions pos_param;
-	struct directories dir;
+	struct common dir;
 	struct detectors det;
 
 	int nwcs=1;
@@ -159,10 +159,10 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	std::ostringstream oss;
 	string name_rank;
-	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
+	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
 #else
-	string name_rank = dir.outdir + "debug_sanePre.txt";
+	string name_rank = dir.output_dir + "debug_sanePre.txt";
 
 #endif
 
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
-		fname = dir.outdir + parallel_scheme_filename;
+		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename + "_sanepic.txt";
+			string outfile = dir.output_dir + samples_struct.filename + "_sanepic.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 	//		//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
 	//	}
 #else
-	fname = dir.outdir + parallel_scheme_filename;
+	fname = dir.output_dir + parallel_scheme_filename;
 	int test=0;
 	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
 	if (test==-1){
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
 	//	tancoord = new double[2];
 	//	tanpix = new double[2];
 
-	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.outdir, tanpix, tancoord);
+	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.output_dir, tanpix, tancoord);
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
 
@@ -949,7 +949,7 @@ int main(int argc, char *argv[])
 						}
 					}
 
-					temp_stream << "!" + dir.outdir + "optimMap_" + "flux" << iter << "b.fits";
+					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
 
 					fname= temp_stream.str();
 					temp_stream.str("");
@@ -968,7 +968,7 @@ int main(int argc, char *argv[])
 						}
 
 
-						temp_stream << "!" + dir.outdir + "optimMap_fluxflags_" << iter << "b.fits";
+						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
 						fname= temp_stream.str();
 						temp_stream.str("");
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",0);
@@ -1004,7 +1004,7 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						temp_stream << "!" + dir.outdir + "optimMap_fluxuncpix_" << iter << "b.fits";
+						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
 						fname= temp_stream.str();
 						temp_stream.str("");
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 0);
@@ -1012,20 +1012,13 @@ int main(int argc, char *argv[])
 					}
 				} // end of saving iterated maps
 
-				//TODO : Homogenize the output
-				cout << "iter = " << iter;
-				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
-				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
-				cout << endl;
-//				cout << "\r " << flush;
 
-				cout << endl;
 				cout << "iter = " << iter;
 				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
 				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
 				cout << "\r " << flush;
 
-				temp_stream << dir.outdir + "ConvFile.txt";
+				temp_stream << dir.output_dir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
 				testfile= temp_stream.str();
@@ -1170,7 +1163,7 @@ int main(int argc, char *argv[])
 		fclose(fp);
 #endif
 
-		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.outdir, indpix, indpsrc,
+		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.output_dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan, wcs);
 	}// end of rank==0
 
@@ -1212,7 +1205,7 @@ int main(int argc, char *argv[])
 	// TODO : This will be rewrite differently
 	//	if (rank == 0){
 	//		//write infos for second part
-	//		write_info_for_second_part(proc_param.outdir, NAXIS1, NAXIS2, npix,proc_param.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
+	//		write_info_for_second_part(proc_param.output_dir, NAXIS1, NAXIS2, npix,proc_param.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
 	//	}
 
 #ifdef USE_MPI

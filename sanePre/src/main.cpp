@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 	struct param_process proc_param;
 	struct samples samples_struct;
 	struct param_positions pos_param;
-	struct directories dir;
+	struct common dir;
 	struct detectors det;
 
 
@@ -176,10 +176,10 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	std::ostringstream oss;
 	string name_rank;
-	oss << dir.outdir + "debug_sanePre_" << rank << ".txt";
+	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
 #else
-	string name_rank = dir.outdir + "debug_sanePre.txt";
+	string name_rank = dir.output_dir + "debug_sanePre.txt";
 
 #endif
 
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
-		fname = dir.outdir + parallel_scheme_filename;
+		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename + "_sanepre.txt";
+			string outfile = dir.output_dir + samples_struct.filename + "_sanepre.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){
@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 	//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
 	//}
 #else
-	fname = dir.outdir + parallel_scheme_filename;
+	fname = dir.output_dir + parallel_scheme_filename;
 	int test=0;
 	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
 	if (test==-1){
@@ -699,7 +699,7 @@ int main(int argc, char *argv[])
 
 		//temp
 		//		ofstream filee;
-		//		string outfile = dir.outdir + "test_Pnd_Mp.txt";
+		//		string outfile = dir.output_dir + "test_Pnd_Mp.txt";
 		//		filee.open(outfile.c_str(), ios::out);
 		//		if(!filee.is_open()){
 		//			cerr << "File [" << fname << "] Invalid." << endl;
@@ -729,7 +729,7 @@ int main(int argc, char *argv[])
 		}
 
 		//		filee.close();
-		fnaivname = '!' + dir.outdir + "naivMap.fits";
+		fnaivname = '!' + dir.output_dir + "naivMap.fits";
 		cout << "Output file : " << fnaivname << endl;
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0);
@@ -745,7 +745,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		fnaivname = dir.outdir + "naivMap.fits";
+		fnaivname = dir.output_dir + "naivMap.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Ultra Naiv",1);
 
 		for (long jj=0; jj<NAXIS2; jj++) {
@@ -772,8 +772,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
-	//fnaivname = dir.outdir + "naivMap.fits";
-		//		fnaivname = '!' + dir.outdir + "hits.fits";
+	//fnaivname = dir.output_dir + "naivMap.fits";
+		//		fnaivname = '!' + dir.output_dir + "hits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1);
 
 
@@ -789,7 +789,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		//		fnaivname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
+		//		fnaivname = '!' + dir.output_dir + "binMap_noisevar.fits"; // write preconditioner
 		//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Error",1);
 
@@ -813,7 +813,7 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			//			fnaivname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
+			//			fnaivname = '!' + dir.output_dir + "optimMap_" + "_invnoisevaruncpix.fits";
 			//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 			write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Invnoisevaruncpix",1);
 		}

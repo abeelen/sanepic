@@ -24,15 +24,12 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct directories &dir,string &boloname, string &base)
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,string &boloname, string &base)
 {
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
 	char		*	s ;
-
-	//	string base;
-
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -44,18 +41,15 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 
 	s = iniparser_getstring(ini, "commons:channel",NULL);
 	if(s!=NULL){
-		//		printf("channel file : [%s]\n",s);
 		boloname=s;
-		//read_strings((string)s, bolonames);
 	}else{
 		printf("You must specify a bolometer file : commons:channel\n");
 		return(-1);
-	}//	channel =./RCW_120_M/bolos_commons.txt ;
+	}
 
 
-	if(read_directories(ini, dir, 0)==-1)
+	if(read_common(ini, dir, 0)==-1)
 		return -1;
-
 
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;
@@ -63,7 +57,7 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 	//	printf("\nsaneInv parser operations completed :\n");
 	cout << "You have specified the following options : \n";
 
-	print_directories(dir);
+	print_common(dir);
 
 	//printf("cov_matrix_file: [%s]\n",s);
 

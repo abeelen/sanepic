@@ -72,7 +72,7 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 //		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename)
 
 void common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
-		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
+		struct common dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
 {
@@ -310,7 +310,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 //		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
 
 void estimate_noise_PS(struct detectors det, struct param_process proc_param,struct param_positions pos_param,
-		struct directories dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+		struct common dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
@@ -451,7 +451,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 
 		// write on disk uncorralated part
-		temp_stream << dir.outdir + "Nellc_" << ii << "_" << ff << ".bi";
+		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << ff << ".bi";
 		// récupérer une chaîne de caractères
 		testfile= temp_stream.str();
 		// Clear ostringstream buffer
@@ -498,7 +498,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 //		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
 //		double *SPref, std::vector<std::string> bolonames)
 
-void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
+void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref)
 {
 
@@ -583,7 +583,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 	//// write Rellexp to disk and also first guess of parameters
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
 
-	temp_stream << dir.outdir + "Rellexp_" << ff << ".txt";
+	temp_stream << dir.output_dir + "Rellexp_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -598,7 +598,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 	fclose(fp);
 
 	//sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << dir.outdir + "Ninit_" << ff << ".txt";
+	temp_stream << dir.output_dir + "Ninit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -618,7 +618,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 			data1d[i*nbins+j] = N[i][j];
 
 	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
-	temp_stream << "!" + dir.outdir + "Ninit_" << ff << ".fits";
+	temp_stream << "!" + dir.output_dir + "Ninit_" << ff << ".fits";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -629,7 +629,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << dir.outdir + "Pinit_" << ff << ".txt";
+	temp_stream << dir.output_dir + "Pinit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -644,7 +644,7 @@ void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long 
 
 
 	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
-	temp_stream << dir.outdir + "Ainit_" << ff << ".txt";
+	temp_stream << dir.output_dir + "Ainit_" << ff << ".txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();

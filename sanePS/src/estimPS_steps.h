@@ -27,7 +27,7 @@
 void read_mixmat_file(std::string MixMatfile, std::string dir, double **&mixmat, long ndet, long ncomp);
 
 void common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
-		struct directories dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
+		struct common dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, std::string fits_filename);
 
@@ -38,7 +38,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 //		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P,  std::string outdirSpN,std::string fits_filename);
 
 void estimate_noise_PS(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
-		struct directories dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
+		struct common dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, std::string fits_filename);
@@ -47,7 +47,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param, st
 //void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, std::string dir, long ncomp, double **mixmat,double fsamp,
 //		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, std::string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
 //		double *SPref, std::vector<std::string> bolonames);
-void estimate_CovMat_of_Rexp(struct directories dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
+void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref);
 
 //void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp, long ff,

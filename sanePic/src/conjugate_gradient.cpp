@@ -26,7 +26,7 @@ using namespace std;
 
 
 void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_positions pos_param,
-		struct detectors det, struct directories dir, struct param_process proc_param, long long npix, double* &S,
+		struct detectors det, struct common dir, struct param_process proc_param, long long npix, double* &S,
 		long iframe_min, long iframe_max, std::vector<double> fcut, long long *indpix, struct wcsprm * wcs,
 		long NAXIS1, long NAXIS2, int iterw, long long *indpsrc, long long npixsrc, int flagon, int rank, int size,
 		double *&PNdtot, long long addnpix)
@@ -405,7 +405,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 					}
 
 
-					fname = '!' + dir.outdir + "binMap_noisevar.fits"; // write preconditioner
+					fname = '!' + dir.output_dir + "binMap_noisevar.fits"; // write preconditioner
 					//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
@@ -431,7 +431,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 							}
 						}
 
-						fname = '!' + dir.outdir + "optimMap_" + "_invnoisevaruncpix.fits";
+						fname = '!' + dir.output_dir + "optimMap_" + "_invnoisevaruncpix.fits";
 						//						write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 					}
@@ -452,7 +452,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 						}
 					}
 
-					temp_stream << "!" + dir.outdir + "optimMap_" + "flux" << iter << "b.fits";
+					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
 
 
 					// récupérer une chaîne de caractères
@@ -475,7 +475,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 						}
 
 
-						temp_stream << "!" + dir.outdir + "optimMap_fluxflags_" << iter << "b.fits";
+						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -508,7 +508,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 						}
 
 
-						temp_stream << "!" + dir.outdir + "optimMap_fluxuncpix_" << iter << "b.fits";
+						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
 
 						// récupérer une chaîne de caractères
 						fname= temp_stream.str();
@@ -521,7 +521,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 				} // end of if (iterw && (iter % iterw) == 0)
 
 
-				temp_stream << dir.outdir + "ConvFile.txt";
+				temp_stream << dir.output_dir + "ConvFile.txt";
 
 				// récupérer une chaîne de caractères
 				testfile= temp_stream.str();
@@ -613,7 +613,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	temp_stream << dir.outdir + "testfile.txt";
+	temp_stream << dir.output_dir + "testfile.txt";
 
 	// récupérer une chaîne de caractères
 	testfile= temp_stream.str();
@@ -649,7 +649,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 		}
 	}
 
-	fname = '!' + dir.outdir + "optimMap_flux.fits";
+	fname = '!' + dir.output_dir + "optimMap_flux.fits";
 	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
 
@@ -665,7 +665,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 	}
 
 
-	fname = '!' + dir.outdir + "optimMap_noisevar.fits";
+	fname = '!' + dir.output_dir + "optimMap_noisevar.fits";
 	//		write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
 	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d);
 
@@ -685,7 +685,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 
 
-			temp_stream << "!" + dir.outdir + "optimMap_flux_fr" << iframe << ".fits";
+			temp_stream << "!" + dir.output_dir + "optimMap_flux_fr" << iframe << ".fits";
 			// récupérer une chaîne de caractères
 			fname= temp_stream.str();
 			// Clear ostringstream buffer
@@ -705,7 +705,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 			}
 
 			//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-			temp_stream << "!" + dir.outdir + "optimMap_noisevar_fr" << iframe << ".fits";
+			temp_stream << "!" + dir.output_dir + "optimMap_noisevar_fr" << iframe << ".fits";
 
 			// récupérer une chaîne de caractères
 			fname= temp_stream.str();

@@ -11,7 +11,7 @@
  * missing in the ini file !
  * - Initialise sanePos variable
  */
-int parse_sanePos_ini_file(char * ini_name,struct param_process &com, struct param_positions &pos_param, struct directories &dir,
+int parse_sanePos_ini_file(char * ini_name,struct param_process &com, struct param_positions &pos_param, struct common &dir,
 		struct detectors &det,struct samples &samples_struct,
 		 int rank);
 

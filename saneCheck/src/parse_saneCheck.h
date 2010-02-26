@@ -7,7 +7,7 @@
 
 #ifndef PARSE_SANECHECK_H_
 
-int parse_saneCheck_ini_file(char * ini_name, struct directories &dir,
+int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		struct detectors &det,struct samples &samples_struct, int rank);
 
 

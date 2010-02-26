@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
 	double *ell; /*! bins values */
 
-	struct directories dir;
+	struct common dir;
 	struct samples samples_struct;
 	/*!
 	 * -Rellth : Reduced NoiseNoise matrix

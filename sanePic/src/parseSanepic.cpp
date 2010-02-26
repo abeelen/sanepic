@@ -18,7 +18,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, int &iterw, struct directories &dir, struct samples &samples_struct,
+int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, int &iterw, struct common &dir, struct samples &samples_struct,
 		struct detectors &det, std::vector<double> &fcut, int rank)
 {
 
@@ -56,7 +56,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 
 
 
-	if(read_directories(ini, dir, rank)==-1)
+	if(read_common(ini, dir, rank)==-1)
 		return 2;
 
 	if(read_param_process(ini, proc_param, rank)==-1)
@@ -65,7 +65,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	if(read_param_positions(ini, pos_param, rank)==-1)
 		return 2;
 
-	if(read_channel_list(ini,det.boloname, rank)==-1)
+	if(read_channel_list(ini,dir, det.boloname, rank)==-1)
 		return 2;
 
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==-1)
@@ -76,7 +76,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 	/*if(read_noise_file_list(ini, extentnoiseSP)==-1)
 		return -1;*/
 
-	if(read_noise_cut_freq(ini, fcut, rank)==-1)
+	if(read_noise_cut_freq(ini, proc_param, fcut, rank)==-1)
 		return 2;
 
 	if(read_iter(ini, iterw, rank)==-1)
@@ -87,7 +87,7 @@ int parse_sanePic_ini_file(char * ini_name,struct param_process &proc_param, str
 		//		printf("\nsanePre parser operations completed :\n");
 		cout << "\nYou have specified the following options : \n\n";
 
-		print_directories(dir);
+		print_common(dir);
 		print_param_process(proc_param);
 		print_param_process(proc_param);
 	}

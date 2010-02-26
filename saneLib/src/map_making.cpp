@@ -694,9 +694,9 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	//TODO : Optimize the memory management here.... We have data/data_out/data_out_lp/data_lp
 	//TODO : This routine CHANGES *data : is this really wanted ?
 //
-//	if (Ps != NULL)
-//		for (long ii=0;ii<ns;ii++)
-//			data[ii] = data[ii] - Ps[ii];
+	if (Ps != NULL)
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data[ii] - Ps[ii];
 
 	//*********************************************************************
 
@@ -738,24 +738,26 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	}
 
 
-//	//TODO : Why removing the data so late in the Pre Process ???
+	//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
 
-	if (Ps != NULL)
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data_lp[ii] - Ps[ii];
+//	if (Ps != NULL)
+//		for (long ii=0;ii<ns;ii++)
+//			data_lp[ii] = data_lp[ii] - Ps[ii];
 
 
 	//******************* process gaps
 	if (NOFILLGAP == 0){
 		for (long ii=0;ii<ns;ii++)
 			data_out[ii] = data_lp[ii];
+		//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
 		fillgaps(data_out,ns,data,flag,0);
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data[ii];
 	}
 
+	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
+
 	if (Ps != NULL){
-		//linear prediction
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data_lp[ii] + Ps[ii];
 	}

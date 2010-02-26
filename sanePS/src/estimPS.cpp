@@ -29,7 +29,7 @@ using namespace std;
 
 
 
-void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct directories dir, struct param_positions pos_param,
+void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct common dir, struct param_positions pos_param,
 		long ns, long ff, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut)
 {
@@ -157,11 +157,11 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
 	cout << "5/6 - Expectation Maximization" << endl;
 	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp, ff,
-			dir.outdir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
+			dir.output_dir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	cout << "6/6 - Saving to disk" << endl;
-	write_to_disk(dir.outdir, ff, det,nbins, ell, mixmat, Rellth,
+	write_to_disk(dir.output_dir, ff, det,nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 

@@ -20,7 +20,7 @@
 #include "mpi_architecture_builder.h"
 #include "parsePS.h"
 #include "estimPS.h"
-
+#include "struct_definition.h"
 
 extern "C" {
 #include "wcslib/wcs.h"
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	struct param_process proc_param;
 	struct samples samples_struct;
 	struct param_positions pos_param;
-	struct directories dir;
+	struct common dir;
 	struct detectors det;
 
 	int flagon;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
-		fname = dir.outdir + parallel_scheme_filename;
+		fname = dir.output_dir + parallel_scheme_filename;
 		//		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 
 		if(rank==0){
 
-			string outfile = dir.outdir + samples_struct.filename + "_sanepre.txt";
+			string outfile = dir.output_dir + samples_struct.filename + "_sanepre.txt";
 			cout << "outfile : " << outfile;
 			file.open(outfile.c_str(), ios::out);
 			if(!file.is_open()){

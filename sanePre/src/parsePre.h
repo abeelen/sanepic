@@ -20,7 +20,7 @@
  * - Initialise sanePre variable
  */
 
-int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param,struct param_positions &pos_param, struct directories &dir, struct samples &samples_struct,
+int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param,struct param_positions &pos_param, struct common &dir, struct samples &samples_struct,
 		struct detectors &det, std::vector<double> &fcut, int rank);
 
 #endif /* PARSEPRE_H_ */

@@ -40,7 +40,7 @@ using namespace std;
 
 //int parse_FBFO(char * ini_name, string &tmp_dir, long &ntotscan, long *&nsamples,
 //		std::vector<string> &fitsvect, std::vector<string> &noisevect, std::vector<int> &scans_index, int rank)
-int parse_FBFO(char * ini_name,struct samples &samples_struct,struct directories &dir)
+int parse_FBFO(char * ini_name,struct samples &samples_struct,struct common &dir)
 {
 	dictionary	*	ini ;
 
@@ -62,7 +62,7 @@ int parse_FBFO(char * ini_name,struct samples &samples_struct,struct directories
 
 	samples_struct.ntotscan=0; /*! total number of scans*/
 
-	if(read_directories(ini, dir,0)==-1)
+	if(read_common(ini, dir,0)==-1)
 		return -1;
 
 	if(read_fits_file_list(ini, dir,samples_struct,0)==-1)
@@ -72,7 +72,7 @@ int parse_FBFO(char * ini_name,struct samples &samples_struct,struct directories
 //	printf("\nsaneFrameOrder parser operations completed :\n");
 	cout << "You have specified the following options : \n\n";
 
-	print_directories(dir);
+	print_common(dir);
 
 
 

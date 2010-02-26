@@ -22,7 +22,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, struct directories &dir, struct samples &samples_struct,
+int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, struct common &dir, struct samples &samples_struct,
 		struct detectors &det,string &MixMatfile, string &ellFile, string &signame, int rank, long &ncomp, double &fcut)
 
 {
@@ -52,25 +52,9 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 	det.ndet=0; // number of channels
 
 
-	// printf dictionnary to stderr for debugging
-	//iniparser_dump(ini, stderr);
-
-
-	/* Get sanepic_preprocess attributes */
-
-
-
-//	if(read_directories(ini, dir, rank)==-1)
-//		return -1;
-
-//	if(read_param_process(ini, proc_param, rank)==-1)
-//		return -1;
-
-	//	if(read_channel_list(ini,det.boloname, rank)==-1)
-	//	return -1;
-	if( read_directories(ini, dir, rank) ||
+	if( read_common(ini, dir, rank) ||
 			read_param_process(ini, proc_param, rank) ||
-			read_channel_list(ini,det.boloname, rank) ||
+			read_channel_list(ini,dir,det.boloname, rank) ||
 			read_fits_file_list(ini, dir,samples_struct, rank) ||
 			read_ell_file(ini, ellFile, rank) ||
 			read_map_file(ini, signame, rank) ||
@@ -83,7 +67,7 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 //		printf("\nsanePS parser operations completed :\n");
 		cout << "\nYou have specified the following options : \n\n";
 
-		print_directories(dir);
+		print_common(dir);
 		print_param_process(proc_param);
 
 	}

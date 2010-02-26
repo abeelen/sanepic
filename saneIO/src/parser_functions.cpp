@@ -21,12 +21,13 @@ extern "C"{
 #include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 
+
 using namespace std;
 
 //TODO: rank should NOT be passed here, instead use MPI_Comm_rank(MPI_COMM_WORLD,&rank); to get it IF necessary
+//TODO: read_parser_string SHOULD NOT print text, but instead the calling function...
 
-
-int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
+int read_dirfile(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
 
@@ -41,7 +42,7 @@ int read_dirfile(dictionary	*ini, struct directories &dir, int rank){
 }
 
 
-int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
+int read_tmpdir(dictionary	*ini, struct common &dir, int rank){
 
 	char *pPath;
 	string str;
@@ -63,7 +64,7 @@ int read_tmpdir(dictionary	*ini, struct directories &dir, int rank){
 }
 
 
-int read_outdir(dictionary	*ini, struct directories &dir, int rank){
+int read_outdir(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
 
@@ -72,12 +73,12 @@ int read_outdir(dictionary	*ini, struct directories &dir, int rank){
 
 	if (str[str.length()-1] != '/')
 		str = str + '/';
-	dir.outdir=str;
+	dir.output_dir=str;
 	return 0;
 
 }
 
-int read_noisedir(dictionary	*ini, struct directories &dir, int rank){
+int read_noisedir(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
 
@@ -91,13 +92,14 @@ int read_noisedir(dictionary	*ini, struct directories &dir, int rank){
 
 }
 
-int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank){
+int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &bolonames, int rank){
 
 	string str;
-	//	char *s;
 
 	if(read_parser_string(ini, "commons:channel", rank, str))
 		return 1;
+
+	dir.channel=str;
 
 	read_strings(str, bolonames);
 
@@ -106,7 +108,7 @@ int read_channel_list(dictionary	*ini, std::vector<string> &bolonames, int rank)
 }
 
 
-int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples &samples_str, int rank){
+int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &samples_str, int rank){
 
 	string str;
 
@@ -135,13 +137,15 @@ int read_fits_file_list(dictionary	*ini, struct directories &dir, struct samples
 
 	// read the possible noise file from the ini file
 
-
 	// if no noise file is given in fits_filelist
 	if((int)(samples_str.noisevect).size()==0 ){
 
 		// read the noise file name in the ini file
 		if(read_parser_string(ini, "saneInv:cov_matrix_file",rank,str))
 			return 1;
+
+		samples_str.cov_matrix_file = str;
+
 		samples_str.noisevect.push_back(str);
 
 		if((int)((samples_str.fitsvect).size())>1)
@@ -193,7 +197,6 @@ int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<str
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-			//			cout << "3 : " << s << " " << p << " " << d << endl;
 			fitsfiles.push_back(s);
 			noisefiles.push_back(p);
 			frameorder.push_back(d);
@@ -255,7 +258,7 @@ int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int 
 
 	int i;
 
-	i = iniparser_getint(ini, "commons:apodize_Nsamples", -1);
+	i = iniparser_getint(ini, "sanePre:apodize_Nsamples", -1);
 	proc_param.napod=i;
 
 	if( i<0 && rank==0 ){
@@ -269,22 +272,11 @@ int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int 
 
 int read_nofillgap(dictionary	*ini, struct param_process &proc_param, int rank){
 
-	proc_param.NOFILLGAP = iniparser_getboolean(ini, "commons:nofill_gap", 0);
+	proc_param.NOFILLGAP = iniparser_getboolean(ini, "sanePre:nofill_gap", 0);
 
 	return 0;
 
 }
-
-//
-//int read_mask_file(dictionary	*ini, std::string maskfile, int rank){
-//
-//	if (read_parser_string(ini, "positions:mask_file", rank, maskfile))
-//		return 1;
-//
-//	return 0;
-//}
-
-
 
 int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, int rank){
 
@@ -320,12 +312,14 @@ int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int
 }
 
 
-int read_noise_cut_freq(dictionary	*ini, std::vector<double> &fcut, int rank){
+int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::vector<double> &fcut, int rank){
 
 	string str;
 
 	if (read_parser_string(ini, "sanePre:fcut_file", rank, str))
 		return 1;
+
+	proc_param.fcut_file = str;
 
 	std::vector<string> dummy2;
 	read_strings(str,dummy2);
@@ -493,16 +487,16 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 
 int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 	char *s;
+
 	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
 
-	//	cout << s << endl;
-	//	getchar();
 	// Key is not present :
 	if(s==(char*)NULL){
 		if(rank==0)
 			cout <<"You must add a line in ini file specifying : " << line << endl;
 		return 1;
 	}
+
 	// Key is empty...
 	if (s[0] == '\0')
 		return 1;
@@ -511,7 +505,7 @@ int read_parser_string(dictionary	*ini, string line, int rank, string & str){
 	return 0;
 }
 
-int read_directories(dictionary	*ini, struct directories &dir, int rank){
+int read_common(dictionary	*ini, struct common &dir, int rank){
 
 	return read_dirfile(ini, dir, rank) || \
 	read_tmpdir(ini, dir, rank)  ||	\
@@ -539,12 +533,18 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	bool b;
 
 	// read the pixelsize
-	if (read_parser_string(ini, "sanePos:pixsize", rank,str))
-		return 1;
-	pos_param.pixdeg=atof(str.c_str());
+	if (! read_parser_string(ini, "sanePos:pixsize", rank,str) )
+		pos_param.pixdeg=atof(str.c_str());
 
-	if (read_parser_string(ini,"sanePos:mask_file",rank,str)==0)
+	// Read the mask_file if present
+	if (! read_parser_string(ini,"sanePos:mask_file",rank,str) )
 		pos_param.maskfile=str;
+
+	// Read the file format if present
+	// default to SANEPIC file format (with reference position & offsets)
+	// 0: sanepic format with reference position & offsets
+	// 1: 'hipe' like format with RA/DEC for each time/bolo
+	pos_param.fileFormat = iniparser_getint(ini, "sanePos:file_format", 0);
 
 	if(pos_param.pixdeg < 0 && rank==0){
 		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
@@ -552,12 +552,12 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	}
 
 	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
-	b = (bool)iniparser_getboolean(ini, "commons:map_flagged_data", (bool)0);
+	b = (bool)iniparser_getboolean(ini, "sanePos:map_flagged_data", (bool)0);
 	pos_param.flgdupl=b;
 
 
 	// Read what to do with gaps : (default : 0 -- no projection)
-	b = (bool)iniparser_getboolean(ini, "sanePic:project_gaps", (bool)0);
+	b = (bool)iniparser_getboolean(ini, "sanePos:project_gaps", (bool)0);
 	pos_param.projgaps=b;
 
 
@@ -620,11 +620,11 @@ void print_param_process(struct param_process proc_param){
 	cout << endl;
 }
 
-void print_directories(struct directories dir){
+void print_common(struct common dir){
 
 	cout << "Data directory : " << dir.dirfile << "\n";
 	cout << "Temporary directory : " << dir.tmp_dir << "\n";
-	cout << "Output directory : " << dir.outdir << "\n";
+	cout << "Output directory : " << dir.output_dir << "\n";
 	cout << "Noise directory : " << dir.noise_dir << endl;
 
 	cout << endl;
