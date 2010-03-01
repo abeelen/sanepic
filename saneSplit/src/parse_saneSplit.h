@@ -5,6 +5,6 @@
 
 #include "struct_definition.h"
 
-int parse_saneSplit_ini_file(char * ini_name, struct directories &dir);
+int parse_saneSplit_ini_file(char * ini_name, struct common &dir);
 
 #endif /* PARSE_SANESPLIT_H_ */

@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 	int parsed = -1;
 
 	struct samples samples_struct;
-	struct directories dir;
+	struct common dir;
 	string fname;
 	std::vector< double > min_time, max_time;
 	int retval;
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
 	//	long ns, ndet;
 	//	read_image_2D_from_fits(samples_struct.fitsvect[0], image, "signal", ns, ndet);
 	//	cout << "ns " << ns << endl;
-	//	cout << ndet << endl;
+	//	cout << ndet << endl; hdu
 	//
 	//	cout << image[0] << " " << image[1] << endl;
 	//	cout << image[10][1] << " " << image[0][0] << endl;
@@ -267,7 +267,8 @@ int main(int argc, char *argv[]) {
 
 	fname=samples_struct.fitsvect[0];
 	for(int ii=0; ii < m_count ; ii++){
-		oss << "!" << dir.outdir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";
+		cout << setprecision(20) << min_time[ii] << " " << max_time[ii] << endl;
+		oss << "!" << dir.output_dir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";
 		std::string temp = oss.str();
 		cout << temp << endl;
 
@@ -287,7 +288,7 @@ int main(int argc, char *argv[]) {
 			while((jj<samples_struct.nsamples[0])){
 				if(max_time[ii]<time[jj]){
 					max_sample=jj;
-					cout << max_time[ii] << " < " << time[jj] << endl;
+					//cout << max_time[ii] << " < " << time[jj] << endl;
 					break;
 				}
 				jj++;
@@ -299,8 +300,10 @@ int main(int argc, char *argv[]) {
 		else{
 			long jj=samples_struct.nsamples[0]-1;
 			while(jj>=0){
-				if(min_time[ii]>time[jj])
+				if(min_time[ii]>time[jj]){
 					min_sample=jj; // maybe jj+1
+					break;
+				}
 				jj--;
 			}
 		}
@@ -337,8 +340,10 @@ int main(int argc, char *argv[]) {
 			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
 			// 2 RA
+			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
 			// 3 DEC
+			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
 			// 4 mask
 			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
@@ -350,21 +355,26 @@ int main(int argc, char *argv[]) {
 			copy_channels(fptr, outfptr);
 
 			// 7 ref pos
-			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], ns_final);
+			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], ns_final);
 
 			// 8 offsets
-			copy_offsets( fptr, outfptr);
+			copy_offsets(fptr, outfptr);
+
+
 
 
 
 		}else{ // sanepic format
 			cout << "SANEPIC format found\n";
 
+
 			// 1 ref pos
 			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], ns_final);
 
+			//			fits_open_file(&fptr, fname.c_str(), READONLY, &status);
+
 			// 2 offsets
-			copy_offsets( fptr, outfptr);
+			copy_offsets(fptr, outfptr);
 
 			// 3 channels
 			copy_channels(fptr, outfptr);
@@ -386,6 +396,7 @@ int main(int argc, char *argv[]) {
 		if (fits_close_file(outfptr, &status))
 			fits_report_error(stderr, status);
 
+		oss.str("");
 	}
 
 	delete [] time;

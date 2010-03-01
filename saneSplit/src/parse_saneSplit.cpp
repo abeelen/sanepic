@@ -26,7 +26,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_saneSplit_ini_file(char * ini_name, struct directories &dir)
+int parse_saneSplit_ini_file(char * ini_name, struct common &dir)
 {
 
 
@@ -42,7 +42,7 @@ int parse_saneSplit_ini_file(char * ini_name, struct directories &dir)
 		return 2 ;
 	}
 
-	if(read_directories(ini, dir, 0)==1)
+	if(read_common(ini, dir, 0)==1)
 		return 2;
 
 
@@ -68,7 +68,7 @@ int parse_saneSplit_ini_file(char * ini_name, struct directories &dir)
 
 	cout << "You have specified the following options : \n\n";
 
-	print_directories(dir);
+	print_common(dir);
 	//	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 	//	printf("Number of bolometers : %ld\n",det.ndet);
 
