@@ -37,7 +37,8 @@ using namespace std;
 
 void usage(char *name)
 {
-	cerr << "USAGE: " << name << " inifile.ini [-f <path/filename>] [-m <min time>] [-M <max time>]" << endl;
+	cerr << "USAGE: " << name << " inifile.ini [-f<path/filename>] [-m<min time>] [-M<max time>]" << endl;
+	cerr << "USAGE: You can use multiple -m and -M options, each -m followed by a -M\n";
 
 }
 
