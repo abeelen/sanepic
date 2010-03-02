@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "struct_definition.h"
 
 extern "C" {
 #include <fitsio.h>
@@ -22,10 +23,13 @@ void read_ra_from_fits(string filename, string field, double *& ra, long & ns);
 void read_dec_from_fits(string filename, string field, double *& dec, long & ns);
 void read_signal_from_fits(string filename, string field, double *& signal, long & ns);
 void read_flag_from_fits(string filename, string field, int *&mask, long & ns);
+void read_image_2D_from_fits(string filename, double *&image, string hdu_name, long & ns, long & ndet);
 
+void read_bolo_list(string fname, struct detectors &det);
 void read_channels(fitsfile *fptr, char **& data, long &nBolos);
 long find_channel_index(fitsfile *fptr, const char * field);
 
 void read_time_from_fits(string filename, double *& time, long ns);
+int test_format(string fitsname);
 
 #endif /* DATAIO_H_ */

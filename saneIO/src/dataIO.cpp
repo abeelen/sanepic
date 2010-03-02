@@ -211,7 +211,7 @@ void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 	rowIndex = find_channel_index(fptr, field.c_str()); // TODO : test rowindex or rowindex -1 ??
 
 	// ---------------------------------------------
-	// Move ptr to signal hdu
+	// Move ptr to mask hdu
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status))
 		fits_report_error(stderr, status);
 
@@ -243,6 +243,55 @@ void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 }
 
+void read_image_2D_from_fits(string filename, double*&image, string hdu_name, long & ns, long & ndet){
+
+	fitsfile *fptr;
+	int status = 0, anynul;
+	int naxis = 0;
+	long naxes[2] = { 1, 1 };
+	//	double *temp;
+	long fpixel[2]= { 1, 1 };
+	int nulval=0;
+	long inc=1;
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// Move ptr to desired hdu
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)hdu_name.c_str(), NULL, &status))
+		fits_report_error(stderr, status);
+
+	// Retrieve the size of the signal
+	if (fits_get_img_dim(fptr, &naxis, &status))
+		fits_report_error(stderr, status);
+	if(naxis != 2)
+		fits_report_error(stderr,BAD_NAXIS);
+	if (fits_get_img_size(fptr, 2, naxes, &status))
+		fits_report_error(stderr, status);
+
+	ns = naxes[0];
+	ndet = naxes[1];
+
+	long lpixel[2]= { ns, ndet };
+	//	image = dmatrix((long)0, ndet-1, (long)0, ns-1);
+	image = new double[ndet*ns];
+	//	temp = new double[ns];
+	//
+	//	for (long idet=0;idet<ndet;idet++){
+	//		fits_read_col(fptr, TDOUBLE, idet+1, 1, 1, ns, NULL, temp, 0, &status);
+	//		for (long ii=0;ii<ns;ii++)
+	//			image[idet][ii]=temp[ii];
+	//	}
+
+	fits_read_subset(fptr, TDOUBLE, fpixel, lpixel, &inc,
+			&nulval, image, &anynul, &status);
+
+
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+}
 
 
 void read_signal_from_fits(string filename, string field, double *& signal, long & ns){
@@ -296,6 +345,32 @@ void read_signal_from_fits(string filename, string field, double *& signal, long
 
 }
 
+void read_bolo_list(string fname, struct detectors &det){
+
+	fitsfile *fptr;
+	int status = 0;
+	//	int colnum;
+	//	long ndet_test=0;
+	char **temp_bolo;
+
+	//	det.boloname.clear();
+
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	read_channels(fptr,temp_bolo, det.ndet);
+
+	for (long ii=0; ii < det.ndet; ii++){
+		//		cout << temp_bolo[ii] << endl;
+		det.boloname.push_back(temp_bolo[ii]);
+	}
+
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	delete [] temp_bolo;
+}
 
 void read_channels(fitsfile *fptr, char **& data, long &nBolos){
 	//TODO : Handle angle unit to transform to a common internal known unit
@@ -486,7 +561,7 @@ void read_time_from_fits(string filename, double *& time, long ns){
 	time = new double[ns];
 
 	// ---------------------------------------------
-	// Retrieve the corresponding row
+	// Retrieve the corresponding col
 	if(fits_read_col(fptr, TDOUBLE, 2, 1, 1, ns_test, NULL, time, 0, &status))
 		fits_report_error(stderr, status);
 
@@ -495,5 +570,33 @@ void read_time_from_fits(string filename, double *& time, long ns){
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
+}
+
+int test_format(string fitsname){
+
+	fitsfile *fptr;
+	int format=0; // 1 = HIPE, 2 = sanepic
+	int status = 0;
+	int test=-1;
+	int hdunum=0;
+
+	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+
+	test=fits_get_num_hdus(fptr, &hdunum, &status);
+
+
+	if (hdunum==7){
+		format=2; // "ra"  table was not found
+	}
+	else
+		format=1;
+
+	// close file
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	return format;
 }
 

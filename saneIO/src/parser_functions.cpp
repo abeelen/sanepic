@@ -27,6 +27,7 @@ using namespace std;
 //TODO: rank should NOT be passed here, instead use MPI_Comm_rank(MPI_COMM_WORLD,&rank); to get it IF necessary
 //TODO: read_parser_string SHOULD NOT print text, but instead the calling function...
 
+
 int read_dirfile(dictionary	*ini, struct common &dir, int rank){
 
 	string str;

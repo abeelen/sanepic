@@ -77,7 +77,7 @@ std::string		Basename(std::string path)
 {
 	//	std::string		Result;
 
-	cout << "starts with :" << path << ":" << endl;
+//	cout << "starts with :" << path << ":" << endl;
 
 
 	char * pch=NULL;
@@ -100,7 +100,7 @@ std::string		Basename(std::string path)
 
 	//	cout << "result : " << temp << endl;
 	basename = (string)temp;
-	cout << "result :" << basename << ":" << endl;
+//	cout << "result :" << basename << ":" << endl;
 	//		getchar();
 	//	Result = fname;
 	//	Result += ext;
