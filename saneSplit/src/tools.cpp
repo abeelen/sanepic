@@ -130,51 +130,6 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final
 
 }
 
-void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
-	//TODO : Handle angle unit to transform to a common internal known unit
-
-	int status = 0;
-
-	int colnum;
-
-
-	// ---------------------------------------------
-	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
-		fits_report_error(stderr, status);
-
-	// Retrieve size of the array and ...
-	fits_get_num_rows(fptr, &ns, &status);
-
-	// ... allocate corresponding memory
-	RA   = new double[ns];
-	DEC  = new double[ns];
-	PHI  = new double[ns];
-
-	// Read RA
-	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
-
-	//TODO: Remove this step
-	// transform RA in hours
-	for(long ii = 0; ii<ns; ii++)
-		RA[ii]=RA[ii]/15.0;
-
-	// Read DEC
-	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, DEC, 0, &status);
-
-	// Read PHI
-	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
-
-
-
-}
-
 void copy_offsets(fitsfile * fptr, fitsfile *outfptr){
 
 	int status=0;
@@ -239,7 +194,9 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final,
 		for(long ii = 0; ii< ns_final; ii++)
 			signal_bis[ii]=signal[ii];
 
-		long fpixel[2]={1,jj+1};
+		string field= det.boloname[jj];
+		long rowIndex = find_channel_index(fptr, field.c_str());
+		long fpixel[2]={1,rowIndex};
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, signal_bis, &status);
 	}
 
@@ -266,7 +223,9 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long ns_final, 
 		for(long ii = 0; ii< ns_final; ii++)
 			mask_bis[ii]=mask[ii];
 
-		long fpixel[2]={1,jj+1};
+		string field= det.boloname[jj];
+		long rowIndex = find_channel_index(fptr, field.c_str());
+		long fpixel[2]={1,rowIndex};
 		fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
 	}
 
@@ -290,8 +249,10 @@ void copy_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, str
 		for(long ii = 0; ii< ns_final; ii++)
 			RA_bis[ii]=RA[ii];
 
-		long fpixel[2]={1,jj+1};
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status);
+		string field= det.boloname[jj];
+		long rowIndex = find_channel_index(fptr, field.c_str());
+		long fpixel[2]={1,rowIndex};
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // TODO : change this to find index instead of jj+1 which is wrong !!!!
 	}
 
 	delete [] RA_bis;
@@ -315,7 +276,9 @@ void copy_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, st
 		for(long ii = 0; ii< ns_final; ii++)
 			DEC_bis[ii]=DEC[ii];
 
-		long fpixel[2]={1,jj+1};
+		string field= det.boloname[jj];
+		long rowIndex = find_channel_index(fptr, field.c_str());
+		long fpixel[2]={1,rowIndex};
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status);
 	}
 

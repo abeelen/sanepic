@@ -246,14 +246,6 @@ int main(int argc, char *argv[]) {
 
 	read_bolo_list(samples_struct.fitsvect[0], det);
 
-	//	double *image;
-	//	long ns, ndet;
-	//	read_image_2D_from_fits(samples_struct.fitsvect[0], image, "signal", ns, ndet);
-	//	cout << "ns " << ns << endl;
-	//	cout << ndet << endl; hdu
-	//
-	//	cout << image[0] << " " << image[1] << endl;
-	//	cout << image[10][1] << " " << image[0][0] << endl;
 
 	int status;
 	fitsfile *fptr;
