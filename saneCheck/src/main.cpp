@@ -98,60 +98,85 @@ int main(int argc, char *argv[]) {
 
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
+	//	std::vector<std::string> bolo_bad;
+	//	std::vector<std::string> bolo_bad_80;
 
-	struct detectors bolo_fits;
-	std::vector<std::string> bolo_bad;
-	std::vector<std::string> bolo_bad_80;
+	struct detectors bolo_fits_0;
+	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0);
 
+	long *bolo_bad_tot;
+	long *bolo_bad_80_tot;
 
+	if(rank==0){ // only for MPI_reduce
+		bolo_bad_tot= new long [bolo_fits_0.ndet];
+		bolo_bad_80_tot= new long [bolo_fits_0.ndet];
+		fill(bolo_bad_tot, bolo_bad_tot + bolo_fits_0.ndet ,0);
+		fill(bolo_bad_80_tot, bolo_bad_80_tot + bolo_fits_0.ndet ,0);
+	}
 
-	// TODO : sort the processors with mpi
 
 	for(int ii=0;ii<samples_struct.ntotscan;ii++){
 
-		int format_fits=0;
+		int do_it=who_do_it(size, rank, ii);
 
-		cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[ii] << endl << endl;
+		if(rank==do_it){
 
-		read_bolo_list(samples_struct.fitsvect[ii],bolo_fits);
+			struct detectors bolo_fits;
+			long *bolo_bad;
+			long *bolo_bad_80;
 
-		format_fits=test_format(samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
+			int format_fits=0;
 
-		check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]);
+			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[ii] << endl << endl;
 
+			format_fits=test_format(samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
 
+			// TODO check que bolo_fits = bolo_fits_0
+			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits);
 
+			check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]);
 
-		cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
-		check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
-		check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits);
+			bolo_bad = new long[bolo_fits.ndet];
+			bolo_bad_80 = new long[bolo_fits.ndet];
+			fill(bolo_bad,bolo_bad+bolo_fits.ndet,0);
+			fill(bolo_bad_80,bolo_bad_80+bolo_fits.ndet,0);
 
-		if(format_fits==1){
-			cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
-			check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
+			check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits);
+
+			if(format_fits==1){
+				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
+				check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			}
+
+			cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n";
+			check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+
+			if(format_fits==1){
+				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
+				check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			}
+
+			cout << "\n[" << rank <<  "] Checking time gaps in time table\n";
+			check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir);
+
+			check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
+
+			// reduce
+#ifdef USE_MPI
+			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+#else
+			for(long kk = 0; kk< bolo_fits_0.ndet; kk++){
+				bolo_bad_tot[kk]+=bolo_bad[kk];
+				bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
+			}
+#endif
+			delete [] bolo_bad;
+			delete [] bolo_bad_80;
 		}
-
-		cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n";
-		check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
-		check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
-
-		if(format_fits==1){
-			cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
-			check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
-		}
-
-		cout << "\n[" << rank <<  "] Checking time gaps in time table\n";
-		check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir);
-
-
-
-		//		temp = samples_struct.fitsvect[ii];
-		//		found=temp.find_last_of('/');
-		//		outname = dir.output_dir + temp.substr(found+1) + "_bolos_flag.txt";
-
-		check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
-
-
 	}
 
 	//	outname = dir.tmp_dir +
@@ -161,20 +186,20 @@ int main(int argc, char *argv[]) {
 		cout << endl;
 
 		// generating log files :
-		if(bolo_bad.size()>0){
+//		if(size_bad>0){
 			outname = dir.output_dir + "bolo_totally_flagged.txt";
 			cout << "Writing informations in :\n" << outname << endl << endl;
-			log_gen(bolo_bad,outname);
-		}else
-			cout << "There are no bolometers fully flagged in the files\n\n";
+			log_gen(bolo_bad_tot,outname, bolo_fits_0);
+//		}else
+//			cout << "There are no bolometers fully flagged in the files\n\n";
 
 
-		if(bolo_bad_80.size()>0){
+//		if(size_80>0){
 			outname = dir.output_dir + "bolo_80_percent_flagged.txt";
 			cout << "Writing informations in :\n" << outname << endl;
-			log_gen(bolo_bad_80,outname);
-		}else
-			cout << "There are no bolometers more than 80% flagged in the files\n";
+			log_gen(bolo_bad_80_tot, outname, bolo_fits_0);
+//		}else
+//			cout << "There are no bolometers more than 80% flagged in the files\n";
 
 
 		cout << "\nEnd of saneCheck\n";

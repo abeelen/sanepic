@@ -48,8 +48,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	std::vector<double> fcut;
 	double fcut_double;
 	string MixMatfile, ellFile, signame;
-	long ncomp;
-	int iterw;
+	long ncomp=1;
+	int iterw=10;
 
 
 	string text;
@@ -74,6 +74,9 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		return -1;
 
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
+		return -1;
+
+	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
@@ -139,7 +142,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "channel = " + dir.channel + " ; file listing bolometers name\n";
 		text += "output_dir = " + dir.output_dir + " ; output directory\n";
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";
-		text += "fits_filelist = " + dir.fits_filelist + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
+		text += "fits_filelist = " + samples_struct.filename + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
 
 		text += "\n\n";
 

@@ -63,6 +63,22 @@ int check_path(string strPath, string path_type){
 
 }
 
+int who_do_it(int size, int rank, int ii){
+
+	if(size==1)
+		return 0;
+
+	if(size>=ii)
+		return ii;
+
+	if(size<ii){
+		while(ii>size)
+			ii=ii-size;
+		return ii;
+	}
+
+	return -1;
+}
 
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, string filename){
 
@@ -628,7 +644,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 }
 
-void check_flag(string fname,struct detectors det,long ns, string outname,std::vector<std::string> &bolos_global,std::vector<std::string> &bolos_global_80){
+void check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80){
 
 	int *flag;
 	short sum=0;
@@ -675,11 +691,15 @@ void check_flag(string fname,struct detectors det,long ns, string outname,std::v
 		if(sum==ns){
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
 			//			fprintf(fp, "%s\n", (char*)(det.boloname[jj].c_str()));
-			bolos_global.push_back(det.boloname[jj]);
+			//bolos_global.push_back(det.boloname[jj]);
+			//			long rowIndex;
+			//			rowIndex=find_index(nBolos, det.boloname, det.boloname[jj]);
+			bolos_global[jj]=1;
 		}else{
 			if(sum>80*ns/100){
 				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
-				bolos_global_80.push_back(det.boloname[jj]);
+				//bolos_global_80.push_back(det.boloname[jj]);
+				bolos_global_80[jj]=1;
 			}else if(sum>50*ns/100)
 				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
 		}
@@ -774,30 +794,40 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 }
 
 
-void log_gen(std::vector<string> &bolo_, string outname){
+void log_gen(long  *bolo_, string outname, struct detectors det){
 
 
 	FILE *fp;
+	long tot=0;
 
-	struct sortclass_string sortobject;
-	sort(bolo_.begin(), bolo_.end(), sortobject);
+	//	struct sortclass_string sortobject;
+	//	sort(bolo_.begin(), bolo_.end(), sortobject);
 
-	std::vector<string>::iterator it;
-	std::vector<string>::iterator it2;
+	//	std::vector<string>::iterator it;
+	//	std::vector<string>::iterator it2;
 
-	// using default comparison:
-	it2 = unique(bolo_.begin(), bolo_.end());
+	//	// using default comparison:
+	//	it2 = unique(bolo_.begin(), bolo_.end());
+	//
+	//	if ((it2-bolo_.begin())>0){
 
-	if ((it2-bolo_.begin())>0){
+	fp=fopen(outname.c_str(),"w");
 
-		fp=fopen(outname.c_str(),"w");
-
-		for (it=bolo_.begin(); it != it2; it++) {
-			fprintf(fp, "%s\n", (char*)((*it).c_str()));
+	for(long ii=0; ii< det.ndet; ii++)
+		if(bolo_[ii]>0){
+			string temp = det.boloname[ii];
+			fprintf(fp, "%s\n", (char*)temp.c_str());
+			tot++;
 		}
+	if(tot>0)
+		cout << "There are " << tot << " bolometers in this file !\n";
 
-		fclose(fp);
-	}
+	//		for (it=bolo_.begin(); it != it2; it++) {
+	//			fprintf(fp, "%s\n", (char*)((*it).c_str()));
+	//		}
+
+	fclose(fp);
+	//	}
 
 }
 
