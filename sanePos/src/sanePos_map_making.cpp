@@ -41,7 +41,7 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	string fits_file;
 
 	long ndet = bolonames.size();
-		string field; // test
+	string field; // test
 	//	double *ra_off,*dec_off; // test
 
 
@@ -63,9 +63,9 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
 
-//		for (long idet = 0; idet < ndet; idet++){
-//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
-//		}
+		//		for (long idet = 0; idet < ndet; idet++){
+		//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
+		//		}
 
 		// read reference position
 		long test_ns;
@@ -243,16 +243,16 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			int *flag=NULL;
 			long test_ns;
 
-			read_ra_from_fits(fits_file, field, ra, test_ns);
+			read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns);
 			if (test_ns != ns) {
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
-			read_dec_from_fits(fits_file, field, dec, test_ns);
-			if (test_ns != ns) {
-				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
-				exit(-1);
-			}
+			//			read_dec_from_fits(fits_file, field, dec, test_ns);
+			//			if (test_ns != ns) {
+			//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+			//				exit(-1);
+			//			}
 
 			read_flag_from_fits(fits_file, field, flag, test_ns);
 			if (test_ns != ns) {

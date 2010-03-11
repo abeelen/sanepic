@@ -302,16 +302,16 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			yy     = new long long[ns];
 			wcsstatus = new int[ns];
 
-			read_ra_from_fits(fits_file, field, ra, test_ns);
+			read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns);
 			if (test_ns != ns) {
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
-			read_dec_from_fits(fits_file, field, dec, test_ns);
-			if (test_ns != ns) {
-				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
-				exit(-1);
-			}
+//			read_dec_from_fits(fits_file, field, dec, test_ns);
+//			if (test_ns != ns) {
+//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+//				exit(-1);
+//			}
 			read_flag_from_fits(fits_file, field, flag, test_ns);
 			if (test_ns != ns) {
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;

@@ -58,6 +58,7 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 	samples_struct.ntotscan=0; /*! total number of scans */
 	det.ndet=0; /*! number of channels used*/
+	pos_param.flgdupl = 0; // map duplication factor
 
 	pos_param.maskfile = "";
 

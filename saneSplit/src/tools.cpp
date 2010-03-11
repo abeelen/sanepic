@@ -1,6 +1,5 @@
 
 
-#include "covMatrixIO.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -233,7 +232,35 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long ns_final, 
 	delete [] mask;
 }
 
-void copy_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+//void copy_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+//	int status=0;
+//	long ns_temp;
+//
+//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+//	fits_copy_header(fptr, outfptr, &status);
+//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
+//
+//	double *RA, *RA_bis;
+//	RA_bis = new double [ns_final];
+//	for(long jj=0;jj<det.ndet;jj++){
+//
+//		read_ra_from_fits(name, det.boloname[jj], RA, ns_temp);
+//		for(long ii = 0; ii< ns_final; ii++)
+//			RA_bis[ii]=RA[ii];
+//
+//		string field= det.boloname[jj];
+//		long rowIndex = find_channel_index(fptr, field.c_str());
+//		long fpixel[2]={1,rowIndex};
+//		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status);
+//	}
+//
+//	delete [] RA_bis;
+//	delete [] RA;
+//
+//}
+
+void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+
 	int status=0;
 	long ns_temp;
 
@@ -241,48 +268,62 @@ void copy_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, str
 	fits_copy_header(fptr, outfptr, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
-	double *RA, *RA_bis;
-	RA_bis = new double [ns_final];
-	for(long jj=0;jj<det.ndet;jj++){
-
-		read_ra_from_fits(name, det.boloname[jj], RA, ns_temp);
-		for(long ii = 0; ii< ns_final; ii++)
-			RA_bis[ii]=RA[ii];
-
-		string field= det.boloname[jj];
-		long rowIndex = find_channel_index(fptr, field.c_str());
-		long fpixel[2]={1,rowIndex};
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // TODO : change this to find index instead of jj+1 which is wrong !!!!
-	}
-
-	delete [] RA_bis;
-	delete [] RA;
-
-}
-
-void copy_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
-	int status=0;
-	long ns_temp;
-
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 	fits_copy_header(fptr, outfptr, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
+	double *RA, *RA_bis;
 	double *DEC, *DEC_bis;
+	RA_bis = new double [ns_final];
 	DEC_bis = new double [ns_final];
 	for(long jj=0;jj<det.ndet;jj++){
 
-		read_dec_from_fits(name, det.boloname[jj], DEC, ns_temp);
-		for(long ii = 0; ii< ns_final; ii++)
+		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);
+		for(long ii = 0; ii< ns_final; ii++){
+			RA_bis[ii]=RA[ii];
 			DEC_bis[ii]=DEC[ii];
+		}
 
 		string field= det.boloname[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str());
 		long fpixel[2]={1,rowIndex};
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status);
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status);
 	}
 
+	delete [] RA_bis;
+	delete [] RA;
 	delete [] DEC_bis;
 	delete [] DEC;
 
+
 }
+
+//void copy_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+//	int status=0;
+//	long ns_temp;
+//
+//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+//	fits_copy_header(fptr, outfptr, &status);
+//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
+//
+//	double *DEC, *DEC_bis;
+//	DEC_bis = new double [ns_final];
+//	for(long jj=0;jj<det.ndet;jj++){
+//
+//		read_dec_from_fits(name, det.boloname[jj], DEC, ns_temp);
+//		for(long ii = 0; ii< ns_final; ii++)
+//			DEC_bis[ii]=DEC[ii];
+//
+//		string field= det.boloname[jj];
+//		long rowIndex = find_channel_index(fptr, field.c_str());
+//		long fpixel[2]={1,rowIndex};
+//		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status);
+//	}
+//
+//	delete [] DEC_bis;
+//	delete [] DEC;
+//
+//}

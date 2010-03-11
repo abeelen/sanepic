@@ -1,5 +1,4 @@
 
-#include "covMatrixIO.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -332,11 +331,14 @@ int main(int argc, char *argv[]) {
 			// 1 signal
 			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
-			// 2 RA
-			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+//			// 2 RA
+//			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+//
+//			// 3 DEC
+//			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
-			// 3 DEC
-			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			// 2 RA 3 DEC
+			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], ns_final, det);
 
 			// 4 mask
 			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
