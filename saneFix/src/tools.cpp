@@ -1,6 +1,5 @@
 
 
-#include "covMatrixIO.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -253,55 +252,88 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 }
 
 
-void fix_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample ){
+//void fix_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample ){
+//
+//	long ns_temp = 0;
+//	int status =0;
+//	double *RA, *RA_fixed;
+//
+//
+//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+//	fits_copy_header(fptr, outfptr, &status);
+//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status);
+//
+//	RA_fixed = new double [ns_total];
+//
+//	for(long jj=0;jj<det.ndet;jj++){
+//		read_ra_from_fits(name, det.boloname[jj], RA, ns_temp);
+//		fix_row(RA, RA_fixed, indice, add_sample, ns_total);
+//		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total);
+//		//				cout << RA_fixed [167294 + 2 ] << " " << RA_fixed [167294 + 10 ] << " " << RA_fixed [167294 + 1000 ];
+//		//				cout << endl;
+//		//				getchar();
+//		delete [] RA;
+//	}
+//	delete [] RA_fixed;
+//}
+
+void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample){
 
 	long ns_temp = 0;
 	int status =0;
 	double *RA, *RA_fixed;
-
+	double *DEC, *DEC_fixed;
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
 	fits_copy_header(fptr, outfptr, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status);
-
-	RA_fixed = new double [ns_total];
-
-	for(long jj=0;jj<det.ndet;jj++){
-		read_ra_from_fits(name, det.boloname[jj], RA, ns_temp);
-		fix_row(RA, RA_fixed, indice, add_sample, ns_total);
-		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total);
-		//				cout << RA_fixed [167294 + 2 ] << " " << RA_fixed [167294 + 10 ] << " " << RA_fixed [167294 + 1000 ];
-		//				cout << endl;
-		//				getchar();
-		delete [] RA;
-	}
-	delete [] RA_fixed;
-}
-
-
-
-void fix_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample ){
-
-	long ns_temp = 0;
-	int status =0;
-	double *DEC, *DEC_fixed;
-
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 	fits_copy_header(fptr, outfptr, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status);
 
+	RA_fixed = new double [ns_total];
 	DEC_fixed = new double [ns_total];
 
 	for(long jj=0;jj<det.ndet;jj++){
-		read_dec_from_fits(name, det.boloname[jj], DEC, ns_temp);
+		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);
+
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+		fix_row(RA, RA_fixed, indice, add_sample, ns_total);
+		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total);
+
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total);
 		insert_row_in_image(fptr, outfptr, det.boloname[jj], DEC_fixed, ns_total);
+		delete [] RA;
 		delete [] DEC;
 	}
+	delete [] RA_fixed;
 	delete [] DEC_fixed;
 
-
 }
+
+//void fix_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample ){
+//
+//	long ns_temp = 0;
+//	int status =0;
+//	double *DEC, *DEC_fixed;
+//
+//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+//	fits_copy_header(fptr, outfptr, &status);
+//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status);
+//
+//	DEC_fixed = new double [ns_total];
+//
+//	for(long jj=0;jj<det.ndet;jj++){
+//		read_dec_from_fits(name, det.boloname[jj], DEC, ns_temp);
+//		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total);
+//		insert_row_in_image(fptr, outfptr, det.boloname[jj], DEC_fixed, ns_total);
+//		delete [] DEC;
+//	}
+//	delete [] DEC_fixed;
+//
+//
+//}
 
 void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample ){
 

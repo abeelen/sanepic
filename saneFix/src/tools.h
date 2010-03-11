@@ -14,8 +14,9 @@ void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, doubl
 void copy_offsets(fitsfile * fptr, fitsfile *outfptr);
 void copy_channels(fitsfile * fptr, fitsfile *outfptr);
 void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
-void fix_RA(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
-void fix_DEC(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
+//void fix_RA(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
+//void fix_DEC(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
+void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample);
 void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );
 void fix_time_table(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp);
 void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample );

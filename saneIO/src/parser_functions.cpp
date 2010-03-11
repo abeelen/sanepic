@@ -24,8 +24,6 @@ extern "C"{
 
 using namespace std;
 
-//TODO: rank should NOT be passed here, instead use MPI_Comm_rank(MPI_COMM_WORLD,&rank); to get it IF necessary
- // TODO if we do this, we have to add 2 projects Debug_MPI and Release_MPI : stupid no ?
 
 int read_dirfile(dictionary	*ini, struct common &dir, int rank){
 

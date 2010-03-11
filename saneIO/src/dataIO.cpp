@@ -471,7 +471,106 @@ long find_channel_index(fitsfile *fptr, const char * field){
 
 }
 
-void read_ra_from_fits(string filename, string field, double *& ra, long & ns){
+//void read_ra_from_fits(string filename, string field, double *& ra, long & ns){
+//
+//	// HIPE like format
+//
+//	fitsfile *fptr;
+//	int status = 0;
+//	int rowIndex = 0, naxis = 0, anynul;
+//	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+//
+//	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Retrieve the row of the specified channel
+//	rowIndex = find_channel_index(fptr, field.c_str());
+//
+//	// ---------------------------------------------
+//	// Move ptr to signal hdu
+//	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Retrieve the size of the signal
+//	if (fits_get_img_dim(fptr, &naxis, &status))
+//		fits_report_error(stderr, status);
+//	if(naxis != 2)
+//		fits_report_error(stderr,BAD_NAXIS);
+//	if (fits_get_img_size(fptr, 2, naxes, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Allocate Memory
+//	ns = naxes[0];
+//	ra = new double[ns];
+//
+//	// ---------------------------------------------
+//	// Retrieve the corresponding row
+//	fpixel[0] = 1;
+//	fpixel[1] = rowIndex;
+//	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, ra, &anynul, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// close file
+//	if(fits_close_file(fptr, &status))
+//		fits_report_error(stderr, status);
+//
+//}
+
+//void read_dec_from_fits(string filename, string field, double *& dec, long & ns){
+//
+//	// HIPE like format
+//
+//	fitsfile *fptr;
+//	int status = 0;
+//	int rowIndex = 0, naxis = 0, anynul;
+//	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+//
+//	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Retrieve the row of the specified channel
+//	rowIndex = find_channel_index(fptr, field.c_str());
+//
+//
+//	// ---------------------------------------------
+//	// Move ptr to signal hdu
+//	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Retrieve the size of the signal
+//	if (fits_get_img_dim(fptr, &naxis, &status))
+//		fits_report_error(stderr, status);
+//	if(naxis != 2)
+//		fits_report_error(stderr,BAD_NAXIS);
+//	if (fits_get_img_size(fptr, 2, naxes, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// Allocate Memory
+//	ns = naxes[0];
+//	dec = new double[ns];
+//
+//	// ---------------------------------------------
+//	// Retrieve the corresponding row
+//	fpixel[0] = 1;
+//	fpixel[1] = rowIndex;
+//	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, dec, &anynul, &status))
+//		fits_report_error(stderr, status);
+//
+//	// ---------------------------------------------
+//	// close file
+//	if(fits_close_file(fptr, &status))
+//		fits_report_error(stderr, status);
+//
+//}
+
+void read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -514,30 +613,7 @@ void read_ra_from_fits(string filename, string field, double *& ra, long & ns){
 	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, ra, &anynul, &status))
 		fits_report_error(stderr, status);
 
-	// ---------------------------------------------
-	// close file
-	if(fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
 
-}
-
-//TODO : read_ra_from_fits and read_dec_from_fits could be merged with an additionnal argument
-void read_dec_from_fits(string filename, string field, double *& dec, long & ns){
-	//TODO : Handle angle unit to transform to a common internal known unit
-
-	// HIPE like format
-
-	fitsfile *fptr;
-	int status = 0;
-	int rowIndex = 0, naxis = 0, anynul;
-	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-		fits_report_error(stderr, status);
-
-	// ---------------------------------------------
-	// Retrieve the row of the specified channel
-	rowIndex = find_channel_index(fptr, field.c_str());
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
@@ -569,9 +645,7 @@ void read_dec_from_fits(string filename, string field, double *& dec, long & ns)
 	// close file
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
-
 }
-
 
 void read_time_from_fits(string filename, double *& time, long ns){
 

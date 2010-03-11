@@ -20,8 +20,9 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns);
 void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns);
 
-void read_ra_from_fits(string filename, string field, double *& ra, long & ns);
-void read_dec_from_fits(string filename, string field, double *& dec, long & ns);
+//void read_ra_from_fits(string filename, string field, double *& ra, long & ns);
+//void read_dec_from_fits(string filename, string field, double *& dec, long & ns);
+void read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns);
 void read_signal_from_fits(string filename, string field, double *& signal, long & ns);
 void read_flag_from_fits(string filename, string field, int *&mask, long & ns);
 void read_image_2D_from_fits(string filename, double *&image, string hdu_name, long & ns, long & ndet);
