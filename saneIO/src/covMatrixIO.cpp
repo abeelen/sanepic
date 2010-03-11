@@ -209,7 +209,6 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 ///*
 // * This function write the NoiseNoise Matrices in a fits file.
 // */
-//// TODO: CHECK THIS !! May need to change the data format
 //// BINARY_TABLE are limited to 1000 columns, so create one TABLE per detector
 //// This cause a limitation on the number of detector....
 //// Check if C1-C2 == C2-C1 always... and then store only half of the array...

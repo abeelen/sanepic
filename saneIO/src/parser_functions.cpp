@@ -25,20 +25,27 @@ extern "C"{
 using namespace std;
 
 //TODO: rank should NOT be passed here, instead use MPI_Comm_rank(MPI_COMM_WORLD,&rank); to get it IF necessary
-//TODO: read_parser_string SHOULD NOT print text, but instead the calling function...
-
+ // TODO if we do this, we have to add 2 projects Debug_MPI and Release_MPI : stupid no ?
 
 int read_dirfile(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
 
-	if(read_parser_string(ini, "commons:data_directory", rank, str))
+	switch(read_parser_string(ini, "commons:data_directory", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : commons:data_directory" << endl;
 		return 1;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
+		return 1;
+	case 0:
+		if (str[str.length()-1] != '/')
+			str = str + '/';
+		dir.dirfile = str;
 
-	if (str[str.length()-1] != '/')
-		str = str + '/';
-	dir.dirfile = str;
-
+	}
 	return 0;
 }
 
@@ -52,13 +59,21 @@ int read_tmpdir(dictionary	*ini, struct common &dir, int rank){
 	if (pPath!=NULL){
 		dir.tmp_dir=pPath;
 	}else{
-		if (read_parser_string(ini, "commons:temp_dir",rank,str))
+		switch(read_parser_string(ini, "commons:temp_dir", str)){
+		case 2:
+			if(rank==0)
+				cout <<"You must add a line in ini file specifying : commons:temp_dir" << endl;
 			return 1;
+		case 1:
+			if(rank==0)
+				cout <<"Key is empty : You must specify : commons:temp_dir" << endl;
+			return 1;
+		case 0:
+			if (str[str.length()-1] != '/')
+				str = str + '/';
+			dir.tmp_dir=str;
 
-		if (str[str.length()-1] != '/')
-			str = str + '/';
-		dir.tmp_dir=str;
-
+		}
 	}
 	return 0;
 
@@ -69,12 +84,21 @@ int read_outdir(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
 
-	if(read_parser_string(ini, "commons:output_dir", rank, str))
-		return 1;
 
-	if (str[str.length()-1] != '/')
-		str = str + '/';
-	dir.output_dir=str;
+	switch(read_parser_string(ini, "commons:output_dir", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : commons:output_dir" << endl;
+		return 1;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : commons:output_dir" << endl;
+		return 1;
+	case 0:
+		if (str[str.length()-1] != '/')
+			str = str + '/';
+		dir.output_dir=str;
+	}
 	return 0;
 
 }
@@ -82,13 +106,20 @@ int read_outdir(dictionary	*ini, struct common &dir, int rank){
 int read_noisedir(dictionary	*ini, struct common &dir, int rank){
 
 	string str;
-
-	if(read_parser_string(ini, "saneInv:noise_dir", rank, str))
+	switch(read_parser_string(ini, "saneInv:noise_dir", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : saneInv:noise_dir" << endl;
 		return 1;
-
-	if (str[str.length()-1] != '/')
-		str = str + '/';
-	dir.noise_dir=str;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : saneInv:noise_dir" << endl;
+		return 1;
+	case 0:
+		if (str[str.length()-1] != '/')
+			str = str + '/';
+		dir.noise_dir=str;
+	}
 	return 0;
 
 }
@@ -97,12 +128,20 @@ int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &
 
 	string str;
 
-	if(read_parser_string(ini, "commons:channel", rank, str))
+
+	switch(read_parser_string(ini, "commons:channel", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : commons:channel" << endl;
 		return 1;
-
-	dir.channel=str;
-
-	read_strings(str, bolonames);
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : commons:channel" << endl;
+		return 1;
+	case 0:
+		dir.channel=str;
+		read_strings(str, bolonames);
+	}
 
 	return 0;
 
@@ -113,47 +152,65 @@ int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &sam
 
 	string str;
 
-	if(read_parser_string(ini, "commons:fits_filelist", rank, str))
+
+	switch(read_parser_string(ini, "commons:fits_filelist", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : commons:fits_filelist" << endl;
 		return 1;
-
-	samples_str.filename=str;
-
-	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-	if(read_fits_list(samples_str.filename, \
-			samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
-			samples_str.framegiven)!=0)
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : commons:fits_filelist" << endl;
 		return 1;
+	case 0:
+		samples_str.filename=str;
 
-
-	for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
-#ifdef DEBUG_PRINT
-		cout << dir.dirfile + samples_str.fitsvect[ii] << endl;
-#endif
-		samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
-	}
-
-	// Populate the nsamples vector
-	readFrames(samples_str.fitsvect, samples_str.nsamples);
-
-
-	// read the possible noise file from the ini file
-
-	// if no noise file is given in fits_filelist
-	if((int)(samples_str.noisevect).size()==0 ){
-
-		// read the noise file name in the ini file
-		if(read_parser_string(ini, "saneInv:cov_matrix_file",rank,str))
+		// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
+		if(read_fits_list(samples_str.filename, \
+				samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
+				samples_str.framegiven)!=0)
 			return 1;
 
-		samples_str.cov_matrix_file = str;
 
-		samples_str.noisevect.push_back(str);
+		for(int ii=0;ii<(int)((samples_str.fitsvect).size());ii++){
+#ifdef DEBUG_PRINT
+			cout << dir.dirfile + samples_str.fitsvect[ii] << endl;
+#endif
+			samples_str.fitsvect[ii] = dir.dirfile + samples_str.fitsvect[ii];
+		}
 
-		if((int)((samples_str.fitsvect).size())>1)
-			// meme fichier de bruit pour tous les scans
-			(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+		// Populate the nsamples vector
+		readFrames(samples_str.fitsvect, samples_str.nsamples);
+
+
+		// read the possible noise file from the ini file
+
+		// if no noise file is given in fits_filelist
+		if((int)(samples_str.noisevect).size()==0 ){
+
+			// read the noise file name in the ini file
+
+			switch(read_parser_string(ini, "saneInv:cov_matrix_file", str)){
+			case 2:
+				if(rank==0)
+					cout <<"You must add a line in ini file specifying : saneInv:cov_matrix_file" << endl;
+				return 1;
+			case 1:
+				if(rank==0)
+					cout <<"Key is empty : You must specify : saneInv:cov_matrix_file" << endl;
+				return 1;
+			case 0:
+				samples_str.cov_matrix_file = str;
+
+				samples_str.noisevect.push_back(str);
+			}
+
+			if((int)((samples_str.fitsvect).size())>1)
+				// meme fichier de bruit pour tous les scans
+				(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+
+		}
 	}
-
 	return 0;
 }
 
@@ -295,7 +352,7 @@ int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, i
 }
 
 
-int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_filter_frequency(dictionary *ini, struct param_process &proc_param, int rank){
 
 	double d;
 
@@ -305,10 +362,8 @@ int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int
 			printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
 		return 1;
 	}else{
-		//printf("filter_frequency  :   [%g]\n", d);
 		proc_param.f_lp=d;
-	}//filter_frequency = 0.005 ;
-
+	}
 	return 0;
 }
 
@@ -317,21 +372,29 @@ int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::
 
 	string str;
 
-	if (read_parser_string(ini, "sanePre:fcut_file", rank, str))
-		return 1;
 
-	proc_param.fcut_file = str;
-
-	std::vector<string> dummy2;
-	read_strings(str,dummy2);
-
-	if(((int)dummy2.size())==0){
+	switch(read_parser_string(ini, "sanePre:fcut_file", str)){
+	case 2:
 		if(rank==0)
-			printf("You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n");
-		return 1;}
-	for(int ii=0; ii<(int)dummy2.size(); ii++)
-		fcut.push_back(atof(dummy2[ii].c_str()));
+			cout <<"You must add a line in ini file specifying : sanePre:fcut_file" << endl;
+		return 1;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : sanePre:fcut_file" << endl;
+		return 1;
+	case 0:
+		proc_param.fcut_file = str;
 
+		std::vector<string> dummy2;
+		read_strings(str,dummy2);
+
+		if(((int)dummy2.size())==0){
+			if(rank==0)
+				printf("You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n");
+			return 1;}
+		for(int ii=0; ii<(int)dummy2.size(); ii++)
+			fcut.push_back(atof(dummy2[ii].c_str()));
+	}
 	return 0;
 
 }
@@ -342,11 +405,7 @@ int read_baseline(dictionary	*ini, struct param_process &proc_param, int rank){
 	bool b;
 
 	b = iniparser_getboolean(ini, "sanePre:no_baseline", 0);
-	//if(b!=0){
-	//printf("no_baseline:    [%d]\n", b);
 	proc_param.NORMLIN=b;
-	//}
-	//NORMLIN = False ;
 
 	return 0;
 
@@ -364,21 +423,14 @@ int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank
 
 int read_remove_poly(dictionary	*ini, struct param_process &proc_param, int rank){
 
-	//	bool b = 1;
 	int	i = -1;
-	//	b = iniparser_getboolean(ini, "sanepic_preprocess:remove_poly", 1);
 	i = iniparser_getint(ini, "sanePre:poly_order", -1);
-	//if(b!=1){
-	//printf("remove_poly:    [%d]\n", b);
 	if(i>=0){
 		proc_param.remove_polynomia=1;
 		proc_param.poly_order=i;
-		//cout << "poly_order : " << proc_param.poly_order << endl;
 	}else{
 		proc_param.remove_polynomia=0;
-		//		proc_param.poly_order=4;
 	}
-	//}//remove_poly = True
 
 	return 0;
 
@@ -390,9 +442,7 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 	int i;
 
 	i = iniparser_getint(ini, "sanePic:iterW", 0);
-	//if(isnan((double)i)){
 	if(i>0){
-		//printf("iterw :      [%d]\n", i);
 		iterw=i;
 	}//iterw =  ;
 
@@ -403,23 +453,31 @@ int read_ell_file(dictionary	*ini, string &ellFile, int rank){
 
 
 	string str;
-	//char *s;
 
-	if (read_parser_string(ini, "sanePS:ell_file", rank, str))
+
+	switch(read_parser_string(ini, "sanePS:ell_file", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : sanePS:ell_file" << endl;
 		return 1;
-
-	ellFile=str;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : sanePS:ell_file" << endl;
+		return 1;
+	case 0:
+		ellFile=str;
+	}
 
 	return 0;
 }
 
 
-int read_map_file(dictionary	*ini, string &signame, int rank){
+int read_map_file(dictionary	*ini, string &signame){
 
 
 	string str;
 
-	if (read_parser_string(ini,"sanePS:map_file", rank,str)){
+	if (read_parser_string(ini,"sanePS:map_file", str)){
 		signame="NOSIGFILE";
 	}else{
 		signame=str;
@@ -430,12 +488,19 @@ int read_map_file(dictionary	*ini, string &signame, int rank){
 int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 
 	string str;
-	//char*s;
 
-	if (read_parser_string(ini, "saneInv:cov_matrix_file",rank,str))
+	switch(read_parser_string(ini, "saneInv:cov_matrix_file", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : saneInv:cov_matrix_file" << endl;
 		return 1;
-
-	fname=str;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : saneInv:cov_matrix_file" << endl;
+		return 1;
+	case 0:
+		fname=str;
+	}
 	return 0;
 
 }
@@ -443,7 +508,8 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
 
 	string str;
-	if (read_parser_string(ini,"sanePS:noise_estim", rank,str)){
+
+	if (read_parser_string(ini,"sanePS:noise_estim", str)){
 		MixMatfile = "NOFILE";
 	}else{
 		MixMatfile = str;
@@ -486,17 +552,14 @@ int read_fcut(dictionary	*ini, double &fcut, int rank){
 	return 0;
 }
 
-int read_parser_string(dictionary	*ini, string line, int rank, string & str){
+int read_parser_string(dictionary	*ini, string line, string & str){
 	char *s;
 
 	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
 
 	// Key is not present :
-	if(s==(char*)NULL){
-		if(rank==0)
-			cout <<"You must add a line in ini file specifying : " << line << endl;
-		return 1;
-	}
+	if(s==(char*)NULL)
+		return 2;
 
 	// Key is empty...
 	if (s[0] == '\0')
@@ -534,11 +597,11 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	bool b;
 
 	// read the pixelsize
-	if (! read_parser_string(ini, "sanePos:pixsize", rank,str) )
+	if (read_parser_string(ini, "sanePos:pixsize", str)==0)
 		pos_param.pixdeg=atof(str.c_str());
 
 	// Read the mask_file if present
-	if (! read_parser_string(ini,"sanePos:mask_file",rank,str) )
+	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
 		pos_param.maskfile=str;
 
 	// Read the file format if present
