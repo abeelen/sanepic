@@ -53,7 +53,11 @@ int main(int argc, char *argv[]) {
 		fitsfile *outfptr;
 
 
-		read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp);
+		if(!(read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp))){
+			cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run saneCheck on this file before\n";
+			continue;
+		}
+
 		format_fits=test_format(samples_struct.fitsvect[ii]);
 
 		double *time;

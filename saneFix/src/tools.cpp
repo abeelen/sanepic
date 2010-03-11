@@ -32,7 +32,7 @@ extern "C" {
 using namespace std;
 
 
-void read_indices_file(string fname, struct common dir, std::vector<long> &indice, double &fsamp){
+int read_indices_file(string fname, struct common dir, std::vector<long> &indice, double &fsamp){
 
 	std::ifstream file;
 	long readed;
@@ -45,7 +45,8 @@ void read_indices_file(string fname, struct common dir, std::vector<long> &indic
 	file.open(fname2.c_str(), ios::in);
 	if(!file.is_open()){
 		cerr << "File [" << fname << "] was not found." << endl;
-		exit(-1); // TODO : change en return + mpi_exit
+		file.close();
+		return(EXIT_FAILURE);
 	}
 
 	file >> fsamp;
@@ -53,6 +54,8 @@ void read_indices_file(string fname, struct common dir, std::vector<long> &indic
 		indice.push_back(readed);
 
 	file.close();
+
+	return(EXIT_SUCCESS);
 }
 
 long how_many(string fname, long ns, std::vector <long> indice, double *&time, double fsamp,  std::vector <long> &add_sample){
@@ -62,7 +65,7 @@ long how_many(string fname, long ns, std::vector <long> indice, double *&time, d
 
 	read_time_from_fits(fname, time, ns);
 	for(long ii=0; ii < (long)indice.size(); ii++){
-//		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
+		//		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
 		if(gap>0.0){
 			sum+=gap;
