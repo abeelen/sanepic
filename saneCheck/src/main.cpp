@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	/*
-	 * TODO : This should be organized as :
+	 *  This should be organized as :
 	 *
 	 *  - parse the input ini file (OK)
 	 *  - check for existence of directory/files pointed from the ini file (OK)
@@ -131,8 +131,14 @@ int main(int argc, char *argv[]) {
 
 			format_fits=test_format(samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
 
-			// TODO check que bolo_fits = bolo_fits_0
 			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits);
+			if(check_bolos(bolo_fits.boloname, bolo_fits_0.boloname)){
+				cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run only together scans that correspond to the same field\n";
+				continue;
+			}
+
+			//			cout << bolo_fits.boloname[0] << " " << bolo_fits.boloname[1] << endl;
+			//			cout << "bolo_0" <<  bolo_fits_0.boloname[0] << " " << bolo_fits_0.boloname[1] << endl;
 
 			check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]);
 
@@ -186,20 +192,20 @@ int main(int argc, char *argv[]) {
 		cout << endl;
 
 		// generating log files :
-//		if(size_bad>0){
-			outname = dir.output_dir + "bolo_totally_flagged.txt";
-			cout << "Writing informations in :\n" << outname << endl << endl;
-			log_gen(bolo_bad_tot,outname, bolo_fits_0);
-//		}else
-//			cout << "There are no bolometers fully flagged in the files\n\n";
+		//		if(size_bad>0){
+		outname = dir.output_dir + "bolo_totally_flagged.txt";
+		cout << "Writing informations in :\n" << outname << endl << endl;
+		log_gen(bolo_bad_tot,outname, bolo_fits_0);
+		//		}else
+		//			cout << "There are no bolometers fully flagged in the files\n\n";
 
 
-//		if(size_80>0){
-			outname = dir.output_dir + "bolo_80_percent_flagged.txt";
-			cout << "Writing informations in :\n" << outname << endl;
-			log_gen(bolo_bad_80_tot, outname, bolo_fits_0);
-//		}else
-//			cout << "There are no bolometers more than 80% flagged in the files\n";
+		//		if(size_80>0){
+		outname = dir.output_dir + "bolo_80_percent_flagged.txt";
+		cout << "Writing informations in :\n" << outname << endl;
+		log_gen(bolo_bad_80_tot, outname, bolo_fits_0);
+		//		}else
+		//			cout << "There are no bolometers more than 80% flagged in the files\n";
 
 
 		cout << "\nEnd of saneCheck\n";

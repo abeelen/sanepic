@@ -532,13 +532,7 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 
 
-	//	fitsfile *fptr;
-	//	int status = 0;
-	//	int colnum;
 	long ns_test=0;
-	//	long ndet_test=0;
-	//	int naxis=0;
-	//	long naxes[2] = { 1, 1 };
 	double *signal;
 	int *flag;
 	double *ra;
@@ -549,19 +543,15 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 	for(int ii=0;ii<det.ndet;ii++){
 		read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test);
-		//		read_ra_from_fits(fname , det.boloname[ii], ra, ns_test);
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(ra[jj])){
 				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				//				exit(0);
 			}
 			if(isnan(dec[jj])){
 				cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				//				exit(0);
 			}
 			if(isnan(phi[jj])){
 				cout << "Warning <! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				//				exit(0);
 			}
 		}
 
@@ -572,35 +562,21 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 
 	//check nans in offsets
-
 	read_all_bolo_offsets_from_fits(fname, det.boloname, offsets);
 
 	for(int ii=0;ii<det.ndet;ii++)
 		if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){
 			cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
-			//			exit(0);
 		}
 
 
 	free_dmatrix(offsets,(long)0,det.ndet-1,(long)0,2-1);
 
-	//check nans in channels
-
-	//	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
-	//		fits_report_error(stderr, status);
-	//		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
-	//		exit(0);
-	//	}
-
 	// check nans in time constant
-
 	read_time_from_fits(fname, time, ns);
 	for(long jj=0;jj<ns;jj++){
-		//		cout << time[jj] << endl;
-		//		getchar();
 		if(isnan(time[jj])){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
-			//			exit(0);
 		}
 	}
 
@@ -610,13 +586,11 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 
 	// check nans in signal
-
 	for(int ii=0;ii<det.ndet;ii++){
 		read_signal_from_fits(fname, det.boloname[ii], signal,ns_test);
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(signal[jj])){
 				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				//				exit(0);
 			}
 		}
 		delete [] signal;
@@ -625,14 +599,11 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 
 	// check nans in flag
-
 	for(long jj=0;jj<det.ndet;jj++){
-		//		cout << "loop " << jj << endl;
 		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
 		for(int kk=0;kk<ns;kk++){
 			if(isnan(flag[kk])){
 				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
-				//				exit(0);
 			}
 		}
 		delete [] flag;
@@ -644,11 +615,31 @@ void check_NaN(string fname,long ns,struct detectors det){
 
 }
 
+bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fits_0_vect){
+
+
+	if((long)bolo_fits_vect.size()!=(long)bolo_fits_0_vect.size()){
+		cout << "The channel lists are not the same !\n";
+		return 1;
+	}
+
+	struct sortclass_string sortobject;
+	sort(bolo_fits_vect.begin(), bolo_fits_vect.end(), sortobject);
+	sort(bolo_fits_0_vect.begin(), bolo_fits_0_vect.end(), sortobject);
+
+	for(long jj=0; jj< (long)bolo_fits_vect.size(); jj++)
+		if(bolo_fits_vect[jj]!=bolo_fits_0_vect[jj]){
+			cout << "The channel lists are not the same !\n";
+			return 1;
+		}
+
+	return 0;
+}
+
 void check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80){
 
 	int *flag;
 	short sum=0;
-	//	FILE * fp;
 
 	int marge = 20;
 	long ii=1;
@@ -656,7 +647,6 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 	long rr=0;
 
 
-	//	fp=fopen(outname.c_str(),"w");
 
 	for(int jj=0;jj<det.ndet;jj++){
 
@@ -690,15 +680,10 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 
 		if(sum==ns){
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
-			//			fprintf(fp, "%s\n", (char*)(det.boloname[jj].c_str()));
-			//bolos_global.push_back(det.boloname[jj]);
-			//			long rowIndex;
-			//			rowIndex=find_index(nBolos, det.boloname, det.boloname[jj]);
 			bolos_global[jj]=1;
 		}else{
 			if(sum>80*ns/100){
 				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
-				//bolos_global_80.push_back(det.boloname[jj]);
 				bolos_global_80[jj]=1;
 			}else if(sum>50*ns/100)
 				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
@@ -707,7 +692,6 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 		delete [] flag;
 	}
 
-	//	fclose(fp);
 
 }
 
@@ -724,7 +708,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 
 
 	double *time,*diff;
-	double sum=0.0, mean=0.0;//, std=0.0, three_times_sigma=0.0;
+	double sum=0.0, mean=0.0;
 
 
 	read_time_from_fits(fname, time, ns);
@@ -744,15 +728,6 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 		cout << "Warning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
 		cout << "ini file : " << fsamp << " != " << 1/mean << endl;
 	}
-
-	//	for(long jj=0;jj<ns-1;jj++)
-	//		std+=(diff[jj]-mean)*(diff[jj]-mean);
-	//
-	//	std=sqrt(std/(ns-1));
-	//	cout << "sigma :" << fixed << setprecision(15) <<  std << endl;
-	//
-	//	three_times_sigma=std*3;
-	//	cout << "3 * sigma :" << fixed << setprecision(15) << three_times_sigma << endl << endl  << endl;
 
 
 	for(long jj=0;jj<ns-1;jj++){
@@ -776,13 +751,13 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 	file.open(fname2.c_str(), ios::out | ios::trunc);
 	if(!file.is_open()){
 		cerr << "File [" << fname2 << "] Invalid." << endl;
-		exit(-1); // TODO : change en return + mpi_exit
-	}
-	// store real_freq for saneFix
-	file << real_freq << " ";
+	}else{
+		// store real_freq for saneFix
+		file << real_freq << " ";
 
-	for(long ii = 0; ii<(long)indice.size();ii++)
-		file << indice[ii] << " ";
+		for(long ii = 0; ii<(long)indice.size();ii++)
+			file << indice[ii] << " ";
+	}
 
 	file.close();
 
@@ -800,17 +775,6 @@ void log_gen(long  *bolo_, string outname, struct detectors det){
 	FILE *fp;
 	long tot=0;
 
-	//	struct sortclass_string sortobject;
-	//	sort(bolo_.begin(), bolo_.end(), sortobject);
-
-	//	std::vector<string>::iterator it;
-	//	std::vector<string>::iterator it2;
-
-	//	// using default comparison:
-	//	it2 = unique(bolo_.begin(), bolo_.end());
-	//
-	//	if ((it2-bolo_.begin())>0){
-
 	fp=fopen(outname.c_str(),"w");
 
 	for(long ii=0; ii< det.ndet; ii++)
@@ -822,12 +786,7 @@ void log_gen(long  *bolo_, string outname, struct detectors det){
 	if(tot>0)
 		cout << "There are " << tot << " bolometers in this file !\n";
 
-	//		for (it=bolo_.begin(); it != it2; it++) {
-	//			fprintf(fp, "%s\n", (char*)((*it).c_str()));
-	//		}
-
 	fclose(fp);
-	//	}
 
 }
 
