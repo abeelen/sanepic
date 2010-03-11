@@ -11,7 +11,6 @@
 #include <cstdlib>
 
 #include "Corr_preprocess.h"
-#include "covMatrixIO.h"
 #include "dataIO.h"
 #include "inline_IO2.h"
 #include "inputFileIO.h"

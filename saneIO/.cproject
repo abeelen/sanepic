@@ -37,7 +37,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1820326974" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.704688572" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.preprocessor.def.1348998067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.1348998067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1114274031" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
@@ -85,7 +85,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="binaryFileIO.h|binaryFileIO.c|boloIO.cpp|inline_IO.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="covMatrixIO.h|covMatrixIO.cpp|binaryFileIO.h|binaryFileIO.c|boloIO.cpp|inline_IO.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -832,7 +832,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="binaryFileIO.h|binaryFileIO.c|boloIO.cpp|inline_IO.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="covMatrixIO.h|covMatrixIO.cpp|binaryFileIO.h|binaryFileIO.c|boloIO.cpp|inline_IO.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>

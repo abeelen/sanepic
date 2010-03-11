@@ -15,18 +15,9 @@ extern "C" {
 
 void init2D_double(double **A, long im, long jm, long nx, long ny, double val); // on peut garder
 
-/*
-template<class T> void vector2array(std::vector<T> vect, T* a)
-{
-	// copy list of type T to array of type T
-	typename std::vector<T>::iterator iter;
-	int i;
 
-	for (iter=vect.begin(), i=0; iter != vect.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}*/
-
+/*! This function reads the Inverse Covariance Matrices in binary format */
+void read_InvNoisePowerSpectra(std::string prefix, std::string boloName, std::string suffix, long * nbins, long * ndet, double ** ell, double *** SpN_all);
 
 void polynomia(double x, double y[], int dma); // on peut garder
 void remove_poly(double y[], int ndata, int norder, double* yout, short *flag = NULL);

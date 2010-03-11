@@ -8,7 +8,6 @@
 #include "estimPS_steps.h"
 
 
-#include "covMatrixIO.h"
 #include "psdIO.h"
 #include <vector>
 #include "todprocess.h"
@@ -26,6 +25,154 @@ extern "C" {
 
 using namespace std;
 
+void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
+/*
+ * This function write the NoiseNoise Matrices in a fits file.
+ */
+{
+	fitsfile *fptr;
+	int status = 0;
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+	long nBolos = bolos.size();
+
+	if (fits_create_file(&fptr, fname.c_str(), &status))
+		fits_report_error(stderr, status);
+
+	// ---------------------------------------------
+	// write the Channel List
+
+	char *ttype[] = { (char*) "NAME" };
+	char *tform[] = { tableFormat(bolos) };
+	char *tunit[] = { (char*) "None" };
+	char **data;
+	data = vString2carray(bolos);
+
+	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
+			(char*)"Channel List", &status);
+	fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status);
+	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+			(char *) "physical unit of the field", &status);
+
+	// ---------------------------------------------
+	// write the Ells
+	naxes[0] = nbins + 1;
+	fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status);
+	fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status);
+	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
+			(char *) "physical unit of the field", &status);
+	fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
+			(char *) "name of this binary table extension", &status);
+
+	// ---------------------------------------------
+	// write the spectras
+	naxes[0] = nbins;
+	naxes[1] = nBolos * nBolos;
+	fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
+
+	// since Rellth is a NR matrix, one has to write it line by line :
+	for (long i = 0; i < nBolos * nBolos; i++) {
+		fpixel[1] = i + 1;
+		fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status);
+	}
+	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+			(char *) "Covariance Matrices",
+			(char *) "name of this binary table extension", &status);
+	fits_write_comment(
+			fptr,
+			(char *) "This contains the Fourrier transform of the covariance matrices",
+			&status);
+	fits_write_comment(
+			fptr,
+			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
+			&status);
+
+	if (fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	delete [] data;
+
+}
+
+void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir){
+
+	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
+	FILE *fp;
+
+	size_t result;
+
+	// open file
+	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
+	if((fp=fopen(filename.c_str(),"r"))== NULL){
+		cerr << "ERROR: Can't find Reduced MixingMatrix file" << filename << endl;
+		exit(1);
+	}
+
+	//Read sizes
+	result = fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
+	result = fread(&ncomp,sizeof(int),1,fp); // number of noise component
+
+	//allocate memory considering readed sizes
+	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
+
+
+	for (long idet=0;idet<ndet;idet++)
+		for (int icomp=0;icomp<ncomp;icomp++)
+			result = fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
+
+
+	//close file
+	fclose(fp);
+
+}
+
+
+long maxStringLength(std::vector<string> strings) {
+	// Return the longest string length of a string vector
+	unsigned long maxSize = 0;
+	std::vector<string>::iterator itString;
+
+	for (itString = strings.begin(); itString != strings.end(); itString++) {
+		string iString = *(itString);
+		if (iString.size() > maxSize)
+			maxSize = iString.size();
+
+	}
+	return maxSize;
+}
+
+char** vString2carray(std::vector<string> strings) {
+	// Transform a vector of string into a array of char
+
+	int stringLength = maxStringLength(strings);
+	int nBolos = strings.size();
+
+	char **data;
+
+	data = new char*[nBolos];
+
+	for (int i = 0; i < nBolos; i++) {
+		data[i] = new char[stringLength];
+		strcpy(data[i], strings[i].c_str());
+	}
+
+	return data;
+
+}
+
+char* tableFormat(std::vector<string> strings) {
+	// Return the table Format for the given vector of string
+	stringstream stream_tform;
+	string string_tform;
+	char* p_tform;
+
+	stream_tform << maxStringLength(strings) << "A";
+	string_tform = stream_tform.str();
+
+	p_tform = new char[string_tform.size() + 1];
+	strcpy(p_tform, string_tform.c_str());
+	return p_tform;
+}
+
 
 void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet, long ncomp){
 
@@ -33,11 +180,11 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 	//TODO : ndet is NOT to be read,
 	//////////////////////////////////////
 	// read mixing parameters
-//	int len, li, lo;
-//	len=MixMatfile.length();
-//	long ndet2;
-//	int ncomp3=0;
-//	long ncomp2=0;
+	//	int len, li, lo;
+	//	len=MixMatfile.length();
+	//	long ndet2;
+	//	int ncomp3=0;
+	//	long ncomp2=0;
 	//cout << MixMatfile << endl;
 	//	li = MixMatfile.rfind("xt");
 	//	lo= MixMatfile.rfind("bi");
@@ -65,6 +212,8 @@ void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet
 	//	if (ncomp2 < ncomp) ncomp = ncomp2;
 
 }
+
+
 
 //void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long NAXIS1, long NAXIS2, long long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, /*string bextension, string fextension,*/
 //		string dirfile, string dir, long iframe, double *S, long long *indpix,  bool NORMLIN,
@@ -685,7 +834,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	double tottest=0.0;
 
 	double f;
-	FILE *fp;
+	//	FILE *fp;
 
 	double *iN, *Pr, *w;
 	double **Rxs, **Rxsq, **RnRxsb, **Rxx, **Rxxq, **Rss, **Rssq, **RnRssb;
@@ -750,22 +899,22 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 
 
-//	std::ostringstream temp_stream;
-//
-//	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
-//	temp_stream << outdirSpN + "weights_" << ff << ".txt";
-//
-//	string testfile;
-//// récupérer une chaîne de caractères
-//	testfile= temp_stream.str();
-//	temp_stream.str("");
-//
-//	fp = fopen(testfile.c_str(),"w");
-//	for (long jj=0;jj<nbins2;jj++){
-//		fprintf(fp,"%10.15g \t",w[jj]);
-//	}
-//	fprintf(fp,"\n");
-//	fclose(fp);
+	//	std::ostringstream temp_stream;
+	//
+	//	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
+	//	temp_stream << outdirSpN + "weights_" << ff << ".txt";
+	//
+	//	string testfile;
+	//// récupérer une chaîne de caractères
+	//	testfile= temp_stream.str();
+	//	temp_stream.str("");
+	//
+	//	fp = fopen(testfile.c_str(),"w");
+	//	for (long jj=0;jj<nbins2;jj++){
+	//		fprintf(fp,"%10.15g \t",w[jj]);
+	//	}
+	//	fprintf(fp,"\n");
+	//	fclose(fp);
 
 
 	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;

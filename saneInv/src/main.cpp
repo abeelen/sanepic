@@ -1,5 +1,5 @@
 
-#include "covMatrixIO.h"
+#include "saneInvIO.h"
 #include "invMatrix.h"
 #include "parseInv.h"
 #include "inputFileIO.h"
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 	for(int ii=0; ii<n_iter; ii++){
 		fname="";
 		fname+=(string)samples_struct.noisevect[ii];
-//		cout << fname << endl;
+		//		cout << fname << endl;
 		base_name=FitsBasename(fname);
 		cout << base_name << endl;
 		base_name=FitsBasename(fname);
