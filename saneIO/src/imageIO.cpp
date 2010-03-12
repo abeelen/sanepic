@@ -276,8 +276,10 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	//TODO : This should be based on HDU name, not number
-	if (fits_movabs_hdu(fptr, 1, NULL, &status))
+//	if (fits_movabs_hdu(fptr, 1, NULL, &status))
+//		fits_report_error(stderr, status);
+
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Map", NULL, &status))
 		fits_report_error(stderr, status);
 
 	fits_get_img_size(fptr, 2, naxes, &status);
