@@ -57,7 +57,7 @@ int parse_sanePS_ini_file(char * ini_name, struct param_process &proc_param, str
 			read_channel_list(ini,dir,det.boloname, rank) ||
 			read_fits_file_list(ini, dir,samples_struct, rank) ||
 			read_ell_file(ini, ellFile, rank) ||
-			read_map_file(ini, signame, rank) ||
+			read_map_file(ini, signame) ||
 			read_mixmatfile(ini, MixMatfile, rank)||
 			read_ncomp(ini, ncomp, rank) ||
 			read_fcut(ini, fcut, rank) )
