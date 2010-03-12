@@ -98,7 +98,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 
 	read_ell_file(ini, ellFile, rank);
-	read_map_file(ini, signame, rank);
+	read_map_file(ini, signame);
 	read_mixmatfile(ini, MixMatfile, rank);
 	read_ncomp(ini, ncomp, rank);
 	read_fcut(ini, fcut_double, rank);

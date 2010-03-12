@@ -1,6 +1,5 @@
 
 
-#include "covMatrixIO.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -509,8 +508,9 @@ void check_NAN_altpositionHDU(string fname,long ns,struct detectors det){
 
 	for(int ii=0;ii<det.ndet;ii++){
 		read_flag_from_fits(fname, det.boloname[ii], flag, ns_test);
-		read_ra_from_fits(fname, det.boloname[ii], ra, ns_test);
-		read_dec_from_fits(fname, det.boloname[ii], dec, ns_test);
+		//		read_ra_from_fits(fname, det.boloname[ii], ra, ns_test);
+		//		read_dec_from_fits(fname, det.boloname[ii], dec, ns_test);
+		read_ra_dec_from_fits(fname, det.boloname[ii], ra, dec, ns_test);
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(ra[jj])){
 				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;

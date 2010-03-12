@@ -1,5 +1,4 @@
 
-#include "covMatrixIO.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -62,14 +61,6 @@ int main(int argc, char *argv[]) {
 	 */
 
 
-	// data parameters
-	/*!
-	 * -ndet = number of detectors to output
-	 * -ndetOrig = number of detectors in the NoiseNoise matrix
-	 * -nbins = number of bins (Ell)
-	 */
-	//	long ndet, ndetOrig, nbins;
-	//	int nbolos;
 	int parsed=1;
 
 	struct samples samples_struct;
@@ -78,8 +69,6 @@ int main(int argc, char *argv[]) {
 	double fsamp;
 
 	string outname;
-	//	string temp;
-	//	size_t found;
 
 	if(rank==0)
 		printf("\nBeginning of saneCheck:\n\n");
@@ -97,9 +86,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
-
-	//	std::vector<std::string> bolo_bad;
-	//	std::vector<std::string> bolo_bad_80;
 
 	struct detectors bolo_fits_0;
 	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0);
@@ -136,9 +122,6 @@ int main(int argc, char *argv[]) {
 				cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run only together scans that correspond to the same field\n";
 				continue;
 			}
-
-			//			cout << bolo_fits.boloname[0] << " " << bolo_fits.boloname[1] << endl;
-			//			cout << "bolo_0" <<  bolo_fits_0.boloname[0] << " " << bolo_fits_0.boloname[1] << endl;
 
 			check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]);
 
@@ -185,31 +168,23 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	//	outname = dir.tmp_dir +
-	//	indice_files_generation(outname,indice);
-
 	if(rank==0){
 		cout << endl;
 
 		// generating log files :
-		//		if(size_bad>0){
 		outname = dir.output_dir + "bolo_totally_flagged.txt";
 		cout << "Writing informations in :\n" << outname << endl << endl;
 		log_gen(bolo_bad_tot,outname, bolo_fits_0);
-		//		}else
-		//			cout << "There are no bolometers fully flagged in the files\n\n";
 
 
-		//		if(size_80>0){
 		outname = dir.output_dir + "bolo_80_percent_flagged.txt";
 		cout << "Writing informations in :\n" << outname << endl;
 		log_gen(bolo_bad_80_tot, outname, bolo_fits_0);
-		//		}else
-		//			cout << "There are no bolometers more than 80% flagged in the files\n";
 
 
 		cout << "\nEnd of saneCheck\n";
 	}
+
 	//cleaning
 	delete [] samples_struct.nsamples;
 
