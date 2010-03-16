@@ -713,17 +713,19 @@ int main(int argc, char *argv[])
 		long long mi;
 		map1d = new double[NAXIS1*NAXIS2];
 
-		//TODO: replace the NAN by 0 + addnpix pixel + replace map[hits[mi] = 0] = NAN
-		//TODO: save everythings in a single fits file
+		//TODO:   addnpix pixel
 		for (long jj=0; jj<NAXIS2; jj++) {
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
+					if(PNdtot[indpix[mi]]==NAN) // replace NAN by 0
+						map1d[mi] = 0;
+					else
+						map1d[mi] = PNdtot[indpix[mi]]/Mptot[indpix[mi]];
 					//					filee << PNdtot[indpix[mi]] << " " << Mptot[indpix[mi]] << endl;
 					//					getchar();
 				} else {
-					map1d[mi] = NAN;
+					map1d[mi] = NAN; // replace map[hits[mi] = 0] = NAN
 				}
 			}
 		}
@@ -772,8 +774,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
-	//fnaivname = dir.output_dir + "naivMap.fits";
-		//		fnaivname = '!' + dir.output_dir + "hits.fits";
+		//fnaivname = dir.outdir + "naivMap.fits";
+		//		fnaivname = '!' + dir.outdir + "hits.fits";
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1);
 
 

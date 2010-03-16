@@ -1,5 +1,5 @@
 
-#include "saneInvIO.h"
+#include "covMatrix_IO.h"
 #include "invMatrix.h"
 #include "parseInv.h"
 #include "inputFileIO.h"

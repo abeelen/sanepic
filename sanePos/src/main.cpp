@@ -407,6 +407,8 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		printf("\n\nCompute Pixels Indices\n");
 
+	compute_dirfile_format_file(dir.tmp_dir,det);
+
 	switch (pos_param.fileFormat) {
 	case 0:
 		computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,

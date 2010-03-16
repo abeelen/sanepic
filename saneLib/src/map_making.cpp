@@ -690,7 +690,7 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	fill(data_out_lp,data_out_lp+ns,0.0);
 
 
-	//TODO : TEST : Change the removal of the map here
+	//TODO : TEST : Change the removal of the map here => means ??
 	//TODO : Optimize the memory management here.... We have data/data_out/data_out_lp/data_lp
 	//TODO : This routine CHANGES *data : is this really wanted ?
 //

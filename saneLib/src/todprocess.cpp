@@ -29,48 +29,6 @@ void init2D_double(double **A, long im, long jm, long nx, long ny, double val){
 
 }
 
-void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
-		long * nbins, long * ndet, double ** ell, double *** SpN_all)
-/*
- * This function reads the Inverse Covariance Matrices in binary format
- */
-{
-
-	string filename;
-	FILE *fp;
-	size_t result;
-
-	filename = outputDir + boloName + "_" + suffix;
-	//	cout << filename << endl;
-	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-		cerr << "ERROR: Can't read noise power spectra file" << filename
-		<< endl;
-		exit(1);
-	}
-	// Read sizes
-	result = fread(nbins, sizeof(long), 1, fp);
-	result = fread(ndet, sizeof(long), 1, fp);
-
-
-	// Allocate memory
-	*ell = new double[(*nbins) + 1];
-	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
-
-	// Read arrays
-	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
-	for (long i=0; i<(*ndet); i++)
-		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
-	//
-	//	for (int i=0; i< *nbins; i++)
-	//		cout << (*SpN_all)[0][i] << " ";
-	//	cout << endl;
-	//
-	//	cout << "here final" << endl;
-
-	fclose(fp);
-
-}
-
 /*
 void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int *posmax, unsigned char *flag)
 {

@@ -17,6 +17,7 @@
 #include "todprocess.h"
 #include "map_making.h"
 #include "struct_definition.h"
+#include "covMatrix_IO.h"
 #include <time.h>
 
 

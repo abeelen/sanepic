@@ -31,8 +31,8 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.553382718" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1965074476" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/home/matthieu/mpich2-1.0.5p4/src/include/"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/include"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
@@ -61,14 +61,15 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2092731118" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.1154244894" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="iniparser"/>
+<listOptionValue builtIn="false" value="getdata"/>
 <listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 <listOptionValue builtIn="false" value="wcs"/>
 </option>
 <option id="gnu.cpp.link.option.paths.2112914027" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="/usr/local/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib/"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
@@ -795,7 +796,7 @@
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.def.1226602444" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<option id="gnu.cpp.compiler.option.preprocessor.def.1226602444" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="DEBUG_PRINT"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.852915525" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -809,6 +810,7 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1147976627" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 <option id="gnu.cpp.link.option.libs.1765213591" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="iniparser"/>
+<listOptionValue builtIn="false" value="getdata"/>
 <listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="cfitsio"/>

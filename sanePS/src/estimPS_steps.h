@@ -23,21 +23,6 @@
 #include <fftw3.h>
 
 
-/*! Return the longest string length of a string vector */
-long maxStringLength(std::vector<std::string> strings);
-
-/*! This function writes the NoiseNoise Matrices in a fits file (also Writes the mixing matrices) */
-void write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbins, double *ell, double **Rellth);
-
-/*! Writes the reduced mixing matrix from a binary file */
-void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, std::string dir);
-
-/*! Returns the table Format for the given vector of string*/
-char* tableFormat(std::vector<std::string> strings);
-
-/*! Transform a vector of string into a array of char*/
-char** vString2carray(std::vector<std::string> strings);
-
 void read_mixmat_file(std::string MixMatfile, std::string dir, double **&mixmat, long ndet, long ncomp);
 
 void common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
