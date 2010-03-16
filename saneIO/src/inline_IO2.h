@@ -11,8 +11,10 @@
 
 #include <fftw3.h>
 
+
 extern "C" {
 #include "nrutil.h"
+#include "getdata.h"
 }
 
 

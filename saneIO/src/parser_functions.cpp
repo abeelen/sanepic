@@ -576,6 +576,7 @@ int read_common(dictionary	*ini, struct common &dir, int rank){
 
 }
 
+// TODO : change this : when a function is wrong, it crashes the reading procedure and the other parameters are not read
 int read_param_process(dictionary *ini,struct param_process &proc_param, int rank){
 
 	return read_apodize_samples(ini, proc_param, rank) || \

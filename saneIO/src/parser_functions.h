@@ -44,7 +44,7 @@ int read_correlation(dictionary	    *ini, struct param_process &proc_param, int 
 int read_remove_poly(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_iter(dictionary	        *ini, int &iterw, int rank);
 int read_ell_file(dictionary	*ini, std::string &ellFile, int rank);
-int read_map_file(dictionary	*ini, std::string &signame, int rank);
+int read_map_file(dictionary	*ini, std::string &signame);
 int read_cov_matrix_file(dictionary	*ini, std::string &fname, int rank);
 int read_mixmatfile(dictionary	*ini, std::string &MixMatfile, int rank);
 int read_ncomp(dictionary	*ini, long &ncomp, int rank);

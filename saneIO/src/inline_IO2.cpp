@@ -13,7 +13,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-
+#include <cmath>
 //#include <fftw3.h>
 //#include <fstream>
 #include <iostream>
@@ -22,6 +22,7 @@
 
 extern "C" {
 #include "nrutil.h"
+#include "getdata.h"
 
 }
 
@@ -39,15 +40,121 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	// récupérer une chaîne de caractères
 	std::string temp = oss.str();
 
+	//	if((fp = fopen(temp.c_str(),"w"))!=NULL){
+	//		fwrite(&ns,sizeof(long),1,fp);
+	//		fwrite(samptopix,sizeof(long long), ns, fp);
+	//		fclose(fp);
+	//	}else{
+	//		cerr << "ERROR : Could not open " << temp << endl;
+	//		exit(0);
+	//	}
+
+	size_t nwrite=10;
+	oss.str("");
+	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
+	string temp2=oss.str();
+	DIRFILE  * dirf;
+	int test_close=0;
+
+	char *buffer;
+	size_t buflen=100;
+	buffer = new char [buflen];
+
+	char ffname[100];
+	char *tab;
+	tab=new char[100];
+	strcpy(ffname,outdir.c_str());
+	dirf=dirfile_open(ffname, GD_RDWR | GD_CREAT); // GD_RDWR |GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_PRETTY_PRINT | GD_UNENCODED
+	//	tab=(char*)dirfilename(dirf);
+	//	//	string hh = (string)tab;
+	//	cout << tab << endl;
+	cout << temp2 << endl;
+	//	 int g=get_fragment_index(dirf, "samptopix_0_C1.bi");
+	//	 cout << "g : " << g << endl;
+	//	char **tab2;
+	//	tab2=new char*[100];
+	//	for(long uu=0;uu<100;uu++)
+	//		tab2[uu]=new char[100];
+	//	//	dirfile_metaflush(dirf);
+	//	tab2=(char**)get_field_list(dirf);
+	//	cout << "fields\n";
+	//	cout << tab2[0] << endl;
+	//	cout << tab2[1] << endl;
+	//	cout << tab2[2] << endl;
+	//	cout << tab2[3] << endl;
+	//	cout << tab2[4] << endl;
+
+
+
+	//	int i=dirfile_add_raw(dirf, "samptopix_0_C8.bi", GD_INT64,  1,  0);
+	//	cout << "i " << i << endl;
+
+
+	cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
 	if((fp = fopen(temp.c_str(),"w"))!=NULL){
-		fwrite(&ns,sizeof(long),1,fp);
-		fwrite(samptopix,sizeof(long long), ns, fp);
+		//		int z = dirfile_add_raw(dirf,  temp2.c_str(),  GD_INT64,  1,  0);
+
+		dirfile_flush(dirf,  NULL);
+		get_error_string(dirf, buffer, buflen);
+		cout << buffer << endl;
+
+		if(boloname=="C6"){
+			cout << "ds C6\n";
+			gd_entry_t *entry;
+			entry = new gd_entry_t[1];
+			entry->field=(char*)temp2.c_str();
+			entry->field_type=GD_RAW_ENTRY;
+			entry->data_type=GD_INT64;
+			char *pt;
+			pt=new char[1];
+			*pt='1';
+			entry->scalar[1]=pt;
+
+			cout << "avant add\n";
+
+			int z =dirfile_madd(dirf, entry, "samptopix_0_C1.bi");
+			cout << "z " << z << endl;
+		}
+
+		get_error_string(dirf, buffer, buflen);
+		cout << buffer << endl;
+
+		nwrite=putdata(dirf, temp2.c_str() , 0, 0, 0, ns,  GD_INT64, samptopix);
+
+		get_error_string(dirf, buffer, buflen);
+		cout << buffer << endl;
+		//	cout << "i : " << i << endl;
+
+
+		cout << "written : " << nwrite << endl;
+
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not open " << temp << endl;
 		exit(0);
 	}
 
+//		if(boloname=="C1"){
+//			int z= dirfile_include(dirf,  temp2.c_str(),  0,  GD_CREAT);
+//			cout << "z " << z << endl;
+//		}
+
+
+	long long *data_out;
+	data_out = new long long[ns];
+
+	get_error_string(dirf, buffer, buflen);
+	cout << buffer << endl;
+
+	size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  data_out);
+	cout << "read : " << read_s << endl;
+	cout << data_out[0] << " " << data_out[1000] << " " << data_out[29339] << endl;
+
+	get_error_string(dirf, buffer, buflen);
+	cout << buffer << endl;
+
+	test_close=dirfile_close(dirf);
+	//	cout << test_close << endl;
 
 #ifdef DEBUG_PRINT
 	oss.str("");
@@ -103,14 +210,14 @@ void write_indpsrc(long long map_size, long long  npixsrc, long long * indpsrc, 
 	string testfile = outdir+"indpsrc.bin";
 
 	if((fp = fopen(testfile.c_str(),"w"))!=NULL){
-			fwrite(&map_size,sizeof(long long),1,fp);
-			fwrite(&npixsrc, sizeof(long long),1,fp);
-			fwrite(indpsrc,sizeof(long long), map_size, fp);
-			fclose(fp);
-		}else{
-			cerr << "ERROR : Could not open " << testfile << endl;
-			exit(0);
-		}
+		fwrite(&map_size,sizeof(long long),1,fp);
+		fwrite(&npixsrc, sizeof(long long),1,fp);
+		fwrite(indpsrc,sizeof(long long), map_size, fp);
+		fclose(fp);
+	}else{
+		cerr << "ERROR : Could not open " << testfile << endl;
+		exit(0);
+	}
 }
 
 
