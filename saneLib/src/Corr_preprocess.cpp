@@ -108,6 +108,17 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
+	//	if(!fftw_import_system_wisdom()){
+//	FILE * input_file;
+//	string olol = "/etc/fftw/wisdom";
+//	input_file = fopen(olol.c_str(),"r");
+//	int ret = fftw_import_wisdom_from_file(input_file);
+//	cout << ret << " " << "wisdom" << endl;
+////	getchar();
+//	fclose(input_file);
+
+
+
 
 	string field1, fits_filename;
 
@@ -224,7 +235,15 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		}
 
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
+		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
+		//		FILE *fp;
+		//		string olol = tmp_dir +  "wisdom_global";
+		//		fp = fopen(olol.c_str(),"a");
+		//		fftw_export_wisdom_to_file(fp);
+		//		fclose(fp);
+//		fftw_print_plan(fftplan);
+//		getchar();
+
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
@@ -495,4 +514,5 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 
 }
+
 

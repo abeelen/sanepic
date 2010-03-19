@@ -14,6 +14,7 @@
 #include <sstream>
 #include <vector>
 #include <cmath>
+#include "struct_definition.h"
 //#include <fftw3.h>
 //#include <fstream>
 #include <iostream>
@@ -28,6 +29,66 @@ extern "C" {
 
 using namespace std;
 
+
+bool compute_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank){
+
+	if(rank==0){
+		std::ostringstream oss;
+		FILE *fp;
+		string temp = outdir + "format";
+
+
+		if((fp = fopen(temp.c_str(),"w"))!=NULL){
+			//			fprintf(fp,"/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
+
+			for(long iframe = 0; iframe< ntotscan; iframe++)
+				for(long ii =0; ii<det.ndet; ii++){
+					oss << "samptopix_" << iframe << "_" << det.boloname[ii] << ".bi";
+					std::string temp = oss.str();
+					fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
+					oss.str("");
+				}
+		}else{
+			cerr << "ERROR : Could not create " << temp << endl;
+			return (0);
+		}
+
+
+		fclose(fp);
+	}
+
+	return 1;
+
+}
+
+bool fill_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank){
+
+		if(rank==0){
+			std::ostringstream oss;
+			FILE *fp;
+			string temp = outdir + "format";
+
+
+			if((fp = fopen(temp.c_str(),"a+"))!=NULL){
+				for(long iframe = 0; iframe< ntotscan; iframe++)
+					for(long ii =0; ii<det.ndet; ii++){
+						oss << "fdata_" << iframe << "_" << det.boloname[ii] << ".bi";
+						std::string temp = oss.str();
+						fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
+						oss.str("");
+					}
+			}else{
+				cerr << "ERROR : Could not create " << temp << endl;
+				return (0);
+			}
+
+
+			fclose(fp);
+		}
+
+	return 1;
+
+}
 
 
 void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
@@ -49,26 +110,35 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	//		exit(0);
 	//	}
 
-	size_t nwrite=10;
+	size_t nwrite=0;
 	oss.str("");
 	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
 	string temp2=oss.str();
 	DIRFILE  * dirf;
-	int test_close=0;
+	//	int test_close=0;
 
 	char *buffer;
 	size_t buflen=100;
 	buffer = new char [buflen];
 
 	char ffname[100];
-	char *tab;
-	tab=new char[100];
+	//	char *tab;
+	//	tab=new char[100];
 	strcpy(ffname,outdir.c_str());
-	dirf=dirfile_open(ffname, GD_RDWR | GD_CREAT); // GD_RDWR |GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_PRETTY_PRINT | GD_UNENCODED
+	dirf=dirfile_open(ffname, GD_RDWR | GD_CREAT /*| GD_PRETTY_PRINT | GD_VERBOSE | GD_UNENCODED | GD_LITTLE_ENDIAN*/); // GD_RDWR |GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_PRETTY_PRINT | GD_UNENCODED
+	//	get_error_string(dirf, buffer, buflen);
+	//	cout << buffer << endl;
+
+
+	//	dirfile_flush(dirf,  NULL);
+	//	get_error_string(dirf, buffer, buflen);
+	//	cout << buffer << endl;
+	//
+	//	getchar();
 	//	tab=(char*)dirfilename(dirf);
 	//	//	string hh = (string)tab;
 	//	cout << tab << endl;
-	cout << temp2 << endl;
+	//	cout << temp2 << endl;
 	//	 int g=get_fragment_index(dirf, "samptopix_0_C1.bi");
 	//	 cout << "g : " << g << endl;
 	//	char **tab2;
@@ -84,49 +154,70 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	//	cout << tab2[3] << endl;
 	//	cout << tab2[4] << endl;
 
-
+	//	if(boloname=="C1"){
+	//		int z= dirfile_include(dirf,  temp2.c_str(),  0,  GD_CREAT);
+	//		cout << "z " << z << endl;
+	//	}
+	//	int r= dirfile_validate(dirf, temp2.c_str());
+	//	cout << "r " << r << endl;
+	//	get_error_string(dirf, buffer, buflen);
+	//	cout << buffer << endl;
 
 	//	int i=dirfile_add_raw(dirf, "samptopix_0_C8.bi", GD_INT64,  1,  0);
 	//	cout << "i " << i << endl;
 
 
-	cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
+	//	cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
 	if((fp = fopen(temp.c_str(),"w"))!=NULL){
 		//		int z = dirfile_add_raw(dirf,  temp2.c_str(),  GD_INT64,  1,  0);
 
-		dirfile_flush(dirf,  NULL);
-		get_error_string(dirf, buffer, buflen);
-		cout << buffer << endl;
+		//		dirfile_flush(dirf,  NULL);
+		//		get_error_string(dirf, buffer, buflen);
+		//		cout << buffer << endl;
+		//
+		//		if(boloname=="C6"){
+		//			cout << "ds C6\n";
+		//			gd_entry_t *entry;
+		//			entry = new gd_entry_t[1];
+		//			entry->field=(char*)temp2.c_str();
+		//			entry->field_type=GD_RAW_ENTRY;
+		//			entry->data_type=GD_INT64;
+		//			char *pt;
+		//			pt=new char[1];
+		//			*pt='1';
+		//			entry->scalar[1]=pt;
+		//
+		//			cout << "avant add\n";
+		//
+		//			int z =dirfile_madd(dirf, entry, "samptopix_0_C1.bi");
+		//			cout << "z " << z << endl;
+		//		}
+		//
+		//		get_error_string(dirf, buffer, buflen);
+		//		cout << buffer << endl;
 
-		if(boloname=="C6"){
-			cout << "ds C6\n";
-			gd_entry_t *entry;
-			entry = new gd_entry_t[1];
-			entry->field=(char*)temp2.c_str();
-			entry->field_type=GD_RAW_ENTRY;
-			entry->data_type=GD_INT64;
-			char *pt;
-			pt=new char[1];
-			*pt='1';
-			entry->scalar[1]=pt;
+		//		int t= put_string(dirf,  "", "RAW INT64 1");
+		//		get_error_string(dirf, buffer, buflen);
+		//		cout << "t " << t << endl;
+		//		cout << buffer << endl;
 
-			cout << "avant add\n";
-
-			int z =dirfile_madd(dirf, entry, "samptopix_0_C1.bi");
-			cout << "z " << z << endl;
-		}
-
-		get_error_string(dirf, buffer, buflen);
-		cout << buffer << endl;
+		//		dirfile_flush(dirf,  NULL);
+		//		get_error_string(dirf, buffer, buflen);
+		//		cout << buffer << endl;
+		//		dirfile_close(dirf);
+		//		getchar();
 
 		nwrite=putdata(dirf, temp2.c_str() , 0, 0, 0, ns,  GD_INT64, samptopix);
 
 		get_error_string(dirf, buffer, buflen);
-		cout << buffer << endl;
+		if(strcmp(buffer,"Success")||(nwrite==0)){
+			cout << buffer << endl;
+			exit(0); // TODO : mettre ca en MPI
+		}
+
+
 		//	cout << "i : " << i << endl;
-
-
-		cout << "written : " << nwrite << endl;
+		//		cout << "written : " << nwrite << endl;
 
 		fclose(fp);
 	}else{
@@ -134,26 +225,27 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 		exit(0);
 	}
 
-//		if(boloname=="C1"){
-//			int z= dirfile_include(dirf,  temp2.c_str(),  0,  GD_CREAT);
-//			cout << "z " << z << endl;
-//		}
 
 
-	long long *data_out;
-	data_out = new long long[ns];
 
-	get_error_string(dirf, buffer, buflen);
-	cout << buffer << endl;
+	//	long long *data_out;
+	//	data_out = new long long[ns];
+	//	//
+	//	//	get_error_string(dirf, buffer, buflen);
+	//	//	cout << buffer << endl;
+	//	//
+	//	size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  data_out);
+	//		cout << "read : " << read_s << endl;
+	//		cout << data_out[0] << " " << data_out[1000] << " " << data_out[29339] << endl;
+	//	//
+	//	get_error_string(dirf, buffer, buflen);
+	//	if(strcmp(buffer,"Success")||(read_s==0)){
+	//		cout << "getdata error " << buffer << endl;
+	//		exit(0); // TODO : mettre ca en MPI
+	//	}
+	//	delete [] data_out;
 
-	size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  data_out);
-	cout << "read : " << read_s << endl;
-	cout << data_out[0] << " " << data_out[1000] << " " << data_out[29339] << endl;
-
-	get_error_string(dirf, buffer, buflen);
-	cout << buffer << endl;
-
-	test_close=dirfile_close(dirf);
+	dirfile_close(dirf);
 	//	cout << test_close << endl;
 
 #ifdef DEBUG_PRINT
@@ -178,30 +270,61 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 
 void read_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
 	FILE *fp;
-	size_t result;
-	long ns2;
+	//	size_t result;
+	//	long ns2;
 
+	DIRFILE  * dirf;
 	// créer un flux de sortie
 	std::ostringstream oss;
 	oss << outdir + "samptopix_" << iframe << "_" << boloname  << ".bi";
-
-	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
+	oss.str("");
+	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
+	string temp2=oss.str();
+	// récupérer une chaîne de caractères
+
+
+	// Declare buffer in case of errors
+	char *buffer;
+	size_t buflen=100;
+	buffer = new char [buflen];
+
+	char ffname[100];
+	strcpy(ffname,outdir.c_str());
+	dirf=dirfile_open(ffname, GD_RDWR);
+
+	get_error_string(dirf, buffer, buflen);
+	if(strcmp(buffer,"Success")){
+		cout << "open dir " << buffer << endl;
+		exit(0); // TODO : mettre ca en MPI
+	}
 
 	if((fp = fopen(testfile.c_str(),"r"))){
-		result = fread(&ns2,sizeof(long),1,fp);
-		if(ns==ns2)
-			result = fread(samptopix,sizeof(long long),ns,fp);
-		else{
-			fclose(fp);
-			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
-			exit(0);
+
+		size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  samptopix);
+
+		get_error_string(dirf, buffer, buflen);
+		if(strcmp(buffer,"Success")||(read_s==0)){
+			cout << "getdata error " << buffer << endl;
+			exit(0); // TODO : mettre ca en MPI
 		}
+//		cout << "read : " << read_s << endl;
+//		cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
+		//		result = fread(&ns2,sizeof(long),1,fp);
+		//		if(ns==ns2)
+		//			result = fread(samptopix,sizeof(long long),ns,fp);
+		//		else{
+		//			fclose(fp);
+		//			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
+		//			exit(0);
+		//		}
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile << endl;
 		exit(0);
 	}
+
+	dirfile_close(dirf);
 }
 
 

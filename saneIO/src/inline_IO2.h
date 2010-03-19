@@ -20,6 +20,10 @@ extern "C" {
 
 // sanePos functions
 
+bool compute_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank);
+
+bool fill_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank);
+
 /*!
  * Writes indpix in a binary file \n
  * -ind_size is the indpix readed size \n

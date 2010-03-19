@@ -64,25 +64,25 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 	/* Get sanepic_preprocess attributes */
 
 
-	if(read_common(ini, dir,rank)==-1)
+	if(read_common(ini, dir,rank))
 		return 2;
 
-	if(read_channel_list(ini,dir,det.boloname,rank)==-1)
+	if(read_channel_list(ini,dir,det.boloname,rank))
 		return 2;
 
-	if(read_fits_file_list(ini, dir,samples_struct,rank)==-1)
+	if(read_fits_file_list(ini, dir,samples_struct,rank))
 		return 2;
 
-	if(read_param_process(ini,proc_param,rank)==-1)
+	if(read_param_process(ini,proc_param,rank))
 		return 2;
 
-	if(read_param_positions(ini,pos_param,rank)==-1)
+	if(read_param_positions(ini,pos_param,rank))
 		return 2;
 
 	//if(read_noise_file_list(ini, extentnoiseSP)==-1)
 	//return -1;
 
-	if(read_noise_cut_freq(ini, proc_param, fcut,rank)==-1)
+	if(read_noise_cut_freq(ini, proc_param, fcut,rank))
 		return 2;
 
 	if(rank==0){

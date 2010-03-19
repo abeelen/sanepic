@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 		parsed=parse_sanePos_ini_file(argv[1],proc_param, pos_param, dir,
 				det, samples_struct, rank);
 
-		if (parsed==-1){
+		if((parsed==-1)||(!compute_dirfile_format_file(dir.tmp_dir,det,samples_struct.ntotscan,rank))){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
 		}
 
 	}
+
+
 
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
@@ -407,7 +409,7 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		printf("\n\nCompute Pixels Indices\n");
 
-	compute_dirfile_format_file(dir.tmp_dir,det);
+
 
 	switch (pos_param.fileFormat) {
 	case 0:

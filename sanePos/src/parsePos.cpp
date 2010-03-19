@@ -68,19 +68,19 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 
 	/* Get sanepic_compute_positions attributes */
 
-	if(read_param_positions(ini, pos_param, rank)==-1)
+	if(read_param_positions(ini, pos_param, rank))
 		return -1;
 
-	if(read_common(ini, dir, rank)==-1)
+	if(read_common(ini, dir, rank))
 		return -1;
 
-	if(read_param_process(ini, proc_param, rank)==-1)
+	if(read_param_process(ini, proc_param, rank))
 		return -1;
 
 	if(read_channel_list(ini, dir, det.boloname, rank))
 		return -1;
 
-	if(read_fits_file_list(ini, dir, samples_struct, rank)==-1)
+	if(read_fits_file_list(ini, dir, samples_struct, rank))
 		return -1;
 
 

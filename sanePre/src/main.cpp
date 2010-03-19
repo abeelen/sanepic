@@ -149,22 +149,24 @@ int main(int argc, char *argv[])
 		if(size>det.ndet) parsed=3;
 	}
 
-	if (parsed>0){
-		if (rank==0)
-			switch (parsed){
 
-			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
-			break;
 
-			case 2 : printf("Wrong program options or argument. Exiting !\n");
-			break;
+	if (rank==0)
+		switch (parsed){
 
-			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
-			break;
+		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+		break;
 
-			default :;
-			}
+		case 2 : printf("Wrong program options or argument. Exiting !\n");
+		break;
 
+		case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+		break;
+
+		default :;
+		}
+
+	if ((parsed>0)||(!fill_dirfile_format_file(dir.tmp_dir, det, samples_struct.ntotscan, rank))){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();

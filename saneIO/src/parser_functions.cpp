@@ -576,17 +576,21 @@ int read_common(dictionary	*ini, struct common &dir, int rank){
 
 }
 
-// TODO : change this : when a function is wrong, it crashes the reading procedure and the other parameters are not read
+// when a function is wrong, it crashes the reading procedure and the other parameters are not read so I changed || to +
 int read_param_process(dictionary *ini,struct param_process &proc_param, int rank){
 
-	return read_apodize_samples(ini, proc_param, rank) || \
-	read_nofillgap(ini, proc_param, rank)              || \
-	read_sampling_frequency(ini, proc_param, rank)     || \
-	read_filter_frequency(ini, proc_param, rank)       || \
-	read_baseline(ini, proc_param, rank)               || \
-	read_correlation(ini,proc_param,rank)              ||\
+	int returned=0;
+
+	returned = read_apodize_samples(ini, proc_param, rank) + \
+	read_nofillgap(ini, proc_param, rank)              + \
+	read_sampling_frequency(ini, proc_param, rank)     + \
+	read_filter_frequency(ini, proc_param, rank)       + \
+	read_baseline(ini, proc_param, rank)               + \
+	read_correlation(ini,proc_param,rank)              +\
 	read_remove_poly(ini, proc_param, rank);
 
+	returned > 0 ? returned = 1 : returned = 0;
+	return returned;
 
 }
 
@@ -598,6 +602,8 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	// read the pixelsize
 	if (read_parser_string(ini, "sanePos:pixsize", str)==0)
 		pos_param.pixdeg=atof(str.c_str());
+	else
+		return 1;
 
 	// Read the mask_file if present
 	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
@@ -609,8 +615,9 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	// 1: 'hipe' like format with RA/DEC for each time/bolo
 	pos_param.fileFormat = iniparser_getint(ini, "sanePos:file_format", 0);
 
-	if(pos_param.pixdeg < 0 && rank==0){
-		printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
+	if(pos_param.pixdeg < 0){
+		if(rank==0)
+			printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
 		return 1 ;
 	}
 

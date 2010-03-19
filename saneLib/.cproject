@@ -60,6 +60,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.371830574" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib/"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
 </option>
 <option defaultValue="true" id="gnu.cpp.link.option.shared.1510781643" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" value="true" valueType="boolean"/>
