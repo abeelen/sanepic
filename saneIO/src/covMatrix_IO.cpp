@@ -141,7 +141,7 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 	long nBolos, repeat, width;
 	int colnum, typecode;
 
-//	cout << fname << endl;
+	//	cout << fname << endl;
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
@@ -380,7 +380,7 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 	for (int idet = 0; idet < ndet; idet++) {
 
 		// open file
-		filename = outputDir + bolos[idet] + "_" + suffix;
+		filename = outputDir + "Noise_data/" + bolos[idet] + "_" + suffix;
 		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
 			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
 			exit(1);
@@ -412,7 +412,7 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	FILE *fp;
 	size_t result;
 
-	filename = outputDir + boloName + "_" + suffix;
+	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
 	//	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename

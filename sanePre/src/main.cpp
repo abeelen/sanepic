@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 		default :;
 		}
 
-	if ((parsed>0)||(!fill_dirfile_format_file(dir.tmp_dir, det, samples_struct.ntotscan, rank))){
+	if ((parsed>0)||(!compute_dirfile_format_fdata(dir.tmp_dir, det, samples_struct.ntotscan, rank))){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();

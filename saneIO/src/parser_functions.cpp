@@ -10,6 +10,9 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <sys/types.h>  // For stat()
+#include <sys/stat.h>   // For stat()
+
 
 extern "C"{
 #include "iniparser.h"
@@ -698,6 +701,44 @@ void print_common(struct common dir){
 	cout << "Noise directory : " << dir.noise_dir << endl;
 
 	cout << endl;
+
+}
+
+int check_path(string strPath, string path_type){
+
+
+
+	if ( access( strPath.c_str(), 0 ) == 0 )
+	{
+		struct stat status;
+		stat( strPath.c_str(), &status );
+
+		if ( status.st_mode & S_IFDIR )
+		{
+			cout << "The directory " << path_type << " : " << strPath << " exists." << endl;
+			return 0;
+		}
+		else
+		{
+			cout << "Warning : The path " << path_type << " : " << strPath << " is a file." << endl;
+			return 1;
+		}
+	}
+	else
+	{
+		cout << "Warning : Path " << path_type << " : " << strPath << " doesn't exist." << endl;
+		return 1;
+	}
+
+
+
+}
+
+int check_dirfile_paths(string strPath){
+
+	return check_path(strPath + "Fourier_data/","Fourier data binaries") || \
+	check_path(strPath + "Noise_data/","Noise data binaries") || \
+	check_path(strPath + "Indexes/","Indexes");
 
 }
 

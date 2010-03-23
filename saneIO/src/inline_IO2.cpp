@@ -36,14 +36,76 @@ bool compute_dirfile_format_file(std::string outdir, struct detectors det, long 
 		std::ostringstream oss;
 		FILE *fp;
 		string temp = outdir + "format";
-
-
 		if((fp = fopen(temp.c_str(),"w"))!=NULL){
-			//			fprintf(fp,"/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
+			fprintf(fp,"/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
+			fprintf(fp,"\n/INCLUDE Indexes/format\n");
+			fprintf(fp,"/INCLUDE Fourier_data/format\n");
+			fprintf(fp,"/INCLUDE Noise_data/format\n");
+			fclose(fp);
+		}
+
+		temp = outdir + "Indexes/format";
+		if((fp = fopen(temp.c_str(),"w"))!=NULL){
+			fprintf(fp,"/FRAMEOFFSET 1\n/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
 
 			for(long iframe = 0; iframe< ntotscan; iframe++)
 				for(long ii =0; ii<det.ndet; ii++){
 					oss << "samptopix_" << iframe << "_" << det.boloname[ii] << ".bi";
+					std::string temp = oss.str();
+					fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
+					oss.str("");
+				}
+		}else{
+			cerr << "ERROR : Could not create " << temp << endl;
+			return (0);
+		}
+		fclose(fp);
+	}
+
+	return 1;
+
+}
+
+bool compute_dirfile_format_noisePS(std::string outdir, std::vector<string> det, string suffix){
+
+
+	std::ostringstream oss;
+	FILE *fp;
+	string temp = outdir + "/Noise_data/format";
+	long ndet=(long)det.size();
+
+	if((fp = fopen(temp.c_str(),"w"))!=NULL){
+		fprintf(fp,"/FRAMEOFFSET 1\n/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
+		for(long ii =0; ii<ndet; ii++){
+			// open file
+			string filename = det[ii] + "_" + suffix;
+			fprintf(fp,"%s RAW INT64 1\n",filename.c_str());
+		}
+	}else{
+		cerr << "ERROR : Could not create " << temp << endl;
+		return (0);
+	}
+
+	fclose(fp);
+
+	return 1;
+
+
+}
+
+bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long ntotscan, int rank){
+
+	if(rank==0){
+		std::ostringstream oss;
+		FILE *fp;
+		string temp = outdir + "/Fourier_data/format";
+
+
+		if((fp = fopen(temp.c_str(),"w"))!=NULL){
+			fprintf(fp,"/FRAMEOFFSET 1\n/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
+			for(long iframe = 0; iframe< ntotscan; iframe++)
+				for(long ii =0; ii<det.ndet; ii++){
+					oss << "fdata_" << iframe << "_" << det.boloname[ii] << ".bi";
 					std::string temp = oss.str();
 					fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
 					oss.str("");
@@ -61,71 +123,43 @@ bool compute_dirfile_format_file(std::string outdir, struct detectors det, long 
 
 }
 
-bool fill_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank){
-
-		if(rank==0){
-			std::ostringstream oss;
-			FILE *fp;
-			string temp = outdir + "format";
-
-
-			if((fp = fopen(temp.c_str(),"a+"))!=NULL){
-				for(long iframe = 0; iframe< ntotscan; iframe++)
-					for(long ii =0; ii<det.ndet; ii++){
-						oss << "fdata_" << iframe << "_" << det.boloname[ii] << ".bi";
-						std::string temp = oss.str();
-						fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
-						oss.str("");
-					}
-			}else{
-				cerr << "ERROR : Could not create " << temp << endl;
-				return (0);
-			}
-
-
-			fclose(fp);
-		}
-
-	return 1;
-
-}
-
 
 void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
 	FILE *fp;
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + "samptopix_" << iframe << "_" << boloname << ".bi";
+	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string temp = oss.str();
+	long long ns2 = (long long)ns;
 
-	//	if((fp = fopen(temp.c_str(),"w"))!=NULL){
-	//		fwrite(&ns,sizeof(long),1,fp);
-	//		fwrite(samptopix,sizeof(long long), ns, fp);
-	//		fclose(fp);
-	//	}else{
-	//		cerr << "ERROR : Could not open " << temp << endl;
-	//		exit(0);
-	//	}
+	if((fp = fopen(temp.c_str(),"w"))!=NULL){
+		fwrite(&ns2,sizeof(long long),1,fp);
+		fwrite(samptopix,sizeof(long long), ns, fp);
+		fclose(fp);
+	}else{
+		cerr << "ERROR : Could not open " << temp << endl;
+		exit(0);
+	}
 
-	size_t nwrite=0;
+	//	size_t nwrite=0;
 	oss.str("");
 	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
 	string temp2=oss.str();
-	DIRFILE  * dirf;
+	//	DIRFILE  * dirf;
 	//	int test_close=0;
 
-	char *buffer;
-	size_t buflen=100;
-	buffer = new char [buflen];
-
-	char ffname[100];
+	//	char *buffer;
+	//	size_t buflen=100;
+	//	buffer = new char [buflen];
+	//
+	//	char ffname[100];
 	//	char *tab;
 	//	tab=new char[100];
-	strcpy(ffname,outdir.c_str());
-	dirf=dirfile_open(ffname, GD_RDWR | GD_CREAT /*| GD_PRETTY_PRINT | GD_VERBOSE | GD_UNENCODED | GD_LITTLE_ENDIAN*/); // GD_RDWR |GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_PRETTY_PRINT | GD_UNENCODED
+	//	strcpy(ffname,outdir.c_str());
+	//	dirf=dirfile_open(ffname, GD_RDWR | GD_CREAT /*| GD_PRETTY_PRINT | GD_VERBOSE | GD_UNENCODED | GD_LITTLE_ENDIAN*/); // GD_RDWR |GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_PRETTY_PRINT | GD_UNENCODED
 	//	get_error_string(dirf, buffer, buflen);
 	//	cout << buffer << endl;
 
@@ -163,67 +197,74 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	//	get_error_string(dirf, buffer, buflen);
 	//	cout << buffer << endl;
 
-	//	int i=dirfile_add_raw(dirf, "samptopix_0_C8.bi", GD_INT64,  1,  0);
-	//	cout << "i " << i << endl;
+
+	//	if(boloname=="C1"){
+	//		int i=dirfile_add_raw(dirf, "samptopix_0_C1.bi", GD_INT64,  1,  0);
+	//		cout << "i " << i << endl;
+	//		get_error_string(dirf, buffer, buflen);
+	//		cout << "diraddraw error : " << buffer << endl;
+	//		getchar();
+	//	}
 
 
 	//	cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
-	if((fp = fopen(temp.c_str(),"w"))!=NULL){
-		//		int z = dirfile_add_raw(dirf,  temp2.c_str(),  GD_INT64,  1,  0);
+	//	if((fp = fopen(temp.c_str(),"w"))!=NULL){
+	//		int z = dirfile_add_raw(dirf,  temp2.c_str(),  GD_INT64,  1,  0);
 
-		//		dirfile_flush(dirf,  NULL);
-		//		get_error_string(dirf, buffer, buflen);
-		//		cout << buffer << endl;
-		//
-		//		if(boloname=="C6"){
-		//			cout << "ds C6\n";
-		//			gd_entry_t *entry;
-		//			entry = new gd_entry_t[1];
-		//			entry->field=(char*)temp2.c_str();
-		//			entry->field_type=GD_RAW_ENTRY;
-		//			entry->data_type=GD_INT64;
-		//			char *pt;
-		//			pt=new char[1];
-		//			*pt='1';
-		//			entry->scalar[1]=pt;
-		//
-		//			cout << "avant add\n";
-		//
-		//			int z =dirfile_madd(dirf, entry, "samptopix_0_C1.bi");
-		//			cout << "z " << z << endl;
-		//		}
-		//
-		//		get_error_string(dirf, buffer, buflen);
-		//		cout << buffer << endl;
+	//		dirfile_flush(dirf,  NULL);
+	//		get_error_string(dirf, buffer, buflen);
+	//		cout << buffer << endl;
+	//
+	//		if(boloname=="C6"){
+	//			cout << "ds C6\n";
+	//			gd_entry_t *entry;
+	//			entry = new gd_entry_t[1];
+	//			entry->field=(char*)temp2.c_str();
+	//			entry->field_type=GD_RAW_ENTRY;
+	//			entry->data_type=GD_INT64;
+	//			char *pt;
+	//			pt=new char[1];
+	//			*pt='1';
+	//			entry->scalar[1]=pt;
+	//
+	//			cout << "avant add\n";
+	//
+	//			int z =dirfile_madd(dirf, entry, "samptopix_0_C1.bi");
+	//			cout << "z " << z << endl;
+	//		}
+	//
+	//		get_error_string(dirf, buffer, buflen);
+	//		cout << buffer << endl;
 
-		//		int t= put_string(dirf,  "", "RAW INT64 1");
-		//		get_error_string(dirf, buffer, buflen);
-		//		cout << "t " << t << endl;
-		//		cout << buffer << endl;
+	//		int t= put_string(dirf,  "", "RAW INT64 1");
+	//		get_error_string(dirf, buffer, buflen);
+	//		cout << "t " << t << endl;
+	//		cout << buffer << endl;
 
-		//		dirfile_flush(dirf,  NULL);
-		//		get_error_string(dirf, buffer, buflen);
-		//		cout << buffer << endl;
-		//		dirfile_close(dirf);
-		//		getchar();
-
-		nwrite=putdata(dirf, temp2.c_str() , 0, 0, 0, ns,  GD_INT64, samptopix);
-
-		get_error_string(dirf, buffer, buflen);
-		if(strcmp(buffer,"Success")||(nwrite==0)){
-			cout << buffer << endl;
-			exit(0); // TODO : mettre ca en MPI
-		}
+	//		dirfile_flush(dirf,  NULL);
+	//		get_error_string(dirf, buffer, buflen);
+	//		cout << buffer << endl;
+	//		dirfile_close(dirf);
+	//		getchar();
 
 
-		//	cout << "i : " << i << endl;
-		//		cout << "written : " << nwrite << endl;
-
-		fclose(fp);
-	}else{
-		cerr << "ERROR : Could not open " << temp << endl;
-		exit(0);
-	}
+	//		nwrite=putdata(dirf, temp2.c_str() , 0, 0, 0, ns,  GD_INT64, samptopix);
+	//
+	//		get_error_string(dirf, buffer, buflen);
+	//		if(strcmp(buffer,"Success")||(nwrite==0)){
+	//			cout << "putdata error : " << buffer << endl;
+	//			exit(0); // TODO : mettre ca en MPI
+	//		}
+	//
+	//
+	//		//	cout << "i : " << i << endl;
+	//		//		cout << "written : " << nwrite << endl;
+	//
+	//		fclose(fp);
+	//	}else{
+	//		cerr << "ERROR : Could not open " << temp << endl;
+	//		exit(0);
+	//	}
 
 
 
@@ -245,7 +286,7 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 	//	}
 	//	delete [] data_out;
 
-	dirfile_close(dirf);
+	//	dirfile_close(dirf);
 	//	cout << test_close << endl;
 
 #ifdef DEBUG_PRINT
@@ -270,61 +311,61 @@ void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe,
 
 void read_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname) {
 	FILE *fp;
-	//	size_t result;
-	//	long ns2;
+	size_t result;
+	long long ns2;
 
-	DIRFILE  * dirf;
+	//	DIRFILE  * dirf;
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "samptopix_" << iframe << "_" << boloname  << ".bi";
+	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname  << ".bi";
 	std::string testfile = oss.str();
-	oss.str("");
-	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
-	string temp2=oss.str();
+	//	oss.str("");
+	//	oss << "samptopix_" << iframe << "_" << boloname << ".bi";
+	//	string temp2=oss.str();
 	// récupérer une chaîne de caractères
 
 
 	// Declare buffer in case of errors
-	char *buffer;
-	size_t buflen=100;
-	buffer = new char [buflen];
-
-	char ffname[100];
-	strcpy(ffname,outdir.c_str());
-	dirf=dirfile_open(ffname, GD_RDWR);
-
-	get_error_string(dirf, buffer, buflen);
-	if(strcmp(buffer,"Success")){
-		cout << "open dir " << buffer << endl;
-		exit(0); // TODO : mettre ca en MPI
-	}
+	//	char *buffer;
+	//	size_t buflen=100;
+	//	buffer = new char [buflen];
+	//
+	//	char ffname[100];
+	//	strcpy(ffname,outdir.c_str());
+	//	dirf=dirfile_open(ffname, GD_RDWR);
+	//
+	//	get_error_string(dirf, buffer, buflen);
+	//	if(strcmp(buffer,"Success")){
+	//		cout << "open dir " << buffer << endl;
+	//		exit(0); // TODO : mettre ca en MPI
+	//	}
 
 	if((fp = fopen(testfile.c_str(),"r"))){
 
-		size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  samptopix);
-
-		get_error_string(dirf, buffer, buflen);
-		if(strcmp(buffer,"Success")||(read_s==0)){
-			cout << "getdata error " << buffer << endl;
-			exit(0); // TODO : mettre ca en MPI
-		}
-//		cout << "read : " << read_s << endl;
-//		cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
-		//		result = fread(&ns2,sizeof(long),1,fp);
-		//		if(ns==ns2)
-		//			result = fread(samptopix,sizeof(long long),ns,fp);
-		//		else{
-		//			fclose(fp);
-		//			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
-		//			exit(0);
+		//		size_t read_s = getdata(dirf,  temp2.c_str(),  0,  0,  0,   ns,  GD_INT64,  samptopix);
+		//
+		//		get_error_string(dirf, buffer, buflen);
+		//		if(strcmp(buffer,"Success")||(read_s==0)){
+		//			cout << "getdata error " << buffer << endl;
+		//			exit(0); // TODO : mettre ca en MPI
 		//		}
+		//		cout << "read : " << read_s << endl;
+		//		cout << samptopix[0] << " " << samptopix[1000] << " " << samptopix[29339] << endl;
+		result = fread(&ns2,sizeof(long long),1,fp);
+		if(ns==ns2)
+			result = fread(samptopix,sizeof(long long),ns,fp);
+		else{
+			fclose(fp);
+			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
+			exit(0);
+		}
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile << endl;
 		exit(0);
 	}
 
-	dirfile_close(dirf);
+	//	dirfile_close(dirf);
 }
 
 
@@ -477,19 +518,18 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 
 void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
-	long data_size;
+	double data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".bi";
+	oss << outdir + "/Fourier_data/fdata_" << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		data_size = (ns/2+1)*2;
-		fwrite(&data_size,sizeof(long),1,fp);
-		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
+		data_size = (double)((ns/2+1)*2);
+		fwrite(&data_size,sizeof(double),1,fp);
 		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
 		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
 		fclose(fp);
@@ -528,24 +568,26 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	size_t result;
-	long data_size;
+	double data_size;
+	long data_read;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
 
-	oss << outdir + prefixe << iframe << "_" << bolonames[idet] << ".bi";
+	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
 
 	if((fp = fopen(testfile.c_str(),"r"))!=NULL){
-		result = fread(&data_size,sizeof(long),1,fp);
-		if (data_size!=(ns/2+1)*2){
-			cerr << "Error. fdata size does not correspond to expected size : " << data_size << " != " << (ns/2+1)*2 << endl;
+		result = fread(&data_size,sizeof(double),1,fp);
+		data_read=(long) data_size;
+		if (data_read!=(ns/2+1)*2){
+			cerr << "Error. fdata size does not correspond to expected size : " << data_read << " != " << (ns/2+1)*2 << endl;
 			fclose(fp);
 			exit(1);
 		}
-		result = fread(fdata,sizeof(double), data_size, fp);
+		result = fread(fdata,sizeof(double), data_read, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";

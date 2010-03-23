@@ -1,6 +1,7 @@
 
 #include "covMatrix_IO.h"
 #include "invMatrix.h"
+#include "inline_IO2.h"
 #include "parseInv.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
@@ -67,10 +68,6 @@ int main(int argc, char *argv[]) {
 		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, boloname, base_name);
 
 		if (parsed==-1){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
 			exit(1);
 		}
 	}
@@ -144,6 +141,9 @@ int main(int argc, char *argv[]) {
 		//		cout << dir.tmp_dir + base_name + extname << endl;
 		// write inversed noisePS in a binary file for each detector
 		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
+
+		// MAJ format file
+		compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
 
 	}
 

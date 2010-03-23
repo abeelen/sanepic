@@ -63,4 +63,7 @@ void print_param_process(struct param_process proc_param);
 
 void print_common(struct common dir);
 
+int check_path(std::string strPath, std::string path_type);
+int check_dirfile_paths(std::string strPath);
+
 #endif /* PARSER_FUNCTIONS_H_ */
