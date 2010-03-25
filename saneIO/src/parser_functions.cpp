@@ -715,7 +715,7 @@ int check_path(string strPath, string path_type){
 
 		if ( status.st_mode & S_IFDIR )
 		{
-			cout << "The directory " << path_type << " : " << strPath << " exists." << endl;
+//			cout << "The directory " << path_type << " : " << strPath << " exists." << endl;
 			return 0;
 		}
 		else
