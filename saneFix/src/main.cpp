@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 		fitsfile *outfptr;
 
 
-		if(!(read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp))){
+		if((read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp))){
 			cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run saneCheck on this file before\n";
 			continue;
 		}
@@ -102,11 +102,11 @@ int main(int argc, char *argv[]) {
 			fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 
 			// 2 RA 3 DEC
-//			fix_RA(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
+			//			fix_RA(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 			fix_RA_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 
-//			// 3 DEC
-//			fix_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
+			//			// 3 DEC
+			//			fix_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 
 			// 4 mask
 			fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);

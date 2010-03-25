@@ -53,7 +53,6 @@ int read_indices_file(string fname, struct common dir, std::vector<long> &indice
 		indice.push_back(readed);
 
 	file.close();
-
 	return(EXIT_SUCCESS);
 }
 
@@ -296,7 +295,8 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 
 	for(long jj=0;jj<det.ndet;jj++){
 		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);
-
+		for(long nn=0; nn<ns_temp;nn++)
+			RA[nn]=RA[nn]*15.0;
 		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
 		fix_row(RA, RA_fixed, indice, add_sample, ns_total);
 		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total);
@@ -384,6 +384,9 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_total, (char*)"Number of rows", &status);
 
 	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp);
+	for(long nn=0; nn<ns_temp;nn++)
+		RA[nn]=RA[nn]*15.0;
+
 	RA_fixed = new double [ns_total];
 	DEC_fixed = new double [ns_total];
 	PHI_fixed = new double [ns_total];
