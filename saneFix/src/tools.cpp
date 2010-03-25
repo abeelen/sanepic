@@ -59,17 +59,22 @@ int read_indices_file(string fname, struct common dir, std::vector<long> &indice
 long how_many(string fname, long ns, std::vector <long> indice, double *&time, double fsamp,  std::vector <long> &add_sample){
 
 	long total=0;
-	double gap=0.0, sum=0.0;
+	long gap=0, sum=0;
 
 	read_time_from_fits(fname, time, ns);
 	for(long ii=0; ii < (long)indice.size(); ii++){
 		//		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
-		if(gap>0.0){
+		if(gap>0){
 			sum+=gap;
 			add_sample.push_back(gap);
-		}else
-			cout << "gap error : " << gap << endl;
+		}else{
+			if(gap==0){
+				sum++;
+				add_sample.push_back(-1);
+			}else
+				cout << "gap error : " << gap << endl;
+		}
 	}
 
 	total=(long)sum;
@@ -79,7 +84,7 @@ long how_many(string fname, long ns, std::vector <long> indice, double *&time, d
 }
 
 
-void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std::vector <long> add_sample, double fsamp, long nsamples_total){
+void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std::vector <long> &add_sample, double fsamp, long nsamples_total){
 
 
 	long pointer_time=0;
@@ -91,10 +96,15 @@ void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std:
 			uu++;
 		}
 		pointer_time=jj;
-		for(kk=pointer_time; kk < pointer_time + add_sample[ii]; kk++)
-			time_fixed[kk]=time_fixed[kk-1]+1/fsamp;
-		pointer_time=kk;
-
+		if(add_sample[ii]==-1){
+			time_fixed[pointer_time]=(time[uu+1]+time[uu])/2;
+			add_sample[ii]=1;
+		}else{
+			for(kk=pointer_time; kk < pointer_time + add_sample[ii]; kk++)
+				time_fixed[kk]=time_fixed[kk-1]+1/fsamp;
+			pointer_time=kk;
+		}
+		pointer_time++;
 	}
 	//	cout << "pt : " << pointer_time << endl;
 
