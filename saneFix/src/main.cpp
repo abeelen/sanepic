@@ -45,6 +45,8 @@ int main(int argc, char *argv[]) {
 	parsed=parse_saneFix_ini_file(argv[1],dir,
 			samples_struct, rank);
 
+	if(parsed==-1)
+		exit(EXIT_FAILURE);
 
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){
 		int format_fits;
