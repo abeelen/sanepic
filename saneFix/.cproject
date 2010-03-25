@@ -24,7 +24,7 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.721450982" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 <option id="gnu.cpp.compiler.exe.debug.option.optimization.level.652556595" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.930518633" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-<option id="gnu.cpp.compiler.option.include.paths.878305420" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<option id="gnu.cpp.compiler.option.include.paths.878305420" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
@@ -38,14 +38,14 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1652696009" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1447644915" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
-<option id="gnu.cpp.link.option.paths.332784103" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
+<option id="gnu.cpp.link.option.paths.332784103" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
-<option id="gnu.cpp.link.option.libs.1108446306" superClass="gnu.cpp.link.option.libs" valueType="libs">
-<listOptionValue builtIn="false" value="iniparser"/>
+<option id="gnu.cpp.link.option.libs.1108446306" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="iniparser"/>
 <listOptionValue builtIn="false" value="saneIO"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1278806554" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -500,6 +500,11 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1397258607" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 <option id="gnu.cpp.compiler.exe.release.option.optimization.level.293343298" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.306803508" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.1102261210" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.809116932" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.514814280" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -509,6 +514,16 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.74565224" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.211718934" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
+<option id="gnu.cpp.link.option.paths.1995229804" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+</option>
+<option id="gnu.cpp.link.option.libs.1040802819" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="iniparser"/>
+<listOptionValue builtIn="false" value="saneIO"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2049882558" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>

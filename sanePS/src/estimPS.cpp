@@ -129,11 +129,9 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 
 	//TODO: factapod is computed once, but used twice, it can be computed here (mat 28/10)
 	//----------------------------------- READ MIXMAT PART -------------------------------//
+	//TODO: if no mixmat file,
 	cout << "1/6 - Reading Mixing Matrix" << endl;
 	read_mixmat_file(MixMatfile, dir.dirfile, mixmat, det.ndet,ncomp);
-
-	//----------------------------------- READ MIXMAT PART -------------------------------//
-
 
 	// compute common mode commonm2
 	cout << "2/6 - Common Mode Computation" << endl;

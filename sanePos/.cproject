@@ -788,7 +788,6 @@
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.202208786" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.139333215" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-<listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 </option>
@@ -810,14 +809,12 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1147976627" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 <option id="gnu.cpp.link.option.libs.1765213591" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="iniparser"/>
-<listOptionValue builtIn="false" value="getdata"/>
 <listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="cfitsio"/>
 <listOptionValue builtIn="false" value="wcs"/>
 </option>
 <option id="gnu.cpp.link.option.paths.461515909" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="/usr/local/lib"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>

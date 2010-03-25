@@ -84,7 +84,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
 			}
 		else
-			write_fPs(ns, fdata, dir, idet1, iframe, det.boloname);
+			write_fdata(ns, fdata, "fPs_", dir, idet1, iframe, det.boloname);
 
 	}
 
@@ -254,7 +254,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 			}
 		else
 			//write fourier transform to disk
-			write_fdata(ns, fdata, tmp_dir, idet1, iframe, det.boloname);
+			write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, iframe, det.boloname);
 
 
 		delete [] flag;

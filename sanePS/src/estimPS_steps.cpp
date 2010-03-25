@@ -15,6 +15,7 @@
 #include "inline_IO2.h"
 #include <sstream>
 #include <cmath>
+#include <cstring>
 
 #include "dataIO.h"
 #include "covMatrix_IO.h"
@@ -167,8 +168,19 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 			//Read pointing data
 			read_samptopix(ns, samptopix,  dir.tmp_dir, iframe, det.boloname[idet]);
 
+
 			//TODO : Check this function on what it does/should do
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
+
+#ifdef DEBUG
+			FILE * fp;
+			fp = fopen("testDeproject.txt","w");
+			for (int i =0;i<ns;i++)
+				fprintf(fp,"%lf %lf\n",data[i],Ps[i]);
+			fclose(fp);
+			exit(-1);
+#endif
+
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
@@ -193,7 +205,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 		fftw_destroy_plan(fftplan);
 
 
-		write_fdata(ns, fdata1,  dir.tmp_dir, idet, ff, det.boloname);
+		write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, ff, det.boloname);
 		/*for(long ii=0;ii<ns/2+1;ii++){
 				fdata_buffer[idet*(ns/2+1)+ii][0]=fdata1[ii][0];
 				fdata_buffer[idet*(ns/2+1)+ii][1]=fdata1[ii][1];

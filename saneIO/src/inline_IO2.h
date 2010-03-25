@@ -14,7 +14,7 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "getdata.h"
+//#include "getdata.h"
 }
 
 
@@ -86,7 +86,7 @@ void read_samptopix(long ns, long long *&samptopix, std::string outdir, long ifr
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fdata(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+void write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Reads PS for one bolo in a binary file \n
@@ -114,7 +114,7 @@ void read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string 
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fPs(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+// void write_fPs(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
 
 /*!
  * Writes information for a second run of sanepic \n

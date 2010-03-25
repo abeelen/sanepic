@@ -23,7 +23,7 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "getdata.h"
+//#include "getdata.h"
 
 }
 
@@ -516,13 +516,13 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir) {
 
 }
 
-void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
+void write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
 	FILE *fp;
 	double data_size;
 
 	// créer un flux de sortie
 	std::ostringstream oss;
-	oss << outdir + "/Fourier_data/fdata_" << iframe << "_" << bolonames[idet] << ".bi";
+	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
 
 	// récupérer une chaîne de caractères
 	std::string testfile = oss.str();
@@ -530,8 +530,7 @@ void write_fdata(long ns, fftw_complex *fdata, string outdir, long idet, long if
 	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		data_size = (double)((ns/2+1)*2);
 		fwrite(&data_size,sizeof(double),1,fp);
-		fwrite(fdata,sizeof(double), (ns/2+1)*2, fp);
-		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
+		fwrite(fdata,sizeof(double), (long) data_size, fp);
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not write " << testfile << endl;
@@ -596,52 +595,52 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 }
 
 
-void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
-	FILE *fp;
-	long data_size;
 
-	// créer un flux de sortie
-	std::ostringstream oss;
-	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".bi";
-
-	// récupérer une chaîne de caractères
-	std::string testfile = oss.str();
-
-	if((fp = fopen(testfile.c_str(),"w"))!=NULL){
-		data_size = (ns/2+1)*2;
-		fwrite(&data_size,sizeof(long),1,fp);
-		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
-		fwrite(fdata,sizeof(double), data_size, fp);
-		fclose(fp);
-	}else{
-		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
-		exit(1);
-	}
-
-#ifdef DEBUG_PRINT
-	oss.str("");
-	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".txt";
-
-	// récupérer une chaîne de caractères
-	testfile = oss.str();
-	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		data_size = (ns/2+1)*2;
-
-		fprintf(fp,"%ld ",data_size);
-		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
-		for(int ii=0;ii<(ns/2+1);ii++){
-			fprintf(fp,"%lf ",fdata[ii][0]);
-			fprintf(fp,"%lf ",fdata[ii][1]);}
-
-		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
-		fclose(fp);
-	}else{
-		cerr << "ERROR : Could not open " << testfile << endl;
-		exit(0);
-	}
-#endif
-
-}
+//void write_fPs(long ns, fftw_complex *fdata, string outdir, long idet, long iframe, std::vector<std::string> bolonames) {
+//	FILE *fp;
+//	long data_size;
+//
+//	// créer un flux de sortie
+//	std::ostringstream oss;
+//	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".bi";
+//
+//	// récupérer une chaîne de caractères
+//	std::string testfile = oss.str();
+//
+//	if((fp = fopen(testfile.c_str(),"w"))!=NULL){
+//		data_size = (ns/2+1)*2;
+//		fwrite(&data_size,sizeof(long),1,fp);
+//		fwrite(fdata,sizeof(double), data_size, fp);
+//		fclose(fp);
+//	}else{
+//		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
+//		exit(1);
+//	}
+//
+//#ifdef DEBUG_PRINT
+//	oss.str("");
+//	oss << outdir + "fPs_" << iframe << "_" << bolonames[idet] << ".txt";
+//
+//	// récupérer une chaîne de caractères
+//	testfile = oss.str();
+//	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+//		data_size = (ns/2+1)*2;
+//
+//		fprintf(fp,"%ld ",data_size);
+//		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
+//		for(int ii=0;ii<(ns/2+1);ii++){
+//			fprintf(fp,"%lf ",fdata[ii][0]);
+//			fprintf(fp,"%lf ",fdata[ii][1]);}
+//
+//		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
+//		fclose(fp);
+//	}else{
+//		cerr << "ERROR : Could not open " << testfile << endl;
+//		exit(0);
+//	}
+//#endif
+//
+//}
 
 void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 {
