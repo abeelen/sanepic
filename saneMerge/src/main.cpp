@@ -154,14 +154,17 @@ int main(int argc, char *argv[]) {
 	}else{ // sanepic format
 
 		// 1 ref pos
-		copy_ref_pos(outfptr,samples_struct, ns_total);
+		copy_ref_pos(outfptr, samples_struct, ns_total);
 
+
+		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+			fits_report_error(stderr, status);
 		// 2 offsets
 		copy_offsets(fptr, outfptr);
-
-		//		if(ii==0)
 		// 3 channels
 		copy_channels(fptr, outfptr);
+		if (fits_close_file(fptr, &status))
+			fits_report_error(stderr, status);
 
 		// 4 time
 		copy_time(outfptr, samples_struct, ns_total);
