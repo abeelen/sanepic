@@ -715,7 +715,7 @@ int check_path(string strPath, string path_type){
 
 		if ( status.st_mode & S_IFDIR )
 		{
-//			cout << "The directory " << path_type << " : " << strPath << " exists." << endl;
+			//			cout << "The directory " << path_type << " : " << strPath << " exists." << endl;
 			return 0;
 		}
 		else
@@ -727,7 +727,10 @@ int check_path(string strPath, string path_type){
 	else
 	{
 		cout << "Warning : Path " << path_type << " : " << strPath << " doesn't exist." << endl;
-		return 1;
+		string make_it = "mkdir " + strPath;
+		system((char*)make_it.c_str());
+		cout << "Path : " << strPath << " created" << endl;
+		return 0;
 	}
 
 
