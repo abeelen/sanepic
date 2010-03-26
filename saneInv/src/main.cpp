@@ -119,7 +119,6 @@ int main(int argc, char *argv[]) {
 		//		cout << fname2 << endl;
 		//		cout << samples_struct.noisevect[ii] << endl;
 
-		//		getchar();
 
 		// read covariance matrix in a fits file named fname
 		// returns : -the bins => Ell
@@ -155,6 +154,7 @@ int main(int argc, char *argv[]) {
 	free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
 	free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
 	delete [] ell;
+	delete [] samples_struct.nsamples;
 
 	return 0;
 }
