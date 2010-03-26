@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+//	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
 	struct detectors bolo_fits_0;
 	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0);
@@ -187,7 +187,8 @@ int main(int argc, char *argv[]) {
 
 	//cleaning
 	delete [] samples_struct.nsamples;
-
+	delete [] bolo_bad_tot;
+	delete [] bolo_bad_80_tot;
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);

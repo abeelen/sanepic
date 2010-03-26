@@ -2,7 +2,7 @@
 
 #ifndef TOOLS_H_
 
-int check_path(std::string strPath, std::string path_type);
+//int check_path(std::string strPath, std::string path_type);
 int who_do_it(int size, int rank, int ii);
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, std::string filename);
 void check_positionHDU(std::string fname,long ns,struct detectors det, int format);

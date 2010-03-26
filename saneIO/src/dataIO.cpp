@@ -415,6 +415,8 @@ void read_bolo_list(string fname, struct detectors &det){
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
+	for (long ii=0; ii < det.ndet; ii++)
+		delete [] temp_bolo[ii];
 	delete [] temp_bolo;
 }
 
@@ -458,14 +460,14 @@ long find_channel_index(fitsfile *fptr, const char * field){
 	for (long idet = 1; idet <= nBolos; idet++)
 		if (strcmp(field,data[idet-1]) == 0){
 			for(long ii=0;ii<nBolos;ii++)
-				delete data[ii];
+				delete [] data[ii];
 			delete [] data;
 			return idet;
 		}
 
 	cout << "EE - " << field << " not found" << endl;
 	for(long ii=0;ii<nBolos;ii++)
-		delete data[ii];
+		delete [] data[ii];
 	delete [] data;
 	return -1L;
 
