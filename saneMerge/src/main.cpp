@@ -180,6 +180,9 @@ int main(int argc, char *argv[]) {
 	if (fits_close_file(outfptr, &status))
 		fits_report_error(stderr, status);
 
+	//clean
+	delete [] samples_struct.nsamples;
+
 	cout << "End of saneMerge\n";
 
 }

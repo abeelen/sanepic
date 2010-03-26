@@ -54,8 +54,8 @@ void file_compatibility_verification(struct samples samples_struct){
 		ns1=samples_struct.nsamples[ii-1];
 		ns2=samples_struct.nsamples[ii];
 
-		time_one=new double [samples_struct.nsamples[ii-1]];
-		time_two=new double [samples_struct.nsamples[ii]];
+		//		time_one=new double [samples_struct.nsamples[ii-1]];
+		//		time_two=new double [samples_struct.nsamples[ii]];
 
 		read_time_from_fits(file1, time_one, ns1);
 		read_time_from_fits(file2, time_two, ns2);
