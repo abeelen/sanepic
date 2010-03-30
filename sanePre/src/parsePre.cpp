@@ -12,9 +12,10 @@
 #include "parsePre.h"
 #include "parser_functions.h"
 #include "struct_definition.h"
-
+#include "covMatrix_IO.h"
 
 extern "C"{
+#include "nrutil.h"
 #include "iniparser.h"
 #include "dictionary.h"
 }
@@ -121,9 +122,26 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 
 
 	// the number of noise cutting frequency must be egal to one (same for all scans) or ntotscan (one per scan)
-	if ((int)fcut.size()==0){
-		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
-		return 2;
+	//	if ((int)fcut.size()==0){
+	//		cerr << "Please give a correct number of noise cut frequency : 1 or 1 per scan\n";
+	//		return 2;
+	//	}
+
+	if((int)fcut.size()==0){
+		string fname;
+		std::vector<string> bolos;
+		long nbins;
+		double *ell;
+		double **Rellth;
+
+		read_cov_matrix_file(ini, fname, rank);
+		fname = dir.noise_dir + fname;
+		read_CovMatrix(fname, bolos, nbins, ell, Rellth);
+		fcut.push_back(ell[0]);
+//		cout << ell[0] << " " << fcut[0] << endl;
+		delete [] ell;
+		long nBolos=bolos.size();
+		free_dmatrix(Rellth, 0, nBolos * nBolos - 1, 0, nbins - 1);
 	}
 
 	// if only one fcut, extend to all scans
