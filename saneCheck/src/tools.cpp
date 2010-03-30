@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <list>
 #include <string>
 #include <vector>
 #include <cmath>
@@ -706,7 +707,8 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 
 
 	double *time,*diff;
-	double sum=0.0, mean=0.0;
+	double sum=0.0;
+	std::vector<double> freq;
 
 
 	read_time_from_fits(fname, time, ns);
@@ -715,23 +717,63 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 	for(long jj=0;jj<ns-1;jj++){
 		diff[jj]=(time[jj+1]-time[jj]);
 		sum+=diff[jj];
-
+		freq.push_back(1/diff[jj]);
 	}
-	mean = sum/(double)(ns-1);
-	cout << "time gaps in mean :" << fixed << setprecision(15) <<  mean << endl;
-	cout << "ie. sampling frequency ~ " << 1/mean << " and fsamp = " << fsamp << endl;
 
-	double zero_cinq_pourcent=0.5/mean/100;
-	if(abs(1/mean-fsamp)/fsamp>zero_cinq_pourcent){
+	struct sortclass_double sortobject;
+	sort(freq.begin(), freq.end(), sortobject);
+
+	std::vector<double>::iterator it;
+	it = unique(freq.begin(),freq.end());
+
+
+
+
+	long size_tmp = it - freq.begin();
+
+	//	cout << "size unique : " << size_tmp << endl;
+
+	//	cout << freq.size() << " vs size : " <<  size_tmp << endl;
+	//	for (long tt=0;tt<size_tmp;tt++)
+	//		cout << freq[tt] << " ";
+	//
+	//	cout << endl;
+	long *counter;
+	counter = new long [size_tmp];
+
+	for (long tt=0;tt<size_tmp;tt++){
+		counter[tt]=count(freq.begin(), freq.end(),freq[tt]);
+		//		cout << counter[tt] << " ";
+	}
+	//	cout << endl;
+
+	long maxi = *max_element(counter,counter+size_tmp);
+	//	cout << "max " << maxi << endl;
+
+	long ind=0;
+
+	for(long tt=0;tt<size_tmp;tt++)
+		if(counter[tt]==maxi)
+			ind=tt;
+
+	double Populated_freq = freq[ind];
+	//	cout << "ie. sampling frequency ~ " << Populated_freq << " and fsamp = " << fsamp << endl;
+
+	//	mean = sum/(double)(ns-1);
+	//	cout << "time gaps in mean :" << fixed << setprecision(15) <<  mean << endl;
+	//	cout << "ie. sampling frequency ~ " << 1/mean << " and fsamp = " << fsamp << endl;
+
+	double zero_cinq_pourcent=0.5*Populated_freq/100;
+	if(abs(Populated_freq-fsamp)/fsamp>zero_cinq_pourcent){
 		cout << "Warning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
-		cout << "ini file : " << fsamp << " != " << 1/mean << endl;
+		cout << "ini file : " << fsamp << " != " << Populated_freq << endl;
 	}
 
 
 	for(long jj=0;jj<ns-1;jj++){
 		//		if((jj>14800)&&(jj<14900))
 		//			cout << fixed << setprecision(15) << diff[jj] << endl;
-		if((abs(diff[jj])>1.9*mean)||(abs(diff[jj])<mean/1.9)){
+		if((abs(diff[jj])>1.9/Populated_freq)||(abs(diff[jj])<1/Populated_freq/1.9)){
 			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << fixed <<  setprecision(8) << diff[jj] << endl;
 			indice.push_back(jj);
 		}
