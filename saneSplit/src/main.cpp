@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 
 
 
-	printf("\nBeginning of saneCheck:\n\n");
+	printf("\nBeginning of saneSplit:\n\n");
 
 
 
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 	// get min and max time for each fits file (and store the time sequences)
 	//	long indice=0;
 	//	for(int jj=0;jj<samples_struct.ntotscan;jj++){
-	time=new double[samples_struct.nsamples[0]];
+	//	time=new double[samples_struct.nsamples[0]];
 	read_time_from_fits(samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
 	//		for(long kk=0;kk<samples_struct.nsamples[jj];kk++){
 	//			time_global[indice]=time[kk];
@@ -331,11 +331,11 @@ int main(int argc, char *argv[]) {
 			// 1 signal
 			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
-//			// 2 RA
-//			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
-//
-//			// 3 DEC
-//			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			//			// 2 RA
+			//			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			//
+			//			// 3 DEC
+			//			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
 
 			// 2 RA 3 DEC
 			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], ns_final, det);

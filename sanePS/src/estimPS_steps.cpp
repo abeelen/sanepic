@@ -29,8 +29,6 @@ using namespace std;
 
 void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet, long ncomp){
 
-	//TODO : WRONG there is no test to do on ndet
-	//TODO : ndet is NOT to be read,
 	//////////////////////////////////////
 	// read mixing parameters
 	//	int len, li, lo;

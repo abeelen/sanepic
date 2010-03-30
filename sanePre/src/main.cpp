@@ -61,9 +61,6 @@ int main(int argc, char *argv[])
 /*! Sanepic preprocess main function */
 {
 
-
-
-
 	int size;/*!< number of processors */
 	int rank;
 
@@ -144,9 +141,7 @@ int main(int argc, char *argv[])
 	else {
 		// Parse ini file
 		parsed=parse_sanePre_ini_file(argv[1],proc_param, pos_param, dir, samples_struct,
-				det, fcut, rank);
-
-		if(size>det.ndet) parsed=3;
+				det, fcut, rank, size);
 	}
 
 

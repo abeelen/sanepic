@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 		format_fits=test_format(samples_struct.fitsvect[ii]);
 
 		double *time;
-		time=new double[samples_struct.nsamples[ii]];
+//		time=new double[samples_struct.nsamples[ii]];
 		long samples_to_add=how_many(samples_struct.fitsvect[ii], samples_struct.nsamples[ii] ,indice, time, fsamp, add_sample);
 		cout << "samptoadd : " << samples_to_add << endl;
 		cout << "total : " << samples_struct.nsamples[ii] + samples_to_add << endl;

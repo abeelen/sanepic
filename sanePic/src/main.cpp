@@ -127,9 +127,7 @@ int main(int argc, char *argv[])
 	else{
 		// Parse ini file
 		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
-				det, fcut, rank);
-
-		if(size>det.ndet) parsed=3;
+				det, fcut, rank, size);
 	}
 
 	if (parsed>0){

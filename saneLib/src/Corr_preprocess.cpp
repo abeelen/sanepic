@@ -109,13 +109,18 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	fftw_complex *fdata;
 
 	//	if(!fftw_import_system_wisdom()){
-//	FILE * input_file;
-//	string olol = "/etc/fftw/wisdom";
-//	input_file = fopen(olol.c_str(),"r");
-//	int ret = fftw_import_wisdom_from_file(input_file);
-//	cout << ret << " " << "wisdom" << endl;
-////	getchar();
-//	fclose(input_file);
+	FILE * input_file;
+	string olol = tmp_dir + "wisdom_global";
+	cout << olol << endl;
+	input_file = fopen(olol.c_str(),"r");
+	if (fftw_import_wisdom_from_file(input_file)==0)
+		printf("Error reading wisdom!\n");
+
+	//	int ret = fftw_import_wisdom_from_file(input_file);
+	//	cout << ret << " " << "wisdom" << endl;
+	//	getchar();
+	fclose(input_file);
+	//	}
 
 
 
@@ -148,6 +153,9 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		fdata[ii][1] = 0.0;
 	}
 
+	//Fourier transform of the data
+	//	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
+
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
@@ -176,6 +184,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		//					cout << idet1 << endl;
 
 
+		fill(data_lp,data_lp+ns,0.0);
 
 		for (long ii=0;ii<ns/2+1;ii++){
 			fdata[ii][0] = 0.0;
@@ -234,15 +243,24 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 		}
 
+
+		//		FILE * input_file;
+		//		string olol = tmp_dir + "wisdom_global";
+		//		input_file = fopen(olol.c_str(),"r");
+		//		int ret = fftw_import_wisdom_from_file(input_file);
+		//		cout << ret << " " << "wisdom" << endl;
+		//		getchar();
+		//		fclose(input_file);
+
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
+		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE | FFTW_WISDOM_ONLY); //FFTW_ESTIMATE
 		//		FILE *fp;
 		//		string olol = tmp_dir +  "wisdom_global";
 		//		fp = fopen(olol.c_str(),"a");
 		//		fftw_export_wisdom_to_file(fp);
 		//		fclose(fp);
-//		fftw_print_plan(fftplan);
-//		getchar();
+		//		//		fftw_print_plan(fftplan);
+		//		//		getchar();
 
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
@@ -261,7 +279,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		delete [] data;
 	} // idet1
 
-
+	//fftw_destroy_plan(fftplan);
 
 	delete[] data_lp;
 	delete[] samptopix;
@@ -433,7 +451,7 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 			for (long jj=0;jj<ns/2+1;jj++){
 				if (isnan(Nk[jj])) {
-					printf("isnan has been found : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
+					printf("A NaN has been found in Nk : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
 					exit(1);
 				}
 			}

@@ -22,7 +22,7 @@ extern "C"{
 using namespace std;
 
 int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, struct param_positions &pos_param, struct common &dir, struct samples &samples_struct,
-		struct detectors &det, std::vector<double> &fcut,int rank)
+		struct detectors &det, std::vector<double> &fcut,int rank, int size)
 
 {
 	dictionary	*	ini ;
@@ -94,9 +94,11 @@ int parse_sanePre_ini_file(char * ini_name,struct param_process &proc_param, str
 		print_param_positions(pos_param);
 	}
 
-
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 	det.ndet = det.boloname.size();	// ndet = number of detectors
+
+	if(size>det.ndet)
+		return 3;
 
 	// Check improper usage
 	if (det.ndet== 0) {

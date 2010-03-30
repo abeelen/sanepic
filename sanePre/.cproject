@@ -37,7 +37,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.debugging.prof.1675962536" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="false" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.debugging.gprof.188332445" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.gprof.188332445" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1596240077" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="DEBUG_PRINT"/>
@@ -192,56 +192,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -322,56 +272,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -457,56 +357,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -588,56 +438,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -723,56 +523,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -854,56 +604,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -1077,56 +777,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -1207,56 +857,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -1342,56 +942,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -1473,56 +1023,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -1608,56 +1108,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -1739,56 +1189,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -1978,56 +1378,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -2108,56 +1458,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -2243,56 +1543,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -2374,56 +1624,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -2509,56 +1709,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -2640,56 +1790,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -2864,56 +1964,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -2994,56 +2044,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -3129,56 +2129,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -3260,56 +2210,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -3395,56 +2295,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -3526,56 +2376,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -3765,56 +2565,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -3895,56 +2645,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -4030,56 +2730,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -4161,56 +2811,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -4296,56 +2896,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -4427,56 +2977,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -4650,56 +3150,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -4780,56 +3230,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -4915,56 +3315,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -5046,56 +3396,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -5181,56 +3481,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -5312,56 +3562,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -5537,56 +3737,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995;cdt.managedbuild.tool.gnu.cpp.compiler.input.24770650">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -5667,56 +3817,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -5802,56 +3902,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.2121570035;cdt.managedbuild.config.gnu.exe.debug.2121570035.294184712;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1577860995.1181834534;cdt.managedbuild.tool.gnu.cpp.compiler.input.1520638724">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -5933,56 +3983,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>
@@ -6068,56 +4068,6 @@
 <parser enabled="true"/>
 </scannerInfoProvider>
 </profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
 </scannerConfigBuildInfo>
 <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1940831693;cdt.managedbuild.config.gnu.exe.release.1940831693.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1922107788;cdt.managedbuild.tool.gnu.cpp.compiler.input.1480291486">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
@@ -6199,56 +4149,6 @@
 <scannerInfoProvider id="specsFile">
 <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 <parser enabled="true"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile1">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="ppu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUGCCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile2">
-<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="spu-gcc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.PPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile3">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="ppuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.cell.managedbuilder.core.SPUXLCManagedMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile4">
-<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="spuxlc" useDefault="true"/>
-<parser enabled="false"/>
-</scannerInfoProvider>
-</profile>
-<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-<buildOutputProvider>
-<openAction enabled="false" filePath=""/>
-<parser enabled="true"/>
-</buildOutputProvider>
-<scannerInfoProvider id="specsFile">
-<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-<parser enabled="false"/>
 </scannerInfoProvider>
 </profile>
 </scannerConfigBuildInfo>

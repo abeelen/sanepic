@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	//First time run S=0, after sanepic, S = Pure signal
 	if(signame != "NOSIGFILE"){
 
-		//TODO : Add some check for the map size/iund_size/npix
+		//TODO : Add some check for the map size/ind_size/npix
 
 		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
 
