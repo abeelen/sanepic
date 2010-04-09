@@ -820,10 +820,13 @@ int main(int argc, char *argv[])
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
-								if (indpix[mi] >= 0){
-									map1d[mi] = S[indpix[mi+NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
+								if (indpix[mi] >= 0){ // pixel observed in first map
+										if (indpix[mi+NAXIS1*NAXIS2] >=0)
+											map1d[mi] = S[indpix[mi + NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
+										else
+											map1d[mi] = 0;
 								} else {
-									map1d[mi] = 0.0;
+									map1d[mi] = NAN;
 								}
 							}
 						}

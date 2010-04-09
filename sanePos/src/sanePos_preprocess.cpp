@@ -54,12 +54,12 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
 		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
-//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
+		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
 		// read reference position
 		long test_ns;
 		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
-//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
+		//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
@@ -307,25 +307,19 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
-//			read_dec_from_fits(fits_file, field, dec, test_ns);
-//			if (test_ns != ns) {
-//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
-//				exit(-1);
-//			}
+			//			read_dec_from_fits(fits_file, field, dec, test_ns);
+			//			if (test_ns != ns) {
+			//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
+			//				exit(-1);
+			//			}
 			read_flag_from_fits(fits_file, field, flag, test_ns);
 			if (test_ns != ns) {
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
 			for (long ii=0; ii <ns; ii++){
-				//TODO: Very bad fix.... prevent from mapping flagged data to a seperate map
-				if (flag[ii] == 0) {
-					world[2*ii]   = ra[ii];
-					world[2*ii+1] = dec[ii];
-				} else {
-					world[2*ii]   = wcs->crval[0];
-					world[2*ii+1] = wcs->crval[1];
-				}
+				world[2*ii]   = ra[ii];
+				world[2*ii+1] = dec[ii];
 			}
 			//			for (long ii=0; ii<ns; ii++){
 			//				cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << endl;
@@ -335,8 +329,12 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			if ((status = wcss2p(wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
 				printf("   wcss2p(1) ERROR %2d \n", status);
-				for (long ii=0; ii<ns; ii++)
+				for (long ii=0; ii<ns; ii++){
 					printf("   wcsstatus (%li): %2d\n",ii,wcsstatus[ii]);
+					// Something went wrong in the transformation, flag the data point
+					if ( wcsstatus[ii] == 1 )
+						flag[ii] = -1;
+				}
 				continue;
 			}
 			//			cout << "after reproject" << endl;
@@ -378,6 +376,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 				//TODO: Bad Fix, check flag values and handle properly
 				if (flag[ii] != 0)                               bolo_flag[ii] = 1;
+				if (flag[ii] == -1)                              bolo_flag[ii] = 2;
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))            bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >=  NAXIS2))  bolo_flag[ii] = 2;

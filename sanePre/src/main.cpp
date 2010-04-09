@@ -596,6 +596,8 @@ int main(int argc, char *argv[])
 		//write_fits(fnaivname, 0, NAXIS1, NAXIS2, tanpix, tancoord, 1, 'd', (void *)map1d);
 		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0);
 
+		// TODO: Save the map of flag data if needed
+
 		for (long jj=0; jj<NAXIS2; jj++) {
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;

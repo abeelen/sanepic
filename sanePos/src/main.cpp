@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 	(pos_param.flgdupl) ? factdupl = 2: factdupl = 1; //  default 1 : if flagged data are put in a duplicated map
 
 	// pixon indicates pixels that are seen
-	// factdupl if flagged data are to be projected onto a separete map
+	// factdupl if flagged data are to be projected onto a separate map
 	// 1 more pixel for flagged data
 	// 1 more pixel for all data outside the map
 	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
@@ -450,7 +450,6 @@ int main(int argc, char *argv[])
 				indpix[ii] = npix++;
 			else
 				indpix[ii] = -1;
-
 		/*!
 		 * Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
 		 * npix : total number of filled pixels,
