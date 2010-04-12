@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
 	long long npix; /*! nn = side of the map, npix = number of filled pixels */
 
 
-
 	double *PNdtot; /*! to deal with mpi parallelization : Projected noised data */
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
 
@@ -153,10 +152,11 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	string name_rank = dir.output_dir + "debug_sanePic.txt";
+
 
 #ifdef DEBUG
 	std::ostringstream oss;
-	string name_rank;
 	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
 
@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
 
 
 
-//		printf("[%2.2i] npix = %lld, npixeff = %lld\n", rank, npix, npixeff);
+		//		printf("[%2.2i] npix = %lld, npixeff = %lld\n", rank, npix, npixeff);
 
 
 		//t1 = time(0);
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
 		MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
 
-//		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
+		//		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
 
 		//start loop
@@ -819,10 +819,10 @@ int main(int argc, char *argv[])
 							for (long jj=0; jj<NAXIS2; jj++) {
 								mi = jj*NAXIS1 + ii;
 								if (indpix[mi] >= 0){ // pixel observed in first map
-										if (indpix[mi+NAXIS1*NAXIS2] >=0)
-											map1d[mi] = S[indpix[mi + NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
-										else
-											map1d[mi] = INFINITY;
+									if (indpix[mi+NAXIS1*NAXIS2] >=0)
+										map1d[mi] = S[indpix[mi + NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
+									else
+										map1d[mi] = INFINITY;
 								} else {
 									map1d[mi] = NAN;
 								}
