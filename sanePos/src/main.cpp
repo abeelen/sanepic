@@ -29,7 +29,6 @@ extern "C" {
 
 
 #include "sanePos_map_making.h"
-#include "blastSpecific.h"
 #include "parsePos.h"
 #include "sanePos_preprocess.h"
 
