@@ -377,8 +377,10 @@ int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::
 	switch(read_parser_string(ini, "sanePre:fcut_file", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : sanePre:fcut_file" << endl;
-		return 1;
+			cout <<"Warning ! You must add a line in ini file specifying : sanePre:fcut_file" << endl;
+		cout << "Using min covariance frequency as default\n";
+		//return 1;
+		break;
 	case 1:
 		if(rank==0)
 			cout <<"Key is empty : You must specify : sanePre:fcut_file" << endl;

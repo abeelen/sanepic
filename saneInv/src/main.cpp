@@ -137,6 +137,16 @@ int main(int argc, char *argv[]) {
 		// Inverse reduced covariance Matrix : Returns iRellth
 		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
+//		// test :
+//		for(long nn=0;nn<nbins;nn++)
+//			cout << iRellth[0][nbins*2 + nn ] << " ";
+//
+//		cout << endl;
+//
+//		for(long nn=0;nn<nbins;nn++)
+//			cout << iRellth[2][ nn ] << " ";
+
+
 		//		cout << dir.tmp_dir + base_name + extname << endl;
 		// write inversed noisePS in a binary file for each detector
 		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);

@@ -16,6 +16,10 @@ struct sortclass_int {
 	bool operator() (int i,int j) { return (i<j);}
 };
 
+struct sortclass_double {
+	bool operator() (double i,double j) { return (i<j);}
+};
+
 struct sortclass_long {
 	bool operator() (long i,long j) { return (i<j);}
 };

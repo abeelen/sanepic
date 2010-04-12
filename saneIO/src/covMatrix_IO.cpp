@@ -402,6 +402,32 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 
 }
 
+void write_InvNoise_interpPowerSpectra(std::string bolo, long ns,
+		double *Nk, string outputDir, string suffix)
+/*
+ * This function writes the interpolated Inverse Covariance Matrices in binary format
+ */
+{
+
+	string filename;
+	FILE *fpw;
+
+
+	// open file
+	filename = outputDir + "Noise_data/" + bolo + "_" + suffix;
+	if ((fpw = fopen(filename.c_str(),"w")) == NULL){
+		cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
+		exit(1);
+	}
+
+	// write arrays
+	fwrite(Nk, sizeof(double), ns, fpw);
+
+	// close file
+	fclose(fpw);
+
+}
+
 //saneLIB
 void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 		long * nbins, long * ndet, double ** ell, double *** SpN_all)
@@ -440,6 +466,30 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	//	cout << endl;
 	//
 	//	cout << "here final" << endl;
+
+	fclose(fp);
+
+}
+
+void read_InvNoise_interpPowerSpectra(string outputDir, double *&SpN_tot, long ns, string boloName, string suffix)
+/*
+ * This function reads the Inverse Covariance Matrices in binary format
+ */
+{
+
+	string filename;
+	FILE *fp;
+	size_t result;
+
+	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
+	//	cout << filename << endl;
+	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
+		cerr << "ERROR: Can't read noise power spectra file" << filename
+		<< endl;
+		exit(1);
+	}
+
+	result = fread((SpN_tot), sizeof(double), ns, fp);
 
 	fclose(fp);
 

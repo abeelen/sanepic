@@ -26,18 +26,6 @@ extern "C" {
 
 using namespace std;
 
-/*
-template<class T> void vector2array(std::vector<T> vect, T* a)
-{
-	// copy list of type T to array of type T
-	typename std::vector<T>::iterator iter;
-	int i;
-
-	for (iter=vect.begin(), i=0; iter != vect.end(); iter++, i++) {
-		a[i] = *iter;
-	}
-}*/
-
 
 double *dat_compare;
 
