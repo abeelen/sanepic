@@ -407,7 +407,6 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 		}
 
 
-
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 

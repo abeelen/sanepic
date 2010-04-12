@@ -159,10 +159,6 @@ int main(int argc, char *argv[])
 	string name_rank;
 	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
-#else
-	string name_rank = dir.output_dir + "debug_sanePre.txt";
-
-#endif
 
 	ofstream file_rank;
 	time_t rawtime;
@@ -177,6 +173,8 @@ int main(int argc, char *argv[])
 	}
 	file_rank << "Opening file for writing debug at " << asctime (timeinfo)  << endl;
 	file_rank.close();
+
+#endif
 
 	////////////////////////////////////////////////////////////////
 
@@ -404,7 +402,7 @@ int main(int argc, char *argv[])
 
 
 
-		printf("[%2.2i] npix = %lld, npixeff = %lld\n", rank, npix, npixeff);
+//		printf("[%2.2i] npix = %lld, npixeff = %lld\n", rank, npix, npixeff);
 
 
 		//t1 = time(0);
@@ -566,7 +564,7 @@ int main(int argc, char *argv[])
 		MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
 
-		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
+//		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
 
 		//start loop
@@ -824,7 +822,7 @@ int main(int argc, char *argv[])
 										if (indpix[mi+NAXIS1*NAXIS2] >=0)
 											map1d[mi] = S[indpix[mi + NAXIS1*NAXIS2]]; //-finalmap[ii][jj];
 										else
-											map1d[mi] = 0;
+											map1d[mi] = INFINITY;
 								} else {
 									map1d[mi] = NAN;
 								}

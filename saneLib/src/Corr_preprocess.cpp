@@ -161,7 +161,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
 	fits_filename = samples_struct.fits_table[iframe];
-	cout << "fits file : " << fits_filename << endl;
+//	cout << "fits file : " << fits_filename << endl;
 
 
 
@@ -253,7 +253,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 		//		fclose(input_file);
 
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE | FFTW_WISDOM_ONLY); //FFTW_ESTIMATE
+		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
 		//		FILE *fp;
 		//		string olol = tmp_dir +  "wisdom_global";
 		//		fp = fopen(olol.c_str(),"a");

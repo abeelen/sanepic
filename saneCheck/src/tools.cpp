@@ -710,7 +710,6 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 	double sum=0.0;
 	std::vector<double> freq;
 
-
 	read_time_from_fits(fname, time, ns);
 	diff = new double [ns-1];
 
@@ -774,7 +773,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir){
 		//		if((jj>14800)&&(jj<14900))
 		//			cout << fixed << setprecision(15) << diff[jj] << endl;
 		if((abs(diff[jj])>1.9/Populated_freq)||(abs(diff[jj])<1/Populated_freq/1.9)){
-			cout << "WARNING ! At sample " << jj << " there is a gaps in the time constant : " << fixed <<  setprecision(8) << diff[jj] << endl;
+			cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
 			indice.push_back(jj);
 		}
 	}
