@@ -61,7 +61,6 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2092731118" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.1154244894" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="iniparser"/>
-<listOptionValue builtIn="false" value="getdata"/>
 <listOptionValue builtIn="false" value="nr"/>
 <listOptionValue builtIn="false" value="saneIO"/>
 <listOptionValue builtIn="false" value="cfitsio"/>

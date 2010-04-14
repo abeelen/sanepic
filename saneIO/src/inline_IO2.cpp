@@ -71,7 +71,7 @@ bool compute_dirfile_format_noisePS(std::string outdir, std::vector<string> det,
 
 	std::ostringstream oss;
 	FILE *fp;
-	string temp = outdir + "/Noise_data/format";
+	string temp = outdir + "Noise_data/format";
 	long ndet=(long)det.size();
 
 	if((fp = fopen(temp.c_str(),"w"))!=NULL){
@@ -98,7 +98,7 @@ bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long
 	if(rank==0){
 		std::ostringstream oss;
 		FILE *fp;
-		string temp = outdir + "/Fourier_data/format";
+		string temp = outdir + "Fourier_data/format";
 
 
 		if((fp = fopen(temp.c_str(),"w"))!=NULL){

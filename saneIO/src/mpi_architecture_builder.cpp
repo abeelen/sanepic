@@ -686,7 +686,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
-			cerr << "File [" << outfile << "] Invalid." << endl;
+			cerr << "File [" << outfile << "] Invalid : Unable to create it !" << endl;
 			return return_error = 1;
 		}
 	}

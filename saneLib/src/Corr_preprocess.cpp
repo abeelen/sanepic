@@ -61,7 +61,6 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	if(flgdupl==1)  factdupl = 2;
 
 
-
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
 
 		//Read pointing data
@@ -109,17 +108,17 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	fftw_complex *fdata;
 
 	//	if(!fftw_import_system_wisdom()){
-	FILE * input_file;
-	string olol = tmp_dir + "wisdom_global";
-	cout << olol << endl;
-	input_file = fopen(olol.c_str(),"r");
-	if (fftw_import_wisdom_from_file(input_file)==0)
-		printf("Error reading wisdom!\n");
-
-	//	int ret = fftw_import_wisdom_from_file(input_file);
-	//	cout << ret << " " << "wisdom" << endl;
-	//	getchar();
-	fclose(input_file);
+//	FILE * input_file;
+//	string olol = tmp_dir + "wisdom_global";
+//	cout << olol << endl;
+//	input_file = fopen(olol.c_str(),"r");
+//	if (fftw_import_wisdom_from_file(input_file)==0)
+//		printf("Error reading wisdom!\n");
+//
+//	//	int ret = fftw_import_wisdom_from_file(input_file);
+//	//	cout << ret << " " << "wisdom" << endl;
+//	//	getchar();
+//	fclose(input_file);
 	//	}
 
 

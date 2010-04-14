@@ -1826,7 +1826,9 @@
 <listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.188126135" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.188126135" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+<listOptionValue builtIn="false" value="PARA_BOLO"/>
+</option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1689050190" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1358177412" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">

@@ -455,9 +455,13 @@ int main(int argc, char *argv[])
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,name_rank,fdata_buffer);
 #else
 
-
+#if defined(USE_MPI) && ! defined(PARA_BOLO)
+			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					npixsrc,addnpix,f_lppix,ns,	iframe,0,1, name_rank);
+#else
 			write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size, name_rank);
+#endif
 #endif
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -508,8 +512,15 @@ int main(int argc, char *argv[])
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank,fdata_buffer);
 			// Returns Pnd = (At N-1 d)
 #else
+
+#if defined(USE_MPI) && ! defined(PARA_BOLO)
+			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+#else
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+
+#endif
 #endif
 			// delete fdata buffer
 			//delete [] fdata_buffer;

@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
 
 	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
-	if (iframe_min < 0 || iframe_min >= iframe_max || iframe_max > samples_struct.ntotscan){
+	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		exit(1);
 	}
@@ -450,8 +450,12 @@ int main(int argc, char *argv[])
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
 #else
 
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+#if defined(USE_MPI) && !defined(PARA_BOLO)
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 				// read pointing + deproject + fourier transform
+#else
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+#endif
 #endif
 
 
@@ -471,10 +475,15 @@ int main(int argc, char *argv[])
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits,name_rank,fdata_buffer);
 #else
-
+#if defined(USE_MPI) && !defined(PARA_BOLO)
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+				// return Pnd = At N-1 d
+#else
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
-				// return Pnd = At N-1 d
+
+#endif
 #endif
 
 #ifdef LARGE_MEMORY
@@ -604,8 +613,13 @@ int main(int argc, char *argv[])
 					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size, fdata_buffer);
 					// read pointing + deproject + fourier transform
 #else
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+#if defined(USE_MPI) && !defined(PARA_BOLO)
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 					// read pointing + deproject + fourier transform
+#else
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+
+#endif
 #endif
 					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
 					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
@@ -625,12 +639,15 @@ int main(int argc, char *argv[])
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
 #else
-
-
+#if defined(USE_MPI) && !defined(PARA_BOLO)
+					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+#else
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+
 #endif
-					// return Pnd = At N-1 d
+#endif
 
 #ifdef LARGE_MEMORY
 					delete [] fdata_buffer;
@@ -713,8 +730,12 @@ int main(int argc, char *argv[])
 						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
 						// read pointing + deproject + fourier transform
 #else
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+#if defined(USE_MPI) && !defined(PARA_BOLO)
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 						// read pointing + deproject + fourier transform
+#else
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank,size);
+#endif
 #endif
 #ifdef DEBUG
 						time ( &rawtime );
@@ -733,9 +754,14 @@ int main(int argc, char *argv[])
 								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL,name_rank, fdata_buffer);
 						// return Pnd = At N-1 d
 #else
+#if defined(USE_MPI) && !defined(PARA_BOLO)
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 						// return Pnd = At N-1 d
+#else
+						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+														proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+#endif
 #endif
 					} else {
 
@@ -951,10 +977,15 @@ int main(int argc, char *argv[])
 					// "fdata_" files generation (fourier transform of the data)
 
 #else
+#if defined(USE_MPI) && !defined(PARA_BOLO)
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
+							npixsrc,addnpix,f_lppix,ns,	iframe, 0, 1, name_rank);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
+#else
+					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+												npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
+#endif
 #endif
 
 #ifdef DEBUG
@@ -973,11 +1004,14 @@ int main(int argc, char *argv[])
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
 #else
+#if defined(USE_MPI) && !defined(PARA_BOLO)
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
-
+							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 					// return Pnd = At N-1 d
-
+#else
+					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
+												proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+#endif
 #endif
 				} else {
 
