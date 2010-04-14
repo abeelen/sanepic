@@ -260,7 +260,7 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 
 
 
-//TODO : This function should be more generalized
+//TODO : This function should be more generalized, now make the assumption that indpix has already been computed on the map
 void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix)
 /*
  * This function read the sanePic generated map and converts it into S (only seen pixels)

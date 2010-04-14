@@ -202,8 +202,8 @@ int main(int argc, char *argv[])
 	//	frames_index = new long [samples_struct.ntotscan];
 
 
-	samples_struct.fits_table = new string[samples_struct.ntotscan];
-	samples_struct.index_table= new int[samples_struct.ntotscan];
+	samples_struct.fits_table  = new string[samples_struct.ntotscan];
+	samples_struct.index_table = new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 

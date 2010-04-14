@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
 
 	/*************************************************************/
 
-	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
+//	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-4)){
+		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-6)){
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
@@ -1096,13 +1096,6 @@ int main(int argc, char *argv[])
 	//******************************************************************//
 
 
-
-
-	// TODO : This will be rewrite differently
-	//	if (rank == 0){
-	//		//write infos for second part
-	//		write_info_for_second_part(proc_param.output_dir, NAXIS1, NAXIS2, npix,proc_param.pixdeg, tancoord, tanpix, coordsyst, flagon, indpix);
-	//	}
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
