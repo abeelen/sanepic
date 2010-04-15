@@ -83,10 +83,11 @@ int parse_sanePos_ini_file(char * ini_name,struct param_process &proc_param, str
 	if(read_fits_file_list(ini, dir, samples_struct, rank))
 		return -1;
 
-	if(check_dirfile_paths(dir.tmp_dir)){
-		cout << "Exiting...\n";
-		return -1;
-	}
+	if(rank==0)
+		if(check_dirfile_paths(dir.tmp_dir)){
+			cout << "Exiting...\n";
+			return -1;
+		}
 
 
 	if(rank==0){
