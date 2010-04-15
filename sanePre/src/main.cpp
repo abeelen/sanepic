@@ -693,6 +693,7 @@ int main(int argc, char *argv[])
 			write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Invnoisevaruncpix",1);
 		}
 
+		write_fits_hitory(fnaivname, NAXIS1, NAXIS2, proc_param, pos_param , fcut, det, samples_struct);
 
 		delete [] map1d;
 		if(rank==0)
