@@ -5,7 +5,7 @@ int read_indices_file(std::string fname, struct common dir, std::vector<long> &i
 //void read_tables_till_indice(std::string fname, long marker);
 long how_many(std::string fname,long ns, std::vector <long> indice, double *&time, double fsamp, std::vector <long> &add_sample);
 void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std::vector <long> &add_sample, double fsamp, long nsamples_total);
-void fix_row(double *RA, double *&RA_fixed, std::vector <long> indice, std::vector <long> add_sample, long nsamples_total);
+void fix_row(double *row, double *&row_fixed, std::vector <long> indice, std::vector <long> add_sample, long nsamples_total);
 void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vector <long> add_sample, long nsamples_total);
 void insert_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final);
 void insert_row_in_image(fitsfile *fptr, fitsfile *outfptr, std::string field, double *RA_fixed, long ns_total);

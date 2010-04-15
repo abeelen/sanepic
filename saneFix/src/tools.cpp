@@ -115,26 +115,26 @@ void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std:
 		}
 }
 
-void fix_row(double *RA, double *&RA_fixed, std::vector <long> indice, std::vector <long> add_sample, long nsamples_total){
+void fix_row(double *row, double *&row_fixed, std::vector <long> indice, std::vector <long> add_sample, long nsamples_total){
 
 	long pointer=0;
 	long jj=0, kk=0, uu=0;
 
 	for(long ii=0; ii < (long)indice.size(); ii++){
 		for(jj=pointer; jj<=indice[ii]; jj++){
-			RA_fixed[jj]=RA[uu];
+			row_fixed[jj]=row[uu];
 			uu++;
 		}
 		pointer=jj;
 		for(kk=pointer; kk < pointer + add_sample[ii]; kk++)
-			RA_fixed[kk]=NAN;
+			row_fixed[kk]=NAN;
 		pointer=kk;
 
 	}
 
 	if((nsamples_total-pointer)>0)
 		for(kk=pointer; kk <nsamples_total; kk++){
-			RA_fixed[kk]=RA[uu];
+			row_fixed[kk]=row[uu];
 			uu++;
 		}
 
@@ -307,11 +307,11 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);
 		for(long nn=0; nn<ns_temp;nn++)
 			RA[nn]=RA[nn]*15.0;
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status);
 		fix_row(RA, RA_fixed, indice, add_sample, ns_total);
 		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total);
 
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total);
 		insert_row_in_image(fptr, outfptr, det.boloname[jj], DEC_fixed, ns_total);
 		delete [] RA;
