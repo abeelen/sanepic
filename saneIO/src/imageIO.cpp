@@ -2,9 +2,9 @@
 #include <string>
 
 #include "imageIO.h"
+#include "struct_definition.h"
 
-
-using namespace std;
+#include <sstream>
 
 extern "C" {
 #include <fitsio.h>
@@ -13,6 +13,10 @@ extern "C" {
 #include "wcslib/wcs.h"
 #include "wcslib/wcshdr.h"
 }
+
+
+
+using namespace std;
 
 
 void print_fits_error(int status){
@@ -72,9 +76,10 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 
 	hptr = header;
 	// write it to the fits file
-	for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80)
+	for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80){
 		if ( fits_write_record(fp, (const char*) hptr, &fits_status))
 			print_fits_error(fits_status);
+	}
 
 
 	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
@@ -103,6 +108,188 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	if(fits_close_file(fp, &fits_status))
 		print_fits_error(fits_status);
 }
+
+
+
+void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_process proc_param, struct param_positions pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
+
+	fitsfile *fp;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+	std::ostringstream oss;
+
+	//	int naxis = 2;                  // number of dimensions
+	//	long naxes[] = {NAXIS1, NAXIS2};
+
+	if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	fits_create_img(fp, 8, 0, 0, &fits_status);
+
+	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)"History",
+			(char *) "table name", &fits_status);
+
+	for(int num=0;num<(int)samples_struct.ntotscan;num++){
+		oss << "Source" << num;
+		string keyname = oss.str();
+		string value = samples_struct.fits_table[num];
+		string comm = "Data Source Fits Files";
+		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+			print_fits_error(fits_status);
+		oss.str("");
+	}
+
+
+	oss << proc_param.napod;
+	string keyname = "NAPOD";
+	string value = oss.str();
+	string comm = "Number of samples to apodize";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	oss << proc_param.poly_order;
+	keyname = "POLYORDER";
+	value = oss.str();
+	comm = "Fitted polynomia order";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	oss << proc_param.fsamp;
+	keyname = "SAMPLINGFREQUENCY";
+	value = oss.str();
+	comm = "sampling frequency (Hz)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	oss << proc_param.f_lp;
+	keyname = "FILTERFREQUENCY";
+	value = oss.str();
+	comm = "Butterworth filter frequency (Hz)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+
+	keyname = "FILLGAPS";
+	if(proc_param.NOFILLGAP)
+		value = "no";
+	else
+		value = "yes";
+	comm = "Do we fill the gaps in the timeline with White noise + baseline ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "NORMLIN";
+	if(proc_param.NORMLIN)
+		value = "no";
+	else
+		value = "yes";
+	comm = "Do we remove a baseline from the data ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "CORRELATION";
+	if(proc_param.CORRon)
+		value = "yes";
+	else
+		value = "no";
+	comm = "Correlations between detectors are not included in the analysis ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "POLYNOMIASUBTRACTION";
+	if(proc_param.remove_polynomia)
+		value = "yes";
+	else
+		value = "no";
+	comm = "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	oss << pos_param.pixdeg;
+	keyname = "PIXELSIZE";
+	value = oss.str();
+	comm = "SIZE OF THE PIXEL (deg)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "DUPLICATEDMAP";
+	if(pos_param.flgdupl)
+		value = "yes";
+	else
+		value = "no";
+	comm = "flagged data are put in a separate map";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "GAPSPROJECTION";
+	if(pos_param.projgaps)
+		value = "yes";
+	else
+		value = "no";
+	comm = "gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "SOURCESFILEFORMAT";
+	if(pos_param.fileFormat)
+		value = "HIPE";
+	else
+		value = "SANEPIC";
+	comm = "Sources file format";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	keyname = "MASKFILE";
+	oss << pos_param.maskfile;
+	value = oss.str();
+	comm = "name of the fits file that was used to mask radiant sources";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+
+	oss << det.ndet;
+	keyname = "NUMBEROFDETECTORS";
+	value = oss.str();
+	comm = "Number of detectors that were used for the analysis";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
+	if(ncomp>0){
+		oss << ncomp;
+		keyname = "COMPONENTNUMBER";
+		value = oss.str();
+		comm = "number of noise component to estimate in sanePS";
+		oss.str("");
+
+		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+			print_fits_error(fits_status);
+	}
+
+
+	// close file
+	if(fits_close_file(fp, &fits_status))
+		print_fits_error(fits_status);
+}
+
 
 int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data)
 /*
@@ -276,8 +463,8 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-//	if (fits_movabs_hdu(fptr, 1, NULL, &status))
-//		fits_report_error(stderr, status);
+	//	if (fits_movabs_hdu(fptr, 1, NULL, &status))
+	//		fits_report_error(stderr, status);
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Map", NULL, &status))
 		fits_report_error(stderr, status);
