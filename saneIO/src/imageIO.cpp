@@ -3,6 +3,7 @@
 
 #include "imageIO.h"
 #include "struct_definition.h"
+#include "inputFileIO.h"
 
 #include <sstream>
 
@@ -111,7 +112,7 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 
 
 
-void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_process proc_param, struct param_positions pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
+void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_process proc_param, struct param_positions pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
@@ -128,38 +129,49 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)"History",
 			(char *) "table name", &fits_status);
 
+	string keyname = "PATHNAME";
+	string value = path;
+	string comm = "Source data path";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
+
 	for(int num=0;num<(int)samples_struct.ntotscan;num++){
 		oss << "Source" << num;
 		string keyname = oss.str();
-		string value = samples_struct.fits_table[num];
-		string comm = "Data Source Fits Files";
+		oss.str("");
+		oss << samples_struct.fits_table[num];
+		string filename = oss.str();
+		oss.str("");
+		string value = Basename(filename) + ".fits";
+		string comm = "Data Source Fits File";
 		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 			print_fits_error(fits_status);
-		oss.str("");
+
 	}
 
 
 	oss << proc_param.napod;
-	string keyname = "NAPOD";
-	string value = oss.str();
-	string comm = "Number of samples to apodize";
+	keyname = "NAPOD";
+	value = oss.str();
+	comm = "Number of samples to apodize";
 	oss.str("");
 
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
 
-		oss << proc_param.poly_order;
-		keyname = "POLYORDR";
-		value = oss.str();
-		comm = "Fitted"; // polynomia order";
-		oss.str("");
+	oss << proc_param.poly_order;
+	keyname = "POLYORDR";
+	value = oss.str();
+	comm = "Fitted"; // polynomia order";
+	oss.str("");
 
-		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-			print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
+		print_fits_error(fits_status);
 
 
-	 // use only 8 characters for keyname to avoid HIERARCH keyword addition by cfitsio...
+	// use only 8 characters for keyname to avoid HIERARCH keyword addition by cfitsio...
 	oss << proc_param.fsamp;
 	keyname = "SAMPFREQ";
 	value = oss.str();
@@ -262,6 +274,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	oss << pos_param.maskfile;
 	value = oss.str();
 	comm = "name of the fits file that was used to mask radiant sources";
+	oss.str("");
 
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
@@ -293,6 +306,59 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 		print_fits_error(fits_status);
 }
 
+
+void write_fits_mask(std::string fnaivname, std::string maskfile)
+{
+
+	fitsfile *fptr, *outfptr;
+	int fits_status = 0;
+	long naxes[2] = { 1, 1 };
+
+	if (fits_open_file(&fptr, maskfile.c_str(), READWRITE, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	if (fits_open_file(&outfptr, fnaivname.c_str(), READWRITE, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	cout << "apres mask 1 \n";
+
+	if(fits_copy_header(fptr, outfptr, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	cout << "apres copy header \n";
+
+	// Retrieve the image size
+	if (fits_get_img_size(fptr, 2, naxes, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	cout << "apres get size \n";
+
+	//	long NAXIS1 = naxes[0];
+
+	if(fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	cout << "apres mask 2 \n";
+
+	//	for(long col=1;col<NAXIS1;col++)
+	//		if(fits_copy_col(fptr, outfptr,  col, col,	0, &fits_status))
+	//			fits_report_error(stderr, fits_status);
+	if (fits_copy_data(fptr, outfptr, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	cout << "apres copy col \n";
+
+	// close files
+	if(fits_close_file(fptr, &fits_status))
+		print_fits_error(fits_status);
+
+	if(fits_close_file(outfptr, &fits_status))
+		print_fits_error(fits_status);
+
+}
 
 int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data)
 /*
