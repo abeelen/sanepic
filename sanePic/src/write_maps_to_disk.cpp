@@ -11,12 +11,15 @@
 #include "inline_IO2.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
+#include "write_maps_to_disk.h"
 
 using namespace std;
 
 
 void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long long *indpix, long long *indpsrc,
-		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan, struct wcsprm *wcs){
+		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
+		struct param_process proc_param, struct param_positions pos_param, struct detectors det,
+		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile){
 
 
 
@@ -39,7 +42,8 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 		}
 	}
 
-	fname = '!' + outdir + "optimMap_flux.fits";
+	//	fname = '!' + outdir + "optimMap_flux.fits";
+	fname = '!' + outdir + "optimMap_sanePic.fits";
 	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Map", 0);
 
 
@@ -55,8 +59,8 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 	}
 
 
-	fname = '!' + outdir + "optimMap_noisevar.fits";
-	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Final Error",0);
+	//	fname = '!' + outdir + "optimMap_noisevar.fits";
+	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Final Error",1);
 
 	if (addnpix){
 		for (long iframe = 0;iframe<ntotscan;iframe++){
@@ -74,12 +78,12 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 
 
 
-			temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
-			// récupérer une chaîne de caractères
-			fname= temp_stream.str();
-			// Clear ostringstream buffer
-			temp_stream.str("");
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *) "Duplicated map",0);
+			//			temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
+			//			// récupérer une chaîne de caractères
+			//			fname= temp_stream.str();
+			//			// Clear ostringstream buffer
+			//			temp_stream.str("");
+			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *) "Duplicated map",1);
 
 			for (long ii=0; ii<NAXIS1; ii++) {
 				for (long jj=0; jj<NAXIS2; jj++) {
@@ -94,16 +98,21 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			}
 
 			//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-			temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
+			//			temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
 
 			// récupérer une chaîne de caractères
-			fname= temp_stream.str();
-			// Clear ostringstream buffer
-			temp_stream.str("");
+			//			fname= temp_stream.str();
+			//			// Clear ostringstream buffer
+			//			temp_stream.str("");
 			//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",0);
+			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1);
 		}
 	}
+
+	write_fits_hitory(fname , NAXIS1, NAXIS2, outdir, proc_param, pos_param , fcut, det, samples_struct);
+
+	if (maskfile != "")
+		write_fits_mask(fname, maskfile);
 
 	// clean
 	delete [] map1d;

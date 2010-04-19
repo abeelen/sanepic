@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
 
 	/*************************************************************/
 
-//	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
+	//	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
 
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
@@ -760,7 +760,7 @@ int main(int argc, char *argv[])
 						// return Pnd = At N-1 d
 #else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-														proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 #endif
 #endif
 					} else {
@@ -834,8 +834,9 @@ int main(int argc, char *argv[])
 						}
 					}
 
-					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
+					//					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
 
+					temp_stream << "!" + dir.output_dir + "optimMap_" << iter << "b.fits";
 					fname= temp_stream.str();
 					temp_stream.str("");
 					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
@@ -856,10 +857,10 @@ int main(int argc, char *argv[])
 						}
 
 
-						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
-						fname= temp_stream.str();
-						temp_stream.str("");
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",0);
+						//						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
+						//						fname= temp_stream.str();
+						//						temp_stream.str("");
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",1);
 					}
 
 
@@ -892,12 +893,13 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
-						fname= temp_stream.str();
-						temp_stream.str("");
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 0);
+						//						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
+						//						fname= temp_stream.str();
+						//						temp_stream.str("");
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 1);
 
 					}
+					write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct);
 				} // end of saving iterated maps
 
 
@@ -984,7 +986,7 @@ int main(int argc, char *argv[])
 					// "fdata_" files generation (fourier transform of the data)
 #else
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-												npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
+							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
 #endif
 #endif
 
@@ -1010,7 +1012,7 @@ int main(int argc, char *argv[])
 					// return Pnd = At N-1 d
 #else
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-												proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 #endif
 #endif
 				} else {
@@ -1060,7 +1062,9 @@ int main(int argc, char *argv[])
 #endif
 
 		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.output_dir, indpix, indpsrc,
-				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan, wcs);
+				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
+				proc_param, pos_param, det, samples_struct, fcut,
+				wcs, pos_param.maskfile);
 	}// end of rank==0
 
 
