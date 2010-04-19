@@ -577,8 +577,8 @@ int main(int argc, char *argv[])
 		//			exit(0);
 		//		}
 
-		if(rank==0)
-			cout << "\nNaive step :" << endl;
+		//		if(rank==0)
+		cout << "\nNaive step :" << endl;
 		string fnaivname;
 		double *map1d;
 		long long mi;
@@ -693,7 +693,9 @@ int main(int argc, char *argv[])
 			write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Invnoisevaruncpix",1);
 		}
 
-		write_fits_hitory(fnaivname, NAXIS1, NAXIS2, proc_param, pos_param , fcut, det, samples_struct);
+		write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct);
+		if (pos_param.maskfile != "")
+			write_fits_mask(fnaivname, pos_param.maskfile);
 
 		delete [] map1d;
 		if(rank==0)
