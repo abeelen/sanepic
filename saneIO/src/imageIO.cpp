@@ -148,17 +148,18 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	{
+
 		oss << proc_param.poly_order;
-		string keyname2 = "POLYORDR";
-		string value2 = oss.str();
-		string comm2 = "Fitted"; // polynomia order";
+		keyname = "POLYORDR";
+		value = oss.str();
+		comm = "Fitted"; // polynomia order";
 		oss.str("");
 
-		if ( fits_write_key(fp, TSTRING, (char*) keyname2.c_str(), (char*)value2.c_str(), (char*)comm2.c_str(), &fits_status))
+		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 			print_fits_error(fits_status);
-	}
 
+
+	 // use only 8 characters for keyname to avoid HIERARCH keyword addition by cfitsio...
 	oss << proc_param.fsamp;
 	keyname = "SAMPFREQ";
 	value = oss.str();
