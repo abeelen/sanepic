@@ -148,17 +148,19 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	oss << proc_param.poly_order;
-	keyname = "POLYORDER";
-	value = oss.str();
-	comm = "Fitted polynomia order";
-	oss.str("");
+	{
+		oss << proc_param.poly_order;
+		string keyname2 = "POLYORDR";
+		string value2 = oss.str();
+		string comm2 = "Fitted"; // polynomia order";
+		oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+		if ( fits_write_key(fp, TSTRING, (char*) keyname2.c_str(), (char*)value2.c_str(), (char*)comm2.c_str(), &fits_status))
+			print_fits_error(fits_status);
+	}
 
 	oss << proc_param.fsamp;
-	keyname = "SAMPLINGFREQUENCY";
+	keyname = "SAMPFREQ";
 	value = oss.str();
 	comm = "sampling frequency (Hz)";
 	oss.str("");
@@ -167,7 +169,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 		print_fits_error(fits_status);
 
 	oss << proc_param.f_lp;
-	keyname = "FILTERFREQUENCY";
+	keyname = "FILTFREQ";
 	value = oss.str();
 	comm = "Butterworth filter frequency (Hz)";
 	oss.str("");
@@ -196,7 +198,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	keyname = "CORRELATION";
+	keyname = "CORREL";
 	if(proc_param.CORRon)
 		value = "yes";
 	else
@@ -206,7 +208,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	keyname = "POLYNOMIASUBTRACTION";
+	keyname = "POLYNSUB";
 	if(proc_param.remove_polynomia)
 		value = "yes";
 	else
@@ -217,7 +219,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 		print_fits_error(fits_status);
 
 	oss << pos_param.pixdeg;
-	keyname = "PIXELSIZE";
+	keyname = "PIXSIZE";
 	value = oss.str();
 	comm = "SIZE OF THE PIXEL (deg)";
 	oss.str("");
@@ -225,7 +227,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	keyname = "DUPLICATEDMAP";
+	keyname = "DUPLMAP";
 	if(pos_param.flgdupl)
 		value = "yes";
 	else
@@ -235,7 +237,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	keyname = "GAPSPROJECTION";
+	keyname = "GAPSPROJ";
 	if(pos_param.projgaps)
 		value = "yes";
 	else
@@ -245,7 +247,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
 		print_fits_error(fits_status);
 
-	keyname = "SOURCESFILEFORMAT";
+	keyname = "FORMAT";
 	if(pos_param.fileFormat)
 		value = "HIPE";
 	else
@@ -265,7 +267,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 
 
 	oss << det.ndet;
-	keyname = "NUMBEROFDETECTORS";
+	keyname = "NUMDET";
 	value = oss.str();
 	comm = "Number of detectors that were used for the analysis";
 	oss.str("");
@@ -275,7 +277,7 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, struct param_proce
 
 	if(ncomp>0){
 		oss << ncomp;
-		keyname = "COMPONENTNUMBER";
+		keyname = "COMPONEN";
 		value = oss.str();
 		comm = "number of noise component to estimate in sanePS";
 		oss.str("");
