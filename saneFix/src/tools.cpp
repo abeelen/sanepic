@@ -63,7 +63,7 @@ long how_many(string fname, long ns, std::vector <long> indice, double *&time, d
 
 	read_time_from_fits(fname, time, ns);
 	for(long ii=0; ii < (long)indice.size(); ii++){
-		//		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
+		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
 		if(gap>0){
 			sum+=gap;
@@ -89,22 +89,33 @@ void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std:
 
 	long pointer_time=0;
 	long jj=0, kk=0, uu=0;
+//	cout << "fsamp : " << fsamp << endl;
 
 	for(long ii=0; ii < (long)indice.size(); ii++){
-		for(jj=pointer_time; jj<=indice[ii]; jj++){
+		cout << "indice : " << ii << " " << indice[ii] << endl;
+//		for(jj=pointer_time; jj<=indice[ii]; jj++){
+		jj=pointer_time;
+		while(uu<=indice[ii]){
 			time_fixed[jj]=time[uu];
 			uu++;
+			jj++;
 		}
 		pointer_time=jj;
+//		cout << "pointer_time : " <<  pointer_time << endl;
 		if(add_sample[ii]==-1){
 			time_fixed[pointer_time]=(time[uu+1]+time[uu])/2;
 			add_sample[ii]=1;
+			cout << "detected -1\n";
 		}else{
-			for(kk=pointer_time; kk < pointer_time + add_sample[ii]; kk++)
-				time_fixed[kk]=time_fixed[kk-1]+1/fsamp;
+			for(kk=pointer_time; kk < pointer_time + add_sample[ii]; kk++){
+				cout << "kk : " <<  kk << endl;
+				time_fixed[kk]=time_fixed[pointer_time-1]+(kk-pointer_time+1)/fsamp;
+			}
 			pointer_time=kk;
+//			cout << "pointer_time fin boucle : " <<  pointer_time << endl;
 		}
-		pointer_time++;
+//		cout << endl << "indice suivant : " << endl;
+		//		pointer_time++;
 	}
 	//	cout << "pt : " << pointer_time << endl;
 
