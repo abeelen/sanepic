@@ -15,6 +15,8 @@
 
 #include "inputFileIO.h"
 
+#define EscapeChar "!#;"
+
 using namespace std;
 
 /*!
@@ -23,6 +25,7 @@ using namespace std;
  */
 void read_strings(string fname, std::vector<string> &bolos) {
 	string line;
+	size_t found;
 
 	ifstream inputFile(fname.c_str());
 	if (!inputFile.is_open()) {
@@ -31,10 +34,9 @@ void read_strings(string fname, std::vector<string> &bolos) {
 	}
 
 	while (!inputFile.eof()) {
-		size_t found;
 		getline(inputFile, line);
 		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of("!#;");				// Check for comment character at the beginning of the line
+		found = line.find_first_of(EscapeChar);          // Check for comment character at the beginning of the line
 
 		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
 
@@ -48,6 +50,7 @@ void read_strings(string fname, std::vector<string> &bolos) {
 void read_double(string fname, double *& array, long & size){
 	string line;
 	vector<double> temp;
+	size_t found;
 
 	ifstream inputFile(fname.c_str(), ios::in);
 	if (!inputFile.is_open()) {
@@ -57,7 +60,12 @@ void read_double(string fname, double *& array, long & size){
 
 	// Count the number of lines ;
 	while(! inputFile.eof()){
+
 		getline(inputFile,line);
+		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
+		found = line.find_first_of(EscapeChar);				// Check for comment character at the beginning of the line
+		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
+
 		temp.push_back(atof(line.c_str()));
 	}
 	// Last element is an empty line
