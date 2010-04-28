@@ -130,9 +130,9 @@ int main(int argc, char *argv[])
 
 	}
 
-	long *frames_index;
-
-	frames_index = new long [samples_struct.ntotscan];
+	//	long *frames_index;
+	//
+	//	frames_index = new long [samples_struct.ntotscan];
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new int[samples_struct.ntotscan];
@@ -287,18 +287,21 @@ int main(int argc, char *argv[])
 
 	//clean up
 	delete [] samples_struct.nsamples;
-	delete [] S;
+
 
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 	delete [] samples_struct.noise_table;
 
-	delete [] frames_index;
+	//	delete [] frames_index;
 
-	delete [] indpix;
+
 	if(signame == "NOSIGFILE"){
-		int nwcs = 1;
-		wcsvfree(&nwcs, &wcs);
+		//		int nwcs = 1;
+		//		wcsvfree(&nwcs, &wcs);
+	}else{
+		delete [] S;
+		delete [] indpix;
 	}
 	printf("\nEnd of sanePS\n");
 	return 0;
