@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 	string fname;
 
-	struct wcsprm * wcs;
+//	struct wcsprm * wcs;
 
 
 	int parsed=0;
