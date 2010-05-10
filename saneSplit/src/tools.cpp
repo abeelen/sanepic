@@ -1,5 +1,3 @@
-
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -27,80 +25,31 @@ extern "C" {
 
 using namespace std;
 
+void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample)
+/*! Copy RA DEC and PHI (reference detector) tables from input fits to output */
+{
 
-
-//void read_Split_file(string fname, std::vector< long > &cut_sample, struct samples sample_struct){
-//
-//	std::ifstream file;
-//	string s, line;
-//	int nb_elem=0;
-//
-//	file.open(fname.c_str(), ios::in);
-//	if(!file.is_open()){
-//		cerr << "File [" << fname << "] Invalid." << endl;
-//		exit(-1);
-//	}
-//
-//	nb_elem=0;
-//
-//
-//	cout << " while \n";
-//	while(file >> s){
-//		size_t found;
-//		s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-//		found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-//		if (found == 0) continue;
-//		cut_sample.push_back(atol(s.c_str()));
-//		nb_elem++;
-//		cout << s << endl;
-//	}
-//
-//
-//	if(cut_sample[0]<0){
-//		cout << "Warning : in " << fname << " you must provide Positives cut limits ! Exiting\n";
-//		exit(EXIT_FAILURE);
-//	}
-//
-//	for(int ii=1;ii<nb_elem;ii++)
-//		if((cut_sample[ii]<0)||((cut_sample[ii]-cut_sample[ii-1])<0)){
-//			cout << "Warning : in " << fname << " you must provide a crescent order of Positives cut limits !\nExiting\n";
-//			exit(EXIT_FAILURE);
-//		}
-//
-//	file.close();
-//}
-
-
-void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final){
-
-	long ns_temp;
+	long ns_temp; // temporary value of ns, needed only to read input data
 	double *RA,*DEC,*PHI;
 	double *RA_bis, *DEC_bis, *PHI_bis;
-	int status=0;
-	//	fitsfile * fptr2;
+	int status=0; // fits error status
+	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
-	//	fits_close_file(fptr, &status);
-
-
-
+	// Read original tables
 	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp);
-
-	//	fits_open_file(&fptr2, name.c_str(), READONLY, &status);
-
 
 	RA_bis = new double [ns_final];
 	DEC_bis = new double [ns_final];
 	PHI_bis = new double [ns_final];
-	//	time_bis = new double [ns_final];
 
+	// copy corresponding data
 	for(long ii = 0; ii< ns_final; ii++){
-		RA_bis[ii]=RA[ii]*15.0;
-		DEC_bis[ii]=DEC[ii];
-		PHI_bis[ii]=PHI[ii];
-		//		time_bis[ii]=time[ii];
+		RA_bis[ii]=RA[min_sample+ii]*15.0;
+		DEC_bis[ii]=DEC[min_sample+ii];
+		PHI_bis[ii]=PHI[min_sample+ii];
 	}
 
-
+	// copy header to output
 	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
 		fits_report_error(stderr, status);
 	if(fits_copy_header(fptr, outfptr, &status))
@@ -108,12 +57,7 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final
 	if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", NULL, &status))
 		fits_report_error(stderr, status);
 
-	//	//	cout << "header copied" << endl;
-
-	//
-	//
-	//	// insert column
-	//	//fits_insert_col(fptr, 1, TDOUBLE, , &status);
+	// insert columns
 	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, RA_bis, &status);
 	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_final, DEC_bis, &status);
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_final, PHI_bis, &status);
@@ -129,46 +73,55 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final
 
 }
 
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr){
+void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
+/*! copy bolometers offsets (in regards to ref detector) from input to output */
+{
 
-	int status=0;
+	int status=0; // fits error status
 
 	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status); // copy header
 
 	for(int col=1;col<4;col++)
-		fits_copy_col(fptr, outfptr,  col, col,	0, &status);
+		fits_copy_col(fptr, outfptr,  col, col,	0, &status); // copy the 3 columns
 
 }
 
 
-void copy_channels(fitsfile * fptr, fitsfile *outfptr){
+void copy_channels(fitsfile * fptr, fitsfile *outfptr)
+/*! Copy channel list table from input fits to output */
+{
 
-	int status=0;
+	int status=0; // fits error status
 
 
 	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status); // copy header
 
 
-	fits_copy_col(fptr, outfptr,  1, 1,	0, &status);
+	fits_copy_col(fptr, outfptr,  1, 1,	0, &status); // copy channel list
 
 }
 
-void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final){
+void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample, long max_sample)
+/*! Copy resized time table from input fits to output */
+{
 
-	int status=0;
+	int status=0; // fits error status
 	double *time_bis;
+	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	time_bis = new double [ns_final];
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status);  // copy header
 
+	// copy corresponding data
 	for(long ii = 0; ii< ns_final; ii++){
-		time_bis[ii]=time[ii];
+		time_bis[ii]=time[min_sample+ii];
 	}
 
+	// write data in output file and update header
 	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, time_bis, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
@@ -176,26 +129,31 @@ void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final){
 
 }
 
-void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, struct detectors det)
+/*! Copy resized signal table from input fits to output */
+{
 
-	int status=0;
-	long ns_temp;
+	int status=0; // fits error status
+	long ns_temp; // temporary value of ns, needed only to read input data
+	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status);  // copy header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
 	double *signal, *signal_bis;
 	signal_bis = new double [ns_final];
 	for(long jj=0;jj<det.ndet;jj++){
 
-		read_signal_from_fits(name, det.boloname[jj], signal, ns_temp);
+		read_signal_from_fits(name, det.boloname[jj], signal, ns_temp); // read input data
+
+		// copy corresponding data
 		for(long ii = 0; ii< ns_final; ii++)
-			signal_bis[ii]=signal[ii];
+			signal_bis[ii]=signal[min_sample+ii];
 
 		string field= det.boloname[jj];
-		long rowIndex = find_channel_index(fptr, field.c_str());
-		long fpixel[2]={1,rowIndex};
+		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
+		long fpixel[2]={1,rowIndex}; // write a row which row number is roxIndex
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, signal_bis, &status);
 	}
 
@@ -204,27 +162,30 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final,
 
 }
 
-void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long ns_final, struct detectors det){
+void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample, long max_sample, struct detectors det)
+/*! Copy resized mask table from input fits to output */
+{
 
-	int status=0;
-	long ns_temp;
+	int status=0; // fits error status
+	long ns_temp; // temporary value of ns, needed only to read input data
+	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
-	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
+	fits_copy_header(fptr, outfptr, &status); // copy header
+	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status); // update output header
 
 
 	int *mask, *mask_bis;
 	mask_bis = new int [ns_final];
 	for(long jj=0;jj<det.ndet;jj++){
 
-		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp);
+		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read detector flag row
 		for(long ii = 0; ii< ns_final; ii++)
-			mask_bis[ii]=mask[ii];
+			mask_bis[ii]=mask[min_sample+ii];
 
 		string field= det.boloname[jj];
-		long rowIndex = find_channel_index(fptr, field.c_str());
-		long fpixel[2]={1,rowIndex};
+		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
+		long fpixel[2]={1,rowIndex}; // write the mask which row number is roxIndex
 		fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
 	}
 
@@ -232,44 +193,22 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long ns_final, 
 	delete [] mask;
 }
 
-//void copy_RA(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
-//	int status=0;
-//	long ns_temp;
-//
-//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
-//	fits_copy_header(fptr, outfptr, &status);
-//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
-//
-//	double *RA, *RA_bis;
-//	RA_bis = new double [ns_final];
-//	for(long jj=0;jj<det.ndet;jj++){
-//
-//		read_ra_from_fits(name, det.boloname[jj], RA, ns_temp);
-//		for(long ii = 0; ii< ns_final; ii++)
-//			RA_bis[ii]=RA[ii];
-//
-//		string field= det.boloname[jj];
-//		long rowIndex = find_channel_index(fptr, field.c_str());
-//		long fpixel[2]={1,rowIndex};
-//		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status);
-//	}
-//
-//	delete [] RA_bis;
-//	delete [] RA;
-//
-//}
 
-void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
+void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, struct detectors det)
+/*! Copy resized RA and DEC tables from input fits to output */
+// Only for HIPE format
+{
 
-	int status=0;
-	long ns_temp;
+	int status=0; // fits error status
+	long ns_temp; // temporary value of ns, needed only to read input data
+	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status);  // copy RA header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status);
+	fits_copy_header(fptr, outfptr, &status); // copy DEC header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
 	double *RA, *RA_bis;
@@ -278,52 +217,23 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final,
 	DEC_bis = new double [ns_final];
 	for(long jj=0;jj<det.ndet;jj++){
 
-		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);
+		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);  // read data from input
 		for(long ii = 0; ii< ns_final; ii++){
-			RA_bis[ii]=RA[ii];
-			DEC_bis[ii]=DEC[ii];
+			RA_bis[ii]=RA[min_sample+ii]; // copy corresponding data
+			DEC_bis[ii]=DEC[min_sample+ii];
 		}
 
 		string field= det.boloname[jj];
-		long rowIndex = find_channel_index(fptr, field.c_str());
+		long rowIndex = find_channel_index(fptr, field.c_str()); // find the correct row number in output table
 		long fpixel[2]={1,rowIndex};
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status);
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status);
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move to RA table
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // Write RA row
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move to DEC table
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // Write DEC row
 	}
 
 	delete [] RA_bis;
 	delete [] RA;
 	delete [] DEC_bis;
 	delete [] DEC;
-
-
 }
-
-//void copy_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_final, struct detectors det){
-//	int status=0;
-//	long ns_temp;
-//
-//	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
-//	fits_copy_header(fptr, outfptr, &status);
-//	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
-//
-//	double *DEC, *DEC_bis;
-//	DEC_bis = new double [ns_final];
-//	for(long jj=0;jj<det.ndet;jj++){
-//
-//		read_dec_from_fits(name, det.boloname[jj], DEC, ns_temp);
-//		for(long ii = 0; ii< ns_final; ii++)
-//			DEC_bis[ii]=DEC[ii];
-//
-//		string field= det.boloname[jj];
-//		long rowIndex = find_channel_index(fptr, field.c_str());
-//		long fpixel[2]={1,rowIndex};
-//		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status);
-//	}
-//
-//	delete [] DEC_bis;
-//	delete [] DEC;
-//
-//}

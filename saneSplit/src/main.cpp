@@ -26,15 +26,8 @@ extern "C" {
 
 using namespace std;
 
-//class vector2D_long
-//{
-//public :
-//	std::vector<long> sample_limits;
-//
-//};
-
-
 void usage(char *name)
+/*! You must give,  as an input, the inifile, the fits filename, and one or more pairs of -m -M options */
 {
 	cerr << "USAGE: " << name << " inifile.ini [-f<path/filename>] [-m<min time>] [-M<max time>]" << endl;
 	cerr << "USAGE: You can use multiple -m and -M options, each -m followed by a -M\n";
@@ -42,40 +35,35 @@ void usage(char *name)
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+/*! This project is able to split a fits file (Sanepic or Hipe format) into multiple fits files */
+{
 
 	int parsed = -1;
 
-	struct samples samples_struct;
-	struct common dir;
-	string fname;
-	std::vector< double > min_time, max_time;
-	int retval;
-	int m_count = 0, f_count = 0;
-	int mM_count = 0;
-	int format_fits=0;
-	//	int *format=NULL;
-	double *time=NULL;
-	double time_min=0, time_max=0;
-	struct detectors det;
-	//	long nsamples_global=0;
 
+	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
+	struct common dir; /*! structure that contains output input temp directories */
+	string fname; /*! fits filename variable */
+	std::vector< double > min_time, max_time; /*! vectors to store time limits for the output fits files */
 
-	//	prog_name=(string)argv[0];
-
-
+	int m_count = 0, f_count = 0; /*! counter for m, f and M options */
+	int mM_count = 0; /*! counter for m, f and M options */
+	int format_fits=0; /*! 0 = Hipe format, 1 = SanePic format */
+	double *time=NULL; /*! input fits file time vector */
+	double time_min=0, time_max=0; /*! input file min and max time */
+	struct detectors det; /*! A structure that contains everything about the detectors names and number */
 
 	printf("\nBeginning of saneSplit:\n\n");
 
 
-
-	if (argc<2)
+	if (argc<2) /* not enough argument */
 		parsed=1;
 	else
 		// Parse ini file
 		parsed=parse_saneSplit_ini_file(argv[1],dir);
 
-	if (parsed>0){
+	if (parsed>0){ /* error during parsing phase */
 		switch (parsed){
 
 		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
@@ -92,23 +80,24 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	// read -m and -M options
+	int retval;
+	// read -f, -m and -M options
 	while ( (retval = getopt(argc, argv, "f:m:M:")) != -1) {
 		switch (retval) {
-		case 'f':
+		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
 			readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 			cout << "Scan      : " << samples_struct.fitsvect[0] << endl;
 			cout << "Containing      : " << samples_struct.nsamples[0] << " samples. " << endl;
 			f_count++;
 			break;
-		case 'm':
+		case 'm': /* bottom limit for a new fits file extracted from the -f fitsfile */
 			min_time.push_back(atof(optarg));
 			m_count++;
 			mM_count++;
 			break;
 
-		case 'M':
+		case 'M': /* top limit for a new fits file extracted from the -f fitsfile */
 			max_time.push_back(atof(optarg));
 			mM_count--;
 			break;
@@ -117,6 +106,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+
+	/************** wrong options  ***************/
 
 	if((f_count>1)||(f_count==0)){
 		cout << "\nError ! You must give 1 file AND only one ! Exiting\n";
@@ -131,15 +122,6 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	//	long size_total=0;
-	//	for(int ii=0;ii<samples_struct.ntotscan;ii++)
-	//		size_total +=samples_struct.nsamples[ii];
-
-	//	if(min_time[0]<0){
-	//		cout << "Warning : you must provide Positives cut limits ! Exiting\n";
-	//		exit(EXIT_FAILURE);
-	//	}
-
 
 	// if m<0 or M<m, return
 	for(int ii=0;ii<m_count;ii++){
@@ -149,63 +131,30 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-
-	cout << setprecision(20) << min_time[0] << " " << max_time[0] << endl;
-	//	cout << min_time[1] << " " << max_time[1] << endl;
-
-	//	time_min=new double[samples_struct.ntotscan];
-	//	time_max=new double[samples_struct.ntotscan];
-
-	// get total numbers of samples (for all the scans)
-	//	for(int ii = 0;ii<samples_struct.ntotscan;ii++)
-	//		nsamples_global += samples_struct.nsamples[ii];
-	// allocate memory for the whole data
-	//	time_global=new double[nsamples_global];
+	/*********************************************/
 
 
-	// get min and max time for each fits file (and store the time sequences)
-	//	long indice=0;
-	//	for(int jj=0;jj<samples_struct.ntotscan;jj++){
-	//	time=new double[samples_struct.nsamples[0]];
+	cout << setprecision(20) << "bottom time limit : " << min_time[0] << " top time limit : " << max_time[0] << endl;
 	read_time_from_fits(samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
-	//		for(long kk=0;kk<samples_struct.nsamples[jj];kk++){
-	//			time_global[indice]=time[kk];
-	//			indice++;
-	//		}
 	time_min=time[0];
 	time_max=time[samples_struct.nsamples[0]-1];
-	//	delete [] time;
-	//}
 
-	// get the min of all mins and max of all maxs
-	//double inf_time=*min_element(time_min,time_min+samples_struct.ntotscan);
-	//double sup_time=*max_element(time_max,time_max+samples_struct.ntotscan);
 
-	//	cout << "fits limits  : \n";
-	//	cout << setprecision(40) << time_min << endl;
-	//	cout << setprecision(40) << time_max << endl;
-	//	cout << m_count << endl;
-	//	cout << setprecision(40) << min_time[0] << endl;
-	//	cout << setprecision(40) << max_time[0] << endl;
-
-	// if given max value (-M) is larger than the max time (fits), set M to this max value
-	//	for(int ii=0;ii<m_count;ii++){
 	int ii=0;
+	/* checking that user has given decent time limits according to original fits file time vector */
 	while(ii<m_count){
 		int indic=0;
 		if(max_time[ii]>time_max){
 			max_time[ii]=time_max;
 			indic++;
-			//cout << "Warning : You are trying to reach a time sample that is larger than the maximum time sample !\nExiting\n";
-			//exit(EXIT_FAILURE);
 		}
+
 		// if given min value (-M) is shorter than the min time (fits), set m to this min value
 		if(min_time[ii]<time_min){
 			min_time[ii]=time_min;
 			indic++;
-			//cout << "Warning : You are trying to reach a time sample that is smaller than the minimum time sample !\nExiting\n";
-			//exit(EXIT_FAILURE);
 		}
+
 		if(indic==2){
 			cout << "Warning : You are trying to split a file into the exact same file... \nSwitching to next cut limits...\n";
 			max_time.erase (max_time.begin()+ii);
@@ -216,6 +165,7 @@ int main(int argc, char *argv[]) {
 		ii++;
 	}
 
+	/* in case the time limits were not correct and if no more limits have been given by user : EXIT */
 	if(m_count==0){
 		cout << "Warning : no more cut limits to apply ! Exiting ...\n";
 		exit(EXIT_FAILURE);
@@ -224,63 +174,45 @@ int main(int argc, char *argv[]) {
 
 
 
-
-	//	read_Split_file(fname, cut_sample, samples_struct);
-
-	//	cout << cut_sample[0] << " " << cut_sample[1] << endl;
-
-	//format=new int[samples_struct.ntotscan];
-	// select the fits format (HIPE or SANEPIC) and check all fits have the same format
-	//for(int ii =0;ii<samples_struct.ntotscan;ii++){
+	/* get input fits file format : Sanepic or HIPE */
 	format_fits=test_format(samples_struct.fitsvect[0]);
-	//	if(format[ii]!=format[0]){
-	//		cout << "Error ! All fits files must have the same format : HIPE or sanepic!\nExiting...\n";
-	//		exit(EXIT_FAILURE);
-	//	}
-	//
-	//}
 
-
-	//format_fits=format[0];
-
+	/* read the bolo list in the fits file */
 	read_bolo_list(samples_struct.fitsvect[0], det);
 
 
-	int status;
-	fitsfile *fptr;
-	fitsfile *outfptr;
-	//	char section[]={"*,*"};
-	std::ostringstream oss;
+	int status; /* fits error status number */
+	fitsfile *fptr; /* input fits file pointer */
+	fitsfile *outfptr; /* output fits file pointer */
+
+	std::ostringstream oss; // we need to store the string in a stringstream before using basename
+	// Or the original string is affected ...
 	oss << samples_struct.fitsvect[0];
 	string filename = oss.str();
 	string fname2 = Basename(filename) + "_split_";
 
-	oss.str("");
+	oss.str(""); // set string stream to void
 
 	fname=samples_struct.fitsvect[0];
-	for(int ii=0; ii < m_count ; ii++){
-		cout << setprecision(20) << min_time[ii] << " " << max_time[ii] << endl;
-		oss << "!" << dir.output_dir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";
+	for(int ii=0; ii < m_count ; ii++){ // for each correct time limits
+		//		cout << setprecision(20) << min_time[ii] << " " << max_time[ii] << endl; // print to console
+
+		// generate a name for the output fits files
+		oss << dir.output_dir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";
 		std::string temp = oss.str();
-		cout << temp << endl;
+		cout << "\nCreating output file :\n" << temp << endl;
 
-		//		cout << fname << endl;
-		//		getchar();
-		//exit(0);
-
-		long min_sample=0;
+		long min_sample=0; /* bottom and top samples index according to given time limits */
 		long max_sample=0;
 
 		// find samples index using time :
 		if(max_time[ii]==time[samples_struct.nsamples[0]-1])
 			max_sample=samples_struct.nsamples[0]-1;
 		else{
-			//for(long jj=0;jj<samples_struct.nsamples[0];jj++)
 			long jj=0;
 			while((jj<samples_struct.nsamples[0])){
 				if(max_time[ii]<time[jj]){
 					max_sample=jj;
-					//cout << max_time[ii] << " < " << time[jj] << endl;
 					break;
 				}
 				jj++;
@@ -293,34 +225,32 @@ int main(int argc, char *argv[]) {
 			long jj=samples_struct.nsamples[0]-1;
 			while(jj>=0){
 				if(min_time[ii]>time[jj]){
-					min_sample=jj; // maybe jj+1
+					min_sample=jj;
 					break;
 				}
 				jj--;
 			}
 		}
 
-		cout << min_sample << " " << max_sample << endl;
+		long ns_final= max_sample - min_sample+1; // total number of samples in output file
 
+		// print to std
+		cout << "min sample -> max sample : " << min_sample << " -> " << max_sample << endl;
+		cout << "Total number of samples : " << ns_final << endl;
+		temp = "!" + temp;
 
+		// open input fits and create output fits
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 			fits_report_error(stderr, status);
 
 		if (fits_create_file(&outfptr, temp.c_str(), &status))
 			fits_report_error(stderr, status);
 
-		//		char *header;
-		//		int nkeys=0;
-
 		// Copy primary Header
 		fits_copy_header(fptr, outfptr, &status);
 
 
-		//		double *RA_bis, *DEC_bis, *PHI_bis, *time_bis;
-		long ns_final;
 
-		ns_final = max_sample - min_sample;
-		ns_final++;
 
 
 
@@ -329,28 +259,22 @@ int main(int argc, char *argv[]) {
 
 			// separate HIPE format tables
 			// 1 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
-
-			//			// 2 RA
-			//			copy_RA(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
-			//
-			//			// 3 DEC
-			//			copy_DEC(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 
 			// 2 RA 3 DEC
-			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], ns_final, det);
+			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 
 			// 4 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 
 			// 5 time
-			copy_time(fptr, outfptr, time, ns_final);
+			copy_time(fptr, outfptr, time, min_sample, max_sample);
 
 			// 6 channels
 			copy_channels(fptr, outfptr);
 
 			// 7 ref pos
-			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], ns_final);
+			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
 
 			// 8 offsets
 			copy_offsets(fptr, outfptr);
@@ -364,9 +288,7 @@ int main(int argc, char *argv[]) {
 
 
 			// 1 ref pos
-			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], ns_final);
-
-			//			fits_open_file(&fptr, fname.c_str(), READONLY, &status);
+			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], min_sample, max_sample);
 
 			// 2 offsets
 			copy_offsets(fptr, outfptr);
@@ -375,16 +297,16 @@ int main(int argc, char *argv[]) {
 			copy_channels(fptr, outfptr);
 
 			// 4 time
-			copy_time(fptr, outfptr, time, ns_final);
+			copy_time(fptr, outfptr, time, min_sample, max_sample);
 
 			// 5 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 
 			// 6 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], ns_final, det);
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 		}
 
-
+		// close both fits files
 		if (fits_close_file(fptr, &status))
 			fits_report_error(stderr, status);
 
@@ -392,8 +314,10 @@ int main(int argc, char *argv[]) {
 			fits_report_error(stderr, status);
 
 		oss.str("");
+		cout << endl;
 	}
 
+	// clean up
 	delete [] time;
 	delete [] samples_struct.nsamples;
 
