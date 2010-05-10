@@ -89,10 +89,10 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
 		fill(hits,hits+npix,0);
-		fill(r,r+npix,0.0);
-		fill(d,d+npix,0.0);
+		fill(r,r+npix,0.0); // useless
+		fill(d,d+npix,0.0); // useless
 		fill(s,s+npix,0.0);
-		fill(PNd,PNd+npix,0.0);
+//		fill(PNd,PNd+npix,0.0);
 
 
 
@@ -455,7 +455,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
 
 
-					// récupérer une chaîne de caractères
+					// Transform into string
 					fname= temp_stream.str();
 					// Clear ostringstream buffer
 					temp_stream.str("");
@@ -477,7 +477,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
 
-						// récupérer une chaîne de caractères
+						// Transform into string
 						fname= temp_stream.str();
 						// Clear ostringstream buffer
 						temp_stream.str("");
@@ -510,7 +510,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
 
-						// récupérer une chaîne de caractères
+						// Transform into string
 						fname= temp_stream.str();
 						// Clear ostringstream buffer
 						temp_stream.str("");
@@ -523,7 +523,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 				temp_stream << dir.output_dir + "ConvFile.txt";
 
-				// récupérer une chaîne de caractères
+				// Transform into string
 				testfile= temp_stream.str();
 				// Clear ostringstream buffer
 				temp_stream.str("");
@@ -615,7 +615,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 	temp_stream << dir.output_dir + "testfile.txt";
 
-	// récupérer une chaîne de caractères
+	// Transform into string
 	testfile= temp_stream.str();
 	// Clear ostringstream buffer
 	temp_stream.str("");
@@ -686,7 +686,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 
 
 			temp_stream << "!" + dir.output_dir + "optimMap_flux_fr" << iframe << ".fits";
-			// récupérer une chaîne de caractères
+			// Transform into string
 			fname= temp_stream.str();
 			// Clear ostringstream buffer
 			temp_stream.str("");
@@ -707,7 +707,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 			//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
 			temp_stream << "!" + dir.output_dir + "optimMap_noisevar_fr" << iframe << ".fits";
 
-			// récupérer une chaîne de caractères
+			// Transform into string
 			fname= temp_stream.str();
 			// Clear ostringstream buffer
 			temp_stream.str("");

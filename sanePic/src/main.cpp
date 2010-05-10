@@ -410,10 +410,10 @@ int main(int argc, char *argv[])
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
 		fill(hits,hits+npix,0);
-		fill(r,r+npix,0.0);
-		fill(d,d+npix,0.0);
-		fill(s,s+npix,0.0);
-		fill(PNd,PNd+npix,0.0);
+		fill(r,r+npix,0.0); // useless
+		fill(d,d+npix,0.0);// useless
+		fill(s,s+npix,0.0);// useless
+//		fill(PNd,PNd+npix,0.0);
 
 
 
@@ -836,10 +836,10 @@ int main(int argc, char *argv[])
 
 					//					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
 
-					temp_stream << "!" + dir.output_dir + "optimMap_" << iter << "b.fits";
+					temp_stream << dir.output_dir + "optimMap_" << iter << "b.fits";
 					fname= temp_stream.str();
 					temp_stream.str("");
-					write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
+					write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
 
 					if (pos_param.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
@@ -910,7 +910,7 @@ int main(int argc, char *argv[])
 
 				temp_stream << dir.output_dir + "ConvFile.txt";
 
-				// récupérer une chaîne de caractères
+				// Transform into string
 				testfile= temp_stream.str();
 				// Clear ostringstream buffer
 				temp_stream.str("");

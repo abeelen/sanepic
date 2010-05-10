@@ -43,8 +43,8 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 	}
 
 	//	fname = '!' + outdir + "optimMap_flux.fits";
-	fname = '!' + outdir + "optimMap_sanePic.fits";
-	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Map", 0);
+	fname = outdir + "optimMap_sanePic.fits";
+	write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Map", 0);
 
 
 	for (long ii=0; ii<NAXIS1; ii++) {
@@ -79,7 +79,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 
 
 			//			temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
-			//			// récupérer une chaîne de caractères
+			//			// Transform into string
 			//			fname= temp_stream.str();
 			//			// Clear ostringstream buffer
 			//			temp_stream.str("");
@@ -100,7 +100,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
 			//			temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
 
-			// récupérer une chaîne de caractères
+			// Transform into string
 			//			fname= temp_stream.str();
 			//			// Clear ostringstream buffer
 			//			temp_stream.str("");
