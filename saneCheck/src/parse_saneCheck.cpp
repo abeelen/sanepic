@@ -70,6 +70,12 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	if(read_common(ini, dir, rank)==1)
 		return -1;
 
+	check_path(dir.dirfile, "Input directory");
+	check_path(dir.output_dir, "Output directory");
+	check_path(dir.noise_dir, "Covariance Matrix directory");
+	check_path(dir.tmp_dir, "Temporary directory");
+	check_dirfile_paths(dir.tmp_dir);
+
 	if(read_channel_list(ini,dir, det.boloname, rank)==1)
 		return -1;
 
@@ -85,11 +91,9 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	if(rank==0)
 		if (det.ndet == 0) {
 			cerr << "Must provide at least one channel.\n\n";
-			//return -1 ;
 		}
 
 	read_param_positions(ini, pos_param, rank);
-	//return -1;
 
 	read_param_process(ini, proc_param, rank);
 
@@ -107,7 +111,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 
 
-	//		printf("\nsaneCheck parser operations completed :\n");
 	if(rank==0){
 		cout << "\nYou have specified the following options : \n\n";
 
@@ -150,6 +153,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "pixsize = " + StringOf(pos_param.pixdeg) + " ; size of pixels (degrees)\n";
 		text += "map_flagged_data = " + StringOf( pos_param.flgdupl ? "True" : "False" ) + " ; flagged data put in a separated map (default is False)\n";
 
+
 		text += "\n\n";
 
 		text += "[sanePre]\n\n";
@@ -159,7 +163,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "fcut_file = " + proc_param.fcut_file + " ; noise power spectra are thresholded. Default is the frequency cut of the high pass filter applied to the data\n";
 		text += "poly_order = " + StringOf(proc_param.poly_order) + " ; baseline polynomia order (default = 0; no baseline)\n";
 		text += "no_baseline = " + StringOf(proc_param.NORMLIN ? "True" : "False") + " ; no simple baseline removed from the data (False : default)\n";
-		text += "correlation = " + StringOf(proc_param.CORRon ? "True" : "False") + " ; Set this keyword to False if correlations between detectors are not included in the analysis (default = True)\n\n";
+		text += "correlation = " + StringOf(proc_param.CORRon ? "True" : "False") + " ; Set this keyword to False if correlations between detectors are not included in the analysis (default = True)\n";
 		text += "nofill_gap = " + StringOf(proc_param.NOFILLGAP ? "True" : "False") +" ; Do we fill the gaps ? F = fill (default), T = don't fill\n";
 
 		text += "\n\n";
@@ -182,11 +186,11 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "[sanePic]\n\n";
 
 		if(read_iter(ini, iterw, 0)==-1)
-			text += "iterW =  ; Write temporary map files on disk every iterW number of loop\n\n";
+			text += "iterW =  ; Write temporary map files on disk every iterW number of loop\n";
 		else{
-			text += "iterW = " + StringOf(iterw) + " ; Write temporary map files on disk every iterW number of loop\n\n";
+			text += "iterW = " + StringOf(iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
 		}
-
+		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
 		string outfile = dir.output_dir + "sanepic_ini_model.txt";
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
