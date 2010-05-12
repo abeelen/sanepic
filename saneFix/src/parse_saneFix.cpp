@@ -45,14 +45,18 @@ int parse_saneFix_ini_file(char * ini_name, struct common &dir,
 		return -1 ;
 	}
 
+	// get directories path
 	if(read_common(ini, dir, rank)==1)
 		return -1;
 
+	// get fits file that have to be fixed
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return -1;
 
+	// store number of scans
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
+	// free iniparser dictionnary
 	iniparser_freedict(ini);
 	return 0;
 }
