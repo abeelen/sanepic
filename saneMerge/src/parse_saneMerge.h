@@ -2,6 +2,7 @@
 #ifndef PARSE_SANEMERGE_H_
 #define PARSE_SANEMERGE_H_
 
+/*! Parse user command line */
 	int parse_saneMerge_ini_file(char * ini_name[], int arg, std::string &dir,
 			struct samples &samples_struct);
 

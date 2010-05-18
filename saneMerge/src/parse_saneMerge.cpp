@@ -27,19 +27,20 @@ using namespace std;
 
 int parse_saneMerge_ini_file(char * ini_name[], int arg, std::string &dir,
 		struct samples &samples_struct)
+/*! Parse user command line */
 {
 
-	dir=ini_name[1];
-	if(check_path(dir, "saneMerge Output Directory"))
+	dir=ini_name[1]; // ini file
+	if(check_path(dir, "saneMerge Output Directory")) // get output path from command line, check its validity
 		return 2;
 
 	samples_struct.ntotscan = 0;
-	for(int ii=2;ii<arg;ii++){
+	for(int ii=2;ii<arg;ii++){ // get input file names from command line
 		samples_struct.fitsvect.push_back(ini_name[ii]);
 		samples_struct.ntotscan++;
 	}
 
-	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+	readFrames(samples_struct.fitsvect, samples_struct.nsamples); // for each file, read and store number of samples in nsamples tab
 
 	return 0;
 
