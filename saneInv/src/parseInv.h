@@ -8,7 +8,6 @@
 #ifndef PARSEINV_H_
 #define PARSEINV_H_
 
-
 #include <string>
 
 /*!
@@ -17,7 +16,6 @@
  * missing in the ini file !
  * - Initialise saneInv variable
  */
-int parse_saneInv_ini_file(char * ini_name,struct samples &samples_struct,struct common &dir,std::string &boloname,  std::string &extentnoiseSp);
-std::string		Basename(std::string path);
-//std::string		Basename(char * path);
+int parse_saneInv_ini_file(char * ini_name,struct samples &samples_struct,struct common &dir,std::string &boloname,  int rank);
+
 #endif /* PARSEINV_H_ */

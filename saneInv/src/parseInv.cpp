@@ -1,17 +1,7 @@
-/*
- * parseInv.cpp
- *
- *  Created on: 18 juin 2009
- *      Author: matthieu
- */
 
 #include "parseInv.h"
 #include "inputFileIO.h"
 
-//#include <tchar.h>
-//#include <windows.h>
-//#include <stdlib.h>
-//#include <stdio.h>
 #include "parser_functions.h"
 #include <iostream>
 #include <string>
@@ -24,7 +14,7 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,string &boloname, string &base)
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,string &boloname, int rank)
 {
 	dictionary	*	ini ;
 
@@ -43,7 +33,8 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 	if(s!=NULL){
 		boloname=s;
 	}else{
-		printf("You must specify a bolometer file : commons:channel\n");
+		if(rank==0)
+			printf("You must specify a bolometer file : commons:channel\n");
 		return(-1);
 	}
 
@@ -51,15 +42,21 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 	if(read_common(ini, dir, 0)==-1)
 		return -1;
 
+	if(rank==0)
+		if(check_path(dir.dirfile, "Input directory") ||
+				check_path(dir.output_dir, "Output directory") ||
+				check_path(dir.tmp_dir, "Temporary directory") ||
+				check_dirfile_paths(dir.tmp_dir))
+			return(-1);
+
+
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;
 
-	//	printf("\nsaneInv parser operations completed :\n");
-	cout << "You have specified the following options : \n";
-
-	print_common(dir);
-
-	//printf("cov_matrix_file: [%s]\n",s);
+	if(rank==0){
+		cout << "\nYou have specified the following options : \n";
+		print_common(dir);
+	}
 
 	// cleaning up
 	iniparser_freedict(ini);

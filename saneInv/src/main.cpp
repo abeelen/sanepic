@@ -18,12 +18,33 @@ extern "C" {
 #include "nrcode.h"
 }
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
 using namespace std;
 
 
 int main(int argc, char *argv[]) {
 
+	int size;//,size_det;
+	int rank;//,rank_det;
+#ifdef USE_MPI
+
+	// setup MPI
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD,&size);
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	//	cout << size << endl;
+	//	cout << rank << endl;
+	if(rank==0)
+		printf("Begin of saneInv\n\n");
+#else
+	size = 1;
+	rank = 0;
 	printf("Begin of saneInv\n\n");
+#endif
+
 
 	// data parameters
 	/*!
@@ -60,16 +81,23 @@ int main(int argc, char *argv[]) {
 	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
-	if (argc<2) {
-		printf("Please run %s using a *.ini file\n",argv[0]);
-		exit(0);
-	} else {
-		int parsed=1;
-		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, boloname, base_name);
+	int parsed=1;
 
-		if (parsed==-1){
-			exit(1);
-		}
+	if (argc<2) {
+		if(rank==0)
+			printf("Please run %s using a *.ini file\n",argv[0]);
+		parsed = -2;
+	} else {
+		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, boloname, rank);
+	}
+
+
+	if (parsed<0){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		exit(1);
 	}
 
 	std::vector<string>::iterator it;
@@ -84,15 +112,22 @@ int main(int argc, char *argv[]) {
 	//	cout << size_tmp << endl;
 	if(size_tmp==1){
 		n_iter=1;
-		cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
+		if(rank==0)
+			cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
 	}else{
 
 		n_iter = (int)samples_struct.noisevect.size();
 		if(n_iter==0){
-			cerr << "WARNING. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
+			if(rank==0)
+				cerr << "WARNING. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
 			exit(1);
 		}
-		cout << n_iter << " covariance Matrix will be inverted\n" << endl;
+		if(rank==0)
+			cout << n_iter << " covariance Matrix will be inverted\n" << endl;
 	}
 
 
@@ -102,70 +137,76 @@ int main(int argc, char *argv[]) {
 
 	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	ndet = channelOut.size();
-	printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
-
-
+	if(rank==0)
+		printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
 	for(int ii=0; ii<n_iter; ii++){
-		fname="";
-		fname+=(string)samples_struct.noisevect[ii];
-		//		cout << fname << endl;
-		base_name=FitsBasename(fname);
-		cout << base_name << endl;
-		base_name=FitsBasename(fname);
-		//		cout << base_name << endl;
+		if(rank==who_do_it(size,rank,ii)){
+			fname="";
+			fname+=(string)samples_struct.noisevect[ii];
+			//		cout << fname << endl;
+			base_name=FitsBasename(fname);
+			cout << base_name << endl;
+			base_name=FitsBasename(fname);
+			//		cout << base_name << endl;
 
-		fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
-		//		cout << fname2 << endl;
-		//		cout << samples_struct.noisevect[ii] << endl;
-
-
-		// read covariance matrix in a fits file named fname
-		// returns : -the bins => Ell
-		// -the input channel list => channelIn
-		// -The number of bins (size of Ell) => nbins
-		// -The original NoiseNoise covariance matrix => RellthOrig
-		read_CovMatrix(fname2, channelIn, nbins, ell, RellthOrig);
-		// total number of detectors in the covmatrix fits file
-		ndetOrig = channelIn.size();
-		printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
-		//		getchar();
-
-		//Deal with bolometer reduction and fill Rellth and mixmat
-		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
-
-		// Inverse reduced covariance Matrix : Returns iRellth
-		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
-
-//		// test :
-//		for(long nn=0;nn<nbins;nn++)
-//			cout << iRellth[0][nbins*2 + nn ] << " ";
-//
-//		cout << endl;
-//
-//		for(long nn=0;nn<nbins;nn++)
-//			cout << iRellth[2][ nn ] << " ";
+			fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
+			//		cout << fname2 << endl;
+			//		cout << samples_struct.noisevect[ii] << endl;
 
 
-		//		cout << dir.tmp_dir + base_name + extname << endl;
-		// write inversed noisePS in a binary file for each detector
-		write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
+			// read covariance matrix in a fits file named fname
+			// returns : -the bins => Ell
+			// -the input channel list => channelIn
+			// -The number of bins (size of Ell) => nbins
+			// -The original NoiseNoise covariance matrix => RellthOrig
+			read_CovMatrix(fname2, channelIn, nbins, ell, RellthOrig);
+			// total number of detectors in the covmatrix fits file
+			ndetOrig = channelIn.size();
 
-		// MAJ format file
-		compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
+			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
+			//		getchar();
 
+			//Deal with bolometer reduction and fill Rellth and mixmat
+			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
+
+			// Inverse reduced covariance Matrix : Returns iRellth
+			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
+
+			//		// test :
+			//		for(long nn=0;nn<nbins;nn++)
+			//			cout << iRellth[0][nbins*2 + nn ] << " ";
+			//
+			//		cout << endl;
+			//
+			//		for(long nn=0;nn<nbins;nn++)
+			//			cout << iRellth[2][ nn ] << " ";
+
+
+			//		cout << dir.tmp_dir + base_name + extname << endl;
+			// write inversed noisePS in a binary file for each detector
+			write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
+
+			// MAJ format file
+			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
+
+			nbolos = (int) channelIn.size();
+			free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
+			free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
+			free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
+			delete [] ell;
+		}
 	}
 
-	printf("\nEND OF SANEINV \n");
-
-	nbolos = (int) channelIn.size();
-
-	free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
-	free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
-	free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
-	delete [] ell;
+	// clean up
 	delete [] samples_struct.nsamples;
 
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+#endif
+
+	printf("\nEND OF SANEINV \n");
 	return 0;
 }
 
