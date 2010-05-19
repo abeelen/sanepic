@@ -27,16 +27,14 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	int size;//,size_det;
-	int rank;//,rank_det;
+	int size; // MPI number of procs
+	int rank; // My proc number
 #ifdef USE_MPI
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	//	cout << size << endl;
-	//	cout << rank << endl;
 	if(rank==0)
 		printf("Begin of saneInv\n\n");
 #else
@@ -67,7 +65,7 @@ int main(int argc, char *argv[]) {
 	 * -mixmatOrig : original mixing matrix
 	 * -mixmat : Reduced mixing matrix
 	 */
-	double **Rellth, **RellthOrig, **iRellth/*,**mixmatOrig,**mixmat*/;
+	double **Rellth, **RellthOrig, **iRellth;
 
 	//	string noiseSp_dir_output;/*! output directory */
 	string base_name="";/*! output noise file suffix */
@@ -83,7 +81,7 @@ int main(int argc, char *argv[]) {
 
 	int parsed=1;
 
-	if (argc<2) {
+	if (argc<2) { // wrong number of arguments
 		if(rank==0)
 			printf("Please run %s using a *.ini file\n",argv[0]);
 		parsed = -2;
@@ -103,13 +101,9 @@ int main(int argc, char *argv[]) {
 	std::vector<string>::iterator it;
 	long size_tmp;
 
-	//	cout << dir.tmp_dir + "bolonum_" + base_name + extname << endl;
-	//	cout << (int)samples_struct.noisevect.size() << endl;
-
-
 	it = unique(samples_struct.noisevect.begin(), samples_struct.noisevect.end());
 	size_tmp = it - samples_struct.noisevect.begin();
-	//	cout << size_tmp << endl;
+
 	if(size_tmp==1){
 		n_iter=1;
 		if(rank==0)
@@ -130,30 +124,26 @@ int main(int argc, char *argv[]) {
 			cout << n_iter << " covariance Matrix will be inverted\n" << endl;
 	}
 
-
-
 	// Input argument for output : channellist
 	read_strings(boloname, channelOut);
 
 	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	ndet = channelOut.size();
+
 	if(rank==0)
 		printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
 	for(int ii=0; ii<n_iter; ii++){
+		// select which proc number compute this loop
 		if(rank==who_do_it(size,rank,ii)){
 			fname="";
 			fname+=(string)samples_struct.noisevect[ii];
-			//		cout << fname << endl;
 			base_name=FitsBasename(fname);
 			cout << base_name << endl;
 			base_name=FitsBasename(fname);
-			//		cout << base_name << endl;
 
+			// get input covariance matrix file name
 			fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
-			//		cout << fname2 << endl;
-			//		cout << samples_struct.noisevect[ii] << endl;
-
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
@@ -161,11 +151,11 @@ int main(int argc, char *argv[]) {
 			// -The number of bins (size of Ell) => nbins
 			// -The original NoiseNoise covariance matrix => RellthOrig
 			read_CovMatrix(fname2, channelIn, nbins, ell, RellthOrig);
+
 			// total number of detectors in the covmatrix fits file
 			ndetOrig = channelIn.size();
 
 			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
-			//		getchar();
 
 			//Deal with bolometer reduction and fill Rellth and mixmat
 			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
@@ -173,24 +163,16 @@ int main(int argc, char *argv[]) {
 			// Inverse reduced covariance Matrix : Returns iRellth
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
-			//		// test :
-			//		for(long nn=0;nn<nbins;nn++)
-			//			cout << iRellth[0][nbins*2 + nn ] << " ";
-			//
-			//		cout << endl;
-			//
-			//		for(long nn=0;nn<nbins;nn++)
-			//			cout << iRellth[2][ nn ] << " ";
-
-
-			//		cout << dir.tmp_dir + base_name + extname << endl;
 			// write inversed noisePS in a binary file for each detector
 			write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
 
 			// MAJ format file
 			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
 
+			// number of detector in the input channel list
 			nbolos = (int) channelIn.size();
+
+			// clean up
 			free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
 			free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
 			free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);

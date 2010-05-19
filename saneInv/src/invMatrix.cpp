@@ -14,14 +14,14 @@ using namespace std;
 
 void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		std::vector<string> listOut, double ***MatrixOut)
-
+/*! resizes the covariance matrix with only needed detectors */
 {
 	std::vector<int> indexIn; /*! Used to match input and output channels */
 	long ndetIn = listIn.size(); /*! Input number of channels*/
 	long ndetOut = listOut.size();/*! Output number of channels */
 
 	// output number of detector cannot be larger than input number
-	if(ndetOut>ndetIn){ // ajout mat 27/07
+	if(ndetOut>ndetIn){
 		cerr << "Input Noise Power Spectra must include all requested channels"	<< endl;
 		exit(1);
 	}
@@ -32,7 +32,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		for (int idetIn = 0; idetIn < ndetIn; idetIn++) {
 			if (listOut[idetOut] == listIn[idetIn]){
 				indexIn[idetOut] = idetIn;
-				break; } // ajout mat 27/07
+				break; }
 		}
 	}
 
@@ -74,9 +74,10 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	double **Mat_k, **iMat_k;
 	double *p, *uvec, *ivec;
 
-	Mat_k = dmatrix(0, ndet - 1, 0, ndet - 1);
-	iMat_k = dmatrix(0, ndet - 1, 0, ndet - 1);
-	*MatrixOut = dmatrix(0, ndet - 1, 0, ndet * nbins - 1);
+
+	Mat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // k-Mode Matrix
+	iMat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // inverted k-Mode Matrix
+	*MatrixOut = dmatrix(0, ndet - 1, 0, ndet * nbins - 1); // whole Mode inverted Matrix
 
 	p = new double[ndet];
 	uvec = new double[ndet];
@@ -85,7 +86,6 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
 		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
-		//		cout << "\r " << flush;
 
 		// Matrix preparation
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
@@ -125,8 +125,10 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 
 	}
 
+	// just to get a 100% value printed on screen
 	cout << "Progress : 100.00% \r" << flush;
 
+	// clean up
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
 	free_dmatrix(iMat_k,0, ndet - 1, 0, ndet - 1);
 	delete [] p;
@@ -142,10 +144,10 @@ int who_do_it(int size, int rank, int ii)
 	if(size==1) // if there is only 1 proc, he has to do the job
 		return 0;
 
-	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
+	if(size>=ii) // if the loop number is smaller than the number of MPI processors
 		return ii;
 
-	if(size<ii){ // if the fits file number is larger than the number of MPI processors
+	if(size<ii){ // if the loop number is larger than the number of MPI processors
 		while(ii>size)
 			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
 		return ii;
