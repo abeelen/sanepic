@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
 
 		if(samples_struct.scans_index.size()!=0){
-			cout << "non nul : " << samples_struct.scans_index.size() << endl;
+			//			cout << "non null : " << samples_struct.scans_index.size() << endl;
 			cerr << "You have already given processors order in the fits filelist. Exiting\n";
 			sort (samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
@@ -107,15 +107,32 @@ int main(int argc, char *argv[])
 
 		fname = dir.output_dir + parallel_scheme_filename;
 
+		if(samples_struct.ntotscan==size){
 
-		/********************* Define parallelization scheme   *******/
-		find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
+			for(long hh=0; hh<samples_struct.ntotscan;hh++){
+				ruleorder[hh]=hh;
+				frnum[hh]=hh;
+			}
+			frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
 
-		//		cout << ruleorder[0] <<  " " << ruleorder[1] << endl;
-		//		cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] <<  endl;
+			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
+			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
 
-		//write parallel schema in a file
-		parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+			//write parallel schema in a file
+			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+		}else{
+
+
+			/********************* Define parallelization scheme   *******/
+			find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
+
+			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
+			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
+
+			//write parallel schema in a file
+			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+		}
+
 		if(parsed==-1){
 			if(rank==0)
 				cerr << "Write parallelization Error !" << endl;
@@ -123,6 +140,7 @@ int main(int argc, char *argv[])
 			MPI_Finalize();
 			exit(0);
 		}
+
 		delete [] frnum;
 		delete [] ruleorder;
 
