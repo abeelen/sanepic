@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 	 */
 	long ndet, ndetOrig, nbins;
 	int nbolos;
-	int n_iter;
+	long n_iter;
 
 	double *ell; /*! bins values */
 
@@ -109,11 +109,11 @@ int main(int argc, char *argv[]) {
 		if(rank==0)
 			cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
 	}else{
-
-		n_iter = (int)samples_struct.noisevect.size();
+		n_iter = size_tmp;
+//		n_iter = (int)samples_struct.noisevect.size();
 		if(n_iter==0){
 			if(rank==0)
-				cerr << "WARNING. You have forgot to mention covariance matrix in ini file or fits_filelist\n";
+				cerr << "WARNING. You have forgotten to mention covariance matrix in ini file or fits_filelist\n";
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
