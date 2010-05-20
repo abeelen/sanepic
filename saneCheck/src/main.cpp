@@ -89,7 +89,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-
 	struct detectors bolo_fits_0; /* bolometers list of the first fits file given as input */
 	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0); /* Read the first fits file bolo table */
 
@@ -114,6 +113,17 @@ int main(int argc, char *argv[]) {
 			long *bolo_bad;
 			long *bolo_bad_80;
 
+			struct checkHDU Check_it;
+
+			// initialize default values
+			Check_it.checkDEC=1;
+			Check_it.checkRA=1;
+			Check_it.checkREFERENCEPOSITION=1;
+			Check_it.checkOFFSETS=1;
+			Check_it.checkSIGNAL=1;
+			Check_it.checkFLAG=1;
+			Check_it.checkTIME=1;
+
 			int format_fits=0; /* fits format indicator : 1 HIPE, 2 Sanepic */
 
 			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[ii] << endl << endl;
@@ -134,39 +144,41 @@ int main(int argc, char *argv[]) {
 			fill(bolo_bad_80,bolo_bad_80+bolo_fits.ndet,0);
 
 			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
-			check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits); // check presence of channels, time, signal and mask HDUs
-			check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits); // check presence of reference positions and offsets HDUs
+			check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it); // check presence of channels, time, signal and mask HDUs
+			check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits,Check_it); // check presence of reference positions and offsets HDUs
 
 			if(format_fits==1){ // check RA/DEC table presence for HIPE format
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
-				check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+				check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
 			}
 
 			cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
-			check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
-			check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+			check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
+			check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
 
 			if(format_fits==1){ // check NANs presence in RA/DEc tables for HIPE format
 				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
-				check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits);
+				check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
 			}
 
 			cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
-			check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir);
+			check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir,Check_it);
 
 			// Lookfor fully or more than 80% flagged detectors, also flag singletons
-			check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80);
+			check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80,Check_it);
 
+			if(Check_it.checkFLAG){
 #ifdef USE_MPI
-			// inform processor 0 of bad or worst bolometer presence in fits files
-			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+				// inform processor 0 of bad or worst bolometer presence in fits files
+				MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+				MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
-				bolo_bad_tot[kk]+=bolo_bad[kk];
-				bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
-			}
+				for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
+					bolo_bad_tot[kk]+=bolo_bad[kk];
+					bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
+				}
 #endif
+			}
 			delete [] bolo_bad;
 			delete [] bolo_bad_80;
 		}
@@ -199,4 +211,5 @@ int main(int argc, char *argv[]) {
 	MPI_Finalize();
 #endif
 
+	return EXIT_SUCCESS;
 }
