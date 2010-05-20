@@ -29,14 +29,12 @@ extern "C" {
 
 
 #include "sanePos_map_making.h"
-#include "parsePos.h"
 #include "sanePos_preprocess.h"
+#include "parser_functions.h"
 
 
 #ifdef USE_MPI
 #include "mpi.h"
-//#include <algorithm>
-//#include <fstream>
 #endif
 
 using namespace std;
@@ -65,8 +63,8 @@ int main(int argc, char *argv[])
 
 
 
-	int size/*, size_det*/; /*! size = number of processor used for this step*/
-	int rank/*, rank_det*/; /*! rank = processor MPI rank*/
+	int size; /*! size = number of processor used for this step*/
+	int rank; /*! rank = processor MPI rank*/
 
 #ifdef USE_MPI
 	// int tag = 10;
@@ -74,24 +72,23 @@ int main(int argc, char *argv[])
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
-	MPI_Comm_size(MPI_COMM_WORLD,&size);
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	MPI_Comm_size(MPI_COMM_WORLD,&size); // get mpi number of processors
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank); // each processor is given a number
 	if(rank==0)
 		printf("sanePos:\n");
 #else
-	size = 1;
+	size = 1; // non-MPI usage : 1 processor with number 0
 	rank = 0;
 	printf("sanePos:\n");
 	cout << "Mpi is not used for this step" << endl;
 #endif
 
 
-	//struct param_process_sanepos proc_param;
-	struct samples samples_struct;
+	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_process proc_param;
 	struct param_positions pos_param;
-	struct common dir;
-	struct detectors det;
+	struct common dir; /*! structure that contains output input temp directories */
+	struct detectors det; /*! A structure that contains everything about the detectors names and number */
 
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
@@ -133,30 +130,44 @@ int main(int argc, char *argv[])
 #endif
 
 	// -----------------------------------------------------------------------------//
-
+	int parsed=0;
 	// Parse ini file
 	if (argc<2) {
 		printf("Please run %s using a *.ini file\n",argv[0]);
-		exit(0);
+		parsed=-1;
 	} else {
-		int parsed=1;
-		/*parsed=parse_sanePos_ini_file(argv[1],proc_param,ntotscan,ndet,
-				bolonames,nsamples,boxFile,fitsvect,scans_index);*/
+		std::vector<double> fcut;
+		double fcut_sanePS=0.0;
+		string MixMatfile, ellFile, signame;
+		long ncomp=1;
+		int iterw=10;
 
-		parsed=parse_sanePos_ini_file(argv[1],proc_param, pos_param, dir,
-				det, samples_struct, rank);
-
-		if((parsed==-1)||(!compute_dirfile_format_file(dir.tmp_dir,det,samples_struct.ntotscan,rank))){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			exit(1);
-		}
-
+		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
 	}
 
+	if (rank==0)
+		switch (parsed){/* error during parsing phase */
 
+		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+		break;
+
+		case 2 : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+		case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+		break;
+
+		default :;
+		}
+
+	if ((parsed>0)||(!compute_dirfile_format_file(dir.tmp_dir,det,samples_struct.ntotscan,rank))){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		exit(1);
+	}
 
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
@@ -180,7 +191,6 @@ int main(int argc, char *argv[])
 		int test=0;
 		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
-		//test=define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct.ntotscan,size,samples_struct.nsamples,samples_struct.fitsvect,samples_struct.noisevect,samples_struct.fits_table, samples_struct.noise_table,samples_struct.index_table);
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
@@ -348,7 +358,6 @@ int main(int argc, char *argv[])
 	} else {
 		// Map header is determined from the mask file
 
-		//		if(iframe_min!=iframe_max)
 		if(rank==0)
 			cout << "Reading Mask map : " << pos_param.maskfile << endl;
 
@@ -404,7 +413,6 @@ int main(int argc, char *argv[])
 	// Compute pixels indices
 	//**********************************************************************************
 
-	//	if(iframe_min!=iframe_max)
 	if(rank==0)
 		printf("\n\nCompute Pixels Indices\n");
 
@@ -431,10 +439,8 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 	if(rank==0){
 		pixon_tot = new long long[sky_size];
-		fill(pixon_tot,pixon_tot+(sky_size),0);
 	}
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-	//	delete [] pixon;
 #else
 	pixon_tot=pixon;
 #endif
@@ -475,7 +481,6 @@ int main(int argc, char *argv[])
 #endif
 
 
-	//	if(iframe_min!=iframe_max){
 	if(rank==0){
 		printf("\nTemps de traitement : %d sec\n",(int)(t3-t2));
 		printf("\nCleaning up\n");
@@ -492,7 +497,6 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.noise_table;
 	delete [] samples_struct.index_table;
 
-	//wcsfree(wcs);
 	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);
 
