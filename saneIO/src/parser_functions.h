@@ -36,7 +36,6 @@ int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, i
 int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int rank);
 
 
-//int read_noise_file_list(dictionary	*ini, std::vector<string> &extentnoiseSP);
 int read_fcut(dictionary	*ini, double &fcut, int rank);
 int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::vector<double> &fcut, int rank);
 int read_baseline(dictionary	    *ini, struct param_process &proc_param, int rank);
@@ -65,5 +64,10 @@ void print_common(struct common dir);
 
 int check_path(std::string strPath, std::string path_type);
 int check_dirfile_paths(std::string strPath);
+
+int parser_function(char * ini_name, struct common &dir,
+		struct detectors &det,struct samples &samples_struct,
+		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
+		double &fcut_sanePS, std::string &MixMatfile, std::string &ellFile, std::string &signame, long &ncomp, int &iterw, int rank, int size);
 
 #endif /* PARSER_FUNCTIONS_H_ */

@@ -1,6 +1,8 @@
 #ifndef STRUCT_DEFINITION_H_
 #define STRUCT_DEFINITION_H_
 
+#include <vector>
+#include <string>
 
 struct corner{
 	double x;
@@ -12,7 +14,9 @@ struct box {
 	struct corner trc;
 };
 
-struct common {
+struct common
+/*! A structure that contains everything about directories, channel list and frame list */
+{
 	std::string dirfile;
 	std::string output_dir;
 	std::string tmp_dir;
@@ -22,7 +26,9 @@ struct common {
 	std::string fits_filelist;
 };
 
-struct samples {
+struct samples
+/*! A structure that contains everything about frames, noise files and frame processing order */
+{
 	std::vector<std::string> fitsvect;
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
@@ -38,12 +44,16 @@ struct samples {
 	std::string filename; // What is this ? : name of the fits_filelist.txt file read in ini file !
 };
 
-struct detectors {
+struct detectors
+/*! A structure that contains the name of the detectors + number of det */
+{
 	long ndet;
 	std::vector<std::string> boloname;
 };
 
-struct param_positions {
+struct param_positions
+/*! A structure that contains user options about map projection and properties */
+{
 	std::string maskfile;
 	double pixdeg;
 	bool flgdupl;
@@ -51,7 +61,9 @@ struct param_positions {
 	int fileFormat;
 };
 
-struct param_process {
+struct param_process
+/*! A structure that contains user options about preprocessing properties */
+{
 	bool NORMLIN;
 	bool NOFILLGAP;
 	bool CORRon;

@@ -39,6 +39,8 @@ template<class T> void vector2array(std::vector<T> vect, T* a)
 	}
 }
 
+double* randg(long nombre, int seedpass);
+
 // scans are distributed over processors
 void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size);
 //double* randg(long nombre, int seedpass); // on garde

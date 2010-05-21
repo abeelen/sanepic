@@ -1,11 +1,3 @@
-/*
- * parser_functions.cpp
- *
- *  Created on: 20 oct. 2009
- *      Author: matthieu
- */
-
-
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -17,12 +9,14 @@
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
+#include "nrutil.h"
 }
 
 #include "inputFileIO.h"
 #include "parser_functions.h"
 #include "struct_definition.h"
 #include "mpi_architecture_builder.h"
+#include "covMatrix_IO.h"
 
 
 using namespace std;
@@ -746,4 +740,130 @@ int check_dirfile_paths(string strPath){
 	check_path(strPath + "Indexes/","Indexes");
 
 }
+
+
+
+int parser_function(char * ini_name, struct common &dir,
+		struct detectors &det,struct samples &samples_struct,
+		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
+		double &fcut_sanePS, string &MixMatfile, string &ellFile, string &signame, long &ncomp, int &iterw, int rank, int size){
+
+	dictionary	*	ini ;
+
+
+	// default values :
+	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
+	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
+	samples_struct.ntotscan=0; /*! total number of scans */
+	det.ndet=0; /*! number of channels used*/
+	pos_param.flgdupl = 0; // map duplication factor
+	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
+	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	proc_param.f_lp = 0.0; // low pass filter frequency
+	pos_param.flgdupl = 0; // map duplication factor
+	pos_param.maskfile = "";
+	ncomp=1;
+	iterw=10;
+
+
+	// load dictionnary
+	ini = iniparser_load(ini_name);
+
+	if (ini==NULL) {
+		fprintf(stderr, "cannot parse file: %s\n", ini_name);
+		return 2;
+	}
+
+	if(read_common(ini, dir, rank)==1)
+		return 2;
+
+	if(rank==0){
+		check_path(dir.dirfile, "Input directory");
+		check_path(dir.output_dir, "Output directory");
+		check_path(dir.noise_dir, "Covariance Matrix directory");
+		check_path(dir.tmp_dir, "Temporary directory");
+		check_dirfile_paths(dir.tmp_dir);
+	}
+
+	if(read_channel_list(ini,dir, det.boloname, rank)==1)
+		return 2;
+
+	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
+		return 2;
+
+
+	if(	read_param_positions(ini, pos_param, rank) ||
+			read_param_process(ini, proc_param, rank) ||
+			read_ell_file(ini, ellFile, rank) ||
+			read_map_file(ini, signame) ||
+			read_mixmatfile(ini, MixMatfile, rank)||
+			read_fcut(ini, fcut_sanePS, rank) ||
+			read_ncomp(ini, ncomp, rank))
+		return 2;
+
+	read_iter(ini, iterw, rank);
+	read_noise_cut_freq(ini, proc_param, fcut,rank);
+
+
+	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+	det.ndet = (long)((det.boloname).size());
+
+
+	if (det.ndet == 0) {
+		if(rank==0)
+			cerr << "Must provide at least one channel.\n\n";
+		return 2;
+	}
+
+
+	if (samples_struct.ntotscan == 0) {
+		if(rank==0)
+			cerr << "Must provide at least one scan.\n\n";
+		return 2;
+	}
+
+
+	if(size>det.ndet)
+		return 3;
+
+
+	if((int)fcut.size()==0){
+		string fname;
+		std::vector<string> bolos;
+		long nbins;
+		double *ell;
+		double **Rellth;
+
+		read_cov_matrix_file(ini, fname, rank);
+		fname = dir.noise_dir + fname;
+		read_CovMatrix(fname, bolos, nbins, ell, Rellth);
+		fcut.push_back(ell[0]);
+		delete [] ell;
+		long nBolos=bolos.size();
+		free_dmatrix(Rellth, 0, nBolos * nBolos - 1, 0, nbins - 1);
+	}
+
+	// if only one fcut, extend to all scans
+	if((int)fcut.size()==1)
+		fcut.resize(samples_struct.ntotscan, fcut[0]);
+
+
+	if(rank==0){
+		cout << "\nYou have specified the following options : \n\n";
+
+		print_common(dir);
+		cout << endl;
+		print_param_process(proc_param);
+		print_param_positions(pos_param);
+
+		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+		printf("Number of bolometers : %ld\n",det.ndet);
+	}
+
+
+	return 0;
+}
+
 
