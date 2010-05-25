@@ -4,9 +4,6 @@
 #define TOOLS_H_
 
 struct checkHDU {
-	bool checkTIME;
-	bool checkSIGNAL;
-	bool checkFLAG;
 	bool checkREFERENCEPOSITION;
 	bool checkOFFSETS;
 	bool checkRA;
@@ -20,13 +17,13 @@ int who_do_it(int size, int rank, int ii);
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, std::string filename);
 
 /*! this function determines whether reference and offsets HDUs are present and have the correct size */
-void check_positionHDU(std::string fname,long ns,struct detectors det, int format, struct checkHDU &check_it);
+int check_positionHDU(std::string fname,long ns,struct detectors det, int format, struct checkHDU &check_it);
 
 /*! this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
-void check_commonHDU(std::string fname,long ns,struct detectors det, struct checkHDU &check_it);
+int check_commonHDU(std::string fname,long ns,struct detectors det, struct checkHDU &check_it);
 
 /*! check RA/DEc table presence : only for HIPE format */
-void check_altpositionHDU(std::string fname,long ns,struct detectors det, struct checkHDU &check_it);
+int check_altpositionHDU(std::string fname,long ns,struct detectors det, struct checkHDU &check_it);
 
 /*! Check presence of non-flagged NANs in position tables */
 void check_NAN_positionHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);

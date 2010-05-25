@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+
+
 	struct detectors bolo_fits_0; /* bolometers list of the first fits file given as input */
 	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0); /* Read the first fits file bolo table */
 
@@ -103,6 +105,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
+
 	for(int ii=0;ii<samples_struct.ntotscan;ii++){ /* for each input fits file */
 
 		int do_it=who_do_it(size, rank, ii); /* which rank do the job ? */
@@ -112,6 +115,7 @@ int main(int argc, char *argv[]) {
 			struct detectors bolo_fits;
 			long *bolo_bad;
 			long *bolo_bad_80;
+			int return_value=0;
 
 			struct checkHDU Check_it;
 
@@ -120,9 +124,6 @@ int main(int argc, char *argv[]) {
 			Check_it.checkRA=1;
 			Check_it.checkREFERENCEPOSITION=1;
 			Check_it.checkOFFSETS=1;
-			Check_it.checkSIGNAL=1;
-			Check_it.checkFLAG=1;
-			Check_it.checkTIME=1;
 
 			int format_fits=0; /* fits format indicator : 1 HIPE, 2 Sanepic */
 
@@ -144,12 +145,30 @@ int main(int argc, char *argv[]) {
 			fill(bolo_bad_80,bolo_bad_80+bolo_fits.ndet,0);
 
 			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
-			check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it); // check presence of channels, time, signal and mask HDUs
-			check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits,Check_it); // check presence of reference positions and offsets HDUs
-
+			return_value+=check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it); // check presence of channels, time, signal and mask HDUs
+			return_value+=check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits,Check_it); // check presence of reference positions and offsets HDUs
 			if(format_fits==1){ // check RA/DEC table presence for HIPE format
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
-				check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
+				return_value+=check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,Check_it);
+			}
+
+
+			if(return_value<0){
+#ifdef USE_MPI
+				MPI_Finalize();
+#endif
+				exit(1);
+			}
+
+
+
+			if(((format_fits==2)&&((!Check_it.checkREFERENCEPOSITION)||(!Check_it.checkOFFSETS))) ||
+					((format_fits==1)&&((!Check_it.checkRA)||(!Check_it.checkDEC)))){
+				cout << "not enough\n";
+#ifdef USE_MPI
+				MPI_Finalize();
+#endif
+				exit(1);
 			}
 
 			cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
@@ -165,20 +184,19 @@ int main(int argc, char *argv[]) {
 			check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir,Check_it);
 
 			// Lookfor fully or more than 80% flagged detectors, also flag singletons
+			cout << "\n[" << rank <<  "] Checking flagged detectors\n"; // check for time gaps in time table
 			check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80,Check_it);
 
-			if(Check_it.checkFLAG){
 #ifdef USE_MPI
-				// inform processor 0 of bad or worst bolometer presence in fits files
-				MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-				MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+			// inform processor 0 of bad or worst bolometer presence in fits files
+			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-				for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
-					bolo_bad_tot[kk]+=bolo_bad[kk];
-					bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
-				}
-#endif
+			for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
+				bolo_bad_tot[kk]+=bolo_bad[kk];
+				bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
 			}
+#endif
 			delete [] bolo_bad;
 			delete [] bolo_bad_80;
 		}

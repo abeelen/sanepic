@@ -66,7 +66,7 @@ void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, 
 
 }
 
-void check_positionHDU(string fname,long ns,struct detectors det, int format, struct checkHDU &check_it)
+int check_positionHDU(string fname,long ns,struct detectors det, int format, struct checkHDU &check_it)
 /*! this function determines whether reference and offsets HDUs are present and have the correct size */
 {
 
@@ -89,32 +89,34 @@ void check_positionHDU(string fname,long ns,struct detectors det, int format, st
 		fits_get_num_rows(fptr, &ns_test, &status);
 		if(ns!=ns_test){ // check reference position table's size
 			cout << "\"reference position\" has a wrong number of rows (must be equal to ns : " << ns << " )" << endl;
+			return -1;
 		}
 
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=3){ // check reference position table's size
 			cout << "\"reference position\" has a wrong number of cols (must be equal to 3 : RA, DEC, PHI )" << endl;
+			return -1;
 		}else{
 
 
 			fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
 			if(colnum!=1){ // check RA table's size
-				check_it.checkREFERENCEPOSITION=0;
 				cout << "\"RA\" was not found in \"reference position\"" << endl;
+				return -1;
 			}
 
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
 			if(colnum!=2){ // check DEC table's size
-				check_it.checkREFERENCEPOSITION=0;
 				cout << "\"DEC\" table was not found in \"reference position\"" << endl;
+				return -1;
 			}
 
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
 			if(colnum!=3){ // check PHI table's size
-				check_it.checkREFERENCEPOSITION=0;
 				cout << "\"PHI\" table was not found in \"reference position\"" << endl;
+				return -1;
 			}
 		}
 	}
@@ -127,15 +129,15 @@ void check_positionHDU(string fname,long ns,struct detectors det, int format, st
 
 		fits_get_num_rows(fptr, &ndet_test, &status);
 		if(det.ndet!=ndet_test){ // check offsets table's size
-			check_it.checkOFFSETS=0;
 			cout << "\"offsets\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
+			return -1;
 		}
 
 		colnum=0;
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=3){ // check offsets table's size
-			check_it.checkOFFSETS=0;
 			cout << "\"offsets\" has a wrong number of cols (must be equal to 3 : NAME, DX, DY )" << endl;
+			return -1;
 		}else{
 			string name_table,dx_table,dy_table;
 
@@ -153,22 +155,22 @@ void check_positionHDU(string fname,long ns,struct detectors det, int format, st
 			colnum=0; // check offsets table's size
 			fits_get_colnum(fptr, CASEINSEN, (char*) name_table.c_str(), &colnum, &status);
 			if(colnum!=1){
-				check_it.checkOFFSETS=0;
 				cout << "\"NAME\" table was not found in \"offsets\"" << endl;
+				return -1;
 			}
 
 			colnum=0; // check dx table's presence
 			fits_get_colnum(fptr, CASEINSEN, (char*) dx_table.c_str(), &colnum, &status);
 			if(colnum!=2){
-				check_it.checkOFFSETS=0;
 				cout << "\"DX\" table was not found in \"offsets\"" << endl;
+				return -1;
 			}
 
 			colnum=0; // check dy table's presence
 			fits_get_colnum(fptr, CASEINSEN, (char*) dy_table.c_str(), &colnum, &status);
 			if(colnum!=3){
-				check_it.checkOFFSETS=0;
 				cout << "\"DY\" table was not found in \"offsets\"" << endl;
+				return -1;
 			}
 		}
 	}
@@ -177,9 +179,11 @@ void check_positionHDU(string fname,long ns,struct detectors det, int format, st
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
+	return 0;
+
 }
 
-void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
+int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
 /*! this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
 {
 
@@ -198,82 +202,54 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){ // go to channels table
 		fits_report_error(stderr, status); // is the table present ?
 		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
-		// TODO : add an exit procedure
+		return -1;
 	}else{
 
 		ndet_test=0;
 		fits_get_num_rows(fptr, &ndet_test, &status);
 		if(ndet_test!=det.ndet){ // Is the size correct ?
 			cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
+			return -1;
 		}
 
 		colnum=0;
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=1){  // Is the size correct ?
 			cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAMES )" << endl;
+			return -1;
 		}else{
 
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
 			if(colnum!=1){ // Table NAMES is present ?
 				cout << "\"NAMES\" table was not found in \"channels\"" << endl;
+				return -1;
 			}
 		}
 	}
 
-	status = 0;
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
-		fits_report_error(stderr, status); // signal image is present ?
-		check_it.checkSIGNAL=0;
-		cout << "\"signal\" was not found, or his Type should be image" << endl;
-	}else{
-
-		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
-			fits_report_error(stderr, status);
-			check_it.checkSIGNAL=0;
-		}
-		if(naxis != 2){
-			fits_report_error(stderr,BAD_NAXIS);
-			check_it.checkSIGNAL=0;
-			cout << "\"signal\" must have 2 dimensions" << endl;
-		}else{
-			if (fits_get_img_size(fptr, 2, naxes, &status)){
-				check_it.checkSIGNAL=0;
-				fits_report_error(stderr, status);
-			}else{
-
-				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
-					check_it.checkSIGNAL=0;
-					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
-				}
-			}
-		}
-	}
-
-	status = 0;
-	naxes[0]=1;
-	naxes[1]=1;
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
-		check_it.checkTIME=0;
 		fits_report_error(stderr, status); // time table is present ?
 		cout << "\"time\" was not found, or his Type should be image" << endl;
+		return -1;
 	}else{
 		if(fits_get_img_dim(fptr, &naxis, &status)){ // check size
 			fits_report_error(stderr, status);
-			check_it.checkTIME=0;
+			return -1;
 		}else{
 
 			if(naxis!=1){
-				check_it.checkTIME=0;
 				cout << "\"time\" has a wrong number of columns, should be equal to 1 " << endl;
+				return -1;
 			}else{
-				if (fits_get_img_size(fptr, 2, naxes, &status))
+				if (fits_get_img_size(fptr, 2, naxes, &status)){
 					fits_report_error(stderr, status);
+					return -1;
+				}
 				if(naxes[0]!=ns){
-					check_it.checkTIME=0;
 					cout << "\"time\" has a wrong number of elements, should be equal to ns : " << ns << endl;
+					return -1;
 				}
 			}
 		}
@@ -284,30 +260,29 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 	naxes[1]=1;
 
 
-
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status); // signal image is present ?
-		check_it.checkSIGNAL=0;
 		cout << "\"signal\" was not found, or his Type should be image" << endl;
+		return -1;
 	}else{
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
 			fits_report_error(stderr, status);
-			check_it.checkSIGNAL=0;
+			return -1;
 		}
 		if(naxis != 2){
 			fits_report_error(stderr,BAD_NAXIS);
-			check_it.checkSIGNAL=0;
 			cout << "\"signal\" must have 2 dimensions" << endl;
+			return -1;
 		}else{
 			if (fits_get_img_size(fptr, 2, naxes, &status)){
-				check_it.checkSIGNAL=0;
 				fits_report_error(stderr, status);
+				return -1;
 			}else{
 
 				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
-					check_it.checkSIGNAL=0;
 					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+					return -1;
 				}
 			}
 		}
@@ -320,28 +295,29 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status)){
 		fits_report_error(stderr, status); // mask image is present ?
-		check_it.checkFLAG=0;
 		cout << "\"mask\" was not found, or his Type should be image" << endl;
+		return -1;
 	}else{
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
-			check_it.checkFLAG=0;
 			fits_report_error(stderr, status);
+			return -1;
 		}else{
 			if(naxis != 2){
 				fits_report_error(stderr,BAD_NAXIS);
-				check_it.checkFLAG=0;
 				cout << "\"mask\" must have 2 dimensions" << endl;
+				return -1;
 			}else{
 
 				if (fits_get_img_size(fptr, 2, naxes, &status)){
-					check_it.checkFLAG=0;
 					fits_report_error(stderr, status);
+					cout << "\"mask\" must have 2 dimensions" << endl;
+					return -1;
 				}
 
 				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
-					check_it.checkFLAG=0;
 					cout << "\"mask\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+					return -1;
 				}
 			}
 		}
@@ -351,10 +327,11 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
+	return 0;
 }
 
 
-void check_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
+int check_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
 /*! check RA/DEc table presence : only for HIPE format */
 {
 
@@ -374,21 +351,21 @@ void check_altpositionHDU(string fname,long ns,struct detectors det, struct chec
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // get size
 			fits_report_error(stderr, status);
-			check_it.checkRA=0;
+			return -1;
 		}else{
 			if(naxis != 2){
-				check_it.checkRA=0;
 				fits_report_error(stderr,BAD_NAXIS);
 				cout << "\"ra\" must have 2 dimensions" << endl;
+				return -1;
 			}
 			if (fits_get_img_size(fptr, 2, naxes, &status)){
 				fits_report_error(stderr, status);
-				check_it.checkRA=0;
+				return -1;
 			}else{
 
 				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){ // check size
-					check_it.checkRA=0;
 					cout << "\"ra\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+					return -1;
 				}
 			}
 		}
@@ -405,20 +382,21 @@ void check_altpositionHDU(string fname,long ns,struct detectors det, struct chec
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // get table size
 			fits_report_error(stderr, status);
+			return -1;
 		}else{
 			if(naxis != 2){
 				fits_report_error(stderr,BAD_NAXIS);
-				check_it.checkDEC=0;
 				cout << "\"dec\" must have 2 dimensions" << endl;
+				return -1;
 			}
 			if (fits_get_img_size(fptr, 2, naxes, &status)){
 				fits_report_error(stderr, status);
-				check_it.checkDEC=0;
+				return -1;
 			}else{
 
 				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){ // check size
-					check_it.checkDEC=0;
 					cout << "\"dec\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+					return -1;
 				}
 			}
 		}
@@ -427,6 +405,8 @@ void check_altpositionHDU(string fname,long ns,struct detectors det, struct chec
 	// close file
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
+
+	return 0;
 }
 
 void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
@@ -443,14 +423,7 @@ void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct che
 		for(int ii=0;ii<det.ndet;ii++){
 			read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test); // read ra dec and phi
 
-			if(check_it.checkFLAG==1)
-				read_flag_from_fits(fname, det.boloname[ii], flag, ns); // read mask image
-			else{ // simulate a flag vector with no flagged values
-				flag=new int[ns_test];
-				fill(flag,flag+ns_test,0);
-			}
-
-
+			read_flag_from_fits(fname, det.boloname[ii], flag, ns); // read mask image
 
 			for(long jj=0;jj<ns_test;jj++){ // check NANs
 				if(isnan(ra[jj])&&(flag[jj]==0)){
@@ -497,46 +470,37 @@ void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct check
 	double *time;
 
 
-	if(check_it.checkFLAG){
-		// check nans in mask image
-		for(long jj=0;jj<det.ndet;jj++){
-			read_flag_from_fits(fname, det.boloname[jj], flag, ns);
-			for(int kk=0;kk<ns;kk++){
-				if(isnan(flag[kk])){
-					cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
-				}
+	// check nans in mask image
+	for(long jj=0;jj<det.ndet;jj++){
+		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
+		for(int kk=0;kk<ns;kk++){
+			if(isnan(flag[kk])){
+				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
 			}
-			delete [] flag;
 		}
-	}else{
-		flag=new int[ns];
-		fill(flag,flag+ns,0);
+		delete [] flag;
 	}
 
-	if(check_it.checkTIME){
-		// check nans in time image
-		read_time_from_fits(fname, time, ns);
-		for(long jj=0;jj<ns;jj++){
-			if(isnan(time[jj])&&(flag[jj]==0)){
-				cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
-			}
+	// check nans in time image
+	read_time_from_fits(fname, time, ns);
+	for(long jj=0;jj<ns;jj++){
+		if(isnan(time[jj])&&(flag[jj]==0)){
+			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
 		}
-
-		delete [] time;
 	}
 
+	delete [] time;
 
-	if(check_it.checkSIGNAL){
-		// check nans in signal
-		for(int ii=0;ii<det.ndet;ii++){
-			read_signal_from_fits(fname, det.boloname[ii], signal,ns_test);
-			for(long jj=0;jj<ns_test;jj++){
-				if(isnan(signal[jj])&&(flag[jj]==0)){
-					cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
-				}
+
+	// check nans in signal
+	for(int ii=0;ii<det.ndet;ii++){
+		read_signal_from_fits(fname, det.boloname[ii], signal,ns_test);
+		for(long jj=0;jj<ns_test;jj++){
+			if(isnan(signal[jj])&&(flag[jj]==0)){
+				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 			}
-			delete [] signal;
 		}
+		delete [] signal;
 	}
 
 }
@@ -607,51 +571,50 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 	long rr=0;// singleton seeker indexes
 
 
-	if(check_it.checkFLAG){
-		for(int jj=0;jj<det.ndet;jj++){
+	for(int jj=0;jj<det.ndet;jj++){
 
-			ii=1;
-			sum=0;
-			read_flag_from_fits(fname, det.boloname[jj], flag, ns);
+		ii=1;
+		sum=0;
+		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
 
-			while(ii<ns-1){
+		while(ii<ns-1){
 
-				if((flag[ii]==0)&&(flag[ii+1]==1)&&(flag[ii-1]==1)){
-					tt=ii-1;
-					rr=ii+1;
+			if((flag[ii]==0)&&(flag[ii+1]==1)&&(flag[ii-1]==1)){
+				tt=ii-1;
+				rr=ii+1;
 
-					while((tt>0)&&(flag[tt]==1)&&((ii-tt)<marge+2))
-						tt--;
+				while((tt>0)&&(flag[tt]==1)&&((ii-tt)<marge+2))
+					tt--;
 
-					while((rr<ns)&&(flag[rr]==1)&&((rr-ii)<marge+2))
-						rr++;
-				}
-
-				if(((rr-ii)>=marge)&&((ii-tt)>=marge)){ // singleton has been found
-					cout << ii << " " << rr-ii << " " << ii-tt << endl;
-					flag[ii]=1;
-					cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
-				}
-
-				sum+=flag[ii];
-				ii++;
-
+				while((rr<ns)&&(flag[rr]==1)&&((rr-ii)<marge+2))
+					rr++;
 			}
 
-			if(sum==ns){ // fully flagged detector found
-				cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
-				bolos_global[jj]=1;
-			}else{
-				if(sum>80*ns/100){ // valid worst detector found
-					cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
-					bolos_global_80[jj]=1;
-				}else if(sum>50*ns/100)
-					cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
+			if(((rr-ii)>=marge)&&((ii-tt)>=marge)){ // singleton has been found
+				cout << ii << " " << rr-ii << " " << ii-tt << endl;
+				flag[ii]=1;
+				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
 			}
 
-			delete [] flag;
+			sum+=flag[ii];
+			ii++;
+
 		}
+
+		if(sum==ns){ // fully flagged detector found
+			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
+			bolos_global[jj]=1;
+		}else{
+			if(sum>80*ns/100){ // valid worst detector found
+				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
+				bolos_global_80[jj]=1;
+			}else if(sum>50*ns/100)
+				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
+		}
+
+		delete [] flag;
 	}
+
 
 }
 
@@ -668,103 +631,102 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 	string filename = oss.str();
 	string fname2 = dir.tmp_dir + Basename(filename) + "_saneFix_indices.bin"; // output saneFix logfile filename
 
-	if(check_it.checkTIME){
-		double *time,*diff;
-		double sum=0.0;
-		std::vector<double> freq; // The whole frequency that can be extracted from the time vector
+	double *time,*diff;
+	double sum=0.0;
+	std::vector<double> freq; // The whole frequency that can be extracted from the time vector
 
-		read_time_from_fits(fname, time, ns);
-		diff = new double [ns-1]; // differential time vector
+	read_time_from_fits(fname, time, ns);
+	diff = new double [ns-1]; // differential time vector
 
-		for(long jj=0;jj<ns-1;jj++){
-			diff[jj]=(time[jj+1]-time[jj]);
-			sum+=diff[jj]; // sum up time gaps
-			freq.push_back(1/diff[jj]); // store frequency
-		}
-
-		struct sortclass_double sortobject;
-		sort(freq.begin(), freq.end(), sortobject); // sort frequency vector
-
-		std::vector<double>::iterator it;
-		it = unique(freq.begin(),freq.end()); // get only unique values of frequencies
-
-
-
-
-		long size_tmp = it - freq.begin(); // last unique frequency index
-
-		long *counter;
-		counter = new long [size_tmp];
-
-		for (long tt=0;tt<size_tmp;tt++){
-			counter[tt]=count(freq.begin(), freq.end(),freq[tt]); // Frequencies occurence
-		}
-
-		// print to std
-		for (long tt=0;tt<size_tmp;tt++)
-			cout <<  freq[tt] << " ";
-		cout << endl;
-		for (long tt=0;tt<size_tmp;tt++)
-			cout << counter[tt] << " ";
-
-
-
-
-		long maxi = *max_element(counter,counter+size_tmp); // max occurence
-
-		long ind=0;
-
-		for(long tt=0;tt<size_tmp;tt++)
-			if(counter[tt]==maxi)
-				ind=tt;
-
-		double Populated_freq = freq[ind]; // the most populated frequency only is kept
-
-		double zero_cinq_pourcent=0.5*Populated_freq/100; // compare to the user frequency given in ini file
-		if(abs(Populated_freq-fsamp)/fsamp>zero_cinq_pourcent){
-			cout << "Warning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
-			cout << "ini file : " << fsamp << " != " << Populated_freq << endl;
-		}
-
-
-		for(long jj=0;jj<ns-1;jj++){ // locate time gaps
-			if((abs(diff[jj])>1.9/Populated_freq)||(abs(diff[jj])<1/Populated_freq/1.9)){
-				cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
-				indice.push_back(jj); // store sample indice : where the time gap is
-			}
-		}
-
-		sum=0.0;
-		// recompute real frequency
-		for(long jj=0;jj<ns-1;jj++){
-			if(((int) count (indice.begin(), indice.end(), jj))==0)
-				sum+=diff[jj];
-		}
-		double real_freq= (double)(ns-1-(long)indice.size())/sum; // dont take the gaps into account
-
-		// print to std
-		cout << "ini file fsamp : " << fsamp << " Most Populated freq : " << Populated_freq << " Recomputed real freq : " << real_freq << endl;
-
-		std::ofstream file; // saneFix indice log file
-		file.open(fname2.c_str(), ios::out | ios::trunc);
-		if(!file.is_open()){
-			cerr << "File [" << fname2 << "] Invalid." << endl;
-		}else{
-			// store real_freq for saneFix
-			file << real_freq << " ";
-
-			for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
-				file << indice[ii] << " ";
-		}
-
-		file.close();
-
-		cout << endl;
-
-		// clean up
-		delete [] time;
-		delete [] diff;
+	for(long jj=0;jj<ns-1;jj++){
+		diff[jj]=(time[jj+1]-time[jj]);
+		sum+=diff[jj]; // sum up time gaps
+		freq.push_back(1/diff[jj]); // store frequency
 	}
+
+	struct sortclass_double sortobject;
+	sort(freq.begin(), freq.end(), sortobject); // sort frequency vector
+
+	std::vector<double>::iterator it;
+	it = unique(freq.begin(),freq.end()); // get only unique values of frequencies
+
+
+
+
+	long size_tmp = it - freq.begin(); // last unique frequency index
+
+	long *counter;
+	counter = new long [size_tmp];
+
+	for (long tt=0;tt<size_tmp;tt++){
+		counter[tt]=count(freq.begin(), freq.end(),freq[tt]); // Frequencies occurence
+	}
+
+	// print to std
+	for (long tt=0;tt<size_tmp;tt++)
+		cout <<  freq[tt] << " ";
+	cout << endl;
+	for (long tt=0;tt<size_tmp;tt++)
+		cout << counter[tt] << " ";
+
+
+
+
+	long maxi = *max_element(counter,counter+size_tmp); // max occurence
+
+	long ind=0;
+
+	for(long tt=0;tt<size_tmp;tt++)
+		if(counter[tt]==maxi)
+			ind=tt;
+
+	double Populated_freq = freq[ind]; // the most populated frequency only is kept
+
+	double zero_cinq_pourcent=0.5*Populated_freq/100; // compare to the user frequency given in ini file
+	if(abs(Populated_freq-fsamp)/fsamp>zero_cinq_pourcent){
+		cout << "Warning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
+		cout << "ini file : " << fsamp << " != " << Populated_freq << endl;
+	}
+
+
+	for(long jj=0;jj<ns-1;jj++){ // locate time gaps
+		if((abs(diff[jj])>1.9/Populated_freq)||(abs(diff[jj])<1/Populated_freq/1.9)){
+			cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
+			indice.push_back(jj); // store sample indice : where the time gap is
+		}
+	}
+
+	sum=0.0;
+	// recompute real frequency
+	for(long jj=0;jj<ns-1;jj++){
+		if(((int) count (indice.begin(), indice.end(), jj))==0)
+			sum+=diff[jj];
+	}
+	double real_freq= (double)(ns-1-(long)indice.size())/sum; // dont take the gaps into account
+
+	// print to std
+	cout << "ini file fsamp : " << fsamp << " Most Populated freq : " << Populated_freq << " Recomputed real freq : " << real_freq << endl;
+
+	std::ofstream file; // saneFix indice log file
+	file.open(fname2.c_str(), ios::out | ios::trunc);
+	if(!file.is_open()){
+		cerr << "File [" << fname2 << "] Invalid." << endl;
+	}else{
+		// store real_freq for saneFix
+		file << real_freq << " ";
+
+		for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
+			file << indice[ii] << " ";
+	}
+
+	file.close();
+
+	cout << endl;
+
+	// clean up
+	delete [] time;
+	delete [] diff;
+
 
 
 }

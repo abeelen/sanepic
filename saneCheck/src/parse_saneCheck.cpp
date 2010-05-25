@@ -76,11 +76,16 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	check_path(dir.tmp_dir, "Temporary directory");
 	check_dirfile_paths(dir.tmp_dir);
 
+
+
 	if(read_channel_list(ini,dir, det.boloname, rank)==1)
 		return -1;
 
+
+
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return -1;
+
 
 	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
