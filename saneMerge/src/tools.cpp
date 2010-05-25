@@ -435,7 +435,6 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detect
 
 
 			string fname=samples_struct.fitsvect[iframe]; // actual input file name
-			indice_debut = indice_fin;
 
 
 			// open fits file
