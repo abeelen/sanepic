@@ -221,34 +221,7 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 		}
 	}
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
-		check_it.checkTIME=0;
-		fits_report_error(stderr, status); // time table is present ?
-		cout << "\"time\" was not found, or his Type should be image" << endl;
-	}
-
-
-	if(fits_get_img_dim(fptr, &naxis, &status)){ // check size
-		fits_report_error(stderr, status);
-		check_it.checkTIME=0;
-	}else{
-
-		if(naxis!=1){
-			check_it.checkTIME=0;
-			cout << "\"time\" has a wrong number of columns, should be equal to 1 " << endl;
-		}else{
-			if (fits_get_img_size(fptr, 2, naxes, &status))
-				fits_report_error(stderr, status);
-			if(naxes[0]!=ns){
-				check_it.checkTIME=0;
-				cout << "\"time\" has a wrong number of elements, should be equal to ns : " << ns << endl;
-			}
-		}
-	}
-
-
-	naxes[0]=1;
-	naxes[1]=1;
+	status = 0;
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status); // signal image is present ?
@@ -277,6 +250,70 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 			}
 		}
 	}
+
+	status = 0;
+	naxes[0]=1;
+	naxes[1]=1;
+
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
+		check_it.checkTIME=0;
+		fits_report_error(stderr, status); // time table is present ?
+		cout << "\"time\" was not found, or his Type should be image" << endl;
+	}else{
+		if(fits_get_img_dim(fptr, &naxis, &status)){ // check size
+			fits_report_error(stderr, status);
+			check_it.checkTIME=0;
+		}else{
+
+			if(naxis!=1){
+				check_it.checkTIME=0;
+				cout << "\"time\" has a wrong number of columns, should be equal to 1 " << endl;
+			}else{
+				if (fits_get_img_size(fptr, 2, naxes, &status))
+					fits_report_error(stderr, status);
+				if(naxes[0]!=ns){
+					check_it.checkTIME=0;
+					cout << "\"time\" has a wrong number of elements, should be equal to ns : " << ns << endl;
+				}
+			}
+		}
+	}
+
+	status = 0;
+	naxes[0]=1;
+	naxes[1]=1;
+
+
+
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+		fits_report_error(stderr, status); // signal image is present ?
+		check_it.checkSIGNAL=0;
+		cout << "\"signal\" was not found, or his Type should be image" << endl;
+	}else{
+
+		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
+			fits_report_error(stderr, status);
+			check_it.checkSIGNAL=0;
+		}
+		if(naxis != 2){
+			fits_report_error(stderr,BAD_NAXIS);
+			check_it.checkSIGNAL=0;
+			cout << "\"signal\" must have 2 dimensions" << endl;
+		}else{
+			if (fits_get_img_size(fptr, 2, naxes, &status)){
+				check_it.checkSIGNAL=0;
+				fits_report_error(stderr, status);
+			}else{
+
+				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
+					check_it.checkSIGNAL=0;
+					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+				}
+			}
+		}
+	}
+
+	status = 0;
 	naxes[0]=1;
 	naxes[1]=1;
 
@@ -309,6 +346,7 @@ void check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU 
 			}
 		}
 	}
+
 	// close file
 	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
@@ -355,6 +393,9 @@ void check_altpositionHDU(string fname,long ns,struct detectors det, struct chec
 			}
 		}
 	}
+
+	status = 0;
+
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){
 		fits_report_error(stderr, status); // move to DEC table
