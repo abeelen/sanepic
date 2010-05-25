@@ -693,7 +693,7 @@ void read_time_from_fits(string filename, double *& time, long ns){
 		fits_report_error(stderr, status);
 
 }
-
+// TODO : change to seek RA and/or DEC ?
 int test_format(string fitsname){
 
 	fitsfile *fptr;
@@ -710,10 +710,16 @@ int test_format(string fitsname){
 
 
 	if (hdunum==7){
-		format=2; // "ra"  table was not found
+		format=2; // "ra" and "dec" table was not found
+	}else{
+		if(hdunum==9) // "ra" and "dec" tables were found
+			format=1;
+		else{
+			format=1;
+			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
+				format=2;
+		}
 	}
-	else
-		format=1;
 
 	// close file
 	if(fits_close_file(fptr, &status))
