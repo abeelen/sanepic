@@ -78,14 +78,14 @@ int main(int argc, char *argv[])
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_process proc_param;
-	struct samples samples_struct;
-	struct param_positions pos_param;
-	struct common dir;
-	struct detectors det;
+	struct param_process proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
+	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
+	struct common dir; /*! structure that contains output input temp directories */
+	struct detectors det; /*! A structure that contains everything about the detectors names and number */
 
-	int nwcs=1;
-	int iterw;
+	int nwcs=1; // number of wcs : 1
+	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int factdupl = 1; /*! map duplication factor */
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 	// map making parameters
 	long long npix2; /*! used to check PNd reading was correct */
 	long long ind_size; /*! indpix read size */
-	long NAXIS1, NAXIS2;
+	long NAXIS1, NAXIS2; // map dimensions
 	long long npix; /*! nn = side of the map, npix = number of filled pixels */
 
 
@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 	string prefixe; /*! prefix used for temporary name file creation */
 
 	std::vector<double> fcut; /*! noise cutting frequency vector */
-	//std::vector<string> extentnoiseSP; /*! noise filenames vector of string */
 
 
 
@@ -121,24 +120,22 @@ int main(int argc, char *argv[])
 
 	int parsed=0;
 
-	if (argc<2)
+	if (argc<2) // no enough arguments
 		parsed=1;
 	else{
-//		// Parse ini file
-//		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
-//				det, fcut, rank, size);
+		// Parse ini file
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-			double fcut_sanePS=0.0;
-			string MixMatfile, ellFile, signame;
-			long ncomp=1;
+		double fcut_sanePS=0.0;
+		string MixMatfile, ellFile, signame;
+		long ncomp=1;
 
-			/* parse ini file and fill structures */
-			parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
-					fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
+		/* parse ini file and fill structures */
+		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
 	}
 
-	if (parsed>0){
+	if (parsed>0){ // error during parser phase
 		if (rank==0)
 			switch (parsed){
 
@@ -161,7 +158,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	string name_rank = dir.output_dir + "debug_sanePic.txt";
+	string name_rank = dir.output_dir + "debug_sanePic.txt"; // log file name
 
 
 #ifdef DEBUG
@@ -187,18 +184,10 @@ int main(int argc, char *argv[])
 
 	////////////////////////////////////////////////////////////////
 
-
-	//frames_index = new long [samples_struct.ntotscan];
-	//extentnoiseSp_all = new string[samples_struct.ntotscan];
-
-
+	// Memory allocation
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
-
-
-	//vector2array(extentnoiseSP,  extentnoiseSp_all);
-	//	cout << samples_struct.nsamples[0] << endl;
 
 
 	/********************* Define parallelization scheme   *******/
@@ -251,16 +240,12 @@ int main(int argc, char *argv[])
 	}
 #else
 #if defined(USE_MPI) && defined(PARA_BOLO)
+
 	//convert vector to standard C array to speed up memory accesses
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
-	//	cout <<" final list : " << endl;
-	//	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
-	//		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
-	//		//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
-	//	}
 #else
 	fname = dir.output_dir + parallel_scheme_filename;
 	int test=0;
@@ -270,42 +255,27 @@ int main(int argc, char *argv[])
 			cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
 		exit(0);
 	}
-
-	//	cout <<" final list : " << endl;
-	//	for(int ii = 0; ii< samples_struct.ntotscan;ii++){
-	//		cout << samples_struct.fits_table[ii] << " " << samples_struct.noise_table[ii] << " " << samples_struct.index_table[ii] << endl;
-	//		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
-	//	}
-
 #endif
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
 #endif
 
-	//	// allocate memory
-	//	tancoord = new double[2];
-	//	tanpix = new double[2];
-
 	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.output_dir, tanpix, tancoord);
 	struct wcsprm * wcs;
-	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2);
-
-	// read nn, coordsyst, tanpix, tancoord
-	// read_info_pointing(NAXIS1, NAXIS2, proc_param.tmp_dir, tanpix, tancoord);
-	// cout << tanpix[0] << " " << tanpix[1] << endl;
-	// cout << tancoord[0] << " " << tancoord[1] << endl;
+	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2); // read keyrec file
 
 	if(rank==0)
-		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl;
+		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
 
 	long long test_size;
-	read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir);
-	if(test_size != NAXIS1*NAXIS2){
+	read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir); // read mask index
+	if(test_size != NAXIS1*NAXIS2){ // check size compatibility
 		if(rank==0)
 			cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
 		exit(0);
 	}
+
 	// each frame contains npixsrc pixels with index indsprc[] for which
 	// crossing constraint are removed
 	// thus
@@ -313,26 +283,21 @@ int main(int argc, char *argv[])
 	//         = number of scans * number of pix in box crossing constraint removal
 	addnpix = samples_struct.ntotscan*npixsrc;
 
-	if (pos_param.flgdupl) factdupl = 2; // -M =1, default 0 : if flagged data are put in a duplicated map
+	if (pos_param.flgdupl) factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	// read indpix
-	read_indpix(ind_size, npix, indpix,  dir.tmp_dir, flagon);
+	read_indpix(ind_size, npix, indpix,  dir.tmp_dir, flagon); // read map index
 
-	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){
+	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){ // check size compatibility
 		if(rank==0)
 			cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
 		exit(0);
 	}
 
-	// read npix, PNdtot from file
+	// read (At N-1 d) from file
 	read_PNd(PNdtot, npix2,  dir.tmp_dir);
-	//	for (int ii=0;ii<20;ii++)
-	//			cout << PNdtot[ii] << " ";
-	//		cout << endl << "avant read indpix\n";
-	//		getchar();
 
-
-	if (npix!=npix2){
+	if (npix!=npix2){ // check size compatibility
 		if(rank==0)
 			cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
 		exit(0);
@@ -359,32 +324,30 @@ int main(int argc, char *argv[])
 	S = new double[npix];
 	fill(S,S+npix,0.0);
 
-
-	//	sanepic_conjugate_gradient(samples_struct,pos_param,det,dir,proc_param, npix, S, iframe_min, iframe_max,
-	//			fcut,indpix,wcs, NAXIS1, NAXIS2, iterw,
-	//			indpsrc, npixsrc,flagon, rank,size, PNdtot, addnpix);
-
-	//////////////////////////////////////////////////////// conjugate gradient
+	//////////////////////////////////// Computing of sanePic starts here
 
 
 	FILE *fp;
-	string testfile;
-	ostringstream temp_stream;
+	string testfile; // log file to follow evolution of both criteria
+	ostringstream temp_stream; // fits files filename string stream
+
+	// inititialisation of the Conjugate gradient with preconditioner
+	// see (for a complete description of the following variables) : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 	double *PtNPmatS,  *PtNPmatStot=NULL, *r, *q, *qtot=NULL, *d, *Mp, *Mptot=NULL, *s; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
-	long *hits, *hitstot=NULL;
-	double *PNd;
+	long *hits, *hitstot=NULL; // coverage map and global coverage for MPI
+	double *PNd; // (At N-1 d)
 
-	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0;
-	double delta_o, rtq, beta;
+	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0; // conjugate gradient convergence criteria
+	double delta_o, rtq, beta; // conjugate gradient needed parameters (see paper for a complete description)
 
 	long mi;
-	double *map1d;
+	double *map1d; // buffer used to store maps before exporting to fits
 
-	int iter;
-	double  f_lppix_Nk,f_lppix;
-	long ns;
-	long long npixeff;
+	int iter; // conjugate gradient loop counter
+	double  f_lppix_Nk,f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
+	long ns; // number of samples for the considered scan
+	long long npixeff; // number of filled pixels
 
 	// memory allocs
 	r           = new double[npix];
@@ -395,34 +358,25 @@ int main(int argc, char *argv[])
 	PtNPmatS    = new double[npix];
 	hits        = new long[npix];
 	PNd         = new double[npix];
-
 	map1d       = new double[NAXIS1*NAXIS2];
 
+	// in case flagged pixels are put in a duplicated map
 	for (int idupl = 0;idupl<=pos_param.flgdupl;idupl++){
 
 
 
-		//Conjugate gradien Inversion
 		if (pos_param.projgaps || !flagon){
 			npixeff = npix;
 		} else {
 			npixeff = npix-1;
 		}
 
-
-
-		//		printf("[%2.2i] npix = %lld, npixeff = %lld\n", rank, npix, npixeff);
-
-
-		//t1 = time(0);
-
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
 		fill(hits,hits+npix,0);
-		fill(r,r+npix,0.0); // useless
-		fill(d,d+npix,0.0);// useless
-		fill(s,s+npix,0.0);// useless
-//		fill(PNd,PNd+npix,0.0);
+		fill(r,r+npix,0.0);
+		fill(d,d+npix,0.0);
+		fill(s,s+npix,0.0);
 
 
 
@@ -435,10 +389,6 @@ int main(int argc, char *argv[])
 
 			ns = samples_struct.nsamples[iframe];
 			f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
-
-
-			//    cout << "[" << rank << "] " << iframe << "/" << iframe_max << endl;
-
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon){
@@ -510,12 +460,9 @@ int main(int argc, char *argv[])
 
 		} // end of iframe loop
 
-		//cout << "do_ptnd" << endl;
-
-
 #ifdef USE_MPI
 
-		if(rank==0){
+		if(rank==0){ // malloc only for first processor that reduces the data
 			PtNPmatStot = new double[npix];
 			hitstot=new long[npix];
 			Mptot = new double[npix];
@@ -532,13 +479,13 @@ int main(int argc, char *argv[])
 		MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 
-		PtNPmatStot=PtNPmatS; // ajout Mat 02/06
+		PtNPmatStot=PtNPmatS; // in case non-MPI : pointer equality
 		hitstot=hits;
 		Mptot=Mp;
 
 #endif
 
-		// intitialisation of the Conjugate gradient with preconditioner
+		// inititialisation of the Conjugate gradient with preconditioner
 		// see : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 		if (rank == 0) {
 
@@ -552,7 +499,6 @@ int main(int argc, char *argv[])
 			for (long ii=0;ii<npixeff;ii++)
 				r[ii] = PNdtot[ii] - PtNPmatStot[ii]; // r = b - Ax
 
-			//			cout << r[0] << " " << r[1] << " " << r[2] << " " << endl;
 
 			for (long ii=0;ii<npixeff;ii++)
 				d[ii] =  Mptot[ii] * r[ii]; // d = M-1 * r
@@ -561,8 +507,6 @@ int main(int argc, char *argv[])
 			delta_n = 0.0;
 			for (long ii=0;ii<npixeff;ii++)
 				delta_n += r[ii]*d[ii]; // delta_new = rT * d
-
-			//			cout << "delta_n : " << delta_n << endl;
 
 			var_n = 0.0;
 			for (long ii=0;ii<npixeff;ii++)
@@ -630,8 +574,7 @@ int main(int argc, char *argv[])
 
 #endif
 #endif
-					//					do_PtNd(q,extentnoiseSp_all,noiseSppreffile,tmp_dir,prefixe,bolonames,f_lppix_Nk,
-					//							fsamp,ns,ndet,/*size_det,rank_det,*/indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL);
+
 #ifdef DEBUG
 					time ( &rawtime );
 					timeinfo = localtime ( &rawtime );
@@ -689,8 +632,6 @@ int main(int argc, char *argv[])
 					rtq += qtot[ii] * d[ii]; // rtq = (dT * q)
 
 				alpha = delta_n/rtq; // alpha <= delta_new / (dT * q)
-				//				cout << "rtq : " << rtq << endl;
-				//				cout << "alpha : " << alpha << endl;
 
 
 				for (long ii=0;ii<npixeff;ii++)
@@ -707,10 +648,6 @@ int main(int argc, char *argv[])
 			// every 10 iterations do ....
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
-				// TODO: Should NOT be initialized here...
-				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
-
-
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 #ifdef LARGE_MEMORY
 					fftw_complex  *fdata_buffer;
@@ -719,6 +656,8 @@ int main(int argc, char *argv[])
 #endif
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
+
+					fill(PtNPmatS,PtNPmatS+npixeff,0.0);
 
 					if (proc_param.CORRon){
 
@@ -796,11 +735,11 @@ int main(int argc, char *argv[])
 				}
 
 
-			} else {
+			} else { // if iter is not divisible by 10 ...
 
 				if (rank == 0){
 					for (long ii=0;ii<npixeff;ii++)
-						r[ii] -= alpha*qtot[ii]; // else r = r - alpha * q
+						r[ii] -= alpha*qtot[ii]; // r = r - alpha * q
 				}
 			}
 
@@ -843,8 +782,6 @@ int main(int argc, char *argv[])
 						}
 					}
 
-					//					temp_stream << "!" + dir.output_dir + "optimMap_" + "flux" << iter << "b.fits";
-
 					temp_stream << dir.output_dir + "optimMap_" << iter << "b.fits";
 					fname= temp_stream.str();
 					temp_stream.str("");
@@ -866,9 +803,6 @@ int main(int argc, char *argv[])
 						}
 
 
-						//						temp_stream << "!" + dir.output_dir + "optimMap_fluxflags_" << iter << "b.fits";
-						//						fname= temp_stream.str();
-						//						temp_stream.str("");
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",1);
 					}
 
@@ -902,9 +836,6 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						//						temp_stream << "!" + dir.output_dir + "optimMap_fluxuncpix_" << iter << "b.fits";
-						//						fname= temp_stream.str();
-						//						temp_stream.str("");
 						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 1);
 
 					}
@@ -921,6 +852,7 @@ int main(int argc, char *argv[])
 
 				// Transform into string
 				testfile= temp_stream.str();
+
 				// Clear ostringstream buffer
 				temp_stream.str("");
 				fp = fopen(testfile.c_str(),"a");
@@ -1085,17 +1017,16 @@ int main(int argc, char *argv[])
 	delete [] hitstot;
 #endif
 
+
+
+	// clean up of conjugate gradient variables
 	delete [] r;
 	delete [] q;
-
 	delete [] d;
 	delete [] Mp;
-
 	delete [] s;
 	delete [] PtNPmatS;
-
 	delete [] hits;
-
 	delete [] map1d;
 	delete [] PNd;
 
@@ -1104,7 +1035,7 @@ int main(int argc, char *argv[])
 
 	//******************************************************************//
 	//******************************************************************//
-	//*********************** End of program ***************************//
+	//*********************** End of sanePic ***************************//
 	//******************************************************************//
 	//******************************************************************//
 
@@ -1129,6 +1060,7 @@ int main(int argc, char *argv[])
 	file_rank.close();
 #endif
 
+
 	// clean up
 	delete [] S;
 
@@ -1142,9 +1074,6 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] PNdtot;
 
-	//delete [] frames_index;
-
-	//	wcsfree(wcs);
 	wcsvfree(&nwcs, &wcs);
 
 
