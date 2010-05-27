@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
 
 		int format_fits; // 1 = HIPE, 2 = Sanepic
 
+		cout << "Fixing file : " << samples_struct.fitsvect[ii] << endl;
+
 		// fits files pointer
 		fitsfile * fptr;
 		fitsfile *outfptr;
@@ -154,6 +156,8 @@ int main(int argc, char *argv[]) {
 		if (fits_close_file(outfptr, &status))
 			fits_report_error(stderr, status);
 
+		indice.clear();
+		add_sample.clear();
 
 	}
 

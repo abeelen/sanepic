@@ -690,7 +690,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 
 
 	for(long jj=0;jj<ns-1;jj++){ // locate time gaps
-		if((abs(diff[jj])>1.9/Populated_freq)||(abs(diff[jj])<1/Populated_freq/1.9)){
+		if((abs(diff[jj])>1.9/Populated_freq)){ //||(abs(diff[jj])<1/Populated_freq/1.95)
 			cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
 			indice.push_back(jj); // store sample indice : where the time gap is
 		}
@@ -713,7 +713,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 		cerr << "File [" << fname2 << "] Invalid." << endl;
 	}else{
 		// store real_freq for saneFix
-		file << real_freq << " ";
+		file << Populated_freq << " ";
 
 		for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
 			file << indice[ii] << " ";

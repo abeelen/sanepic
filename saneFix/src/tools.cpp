@@ -70,7 +70,7 @@ long how_many(string fname, long ns, std::vector <long> indice, double fsamp,  s
 	read_time_from_fits(fname, time, ns); // read time table from input fits
 
 	for(long ii=0; ii < (long)indice.size(); ii++){ // for each gap
-		cout << indice[ii] << " " <<time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
+		cout << indice[ii] << " " << time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
 
 		// calculate the gap size
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
