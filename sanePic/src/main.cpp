@@ -10,7 +10,7 @@
 #include "inline_IO2.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
-#include "parseSanepic.h"
+#include "parser_functions.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"
@@ -124,9 +124,18 @@ int main(int argc, char *argv[])
 	if (argc<2)
 		parsed=1;
 	else{
-		// Parse ini file
-		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
-				det, fcut, rank, size);
+//		// Parse ini file
+//		parsed=parse_sanePic_ini_file(argv[1],proc_param, pos_param, iterw, dir, samples_struct,
+//				det, fcut, rank, size);
+
+		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
+			double fcut_sanePS=0.0;
+			string MixMatfile, ellFile, signame;
+			long ncomp=1;
+
+			/* parse ini file and fill structures */
+			parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+					fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
 	}
 
 	if (parsed>0){
