@@ -336,7 +336,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 	int *flag;
 
-	double *data, *data_lp, *Ps, *bfilter;
+	double *data, *data_lp, *Ps=NULL, *bfilter;
 	double  *commontmp;
 	double *Nell, *Nk;
 	long long *samptopix; // sample to pixel projection matrix

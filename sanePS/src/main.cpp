@@ -18,7 +18,7 @@
 #include "imageIO.h"
 #include "inline_IO2.h"
 #include "mpi_architecture_builder.h"
-#include "parsePS.h"
+#include "parser_functions.h"
 #include "estimPS.h"
 #include "struct_definition.h"
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 	string fname;
 
-//	struct wcsprm * wcs;
+	//	struct wcsprm * wcs;
 
 
 	int parsed=0;
@@ -116,9 +116,13 @@ int main(int argc, char *argv[])
 		exit(0);
 	} else {
 
-		parsed=parse_sanePS_ini_file(argv[1], proc_param, dir, samples_struct,det,
-				MixMatfile, ellFile, signame, rank, ncomp, fcut);
+		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
+		int iterw=10;
+		std::vector<double> fcut_vector;
 
+		/* parse ini file and fill structures */
+		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut_vector,
+				fcut, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
 
 		if (parsed==-1){
 #ifdef USE_MPI
