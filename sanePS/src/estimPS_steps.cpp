@@ -29,47 +29,12 @@ using namespace std;
 
 void read_mixmat_file(string MixMatfile, string dir, double **&mixmat, long ndet, long ncomp){
 
-	//////////////////////////////////////
-	// read mixing parameters
-	//	int len, li, lo;
-	//	len=MixMatfile.length();
-	//	long ndet2;
-	//	int ncomp3=0;
-	//	long ncomp2=0;
-	//cout << MixMatfile << endl;
-	//	li = MixMatfile.rfind("xt");
-	//	lo= MixMatfile.rfind("bi");
-	//cout << "len : " << len << endl;
-	//cout << "end : " << (MixMatfile[len-1]+MixMatfile[len]) << endl;
-
-	//	if(li==len-2){
-	//			cout << "fichier mixmat txt" << endl;
 	read_mixmat_txt(MixMatfile, ndet, ncomp,mixmat);
-	//	}else{
-	//		if (lo==len-2){
-	////				cout << "fichier mixmat bin" << endl;
-	//			read_ReducedMixingMatrix(mixmat,ndet2,ncomp3,dir);
-	//			ncomp2=(long)ncomp3;
-	//			if(ndet!=ndet2){
-	//					cout << "Error. The input number of detector and the number in mixing matrix file are different.\n";
-	//				exit(0);}
-	//		}else{
-	//				cout << "Error, wrong type for Mixing matrix, please use txt or binary files.\n";
-	//			exit(0);
-	//		}
-	//	}
-
-
-	//	if (ncomp2 < ncomp) ncomp = ncomp2;
 
 }
 
 
 
-//void common_mode_computation(double *apodwind, long ndet, long ns, long ff, long NAXIS1, long NAXIS2, long long npix, bool flgdupl, int factdupl, std::vector<string> bolonames, /*string bextension, string fextension,*/
-//		string dirfile, string dir, long iframe, double *S, long long *indpix,  bool NORMLIN,
-//		bool NOFILLGAP, bool remove_polynomia, long napod, double **mixmat, long ncomp, double **commonm2, long long *samptopix, double *Ps, double *data, double *data_lp, /*short *flag,*/
-//		double *bfilter, double **Cov, double *uvec,double *p,double *ivec, double **iCov, double &factapod, fftw_complex *fdata1, string fits_filename)
 
 void common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
 		struct common dir, double *apodwind,long ns, long ff, long NAXIS1, long NAXIS2, long long npix,
@@ -80,17 +45,12 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 	// samptopix, Ps, data, data_lp, fdata1, bfilter, cov, uvec,p,ivec, icov
 
-	//TODO : The beginning of this function look a lot like write_ftrProcesdata
-	//       Check and replace/reuse if possible...
-
 	string field; // detector name in the loop
 
 	double *sign;
 	double tmpsign, mm;
 	double sign0=1;
 	double **commonm;
-
-	//	long ns2;
 	int *flag;
 
 	fftw_plan fftplan;
@@ -109,9 +69,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	if(pos_param.flgdupl==1) factdupl = 2;
 
 
-	//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
-	Ps = new double[ns]; // prewhitened noise ?
+	Ps = new double[ns]; // deprojected signal
 	samptopix = new long long[ns]; // sample to pixel proj matrix
 	bfilter = new double[ns/2+1]; // buttter filter values
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
@@ -289,9 +248,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	//common_f[ii][jj] = commontmp[jj];                         //// - commonm_f[jj];
 	//}
 
-
+	// clean up
 	delete [] sign;
-
 	delete [] data ;
 	delete [] data_lp ;
 	delete [] Ps ;
@@ -313,13 +271,6 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 
 
-
-//void estimate_noise_PS(std::vector<string> bolonames, string dirfile, string extentNoiseSp, string tmp_dir, /*string bextension, string fextension,*/ long &nbins,
-//		long &nbins2, long ns, long ff, long ndet, long NAXIS1, long NAXIS2, long long npix,long napod, double *&ell, double *data, /* short *flag,*/
-//		long long *samptopix, string dir, double *S, long iframe, double *Ps, double *data_lp, double*bfilter, long long *indpix, bool NORMLIN,
-//		bool NOFILLGAP, bool remove_polynomia,bool flgdupl, int factdupl, double *apodwind, long ncomp, double **mixmat, double **commonm2, double fsamp,
-//		double *Nk, double *Nell, double factapod,double **Rellth, double **N, double *commontmp, double **P, string outdirSpN, string fits_filename){
-
 void estimate_noise_PS(struct detectors det, struct param_process proc_param,struct param_positions pos_param,
 		struct common dir, long &nbins,	long &nbins2, long ns, long ff, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
@@ -332,7 +283,6 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 	string testfile;
 	std::ostringstream temp_stream; // used to remove sprintf horror
 	FILE *fp;
-	//	long ns2;
 
 	int *flag;
 
@@ -343,10 +293,9 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 
 	int factdupl = 1;
-	if(pos_param.flgdupl==1) factdupl = 2;
+	if(pos_param.flgdupl==1) factdupl = 2; // map duplication factor
 
 
-	//	data = new double[ns]; // raw data
 	data_lp = new double[ns]; // data low passed
 	bfilter = new double[ns/2+1]; // buttter filter values
 	commontmp = new double[ns]; //
@@ -417,7 +366,7 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 		// Subtract components
 		for (long ii=0;ii<ns;ii++)
 			for (long jj=0;jj<ncomp;jj++)
-				data[ii] -= mixmat[idet][jj]*commonm2[jj][ii]; // common_f precedemment (06/08)
+				data[ii] -= mixmat[idet][jj]*commonm2[jj][ii];
 
 
 		// Noise power spectra
@@ -455,14 +404,8 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 		//printf("iCov[%ld] = %10.15g\n",ii,iCov[ii][ii]*sign0*sign0);
 
-
-
-		//sprintf(testfile,"%s%s%ld%s%ld%s%s%s",outdirSpN.c_str(),"Nellc_",ii,"_",ff,"_",termin.c_str(),".bi");
-
-
-		// write on disk uncorralated part
 		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << ff << ".bi";
-		// récupérer une chaîne de caractères
+		// Get the string
 		testfile= temp_stream.str();
 		// Clear ostringstream buffer
 		temp_stream.str("");
@@ -477,36 +420,28 @@ void estimate_noise_PS(struct detectors det, struct param_process proc_param,str
 
 	}
 
-
-
-
-
 	for (long ii=0;ii<det.ndet;ii++)
 		for (long kk=0;kk<det.ndet;kk++)
 			for (long ll=0;ll<ncomp;ll++)
 				for (long jj=0;jj<nbins;jj++)
 					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
-
+	// clean up
 	if (S != NULL){
-
 		delete [] Ps ;
 		delete [] samptopix;
-
 	}
+
 	delete [] data_lp ;
 	delete [] data ;
 	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;
 	delete [] Nk;
+
 	//----------------------------------- END -------------------------------//
 }
 
-
-//void estimate_CovMat_of_Rexp(long nbins, long ns, long ff, long ndet, double *ell, string dir, long ncomp, double **mixmat,double fsamp,
-//		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
-//		double *SPref, std::vector<std::string> bolonames)
 
 void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins, long ns, long ff, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref)
@@ -582,20 +517,10 @@ void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins
 			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
 
-
-
-	//printf("Before saving data to disk\n");
-	//t2=time(NULL);
-	//cout << "tps : " << t2-t1 << endl;
-	//getchar();
-
-
-	//// write Rellexp to disk and also first guess of parameters
-	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Rellexp_",(int)ff,termin.c_str(),".txt");
-
+	// write Rellexp to disk and also first guess of parameters
 	temp_stream << dir.output_dir + "Rellexp_" << ff << ".txt";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -607,10 +532,9 @@ void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins
 	fprintf(fp,"\n");
 	fclose(fp);
 
-	//sprintf(testfile,"%sNinit_%d_%s.txt",outdirSpN.c_str(),(int)ff,termin.c_str());
 	temp_stream << dir.output_dir + "Ninit_" << ff << ".txt";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -627,36 +551,31 @@ void estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
-	//sprintf(testfile,"!%sNinit_%d_%s.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
 	temp_stream << "!" + dir.output_dir + "Ninit_" << ff << ".fits";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
 	write_psd_tofits(testfile.c_str(),det.ndet,nbins,'d', data1d); //resized uncorralated part
 
-
-
-	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Pinit_",(int)ff,termin.c_str(),".txt");
 	temp_stream << dir.output_dir + "Pinit_" << ff << ".txt";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
 	for (long ii=0;ii<ncomp;ii++)
 		for (long jj=0;jj<nbins;jj++)
-			fprintf(fp,"%10.15g \t",P[ii][jj]); // common mode part  of the noise
+			fprintf(fp,"%10.15g \t",P[ii][jj]); // common mode part of the noise
 	fprintf(fp,"\n");
 	fclose(fp);
 
 
-	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Ainit_",(int)ff,termin.c_str(),".txt");
 	temp_stream << dir.output_dir + "Ainit_" << ff << ".txt";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -725,10 +644,6 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
-
-	/////// to be removed:
-	//nbins2 = nbins;
-
 	printf("\nnbins2 = %ld                \n",nbins2);
 
 
@@ -756,7 +671,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 	//// Compute weights
 	for (long ii=0;ii<nbins2;ii++)
-		w[ii] = (ell[ii+1] - ell[ii])*ns/fsamp; // weights = ??
+		w[ii] = (ell[ii+1] - ell[ii])*ns/fsamp;
 
 
 
@@ -1276,20 +1191,14 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
-	//string tempo;
-	//tempo = nameSpfile;
 	write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth);
 
 
 	temp_stream << outdirSpN + "Ell_" << ff << ".psd";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
-
-	//string tempo;
-	//tempo = nameSpfile;
-	//write_psd_tofits(tempo, 1, nbins, 'd', ell);
 
 	fp = fopen(nameSpfile.c_str(),"w");
 	for (long ii=0;ii<nbins;ii++){
@@ -1297,10 +1206,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	}
 	fclose(fp);
 
-	//sprintf(nameSpfile,"%s%s%d%s%s",outdirSpN.c_str(),"BoloPS",(int)ff,termin.c_str(),"_exp.psd");
 	temp_stream << outdirSpN + "BoloPS" << ff << "_exp.psd";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -1312,8 +1220,6 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 			///// write power spectrum to disk
 			tempstr1 = det.boloname[idet1];
 			tempstr2 = det.boloname[idet2];
-			//sprintf(nameSpfile,"%s%s%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"-",tempstr2.c_str(),"_",ff,"_exp.psd");
-			//fp = fopen(nameSpfile,"w");
 			fprintf(fp,"%s%s%s\n",tempstr1.c_str(),"-",tempstr2.c_str());
 			fprintf(fp,"%d\n",(int)nbins);
 			for (long ii=0;ii<nbins;ii++){
@@ -1321,18 +1227,15 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 				fprintf(fp,"%10.15g\n",(Rellexp[idet1*(det.ndet)+idet2][ii]+Rellexp[idet2*(det.ndet)+idet1][ii])/2.0*SPref[ii]);
 			}
 			fprintf(fp,"%g\n",ell[nbins]);
-			//fprintf(fp,"\n");
-			//fclose(fp);
 		}
 	}
 	fclose(fp);
 
 
 
-	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"Afinal_",(int)ff,termin.c_str(),".txt");
 	temp_stream << outdirSpN + "Afinal_" << ff << ".txt";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -1350,8 +1253,6 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		tempstr1 = det.boloname[idet1];
-		//sprintf(nameSpfile,"%s%s%s%ld%s",outdirSpN.c_str(),tempstr1.c_str(),"_uncnoise",ff,".psd");
-
 		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << ".psd";
 
 		// récupérer une chaîne de caractères
@@ -1359,12 +1260,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		temp_stream.str("");
 
 		fp = fopen(nameSpfile.c_str(),"w");
-		//fprintf(fp,"%d\n",nbins);
 		for (long ii=0;ii<nbins;ii++){
-			//fprintf(fp,"%g\t",ell[ii]);
 			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
 		}
-		//fprintf(fp,"%g\n",ell[nbins]);
 		fprintf(fp,"\n");
 		fclose(fp);
 	}
@@ -1374,10 +1272,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
-	//sprintf(testfile,"!%sNfinal_%d_%s_uncnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
 	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_uncnoise.fits";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 	write_psd_tofits(testfile,nbins,det.ndet,'d',data1d);
@@ -1391,7 +1288,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
 
-		// récupérer une chaîne de caractères
+		// get filename
 		nameSpfile= temp_stream.str();
 		temp_stream.str("");
 
@@ -1408,10 +1305,9 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
-	//sprintf(testfile,"!%sNfinal_%d_%s_cnoise.fits",outdirSpN.c_str(),(int)ff,termin.c_str());
 	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_cnoise.fits";
 
-	// récupérer une chaîne de caractères
+	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
 	write_psd_tofits(testfile,nbins,ncomp,'d',data1d);

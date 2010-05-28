@@ -67,24 +67,24 @@ int main(int argc, char *argv[])
 #endif
 
 
-	struct param_process proc_param;
-	struct samples samples_struct;
-	struct param_positions pos_param;
-	struct common dir;
-	struct detectors det;
+	struct param_process proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
+	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
+	struct common dir; /*! structure that contains output input temp directories */
+	struct detectors det; /*! A structure that contains everything about the detectors names and number */
 
-	int flagon;
-	long long ind_size;
-	long long *indpix;
+	int flagon; /*!  if one sample is rejected, flagon=1 */
+	long long ind_size; // indpix size
+	long long *indpix; // map index
 
 	// map making parameters
 
 
-	long NAXIS1, NAXIS2;
-	long long npix; // nn = side of the map, npix = number of filled pixels
+	long NAXIS1, NAXIS2; // map size
+	long long npix; // npix = number of filled pixels
 
 	//internal data params
-	long ns, ff; // number of samples for this scan, first frame number of this scan
+	long ns; // number of samples for this scan
 
 
 	string field; // actual boloname in the bolo loop
@@ -92,28 +92,23 @@ int main(int argc, char *argv[])
 	string prefixe; // prefix used for temporary name file creation
 
 
-	string MixMatfile = "NOFILE";
-	string signame;
+	string MixMatfile = "NOFILE"; // mixing matrix file
+	string signame; // map filename
 
 
 	long iframe_min=0, iframe_max=0;
 
 	// main loop variables
-	double *S = NULL;
+	double *S = NULL; // signal
 
 
-	long ncomp;
-	double fcut;
+	long ncomp; // number of noise component to estimate
+	double fcut; // cut-off freq : dont focus on freq larger than fcut for the estimation !
 
-	string fname;
-
-	//	struct wcsprm * wcs;
-
-
-	int parsed=0;
-	if (argc<2) {
+	int parsed=0; // parser error code
+	if (argc<2) { // too few arguments
 		printf("Please run %s using a *.ini file\n",argv[0]);
-		exit(0);
+		parsed=1;
 	} else {
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
@@ -123,20 +118,30 @@ int main(int argc, char *argv[])
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut_vector,
 				fcut, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
-
-		if (parsed==-1){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			exit(1);
-		}
-
 	}
 
-	//	long *frames_index;
-	//
-	//	frames_index = new long [samples_struct.ntotscan];
+	if (parsed>0){ // error during parser phase
+		if (rank==0)
+			switch (parsed){
+
+			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+			break;
+
+			case 2 : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+			break;
+
+			default :;
+			}
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		exit(1);
+	}
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new int[samples_struct.ntotscan];
@@ -147,14 +152,14 @@ int main(int argc, char *argv[])
 
 		//TODO : Add some check for the map size/ind_size/npix
 
-		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon);
+		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon); // read map indexes
 
-		// if second launch of estimPS, read S and nn in the previously generated fits map
+		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
 		if(rank==0)
 			cout << "Reading model map : " << signame << endl;
-		S = new double[npix];
+		S = new double[npix]; // pure signal
 
-		// read pixel indexes
+		// read pure signal
 		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
 
 #ifdef DEBUG
@@ -178,7 +183,7 @@ int main(int argc, char *argv[])
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
-		fname = dir.output_dir + parallel_scheme_filename;
+		string fname = dir.output_dir + parallel_scheme_filename;
 		//		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
@@ -204,14 +209,6 @@ int main(int argc, char *argv[])
 
 	}
 
-	//	if(rank==0){
-	//		//				file.close();
-	//		cout << "on aura : \n";
-	//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-	//		//cout << samples_struct.filename << endl;
-	//	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -236,50 +233,25 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-	//	cout << iframe_min << " " << iframe_max << endl;
 #endif
 
-	string fits_filename;
+	string fits_filename; // input scan filename (fits file)
 
-	//	if (MixMatfile != "NOFILE"){
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){ // proceed scan by scan
 		ns = samples_struct.nsamples[iframe];
-		ff = iframe;
 		fits_filename=samples_struct.fits_table[iframe];
 		cout << rank << " " << fits_filename << endl;
 
-		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, ff, NAXIS1,NAXIS2, npix,
+		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
 				fits_filename, ncomp, fcut);
-		// fsamp = bolometers sampling freq
 		// ns = number of samples in the "iframe" scan
-		// ff = first sample number
-		// ndet = total number of detectors
-		// nn = side of the map
 		// npix = total number of filled pixels
-		// napod = number of border pixels used to apodize data
-		// iframe == scan number
-		// flgdupl = flagged data map duplication indicator
-		// factdupl = duplication factor (1 or 2)
+		// iframe = scan number
 		// indpix = pixels index
-		// S = Pnd
-		// MixMatfile = this file contains the number of components that interviene in the common-mode component of the noise
+		// MixMatfile = this file contains the number of components in the common-mode component of the noise
 		// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
-		// bolonames = detectors names
-		// dirfile = data directory
-		// bextension = -B option : "_data" for example
-		// fextension = "NOFLAG" or -G option ("_flag" for example)
-		// cextension = "NOCALP" or -R option ("_calp" for example)
-		// shift_data_to_point (default 0), for subtracting a time offset to the data to match the pointing
-		// poutdir = outpout dir or current path (default)
-		// termin = output file suffix
-		// NORMLIN = baseline is remove from the data, default =0, option -L
-		// NOFILLGAP = fill the gap ? default yes => 0
-		// tmp_dir = noise power spectrum file suffix = path
-		// extentnoiseSp = noise file
-		// outdir = output directory
 	}
-	//	}
 
 
 
@@ -291,13 +263,10 @@ int main(int argc, char *argv[])
 
 	//clean up
 	delete [] samples_struct.nsamples;
-
-
 	delete [] samples_struct.fits_table;
 	delete [] samples_struct.index_table;
 	delete [] samples_struct.noise_table;
 
-	//	delete [] frames_index;
 
 
 	if(signame == "NOSIGFILE"){
