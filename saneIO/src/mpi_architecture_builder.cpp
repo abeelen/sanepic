@@ -762,7 +762,6 @@ long readFitsLength(string filename){
 	// Go to the signal Extension ...
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status);
-		cout << "signal\n";
 		exit(0);
 	}
 

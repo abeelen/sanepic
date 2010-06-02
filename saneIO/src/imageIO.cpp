@@ -36,7 +36,7 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
-
+	int start=1;
 	int naxis = 2;                  // number of dimensions
 	long naxes[] = {NAXIS1, NAXIS2}; // size of dimensions
 	long fpixel[] = {1, 1};          // index for write_pix
@@ -52,45 +52,51 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 		// create fits file
 		if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
 			print_fits_error(fits_status);
+		start=0;
 	}
 
-	// create fits image (switch on data type)
-	switch (dtype) {
-	case 'd':    // double
-		if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
+	for(int ii=start;ii<2;ii++){
+		naxis=2*ii;
+		naxes[0]=NAXIS1*ii;
+		naxes[1]=NAXIS2*ii;
+
+		// create fits image (switch on data type)
+		switch (dtype) {
+		case 'd':    // double
+			if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
+				print_fits_error(fits_status);
+			break;
+		case 'l':    // long
+			if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
+				print_fits_error(fits_status);
+			break;
+		default:
+			printf("write_fits: data type %c not supported. Exiting.\n",dtype);
+			exit(1);
+		}
+
+		// Transform wcsprm struture to header
+		if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
+			printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
+			exit(fits_status);
+		}
+
+		// write date to file
+		if ( fits_write_date(fp, &fits_status) )
 			print_fits_error(fits_status);
-		break;
-	case 'l':    // long
-		if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
-			print_fits_error(fits_status);
-		break;
-	default:
-		printf("write_fits: data type %c not supported. Exiting.\n",dtype);
-		exit(1);
-	}
 
-	// Transform wcsprm struture to header
-	if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
-		printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
-		exit(fits_status);
+		hptr = header;
+		// write it to the fits file
+		for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80){
+			if ( fits_write_record(fp, (const char*) hptr, &fits_status))
+				print_fits_error(fits_status);
+		}
+		free(header);
 	}
-
-	hptr = header;
-	// write it to the fits file
-	for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80){
-		if ( fits_write_record(fp, (const char*) hptr, &fits_status))
-			print_fits_error(fits_status);
-	}
-
 
 	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
 			(char *) "table name", &fits_status);
 
-	free(header);
-
-	// write date to file
-	if ( fits_write_date(fp, &fits_status) )
-		print_fits_error(fits_status);
 
 	// write map data
 	switch (dtype) {
