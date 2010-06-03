@@ -468,10 +468,10 @@ int main(int argc, char *argv[])
 			Mptot = new double[npix];
 			qtot = new double[npix];
 
-			//				fill(PtNPmatStot,PtNPmatStot+npix,0.0);
-			//				fill(hitstot,hitstot+npix,0);
-			//				fill(Mptot,Mptot+npix,0.0);
-			//				fill(qtot,qtot+npix,0.0);
+							fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+							fill(hitstot,hitstot+npix,0);
+							fill(Mptot,Mptot+npix,0.0);
+							fill(qtot,qtot+npix,0.0);
 		}
 
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
