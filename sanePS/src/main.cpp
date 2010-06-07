@@ -1,10 +1,3 @@
-/*
- * main.cpp
- *
- *  Created on: 18 juin 2009
- *      Author: matthieu
- */
-
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -88,7 +81,7 @@ int main(int argc, char *argv[])
 
 
 	string field; // actual boloname in the bolo loop
-	string ellFile; // file containing the ells
+	string ellFile; // file containin<a name="fb_share" type="button" share_url="http://www.ias.u-psud.fr/wiki/tiki-index.php?page=Sanepic&structure=Herschel" href="http://www.facebook.com/sharer.php">Share</a><script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" type="text/javascript"></script>g the ells
 	string prefixe; // prefix used for temporary name file creation
 
 
@@ -234,15 +227,19 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 #endif
+	cout << (int)samples_struct.noisevect.size() << endl;
+	for(int ml=0;ml<(int)samples_struct.noisevect.size();ml++)
+		cout << samples_struct.noisevect[ml] << endl;
+	getchar();
 
 	string fits_filename; // input scan filename (fits file)
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){ // proceed scan by scan
 		ns = samples_struct.nsamples[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
-		cout << rank << " " << fits_filename << endl;
+		cout << "[ " << rank << " ] " << fits_filename << endl;
 
-		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
+		EstimPowerSpectra(samples_struct,proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
 				fits_filename, ncomp, fcut);
 		// ns = number of samples in the "iframe" scan

@@ -29,7 +29,7 @@ using namespace std;
 
 
 
-void EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct common dir, struct param_positions pos_param,
+void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_param,struct detectors det,struct common dir, struct param_positions pos_param,
 		long ns, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut)
 {
@@ -127,7 +127,7 @@ void EstimPowerSpectra(struct param_process proc_param,struct detectors det,stru
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	cout << "6/6 - Saving to disk" << endl;
-	write_to_disk(dir.output_dir, iframe, det,nbins, ell, mixmat, Rellth,
+	write_to_disk(dir.output_dir,samples_struct, iframe, det,nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 

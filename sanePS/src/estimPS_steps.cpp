@@ -1172,7 +1172,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, double *ell, double **mixmat,
+void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, struct detectors det,	long nbins, double *ell, double **mixmat,
 		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P)
 {
 
@@ -1185,7 +1185,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	FILE *fp;
 	double *data1d;
 
-	temp_stream << "!" + outdirSpN + "BoloPS" << ff << "_psd.fits";
+	temp_stream << "!" + outdirSpN + "BoloPS_" << samples_struct.fitsvect[ff] << "_psd.fits";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1206,7 +1206,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	}
 	fclose(fp);
 
-	temp_stream << outdirSpN + "BoloPS" << ff << "_exp.psd";
+	temp_stream << outdirSpN + "BoloPS" << samples_struct.fitsvect[ff] << "_exp.psd";
 
 	// get filename
 	nameSpfile= temp_stream.str();
@@ -1233,7 +1233,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 
 
 
-	temp_stream << outdirSpN + "Afinal_" << ff << ".txt";
+	temp_stream << outdirSpN + "Afinal_" << samples_struct.fitsvect[ff] << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -1253,7 +1253,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		tempstr1 = det.boloname[idet1];
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << ff << ".psd";
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << samples_struct.fitsvect[ff] << ".psd";
 
 		// récupérer une chaîne de caractères
 		nameSpfile= temp_stream.str();
@@ -1286,7 +1286,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
-		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << ff << ".psd";
+		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << samples_struct.fitsvect[ff] << ".psd";
 
 		// get filename
 		nameSpfile= temp_stream.str();
@@ -1305,7 +1305,7 @@ void write_to_disk(string outdirSpN, long ff, struct detectors det,	long nbins, 
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
-	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_cnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << samples_struct.fitsvect[ff] << "_cnoise.fits";
 
 	// get filename
 	testfile= temp_stream.str();

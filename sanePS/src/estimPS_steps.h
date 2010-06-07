@@ -65,7 +65,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins);
 //		long nbins, double *ell, double **mixmat, double **Rellth, double **Rellexp, long ncomp, long ndet,double **N, double *SPref,
 //		double **P);
 
-void write_to_disk(std::string outdirSpN, long ff, struct detectors det, long nbins, double *ell, double **mixmat,
+void write_to_disk(std::string outdirSpN,struct samples samples_struct, long ff, struct detectors det, long nbins, double *ell, double **mixmat,
 		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P);
 
 #endif /* ESTIMPS_STEPS_H_ */
