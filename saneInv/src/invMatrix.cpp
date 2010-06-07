@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include "invMatrix.h"
 
 
 extern "C" {
@@ -14,11 +15,17 @@ using namespace std;
 
 void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		std::vector<string> listOut, double ***MatrixOut)
-/*! resizes the covariance matrix with only needed detectors */
+/*!\brief Resizes the covariance matrix with only needed detectors
+ * \param nbins Number of power spectrum bins
+ * \param listIn Input list of detectors
+ * \param MatrixIn Input Covariance Matrix
+ * \param listOut Output list of desired detectors
+ * \param MatrixOut Filled Covariance Matrix with only desired detectors informations
+ */
 {
-	std::vector<int> indexIn; /*! Used to match input and output channels */
-	long ndetIn = listIn.size(); /*! Input number of channels*/
-	long ndetOut = listOut.size();/*! Output number of channels */
+	std::vector<int> indexIn; /* Used to match input and output channels */
+	long ndetIn = listIn.size(); /* Input number of channels*/
+	long ndetOut = listOut.size();/* Output number of channels */
 
 	// output number of detector cannot be larger than input number
 	if(ndetOut>ndetIn){
@@ -66,9 +73,11 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 
 void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 		double ***MatrixOut)
-
-/*
- * Inverse the Covariance PowerSpectrum by mode
+/*!\brief Inverse the Covariance PowerSpectrum by mode
+ * \param nbins Number of power spectrum bins
+ * \param ndet Number of detectors
+ * \param MatrixIn The Matrix that will be inverted
+ * \param MatrixOut The Inverted Matrix (all modes)
  */
 {
 	double **Mat_k, **iMat_k;
@@ -138,7 +147,12 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 }
 
 int who_do_it(int size, int rank, int ii)
-/*! this function determines which processor has to treat the given loop referenced by his number */
+/*!\brief This function determines which processor has to treat the given loop referenced by his number
+ * \param size Number of Processor used
+ * \param rank processor rank number
+ * \param ii A scan number
+ * \return integer : A processor's rank, the rank determines which processor has to compute the scan
+ */
 {
 
 	if(size==1) // if there is only 1 proc, he has to do the job
