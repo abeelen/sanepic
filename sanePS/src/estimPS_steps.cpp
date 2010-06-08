@@ -13,12 +13,15 @@
 #include "todprocess.h"
 #include "map_making.h"
 #include "inline_IO2.h"
+#include "inputFileIO.h"
+#include "dataIO.h"
+#include "covMatrix_IO.h"
+
 #include <sstream>
 #include <cmath>
 #include <cstring>
 
-#include "dataIO.h"
-#include "covMatrix_IO.h"
+
 
 extern "C" {
 #include <fitsio.h>
@@ -1181,11 +1184,14 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	string testfile;
 	string tempstr1, tempstr2;
 	string nameSpfile;
+	string base_n;
 
 	FILE *fp;
 	double *data1d;
 
-	temp_stream << "!" + outdirSpN + "BoloPS_" << samples_struct.fitsvect[ff] << "_psd.fits";
+	base_n = FitsBasename(samples_struct.fitsvect[ff]);
+
+	temp_stream << "!" + outdirSpN + "BoloPS_" << base_n << "_psd.fits";
 
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
@@ -1194,7 +1200,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth);
 
 
-	temp_stream << outdirSpN + "Ell_" << ff << ".psd";
+	temp_stream << outdirSpN + "Ell_" << base_n << ".psd";
 
 	// get filename
 	nameSpfile= temp_stream.str();
@@ -1206,7 +1212,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	}
 	fclose(fp);
 
-	temp_stream << outdirSpN + "BoloPS" << samples_struct.fitsvect[ff] << "_exp.psd";
+	temp_stream << outdirSpN + "BoloPS" << base_n << "_exp.psd";
 
 	// get filename
 	nameSpfile= temp_stream.str();
@@ -1233,7 +1239,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 
 
 
-	temp_stream << outdirSpN + "Afinal_" << samples_struct.fitsvect[ff] << ".txt";
+	temp_stream << outdirSpN + "Afinal_" << base_n << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -1253,7 +1259,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		tempstr1 = det.boloname[idet1];
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << samples_struct.fitsvect[ff] << ".psd";
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << base_n << ".psd";
 
 		// récupérer une chaîne de caractères
 		nameSpfile= temp_stream.str();
@@ -1272,7 +1278,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
-	temp_stream << "!" + outdirSpN + "Nfinal_" << ff << "_uncnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << base_n << "_uncnoise.fits";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -1286,7 +1292,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
-		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << samples_struct.fitsvect[ff] << ".psd";
+		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise" << base_n << ".psd";
 
 		// get filename
 		nameSpfile= temp_stream.str();
@@ -1305,7 +1311,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
-	temp_stream << "!" + outdirSpN + "Nfinal_" << samples_struct.fitsvect[ff] << "_cnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << base_n << "_cnoise.fits";
 
 	// get filename
 	testfile= temp_stream.str();

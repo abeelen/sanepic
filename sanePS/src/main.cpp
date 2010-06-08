@@ -227,10 +227,6 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 #endif
-	cout << (int)samples_struct.noisevect.size() << endl;
-	for(int ml=0;ml<(int)samples_struct.noisevect.size();ml++)
-		cout << samples_struct.noisevect[ml] << endl;
-	getchar();
 
 	string fits_filename; // input scan filename (fits file)
 
