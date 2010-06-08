@@ -709,17 +709,14 @@ int test_format(string fitsname){
 	test=fits_get_num_hdus(fptr, &hdunum, &status);
 
 
-	if (hdunum==7){
-		format=2; // "ra" and "dec" table was not found
-	}else{
-		if(hdunum==9) // "ra" and "dec" tables were found
-			format=1;
-		else{
-			format=1;
-			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
-				format=2;
-		}
+	if(hdunum==9) // "ra" and "dec" tables were found
+		format=1;
+	else{
+		format=1;
+		if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
+			format=2;
 	}
+
 
 	// close file
 	if(fits_close_file(fptr, &status))
