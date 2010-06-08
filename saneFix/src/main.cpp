@@ -62,7 +62,9 @@ int main(int argc, char *argv[]) {
 		}
 
 		format_fits=test_format(samples_struct.fitsvect[ii]); // get fits file format
-
+		if(format_fits==0){
+			cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
+		}
 
 
 		// compute the number of sample that must be added to fill the gaps and have a continous timeline

@@ -74,7 +74,6 @@ int main(int argc, char *argv[]) {
 
 
 	int format_fits=0; // 1= HIPE, 2 = SANEPIC
-	// TODO : check le -1
 	for(long ii=0; ii<samples_struct.ntotscan-1;ii++){ // for each scan that has to be merged
 		format_fits+=test_format(samples_struct.fitsvect[ii]); // Check each scan fits format
 		oss << samples_struct.fitsvect[ii];
@@ -101,7 +100,7 @@ int main(int argc, char *argv[]) {
 	format_fits=2;
 	break;
 
-	default : cout << "The files you are trying to merge have not the same format. Exiting...\n";
+	default : cout << "The files you are trying to merge have not the same format or format is unknown. Exiting...\n";
 	exit(EXIT_FAILURE);
 	}
 

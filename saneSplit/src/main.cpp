@@ -176,6 +176,9 @@ int main(int argc, char *argv[])
 
 	/* get input fits file format : Sanepic or HIPE */
 	format_fits=test_format(samples_struct.fitsvect[0]);
+	if(format_fits==0){
+		cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
+	}
 
 	/* read the bolo list in the fits file */
 	read_bolo_list(samples_struct.fitsvect[0], det);
