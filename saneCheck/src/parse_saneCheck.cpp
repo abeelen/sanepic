@@ -157,7 +157,9 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "[sanePos]\n\n";
 		text += "pixsize = " + StringOf(pos_param.pixdeg) + " ; size of pixels (degrees)\n";
 		text += "map_flagged_data = " + StringOf( pos_param.flgdupl ? "True" : "False" ) + " ; flagged data put in a separated map (default is False)\n";
-
+		text += "file_format = " + StringOf(pos_param.fileFormat) + " ; HIPE = 1, SANEPIC = 2\n";
+		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
+		text += "mask_file = " + pos_param.maskfile + "; mask (fits file) : use to remove cross constraint due to strong sources\n";
 
 		text += "\n\n";
 
@@ -195,7 +197,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		else{
 			text += "iterW = " + StringOf(iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
 		}
-		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
+
 		string outfile = dir.output_dir + "sanepic_ini_model.txt";
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){

@@ -222,8 +222,11 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
 			if(colnum!=1){ // Table NAMES is present ?
-				cout << "\"NAMES\" table was not found in \"channels\"" << endl;
-				return -1;
+				fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
+				if(colnum!=1){ // Table NAME is present ?
+					cout << "\"NAMES\" table was not found in \"channels\"" << endl;
+					return -1;
+				}
 			}
 		}
 	}

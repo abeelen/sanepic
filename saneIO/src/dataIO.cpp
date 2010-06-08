@@ -698,19 +698,25 @@ void read_time_from_fits(string filename, double *& time, long ns){
 int test_format(string fitsname){
 
 	fitsfile *fptr;
-	int format=0; // 1 = HIPE, 2 = sanepic
+	int format=1; // 1 = HIPE, 2 = sanepic
 	int status = 0;
 
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "reference position", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "offsets", NULL, &status))
-		format=1;
-	else{
-		if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)) // "ra" and "dec" tables were not found
-			format=2;
+	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)>0)&& (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)>0)) // "ra" and "dec" tables were not found
+		format=2;
+
+	status = 0;
+
+	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)>0)&& (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)>0)){
+		if(format==2)
+			format=0;
+		else
+			format=1;
 	}
 
+	status = 0;
 
 	// close file
 	if(fits_close_file(fptr, &status))
