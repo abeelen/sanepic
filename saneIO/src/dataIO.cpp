@@ -693,27 +693,21 @@ void read_time_from_fits(string filename, double *& time, long ns){
 		fits_report_error(stderr, status);
 
 }
-// TODO : change to seek RA and/or DEC ?
+
+
 int test_format(string fitsname){
 
 	fitsfile *fptr;
 	int format=0; // 1 = HIPE, 2 = sanepic
 	int status = 0;
-	int test=-1;
-	int hdunum=0;
 
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-
-	test=fits_get_num_hdus(fptr, &hdunum, &status);
-
-
-	if(hdunum==9) // "ra" and "dec" tables were found
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "reference position", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "offsets", NULL, &status))
 		format=1;
 	else{
-		format=1;
-		if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
+		if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)&& fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)) // "ra" and "dec" tables were not found
 			format=2;
 	}
 

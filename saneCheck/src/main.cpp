@@ -130,6 +130,13 @@ int main(int argc, char *argv[]) {
 			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[ii] << endl << endl;
 
 			format_fits=test_format(samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
+			if(format_fits==0){
+				cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
+#ifdef USE_MPI
+				MPI_Finalize();
+#endif
+				exit(1);
+			}
 
 			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits); // read fits file detector list
 			if(check_bolos(bolo_fits.boloname, bolo_fits_0.boloname)){ // compare to the first input fits file to ensure compatibility between scans
