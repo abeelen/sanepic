@@ -1,0 +1,24 @@
+AC_INIT(main.cpp)
+AM_INIT_AUTOMAKE(saneInv,0.0.1)
+AM_CONFIG_HEADER(config.h)
+AM_PROG_LIBTOOL
+
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+AC_PROG_CXX
+AC_LANG_CPLUSPLUS
+
+
+AC_CHECK_HEADERS(algorithm,,AC_MSG_WARN(STL classes missing ?))
+
+AC_CHECK_HEADERS(cmath,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(cstdio,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(cstdlib,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(iostream,,AC_MSG_WARN(STL classes missing ?))
+
+AC_CHECK_HEADERS(vector,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(string,,AC_MSG_WARN(STL classes missing ?))
+
+
+AC_OUTPUT(Makefile)

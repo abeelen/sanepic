@@ -1,0 +1,34 @@
+AC_INIT(Corr_preprocess.cpp)
+AM_INIT_AUTOMAKE(libsaneLib,0.0.1)
+AM_PROG_LIBTOOL
+AM_CONFIG_HEADER(config.h)
+
+AC_PROG_INSTALL
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+AC_PROG_MAKE_SET
+
+
+AC_CHECK_HEADERS(cstdlib,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(vector,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(string,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(iostream,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(sstream,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(string,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(time.h,,AC_MSG_WARN(STL classes missing ?))
+
+AC_CHECK_HEADERS(fftw3.h,,AC_MSG_WARN(fftw3 missing ?))
+
+AC_CHECK_HEADERS(gsl/gsl_math.h,,AC_MSG_WARN(GSL missing ?))
+
+
+AC_CHECK_LIB(fftw3,fftw_plan_dft_c2r_1d,,AC_MSG_ERROR(fftw3 needed))
+
+AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
+AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR(GSLCBLAS needed for GSL ))
+AC_CHECK_LIB(gsl,main,,AC_MSG_ERROR(GSL needed))
+
+
+AC_OUTPUT(Makefile)

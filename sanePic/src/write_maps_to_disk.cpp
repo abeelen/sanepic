@@ -44,7 +44,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 
 	//	fname = '!' + outdir + "optimMap_flux.fits";
 	fname = outdir + "optimMap_sanePic.fits";
-	write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Map", 0);
+	write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Image", 0);
 
 
 	for (long ii=0; ii<NAXIS1; ii++) {
@@ -60,7 +60,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 
 
 	//	fname = '!' + outdir + "optimMap_noisevar.fits";
-	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Final Error",1);
+	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1);
 
 	if (addnpix){
 		for (long iframe = 0;iframe<ntotscan;iframe++){
@@ -83,7 +83,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			//			fname= temp_stream.str();
 			//			// Clear ostringstream buffer
 			//			temp_stream.str("");
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *) "Duplicated map",1);
+			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *) "Duplicated Image",1);
 
 			for (long ii=0; ii<NAXIS1; ii++) {
 				for (long jj=0; jj<NAXIS2; jj++) {
@@ -105,7 +105,7 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			//			// Clear ostringstream buffer
 			//			temp_stream.str("");
 			//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1);
+			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated Error",1);
 		}
 	}
 

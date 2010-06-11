@@ -220,7 +220,7 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 				case 2:												// sample is rejected
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
 					pixout = 1; 									// pixel is out of map
-					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, ii,xx[ii],yy[ii]);
+					printf("[%2.2i] %s PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, field.c_str(), ii,xx[ii],yy[ii]);
 					getchar();
 					break;
 				case 3:												// apodized data -> flag
@@ -398,8 +398,8 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			for (long ii=0 ; ii<ns; ii++){
 
-				// image1        + crossing constrain removal + flagged pixel
-				// NAXIS1*NAXIS2 + addnpix*nframe             + 1
+				// image1        + crossing constrain removal + flagged pixel + apodized data
+				// NAXIS1*NAXIS2 + addnpix*nframe             + 1             + 1
 
 				long long ll=0;
 				switch (bolo_flag[ii]) {
@@ -415,14 +415,14 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 					if (pos_param.flgdupl)							// if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii] + NAXIS1*NAXIS2;	// index in the second map...
 					else											// else every flagged sample is projected to the same pixel (outside the map)
-						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
+						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
 
 					break;
 
 				case 2:												// sample is rejected
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
 					pixout = 1; 									// pixel is out of map
-					printf("[%2.2i] PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, ii,xx[ii],yy[ii]);
+					printf("[%2.2i] %s PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, field.c_str(), ii,xx[ii],yy[ii]);
 					break;
 				case 3:												// apodized data -> flag
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;

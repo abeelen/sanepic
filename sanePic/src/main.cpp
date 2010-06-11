@@ -363,8 +363,6 @@ int main(int argc, char *argv[])
 	// in case flagged pixels are put in a duplicated map
 	for (int idupl = 0;idupl<=pos_param.flgdupl;idupl++){
 
-
-
 		if (pos_param.projgaps || !flagon){
 			npixeff = npix;
 		} else {
@@ -377,6 +375,7 @@ int main(int argc, char *argv[])
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
 		fill(s,s+npix,0.0);
+		fill(PNd,PNd+npix,0.0);
 
 
 
@@ -392,29 +391,14 @@ int main(int argc, char *argv[])
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon){
-#ifdef LARGE_MEMORY
-				// A fdata buffer will be used to avoid binary writing
-				fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
 
-
-				if (rank==0){
-					fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
-					for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
-						fdata_buffer_tot[ii][0] = 0.0;
-						fdata_buffer_tot[ii][1] = 0.0;
-					}
-
-
-				}
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
-#else
+				//TODO : What in the normal case ?
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 				// read pointing + deproject + fourier transform
 #else
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
-#endif
 #endif
 
 
@@ -428,12 +412,6 @@ int main(int argc, char *argv[])
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#ifdef LARGE_MEMORY
-				MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-				MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits,name_rank,fdata_buffer);
-#else
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
@@ -442,7 +420,6 @@ int main(int argc, char *argv[])
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
 
-#endif
 #endif
 
 #ifdef LARGE_MEMORY
@@ -468,10 +445,10 @@ int main(int argc, char *argv[])
 			Mptot = new double[npix];
 			qtot = new double[npix];
 
-							fill(PtNPmatStot,PtNPmatStot+npix,0.0);
-							fill(hitstot,hitstot+npix,0);
-							fill(Mptot,Mptot+npix,0.0);
-							fill(qtot,qtot+npix,0.0);
+			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+			fill(hitstot,hitstot+npix,0);
+			fill(Mptot,Mptot+npix,0.0);
+			fill(qtot,qtot+npix,0.0);
 		}
 
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -533,7 +510,8 @@ int main(int argc, char *argv[])
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while(((iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)) || (!idupl && var_n/var0 > 1e-6)){
+		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
+				|| (!idupl && var_n/var0 > 1e-6) ){
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
@@ -648,42 +626,21 @@ int main(int argc, char *argv[])
 			// every 10 iterations do ....
 			if ((iter % 10) == 0){ // if iter is divisible by 10, recompute PtNPmatStot
 
+				fill(PtNPmatS,PtNPmatS+npixeff,0.0);
+
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-#ifdef LARGE_MEMORY
-					fftw_complex  *fdata_buffer;
-					//if(rank==0)
-					fftw_complex *fdata_buffer_tot=NULL;
-#endif
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
-					fill(PtNPmatS,PtNPmatS+npixeff,0.0);
 
 					if (proc_param.CORRon){
 
-#ifdef LARGE_MEMORY
-						// A fdata buffer will be used to avoid binary writing
-						fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
 
-
-						if (rank==0){
-							fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
-							for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
-								fdata_buffer_tot[ii][0] = 0.0;
-								fdata_buffer_tot[ii][1] = 0.0;
-							}
-
-
-						}
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size,fdata_buffer);
-						// read pointing + deproject + fourier transform
-#else
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 						// read pointing + deproject + fourier transform
 #else
 						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank,size);
-#endif
 #endif
 #ifdef DEBUG
 						time ( &rawtime );
@@ -695,13 +652,6 @@ int main(int argc, char *argv[])
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#ifdef LARGE_MEMORY
-						MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-						MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL,name_rank, fdata_buffer);
-						// return Pnd = At N-1 d
-#else
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
@@ -709,7 +659,6 @@ int main(int argc, char *argv[])
 #else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
-#endif
 #endif
 					} else {
 
@@ -785,7 +734,7 @@ int main(int argc, char *argv[])
 					temp_stream << dir.output_dir + "optimMap_" << iter << "b.fits";
 					fname= temp_stream.str();
 					temp_stream.str("");
-					write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Iterative Map",0);
+					write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Image",0);
 
 					if (pos_param.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
@@ -803,7 +752,7 @@ int main(int argc, char *argv[])
 						}
 
 
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated temporary map",1);
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated Image",1);
 					}
 
 
@@ -881,6 +830,8 @@ int main(int argc, char *argv[])
 
 
 
+		// If the gaps are projected on a second map, redo the preprocessing/writing of fdata,
+		// which will now replace the flagged data by data from the signal map
 
 		if  ((pos_param.projgaps || (pos_param.flgdupl)) && !idupl){
 

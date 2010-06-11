@@ -1,0 +1,25 @@
+AC_INIT(main.cpp)
+AM_INIT_AUTOMAKE(sanePos,0.0.1)
+AM_CONFIG_HEADER(config.h)
+AM_PROG_LIBTOOL
+
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+AC_PROG_CXX
+AC_LANG_CPLUSPLUS
+
+
+AC_CHECK_HEADERS(cstring,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(fcntl.h,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(list,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(stdio.h,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(time.h,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(wcslib/cel.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/prj.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/wcshdr.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/wcs.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/wcsmath.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/wcstrig.h,,AC_MSG_WARN(wcslib missing ?))
+
+AC_OUTPUT(Makefile)

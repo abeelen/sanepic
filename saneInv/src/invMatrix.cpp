@@ -146,6 +146,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 
 }
 
+//TODO : What is that ? Why here ? it is duplicated in saneCheck
 int who_do_it(int size, int rank, int ii)
 /*!\brief This function determines which processor has to treat the given loop referenced by his number
  * \param size Number of Processor used

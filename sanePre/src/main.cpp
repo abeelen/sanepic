@@ -371,8 +371,9 @@ int main(int argc, char *argv[])
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
-		if(iframe_min!=iframe_max) // Each processor that HAS to do something ...
-			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+//		if(iframe_min!=iframe_max)
+//			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+
 
 		// if there is correlation between detectors
 		if (proc_param.CORRon){

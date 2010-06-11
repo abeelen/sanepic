@@ -1,0 +1,37 @@
+AC_INIT(dataIO.cpp)
+AM_INIT_AUTOMAKE(libsaneIO,0.0.1)
+AM_PROG_LIBTOOL
+AM_CONFIG_HEADER(config.h)
+
+AC_PROG_INSTALL
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+AC_PROG_MAKE_SET
+
+AC_CHECK_HEADERS(sys/stat.h sys/types.h assert.h errno.h unistd.h time.h,,AC_MSG_ERROR([
+required header missing]))
+
+
+AC_CHECK_HEADERS(cstring,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(cmath,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(cstdlib,,AC_MSG_WARN(STL classes missing ?))
+
+AC_CHECK_HEADERS(vector,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(string,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(sstream,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(fstream,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(iomanip,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(iostream,,AC_MSG_WARN(STL classes missing ?))
+AC_CHECK_HEADERS(algorithm,,AC_MSG_WARN(STL classes missing ?))
+
+AC_CHECK_HEADERS(fitsio.h,,AC_MSG_WARN(cfitsio missing ?))
+AC_CHECK_HEADERS(wcslib/wcs.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(wcslib/wcshdr.h,,AC_MSG_WARN(wcslib missing ?))
+AC_CHECK_HEADERS(nrutil.h,,AC_MSG_WARN(nrutil missing ?))
+
+AC_CHECK_LIB(cfitsio, ffvers,,AC_MSG_ERROR(cfitsio needed))
+AC_CHECK_LIB(wcs, wcsini,,AC_MSG_ERROR(wcslib needed))
+
+AC_OUTPUT(Makefile)
