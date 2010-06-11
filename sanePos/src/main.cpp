@@ -49,11 +49,11 @@ using namespace std;
 //**********************************************************************************//
 
 
-/*! \mainpage Sanepic for SPIRE
+/*! \mainpage Sanepic
  *
  * \section intro_sec Matthieu HUSSON & Alexandre Beelen
  *
- * Sanepic for SPIRE Manual
+ * Sanepic USER Manual
  */
 
 
@@ -292,7 +292,6 @@ int main(int argc, char *argv[])
 		// 1 - find minmax of the pointings on the sky -> define map parameters from that
 		// 2 - defined minmax of the map -> define map parameters from that
 		// (3 - define center of the map and radius -> define map parameters from that)
-
 
 
 		if(iframe_min!=iframe_max){
