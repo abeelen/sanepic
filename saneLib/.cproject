@@ -60,9 +60,9 @@
 <listOptionValue builtIn="false" value="fftw3"/>
 </option>
 <option id="gnu.cpp.link.option.paths.371830574" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/lib/"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
 </option>
 <option defaultValue="true" id="gnu.cpp.link.option.shared.1510781643" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" value="true" valueType="boolean"/>
 <option id="gnu.cpp.link.option.debugging.gprof.1421214466" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="true" valueType="boolean"/>

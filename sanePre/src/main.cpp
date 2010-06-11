@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
 
 	double *PNd, *PNdtot=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
-	double *Mp, *Mptot=NULL; /*
+	double *Mp, *Mptot=NULL;
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 	long *hits, *hitstot=NULL; /*! naivmap parameters : hits count */
 
