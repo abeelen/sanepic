@@ -481,7 +481,9 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0){
+#ifdef DEBUG_PRINT
 		printf("\nTemps de traitement : %d sec\n",(int)(t3-t2));
+#endif
 		printf("\nCleaning up\n");
 	}
 
