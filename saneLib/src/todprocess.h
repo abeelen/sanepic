@@ -9,16 +9,15 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
+#define SWAP(a,b) {swap=(a);(a)=(b);(b)=swap;}
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 void init2D_double(double **A, long im, long jm, long nx, long ny, double val); // on peut garder
 
-void polynomia(double x, double y[], int dma); // on peut garder
 void remove_poly(double y[], int ndata, int norder, double* yout, short *flag = NULL);
-void dpolyfit(double x[], double y[], int ndata, int norder, double *a); // Nr a verifier
-
 
 void cutdata(double y[], int indm, int indp, double *yout); // on peut garder
 void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout); // on peut garder

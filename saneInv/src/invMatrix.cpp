@@ -4,11 +4,10 @@
 #include <vector>
 #include <cstdlib>
 #include "invMatrix.h"
-
+#include "cholesky.h"
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
 using namespace std;
@@ -81,14 +80,20 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
  */
 {
 	double **Mat_k, **iMat_k;
-	double *p, *uvec, *ivec;
+	double *uvec, *ivec;
+
+	double **l;
+
+
+	l=new double*[ndet];
+	for(long ii=0;ii<ndet;ii++)
+		l[ii]=new double[ndet];
 
 
 	Mat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // k-Mode Matrix
 	iMat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // inverted k-Mode Matrix
 	*MatrixOut = dmatrix(0, ndet - 1, 0, ndet * nbins - 1); // whole Mode inverted Matrix
 
-	p = new double[ndet];
 	uvec = new double[ndet];
 	ivec = new double[ndet];
 
@@ -115,14 +120,14 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 		}
 
 		// invert the covariance matrix per mode
-		dcholdc(Mat_k, ndet, p);
+		cholesky(ndet, Mat_k, l);
 
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
 			for (int idet2 = 0; idet2 < ndet; idet2++)
 				uvec[idet2] = 0.0;
 
 			uvec[idet1] = 1.0;
-			dcholsl(Mat_k, ndet, p, uvec, ivec);
+			solve_cholesky(Mat_k, uvec, l, ivec, ndet);
 
 			for (int idet2 = 0; idet2 < ndet; idet2++)
 				iMat_k[idet1][idet2] = ivec[idet2];
@@ -140,10 +145,11 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	// clean up
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
 	free_dmatrix(iMat_k,0, ndet - 1, 0, ndet - 1);
-	delete [] p;
 	delete [] ivec;
 	delete [] uvec;
-
+	for(long ii=0;ii<ndet;ii++)
+		delete [] l[ii];
+	delete [] l;
 }
 
 //TODO : What is that ? Why here ? it is duplicated in saneCheck

@@ -12,6 +12,8 @@
 #include <gsl/gsl_math.h>
 
 #include "todprocess.h"
+#include "cholesky.h"
+#include "fitpoly.h"
 
 using namespace std;
 
@@ -64,59 +66,6 @@ void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int
  */
 
 
-
-
-void polynomia(double x, double y[], int dma)
-{
-	//int i;
-
-	for(int i=1;i<=dma;i++){
-		y[i] = pow(x,i-1);
-	}
-
-}
-
-
-
-void dpolyfit(double x[], double y[], int ndata, int norder, double *a)
-{
-	//int i;
-	int ma;
-	double chisq;
-	double *sig, *b;
-	int *ia;
-	double** covar;
-
-	ma = norder+1;
-
-	sig = new double[ndata];
-	ia  = new int[ma];
-	covar = dmatrix(1,ma,1,ma);
-	fill(sig,sig+ndata,0.0);
-	fill(ia,ia+ma,0);
-
-
-	//initialize sig to 1
-	for (int i=0;i<ndata;i++){
-		sig[i] = 1.0;
-	}
-	//set to estimate all parameters
-	for (int i=0;i<ma;i++){
-		ia[i]  = 1;
-	}
-
-	b=a-1;
-	dlfit(x-1,y-1,sig-1,ndata,b,ia-1,ma,covar,&chisq,polynomia);
-	a = b+1;
-
-	delete [] sig;
-	delete [] ia;
-	//delete(sig);
-	//delete(ia);
-	free_dmatrix(covar,1,ma,1,ma);
-
-}
-
 void remove_poly(double y[], int ndata, int norder, double* yout, short* flag)
 {
 	int j;
@@ -138,7 +87,8 @@ void remove_poly(double y[], int ndata, int norder, double* yout, short* flag)
 	}
 	ndint = j;
 
-	dpolyfit(sx,sy,ndint,norder,a);
+	//	dpolyfit(sx,sy,ndint,norder,a);
+	fitpoly(norder, ndint, sx, sy, a);
 
 	//remove best fit poly
 	for (int i=0;i<ndata;i++) yout[i] = y[i];
@@ -215,7 +165,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-{
+		{
 
 	//int ii;
 	double *apodis;
@@ -237,7 +187,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-}
+		}
 
 
 
@@ -1011,7 +961,8 @@ void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
 				}
 			}
 
-			dpolyfit(xx,yy,countp+countm,1,a);
+//			dpolyfit(xx,yy,countp+countm,1,a);
+			fitpoly(1, countp+countm, xx, yy, a);
 
 
 			dindgen(count,xx2);

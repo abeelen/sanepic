@@ -15,7 +15,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
 #ifdef USE_MPI
