@@ -3,11 +3,27 @@ AM_INIT_AUTOMAKE(sanePos,0.0.1)
 AM_CONFIG_HEADER(config.h)
 AM_PROG_LIBTOOL
 
+
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-AC_PROG_CXX
+AC_ARG_ENABLE([mpi],
+[  --enable-mpi    Turn on MPI compiling],
+[case "${enableval}" in
+   yes) mpi=true ;;
+   no)  mpi=false ;;
+   *) AC_MSG_ERROR([bad value ${enableval} for --enable-mpi]) ;;
+esac],[mpi=false])
+
+if test x$mpi = xtrue; then
+   check_mpi=mpicxx
+else
+   check_mpi=
+fi
+
+AC_PROG_CXX([$check_mpi])
 AC_LANG_CPLUSPLUS
+
 
 AC_CHECK_HEADERS(algorithm,,AC_MSG_WARN(STL classes missing ?))
 AC_CHECK_HEADERS(cmath,,AC_MSG_WARN(STL classes missing ?))
@@ -26,5 +42,8 @@ AC_CHECK_HEADERS(fftw3.h,,AC_MSG_WARN(fftw3 missing ?))
 
 AC_CHECK_HEADERS(wcslib/wcs.h,,AC_MSG_WARN(wcslib missing ?))
 AC_CHECK_HEADERS(wcslib/wcshdr.h,,AC_MSG_WARN(wcslib missing ?))
+
+
+AM_CONDITIONAL([MPC], [test x$mpi = xtrue])
 
 AC_OUTPUT(Makefile)

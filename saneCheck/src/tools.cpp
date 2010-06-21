@@ -264,7 +264,7 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
-		fits_report_error(stderr, status); // signal image is present ?
+		fits_report_error(stderr, status); // signal image is present ?dr
 		cout << "\"signal\" was not found, or his Type should be image" << endl;
 		return -1;
 	}else{

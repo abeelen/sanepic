@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 			fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 
 			// 2 RA 3 DEC
-			fix_RA_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
+				(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);
 
 			// 4 mask
 			fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, indice, add_sample);

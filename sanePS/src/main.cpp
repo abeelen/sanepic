@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 
 	string field; // actual boloname in the bolo loop
-	string ellFile; // file containin<a name="fb_share" type="button" share_url="http://www.ias.u-psud.fr/wiki/tiki-index.php?page=Sanepic&structure=Herschel" href="http://www.facebook.com/sharer.php">Share</a><script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" type="text/javascript"></script>g the ells
+	string ellFile; // file containing the ells
 	string prefixe; // prefix used for temporary name file creation
 
 

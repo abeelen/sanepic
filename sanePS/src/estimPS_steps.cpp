@@ -24,6 +24,8 @@
 
 
 extern "C" {
+#include "nrutil.h"
+#include "nrcode.h"
 #include <fitsio.h>
 }
 
@@ -1189,6 +1191,7 @@ void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, stru
 	FILE *fp;
 	double *data1d;
 
+	temp_stream << "!" + outdirSpN + "BoloPS_" << FitsBasename(samples_struct.fitsvect[ff]) << "_psd.fits";
 	base_n = FitsBasename(samples_struct.fitsvect[ff]);
 
 	temp_stream << "!" + outdirSpN + "BoloPS_" << base_n << "_psd.fits";

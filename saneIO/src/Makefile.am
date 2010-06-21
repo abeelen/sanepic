@@ -8,4 +8,4 @@ INCLUDES = -I ../nr -I ../iniparser
 
 libsaneIO_la_LDFLAGS = -version-info 0:0:0
 
-ACLOCAL_AMFLAGS = -I m4
+

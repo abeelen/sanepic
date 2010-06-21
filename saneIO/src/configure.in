@@ -29,7 +29,6 @@ AC_CHECK_HEADERS(algorithm,,AC_MSG_WARN(STL classes missing ?))
 AC_CHECK_HEADERS(fitsio.h,,AC_MSG_WARN(cfitsio missing ?))
 AC_CHECK_HEADERS(wcslib/wcs.h,,AC_MSG_WARN(wcslib missing ?))
 AC_CHECK_HEADERS(wcslib/wcshdr.h,,AC_MSG_WARN(wcslib missing ?))
-AC_CHECK_HEADERS(nrutil.h,,AC_MSG_WARN(nrutil missing ?))
 
 AC_CHECK_LIB(cfitsio, ffvers,,AC_MSG_ERROR(cfitsio needed))
 AC_CHECK_LIB(wcs, wcsini,,AC_MSG_ERROR(wcslib needed))
