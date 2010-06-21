@@ -83,6 +83,8 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 	char **data;
 	data = vString2carray(bolos);
 
+	//TODO : error handling
+
 	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
 			(char*)"Channel List", &status);
 	fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status);

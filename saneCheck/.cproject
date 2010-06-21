@@ -962,7 +962,7 @@
 <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352">
-<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352" moduleId="org.eclipse.cdt.core.settings" name="Debug_MPI">
+<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352" moduleId="org.eclipse.cdt.core.settings" name="Debug_PARA_FRAME">
 <externalSettings/>
 <extensions>
 <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -973,7 +973,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="saneCheck" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352" name="Debug_MPI" parent="cdt.managedbuild.config.gnu.exe.debug">
+<configuration artifactName="saneCheck_PARA_FRAME" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352" name="Debug_PARA_FRAME" parent="cdt.managedbuild.config.gnu.exe.debug">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1236674853.451330352." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.850365157" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.2010114635" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
@@ -1444,7 +1444,7 @@
 <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340">
-<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340" moduleId="org.eclipse.cdt.core.settings" name="Release_MPI">
+<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340" moduleId="org.eclipse.cdt.core.settings" name="Release_PARA_FRAME">
 <externalSettings/>
 <extensions>
 <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -1455,7 +1455,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="saneCheck" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340" name="Release_MPI" parent="cdt.managedbuild.config.gnu.exe.release">
+<configuration artifactName="saneCheck_PARA_FRAME" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340" name="Release_PARA_FRAME" parent="cdt.managedbuild.config.gnu.exe.release">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.release.2082813618.789270340." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.2063746004" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.1378820450" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
