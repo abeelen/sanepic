@@ -593,21 +593,15 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = abs(Nk[k]);
+		Nk_[k][0] = abs(Nk[k])/sqrt((double)ndata);
 		Nk_[k][1] = 0.0;
 	}
 	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
 	fftw_execute(fftplan);
 
 
-
-
 	for (long ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			pixpos[ii] = npix-2;
-		} else {
 			pixpos[ii] = indpix[samptopix[ii]];
-		}
 	}
 
 
