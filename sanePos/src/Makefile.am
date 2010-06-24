@@ -1,16 +1,19 @@
 AUTOMAKE_OPTIONS = gnu
-
-if MPC
-bin_PROGRAMS = sanePos sanePos_MPI
-else
 bin_PROGRAMS = sanePos
-endif
+
 
 
 if MPC
-sanePos_MPI_SOURCES = main.cpp  sanePos_map_making.cpp  sanePos_preprocess.cpp sanePos_map_making.h  sanePos_preprocess.h
-sanePos_MPI_CPPFLAGS=-DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+   sanePos_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+   ext=_PARA_FRAME
 endif
+
+if MPC2
+   sanePos_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+   ext=_PARA_FRAME
+endif
+
+EXEEXT=$(ext)
 
 sanePos_SOURCES = main.cpp  sanePos_map_making.cpp  sanePos_preprocess.cpp sanePos_map_making.h  sanePos_preprocess.h
 
