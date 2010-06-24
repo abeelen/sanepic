@@ -1,6 +1,9 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
+/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
+int who_do_it(int size, int rank, int ii);
+
 /*! read saneCheck log files : get sample indices => where the gaps are */
 int read_indices_file(std::string fname, struct common dir, std::vector<long> &indice, double &fsamp);
 

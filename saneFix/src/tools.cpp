@@ -31,6 +31,27 @@ extern "C" {
 using namespace std;
 
 
+
+int who_do_it(int size, int rank, int ii)
+/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
+{
+
+	if(size==1) // if there is only 1 proc, he has to do the job
+		return 0;
+
+	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
+		return ii;
+
+	if(size<ii){ // if the fits file number is larger than the number of MPI processors
+		while(ii>size)
+			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
+		return ii;
+	}
+
+	return -1; // error in the program
+}
+
+
 int read_indices_file(string fname, struct common dir, std::vector<long> &indice, double &fsamp)
 /*! read saneCheck log files : get sample indices => where the gaps are */
 {
