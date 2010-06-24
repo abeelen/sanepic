@@ -3,10 +3,8 @@ AM_INIT_AUTOMAKE(sanePre,0.0.1)
 AM_CONFIG_HEADER(config.h)
 AM_PROG_LIBTOOL
 
-
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
 
 AC_ARG_ENABLE([mpi],
 [  --enable-mpi    Turn on MPI compiling],
@@ -16,7 +14,6 @@ AC_ARG_ENABLE([mpi],
     *) AC_MSG_ERROR([bad value ${enableval} for --enable-mpi]) ;;
 esac],[mpi=false])
 
-
 if test x$mpi = xtrue; then
    check_mpi=mpicxx
 else
@@ -24,8 +21,23 @@ else
 fi
 
 
-AC_PROG_CXX([$check_mpi])
+AC_ARG_ENABLE([para],
+[  --enable-para    Turn on MPI compiling],
+[case "${enableval}" in
+    yes) para=true ;;
+    no)  para=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-para]) ;;
+esac],[para=false])
+
+
+if test x$para = xtrue; then
+      check_mpi2=mpicxx
+fi
+
+
+AC_PROG_CXX([$check_mpi $check_mpi2])
 AC_LANG_CPLUSPLUS
+
 
 AC_CHECK_HEADERS(algorithm,,AC_MSG_WARN(STL classes missing ?))
 AC_CHECK_HEADERS(cmath,,AC_MSG_WARN(STL classes missing ?))
@@ -40,5 +52,6 @@ AC_CHECK_HEADERS(wcslib/wcshdr.h,,AC_MSG_WARN(wcslib missing ?))
 
 
 AM_CONDITIONAL([MPC], [test x$mpi = xtrue])
+AM_CONDITIONAL([PARAC], [test x$para = xtrue])
 
 AC_OUTPUT(Makefile)
