@@ -1,15 +1,18 @@
 AUTOMAKE_OPTIONS = gnu
-
-if MPC
-bin_PROGRAMS = saneInv saneInv_MPI
-else
 bin_PROGRAMS = saneInv
-endif
+
 
 if MPC
-saneInv_MPI_CPPFLAGS=-DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
-saneInv_MPI_SOURCES = invMatrix.cpp  main.cpp  parseInv.cpp invMatrix.h parseInv.h
+   saneInv_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+   ext=_PARA_FRAME
 endif
+
+if MPC2
+   saneInv_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+   ext=_PARA_FRAME
+endif
+
+EXEEXT=$(ext)
 
 saneInv_SOURCES = invMatrix.cpp  main.cpp  parseInv.cpp invMatrix.h parseInv.h
 
