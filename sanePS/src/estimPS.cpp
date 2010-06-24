@@ -127,7 +127,7 @@ void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	cout << "6/6 - Saving to disk" << endl;
-	write_to_disk(dir.output_dir,samples_struct, iframe, det,nbins, ell, mixmat, Rellth,
+	write_to_disk(dir.output_dir, samples_struct, iframe, det, nbins, ell, mixmat, Rellth,
 			Rellexp, ncomp, N, SPref,P);
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 

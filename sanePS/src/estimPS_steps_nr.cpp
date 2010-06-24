@@ -6,7 +6,7 @@
  */
 
 #include "estimPS_steps.h"
-#include "cholesky.h"
+
 
 #include "psdIO.h"
 #include <vector>
@@ -14,15 +14,16 @@
 #include "map_making.h"
 #include "inline_IO2.h"
 #include "inputFileIO.h"
+#include "dataIO.h"
+#include "covMatrix_IO.h"
+
 #include <sstream>
 #include <cmath>
 #include <cstring>
 
-#include "dataIO.h"
-#include "covMatrix_IO.h"
+
 
 extern "C" {
-#include "nrutil.h"
 #include "nrcode.h"
 #include <fitsio.h>
 }
@@ -61,9 +62,8 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 	double *data, *data_lp, *Ps, *bfilter;
 	long long *samptopix; // sample to pixel projection matrix
-	double **iCov, **Cov, *ivec, **l;
-	double *uvec;
-
+	double **Cov, **iCov;
+	double *p, *uvec, *ivec;
 
 
 	fftw_complex *fdata1;
@@ -82,11 +82,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
 	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
+	p = new double[ncomp];
 	uvec = new double[ncomp];
 	ivec = new double[ncomp];
-	l=new double*[ncomp];
-	for(int i=0; i<ncomp; i++)
-		l[i]=new double [ncomp];
 
 
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
@@ -210,29 +208,24 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 
 
 	/////////// AtN-1A
-	for (long jj=0;jj<ncomp;jj++){
-		for (long kk=0;kk<ncomp;kk++){
-			for (long ii=0;ii<det.ndet;ii++){
+	for (long jj=0;jj<ncomp;jj++)
+		for (long kk=0;kk<ncomp;kk++)
+			for (long ii=0;ii<det.ndet;ii++)
 				Cov[jj][kk] += mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii];
-			}
-		}
-	}
 
 
 	// invert AtN-1A
-
-	cholesky(ncomp,Cov,l);
-
-	printf("cnomp:%ld", ncomp);
-
+	dcholdc(Cov,ncomp,p);
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ncomp;jj++)
 			uvec[jj] = 0.0;
 		uvec[ii] = 1.0;
-		solve_cholesky(Cov, uvec, l, ivec, ncomp);
+		dcholsl(Cov,ncomp,p,uvec,ivec);
 		for (long jj=0;jj<ncomp;jj++)
 			iCov[ii][jj] = ivec[jj];
 	}
+
+
 
 	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
 
@@ -267,12 +260,9 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 	delete [] samptopix;
 	delete [] bfilter ;
 	delete [] fdata1 ;
+	delete [] p ;
 	delete [] uvec ;
 	delete [] ivec;
-
-	for (int i = 0; i <ncomp; i++)
-		delete[] l[i];
-	delete [] l;
 
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
@@ -643,17 +633,16 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 
 
-	double **Cov, **iCov, **l;
-	double *uvec, *ivec;
+	double **Cov, **iCov;
+	double *p, *uvec, *ivec;
+
 
 
 	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
 	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
+	p = new double[ncomp];
 	uvec = new double[ncomp];
 	ivec = new double[ncomp];
-	l = new double*[ncomp];
-	for(int i=0; i<ncomp;i++)
-		l[i]=new double[ncomp];
 
 
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
@@ -760,25 +749,21 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 				}
 
 			for (long ii=0;ii<ncomp;ii++){
-				for (long jj=0;jj<ncomp;jj++){
+				for (long jj=0;jj<ncomp;jj++)
 					Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
-				}
 				Cov[ii][ii] += 1.0;
 			}
 
 			// invert matrix
-			cholesky(ncomp, Cov,l);
+			dcholdc(Cov,ncomp,p);
 
 			for (long ii=0;ii<ncomp;ii++){
 				for (long jj=0;jj<ncomp;jj++)
 					uvec[jj] = 0.0;
 				uvec[ii] = 1.0;
-				solve_cholesky(Cov, uvec, l, ivec, ncomp);
-
-				for (long jj=0;jj<ncomp;jj++){
+				dcholsl(Cov,ncomp,p,uvec,ivec);
+				for (long jj=0;jj<ncomp;jj++)
 					iCov[ii][jj] = ivec[jj];
-				}
-
 			}
 
 
@@ -839,20 +824,18 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 			for (long ii=0;ii<ncomp;ii++){
 				uvec[ii] = RnRxsb[idet][ii];
-				for (long jj=0;jj<ncomp;jj++){
+				for (long jj=0;jj<ncomp;jj++)
 					Cov[ii][jj] = RnRssb[ii][jj+idet*ncomp];
-				}
 			}
 
 			// solving the linear system
-
-			cholesky(ncomp, Cov, l);
-			solve_cholesky(Cov, uvec, l, ivec, ncomp);
-
-			for (long ii=0;ii<ncomp;ii++){
+			dcholdc(Cov,ncomp,p);
+			dcholsl(Cov,ncomp,p,uvec,ivec);
+			for (long ii=0;ii<ncomp;ii++)
 				mixmat[idet][ii] = ivec[ii];
-			}
 		}
+
+
 
 		// EM Step with respect to N, with the new values of A and P
 		for (long ib=0;ib<nbins2;ib++){
@@ -880,24 +863,20 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 				}
 
 			for (long ii=0;ii<ncomp;ii++){
-				for (long jj=0;jj<ncomp;jj++){
+				for (long jj=0;jj<ncomp;jj++)
 					Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
-				}
 				Cov[ii][ii] += 1.0;
 			}
 
 
 
 			// invert matrix
-
-			cholesky(ncomp, Cov, l);
-
+			dcholdc(Cov,ncomp,p);
 			for (long ii=0;ii<ncomp;ii++){
 				for (long jj=0;jj<ncomp;jj++)
 					uvec[jj] = 0.0;
 				uvec[ii] = 1.0;
-				solve_cholesky(Cov, uvec, l, ivec, ncomp);
-
+				dcholsl(Cov,ncomp,p,uvec,ivec);
 				for (long jj=0;jj<ncomp;jj++)
 					iCov[ii][jj] = ivec[jj];
 			}
@@ -1020,12 +999,10 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 	//cleaning up
 
+	delete [] p ;
 	delete [] uvec ;
 	delete [] ivec;
 	delete [] w;
-	for(int i=0; i<ncomp; i++)
-		delete [] l[i];
-	delete [] l;
 
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
@@ -1057,15 +1034,13 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	//long ib, ii, jj, kk;
 	double triRhR, logdetiR;
 
-	double *uvec, *ivec;
+	double *p, *uvec, *ivec;
 	double *Pl, *Pnl;
-	double **R, **hR, **eR, **iR, **iRhR, **l;
+	double **R, **hR, **eR, **iR, **iRhR;
 
+	p = new double[ndet];
 	uvec = new double[ndet];
 	ivec = new double[ndet];
-	l= new double*[ndet];
-	for(int i=0; i<ndet; i++)
-		l[i]=new double[ndet];
 
 	Pl   = new double[ncomp] ;
 	Pnl  = new double[ndet] ;
@@ -1114,25 +1089,18 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 		//printf("ib=%d\n",ib);
 		/// inverting Rth
-
-
-		for (long ii=0;ii<ndet;ii++){
+		for (long ii=0;ii<ndet;ii++)
 			for (long jj=0;jj<ndet;jj++)
 				eR[ii][jj] = R[ii][jj];
-		}
-		cholesky(ndet,eR,l);
-
+		dcholdc(eR,ndet,p);
 		for (long ii=0;ii<ndet;ii++){
 			for (long jj=0;jj<ndet;jj++)
 				uvec[jj] = 0.0;
 			uvec[ii] = 1.0;
-			solve_cholesky(eR, uvec,l, ivec, ndet);
-
+			dcholsl(eR,ndet,p,uvec,ivec);
 			for (long jj=0;jj<ndet;jj++)
 				iR[ii][jj] = ivec[jj];
-
 		}
-
 		// printf("ib=%d\n",ib);
 
 
@@ -1150,7 +1118,7 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 		for (long ii=0;ii<ndet;ii++){
 			//      cout << ii << " " << iRhR[ii][ii] << " , " << p[ii] << " : " << triRhR << " , " << detiR << endl;
 			triRhR += iRhR[ii][ii];
-			logdetiR -= log(l[ii][ii]*l[ii][ii]);
+			logdetiR -= log(p[ii]*p[ii]);
 		}
 
 
@@ -1160,19 +1128,19 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	}
 
 
+	delete [] p;
 	delete [] uvec;
 	delete [] ivec;
 	delete [] Pl;
 	delete [] Pnl;
-	for(int i=0; i<ndet; i++)
-		delete [] l[i];
-	delete [] l;
 
 	free_dmatrix(R,0,ndet-1,0,ndet-1);
 	free_dmatrix(hR,0,ndet-1,0,ndet-1);
 	free_dmatrix(eR,0,ndet-1,0,ndet-1);
 	free_dmatrix(iR,0,ndet-1,0,ndet-1);
 	free_dmatrix(iRhR,0,ndet-1,0,ndet-1);
+
+
 
 
 	return f;
@@ -1208,7 +1176,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-void write_to_disk(string outdirSpN, struct samples samples_struct,long ff, struct detectors det,	long nbins, double *ell, double **mixmat,
+void write_to_disk(string outdirSpN,struct samples samples_struct, long ff, struct detectors det,	long nbins, double *ell, double **mixmat,
 		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P)
 {
 
@@ -1223,6 +1191,7 @@ void write_to_disk(string outdirSpN, struct samples samples_struct,long ff, stru
 	double *data1d;
 
 	base_n = FitsBasename(samples_struct.fitsvect[ff]);
+
 	temp_stream << "!" + outdirSpN + "BoloPS_" << base_n << "_psd.fits";
 
 	// récupérer une chaîne de caractères
@@ -1244,7 +1213,7 @@ void write_to_disk(string outdirSpN, struct samples samples_struct,long ff, stru
 	}
 	fclose(fp);
 
-	temp_stream << outdirSpN + "BoloPS_" << base_n << "_exp.psd";
+	temp_stream << outdirSpN + "BoloPS" << base_n << "_exp.psd";
 
 	// get filename
 	nameSpfile= temp_stream.str();
@@ -1291,7 +1260,7 @@ void write_to_disk(string outdirSpN, struct samples samples_struct,long ff, stru
 	for (long idet1=0;idet1<det.ndet;idet1++){
 
 		tempstr1 = det.boloname[idet1];
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise" << base_n << ".psd";
 
 		// récupérer une chaîne de caractères
 		nameSpfile= temp_stream.str();

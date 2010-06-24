@@ -70,7 +70,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="estimPS_steps_nr.cpp|parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -808,7 +808,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="estimPS_steps_nr.cpp|parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1552,7 +1552,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="estimPS_steps_nr.cpp|parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -2294,7 +2294,7 @@
 </folderInfo>
 <sourceEntries>
 <entry excluding="src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-<entry excluding="parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+<entry excluding="estimPS_steps_nr.cpp|parsePS.h|parsePS.cpp|estimPS_ancien.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>
