@@ -303,6 +303,7 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 	int status =0; // fits error status
 	double *signal, *signal_fixed;
 
+
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status); // move input pointer to "signal" image
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output header
@@ -372,6 +373,7 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	long ns_temp = 0;
 	int status =0; // fits error status
 	int *mask, *mask_fixed;
+	long ii=1;// singleton seeker indexes
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status); // move input pointer to mask
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
@@ -382,6 +384,14 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
 		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read input mask row
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total); // fill gaps in mask row
+
+		while(ii<ns_total-1){
+			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
+				mask_fixed[ii]=1;
+				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
+			}
+			ii++;
+		}
 		insert_mask_in_image(fptr, outfptr, det.boloname[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
 		delete [] mask;
 	}
@@ -416,7 +426,7 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	double *PHI, *PHI_fixed;
 
 	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){ // move input pointer to ref pos
-		cout << "WARNINIG : reference position table was not found, skipping this table...\n";
+		cout << "WARNING : reference position table was not found, skipping this table...\n";
 		return;
 	}
 

@@ -132,7 +132,6 @@ int main(int argc, char *argv[]) {
 			// Copy primary Header
 			fits_copy_header(fptr, outfptr, &status);
 
-
 			if(format_fits==1){ // HIPE format
 				cout << "[ " << rank << " ] " << "HIPE format found\n";
 
