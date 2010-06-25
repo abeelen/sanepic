@@ -268,7 +268,10 @@ void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
 
 	int status=0; // fits error status
 
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status); // move input pointer to "offsets" HDU
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){// move input pointer to "offsets" HDU
+		cout << "WARNINIG : offsets table was not found, skipping this table...\n";
+		return;
+	}
 	fits_copy_header(fptr, outfptr, &status); // copy header to output file
 
 	for(int col=1;col<4;col++) // copy the table column by column
@@ -325,10 +328,18 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 	double *RA, *RA_fixed;
 	double *DEC, *DEC_fixed;
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move input pointer to RA
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)){ // move input pointer to RA
+		cout << "WARNINIG : ra table was not found, skipping this table...\n";
+		return;
+	}
 	fits_copy_header(fptr, outfptr, &status); // copy RA header to output file
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output RA header
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move input pointer to DEC
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){ // move input pointer to DEC
+
+		cout << "WARNINIG : ra table was not found, skipping this table...\n";
+		return;
+	}
+
 	fits_copy_header(fptr, outfptr, &status);
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output DEC header
 
@@ -404,7 +415,11 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	double *DEC, *DEC_fixed;
 	double *PHI, *PHI_fixed;
 
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status); // move input pointer to ref pos
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){ // move input pointer to ref pos
+		cout << "WARNINIG : reference position table was not found, skipping this table...\n";
+		return;
+	}
+
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_total, (char*)"Number of rows", &status); // update output header (sample size has changed)
 
