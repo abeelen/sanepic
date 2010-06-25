@@ -568,10 +568,10 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 	int *flag; // mask table
 	short sum=0; // used to compute the percentage of flagged data
 
-	int marge = 20; // a singleton is defined by : ['marge' samples flagged] 0 ['marge' samples flagged]
+//	int marge = 19; // a singleton is defined by : ['marge' samples flagged] 0 ['marge' samples flagged]
 	long ii=1;// singleton seeker indexes
-	long tt=0;// singleton seeker indexes
-	long rr=0;// singleton seeker indexes
+//	long tt=0;// singleton seeker indexes
+//	long rr=0;// singleton seeker indexes
 
 
 	for(int jj=0;jj<det.ndet;jj++){
@@ -582,22 +582,22 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 
 		while(ii<ns-1){
 
-			if((flag[ii]==0)&&(flag[ii+1]==1)&&(flag[ii-1]==1)){
-				tt=ii-1;
-				rr=ii+1;
-
-				while((tt>0)&&(flag[tt]==1)&&((ii-tt)<marge+2))
-					tt--;
-
-				while((rr<ns)&&(flag[rr]==1)&&((rr-ii)<marge+2))
-					rr++;
-			}
-
-			if(((rr-ii)>=marge)&&((ii-tt)>=marge)){ // singleton has been found
-				cout << ii << " " << rr-ii << " " << ii-tt << endl;
-				flag[ii]=1;
-				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
-			}
+			//			if((flag[ii]==0)&&(flag[ii+1]!=0)&&(flag[ii-1]!=0)){
+			//				tt=ii-1;
+			//				rr=ii+1;
+			//
+			//				while((tt>0)&&(flag[tt]!=0)&&((ii-tt)<marge+2))
+			//					tt--;
+			//
+			//				while((rr<ns)&&(flag[rr]==1)&&((rr-ii)<marge+2))
+			//					rr++;
+			//			}
+			//
+			//			if(((rr-ii)>=marge)&&((ii-tt)>=marge)){ // singleton has been found
+			//				cout << ii << " " << rr-ii << " " << ii-tt << endl;
+			//				flag[ii]=1;
+			//				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
+			//			}
 
 			sum+=flag[ii];
 			ii++;
