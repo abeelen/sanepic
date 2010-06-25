@@ -194,6 +194,17 @@ int main(int argc, char *argv[]) {
 			cout << "\n[" << rank <<  "] Checking flagged detectors\n"; // check for time gaps in time table
 			check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80,Check_it);
 
+			// generating log files :
+			outname = dir.output_dir + "bolo_totally_flagged_" + samples_struct.fitsvect[ii] +".txt";
+			cout << "Writing informations in :\n" << outname << endl << endl;
+			log_gen(bolo_bad,outname, bolo_fits_0); // generate bad detectors log file
+
+
+			outname = dir.output_dir + "bolo_80_percent_flagged_" + samples_struct.fitsvect[ii] +".txt";
+			cout << "Writing informations in :\n" << outname << endl;
+			log_gen(bolo_bad_80, outname, bolo_fits_0); // generate valid worst detectors log file
+
+
 #ifdef USE_MPI
 			// inform processor 0 of bad or worst bolometer presence in fits files
 			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
