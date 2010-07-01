@@ -381,11 +381,6 @@ int main(int argc, char *argv[])
 
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-#ifdef LARGE_MEMORY
-			fftw_complex  *fdata_buffer;
-			fftw_complex *fdata_buffer_tot=NULL;
-#endif
-
 			ns = samples_struct.nsamples[iframe];
 			f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
@@ -422,11 +417,6 @@ int main(int argc, char *argv[])
 
 #endif
 
-#ifdef LARGE_MEMORY
-				delete [] fdata_buffer;
-				if(rank==0)
-					delete [] fdata_buffer_tot;
-#endif
 			} else {
 
 
@@ -517,40 +507,17 @@ int main(int argc, char *argv[])
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-#ifdef LARGE_MEMORY
-				fftw_complex  *fdata_buffer;
-				fftw_complex *fdata_buffer_tot=NULL;
-#endif
-
 				ns = samples_struct.nsamples[iframe];
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
 
 				if (proc_param.CORRon){
 
-#ifdef LARGE_MEMORY
-					// A fdata buffer will be used to avoid binary writing
-					fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
-
-
-					if (rank==0){
-						fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
-						for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
-							fdata_buffer_tot[ii][0] = 0.0;
-							fdata_buffer_tot[ii][1] = 0.0;
-						}
-
-
-					}
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size, fdata_buffer);
-					// read pointing + deproject + fourier transform
-#else
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
 					// read pointing + deproject + fourier transform
 #else
 					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
 
-#endif
 #endif
 
 #ifdef DEBUG
@@ -563,12 +530,7 @@ int main(int argc, char *argv[])
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#ifdef LARGE_MEMORY
-					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
-#else
+
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
@@ -577,13 +539,7 @@ int main(int argc, char *argv[])
 							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 
 #endif
-#endif
 
-#ifdef LARGE_MEMORY
-					delete [] fdata_buffer;
-					if(rank==0)
-						delete [] fdata_buffer_tot;
-#endif
 				} else {
 
 
@@ -839,11 +795,6 @@ int main(int argc, char *argv[])
 			fill(PNd,PNd+npix,0.0);
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
-#ifdef LARGE_MEMORY
-				fftw_complex  *fdata_buffer;
-				//if(rank==0)
-				fftw_complex *fdata_buffer_tot=NULL;
-#endif
 
 				ns = samples_struct.nsamples[iframe];
 				f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp;
@@ -851,26 +802,7 @@ int main(int argc, char *argv[])
 
 				if (proc_param.CORRon){
 
-#ifdef LARGE_MEMORY
-					// A fdata buffer will be used to avoid binary writing
-					fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
 
-
-					if (rank==0){
-						fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
-						for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
-							fdata_buffer_tot[ii][0] = 0.0;
-							fdata_buffer_tot[ii][1] = 0.0;
-						}
-
-
-					}
-					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size,name_rank,fdata_buffer);
-					// fillgaps + butterworth filter + fourier transform
-					// "fdata_" files generation (fourier transform of the data)
-
-#else
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns,	iframe, 0, 1, name_rank);
@@ -879,7 +811,6 @@ int main(int argc, char *argv[])
 #else
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns,	iframe, rank, size, name_rank);
-#endif
 #endif
 
 #ifdef DEBUG
@@ -892,12 +823,7 @@ int main(int argc, char *argv[])
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#ifdef LARGE_MEMORY
-					MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-					MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank, size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank, fdata_buffer);
-#else
+
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
@@ -906,17 +832,12 @@ int main(int argc, char *argv[])
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
 							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
 #endif
-#endif
 				} else {
 
 					do_PtNd_nocorr(PNd,dir.tmp_dir,proc_param, pos_param, samples_struct,det, f_lppix, f_lppix_Nk,
 							addnpix, ns,indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc, iframe, S,rank,size);
 				}
-#ifdef LARGE_MEMORY
-				delete [] fdata_buffer;
-				if(rank==0)
-					delete [] fdata_buffer_tot;
-#endif
+
 			} // end of iframe loop
 
 
