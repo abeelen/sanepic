@@ -264,7 +264,7 @@ void sanepic_conjugate_gradient(struct samples samples_struct,  struct param_pos
 			//cout << " q reduction\n";
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			qtot=q; // ajout mat 02/06
+			qtot=q;
 #endif
 
 

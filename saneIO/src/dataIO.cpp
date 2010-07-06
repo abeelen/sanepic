@@ -234,7 +234,7 @@ void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&
 	fits_read_col(fptr, TSHORT, colnum, 1, 1, ns, NULL, FLAG, 0, &status);
 
 	// close file
-	if(fits_close_file(fptr, &status)) // ajout mat 15/09
+	if(fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
 
 }*/

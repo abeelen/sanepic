@@ -193,7 +193,7 @@ void common_mode_computation(struct detectors det, struct param_process proc_par
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
-		delete [] flag; // ajout mat 26/11
+		delete [] flag;
 
 	}
 

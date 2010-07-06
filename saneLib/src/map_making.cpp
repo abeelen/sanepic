@@ -577,17 +577,16 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	double *N_;
 	fftw_plan fftplan;
 
-//	time_t rawtime;
-//	struct tm * timeinfo;
-//	time ( &rawtime );
-//	timeinfo = localtime ( &rawtime );
-//	file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
+	//	time_t rawtime;
+	//	struct tm * timeinfo;
+	//	time ( &rawtime );
+	//	timeinfo = localtime ( &rawtime );
+	//	file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
 
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
 	pixpos = new long long [ndata];
 
-	// ajout mat 30/11
 	fill(N_,N_+ndata,0.0);
 	fill(pixpos,pixpos+ndata,0);
 
@@ -601,7 +600,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 
 	for (long ii=0;ii<ndata;ii++){
-			pixpos[ii] = indpix[samptopix[ii]];
+		pixpos[ii] = indpix[samptopix[ii]];
 	}
 
 
@@ -687,7 +686,7 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	//TODO : TEST : Change the removal of the map here => means ??
 	//TODO : Optimize the memory management here.... We have data/data_out/data_out_lp/data_lp
 	//TODO : This routine CHANGES *data : is this really wanted ?
-//
+	//
 	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -734,9 +733,9 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 	//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
 
-//	if (Ps != NULL)
-//		for (long ii=0;ii<ns;ii++)
-//			data_lp[ii] = data_lp[ii] - Ps[ii];
+	//	if (Ps != NULL)
+	//		for (long ii=0;ii<ns;ii++)
+	//			data_lp[ii] = data_lp[ii] - Ps[ii];
 
 
 	//******************* process gaps
@@ -994,20 +993,22 @@ void deproject(double *S, long long *indpix, long long *samptopix, long long nda
 		if ((flgdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
 			if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
 				Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
-			} else {
-				a = 0.0;
-				b = 0.0;
-				if (ntotscan){
-					for (long iframe=0;iframe<ntotscan;iframe++){
-						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
-							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
-							b++;
-						}
-					}
-				}
-				if (b > 0.5)
-					Ps[ii] = a/b;
 			}
+//			else {
+//					cout << "there " << endl;
+//				a = 0.0;
+//				b = 0.0;
+//				if (ntotscan){
+//					for (long iframe=0;iframe<ntotscan;iframe++){
+//						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
+//							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
+//							b++;
+//						}
+//					}
+//				}
+//				if (b > 0.5)
+//					Ps[ii] = a/b;
+//			}
 		}
 
 	}

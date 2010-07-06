@@ -222,7 +222,6 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 			read_samptopix(ns, samptopix, tmp_dir, iframe, field1);
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
-			//TODO : Why the flgdupl is SET to 2 ?
 			if (addnpix){
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 			} else {

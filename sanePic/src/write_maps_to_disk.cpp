@@ -1,11 +1,9 @@
-
-
-
 #include <iostream>
 #include <vector>
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+#include <gsl/gsl_math.h>
 
 #include "imageIO.h"
 #include "inline_IO2.h"
@@ -37,7 +35,18 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			if (indpix[mi] >= 0){
 				map1d[mi] = S[indpix[mi]];
 			} else {
-				map1d[mi] = NAN;
+				if (addnpix){
+					double b = 0.;
+					for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+						if ((indpsrc[mi] != -1) && (indpix[ll] != -1)){
+							map1d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
+							b += 1./gsl_pow_2(Mptot[indpix[ll]]);
+						}
+					}
+					if (b >= 1) map1d[mi] /= b; else map1d[mi] = NAN;
+				} else
+					map1d[mi] = NAN;
 			}
 		}
 	}
@@ -53,7 +62,18 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 			if (indpix[mi] >= 0){
 				map1d[mi] = Mptot[indpix[mi]];
 			} else {
-				map1d[mi] = NAN;
+				if (addnpix){
+
+					for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+
+						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+						if ((indpsrc[mi] != -1)  && (indpix[ll] != -1))
+							map1d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
+					}
+					if (map1d[mi] != 0)
+						map1d[mi] = 1./sqrt(map1d[mi]); else map1d[mi] = NAN;
+				} else
+					map1d[mi] = NAN;
 			}
 		}
 	}
@@ -61,58 +81,62 @@ void write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long
 
 	//	fname = '!' + outdir + "optimMap_noisevar.fits";
 	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1);
-
-	if (addnpix){
-		for (long iframe = 0;iframe<ntotscan;iframe++){
-			for (long ii=0; ii<NAXIS1; ii++) {
-				for (long jj=0; jj<NAXIS2; jj++) {
-					mi = jj*NAXIS1 + ii;
-					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-					if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
-						map1d[mi] = S[ll];
-					} else {
-						map1d[mi] = 0.0;
-					}
-				}
-			}
-
-
-
-			//			temp_stream << "!" + outdir + "optimMap_flux_fr" << iframe << ".fits";
-			//			// Transform into string
-			//			fname= temp_stream.str();
-			//			// Clear ostringstream buffer
-			//			temp_stream.str("");
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *) "Duplicated Image",1);
-
-			for (long ii=0; ii<NAXIS1; ii++) {
-				for (long jj=0; jj<NAXIS2; jj++) {
-					mi = jj*NAXIS1 + ii;
-					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-					if ((indpsrc[mi] != -1)  && (indpix[ll] != -1)){
-						map1d[mi] = Mptot[indpix[ll]];
-					} else {
-						map1d[mi] = 0.0;
-					}
-				}
-			}
-
-			//fname = '!' + outdir + "optimMap_" + termin + "_noisevar_fr" + iframestr + ".fits";
-			//			temp_stream << "!" + outdir + "optimMap_noisevar_fr" << iframe << ".fits";
-
-			// Transform into string
-			//			fname= temp_stream.str();
-			//			// Clear ostringstream buffer
-			//			temp_stream.str("");
-			//					write_fits(fname, pixdeg, NAXIS1, NAXIS2, tancoord, tanpix, coordsyst, 'd', (void *)map1d);
-			write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated Error",1);
-		}
-	}
-
-	write_fits_hitory(fname , NAXIS1, NAXIS2, outdir, proc_param, pos_param , fcut, det, samples_struct);
+//
+//	if (addnpix){
+//		// initialize the container
+//		for (long jj=0; jj<NAXIS2 ; jj++){
+//			for (long ii=0; ii<NAXIS1 ; ii++){
+//				mi = jj*NAXIS1 + ii;
+//				map1d[mi] = 0.0;
+//			}
+//		}
+//		// loop thru frame to coadd all pixels
+//		for (long ii=0; ii<NAXIS1; ii++) {
+//			for (long jj=0; jj<NAXIS2; jj++)	 {
+//				mi = jj*NAXIS1 + ii;
+//				double b = 0.;
+//				for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+//					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+//					if ((indpsrc[mi] != -1) && (indpix[ll] != -1)){
+//						map1d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
+//						b += 1./gsl_pow_2(Mptot[indpix[ll]]);
+//					}
+//				}
+//				if (b >= 1)
+//					map1d[mi] /= b;
+//			}
+//		}
+//		// replace the non observed pixels by NAN
+//		for (long ii=0; ii<NAXIS1; ii++) {
+//			for (long jj=0; jj<NAXIS2; jj++) {
+//				mi = jj*NAXIS1 + ii;
+//				if (map1d[mi] == 0.0)
+//					map1d[mi] = NAN;
+//			}
+//		}
+//
+//		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "CCR Image", 1);
+//
+//		for (long ii=0; ii<NAXIS1; ii++) {
+//			for (long jj=0; jj<NAXIS2; jj++) {
+//				mi = jj*NAXIS1 + ii;
+//				for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+//
+//					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+//					if ((indpsrc[mi] != -1)  && (indpix[ll] != -1))
+//						map1d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
+//				}
+//				if (map1d[mi] != 0)
+//					map1d[mi] = 1./sqrt(map1d[mi]);
+//			}
+//		}
+//		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"CCR Error",1);
+//	}
 
 	if (maskfile != "")
 		write_fits_mask(fname, maskfile);
+
+	write_fits_hitory(fname , NAXIS1, NAXIS2, outdir, proc_param, pos_param , fcut, det, samples_struct);
 
 	// clean
 	delete [] map1d;

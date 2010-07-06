@@ -637,7 +637,7 @@ void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins,
 
 	for (int ii=0;ii<nbins;ii++){
 		//ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
-		ellm[ii] = sqrt(ell[ii+1])*sqrt(ell[ii]); // ajout mat 19/08 : faster ?
+		ellm[ii] = sqrt(ell[ii+1])*sqrt(ell[ii]);
 		//cout << "ellm : " << ellm[ii] << " " << "ellm2 : " << ellm2[ii] << endl;
 	}
 
@@ -670,9 +670,9 @@ void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins,
 		ellmax = ellm[ibin+1];
 		kmin = ellmin*ns/fsamp;
 		kmax = ellmax*ns/fsamp;
-		if((long)kmax<f_lp) // ajout mat 21/08
+		if((long)kmax<f_lp)
 			continue;
-		if((long)kmin>(ns/20)) // ajout mat 21/08
+		if((long)kmin>(ns/20))
 			break;
 
 		if (abs(SpN[ibin]) > 0){

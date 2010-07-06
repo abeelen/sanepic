@@ -434,7 +434,7 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 	}
 	result = fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
 
-	mixmat = dmatrix(0,ndet-1,0,ncomp-1); // ajout mat 24/07 pour eviter de declarer 20 comp useless
+	mixmat = dmatrix(0,ndet-1,0,ncomp-1);
 
 	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<ncomp2;jj++){

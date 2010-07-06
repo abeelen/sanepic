@@ -5,6 +5,7 @@
 #include <vector>
 #include <iomanip>
 #include <cmath>
+#include <gsl/gsl_math.h>
 
 #include "imageIO.h"
 #include "inline_IO2.h"
@@ -708,9 +709,8 @@ int main(int argc, char *argv[])
 						}
 
 
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Duplicated Image",1);
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Flagged Data",1);
 					}
-
 
 
 					if (addnpix){
@@ -722,14 +722,20 @@ int main(int argc, char *argv[])
 							}
 						}
 						// loop thru frame to coadd all pixels
-						for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-							for (long ii=0; ii<NAXIS1; ii++) {
-								for (long jj=0; jj<NAXIS2; jj++) {
-									mi = jj*NAXIS1 + ii;
+						for (long ii=0; ii<NAXIS1; ii++) {
+							for (long jj=0; jj<NAXIS2; jj++)	 {
+								mi = jj*NAXIS1 + ii;
+								double b = 0.;
+								for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+									//TODO : Better : Make a weithted mean with Mptot
 									long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-									if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
-										map1d[mi] += S[indpix[ll]]/Mptot[mi];;
+									if ((indpsrc[mi] != -1) && (indpix[ll] != -1)){
+										map1d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
+										b += 1./gsl_pow_2(Mptot[indpix[ll]]);
+									}
 								}
+								if (b >= 1)
+									map1d[mi] /= b;
 							}
 						}
 						// replace the non observed pixels by NAN
@@ -741,8 +747,22 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "Flagged pixels temporary map", 1);
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "CCR Image", 1);
 
+						for (long ii=0; ii<NAXIS1; ii++) {
+							for (long jj=0; jj<NAXIS2; jj++) {
+								mi = jj*NAXIS1 + ii;
+								for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
+
+									long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+									if ((indpsrc[mi] != -1)  && (indpix[ll] != -1))
+										map1d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
+								}
+								if (map1d[mi] != 0)
+									map1d[mi] = 1./sqrt(map1d[mi]);
+							}
+						}
+						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"CCR Error",1);
 					}
 					write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct);
 				} // end of saving iterated maps
@@ -777,13 +797,6 @@ int main(int argc, char *argv[])
 			iter++; // i = i +1
 
 		} // end of while loop
-		printf("\n");
-
-
-
-
-
-
 
 
 		// If the gaps are projected on a second map, redo the preprocessing/writing of fdata,

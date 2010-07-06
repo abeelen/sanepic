@@ -398,8 +398,8 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			for (long ii=0 ; ii<ns; ii++){
 
-				// image1        + crossing constrain removal + flagged pixel + apodized data
-				// NAXIS1*NAXIS2 + addnpix*nframe             + 1             + 1
+				// image1        + (if 2nd image)  + crossing constrain removal + flagged pixel + apodized data
+				// NAXIS1*NAXIS2 + NAXIS1*NAXIS2   + addnpix*nframe             + 1             + 1
 
 				long long ll=0;
 				switch (bolo_flag[ii]) {
