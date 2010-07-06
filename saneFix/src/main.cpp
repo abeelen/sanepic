@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 			string filename = oss.str();
 			string fname2 = Basename(filename) + "_fixed.fits"; // output fits filename
 			oss.str("");
-			oss << "!" << dir.tmp_dir << fname2;
+			oss << "!" << dir.output_dir << fname2;
 			string temp = oss.str(); // output path + output fits filename
 			oss.str("");
 			string fname=samples_struct.fitsvect[ii]; // input fits filename
