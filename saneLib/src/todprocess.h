@@ -17,7 +17,7 @@ extern "C" {
 
 void init2D_double(double **A, long im, long jm, long nx, long ny, double val); // on peut garder
 
-void remove_poly(double y[], int ndata, int norder, double* yout, short *flag = NULL);
+void remove_poly(double y[], long ndata, int norder, double* yout, int *flag = NULL);
 
 void cutdata(double y[], int indm, int indp, double *yout); // on peut garder
 void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout); // on peut garder

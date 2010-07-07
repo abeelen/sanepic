@@ -29,11 +29,11 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 	gsl_vector *Y, *res, *tau, *residual;
 
 
-	if(taille<norder+1){
-		cout << "Warning in fitpoly : Polynomial is not unique; degree >= number of data points.\n";
-		cout << "data points : " << taille << endl;
-		cout << "degree : " << norder +1 << endl;
-		cout << "Returning degree 0 polynomia instead ...\n";
+	if(taille<norder+1){ // TODO : Check cases
+//		cout << "Warning in fitpoly : Polynomial is not unique; degree >= number of data points.\n";
+//		cout << "data points : " << taille << endl;
+//		cout << "degree : " << norder +1 << endl;
+//		cout << "Returning degree 0 polynomia instead ...\n";
 		double mean=0.0;
 		for(long jj=0; jj<taille; jj++)
 			mean += sy[jj];

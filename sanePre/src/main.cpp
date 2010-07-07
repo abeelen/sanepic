@@ -109,9 +109,11 @@ int main(int argc, char *argv[])
 
 
 	double *PNd, *PNdtot=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
+	double *PNdNaiv, *PNdtotNaiv=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
 	double *Mp, *Mptot=NULL;
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices*/
 	long *hits, *hitstot=NULL; /*! naivmap parameters : hits count */
+	long *hitsNaiv, *hitstotNaiv=NULL; /*! naivmap parameters : hits count */
 
 	string field; /*! actual boloname in the bolo loop*/
 	string fname; // parallel scheme file name
@@ -285,12 +287,12 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	for(long ii=0;ii<size;ii++){ // print processors indexes
-		if(rank==ii)
-			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-		else
-			MPI_Barrier(MPI_COMM_WORLD);
-	}
+	//	for(long ii=0;ii<size;ii++){ // print processors indexes
+	//		if(rank==ii)
+	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
+	//		else
+	//			MPI_Barrier(MPI_COMM_WORLD);
+	//	}
 
 #else
 #if defined(USE_MPI) && defined(PARA_BOLO)
@@ -326,15 +328,18 @@ int main(int argc, char *argv[])
 
 	// (At N-1 D) memory allocation
 	PNd = new double[npix];
-
+	PNdNaiv= new double[npix];
 	//
 	hits=new long[npix];
+	hitsNaiv=new long[npix];
 	Mp = new double[npix];
 
 	// initialize to 0.0
 	fill(PNd,PNd+npix,0.0);
 	fill(hits,hits+npix,0);
 	fill(Mp,Mp+npix,0.0);
+	fill(PNdNaiv,PNdNaiv+npix,0.0);
+	fill(hitsNaiv,hitsNaiv+npix,0);
 
 
 #ifdef USE_MPI
@@ -343,6 +348,8 @@ int main(int argc, char *argv[])
 		PNdtot = new double[npix];
 		hitstot=new long[npix];
 		Mptot = new double[npix];
+		PNdtotNaiv = new double[npix];
+		hitstotNaiv=new long[npix];
 	}
 
 #endif
@@ -371,8 +378,8 @@ int main(int argc, char *argv[])
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
-//		if(iframe_min!=iframe_max)
-//			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
+		//		if(iframe_min!=iframe_max)
+		//			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
 
 
 		// if there is correlation between detectors
@@ -467,11 +474,15 @@ int main(int argc, char *argv[])
 #if defined(USE_MPI) && ! defined(PARA_BOLO)
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
 					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+
+			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det, ns, 0, 1, indpix, iframe, hitsNaiv);
 			// Returns Pnd = (At N-1 d), Mp and hits
 #else
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
 			// Returns Pnd = (At N-1 d), Mp and hits
+
+			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
 #endif
@@ -500,11 +511,15 @@ int main(int argc, char *argv[])
 	MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(PNdNaiv,PNdtotNaiv,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(hitsNaiv,hitstotNaiv,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 
 #else
 	hitstot=hits;
 	PNdtot=PNd;
 	Mptot=Mp;
+	PNdtotNaiv=PNdNaiv;
+	hitstotNaiv=hitsNaiv;
 
 #endif
 
@@ -514,6 +529,7 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 		// write (At N-1 d) in a file
 		write_PNd(PNdtot,npix,dir.tmp_dir);
+
 
 		cout << "\nNaive step :" << endl;
 		string fnaivname;
@@ -546,9 +562,10 @@ int main(int argc, char *argv[])
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					map1d[mi] = PNdtot[indpix[mi]]/hitstot[indpix[mi]];
+					if(hits[indpix[mi]]>0)
+						map1d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitsNaiv[indpix[mi]];
 				} else {
-					map1d[mi] = 0;
+					map1d[mi] = NAN;
 				}
 			}
 		}
@@ -647,7 +664,8 @@ int main(int argc, char *argv[])
 		delete [] PNdtot;
 		delete [] Mptot;
 		delete [] hitstot;
-
+		delete [] PNdtotNaiv;
+		delete [] hitstotNaiv;
 	}
 #else
 	cout << "Total Time : " << t3-t2 << " sec\n";

@@ -110,17 +110,17 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 
 	//	if(!fftw_import_system_wisdom()){
-//	FILE * input_file;
-//	string olol = tmp_dir + "wisdom_global";
-//	cout << olol << endl;
-//	input_file = fopen(olol.c_str(),"r");
-//	if (fftw_import_wisdom_from_file(input_file)==0)
-//		printf("Error reading wisdom!\n");
-//
-//	//	int ret = fftw_import_wisdom_from_file(input_file);
-//	//	cout << ret << " " << "wisdom" << endl;
-//	//	getchar();
-//	fclose(input_file);
+	//	FILE * input_file;
+	//	string olol = tmp_dir + "wisdom_global";
+	//	cout << olol << endl;
+	//	input_file = fopen(olol.c_str(),"r");
+	//	if (fftw_import_wisdom_from_file(input_file)==0)
+	//		printf("Error reading wisdom!\n");
+	//
+	//	//	int ret = fftw_import_wisdom_from_file(input_file);
+	//	//	cout << ret << " " << "wisdom" << endl;
+	//	//	getchar();
+	//	fclose(input_file);
 	//	}
 
 
@@ -162,7 +162,7 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
 	fits_filename = samples_struct.fits_table[iframe];
-//	cout << "fits file : " << fits_filename << endl;
+	//	cout << "fits file : " << fits_filename << endl;
 
 
 
@@ -530,6 +530,58 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	file.close();
 #endif
 
+
+}
+
+
+void do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, long ns, int rank, int size,
+		long long *indpix, long iframe, long *hits)
+{
+
+
+	string field1;
+	long ns_test=0;
+	double *data;
+	long long *samptopix;
+
+	data =  new double[ns];
+	samptopix = new long long[ns];
+
+
+	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
+		field1 = det.boloname[idet1];
+
+
+
+		//Read pointing data
+		read_samptopix(ns, samptopix, dir, iframe, field1);
+
+		read_signal_from_fits(file[iframe], field1, data, ns_test);
+		if(ns!=ns_test){
+			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
+			exit(0);
+
+		}
+
+
+		for (long ii=0;ii<ns;ii++){
+			//if(PNd[indpix[samptopix[ii]]]!=0.0)
+			PNd[indpix[samptopix[ii]]] += data[ii];
+		}
+
+		//compute hit counts
+		//if (hits != NULL){
+		for (long ii=0;ii<ns;ii++){
+			hits[indpix[samptopix[ii]]] += 1;
+		}
+		//}
+
+
+	}// end of idet1 loop
+
+
+	delete[] samptopix;
+	delete[] data;
 
 }
 

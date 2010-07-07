@@ -31,6 +31,7 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 		bool flgdupl, std::string dir, long ns, long iframe, int rank, int size, fftw_complex *fPs_buffer=(fftw_complex*)NULL);
 
 
-
+void do_PtNd_Naiv(double *PNd, std::string dir, std::string * file, struct detectors det, long ns, int rank, int size,
+		long long *indpix, long iframe, long *hits);
 
 #endif /* CORR_PREPROCESS_H_ */

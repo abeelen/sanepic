@@ -702,7 +702,7 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 	if(remove_polynomia){
 		//remove polynomia to correct from time varying calibration
-		remove_poly(data,ns,orderpoly,data_out,0);
+		remove_poly(data,ns,orderpoly,data_out,flag);
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii]/**calp[ii/20]*/;
 	}

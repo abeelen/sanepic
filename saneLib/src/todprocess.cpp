@@ -66,10 +66,10 @@ void  minmax(double* data, int ndata, double *min, double *max, int *posmin, int
  */
 
 
-void remove_poly(double y[], int ndata, int norder, double* yout, short* flag)
+void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 {
-	int j;
-	int ndint;
+	long j;
+	long ndint;
 	double *sx, *sy;
 	double* a;
 
@@ -77,22 +77,24 @@ void remove_poly(double y[], int ndata, int norder, double* yout, short* flag)
 	sy = new double[ndata];
 	a = new double[norder+1];
 
+//	cout << ndata << endl;
 	j=0;
-	for (int i = 0; i < ndata; i++) {
+	for (long i = 0; i < ndata; i++) {
 		//if(flag != NULL && flag[i]) continue;
-		if(flag != NULL && (flag[i]==1)) continue;
-		sx[j] = i;
+		if(flag != NULL && (flag[i]!=0)) continue;
+		sx[j] = (double)i;
 		sy[j] = y[i];
 		j++;
 	}
 	ndint = j;
 
+//	cout << "avant fitpoly : " << ndint << " " << norder << endl;
 	//	dpolyfit(sx,sy,ndint,norder,a);
 	fitpoly(norder, ndint, sx, sy, a);
 
 	//remove best fit poly
-	for (int i=0;i<ndata;i++) yout[i] = y[i];
-	for (int i=0;i<ndata;i++)
+	for (long i=0;i<ndata;i++) yout[i] = y[i];
+	for (long i=0;i<ndata;i++)
 		for (int pp=0;pp<=norder;pp++)
 			yout[i] -= a[pp]*gsl_pow_int((double)i,pp);//pow((double)i,pp);
 
