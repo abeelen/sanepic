@@ -384,7 +384,7 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
 		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read input mask row
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total); // fill gaps in mask row
-
+		ii=1;
 		while(ii<ns_total-1){
 			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
 				mask_fixed[ii]=1;
