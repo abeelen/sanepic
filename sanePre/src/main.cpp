@@ -473,16 +473,16 @@ int main(int argc, char *argv[])
 
 #if defined(USE_MPI) && ! defined(PARA_BOLO)
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 
-			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det, ns, 0, 1, indpix, iframe, hitsNaiv);
+			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, ns, 0, 1, indpix, iframe, hitsNaiv);
 			// Returns Pnd = (At N-1 d), Mp and hits
 #else
 			do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
-					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 			// Returns Pnd = (At N-1 d), Mp and hits
 
-			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, ns, rank, size, indpix, iframe, hitsNaiv);
+			do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, proc_param.poly_order, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
 #endif
@@ -554,7 +554,7 @@ int main(int argc, char *argv[])
 
 		fnaivname = '!' + dir.output_dir + "naivMap.fits";
 		cout << "Output file : " << fnaivname << endl;
-		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0); // create naive Map fits file with naive map image
+		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0); // create naive Map fits file with first de-noised map image
 
 		// TODO: Save the map of flag data if needed
 
@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					if(hits[indpix[mi]]>0)
+//					if(hitsNaiv[indpix[mi]]>0)
 						map1d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitsNaiv[indpix[mi]];
 				} else {
 					map1d[mi] = NAN;
