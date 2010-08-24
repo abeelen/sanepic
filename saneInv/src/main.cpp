@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return 0;
 	}
 
 	std::vector<string>::iterator it;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 			cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
 	}else{
 		n_iter = size_tmp;
-//		n_iter = (int)samples_struct.noisevect.size();
+		//		n_iter = (int)samples_struct.noisevect.size();
 		if(n_iter==0){
 			if(rank==0)
 				cerr << "WARNING. You have forgotten to mention covariance matrix in ini file or fits_filelist\n";
@@ -117,14 +117,21 @@ int main(int argc, char *argv[]) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			exit(1);
+			return 0;
 		}
 		if(rank==0)
 			cout << n_iter << " covariance Matrix will be inverted\n" << endl;
 	}
 
 	// Input argument for output : channellist
-	read_strings(boloname, channelOut);
+	if(read_strings(boloname, channelOut)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return 0;
+	}
+
 
 	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	ndet = channelOut.size();
@@ -163,8 +170,13 @@ int main(int argc, char *argv[]) {
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
 			// write inversed noisePS in a binary file for each detector
-			write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname);
-
+			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname)){
+#ifdef USE_MPI
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return 0;
+			}
 			// MAJ format file
 			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
 
