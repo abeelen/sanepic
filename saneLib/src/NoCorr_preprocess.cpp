@@ -76,7 +76,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 
 
 		//// Read pointing
-		read_samptopix(ns, samptopix, tmp_dir, iframe,field);
+		read_samptopix(ns, samptopix, tmp_dir, fits_filename,field);
 
 
 		if (S != NULL){
@@ -148,7 +148,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct common dir,
 		struct detectors det,double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		long iframe, double *PtNPmatS, double *Mp, long *hits, int rank, int size)
+		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int rank, int size)
 
 {
 
@@ -174,7 +174,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct common dir,
 
 		field = det.boloname[idet];
 
-		read_samptopix(ns, samptopix, dir.tmp_dir, iframe,field);
+		read_samptopix(ns, samptopix, dir.tmp_dir, fname,field);
 
 
 		// AS

@@ -24,7 +24,7 @@ void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout); // on 
 void mergedata(double y1[], int ndata1, double y2[], int ndata2, double *yout); // on peut garder
 void dindgen(int nn, double *y); // on peut garder
 
-
+void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille);
 void fillgaps(double y[], int ndata, double* yout,  int* flag, double sign); // fait par Patanchon
 
 

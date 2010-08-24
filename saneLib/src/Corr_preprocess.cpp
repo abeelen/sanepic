@@ -1,9 +1,3 @@
-/*
- * Corr_preprocess.cpp
- *
- *  Created on: 20 juil. 2009
- *      Author: matthieu
- */
 
 #include <iostream>
 #include <string>
@@ -34,8 +28,8 @@ using namespace std;
 
 
 
-void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, string dir, long ns, long iframe, int rank, int size,fftw_complex *fPs_buffer)
+int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, string dir, long ns, string filename, int rank, int size,fftw_complex *fPs_buffer)
 {
 
 
@@ -65,10 +59,11 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, iframe, det.boloname[idet1]);
+		if(read_samptopix(ns, samptopix, dir, filename, det.boloname[idet1]))
+			return 1;
 
-		//		cout << "samptopix : " << endl;
-		//		cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
+		//				cout << "samptopix : " << endl;
+		//				cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
 
 		// temporary down
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
@@ -84,7 +79,8 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
 			}
 		else
-			write_fdata(ns, fdata, "fPs_", dir, idet1, iframe, det.boloname);
+			if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det.boloname))
+				return 1;
 
 	}
 
@@ -92,9 +88,10 @@ void write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, 
 	delete[] Ps;
 	delete[] fdata;
 
+	return 0;
 }
 
-void write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
+int write_ftrProcesdata(double *S, struct param_process proc_param, struct samples samples_struct, struct param_positions pos_param,
 		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int rank, int size, std::string fname, fftw_complex *fdatas)
 {
@@ -196,13 +193,15 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 
 		long test_ns;
-		read_signal_from_fits(fits_filename, field1, data, test_ns);
+		if(read_signal_from_fits(fits_filename, field1, data, test_ns))
+			return 1;
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
 			exit(-1);
 		}
 
-		read_flag_from_fits(fits_filename , field1, flag, test_ns);
+		if(read_flag_from_fits(fits_filename , field1, flag, test_ns))
+			return 1;
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 			exit(-1);
@@ -219,7 +218,12 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 
 		if (S != NULL){
 			//// Read pointing
-			read_samptopix(ns, samptopix, tmp_dir, iframe, field1);
+			if(read_samptopix(ns, samptopix, tmp_dir, fits_filename, field1))
+				return 1;
+
+//			cout << "samptopix : " << endl;
+//			cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
+
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
 			if (addnpix){
@@ -272,7 +276,8 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 			}
 		else
 			//write fourier transform to disk
-			write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, iframe, det.boloname);
+			if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det.boloname))
+				return 1;
 
 
 		delete [] flag;
@@ -291,11 +296,12 @@ void write_ftrProcesdata(double *S, struct param_process proc_param, struct samp
 	file.close();
 #endif
 
+	return 0;
 }
 
-void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
+int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		struct detectors det, double f_lppix, double fsamp, long ns, int rank, int size,
-		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
+		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe, string filename,
 		double *Mp, long *hits,std::string fname,fftw_complex *fdatas)
 {
 
@@ -371,7 +377,8 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		file << "before read samptopix : at " << asctime (timeinfo) << endl;
 #endif
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, iframe, field1);
+		if(read_samptopix(ns, samptopix, dir, filename, field1))
+			return 1;
 #ifdef DEBUG
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
@@ -392,7 +399,8 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		file << "before read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
 
-		read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all);
+		if(read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all))
+			return 1;
 #ifdef DEBUG
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
@@ -423,7 +431,8 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 				}
 			else
 				//read Fourier transform of the data
-				read_fdata(ns, fdata, prefixe, dir, idet2, iframe, det.boloname);
+				if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det.boloname))
+					return 1;
 
 
 
@@ -530,21 +539,25 @@ void do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	file.close();
 #endif
 
-
+	return 0;
 }
 
 
-void do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, long ns, int rank, int size,
+int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, int orderpoly, long ns, int rank, int size,
 		long long *indpix, long iframe, long *hits)
 {
 
 
 	string field1;
 	long ns_test=0;
-	double *data;
+	double *data, *data_lp, *data_out;
 	long long *samptopix;
+	double aa, bb;
+	int *flag;
 
 	data =  new double[ns];
+	data_lp =  new double[ns];
+	data_out = new double[ns];
 	samptopix = new long long[ns];
 
 
@@ -554,19 +567,77 @@ void do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detect
 
 
 		//Read pointing data
-		read_samptopix(ns, samptopix, dir, iframe, field1);
+		if(read_samptopix(ns, samptopix, dir, file[iframe], field1))
+			return 1;
 
-		read_signal_from_fits(file[iframe], field1, data, ns_test);
+		if(read_signal_from_fits(file[iframe], field1, data, ns_test))
+			return 1;
 		if(ns!=ns_test){
 			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
 			exit(0);
 
 		}
 
+		if(read_flag_from_fits(file[iframe], field1, flag, ns_test))
+			return 1;
+		if (ns_test != ns) {
+			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+			exit(-1);
+		}
+
+
+		fill(data_out,data_out+ns,0.0);
+
+		//fill gaps with straight line
+		//		fillgaps(data,ns,data_out,flag,0);
+		fillgaps2(data,ns,data_out,flag,40);
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data_out[ii];
+
+		//remove polynomia to correct from time varying calibration
+		remove_poly(data,ns,orderpoly,data_out,flag);
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data_out[ii]/**calp[ii/20]*/;
+
+		//linear prediction
+		for (long ii=0;ii<ns;ii++)
+			data_lp[ii] = data[ii];
+
+
+		/// remove a baseline
+		aa = (data_lp[ns-1]-data[0])/double(ns);
+		bb = data_lp[0];
+		for (long ii=0;ii<ns;ii++)
+			data_lp[ii] -= aa*(double)ii+bb;
+
+		//		//Butterworth filter (if necessary)
+		//		if (f_lppix > 0.0){
+		//			butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
+		//			for (long ii=0;ii<(ns);ii++)
+		//				data_lp[ii] = data_out_lp[ii];
+		//		} else{
+		//			for (long ii=0;ii<(ns)/2+1;ii++)
+		//				bfilter[ii] = 1.0;
+		//		}
+
+
+
+
+		//******************* process gaps
+		for (long ii=0;ii<ns;ii++)
+			data_out[ii] = data_lp[ii];
+		//		fillgaps(data_out,ns,data,flag,0);
+		fillgaps2(data_out,ns,data,flag,40);
+		for (long ii=0;ii<ns;ii++)
+			data_lp[ii] = data[ii];
+
+
+
+
 
 		for (long ii=0;ii<ns;ii++){
 			//if(PNd[indpix[samptopix[ii]]]!=0.0)
-			PNd[indpix[samptopix[ii]]] += data[ii];
+			PNd[indpix[samptopix[ii]]] += data_lp[ii];
 		}
 
 		//compute hit counts
@@ -582,7 +653,9 @@ void do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detect
 
 	delete[] samptopix;
 	delete[] data;
+	delete[] data_lp;
 
+	return 0;
 }
 
 

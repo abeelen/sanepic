@@ -77,7 +77,7 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 	sy = new double[ndata];
 	a = new double[norder+1];
 
-//	cout << ndata << endl;
+	//	cout << ndata << endl;
 	j=0;
 	for (long i = 0; i < ndata; i++) {
 		//if(flag != NULL && flag[i]) continue;
@@ -88,7 +88,7 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 	}
 	ndint = j;
 
-//	cout << "avant fitpoly : " << ndint << " " << norder << endl;
+	//	cout << "avant fitpoly : " << ndint << " " << norder << endl;
 	//	dpolyfit(sx,sy,ndint,norder,a);
 	fitpoly(norder, ndint, sx, sy, a);
 
@@ -167,7 +167,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-		{
+												{
 
 	//int ii;
 	double *apodis;
@@ -189,7 +189,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-		}
+												}
 
 
 
@@ -495,6 +495,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 		/////////////  linear interpolation
+		// because, by convention, some spectrum can be negatives !!!
 		for (int ibin=0;ibin<nbins-1;ibin++){
 			ellmin = ellm[ibin];
 			ellmax = ellm[ibin+1];
@@ -852,6 +853,251 @@ void dindgen(int nn, double *y)
 }
 
 
+void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
+
+	int indic=0;
+	std::vector<long> buf_0, buf_1;
+	long p=0;
+	double *sx, *sy, *a;
+
+	a = new double[2];
+	a[0]=0.0;
+	a[1]=0.0;
+
+	sx= new double[taille];
+	sy= new double[taille];
+
+	for(long ff=0;ff<ns;ff++)
+		if(flag[ff]==0)
+			yout[ff]=data[ff];
+
+	buf_0.push_back(0);
+	buf_1.push_back(0);
+
+	if(flag[0]==1){
+		buf_0.push_back(0);
+		indic=1;
+	}
+
+	for(long ii=1; ii<ns;ii++)
+		if(flag[ii]!=flag[ii-1]){
+			if(indic==1){
+				buf_1.push_back(ii-p);
+				indic=0;
+				p=ii;
+			}else{
+				buf_0.push_back(ii-p);
+				indic=1;
+				p=ii;
+			}
+		}
+
+
+	if(indic==0)
+		buf_0.push_back(ns-p);
+	else
+		buf_1.push_back(ns-p);
+
+	buf_0.erase(buf_0.begin());
+	buf_1.erase(buf_1.begin());
+
+	//	for(long jj=0;jj<(long)buf_0.size();jj++)
+	//		cout << buf_0[jj] << " ";
+	//	cout <<  endl;
+	//
+	//	for(long jj=0;jj<(long)buf_1.size();jj++)
+	//		cout << buf_1[jj] << " ";
+	//	cout <<  endl;
+
+
+	long n=(long)buf_0.size();
+
+	long flag_precedent=0;
+	long init=0;
+
+	if(buf_0[0]==0)
+		init=(long)buf_1[0];
+
+	long i=0;
+	long reste;
+	long p_beg=0, p_end=0;
+	long miss=0;
+	int case_b=1;
+	int case_e=1;
+
+	while(i<n-1){
+		//		cout << "\nsolution pour i = " << i << "sur " << n-1 << endl;
+
+		fill(sx,sx+taille,0.0);
+		fill(sy,sy+taille,0.0);
+
+		miss=0;
+
+		if(buf_0[i]>=taille/2){ // enough samples before gap
+			p_beg=buf_0[i]-taille/2+flag_precedent; // get first indice in data array (we don't take flagged samples)
+			//			cout << "case 1 : p_beg = " << p_beg << endl;
+			case_b=1;
+			for(int gg=0;gg<taille/2;gg++){ // fill x and y arrays for fitpoly with the good samples found
+				sx[gg]=gg;
+				sy[gg]=data[p_beg+gg];
+			}
+			reste=0; // we have taille/2 samples before gap so no need to get more than taille/2 after gap : reste=0
+
+		}else{ // not enough samples before gap
+
+			p_beg=flag_precedent+init; // get first indice in data array (we don't take flagged samples)
+			reste=taille/2-buf_0[i]; // reste = number of samples to take after gap because there were not enough before
+			//			cout << "case 2 : p_beg = " << p_beg << endl;
+			case_b=2;
+			for(int gg=0;gg<buf_0[i];gg++){ // fill x and y arrays for fitpoly with the good samples found
+				sx[gg]=gg;
+				sy[gg]=data[p_beg+gg];
+			}
+		}
+		long old_i=i;
+		long sum_0=0;
+		//		long miss=0;
+		if(buf_0[i+1]>=(taille/2+reste)){ // enough samples just after the gap
+			p_end=taille+buf_1[i]+p_beg-init-1;
+			//			cout << "case 1 : p_end = " << p_end << endl;
+			case_e=1;
+			for(int gg=taille/2-reste;gg<taille;gg++){
+				sx[gg]=buf_1[i]+gg;
+				sy[gg]=data[p_beg+buf_1[i]-init+gg];
+			}
+		}else{ // not enough samples just after the gap, consider a new gap AND the good samples after it to have enough good samples
+			while(sum_0<taille/2+reste){ // check how many gap we need to "over-fill"
+				i++;
+				if(i>n-1){
+					i--;
+					break;
+				}
+				sum_0 += buf_0[i];
+			}
+			if(sum_0>taille/2+reste){ // we have found enough good samples
+				p_end=taille+p_beg-1;
+				for(long ff=old_i;ff<i;ff++)
+					p_end+=buf_1[ff];
+				//				cout << "case 2 : p_end = " << p_end << endl;
+				case_e=2;
+
+			}else{ // end of flag array and we have not enough (<taille) good samples for fitpoly
+
+				p_end=taille/2-reste+sum_0+p_beg-1; // case last buf_0 < taille/2+reste
+				for(long ff=old_i;ff<i;ff++)
+					p_end+=buf_1[ff];
+				//				cout << "case 3 : p_end = " << p_end << endl;
+				case_e=3;
+			}
+			i--;
+
+			long indice=0;
+			for(long gg=p_beg;gg<=p_end;gg++){
+				if(flag[gg]==1){
+					continue;
+				}
+				sx[indice]=gg-p_beg;
+				sy[indice]=data[gg];
+				indice++;
+			}
+			miss = taille-indice;
+		}
+
+
+		fitpoly(1, taille-miss, sx, sy, a);
+
+		for (long j=p_beg;j<=p_end;j++){
+			if(flag[j]==1)
+				yout[j] = a[0]+a[1]*(j-p_beg);
+		}
+
+		i++;
+		if(i<n-1){
+			//			cout << "calcul flag_prec, mon i vaut : " << i << endl;
+			flag_precedent=0;
+			for(long gg=0;gg<i;gg++)
+				flag_precedent+=buf_0[gg] + buf_1[gg];
+		}
+
+
+		//if(((case_b==2)&&(case_e==2))||(case_e==3)){
+		//cout << "\nsolution pour i = " << i << "sur " << n-1 << endl;
+		//cout << "case_b = " << case_b << " et case_e = " << case_e << endl;
+		//cout << "p_beg = " << p_beg << " et p_end = " << p_end << endl;
+		//cout << taille-miss << endl;
+		//// debug
+		//cout << "flag_prec : " << flag_precedent << endl;
+		//cout << "sx : ";
+		//for(int gg=0;gg<taille;gg++)
+		//cout << sx[gg] << " ";
+		//cout << "\nsy : ";
+		//for(int gg=0;gg<taille;gg++)
+		//	cout << sy[gg] << " ";
+		//cout << "\n";
+		//for(long jj=0;jj<(long)buf_0.size();jj++)
+		//	cout << buf_0[jj] << " ";
+		//cout <<  endl;
+		//for(long jj=0;jj<(long)buf_1.size();jj++)
+		//	cout << buf_1[jj] << " ";
+		//cout <<  endl;
+		//}
+
+
+
+		init=0;
+
+	}
+
+	if(n==(long)buf_1.size()){
+		if(buf_0[n]>=taille){
+			p_beg=ns-buf_1[n]-taille;
+			p_end=p_beg+taille-1;
+			for(int gg=0;gg<taille;gg++){ // fill x and y arrays for fitpoly with the good samples found
+				sx[gg]=gg;
+				sy[gg]=data[p_beg+gg];
+			}
+			//	cout << "case end : p_beg = " << p_beg << endl;
+			//cout << "case end : p_end = " << p_beg+taille-1 << endl;
+
+			fitpoly(1, taille, sx, sy, a);
+			for (long j=p_beg;j<=ns-1;j++){
+				if(flag[j]==1)
+					yout[j] = a[0]+a[1]*(j-p_beg);
+			}
+
+			// debug
+			//cout << "flag_prec last !!! : " << flag_precedent << endl;
+			//cout << "sx : ";
+			//for(int gg=0;gg<taille;gg++)
+			//cout << sx[gg] << " ";
+			//cout << "\nsy : ";
+			//for(int gg=0;gg<taille;gg++)
+			//cout << sy[gg] << " ";
+			//cout << "\n";
+			//for(long jj=0;jj<(long)buf_0.size();jj++)
+			//cout << buf_0[jj] << " ";
+			//cout <<  endl;
+
+			//for(long jj=0;jj<(long)buf_1.size();jj++)
+			//cout << buf_1[jj] << " ";
+			//cout <<  endl;
+		}else{
+			//cout << "use last poly and fit with it\n\n\n" << endl;
+			p_end=ns-1;
+			for (int j=p_beg;j<=p_end;j++){
+				if(flag[j]==1)
+					yout[j] = a[0]+a[1]*(j-p_beg);
+			}
+			// use last poly and fit with it
+		}
+	}
+
+	delete [] sx;
+	delete [] sy;
+	delete [] a;
+
+
+}
 
 
 void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
@@ -894,7 +1140,7 @@ void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
 
 
 	for (i=0;i<ndata;i++){
-		if (flag[i] == 1){
+		if (flag[i] != 0){
 			count++;
 			sp = 0;
 		}
@@ -904,7 +1150,7 @@ void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
 
 		if (sp && count){
 			countp = 0;
-			while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] != 1)){
+			while ((countp < margfit) && (countp+i<ndata-1) && (flag[i+countp] == 0)){
 				countp++;
 				if (i+countp >= ndata) printf("SDHFIDF\n");
 			}
@@ -963,8 +1209,10 @@ void fillgaps(double y[], int ndata, double* yout, int* flag, double sign)
 				}
 			}
 
-//			dpolyfit(xx,yy,countp+countm,1,a);
+			//			dpolyfit(xx,yy,countp+countm,1,a);
 			fitpoly(1, countp+countm, xx, yy, a);
+			//			if((countp+countm)<2)
+			//				cout << "sample : " << i << endl;
 
 
 			dindgen(count,xx2);

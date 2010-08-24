@@ -592,17 +592,15 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = abs(Nk[k])/sqrt((double)ndata);
+		Nk_[k][0] = abs(Nk[k]); //TODO :  osef normaliser ??
 		Nk_[k][1] = 0.0;
 	}
 	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
 	fftw_execute(fftplan);
 
 
-	for (long ii=0;ii<ndata;ii++){
+	for (long ii=0;ii<ndata;ii++)
 		pixpos[ii] = indpix[samptopix[ii]];
-	}
-
 
 
 
@@ -692,10 +690,9 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 			data[ii] = data[ii] - Ps[ii];
 
 	//*********************************************************************
-
 	if (NOFILLGAP == 0){
 		//fill gaps with straight line
-		fillgaps(data,ns,data_out,flag,0);
+		fillgaps2(data,ns,data_out,flag,40);
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii];
 	}
@@ -704,7 +701,7 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		//remove polynomia to correct from time varying calibration
 		remove_poly(data,ns,orderpoly,data_out,flag);
 		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii]/**calp[ii/20]*/;
+			data[ii] = data_out[ii];
 	}
 
 	//linear prediction
@@ -731,24 +728,15 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	}
 
 
-	//	cout << "data : " <<  data_lp[0] << " " << data_lp[1] << " " << data_lp[2] << " "  << data_lp[ns -1] << endl;
-
-	//	if (Ps != NULL)
-	//		for (long ii=0;ii<ns;ii++)
-	//			data_lp[ii] = data_lp[ii] - Ps[ii];
-
 
 	//******************* process gaps
 	if (NOFILLGAP == 0){
 		for (long ii=0;ii<ns;ii++)
 			data_out[ii] = data_lp[ii];
-		//		cout << "data : " <<  data_out[0] << " " << data_out[1] << " " << data_out[2] << " "  << data_out[ns -1] << endl;
-		fillgaps(data_out,ns,data,flag,0);
+		fillgaps2(data_out,ns,data,flag,40);
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data[ii];
 	}
-
-	//	cout << "data : " <<  data[0] << " " << data[1] << " " << data[2] << " "  << data[ns -1] << endl;
 
 	if (Ps != NULL){
 		for (long ii=0;ii<ns;ii++)
@@ -982,7 +970,7 @@ void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, do
 void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2, long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long long *indpsrc, long long npixsrc){
 
 
-	double a, b;
+	//	double a, b;
 	//long ll;
 
 	for (long long ii=0;ii<ndata;ii++){
@@ -994,21 +982,21 @@ void deproject(double *S, long long *indpix, long long *samptopix, long long nda
 			if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
 				Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
 			}
-//			else {
-//					cout << "there " << endl;
-//				a = 0.0;
-//				b = 0.0;
-//				if (ntotscan){
-//					for (long iframe=0;iframe<ntotscan;iframe++){
-//						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
-//							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
-//							b++;
-//						}
-//					}
-//				}
-//				if (b > 0.5)
-//					Ps[ii] = a/b;
-//			}
+			//			else {
+			//					cout << "there " << endl;
+			//				a = 0.0;
+			//				b = 0.0;
+			//				if (ntotscan){
+			//					for (long iframe=0;iframe<ntotscan;iframe++){
+			//						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
+			//							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
+			//							b++;
+			//						}
+			//					}
+			//				}
+			//				if (b > 0.5)
+			//					Ps[ii] = a/b;
+			//			}
 		}
 
 	}
