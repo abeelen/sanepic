@@ -122,8 +122,6 @@ int write_samptopix(long ns, long long *&samptopix, string outdir, string filena
 	//	std::ostringstream oss;
 	string outfile;
 
-
-
 	outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".bi";
 	// Transform into string
 
