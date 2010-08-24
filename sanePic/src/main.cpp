@@ -12,9 +12,11 @@
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
 #include "parser_functions.h"
+#include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"
+//#include "crc.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])
 
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
+	int load_data, save_data;
 
 
 	// main loop variables
@@ -133,7 +136,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
+				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -233,12 +236,12 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	for(long ii=0;ii<size;ii++){
-		if(rank==ii)
-			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-		else
-			MPI_Barrier(MPI_COMM_WORLD);
-	}
+	//	for(long ii=0;ii<size;ii++){
+	//		if(rank==ii)
+	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
+	//		else
+	//			MPI_Barrier(MPI_COMM_WORLD);
+	//	}
 #else
 #if defined(USE_MPI) && defined(PARA_BOLO)
 
@@ -253,7 +256,7 @@ int main(int argc, char *argv[])
 	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
 	if (test==-1){
 		if(rank==0)
-			cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
+			cerr << "Error in check_parallelizationScheme non-MPI " << endl;
 		exit(0);
 	}
 #endif
@@ -270,7 +273,13 @@ int main(int argc, char *argv[])
 		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
 
 	long long test_size;
-	read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir); // read mask index
+	if(read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir)){ // read mask index
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
 	if(test_size != NAXIS1*NAXIS2){ // check size compatibility
 		if(rank==0)
 			cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
@@ -287,7 +296,13 @@ int main(int argc, char *argv[])
 	if (pos_param.flgdupl) factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	// read indpix
-	read_indpix(ind_size, npix, indpix,  dir.tmp_dir, flagon); // read map index
+	if(read_indpix(ind_size, npix, indpix,  dir.tmp_dir, flagon)){ // read map index
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
 
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){ // check size compatibility
 		if(rank==0)
@@ -296,7 +311,14 @@ int main(int argc, char *argv[])
 	}
 
 	// read (At N-1 d) from file
-	read_PNd(PNdtot, npix2,  dir.tmp_dir);
+	if(read_PNd(PNdtot, npix2,  dir.tmp_dir)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
+
 
 	if (npix!=npix2){ // check size compatibility
 		if(rank==0)
@@ -314,8 +336,49 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* END PARAMETER PROCESSING */
+	/* Crash recovery Procedure */
 
+	//	bool crash_recovery(argv[1],dir.tmp_dir);
+	//	      FILE *fp;
+	//	      size_t len;
+	//	      char buf[4096], *file = "/home/matthieu/Sanepic_folders/H-ATLAS/sanepic_ATLAS-Gama9_PSW.ini";
+	//
+	//	      if (NULL == (fp = fopen(file, "rb")))
+	//	      {
+	//	            printf("Unable to open %s for reading\n", file);
+	//	            return -1;
+	//	      }
+	//	      len = fread(buf, sizeof(char), sizeof(buf), fp);
+	//	      printf("%d bytes read\n", len);
+	//	      printf("The checksum of %s is %#x\n", file, checksum(buf, len, 0));
+	//	      printf("The checksum of %s is %u\n", file, checksum(buf, len, 0));
+	//	      return 0;
+
+	//	cout << "test\n";
+	//	getchar();
+
+//	if(load_data>0){
+//		struct checksum chk_t,chk_t2;
+//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+//		read_checksum(dir.tmp_dir, chk_t2);
+//		if(compare_checksum(chk_t, chk_t2)){
+//			cout << "les checksum sont differents !!!" << endl;
+//			return EXIT_FAILURE;
+//		}
+//	}
+//
+//
+//	if(save_data>0){
+//		struct checksum chk_t;
+//		/* Compute Checsum for crash recovery ! */
+//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+//		write_checksum(dir.tmp_dir, chk_t);
+//	}
+
+
+	/*  END OF CHECKSUM   */
+
+	/* END PARAMETER PROCESSING */
 
 
 	if(rank==0)
@@ -391,10 +454,10 @@ int main(int argc, char *argv[])
 				//TODO : What in the normal case ?
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 				// read pointing + deproject + fourier transform
 #else
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], rank, size);
 #endif
 
 
@@ -410,11 +473,11 @@ int main(int argc, char *argv[])
 #endif
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 				// return Pnd = At N-1 d
 #else
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank);
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 
 #endif
 
@@ -423,7 +486,7 @@ int main(int argc, char *argv[])
 
 				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
 						proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
-						iframe, PtNPmatS, Mp, hits,rank,size);
+						iframe,samples_struct.fits_table[iframe], PtNPmatS, Mp, hits,rank,size);
 			}
 
 		} // end of iframe loop
@@ -483,7 +546,7 @@ int main(int argc, char *argv[])
 
 			delta0 = delta_n; // delta_0 <= delta_new
 			var0 = var_n;
-			printf("var0 = %lf\n",var0);
+			//			printf("var0 = %lf\n",var0);
 
 		}
 
@@ -500,9 +563,18 @@ int main(int argc, char *argv[])
 		//start loop
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
+		cout << var0 << endl;
+
+//		if(load_data>0){
+//			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, indpix, npixeff, var_n, delta_n, iter);
+//			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
+//		}
+
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
 				|| (!idupl && var_n/var0 > 1e-6) ){
+
+			//			cout << var0 << " " << " " << delta0 << " " << delta_o << endl;
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
@@ -514,10 +586,10 @@ int main(int argc, char *argv[])
 				if (proc_param.CORRon){
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 					// read pointing + deproject + fourier transform
 #else
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank, size);
+					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], rank, size);
 
 #endif
 
@@ -534,10 +606,10 @@ int main(int argc, char *argv[])
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 #else
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 
 #endif
 
@@ -546,7 +618,7 @@ int main(int argc, char *argv[])
 
 					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det,f_lppix_Nk,
 							proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
-							iframe, q, NULL, NULL,rank,size);
+							iframe,samples_struct.fits_table[iframe], q, NULL, NULL,rank,size);
 				}
 			} // end of iframe loop
 
@@ -594,10 +666,10 @@ int main(int argc, char *argv[])
 
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, 0, 1);
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 						// read pointing + deproject + fourier transform
 #else
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,iframe, rank,size);
+						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], rank,size);
 #endif
 #ifdef DEBUG
 						time ( &rawtime );
@@ -611,18 +683,18 @@ int main(int argc, char *argv[])
 #endif
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 						// return Pnd = At N-1 d
 #else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+								proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 #endif
 					} else {
 
 
 						do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
 								proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
-								iframe, PtNPmatS, NULL, NULL,rank,size);
+								iframe,samples_struct.fits_table[iframe], PtNPmatS, NULL, NULL,rank,size);
 					}
 				} // end of iframe loop
 
@@ -675,6 +747,10 @@ int main(int argc, char *argv[])
 
 				if (iterw && (iter % iterw) == 0){ // saving iterated maps
 
+//					if(save_data>0){
+//						write_disk(dir.tmp_dir, d, npixeff, var_n, delta_n, iter);
+//					}
+
 					// Every iterw iteration compute the map and save it
 
 					for (long ii=0; ii<NAXIS1; ii++) {
@@ -691,7 +767,14 @@ int main(int argc, char *argv[])
 					temp_stream << dir.output_dir + "optimMap_" << iter << "b.fits";
 					fname= temp_stream.str();
 					temp_stream.str("");
-					write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Image",0);
+					if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,(char *) "Image",0)){
+						cerr << "Error Writing map : EXITING ... \n";
+#ifdef USE_MPI
+						MPI_Barrier(MPI_COMM_WORLD);
+						MPI_Finalize();
+#endif
+						return 0;
+					}
 
 					if (pos_param.flgdupl){
 						for (long ii=0; ii<NAXIS1; ii++) {
@@ -709,7 +792,14 @@ int main(int argc, char *argv[])
 						}
 
 
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Flagged Data",1);
+						if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Flagged Data",1)){
+							cerr << "Error Writing map : EXITING ... \n";
+#ifdef USE_MPI
+							MPI_Barrier(MPI_COMM_WORLD);
+							MPI_Finalize();
+#endif
+							return 0;
+						}
 					}
 
 
@@ -747,7 +837,14 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "CCR Image", 1);
+						if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "CCR Image", 1)){
+							cerr << "Error Writing map : EXITING ... \n";
+#ifdef USE_MPI
+							MPI_Barrier(MPI_COMM_WORLD);
+							MPI_Finalize();
+#endif
+							return 0;
+						}
 
 						for (long ii=0; ii<NAXIS1; ii++) {
 							for (long jj=0; jj<NAXIS2; jj++) {
@@ -762,16 +859,28 @@ int main(int argc, char *argv[])
 									map1d[mi] = 1./sqrt(map1d[mi]);
 							}
 						}
-						write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"CCR Error",1);
+						if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"CCR Error",1)){
+							cerr << "Error Writing map : EXITING ... \n";
+#ifdef USE_MPI
+							MPI_Barrier(MPI_COMM_WORLD);
+							MPI_Finalize();
+#endif
+							return 0;
+						}
 					}
-					write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct);
+					if(write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct))
+						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 				} // end of saving iterated maps
 
 
-				cout << "iter = " << iter;
-				cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
-				cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
-				cout << "\r " << flush;
+				if(rank==0){
+					cout << "iter = " << iter;
+					cout << ", crit  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n/var0;
+					cout << ", crit2 = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n/delta0;
+					cout << ", var_n  = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << var_n;
+					cout << ", delta_n = " << setiosflags(ios::scientific) << setiosflags(ios::floatfield) << delta_n;
+					cout << "\r " << flush;
+				}
 
 				temp_stream << dir.output_dir + "ConvFile.txt";
 
@@ -839,11 +948,11 @@ int main(int argc, char *argv[])
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 					// return Pnd = At N-1 d
 #else
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
-							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,NULL,NULL, name_rank);
+							proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 #endif
 				} else {
 
