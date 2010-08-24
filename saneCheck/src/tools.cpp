@@ -195,9 +195,10 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 	long naxes[2] = { 1, 1 };
 
 
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
-
+		return -1;
+	}
 
 	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){ // go to channels table
 		fits_report_error(stderr, status); // is the table present ?
@@ -327,8 +328,11 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 	}
 
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return -1;
+	}
+
 
 	return 0;
 }
@@ -412,7 +416,7 @@ int check_altpositionHDU(string fname,long ns,struct detectors det, struct check
 	return 0;
 }
 
-void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_positionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
 /*! Check presence of non-flagged NANs in position tables */
 {
 
@@ -424,9 +428,11 @@ void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct che
 	int *flag; // to read mask table
 	if(check_it.checkREFERENCEPOSITION){
 		for(int ii=0;ii<det.ndet;ii++){
-			read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test); // read ra dec and phi
+			if(read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test)) // read ra dec and phi
+				return 1;
 
-			read_flag_from_fits(fname, det.boloname[ii], flag, ns); // read mask image
+			if(read_flag_from_fits(fname, det.boloname[ii], flag, ns)) // read mask image
+				return 1;
 
 			for(long jj=0;jj<ns_test;jj++){ // check NANs
 				if(isnan(ra[jj])&&(flag[jj]==0)){
@@ -449,7 +455,8 @@ void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct che
 
 	if(check_it.checkOFFSETS){
 		// flag indepedent
-		read_all_bolo_offsets_from_fits(fname, det.boloname, offsets); // read offsets table
+		if(read_all_bolo_offsets_from_fits(fname, det.boloname, offsets)) // read offsets table
+			return 1;
 
 		for(int ii=0;ii<det.ndet;ii++)
 			if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){ // check NANs
@@ -461,9 +468,11 @@ void check_NAN_positionHDU(string fname,long ns,struct detectors det, struct che
 		free_dmatrix(offsets,(long)0,det.ndet-1,(long)0,2-1);
 	}
 
+	return 0;
+
 }
 
-void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
 /*! check presence of non-flagged NANs in time, signal and mask tables */
 {
 
@@ -475,7 +484,8 @@ void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct check
 
 	// check nans in mask image
 	for(long jj=0;jj<det.ndet;jj++){
-		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
+		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
+			return 1;
 		for(int kk=0;kk<ns;kk++){
 			if(isnan(flag[kk])){
 				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
@@ -485,7 +495,8 @@ void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct check
 	}
 
 	// check nans in time image
-	read_time_from_fits(fname, time, ns);
+	if(read_time_from_fits(fname, time, ns))
+		return 1;
 	for(long jj=0;jj<ns;jj++){
 		if(isnan(time[jj])&&(flag[jj]==0)){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
@@ -497,7 +508,8 @@ void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct check
 
 	// check nans in signal
 	for(int ii=0;ii<det.ndet;ii++){
-		read_signal_from_fits(fname, det.boloname[ii], signal,ns_test);
+		if(read_signal_from_fits(fname, det.boloname[ii], signal,ns_test))
+			return 1;
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(signal[jj])&&(flag[jj]==0)){
 				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
@@ -506,9 +518,10 @@ void check_NAN_commonHDU(string fname,long ns,struct detectors det, struct check
 		delete [] signal;
 	}
 
+	return 0;
 }
 
-void check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
 /*! check non-flagged NANs in RA/DEC HIPE format */
 {
 
@@ -520,8 +533,12 @@ void check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct 
 
 
 	for(int ii=0;ii<det.ndet;ii++){
-		read_flag_from_fits(fname, det.boloname[ii], flag, ns_test); // read mask image
-		read_ra_dec_from_fits(fname, det.boloname[ii], ra, dec, ns_test); // read RA and DEC tables
+		if(read_flag_from_fits(fname, det.boloname[ii], flag, ns_test)) // read mask image
+			return 1;
+
+		if(read_ra_dec_from_fits(fname, det.boloname[ii], ra, dec, ns_test)) // read RA and DEC tables
+			return 1;
+
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(ra[jj])&&(flag[jj]==0)){ // check for NANs in RA
 				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
@@ -536,6 +553,7 @@ void check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct 
 
 	}
 
+	return 0;
 }
 
 bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fits_0_vect)
@@ -561,7 +579,7 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-void check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it)
+int check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it)
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
@@ -579,7 +597,8 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 		cout << det.boloname[jj];
 		ii=1;
 		sum=0;
-		read_flag_from_fits(fname, det.boloname[jj], flag, ns);
+		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
+			return 1;
 
 		while(ii<ns-1){
 
@@ -621,11 +640,12 @@ void check_flag(string fname,struct detectors det,long ns, string outname,long *
 		delete [] flag;
 	}
 
+	return 0;
 
 }
 
 
-void check_time_gaps(string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it)
+int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it)
 /*! check for time gaps in time table */
 {
 
@@ -641,7 +661,9 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 	double sum=0.0;
 	std::vector<double> freq; // The whole frequency that can be extracted from the time vector
 
-	read_time_from_fits(fname, time, ns);
+	if(read_time_from_fits(fname, time, ns))
+		return 1;
+
 	diff = new double [ns-1]; // differential time vector
 
 	for(long jj=0;jj<ns-1;jj++){
@@ -717,6 +739,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 	file.open(fname2.c_str(), ios::out | ios::trunc);
 	if(!file.is_open()){
 		cerr << "File [" << fname2 << "] Invalid." << endl;
+		return 1;
 	}else{
 		// store real_freq for saneFix
 		file << Populated_freq << " ";
@@ -733,7 +756,7 @@ void check_time_gaps(string fname,long ns, double fsamp, struct common dir, stru
 	delete [] time;
 	delete [] diff;
 
-
+	return 0;
 
 }
 

@@ -26,22 +26,22 @@ int check_commonHDU(std::string fname,long ns,struct detectors det, struct check
 int check_altpositionHDU(std::string fname,long ns,struct detectors det, struct checkHDU &check_it);
 
 /*! Check presence of non-flagged NANs in position tables */
-void check_NAN_positionHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
+int check_NAN_positionHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
 
 /*! check presence of non-flagged NANs in time, signal and mask tables */
-void check_NAN_commonHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
+int check_NAN_commonHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
 
 /*! check non-flagged NANs in RA/DEC HIPE format */
-void check_NAN_altpositionHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
+int check_NAN_altpositionHDU(std::string fname,long ns,struct detectors det, struct checkHDU check_it);
 
 /*! Check that a given fits file bolometer list is exactly the same as the first input fits file one */
 bool check_bolos(std::vector<std::string> bolo_fits_vect, std::vector<std::string> bolo_fits_0_vect);
 
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
-void check_flag(std::string fname,struct detectors det,long ns, std::string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it);
+int check_flag(std::string fname,struct detectors det,long ns, std::string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it);
 
 /*! check for time gaps in time table */
-void check_time_gaps(std::string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it);
+int check_time_gaps(std::string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it);
 
 /*! generating log files for user information */
 void log_gen(long  *bolo_, std::string outname, struct detectors det);
