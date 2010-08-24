@@ -141,9 +141,10 @@ int main(int argc, char *argv[])
 		string MixMatfile, ellFile, signame;
 		long ncomp=1;
 		int iterw=10;
+		int save_data, load_data;
 
 		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
+				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
 	if (rank==0)
@@ -233,12 +234,12 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	for(long ii=0;ii<size;ii++){
-		if(rank==ii)
-			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-		else
-			MPI_Barrier(MPI_COMM_WORLD);
-	}
+	//	for(long ii=0;ii<size;ii++){
+	//		if(rank==ii)
+	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
+	//		else
+	//			MPI_Barrier(MPI_COMM_WORLD);
+	//	}
 
 #else
 	iframe_min = 0;
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
 
 	ofstream file;
 	string outfile = dir.output_dir + parallel_scheme_filename;
-	cout << "outfile : " << outfile << endl;
+	//	cout << "outfile : " << outfile << endl;
 	file.open(outfile.c_str(), ios::out);
 	if(!file.is_open()){
 		cerr << "File [" << outfile << "] Invalid." << endl;
@@ -297,14 +298,26 @@ int main(int argc, char *argv[])
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
-				computeMapMinima(det.boloname,samples_struct,
+				if(computeMapMinima(det.boloname,samples_struct,
 						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max);
+						ra_min,ra_max,dec_min,dec_max)){
+#ifdef USE_MPI
+					MPI_Barrier(MPI_COMM_WORLD);
+					MPI_Finalize();
+#endif
+					return(EXIT_FAILURE);
+				}
 				break;
 			case 1:
-				computeMapMinima_HIPE(det.boloname,samples_struct,
+				if(computeMapMinima_HIPE(det.boloname,samples_struct,
 						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max);
+						ra_min,ra_max,dec_min,dec_max)){
+#ifdef USE_MPI
+					MPI_Barrier(MPI_COMM_WORLD);
+					MPI_Finalize();
+#endif
+					return(EXIT_FAILURE);
+				}
 				break;
 			}
 		}
@@ -362,8 +375,15 @@ int main(int argc, char *argv[])
 
 		string extname="mask";
 
-		if (read_mask_wcs(pos_param.maskfile, extname, /*(char) 's',*/ wcs, NAXIS1, NAXIS2, mask ))
+		if (read_mask_wcs(pos_param.maskfile, extname, /*(char) 's',*/ wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
 
 		npixsrc = 0;
 		indpsrc = new long long[NAXIS1*NAXIS2];
@@ -383,7 +403,13 @@ int main(int argc, char *argv[])
 
 	if (rank == 0) {
 		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
-		save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2);
+		if(save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
 	}
 
 
@@ -417,20 +443,32 @@ int main(int argc, char *argv[])
 
 	switch (pos_param.fileFormat) {
 	case 0:
-		computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+		if(computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout);
+				indpsrc, npixsrc, flagon, pixout)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
 		break;
 	case 1:
-		computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
+		if(computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout);
+				indpsrc, npixsrc, flagon, pixout)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
 		break;
 	}
 
@@ -459,8 +497,21 @@ int main(int argc, char *argv[])
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
-		write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon);
-		write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir);
+		if(write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+		if(write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
 
 		delete [] indpsrc;
 		delete [] indpix;
@@ -482,7 +533,7 @@ int main(int argc, char *argv[])
 
 	if(rank==0){
 #ifdef DEBUG_PRINT
-		printf("\nTemps de traitement : %d sec\n",(int)(t3-t2));
+		printf("\nProcessing time : %d sec\n",(int)(t3-t2));
 #endif
 		printf("\nCleaning up\n");
 	}

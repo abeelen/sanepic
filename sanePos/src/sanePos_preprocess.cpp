@@ -20,7 +20,7 @@
 
 using namespace std;
 
-void computePixelIndex(string outdir, std::vector<string> bolonames,
+int computePixelIndex(string outdir, std::vector<string> bolonames,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -53,17 +53,19 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
+		if(read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets))
+			return 1;
 		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
 		// read reference position
 		long test_ns;
-		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
+		if(read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns))
+			return 1;
 		//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
-			exit(-1);
+			return 1;
 		}
 
 		// find the pointing solution at each time stamp for each detector
@@ -163,10 +165,11 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 			int *bolo_flag=NULL;
 
 			long test_ns;
-			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
+			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+				return 1;
 			if (test_ns != ns) {
 				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 
 
@@ -236,7 +239,8 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 
 			}
 
-			write_samptopix(ns, samptopix,  outdir, iframe, bolonames[idet]);
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, bolonames[idet]))
+				return 1;
 
 			delete [] bolo_flag;
 			delete [] samptopix;
@@ -252,9 +256,11 @@ void computePixelIndex(string outdir, std::vector<string> bolonames,
 		delete [] sinphi;
 
 	} // end of iframe loop
+
+	return 0;
 }
 
-void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
+int computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -302,20 +308,23 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 			yy     = new long long[ns];
 			wcsstatus = new int[ns];
 
-			read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns);
+			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
+				return 1;
+
 			if (test_ns != ns) {
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 			//			read_dec_from_fits(fits_file, field, dec, test_ns);
 			//			if (test_ns != ns) {
 			//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
 			//				exit(-1);
 			//			}
-			read_flag_from_fits(fits_file, field, flag, test_ns);
+			if(read_flag_from_fits(fits_file, field, flag, test_ns))
+				return 1;
 			if (test_ns != ns) {
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 			for (long ii=0; ii <ns; ii++){
 				world[2*ii]   = ra[ii];
@@ -364,7 +373,8 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			int *bolo_flag=NULL;
 
-			read_flag_from_fits(fits_file, field, bolo_flag, test_ns);
+			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+				return 1;
 
 			if (test_ns != ns) {
 				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
@@ -437,7 +447,8 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			}
 
-			write_samptopix(ns, samptopix,  outdir, iframe, bolonames[idet]);
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, bolonames[idet]))
+				return 1;
 
 			delete [] bolo_flag;
 			delete [] samptopix;
@@ -446,5 +457,7 @@ void computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 		}
 	}
+
+	return 0;
 
 }

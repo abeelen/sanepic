@@ -1,4 +1,4 @@
-AC_INIT(main.cpp)
+AC_INIT(main.cpp, 0.0.1)
 AM_INIT_AUTOMAKE(sanePos,0.0.1)
 AM_CONFIG_HEADER(config.h)
 AM_PROG_LIBTOOL
@@ -57,4 +57,4 @@ AM_CONDITIONAL([MPC], [test x$mpi = xtrue])
 AM_CONDITIONAL([MPC2], [test x$para = xtrue])
 
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT

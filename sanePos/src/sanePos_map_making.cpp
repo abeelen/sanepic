@@ -30,7 +30,7 @@ using namespace std;
 //		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
 //		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 
-void computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
+int computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 {
@@ -61,7 +61,8 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets);
+		if(read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets))
+			return 1;
 
 		//		for (long idet = 0; idet < ndet; idet++){
 		//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
@@ -69,11 +70,13 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 
 		// read reference position
 		long test_ns;
-		read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns);
+		if(read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns))
+			return 1;
+
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame position" << endl;
 			cerr << "Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 		// find the pointing solution at each time stamp for each detector
@@ -178,6 +181,8 @@ void computeMapMinima(std::vector<string> bolonames, struct samples samples_stru
 	dec_min = dec_min;
 	dec_max = dec_max;
 
+	return 0;
+
 }
 
 int minmax_flag(double  *& array, int *& flag, long size, double & min_array, double &  max_array){
@@ -208,7 +213,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 	return EXIT_SUCCESS;
 }
 
-void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_struct,
+int computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
@@ -243,7 +248,9 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			int *flag=NULL;
 			long test_ns;
 
-			read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns);
+			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
+				return 1;
+
 			if (test_ns != ns) {
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				exit(-1);
@@ -254,10 +261,12 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 			//				exit(-1);
 			//			}
 
-			read_flag_from_fits(fits_file, field, flag, test_ns);
+			if(read_flag_from_fits(fits_file, field, flag, test_ns))
+				return 1;
+
 			if (test_ns != ns) {
 				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 
 
@@ -295,6 +304,8 @@ void computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples
 	ra_max  = ra_max/15;
 	dec_min = dec_min;
 	dec_max = dec_max;
+
+	return 0;
 
 }
 

@@ -23,11 +23,11 @@ extern "C" {
 //		long iframe_min, long iframe_max, long *nsamples,double pixdeg,
 //		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-void computeMapMinima(std::vector<std::string> bolonames, struct samples samples_struct,
+int computeMapMinima(std::vector<std::string> bolonames, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-void computeMapMinima_HIPE(std::vector<std::string> bolonames, struct samples samples_struct,
+int computeMapMinima_HIPE(std::vector<std::string> bolonames, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 

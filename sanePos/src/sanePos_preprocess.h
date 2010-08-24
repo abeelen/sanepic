@@ -11,13 +11,13 @@ extern "C" {
 }
 
 
-void computePixelIndex(std::string outdir, std::vector<std::string> bolonames,
+int computePixelIndex(std::string outdir, std::vector<std::string> bolonames,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
 
-void computePixelIndex_HIPE(std::string outdir, std::vector<std::string> bolonames,
+int computePixelIndex_HIPE(std::string outdir, std::vector<std::string> bolonames,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
