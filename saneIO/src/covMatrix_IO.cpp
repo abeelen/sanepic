@@ -61,7 +61,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 
 
 //sanePS
-void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
+int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
 /*
  * This function write the NoiseNoise Matrices in a fits file.
  */
@@ -71,8 +71,10 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long nBolos = bolos.size();
 
-	if (fits_create_file(&fptr, fname.c_str(), &status))
+	if (fits_create_file(&fptr, fname.c_str(), &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// write the Channel List
@@ -124,15 +126,18 @@ void write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double
 			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
 			&status);
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	delete [] data;
 
+	return 0;
 }
 
 //saneInv
-void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, double **&Rellth)
+int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, double **&Rellth)
 /*
  * This function read the NoiseNoise Matrices.
  */
@@ -145,13 +150,17 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 
 	//	cout << fname << endl;
 
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 
 
@@ -191,12 +200,16 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 
 	// ---------------------------------------------
 	// read the spectras
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	fits_get_img_size(fptr, 2, naxes, &status);
-	if (naxes[1] != nBolos*nBolos || naxes[0] != nbins)
+	if (naxes[1] != nBolos*nBolos || naxes[0] != nbins){
 		fits_report_error(stderr,213);
+		return 1;
+	}
 
 	Rellth = dmatrix(0, nBolos * nBolos - 1, 0, nbins - 1);
 
@@ -205,9 +218,12 @@ void read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, doubl
 		fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, (Rellth)[i], NULL, &status);
 	}
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
+	return 0;
 }
 
 //void write_CovMatrix2(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
@@ -370,7 +386,7 @@ long maxStringLength(std::vector<string> strings) {
 
 
 //saneInv
-void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * ell,
+int write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * ell,
 		double **Rellth, string outputDir, string suffix)
 /*
  * This function writes the Inverse Covariance Matrices in binary format
@@ -387,7 +403,7 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 		filename = outputDir + "Noise_data/" + bolos[idet] + "_" + suffix;
 		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
 			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
-			exit(1);
+			return 1;
 		}
 
 		// write sizes
@@ -401,6 +417,8 @@ void write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * 
 		// close file
 		fclose(fpw);
 	}
+
+	return 0;
 
 }
 
@@ -430,8 +448,7 @@ void write_InvNoise_interpPowerSpectra(std::string bolo, long ns,
 
 }
 
-//saneLIB
-void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
+int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 		long * nbins, long * ndet, double ** ell, double *** SpN_all)
 /*
  * This function reads the Inverse Covariance Matrices in binary format
@@ -445,9 +462,8 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
 	//	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-		cerr << "ERROR: Can't read noise power spectra file" << filename
-		<< endl;
-		exit(1);
+		cerr << "ERROR: Can't read noise power spectra file" << filename << endl;
+		return 1;
 	}
 	// Read sizes
 	result = fread(nbins, sizeof(long), 1, fp);
@@ -471,6 +487,8 @@ void read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 
 	fclose(fp);
 
+	return 0;
+
 }
 
 void read_InvNoise_interpPowerSpectra(string outputDir, double *&SpN_tot, long ns, string boloName, string suffix)
@@ -487,7 +505,7 @@ void read_InvNoise_interpPowerSpectra(string outputDir, double *&SpN_tot, long n
 	//	cout << filename << endl;
 	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
 		cerr << "ERROR: Can't read noise power spectra file" << filename
-		<< endl;
+				<< endl;
 		exit(1);
 	}
 

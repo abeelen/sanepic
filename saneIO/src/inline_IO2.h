@@ -31,8 +31,8 @@ bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long
  * -indpix the pixels indices in the map \n
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
-void write_indpix(long long ind_size, long long npix, long long *indpix,  std::string outdir, int flagon);
-void read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::string outdir, int &flagon);
+int write_indpix(long long ind_size, long long npix, long long *indpix,  std::string outdir, int flagon);
+int read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::string outdir, int &flagon);
 
 /*!
  * Reads indpix from a binary file \n
@@ -42,8 +42,8 @@ void read_indpix(long long &ind_size, long long &npix, long long *&indpix, std::
  * -flagon : boolean, indicates whether a sample has been rejected or not
  */
 
-void write_indpsrc(long long map_size,  long long  npixsrc, long long * indpsrc,   std::string outdir);
-void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,   std::string outdir);
+int write_indpsrc(long long map_size,  long long  npixsrc, long long * indpsrc,   std::string outdir);
+int  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,   std::string outdir);
 
 
 
@@ -52,14 +52,14 @@ void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void write_PNd(double *PNd, long long npix, std::string outdir);
+int write_PNd(double *PNd, long long npix, std::string outdir);
 
 /*!
  * Reads PNd from a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-void read_PNd(double *&PNdtot, long long &npix, std::string outdir);
+int read_PNd(double *&PNdtot, long long &npix, std::string outdir);
 
 /*!
  * Writes samptopix in a binary file \n
@@ -68,7 +68,7 @@ void read_PNd(double *&PNdtot, long long &npix, std::string outdir);
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long iframe, std::string boloname);
+int write_samptopix(long ns, long long *&samptopix,  std::string outdir, std::string filename, std::string boloname);
 
 /*!
  * Reads samptopix from a binary file \n
@@ -77,7 +77,7 @@ void write_samptopix(long ns, long long *&samptopix,  std::string outdir, long i
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-void read_samptopix(long ns, long long *&samptopix, std::string outdir, long iframe, std::string boloname);
+int read_samptopix(long ns, long long *&samptopix, std::string outdir, std::string filename, std::string boloname);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -86,7 +86,7 @@ void read_samptopix(long ns, long long *&samptopix, std::string outdir, long ifr
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+int write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string outdir, long idet, std::string filename, std::vector<std::string> bolonames);
 
 /*!
  * Reads PS for one bolo in a binary file \n
@@ -105,7 +105,7 @@ void write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string 
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-void read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
+int read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string outdir, long idet, std::string filename, std::vector<std::string> bolonames);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -137,7 +137,7 @@ void read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string 
  * -ncomp2 = number of component
  * -mixmat is the mixing matrix
  */
-void read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
+int read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
 
 
 

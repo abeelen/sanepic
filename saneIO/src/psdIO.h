@@ -18,5 +18,5 @@ extern "C" {
 
 using namespace std;
 
-void write_psd_tofits(string fname, long nx, long ny,char dtype, void * psd1d);
+int write_psd_tofits(string fname, long nx, long ny,char dtype, void * psd1d);
 #endif /* PSDIO_H_ */

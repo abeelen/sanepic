@@ -20,17 +20,9 @@ extern "C" {
 using namespace std;
 
 
-void print_fits_error(int status){
-	if(status){
-		fits_report_error(stderr, status); /* print error report */
-		exit(status);    /* terminate the program, returning error status */
-	}
-	return;
-}
-
 
 //TODO : check and optimize
-void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist)
+int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist)
 {
 	// all angles in degrees
 
@@ -46,12 +38,16 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	int nkeyrec;
 
 	if(fits_already_exist){
-		if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status))
+		if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status)){
 			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 	}else{
 		// create fits file
-		if ( fits_create_file(&fp, fname.c_str(), &fits_status) )
-			print_fits_error(fits_status);
+		if ( fits_create_file(&fp, fname.c_str(), &fits_status) ){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 		start=0;
 	}
 
@@ -63,12 +59,16 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 		// create fits image (switch on data type)
 		switch (dtype) {
 		case 'd':    // double
-			if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
-				print_fits_error(fits_status);
+			if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) ){
+				fits_report_error(stderr, fits_status);
+				return 1;
+			}
 			break;
 		case 'l':    // long
-			if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
-				print_fits_error(fits_status);
+			if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) ){
+				fits_report_error(stderr, fits_status);
+				return 1;
+			}
 			break;
 		default:
 			printf("write_fits: data type %c not supported. Exiting.\n",dtype);
@@ -78,18 +78,22 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 		// Transform wcsprm struture to header
 		if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
 			printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
-			exit(fits_status);
+			return 1;
 		}
 
 		// write date to file
-		if ( fits_write_date(fp, &fits_status) )
-			print_fits_error(fits_status);
+		if ( fits_write_date(fp, &fits_status) ){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 
 		hptr = header;
 		// write it to the fits file
 		for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80){
-			if ( fits_write_record(fp, (const char*) hptr, &fits_status))
-				print_fits_error(fits_status);
+			if ( fits_write_record(fp, (const char*) hptr, &fits_status)){
+				fits_report_error(stderr, fits_status);
+				return 1;
+			}
 		}
 		free(header);
 	}
@@ -101,24 +105,32 @@ void write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 	// write map data
 	switch (dtype) {
 	case 'd':    // double
-		if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) )
-			print_fits_error(fits_status);
+		if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) ){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 		break;
 	case 'l':    // long
-		if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) )
-			print_fits_error(fits_status);
+		if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) ){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 		break;
 	}
 
 
 	// close file
-	if(fits_close_file(fp, &fits_status))
-		print_fits_error(fits_status);
+	if(fits_close_file(fp, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	return 0;
 }
 
 
 
-void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_process proc_param, struct param_positions pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
+int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_process proc_param, struct param_positions pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
@@ -139,8 +151,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	string value = path;
 	string comm = "Source data path";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	for(int num=0;num<(int)samples_struct.ntotscan;num++){
 		oss << "Source" << num;
@@ -151,8 +165,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		oss.str("");
 		string value = Basename(filename) + ".fits";
 		string comm = "Data Source Fits File";
-		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-			print_fits_error(fits_status);
+		if (fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 
 	}
 
@@ -163,8 +179,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "Number of samples to apodize";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 
 	oss << proc_param.poly_order;
@@ -173,8 +191,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "Fitted"; // polynomia order";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 
 	// use only 8 characters for keyname to avoid HIERARCH keyword addition by cfitsio...
@@ -184,8 +204,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "sampling frequency (Hz)";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	oss << proc_param.f_lp;
 	keyname = "FILTFREQ";
@@ -193,8 +215,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "Butterworth filter frequency (Hz)";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 
 	keyname = "FILLGAPS";
@@ -204,8 +228,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "yes";
 	comm = "Do we fill the gaps in the timeline with White noise + baseline ?";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "NORMLIN";
 	if(proc_param.NORMLIN)
@@ -214,8 +240,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "yes";
 	comm = "Do we remove a baseline from the data ?";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "CORREL";
 	if(proc_param.CORRon)
@@ -224,8 +252,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "no";
 	comm = "Correlations between detectors are not included in the analysis ?";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "POLYNSUB";
 	if(proc_param.remove_polynomia)
@@ -234,8 +264,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "no";
 	comm = "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment ?";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	oss << pos_param.pixdeg;
 	keyname = "PIXSIZE";
@@ -243,8 +275,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "SIZE OF THE PIXEL (deg)";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "DUPLMAP";
 	if(pos_param.flgdupl)
@@ -253,8 +287,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "no";
 	comm = "flagged data are put in a separate map";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "GAPSPROJ";
 	if(pos_param.projgaps)
@@ -263,8 +299,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "no";
 	comm = "gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "FORMAT";
 	if(pos_param.fileFormat)
@@ -273,8 +311,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		value = "SANEPIC";
 	comm = "Sources file format";
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	keyname = "MASKFILE";
 	oss << pos_param.maskfile;
@@ -282,8 +322,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "name of the fits file that was used to mask radiant sources";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 
 	oss << det.ndet;
@@ -292,8 +334,10 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 	comm = "Number of detectors that were used for the analysis";
 	oss.str("");
 
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-		print_fits_error(fits_status);
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	if(ncomp>0){
 		oss << ncomp;
@@ -302,67 +346,85 @@ void write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struc
 		comm = "number of noise component to estimate in sanePS";
 		oss.str("");
 
-		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status))
-			print_fits_error(fits_status);
+		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 	}
 
 
 	// close file
-	if(fits_close_file(fp, &fits_status))
-		print_fits_error(fits_status);
+	if(fits_close_file(fp, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	return 0;
 }
 
 
-void write_fits_mask(std::string fnaivname, std::string maskfile)
+int write_fits_mask(std::string fnaivname, std::string maskfile)
 {
 
 	fitsfile *fptr, *outfptr;
 	int fits_status = 0;
 	long naxes[2] = { 1, 1 };
 
-	if (fits_open_file(&fptr, maskfile.c_str(), READWRITE, &fits_status))
+	if (fits_open_file(&fptr, maskfile.c_str(), READWRITE, &fits_status)){
 		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	if (fits_open_file(&outfptr, fnaivname.c_str(), READWRITE, &fits_status))
+	if (fits_open_file(&outfptr, fnaivname.c_str(), READWRITE, &fits_status)){
 		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status)){
 		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	cout << "apres mask 1 \n";
 
-	if(fits_copy_header(fptr, outfptr, &fits_status))
+	if(fits_copy_header(fptr, outfptr, &fits_status)){
 		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	cout << "apres copy header \n";
 
 	// Retrieve the image size
-	if (fits_get_img_size(fptr, 2, naxes, &fits_status))
+	if (fits_get_img_size(fptr, 2, naxes, &fits_status)){
 		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	cout << "apres get size \n";
 
 	//	long NAXIS1 = naxes[0];
 
 	if(fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
-		fits_report_error(stderr, fits_status);
 
-	cout << "apres mask 2 \n";
 
-	//	for(long col=1;col<NAXIS1;col++)
-	//		if(fits_copy_col(fptr, outfptr,  col, col,	0, &fits_status))
-	//			fits_report_error(stderr, fits_status);
-	if (fits_copy_data(fptr, outfptr, &fits_status))
-		fits_report_error(stderr, fits_status);
+		//	for(long col=1;col<NAXIS1;col++)
+		//		if(fits_copy_col(fptr, outfptr,  col, col,	0, &fits_status))
+		//			fits_report_error(stderr, fits_status);
+		if (fits_copy_data(fptr, outfptr, &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
 
-	cout << "apres copy col \n";
 
 	// close files
-	if(fits_close_file(fptr, &fits_status))
-		print_fits_error(fits_status);
+	if(fits_close_file(fptr, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
-	if(fits_close_file(outfptr, &fits_status))
-		print_fits_error(fits_status);
+	if(fits_close_file(outfptr, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	return 0;
 
 }
 
@@ -379,16 +441,22 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
 	// Open the fits file...
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ... and move to the 'extname'
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Retrieve the image size
-	if (fits_get_img_size(fptr, 2, naxes, &status))
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	NAXIS1 = naxes[0];
 	NAXIS2 = naxes[1];
@@ -396,8 +464,10 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 	//	switch (dtype) {
 	//	case 's':
 	data = new short[NAXIS1*NAXIS2];
-	if (fits_read_pix(fptr, TSHORT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
+	if (fits_read_pix(fptr, TSHORT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 	//		break;
 	//	case 'i':
 	//		data = new int[NAXIS1*NAXIS2];
@@ -419,8 +489,10 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 	//	}
 
 	// retrieve the wcs header
-	if (fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status))
+	if (fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	if (( status = wcspih(header, nkeyrec, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
@@ -438,8 +510,10 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 		printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
 	}
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	free(header);
 	return(0);
@@ -523,7 +597,7 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 
 
 //TODO : This function should be more generalized, now make the assumption that indpix has already been computed on the map
-void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, long long npix)
+int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2)
 /*
  * This function read the sanePic generated map and converts it into S (only seen pixels)
  */
@@ -535,14 +609,18 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 	double *map;
 
 
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	//	if (fits_movabs_hdu(fptr, 1, NULL, &status))
 	//		fits_report_error(stderr, status);
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Image", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Image", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	fits_get_img_size(fptr, 2, naxes, &status);
 
@@ -552,8 +630,10 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 	// Initialize the data container
 	map = new double [NAXIS1*NAXIS2];
 
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, map, &anynul, &status))
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, map, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	//TODO : Not sure this is sufficient.... Check if a loop on S indicies is not better
 	for (long ii=0; ii<NAXIS1; ii++) {
@@ -565,13 +645,16 @@ void read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, 
 		}
 	}
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
+	return 0;
 }
 
 
-void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
+int save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 
 	FILE *fout;
 	int nkeyrec, status;
@@ -585,7 +668,7 @@ void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2
 
 	outdir=outdir + "mapHeader.keyrec";
 	fout = fopen(outdir.c_str(),"w");
-	if (fout==NULL) {fputs ("Creation error : File error on mapHeader.keyrec\n",stderr); exit (1);}
+	if (fout==NULL) {fputs ("Creation error : File error on mapHeader.keyrec\n",stderr); return (1);}
 
 	fprintf(fout,"NAXIS1  = %20ld / %-47s\n",NAXIS1,"length of data axis 1");
 	fprintf(fout,"NAXIS2  = %20ld / %-47s\n",NAXIS2,"length of data axis 2");
@@ -596,6 +679,8 @@ void save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2
 	}
 	fclose(fout);
 	free(header);
+
+	return 0;
 }
 
 void print_MapHeader(struct wcsprm *wcs){

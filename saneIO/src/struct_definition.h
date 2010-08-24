@@ -33,6 +33,7 @@ struct samples
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
 
+	std::vector<std::string> mixmat_file;
 	std::string cov_matrix_file;
 
 	bool framegiven;
@@ -77,5 +78,16 @@ struct param_process
 	std::string fcut_file;
 };
 
+struct checksum
+/*! A structure that contains sanePic input checksum values for crash recovery procedure */
+{
+
+	unsigned int chk_ini_file;
+	unsigned int chk_wcs_file;
+	unsigned int chk_pnd;
+	unsigned int chk_indpix;
+	unsigned int chk_indpsrc;
+
+};
 
 #endif /* STRUCT_DEFINITION_H_ */

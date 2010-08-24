@@ -68,6 +68,7 @@ int check_dirfile_paths(std::string strPath);
 int parser_function(char * ini_name, struct common &dir,
 		struct detectors &det,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, std::string &MixMatfile, std::string &ellFile, std::string &signame, long &ncomp, int &iterw, int rank, int size);
+		double &fcut_sanePS, std::string &MixMatfile, std::string &ellFile, std::string &signame, long &ncomp, int &iterw, int &save_data, int &load_data,
+		int rank, int size);
 
 #endif /* PARSER_FUNCTIONS_H_ */

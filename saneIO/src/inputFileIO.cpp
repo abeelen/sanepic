@@ -23,14 +23,14 @@ using namespace std;
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-void read_strings(string fname, std::vector<string> &bolos) {
+int read_strings(string fname, std::vector<string> &bolos) {
 	string line;
 	size_t found;
 
 	ifstream inputFile(fname.c_str());
 	if (!inputFile.is_open()) {
 		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		exit(1);
+		return 1;
 	}
 
 	while (!inputFile.eof()) {
@@ -45,9 +45,11 @@ void read_strings(string fname, std::vector<string> &bolos) {
 	}
 
 	inputFile.close();
+
+	return 0;
 }
 
-void read_double(string fname, double *& array, long & size){
+int read_double(string fname, double *& array, long & size){
 	string line;
 	vector<double> temp;
 	size_t found;
@@ -55,7 +57,7 @@ void read_double(string fname, double *& array, long & size){
 	ifstream inputFile(fname.c_str(), ios::in);
 	if (!inputFile.is_open()) {
 		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		exit(1);
+		return 1;
 	}
 
 	// Count the number of lines ;
@@ -77,6 +79,8 @@ void read_double(string fname, double *& array, long & size){
 	array = new double[size];
 	for (long ii=0; ii< size; ii++)
 		array[ii] = temp[ii];
+
+	return 0;
 }
 
 

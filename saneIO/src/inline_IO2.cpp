@@ -6,9 +6,11 @@
 #include <vector>
 #include <cmath>
 #include "struct_definition.h"
+#include "inputFileIO.h"
 #include <iostream>
 
 #include "inline_IO2.h"
+
 
 extern "C" {
 #include "nrutil.h"
@@ -112,61 +114,69 @@ bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long
 }
 
 
-void write_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname)
+int write_samptopix(long ns, long long *&samptopix, string outdir, string filename, std::string boloname)
 /*!  write a sample to pixel vector to disk  */
 {
 	FILE *fp;
 	// créer un flux de sortie
-	std::ostringstream oss;
+	//	std::ostringstream oss;
+	string outfile;
 
-	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname << ".bi";
 
+
+	outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".bi";
 	// Transform into string
-	std::string temp = oss.str();
+
 	long long ns2 = (long long)ns;
 
-	if((fp = fopen(temp.c_str(),"w"))!=NULL){
+	if((fp = fopen(outfile.c_str(),"w"))!=NULL){
 		fwrite(&ns2,sizeof(long long),1,fp);
 		fwrite(samptopix,sizeof(long long), ns, fp);
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not open " << temp << endl;
-		exit(0);
+		cerr << "ERROR : Could not open " << outfile << endl;
+		return 1;
 	}
 
 
 #ifdef DEBUG_PRINT
-	oss.str("");
+	//	oss.str("");
+	//
+	//	// debug
+	//	oss << outdir + "samptopix_" << FitsBasename(filename) << "_" << boloname  << ".txt";
+	//	temp = oss.str();
 
-	// debug
-	oss << outdir + "samptopix_" << iframe << "_" << boloname  << ".txt";
-	temp = oss.str();
+	outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".txt";
 
-	if((fp = fopen(temp.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+	if((fp = fopen(outfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		fprintf(fp,"%ld ",ns);
 		for(long ii = 0; ii< ns; ii++)
 			fprintf(fp,"%lld ",samptopix[ii]);
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not find " << temp << endl;
+		cerr << "ERROR : Could not find " << outfile << endl;
 		exit(0);
 	}
 #endif
+
+	return 0;
 }
 
 
-void read_samptopix(long ns, long long *&samptopix, string outdir, long iframe, std::string boloname)
+int read_samptopix(long ns, long long *&samptopix, string outdir, string filename, std::string boloname)
 /*!  read a sample to pixel vector from disk  */
 {
 	FILE *fp;
 	size_t result;
 	long long ns2;
 
-	std::ostringstream oss;
-	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname  << ".bi";
-	std::string testfile = oss.str();
+	//	std::ostringstream oss;
+	//	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname  << ".bi";
+	//	std::string testfile = oss.str();
 
-	if((fp = fopen(testfile.c_str(),"r"))){
+	string outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".bi";
+
+	if((fp = fopen(outfile.c_str(),"r"))){
 
 		result = fread(&ns2,sizeof(long long),1,fp);
 		if(ns==ns2)
@@ -178,12 +188,14 @@ void read_samptopix(long ns, long long *&samptopix, string outdir, long iframe, 
 		}
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not find " << testfile << endl;
-		exit(0);
+		cerr << "ERROR : Could not find " << outfile << endl;
+		return 1;
 	}
+
+	return 0;
 }
 
-void write_indpsrc(long long map_size, long long  npixsrc, long long * indpsrc, std::string outdir)
+int write_indpsrc(long long map_size, long long  npixsrc, long long * indpsrc, std::string outdir)
 /*!  write the bright sources index to disk  */
 {
 	FILE *fp;
@@ -196,12 +208,14 @@ void write_indpsrc(long long map_size, long long  npixsrc, long long * indpsrc, 
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not open " << testfile << endl;
-		exit(0);
+		return 1;
 	}
+
+	return 0;
 }
 
 
-void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc, std::string outdir)
+int  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc, std::string outdir)
 /*!  read the bright sources index from disk  */
 {
 	FILE *fp;
@@ -217,12 +231,14 @@ void  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,
 		fclose(fp);
 	}else{
 		cerr << "Error : cannot find indpsrc.bin file at " << testfile << endl;
-		exit(0);
+		return 1;
 	}
+
+	return 0;
 }
 
 
-void write_indpix(long long ind_size, long long npix, long long *indpix, string outdir, int flagon)
+int write_indpix(long long ind_size, long long npix, long long *indpix, string outdir, int flagon)
 /*!  write the map index to disk  */
 {
 	FILE *fp;
@@ -238,7 +254,7 @@ void write_indpix(long long ind_size, long long npix, long long *indpix, string 
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not open " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
 
 #ifdef DEBUG_PRINT
@@ -257,9 +273,11 @@ void write_indpix(long long ind_size, long long npix, long long *indpix, string 
 	}
 
 #endif
+
+	return 0;
 }
 
-void read_indpix(long long &ind_size, long long &npix, long long *&indpix, string outdir, int &flagon)
+int read_indpix(long long &ind_size, long long &npix, long long *&indpix, string outdir, int &flagon)
 /*!  read the map index from disk  */
 {
 	FILE *fp;
@@ -276,11 +294,13 @@ void read_indpix(long long &ind_size, long long &npix, long long *&indpix, strin
 		fclose(fp);
 	}else{
 		cerr << "Error : cannot find Indpix file " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
+
+	return 0;
 }
 
-void write_PNd(double *PNd, long long npix,  string outdir)
+int write_PNd(double *PNd, long long npix,  string outdir)
 /*!  write the map preconditioner to disk  */
 {
 	FILE *fp;
@@ -294,7 +314,7 @@ void write_PNd(double *PNd, long long npix,  string outdir)
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
 
 #ifdef DEBUG_PRINT
@@ -315,10 +335,11 @@ void write_PNd(double *PNd, long long npix,  string outdir)
 	}
 
 #endif
+	return 0;
 }
 
 // correlation between npix here and npix in Indpix file is done in sanePic (main.cpp)
-void read_PNd(double *&PNdtot, long long &npix,  string outdir)
+int read_PNd(double *&PNdtot, long long &npix,  string outdir)
 /*!  read the map preconditioner from disk  */
 {
 	FILE *fp;
@@ -334,41 +355,45 @@ void read_PNd(double *&PNdtot, long long &npix,  string outdir)
 		fclose(fp);
 	}else{
 		cerr << "Error. Unable to read file : " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
 
+	return 0;
 }
 
-void write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, long idet, long iframe, std::vector<std::string> bolonames)
+int write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, long idet, string filename, std::vector<std::string> bolonames)
 /*! write Fourier data file to disk */
 {
 	FILE *fp;
 	double data_size;
 
-	std::ostringstream oss;
-	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
+	//	std::ostringstream oss;
+	//	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
 
 	// Transform into string
-	std::string testfile = oss.str();
+	std::string outfile;
 
-	if((fp = fopen(testfile.c_str(),"w"))){
+	outfile=outdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".bi";
+
+	if((fp = fopen(outfile.c_str(),"w"))){
 		data_size = (double)((ns/2+1)*2);
 		fwrite(&data_size,sizeof(double),1,fp);
 		fwrite(fdata,sizeof(double), (long) data_size, fp);
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not write " << testfile << endl;
-		exit(0);
+		cerr << "ERROR : Could not write " << outfile << endl;
+		return 1;
 	}
 
 #ifdef DEBUG_PRINT
 	// Debug
-	oss.str("");
-	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".txt";
+	//	oss.str("");
+	//	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".txt";
 
 	// Transform into string
-	testfile = oss.str();
-	if((fp = fopen(testfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+	//	testfile = oss.str();
+	outfile=outdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".txt";
+	if((fp = fopen(outfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
 		data_size = (ns/2+1)*2;
 
 		fprintf(fp,"%ld ",data_size);
@@ -380,15 +405,16 @@ void write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, lo
 		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
 		fclose(fp);
 	}else{
-		cerr << "ERROR : Could not open " << testfile << endl;
+		cerr << "ERROR : Could not open " << outfile << endl;
 		exit(0);
 	}
 #endif
 
+	return 0;
 }
 
 
-void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, long iframe, std::vector<std::string> bolonames)
+int read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, long idet, string filename, std::vector<std::string> bolonames)
 /*!  read the map preconditioner from disk  */
 {
 	FILE *fp;
@@ -396,31 +422,28 @@ void read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, l
 	double data_size;
 	long data_read;
 
-	std::ostringstream oss;
+	string outfile=outdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".bi";
 
-	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
-
-	// Transform into string
-	std::string testfile = oss.str();
-
-	if((fp = fopen(testfile.c_str(),"r"))!=NULL){
+	if((fp = fopen(outfile.c_str(),"r"))!=NULL){
 		result = fread(&data_size,sizeof(double),1,fp);
 		data_read=(long) data_size;
 		if (data_read!=(ns/2+1)*2){
 			cerr << "Error. fdata size does not correspond to expected size : " << data_read << " != " << (ns/2+1)*2 << endl;
 			fclose(fp);
-			exit(1);
+			return 1;
 		}
 		result = fread(fdata,sizeof(double), data_read, fp);
 		fclose(fp);
 	}else{
-		cerr << "ERROR: Can't find Fourier transform data file" << testfile << ". Exiting. \n";
-		exit(1);
+		cerr << "ERROR: Can't find Fourier transform data file" << outfile << ". Exiting. \n";
+		return 1;
 	}
+
+	return 0;
 }
 
 
-void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
+int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 {
 	//TODO : CAN NOT WORK !
 	FILE *fp;
@@ -430,7 +453,8 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 
 	if ((fp = fopen(MixMatfile.c_str(),"r")) == NULL){
 		cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
-		exit(1);
+		cout << "Advice : verify the file is in your noise directory and that his name is : " << MixMatfile << endl;
+		return 1;
 	}
 	result = fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
 
@@ -444,6 +468,7 @@ void read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 		}
 	}
 	fclose(fp);
+	return 0;
 
 }
 

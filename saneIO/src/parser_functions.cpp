@@ -135,7 +135,8 @@ int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &
 		return 1;
 	case 0:
 		dir.channel=str;
-		read_strings(str, bolonames);
+		if(read_strings(str, bolonames))
+			return 1;
 	}
 
 	return 0;
@@ -383,7 +384,8 @@ int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::
 		proc_param.fcut_file = str;
 
 		std::vector<string> dummy2;
-		read_strings(str,dummy2);
+		if(read_strings(str,dummy2))
+			return 1;
 
 		if(((int)dummy2.size())==0){
 			if(rank==0)
@@ -569,9 +571,9 @@ int read_parser_string(dictionary	*ini, string line, string & str){
 int read_common(dictionary	*ini, struct common &dir, int rank){
 
 	return read_dirfile(ini, dir, rank) || \
-	read_tmpdir(ini, dir, rank)  ||	\
-	read_outdir(ini, dir, rank) || \
-	read_noisedir(ini, dir, rank);
+			read_tmpdir(ini, dir, rank)  ||	\
+			read_outdir(ini, dir, rank) || \
+			read_noisedir(ini, dir, rank);
 
 }
 
@@ -581,12 +583,12 @@ int read_param_process(dictionary *ini,struct param_process &proc_param, int ran
 	int returned=0;
 
 	returned = read_apodize_samples(ini, proc_param, rank) + \
-	read_nofillgap(ini, proc_param, rank)              + \
-	read_sampling_frequency(ini, proc_param, rank)     + \
-	read_filter_frequency(ini, proc_param, rank)       + \
-	read_baseline(ini, proc_param, rank)               + \
-	read_correlation(ini,proc_param,rank)              +\
-	read_remove_poly(ini, proc_param, rank);
+			read_nofillgap(ini, proc_param, rank)              + \
+			read_sampling_frequency(ini, proc_param, rank)     + \
+			read_filter_frequency(ini, proc_param, rank)       + \
+			read_baseline(ini, proc_param, rank)               + \
+			read_correlation(ini,proc_param,rank)              +\
+			read_remove_poly(ini, proc_param, rank);
 
 	returned > 0 ? returned = 1 : returned = 0;
 	return returned;
@@ -736,17 +738,47 @@ int check_path(string strPath, string path_type){
 int check_dirfile_paths(string strPath){
 
 	return check_path(strPath + "Fourier_data/","Fourier data binaries") || \
-	check_path(strPath + "Noise_data/","Noise data binaries") || \
-	check_path(strPath + "Indexes/","Indexes");
+			check_path(strPath + "Noise_data/","Noise data binaries") || \
+			check_path(strPath + "Indexes/","Indexes");
 
 }
 
+int read_save_data(dictionary *ini, int &save_data, int rank){
+
+	string str;
+
+	if (read_parser_string(ini, "sanePic:save_data", str)==0)
+		save_data=atoi(str.c_str());
+	else{
+		cout << "Please mention sanePic:save_data !\n";
+		return 1;
+	}
+
+	return 0;
+
+}
+
+int read_load_data(dictionary *ini, int &load_data, int rank){
+
+	string str;
+
+	if (read_parser_string(ini, "sanePic:load_data", str)==0)
+		load_data=atoi(str.c_str());
+	else{
+		cout << "Please mention sanePic:load_data !\n";
+		return 1;
+	}
+
+	return 0;
+
+}
 
 
 int parser_function(char * ini_name, struct common &dir,
 		struct detectors &det,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, string &MixMatfile, string &ellFile, string &signame, long &ncomp, int &iterw, int rank, int size){
+		double &fcut_sanePS, string &MixMatfile, string &ellFile, string &signame, long &ncomp, int &iterw,
+		int &save_data, int &load_data, int rank, int size){
 
 	dictionary	*	ini ;
 
@@ -766,6 +798,8 @@ int parser_function(char * ini_name, struct common &dir,
 	pos_param.maskfile = "";
 	ncomp=1;
 	iterw=10;
+	save_data=0;
+	load_data=0;
 
 
 	// load dictionnary
@@ -800,7 +834,9 @@ int parser_function(char * ini_name, struct common &dir,
 			read_map_file(ini, signame) ||
 			read_mixmatfile(ini, MixMatfile, rank)||
 			read_fcut(ini, fcut_sanePS, rank) ||
-			read_ncomp(ini, ncomp, rank))
+			read_ncomp(ini, ncomp, rank)) /*||
+			read_save_data(ini, save_data, rank) ||
+			read_load_data(ini, load_data, rank))*/
 		return 2;
 
 	read_iter(ini, iterw, rank);

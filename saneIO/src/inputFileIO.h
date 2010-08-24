@@ -13,8 +13,8 @@
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-void read_strings(std::string fname, std::vector<std::string>& bolos);
-void read_double(std::string fname, double *& array, long & size);
+int read_strings(std::string fname, std::vector<std::string>& bolos);
+int read_double(std::string fname, double *& array, long & size);
 
 std::string		Basename(std::string path);
 std::string FitsBasename(std::string path);

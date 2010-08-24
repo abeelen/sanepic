@@ -24,7 +24,7 @@ extern "C" {
 using namespace std;
 
 
-void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonames, double **& offsets){
+int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonames, double **& offsets){
 
 	//TODO : Handle angle unit to transform to a common internal known unit
 	fitsfile *fptr;
@@ -39,17 +39,21 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 	offsets = dmatrix((long)0,ndet-1,(long)0,2-1);
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	if (fits_read_key(fptr,TLONG, (char *) "NAXIS2", &ndet_total, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
-		exit(0);
+		return 1;
 	}
 
 
@@ -76,9 +80,13 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 	delete [] temp_dx;
 	delete [] temp_dy;
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
+
+	return 0;
 	//		fitsfile *fptr;
 	//		int status = 0;
 	//		int colnum;
@@ -116,7 +124,7 @@ void read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolona
 
 }
 
-void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns){
+int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	fitsfile *fptr;
@@ -124,13 +132,17 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	long repeat, width;
 	int colnum, typecode;
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Retrieve size of the array and ...
 	fits_get_num_rows(fptr, &ns, &status);
@@ -161,13 +173,17 @@ void read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
 
-	if (fits_close_file(fptr, &status))
+	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
 
 }
 
 
-void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
+int read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	int status = 0;
@@ -177,8 +193,10 @@ void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&
 
 	// ---------------------------------------------
 	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Retrieve size of the array and ...
 	fits_get_num_rows(fptr, &ns, &status);
@@ -208,7 +226,7 @@ void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&
 	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
-
+	return 0;
 
 }
 
@@ -240,7 +258,7 @@ void read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&
 }*/
 
 
-void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
+int read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// HIPE like format
 
@@ -249,8 +267,10 @@ void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 	int rowIndex = 0, naxis = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
@@ -258,8 +278,10 @@ void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// ---------------------------------------------
 	// Move ptr to mask hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the size of the signal
@@ -279,17 +301,22 @@ void read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TINT, fpixel, ns, 0, mask, &anynul, &status))
+	if (fits_read_pix(fptr, TINT, fpixel, ns, 0, mask, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
+	return 0;
 }
 
-void read_image_2D_from_fits(string filename, double*&image, string hdu_name, long & ns, long & ndet){
+int read_image_2D_from_fits(string filename, double*&image, string hdu_name, long & ns, long & ndet){
 
 	fitsfile *fptr;
 	int status = 0, anynul;
@@ -300,20 +327,30 @@ void read_image_2D_from_fits(string filename, double*&image, string hdu_name, lo
 	int nulval=0;
 	long inc=1;
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Move ptr to desired hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)hdu_name.c_str(), NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)hdu_name.c_str(), NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Retrieve the size of the signal
-	if (fits_get_img_dim(fptr, &naxis, &status))
+	if (fits_get_img_dim(fptr, &naxis, &status)){
 		fits_report_error(stderr, status);
-	if(naxis != 2)
-		fits_report_error(stderr,BAD_NAXIS);
-	if (fits_get_img_size(fptr, 2, naxes, &status))
+		return 1;
+	}
+	if(naxis != 2){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	ns = naxes[0];
 	ndet = naxes[1];
@@ -335,12 +372,16 @@ void read_image_2D_from_fits(string filename, double*&image, string hdu_name, lo
 
 	// ---------------------------------------------
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
 }
 
 
-void read_signal_from_fits(string filename, string field, double *& signal, long & ns){
+int read_signal_from_fits(string filename, string field, double *& signal, long & ns){
 	//TODO : Handle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -350,8 +391,10 @@ void read_signal_from_fits(string filename, string field, double *& signal, long
 	int rowIndex = 0, naxis = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
@@ -359,17 +402,25 @@ void read_signal_from_fits(string filename, string field, double *& signal, long
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the size of the signal
-	if (fits_get_img_dim(fptr, &naxis, &status))
+	if (fits_get_img_dim(fptr, &naxis, &status)){
 		fits_report_error(stderr, status);
-	if(naxis != 2)
-		fits_report_error(stderr,BAD_NAXIS);
-	if (fits_get_img_size(fptr, 2, naxes, &status))
+		return 1;
+	}
+	if(naxis != 2){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Allocate Memory
@@ -380,18 +431,24 @@ void read_signal_from_fits(string filename, string field, double *& signal, long
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, signal, &anynul, &status))
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, signal, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 
 	// ---------------------------------------------
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
 
 }
 
-void read_bolo_list(string fname, struct detectors &det){
+int read_bolo_list(string fname, struct detectors &det){
 
 	fitsfile *fptr;
 	int status = 0;
@@ -401,8 +458,10 @@ void read_bolo_list(string fname, struct detectors &det){
 
 	//	det.boloname.clear();
 
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	read_channels(fptr,temp_bolo, det.ndet);
 
@@ -412,15 +471,19 @@ void read_bolo_list(string fname, struct detectors &det){
 	}
 
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	for (long ii=0; ii < det.ndet; ii++)
 		delete [] temp_bolo[ii];
 	delete [] temp_bolo;
+
+	return 0;
 }
 
-void read_channels(fitsfile *fptr, char **& data, long &nBolos){
+int read_channels(fitsfile *fptr, char **& data, long &nBolos){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	int status = 0;
@@ -429,8 +492,10 @@ void read_channels(fitsfile *fptr, char **& data, long &nBolos){
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status))
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	fits_get_num_rows(fptr, &nBolos, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "names", &colnum, &status);
@@ -444,7 +509,7 @@ void read_channels(fitsfile *fptr, char **& data, long &nBolos){
 
 	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
 
-
+	return 0;
 }
 
 long find_channel_index(fitsfile *fptr, const char * field){
@@ -572,7 +637,7 @@ long find_channel_index(fitsfile *fptr, const char * field){
 //
 //}
 
-void read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns){
+int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -582,8 +647,10 @@ void read_ra_dec_from_fits(string filename, string field, double *&ra, double *&
 	int rowIndex = 0, naxis = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
@@ -591,17 +658,25 @@ void read_ra_dec_from_fits(string filename, string field, double *&ra, double *&
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the size of the signal
-	if (fits_get_img_dim(fptr, &naxis, &status))
+	if (fits_get_img_dim(fptr, &naxis, &status)){
 		fits_report_error(stderr, status);
-	if(naxis != 2)
-		fits_report_error(stderr,BAD_NAXIS);
-	if (fits_get_img_size(fptr, 2, naxes, &status))
+		return 1;
+	}
+	if(naxis != 2){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Allocate Memory
@@ -612,24 +687,34 @@ void read_ra_dec_from_fits(string filename, string field, double *&ra, double *&
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, ra, &anynul, &status))
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, ra, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Retrieve the size of the signal
-	if (fits_get_img_dim(fptr, &naxis, &status))
+	if (fits_get_img_dim(fptr, &naxis, &status)){
 		fits_report_error(stderr, status);
-	if(naxis != 2)
-		fits_report_error(stderr,BAD_NAXIS);
-	if (fits_get_img_size(fptr, 2, naxes, &status))
+		return 1;
+	}
+	if(naxis != 2){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Allocate Memory
@@ -640,16 +725,22 @@ void read_ra_dec_from_fits(string filename, string field, double *&ra, double *&
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, dec, &anynul, &status))
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, dec, &anynul, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
 }
 
-void read_time_from_fits(string filename, double *& time, long ns){
+int read_time_from_fits(string filename, double *& time, long ns){
 
 	// HIPE like format
 
@@ -659,18 +750,21 @@ void read_time_from_fits(string filename, double *& time, long ns){
 	char comment[80];
 	//	int anynul;
 
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns_test, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
-		cout << "naxis\n";
-		exit(0);
+		return 1;
 	}
 
 	if(ns!=ns_test){
@@ -684,13 +778,19 @@ void read_time_from_fits(string filename, double *& time, long ns){
 
 	// ---------------------------------------------
 	// Retrieve the corresponding col
-	if(fits_read_col(fptr, TDOUBLE, 2, 1, 1, ns_test, NULL, time, 0, &status))
+	if(fits_read_col(fptr, TDOUBLE, 2, 1, 1, ns_test, NULL, time, 0, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// ---------------------------------------------
 	// close file
-	if(fits_close_file(fptr, &status))
+	if(fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
 
 }
 

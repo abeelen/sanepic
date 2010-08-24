@@ -636,7 +636,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 		samples_struct.scans_index.resize( size_tmp );
 
-		cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
+//		cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
 
 
 		if((size_tmp)<size){
