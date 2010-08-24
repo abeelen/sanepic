@@ -21,7 +21,6 @@
 extern "C" {
 #include <fitsio.h>
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
 
@@ -29,9 +28,9 @@ using namespace std;
 
 
 
-void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_param,struct detectors det,struct common dir, struct param_positions pos_param,
+int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struct common dir, struct param_positions pos_param,
 		long ns, long NAXIS1, long NAXIS2, long long npix, long iframe,
-		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut)
+		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut, int rank)
 {
 
 	//TODO : read nbins/ell in the ini file, not even in the fits file
@@ -66,7 +65,8 @@ void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_
 	//	fdata1 = fourier transform
 	//	fdata2 = fourier transform
 
-	read_double(ellFile, ell, nbins); // read ell in ellfile
+	if(read_double(ellFile, ell, nbins)) // read ell in ellfile
+		return 1;
 	nbins = nbins-1;
 
 	//	Nell = binned noise PS
@@ -101,34 +101,39 @@ void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_
 		factapod += apodwind[ii]*apodwind[ii]/ns; // apodization factor
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
-	cout << "1/6 - Reading Mixing Matrix" << endl;
-	read_mixmat_file(MixMatfile, dir.dirfile, mixmat, det.ndet,ncomp);
+	cout << "[ " << rank << " ] 1/6 - Reading Mixing Matrix" << endl;
+	if(read_mixmat_file(MixMatfile, dir.noise_dir, mixmat, det.ndet,ncomp))
+		return 1;
 
 	// compute common mode : return commonm2
-	cout << "2/6 - Common Mode Computation" << endl;
-	common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, iframe, NAXIS1, NAXIS2, npix, iframe, S, indpix,
-			mixmat, ncomp, commonm2, factapod, fits_filename);
+	cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
+	if(common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, NAXIS1, NAXIS2, npix, iframe, S, indpix,
+			mixmat, ncomp, commonm2, factapod, fits_filename))
+		return 1;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
-	cout << "3/6 - Estimation of Noise Power Spectrum" << endl;
-	estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, iframe, NAXIS1,
+	cout << "[ " << rank << " ] 3/6 - Estimation of Noise Power Spectrum" << endl;
+	if(estimate_noise_PS(det,  proc_param, pos_param, dir, nbins, nbins2, ns, NAXIS1,
 			NAXIS2, npix, ell, S, iframe,indpix, apodwind, ncomp, mixmat, commonm2,
-			factapod,Rellth, N, P, fits_filename);
+			factapod,Rellth, N, P, fits_filename))
+		return 1;
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
-	cout << "4/6 - Estimation of Covariance Matrix" << endl;
-	estimate_CovMat_of_Rexp(dir, det, nbins, ns, iframe, ell, ncomp, mixmat, proc_param.fsamp,
-			factapod, Rellexp, N, P, SPref);
+	cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
+	if(estimate_CovMat_of_Rexp(iframe, dir, det, nbins, ns, ell, ncomp, mixmat, proc_param.fsamp,
+			factapod, Rellexp, N, P, SPref, fits_filename))
+		return 1;
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
-	cout << "5/6 - Expectation Maximization" << endl;
-	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp, iframe,
+	cout << "[ " << rank << " ] 5/6 - Expectation Maximization" << endl;
+	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp,
 			dir.output_dir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
 
 	//----------------------------------- WRITE TO DISK -------------------------------//
-	cout << "6/6 - Saving to disk" << endl;
-	write_to_disk(dir.output_dir, samples_struct, iframe, det, nbins, ell, mixmat, Rellth,
-			Rellexp, ncomp, N, SPref,P);
+	cout << "[ " << rank << " ] 6/6 - Saving to disk" << endl;
+	if(write_to_disk(dir.output_dir, fits_filename, det, nbins, ell, mixmat, Rellth,
+			Rellexp, ncomp, N, SPref,P))
+		return 1;
 	//----------------------------------- END OF ESTIMPS -------------------------------//
 
 	// clean up
@@ -143,6 +148,8 @@ void EstimPowerSpectra(struct samples samples_struct, struct param_process proc_
 	delete [] ell;
 	free_dmatrix(P,0,ncomp-1,0,nbins-1);
 	free_dmatrix(N,0,det.ndet-1,0,nbins-1);
+
+	return 0;
 
 }
 

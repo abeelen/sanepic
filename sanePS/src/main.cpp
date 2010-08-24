@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <vector>
 #include <string>
+#include <sstream>
 
 
 
@@ -14,6 +15,7 @@
 #include "parser_functions.h"
 #include "estimPS.h"
 #include "struct_definition.h"
+#include "inputFileIO.h"
 
 extern "C" {
 #include "wcslib/wcs.h"
@@ -106,11 +108,12 @@ int main(int argc, char *argv[])
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 		int iterw=10;
+		int save_data, load_data;
 		std::vector<double> fcut_vector;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut_vector,
-				fcut, MixMatfile, ellFile, signame, ncomp, iterw, rank, size);
+				fcut, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -133,7 +136,7 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return 1;
 	}
 
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
@@ -145,7 +148,13 @@ int main(int argc, char *argv[])
 
 		//TODO : Add some check for the map size/ind_size/npix
 
-		read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon); // read map indexes
+		if(read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)){ // read map indexes
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
 
 		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
 		if(rank==0)
@@ -153,7 +162,13 @@ int main(int argc, char *argv[])
 		S = new double[npix]; // pure signal
 
 		// read pure signal
-		read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2, npix);
+		if(read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
 
 #ifdef DEBUG
 		FILE * fp;
@@ -212,12 +227,12 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	for(long ii=0;ii<size;ii++){
-		if(rank==ii)
-			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-		else
-			MPI_Barrier(MPI_COMM_WORLD);
-	}
+	//	for(long ii=0;ii<size;ii++){
+	//		if(rank==ii)
+	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
+	//		else
+	//			MPI_Barrier(MPI_COMM_WORLD);
+	//	}
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
@@ -229,15 +244,20 @@ int main(int argc, char *argv[])
 #endif
 
 	string fits_filename; // input scan filename (fits file)
+	std::ostringstream oss; // we need to store the string in a stringstream before using basename
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){ // proceed scan by scan
 		ns = samples_struct.nsamples[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
 		cout << "[ " << rank << " ] " << fits_filename << endl;
+		oss << fits_filename;
+		string filename = oss.str();
+		MixMatfile=Basename(filename);
+		oss.str("");
 
-		EstimPowerSpectra(samples_struct,proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
+		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,
-				fits_filename, ncomp, fcut);
+				fits_filename, ncomp, fcut, rank);
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels
 		// iframe = scan number
