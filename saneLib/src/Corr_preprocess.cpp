@@ -221,8 +221,8 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 			if(read_samptopix(ns, samptopix, tmp_dir, fits_filename, field1))
 				return 1;
 
-//			cout << "samptopix : " << endl;
-//			cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
+			//			cout << "samptopix : " << endl;
+			//			cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
 
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
@@ -543,14 +543,14 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 }
 
 
-int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, int orderpoly, long ns, int rank, int size,
+int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, int orderpoly, int napod, double f_lppix, long ns, int rank, int size,
 		long long *indpix, long iframe, long *hits)
 {
 
 
 	string field1;
 	long ns_test=0;
-	double *data, *data_lp, *data_out;
+	double *data, *data_lp, *data_out, *bfilter;
 	long long *samptopix;
 	double aa, bb;
 	int *flag;
@@ -559,6 +559,7 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 	data_lp =  new double[ns];
 	data_out = new double[ns];
 	samptopix = new long long[ns];
+	bfilter = new double[ns/2+1];
 
 
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
@@ -574,15 +575,14 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 			return 1;
 		if(ns!=ns_test){
 			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
-			exit(0);
-
+			return 1;
 		}
 
 		if(read_flag_from_fits(file[iframe], field1, flag, ns_test))
 			return 1;
 		if (ns_test != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 
@@ -597,7 +597,7 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 		//remove polynomia to correct from time varying calibration
 		remove_poly(data,ns,orderpoly,data_out,flag);
 		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii]/**calp[ii/20]*/;
+			data[ii] = data_out[ii];
 
 		//linear prediction
 		for (long ii=0;ii<ns;ii++)
@@ -610,26 +610,14 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] -= aa*(double)ii+bb;
 
-		//		//Butterworth filter (if necessary)
-		//		if (f_lppix > 0.0){
-		//			butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
-		//			for (long ii=0;ii<(ns);ii++)
-		//				data_lp[ii] = data_out_lp[ii];
-		//		} else{
-		//			for (long ii=0;ii<(ns)/2+1;ii++)
-		//				bfilter[ii] = 1.0;
-		//		}
+
+		if (f_lppix > 0.0)
+			butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
 
 
-
-
+		fill(data,data+ns,0.0);
 		//******************* process gaps
-		for (long ii=0;ii<ns;ii++)
-			data_out[ii] = data_lp[ii];
-		//		fillgaps(data_out,ns,data,flag,0);
 		fillgaps2(data_out,ns,data,flag,40);
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data[ii];
 
 
 
@@ -637,7 +625,7 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 
 		for (long ii=0;ii<ns;ii++){
 			//if(PNd[indpix[samptopix[ii]]]!=0.0)
-			PNd[indpix[samptopix[ii]]] += data_lp[ii];
+			PNd[indpix[samptopix[ii]]] += data[ii];
 		}
 
 		//compute hit counts
@@ -653,7 +641,10 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 
 	delete[] samptopix;
 	delete[] data;
+	delete[] data_out;
 	delete[] data_lp;
+	delete[] bfilter;
+	delete[] flag;
 
 	return 0;
 }

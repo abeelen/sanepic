@@ -496,14 +496,14 @@ int main(int argc, char *argv[])
 			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
 					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 
-			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det,proc_param.poly_order, ns, 0, 1, indpix, iframe, hitsNaiv);
+			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
 			// Returns Pnd = (At N-1 d), Mp and hits
 #else
 			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 			// Returns Pnd = (At N-1 d), Mp and hits
 
-			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, proc_param.poly_order, ns, rank, size, indpix, iframe, hitsNaiv);
+			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
 #endif
