@@ -30,7 +30,10 @@ using namespace std;
 //		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
 //		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 
-int computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
+//int computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
+//		long iframe_min, long iframe_max,
+//		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
+int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 {
@@ -39,8 +42,6 @@ int computeMapMinima(std::vector<string> bolonames, struct samples samples_struc
 	// output or update (ra|dec)_(min|max)
 
 	string fits_file;
-
-	long ndet = bolonames.size();
 	string field; // test
 	//	double *ra_off,*dec_off; // test
 
@@ -54,6 +55,7 @@ int computeMapMinima(std::vector<string> bolonames, struct samples samples_struc
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
+		long ndet = det_vect[iframe].boloname.size();
 
 		double *ra, *dec, *phi, **offsets;
 
@@ -61,7 +63,7 @@ int computeMapMinima(std::vector<string> bolonames, struct samples samples_struc
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		if(read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets))
+		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
 			return 1;
 
 		//		for (long idet = 0; idet < ndet; idet++){
@@ -213,7 +215,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 	return EXIT_SUCCESS;
 }
 
-int computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_struct,
+int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
@@ -223,7 +225,7 @@ int computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_
 	string fits_file;
 	string field;
 
-	long ndet = bolonames.size();
+
 
 	double lra_min, lra_max;
 	double ldec_min, ldec_max;
@@ -237,12 +239,13 @@ int computeMapMinima_HIPE(std::vector<string> bolonames, struct samples samples_
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
+		long ndet = det_vect[iframe].boloname.size();
 
 		long ns = samples_struct.nsamples[iframe];
 
 		for (long idet=0; idet < ndet; idet++){
 
-			field = bolonames[idet];
+			field = det_vect[iframe].boloname[idet];
 
 			double *ra, *dec;
 			int *flag=NULL;

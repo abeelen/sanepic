@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	struct detectors det; /*! A structure that contains everything about the detectors names and number */
-
+//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	std::vector<detectors> detector_tab;
 
 	// default parameters
 	int nwcs=1; /// number of wcs that will be used
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 		int save_data, load_data;
 
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
@@ -157,14 +157,14 @@ int main(int argc, char *argv[])
 		case 2 : printf("Wrong program options or argument. Exiting !\n");
 		break;
 
-		case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+		case 3 : printf("Exiting...\n");
 		break;
 
 		default :;
 		}
 
 	// in case there is a parsing error or the dirfile format file was not created correctly
-	if ((parsed>0)||(!compute_dirfile_format_fdata(dir.tmp_dir, det, samples_struct.ntotscan, rank))){
+	if ((parsed>0)||(!compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank))){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -391,6 +391,7 @@ int main(int argc, char *argv[])
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
+		struct detectors det = detector_tab[iframe];
 		//		if(iframe_min!=iframe_max)
 		//			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
 
@@ -687,7 +688,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct)) // write sanePre parameters in naive Map fits file header
+
+		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, detector_tab[0], samples_struct)) // write sanePre parameters in naive Map fits file header
 			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
 		if (pos_param.maskfile != "")
 			if(write_fits_mask(fnaivname, pos_param.maskfile)) // copy mask in naive map file

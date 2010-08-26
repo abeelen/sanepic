@@ -19,7 +19,7 @@ extern "C" {
 using namespace std;
 
 
-bool compute_dirfile_format_file(std::string outdir, struct detectors det, long ntotscan, int rank){
+bool compute_dirfile_format_file(std::string outdir, struct samples samples_struct,std::vector<detectors> detector_tab, int rank){
 
 	if(rank==0){
 		std::ostringstream oss;
@@ -37,9 +37,9 @@ bool compute_dirfile_format_file(std::string outdir, struct detectors det, long 
 		if((fp = fopen(temp.c_str(),"w"))!=NULL){
 			fprintf(fp,"/FRAMEOFFSET 1\n/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
 
-			for(long iframe = 0; iframe< ntotscan; iframe++)
-				for(long ii =0; ii<det.ndet; ii++){
-					oss << "samptopix_" << iframe << "_" << det.boloname[ii] << ".bi";
+			for(long iframe = 0; iframe< samples_struct.ntotscan; iframe++)
+				for(long ii =0; ii<detector_tab[iframe].ndet; ii++){
+					oss << "samptopix_" << FitsBasename(samples_struct.fitsvect[iframe]) << "_" << detector_tab[iframe].boloname[ii] << ".bi";
 					std::string temp = oss.str();
 					fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
 					oss.str("");
@@ -81,7 +81,7 @@ bool compute_dirfile_format_noisePS(std::string outdir, std::vector<string> det,
 	return 1;
 }
 
-bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long ntotscan, int rank)
+bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, std::vector<detectors> detector_tab, int rank)
 /*!  Create the format file for kst and write the fourier data list inside  */
 {
 
@@ -93,9 +93,9 @@ bool compute_dirfile_format_fdata(std::string outdir, struct detectors det, long
 
 		if((fp = fopen(temp.c_str(),"w"))!=NULL){
 			fprintf(fp,"/FRAMEOFFSET 1\n/ENDIAN little\n/ENCODING none\n/PROTECT none\n/VERSION 7\n");
-			for(long iframe = 0; iframe< ntotscan; iframe++)
-				for(long ii =0; ii<det.ndet; ii++){
-					oss << "fdata_" << iframe << "_" << det.boloname[ii] << ".bi";
+			for(long iframe = 0; iframe< samples_struct.ntotscan; iframe++)
+				for(long ii =0; ii<detector_tab[iframe].ndet; ii++){
+					oss << "fdata_" << FitsBasename(samples_struct.fitsvect[iframe]) << "_" << detector_tab[iframe].boloname[ii] << ".bi";
 					std::string temp = oss.str();
 					fprintf(fp,"%s RAW INT64 1\n",temp.c_str());
 					oss.str("");

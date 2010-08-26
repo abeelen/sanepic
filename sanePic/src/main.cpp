@@ -85,7 +85,8 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	std::vector<detectors> detector_tab;
 
 	int nwcs=1; // number of wcs : 1
 	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])
 		long ncomp=1;
 
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
 			case 2 : printf("Wrong program options or argument. Exiting !\n");
 			break;
 
-			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+			case 3 : printf("Exiting...\n");
 			break;
 
 			default :;
@@ -357,23 +358,23 @@ int main(int argc, char *argv[])
 	//	cout << "test\n";
 	//	getchar();
 
-//	if(load_data>0){
-//		struct checksum chk_t,chk_t2;
-//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
-//		read_checksum(dir.tmp_dir, chk_t2);
-//		if(compare_checksum(chk_t, chk_t2)){
-//			cout << "les checksum sont differents !!!" << endl;
-//			return EXIT_FAILURE;
-//		}
-//	}
-//
-//
-//	if(save_data>0){
-//		struct checksum chk_t;
-//		/* Compute Checsum for crash recovery ! */
-//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
-//		write_checksum(dir.tmp_dir, chk_t);
-//	}
+	//	if(load_data>0){
+	//		struct checksum chk_t,chk_t2;
+	//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+	//		read_checksum(dir.tmp_dir, chk_t2);
+	//		if(compare_checksum(chk_t, chk_t2)){
+	//			cout << "les checksum sont differents !!!" << endl;
+	//			return EXIT_FAILURE;
+	//		}
+	//	}
+	//
+	//
+	//	if(save_data>0){
+	//		struct checksum chk_t;
+	//		/* Compute Checsum for crash recovery ! */
+	//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+	//		write_checksum(dir.tmp_dir, chk_t);
+	//	}
 
 
 	/*  END OF CHECKSUM   */
@@ -447,6 +448,8 @@ int main(int argc, char *argv[])
 
 			ns = samples_struct.nsamples[iframe];
 			f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
+
+			struct detectors det = detector_tab[iframe];
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon){
@@ -565,10 +568,10 @@ int main(int argc, char *argv[])
 
 		cout << var0 << endl;
 
-//		if(load_data>0){
-//			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, indpix, npixeff, var_n, delta_n, iter);
-//			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
-//		}
+		//		if(load_data>0){
+		//			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, indpix, npixeff, var_n, delta_n, iter);
+		//			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
+		//		}
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
@@ -582,6 +585,7 @@ int main(int argc, char *argv[])
 
 				ns = samples_struct.nsamples[iframe];
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
+				struct detectors det = detector_tab[iframe];
 
 				if (proc_param.CORRon){
 
@@ -660,6 +664,7 @@ int main(int argc, char *argv[])
 				for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
+					struct detectors det = detector_tab[iframe];
 
 
 					if (proc_param.CORRon){
@@ -747,9 +752,9 @@ int main(int argc, char *argv[])
 
 				if (iterw && (iter % iterw) == 0){ // saving iterated maps
 
-//					if(save_data>0){
-//						write_disk(dir.tmp_dir, d, npixeff, var_n, delta_n, iter);
-//					}
+					//					if(save_data>0){
+					//						write_disk(dir.tmp_dir, d, npixeff, var_n, delta_n, iter);
+					//					}
 
 					// Every iterw iteration compute the map and save it
 
@@ -868,7 +873,7 @@ int main(int argc, char *argv[])
 							return 0;
 						}
 					}
-					if(write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, det, samples_struct))
+					if(write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, detector_tab[0], samples_struct))
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 				} // end of saving iterated maps
 
@@ -921,6 +926,7 @@ int main(int argc, char *argv[])
 				ns = samples_struct.nsamples[iframe];
 				f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp;
 				f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp;
+				struct detectors det = detector_tab[iframe];
 
 				if (proc_param.CORRon){
 
@@ -998,7 +1004,7 @@ int main(int argc, char *argv[])
 
 		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.output_dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				proc_param, pos_param, det, samples_struct, fcut,
+				proc_param, pos_param, detector_tab[0], samples_struct, fcut,
 				wcs, pos_param.maskfile);
 	}// end of rank==0
 

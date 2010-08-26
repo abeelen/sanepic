@@ -3,6 +3,7 @@
 #include "inputFileIO.h"
 
 #include "parser_functions.h"
+#include "struct_definition.h"
 #include <iostream>
 #include <string>
 
@@ -14,12 +15,14 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,string &boloname, int rank)
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,std::vector<detectors> &detector_tab, int rank)
 {
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
-	char		*	s ;
+	//	char		*	s ;
+	string filename;
+	struct detectors det;
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -29,14 +32,14 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 		return -1 ;
 	}
 
-	s = iniparser_getstring(ini, "commons:channel",NULL);
-	if(s!=NULL){
-		boloname=s;
-	}else{
-		if(rank==0)
-			printf("You must specify a bolometer file : commons:channel\n");
-		return(-1);
-	}
+	//	s = iniparser_getstring(ini, "commons:channel",NULL);
+	//	if(s!=NULL){
+	//		boloname=s;
+	//	}else{
+	//		if(rank==0)
+	//			printf("You must specify a bolometer file : commons:channel\n");
+	//		return(-1);
+	//	}
 
 
 	if(read_common(ini, dir, 0)==-1)
@@ -53,6 +56,28 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 
 	if(read_fits_file_list(ini, dir,samples_struct, 0)==-1)
 		return -1;
+
+	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+
+	for(long oo=0;oo<samples_struct.ntotscan;oo++){
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+		//		cout << filename << endl;
+		if(read_channel_list(filename, det.boloname, rank)==1)
+			return -1;
+
+		det.ndet = (long)((det.boloname).size());
+
+		if (det.ndet == 0) {
+			if(rank==0)
+				cerr << "Must provide at least one channel.\n\n";
+			return -1;
+		}
+
+		detector_tab.push_back(det);
+		det.ndet=0;
+		det.boloname.clear();
+	}
+
 
 	if(rank==0){
 		cout << "\nYou have specified the following options : \n";

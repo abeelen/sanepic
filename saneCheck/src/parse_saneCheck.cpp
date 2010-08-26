@@ -37,7 +37,7 @@ std::string StringOf(const T& object){
 }
 
 int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
-		struct detectors &det,struct samples &samples_struct, double &fsamp, int rank)
+		std::vector<detectors> detector_tab,struct samples &samples_struct, double &fsamp, int rank)
 {
 
 
@@ -54,6 +54,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	string text;
 	string str;
+	string filename;
+	struct detectors det;
 
 	string s;
 	ofstream file;
@@ -77,21 +79,32 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	check_dirfile_paths(dir.tmp_dir);
 
 
-
-	if(read_channel_list(ini,dir, det.boloname, rank)==1)
-		return -1;
-
-
-
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return -1;
+
+
+	for(long oo=0;oo<samples_struct.ntotscan;oo++){
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+		//		cout << filename << endl;
+		if(read_channel_list(filename, det.boloname, rank)==1)
+			return -1;
+		det.ndet = (long)((det.boloname).size());
+		if (det.ndet == 0) {
+			if(rank==0)
+				cerr << "Must provide at least one channel.\n\n";
+			return -1;
+		}
+		detector_tab.push_back(det);
+		det.ndet=0;
+		det.boloname.clear();
+
+	}
 
 
 	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
-	det.ndet = (long)((det.boloname).size());
 
 	if(rank==0)
 		if (det.ndet == 0) {
@@ -132,8 +145,9 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		print_param_positions(pos_param);
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-		printf("Number of bolometers : %ld\n",det.ndet);
-
+		printf("Number of bolometers : \n");
+		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
 
 
 

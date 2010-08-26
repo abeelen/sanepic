@@ -20,7 +20,7 @@
 
 using namespace std;
 
-int computePixelIndex(string outdir, std::vector<string> bolonames,
+int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -35,7 +35,7 @@ int computePixelIndex(string outdir, std::vector<string> bolonames,
 
 	// TODO : samptopix unsigned long
 	long long  *samptopix;
-	long ndet = bolonames.size();
+	//	long ndet = bolonames.size();
 
 	string field;
 	string fits_file;
@@ -46,14 +46,14 @@ int computePixelIndex(string outdir, std::vector<string> bolonames,
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
 		ns = samples_struct.nsamples[iframe];
-
+		long ndet = det_vect[iframe].boloname.size();
 		double *ra, *dec, *phi, **offsets;
 		//		short *flag;
 
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		if(read_all_bolo_offsets_from_fits(fits_file, bolonames, offsets))
+		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
 			return 1;
 		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
@@ -94,7 +94,7 @@ int computePixelIndex(string outdir, std::vector<string> bolonames,
 
 		for (long idet = 0; idet<ndet; idet++){
 
-			string field = bolonames[idet];
+			string field = det_vect[iframe].boloname[idet];
 
 			double offxx, offyy, lon, lat, ra_deg, dec_deg;
 			int status;
@@ -239,7 +239,7 @@ int computePixelIndex(string outdir, std::vector<string> bolonames,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, bolonames[idet]))
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[iframe].boloname[idet]))
 				return 1;
 
 			delete [] bolo_flag;
@@ -260,7 +260,7 @@ int computePixelIndex(string outdir, std::vector<string> bolonames,
 	return 0;
 }
 
-int computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
+int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -275,7 +275,7 @@ int computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 	// TODO : samptopix unsigned long
 	long long  *samptopix;
-	long ndet = bolonames.size();
+	//	long ndet = bolonames.size();
 
 	string field;
 
@@ -287,12 +287,13 @@ int computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
 		ns = samples_struct.nsamples[iframe];
+		long ndet = det_vect[iframe].boloname.size();
 
 		double *ra, *dec;
 		int *flag=NULL;
 
 		for (long idet = 0; idet<ndet; idet++){
-			string field = bolonames[idet];
+			string field = det_vect[iframe].boloname[idet];
 
 			double *world, *imgcrd, *pixcrd;
 			double *theta, *phi;
@@ -447,7 +448,7 @@ int computePixelIndex_HIPE(string outdir, std::vector<string> bolonames,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, bolonames[idet]))
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[iframe].boloname[idet]))
 				return 1;
 
 			delete [] bolo_flag;

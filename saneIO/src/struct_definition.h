@@ -45,6 +45,7 @@ struct samples
 	std::string filename; // What is this ? : name of the fits_filelist.txt file read in ini file !
 };
 
+
 struct detectors
 /*! A structure that contains the name of the detectors + number of det */
 {

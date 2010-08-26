@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
 	struct param_process proc_param;
 	struct param_positions pos_param;
 	struct common dir; /*! structure that contains output input temp directories */
-	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	std::vector<detectors> detector_tab;
+//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
 
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
@@ -142,11 +143,9 @@ int main(int argc, char *argv[])
 		long ncomp=1;
 		int iterw=10;
 		int save_data, load_data;
-
-		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
-
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
 
@@ -156,20 +155,19 @@ int main(int argc, char *argv[])
 		case 2 : printf("Wrong program options or argument. Exiting !\n");
 		break;
 
-		case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+		case 3 : printf("Exiting...\n");
 		break;
 
 		default :;
 		}
 
-	if ((parsed>0)||(!compute_dirfile_format_file(dir.tmp_dir,det,samples_struct.ntotscan,rank))){
+	if ((parsed>0)||(!compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank))){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		exit(1);
 	}
-
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
 	t2=time(NULL);
@@ -281,7 +279,6 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-
 	if (pos_param.maskfile == ""){
 
 		//		if(iframe_min!=iframe_max)
@@ -298,7 +295,7 @@ int main(int argc, char *argv[])
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
-				if(computeMapMinima(det.boloname,samples_struct,
+				if(computeMapMinima(detector_tab,samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef USE_MPI
@@ -309,7 +306,7 @@ int main(int argc, char *argv[])
 				}
 				break;
 			case 1:
-				if(computeMapMinima_HIPE(det.boloname,samples_struct,
+				if(computeMapMinima_HIPE(detector_tab,samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef USE_MPI
@@ -342,7 +339,6 @@ int main(int argc, char *argv[])
 		gdec_min=dec_min;
 		gdec_max=dec_max;
 #endif
-
 		//set coordinates
 		coordscorner[0] = gra_min; // store ra/dec min/max of the final map
 		coordscorner[1] = gra_max;
@@ -443,7 +439,7 @@ int main(int argc, char *argv[])
 
 	switch (pos_param.fileFormat) {
 	case 0:
-		if(computePixelIndex(dir.tmp_dir, det.boloname,samples_struct,
+		if(computePixelIndex(dir.tmp_dir, detector_tab,samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
@@ -457,7 +453,7 @@ int main(int argc, char *argv[])
 		}
 		break;
 	case 1:
-		if(computePixelIndex_HIPE(dir.tmp_dir, det.boloname,samples_struct,
+		if(computePixelIndex_HIPE(dir.tmp_dir, detector_tab,samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
@@ -521,7 +517,7 @@ int main(int argc, char *argv[])
 	if (pixout)
 		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	if(rank==0){
-		printf("Total number of detectors : %d\nTotal number of Scans : %d \n",(int)det.ndet, (int) samples_struct.ntotscan);
+		printf("Total number of Scans : %d \n", (int) samples_struct.ntotscan);
 		printf("Size of the map : %ld x %ld (using %lld pixels)\n", NAXIS1, NAXIS2, sky_size);
 		printf("Total Number of filled pixels : %lld\n", npix);
 	}

@@ -119,28 +119,40 @@ int read_noisedir(dictionary	*ini, struct common &dir, int rank){
 
 }
 
-int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &bolonames, int rank){
+//int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &bolonames, int rank){
+//
+//	string str;
+//
+//
+//	switch(read_parser_string(ini, "commons:channel", str)){
+//	case 2:
+//		if(rank==0)
+//			cout <<"You must add a line in ini file specifying : commons:channel" << endl;
+//		return 1;
+//	case 1:
+//		if(rank==0)
+//			cout <<"Key is empty : You must specify : commons:channel" << endl;
+//		return 1;
+//	case 0:
+//		dir.channel=str;
+//		if(read_strings(str, bolonames))
+//			return 1;
+//	}
+//
+//
+//	return 0;
+//
+//}
 
-	string str;
 
+int read_channel_list(std::string fname, std::vector<string> &bolonames, int rank){
 
-	switch(read_parser_string(ini, "commons:channel", str)){
-	case 2:
+	if(read_strings(fname,bolonames)){
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : commons:channel" << endl;
+			cout <<"You must create file specifying bolometer list named " << fname << endl;
 		return 1;
-	case 1:
-		if(rank==0)
-			cout <<"Key is empty : You must specify : commons:channel" << endl;
-		return 1;
-	case 0:
-		dir.channel=str;
-		if(read_strings(str, bolonames))
-			return 1;
 	}
-
 	return 0;
-
 }
 
 
@@ -775,19 +787,20 @@ int read_load_data(dictionary *ini, int &load_data, int rank){
 
 
 int parser_function(char * ini_name, struct common &dir,
-		struct detectors &det,struct samples &samples_struct,
+		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
 		double &fcut_sanePS, string &MixMatfile, string &ellFile, string &signame, long &ncomp, int &iterw,
 		int &save_data, int &load_data, int rank, int size){
 
 	dictionary	*	ini ;
-
+	string filename;
+	struct detectors det;
 
 	// default values :
 	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
 	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 	samples_struct.ntotscan=0; /*! total number of scans */
-	det.ndet=0; /*! number of channels used*/
+	//	det.ndet=0; /*! number of channels used*/
 	pos_param.flgdupl = 0; // map duplication factor
 	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
 	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
@@ -821,11 +834,39 @@ int parser_function(char * ini_name, struct common &dir,
 		check_dirfile_paths(dir.tmp_dir);
 	}
 
-	if(read_channel_list(ini,dir, det.boloname, rank)==1)
-		return 2;
-
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return 2;
+
+	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+
+	if (samples_struct.ntotscan == 0) {
+		if(rank==0)
+			cerr << "Must provide at least one scan.\n\n";
+		return 2;
+	}
+
+
+	for(long oo=0;oo<samples_struct.ntotscan;oo++){
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+//		cout << filename << endl;
+		if(read_channel_list(filename, det.boloname, rank)==1)
+			return 2;
+		det.ndet = (long)((det.boloname).size());
+		if (det.ndet == 0) {
+			if(rank==0)
+				cerr << "Must provide at least one channel.\n\n";
+			return 2;
+		}
+		if(size>det.ndet){
+			cerr << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!" << endl;
+			return 3;
+		}
+		detector_tab.push_back(det);
+		det.ndet=0;
+		det.boloname.clear();
+
+	}
+//	cout << detector_tab[0].ndet << endl;
 
 
 	if(	read_param_positions(ini, pos_param, rank) ||
@@ -841,29 +882,6 @@ int parser_function(char * ini_name, struct common &dir,
 
 	read_iter(ini, iterw, rank);
 	read_noise_cut_freq(ini, proc_param, fcut,rank);
-
-
-	samples_struct.ntotscan = (samples_struct.fitsvect).size();
-	det.ndet = (long)((det.boloname).size());
-
-
-	if (det.ndet == 0) {
-		if(rank==0)
-			cerr << "Must provide at least one channel.\n\n";
-		return 2;
-	}
-
-
-	if (samples_struct.ntotscan == 0) {
-		if(rank==0)
-			cerr << "Must provide at least one scan.\n\n";
-		return 2;
-	}
-
-
-	if(size>det.ndet)
-		return 3;
-
 
 	if((int)fcut.size()==0){
 		string fname;
@@ -895,7 +913,9 @@ int parser_function(char * ini_name, struct common &dir,
 		print_param_positions(pos_param);
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-		printf("Number of bolometers : %ld\n",det.ndet);
+		printf("Number of bolometers : \n");
+		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
 	}
 
 

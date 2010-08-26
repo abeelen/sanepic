@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	std::vector<detectors> detector_tab;
 
 	int flagon; /*!  if one sample is rejected, flagon=1 */
 	long long ind_size; // indpix size
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
 		std::vector<double> fcut_vector;
 
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], dir, det, samples_struct, pos_param, proc_param, fcut_vector,
+		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut_vector,
 				fcut, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
 			case 2 : printf("Wrong program options or argument. Exiting !\n");
 			break;
 
-			case 3 : cerr << "You are using too many processors : " << size << " processors for only " << det.ndet << " detectors! Exiting...\n";
+			case 3 : printf("Exiting...\n");
 			break;
 
 			default :;
@@ -254,6 +255,8 @@ int main(int argc, char *argv[])
 		string filename = oss.str();
 		MixMatfile=Basename(filename);
 		oss.str("");
+
+		struct detectors det = detector_tab[iframe];
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, MixMatfile, ellFile,

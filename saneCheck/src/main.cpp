@@ -66,7 +66,8 @@ int main(int argc, char *argv[]) {
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct common dir;  /*! structure that contains output input temp directories */
-	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
+	//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
+	std::vector<detectors> detector_tab;
 	double fsamp; /*! sampling frequency */
 
 	string outname; /*! Ouput log files name */
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	else {
 		parsed=parse_saneCheck_ini_file(argv[1],dir,
-				det, samples_struct, fsamp, rank);
+				detector_tab, samples_struct, fsamp, rank);
 	}
 
 	if(parsed==-1){ /* error during parsing phase */
@@ -143,6 +144,7 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
+			struct detectors det = detector_tab[ii];
 			check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]); // check wether used detector user list is correct
 
 			bolo_bad = new long[bolo_fits.ndet]; // this scan bad detectors list
