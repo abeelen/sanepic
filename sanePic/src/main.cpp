@@ -16,7 +16,7 @@
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"
-//#include "crc.h"
+#include "crc.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -339,42 +339,44 @@ int main(int argc, char *argv[])
 
 	/* Crash recovery Procedure */
 
-	//	bool crash_recovery(argv[1],dir.tmp_dir);
-	//	      FILE *fp;
-	//	      size_t len;
-	//	      char buf[4096], *file = "/home/matthieu/Sanepic_folders/H-ATLAS/sanepic_ATLAS-Gama9_PSW.ini";
+	//		bool crash_recovery(argv[1],dir.tmp_dir);
+	//		      FILE *fp;
+	//		      size_t len;
+	//		      char buf[4096], *file = "/home/mhusson/workspace/sanepic_A2218.ini";
 	//
-	//	      if (NULL == (fp = fopen(file, "rb")))
-	//	      {
-	//	            printf("Unable to open %s for reading\n", file);
-	//	            return -1;
-	//	      }
-	//	      len = fread(buf, sizeof(char), sizeof(buf), fp);
-	//	      printf("%d bytes read\n", len);
-	//	      printf("The checksum of %s is %#x\n", file, checksum(buf, len, 0));
-	//	      printf("The checksum of %s is %u\n", file, checksum(buf, len, 0));
-	//	      return 0;
+	//		      if (NULL == (fp = fopen(file, "rb")))
+	//		      {
+	//		            printf("Unable to open %s for reading\n", file);
+	//		            return -1;
+	//		      }
+	//		      len = fread(buf, sizeof(char), sizeof(buf), fp);
+	//		      printf("%d bytes read\n", len);
+	//		      printf("The checksum of %s is %#x\n", file, checksum(buf, len, 0));
+	//		      printf("The checksum of %s is %u\n", file, checksum(buf, len, 0));
+	//		      return 0;
 
-	//	cout << "test\n";
-	//	getchar();
+	//		cout << "test\n";
+	//		getchar();
 
-	//	if(load_data>0){
-	//		struct checksum chk_t,chk_t2;
-	//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
-	//		read_checksum(dir.tmp_dir, chk_t2);
-	//		if(compare_checksum(chk_t, chk_t2)){
-	//			cout << "les checksum sont differents !!!" << endl;
-	//			return EXIT_FAILURE;
-	//		}
-	//	}
-	//
-	//
-	//	if(save_data>0){
-	//		struct checksum chk_t;
-	//		/* Compute Checsum for crash recovery ! */
-	//		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
-	//		write_checksum(dir.tmp_dir, chk_t);
-	//	}
+	if(load_data>0){
+		cout << "load data is ON\n";
+		struct checksum chk_t,chk_t2;
+		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+		read_checksum(dir.tmp_dir, chk_t2);
+		if(compare_checksum(chk_t, chk_t2)){
+			cout << "les checksum sont differents !!!" << endl;
+			return EXIT_FAILURE;
+		}
+	}
+
+
+	if(save_data>0){
+		cout << "save data is ON\n";
+		struct checksum chk_t;
+		/* Compute Checsum for crash recovery ! */
+		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+		write_checksum(dir.tmp_dir, chk_t);
+	}
 
 
 	/*  END OF CHECKSUM   */
@@ -568,10 +570,11 @@ int main(int argc, char *argv[])
 
 		cout << var0 << endl;
 
-		//		if(load_data>0){
-		//			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, indpix, npixeff, var_n, delta_n, iter);
-		//			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
-		//		}
+		if(load_data>0){
+			cout << "loading data !\n";
+			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, r, indpix, npixeff, var_n, delta_n, iter);
+			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
+		}
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
@@ -752,9 +755,10 @@ int main(int argc, char *argv[])
 
 				if (iterw && (iter % iterw) == 0){ // saving iterated maps
 
-					//					if(save_data>0){
-					//						write_disk(dir.tmp_dir, d, npixeff, var_n, delta_n, iter);
-					//					}
+					if((save_data>0)&&(iter!=0)){
+						write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
+						cout << "Data saved on disk for iteration : " << iter << endl;
+					}
 
 					// Every iterw iteration compute the map and save it
 

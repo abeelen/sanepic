@@ -38,10 +38,13 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 		return;
 	}
 	len = fread(buf, sizeof(char), sizeof(buf), fp);
+	char buf2[len-116];
+	for(long hh=0;hh<(long)(len-116);hh++)
+	buf2[hh]=buf[hh];
 //	printf("%d bytes read\n", len);
 	fclose(fp);
 
-	chk.chk_ini_file=checksum(buf, len, 0);
+	chk.chk_ini_file=checksum(buf2, len-116, 0);
 	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
 
 	file= tmp_dir + "mapHeader.keyrec";
@@ -169,7 +172,7 @@ bool compare_checksum(struct checksum chk_t, struct checksum chk_t2){
 	return 0;
 }
 
-void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, long long *indpix, long long npixeff, double &var_n, double &delta_n, int &iter){
+void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double *r, long long *indpix, long long npixeff, double &var_n, double &delta_n, int &iter){
 
 	FILE* fp;
 	string file = tmp_dir + "data_sanePic.bin";
@@ -189,6 +192,7 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, long l
 	len+=fread(&delta_n,sizeof(double),1,fp);
 	len+=fread(&iter,sizeof(int),1,fp);
 	len+=fread(d,sizeof(double),npixeff,fp);
+	len+=fread(r,sizeof(double),npixeff,fp);
 
 	oss << out_dir + "optimMap_" << iter << "b.fits";
 	fits_temp=oss.str();
@@ -200,7 +204,7 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, long l
 }
 
 
-void write_disk(string tmp_dir, double *d, long long npix, double var_n, double delta_n, int iter){
+void write_disk(string tmp_dir, double *d, double *r, long long npixeff, double var_n, double delta_n, int iter){
 
 	FILE *fp;
 	string file = tmp_dir + "data_sanePic.bin";
@@ -214,7 +218,8 @@ void write_disk(string tmp_dir, double *d, long long npix, double var_n, double 
 	len+=fwrite(&var_n,sizeof(double),1,fp);
 	len+=fwrite(&delta_n,sizeof(double),1,fp);
 	len+=fwrite(&iter,sizeof(int),1,fp);
-	len+=fwrite(d,sizeof(double),npix,fp);
+	len+=fwrite(d,sizeof(double),npixeff,fp);
+	len+=fwrite(r,sizeof(double),npixeff,fp);
 
 	fclose(fp);
 

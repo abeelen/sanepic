@@ -759,9 +759,9 @@ int read_save_data(dictionary *ini, int &save_data, int rank){
 
 	string str;
 
-	if (read_parser_string(ini, "sanePic:save_data", str)==0)
+	if (read_parser_string(ini, "sanePic:save_data", str)==0){
 		save_data=atoi(str.c_str());
-	else{
+	}else{
 		cout << "Please mention sanePic:save_data !\n";
 		return 1;
 	}
@@ -774,9 +774,9 @@ int read_load_data(dictionary *ini, int &load_data, int rank){
 
 	string str;
 
-	if (read_parser_string(ini, "sanePic:load_data", str)==0)
+	if (read_parser_string(ini, "sanePic:load_data", str)==0){
 		load_data=atoi(str.c_str());
-	else{
+	}else{
 		cout << "Please mention sanePic:load_data !\n";
 		return 1;
 	}
@@ -848,7 +848,7 @@ int parser_function(char * ini_name, struct common &dir,
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
-//		cout << filename << endl;
+		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return 2;
 		det.ndet = (long)((det.boloname).size());
@@ -866,7 +866,7 @@ int parser_function(char * ini_name, struct common &dir,
 		det.boloname.clear();
 
 	}
-//	cout << detector_tab[0].ndet << endl;
+	//	cout << detector_tab[0].ndet << endl;
 
 
 	if(	read_param_positions(ini, pos_param, rank) ||
@@ -875,10 +875,13 @@ int parser_function(char * ini_name, struct common &dir,
 			read_map_file(ini, signame) ||
 			read_mixmatfile(ini, MixMatfile, rank)||
 			read_fcut(ini, fcut_sanePS, rank) ||
-			read_ncomp(ini, ncomp, rank)) /*||
+			read_ncomp(ini, ncomp, rank) ||
 			read_save_data(ini, save_data, rank) ||
-			read_load_data(ini, load_data, rank))*/
+			read_load_data(ini, load_data, rank))
 		return 2;
+
+	//	cout << "parser save data : " << save_data << endl;
+	//	cout << "parser load data : " << load_data << endl;
 
 	read_iter(ini, iterw, rank);
 	read_noise_cut_freq(ini, proc_param, fcut,rank);
@@ -911,6 +914,9 @@ int parser_function(char * ini_name, struct common &dir,
 		cout << endl;
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
+
+		cout << "parser save data : " << save_data << endl;
+		cout << "parser load data : " << load_data << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 		printf("Number of bolometers : \n");
