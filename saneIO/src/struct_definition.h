@@ -33,7 +33,7 @@ struct samples
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
 
-	std::vector<std::string> mixmat_file;
+//	std::vector<std::string> mixmat_file;
 	std::string cov_matrix_file;
 
 	bool framegiven;
@@ -78,6 +78,25 @@ struct param_process
 
 	std::string fcut_file;
 };
+
+struct PS
+/*! A structure that contains user options about sanePS procedure */
+{
+	double fcutPS;
+	std::string ell_file;
+	std::string mixmat;
+	std::string signame;
+	long ncomp;
+};
+
+struct sanePic
+/*! A structure that contains user options about sanePic procedure */
+{
+	long iterw;
+	long itermax;
+	double thresholds;
+};
+
 
 struct checksum
 /*! A structure that contains sanePic input checksum values for crash recovery procedure */
