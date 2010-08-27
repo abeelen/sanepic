@@ -37,7 +37,7 @@ std::string StringOf(const T& object){
 }
 
 int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
-		std::vector<detectors> detector_tab,struct samples &samples_struct, double &fsamp, int rank)
+		std::vector<detectors> &detector_tab,struct samples &samples_struct, double &fsamp, int rank)
 {
 
 
@@ -82,6 +82,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return -1;
 
+	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
@@ -100,16 +102,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	}
 
-
 	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
-
-	samples_struct.ntotscan = (samples_struct.fitsvect).size();
-
-	if(rank==0)
-		if (det.ndet == 0) {
-			cerr << "Must provide at least one channel.\n\n";
-		}
 
 	read_param_positions(ini, pos_param, rank);
 
