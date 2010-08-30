@@ -132,12 +132,12 @@ int main(int argc, char *argv[])
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 		double fcut_sanePS=0.0;
-		string MixMatfile, ellFile, signame;
+		string MixMatfile, signame;
 		long ncomp=1;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase

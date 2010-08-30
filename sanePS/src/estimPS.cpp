@@ -33,7 +33,6 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 		long long *indpix, double *S, string MixMatfile,string ellFile, string fits_filename, long ncomp, double fcut, int rank)
 {
 
-	//TODO : read nbins/ell in the ini file, not even in the fits file
 	long nbins = 500; // temp value
 	long nbins2; // readed bins in mixmatfile
 	double factapod= 0.0; // apodization factor
@@ -65,7 +64,7 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	//	fdata1 = fourier transform
 	//	fdata2 = fourier transform
 
-	if(read_double(ellFile, ell, nbins)) // read ell in ellfile
+	if(read_double(dir.dirfile+ellFile+".ell", ell, nbins)) // read ell in ellfile
 		return 1;
 	nbins = nbins-1;
 

@@ -60,11 +60,15 @@ int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonam
 	temp_dx = new double[ndet_total];
 	temp_dy = new double[ndet_total];
 
-	fits_get_colnum(fptr, CASEINSEN, (char *) "dX", &colnum, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dx, 0, &status);
+	if(fits_get_colnum(fptr, CASEINSEN, (char *) "dX", &colnum, &status))
+		return 1;
+	if(fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dx, 0, &status))
+		return 1;
 
-	fits_get_colnum(fptr, CASEINSEN, (char *) "dY", &colnum, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dy, 0, &status);
+	if(fits_get_colnum(fptr, CASEINSEN, (char *) "dY", &colnum, &status))
+		return 1;
+	if(fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ndet_total, NULL, temp_dy, 0, &status))
+		return 1;
 
 	// match read offsets with requested offsets
 	for (long idet=0;idet<ndet;idet++){
@@ -274,7 +278,7 @@ int read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
-	rowIndex = find_channel_index(fptr, field.c_str()); // TODO : test rowindex or rowindex -1 ??
+	rowIndex = find_channel_index(fptr, field.c_str());
 
 	// ---------------------------------------------
 	// Move ptr to mask hdu

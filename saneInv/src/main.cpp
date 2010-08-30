@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
 
-			if(n_iter==1)
+			if((n_iter==1)&&(samples_struct.ntotscan!=1))
 				channelOut=channelIn;
 			else
 				channelOut=detector_tab[n_iter].boloname;

@@ -21,6 +21,7 @@ struct common
 	std::string output_dir;
 	std::string tmp_dir;
 	std::string noise_dir;
+	std::string ell_path;
 
 	std::string channel;
 	std::string fits_filelist;

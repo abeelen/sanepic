@@ -84,7 +84,6 @@ int main(int argc, char *argv[])
 
 
 	string field; // actual boloname in the bolo loop
-	string ellFile; // file containing the ells
 	string prefixe; // prefix used for temporary name file creation
 
 
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut_vector,
-				fcut, MixMatfile, ellFile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -259,7 +258,7 @@ int main(int argc, char *argv[])
 		struct detectors det = detector_tab[iframe];
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
-				iframe, indpix,	S, MixMatfile, ellFile,
+				iframe, indpix,	S, MixMatfile, MixMatfile,
 				fits_filename, ncomp, fcut, rank);
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels

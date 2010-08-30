@@ -54,7 +54,7 @@ bool compute_dirfile_format_file(std::string outdir, struct samples samples_stru
 	return 1;
 
 }
-// TODO : change this for multiple suffix (means multiple covariance matrix)
+
 bool compute_dirfile_format_noisePS(std::string outdir, std::vector<string> det, string suffix)
 /*!  Create the format file for kst and write the noise file list inside  */
 {
@@ -443,7 +443,6 @@ int read_fdata(long ns, fftw_complex *&fdata, string prefixe,  string outdir, lo
 
 int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 {
-	//TODO : CAN NOT WORK !
 	FILE *fp;
 	int result;
 	long ncomp2;

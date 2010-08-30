@@ -43,7 +43,7 @@ int read_baseline(dictionary	    *ini, struct param_process &proc_param, int ran
 int read_correlation(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_remove_poly(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_iter(dictionary	        *ini, int &iterw, int rank);
-int read_ell_file(dictionary	*ini, std::string &ellFile, int rank);
+int read_ell_dir(dictionary	*ini, std::string &ellpath, int rank);
 int read_map_file(dictionary	*ini, std::string &signame);
 int read_cov_matrix_file(dictionary	*ini, std::string &fname, int rank);
 int read_mixmatfile(dictionary	*ini, std::string &MixMatfile, int rank);
@@ -69,7 +69,7 @@ int check_dirfile_paths(std::string strPath);
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, std::string &MixMatfile, std::string &ellFile, std::string &signame, long &ncomp, int &iterw, int &save_data, int &load_data,
+		double &fcut_sanePS, std::string &MixMatfile, std::string &signame, long &ncomp, int &iterw, int &save_data, int &load_data,
 		int rank, int size);
 
 #endif /* PARSER_FUNCTIONS_H_ */

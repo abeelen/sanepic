@@ -1308,24 +1308,24 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 
 
-	//TODO : One should define a fits format for that
+	//TODO : One should define a fits format for that => useless ! The same is done for Nfinal _uncnoise !
 	//**************** Write component power spectra to disk
-	for (long idet1=0;idet1<det.ndet;idet1++){
-
-		tempstr1 = det.boloname[idet1];
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
-
-		// récupérer une chaîne de caractères
-		nameSpfile= temp_stream.str();
-		temp_stream.str("");
-
-		fp = fopen(nameSpfile.c_str(),"w");
-		for (long ii=0;ii<nbins;ii++){
-			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
-		}
-		fprintf(fp,"\n");
-		fclose(fp);
-	}
+//	for (long idet1=0;idet1<det.ndet;idet1++){
+//
+//		tempstr1 = det.boloname[idet1];
+//		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
+//
+//		// récupérer une chaîne de caractères
+//		nameSpfile= temp_stream.str();
+//		temp_stream.str("");
+//
+//		fp = fopen(nameSpfile.c_str(),"w");
+//		for (long ii=0;ii<nbins;ii++){
+//			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
+//		}
+//		fprintf(fp,"\n");
+//		fclose(fp);
+//	}
 
 	data1d = new double[det.ndet*nbins];
 	for (long i=0; i< det.ndet; i++)

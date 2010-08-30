@@ -340,6 +340,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	double **SpN_all;
 
 	//TODO : This is a butterworth filter.... why not use butterworth()
+	// Cause we want 1/butterworth() + we don't want to deal with fourier transform here !
 	for (long ii=0;ii<ns/2+1;ii++){
 		powered=gsl_pow_int(double(ii)/f_lppix,16);
 		bfilter[ii] = powered /(1.0+powered);

@@ -85,46 +85,56 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	char **data;
 	data = vString2carray(bolos);
 
-	//TODO : error handling
 
-	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
-			(char*)"Channel List", &status);
-	fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status);
-	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
-			(char *) "physical unit of the field", &status);
+	if (fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
+			(char*)"Channel List", &status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status))
+		return 1;
+	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+			(char *) "physical unit of the field", &status))
+		return 1;
 
 	// ---------------------------------------------
 	// write the Ells
 	naxes[0] = nbins + 1;
-	fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status);
-	fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status);
-	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
-			(char *) "physical unit of the field", &status);
-	fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
-			(char *) "name of this binary table extension", &status);
+	if (fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status))
+		return 1;
+	if (fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status))
+		return 1;
+	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
+			(char *) "physical unit of the field", &status))
+		return 1;
+	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
+			(char *) "name of this binary table extension", &status))
+		return 1;
 
 	// ---------------------------------------------
 	// write the spectras
 	naxes[0] = nbins;
 	naxes[1] = nBolos * nBolos;
-	fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
+	if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
 
-	// since Rellth is a NR matrix, one has to write it line by line :
-	for (long i = 0; i < nBolos * nBolos; i++) {
-		fpixel[1] = i + 1;
-		fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status);
-	}
-	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+		// since Rellth is a NR matrix, one has to write it line by line :
+		for (long i = 0; i < nBolos * nBolos; i++) {
+			fpixel[1] = i + 1;
+			if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
+				return 1;
+		}
+	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
 			(char *) "Covariance Matrices",
-			(char *) "name of this binary table extension", &status);
-	fits_write_comment(
+			(char *) "name of this binary table extension", &status))
+		return 1;
+	if (fits_write_comment(
 			fptr,
 			(char *) "This contains the Fourrier transform of the covariance matrices",
-			&status);
-	fits_write_comment(
+			&status))
+		return 1;
+	if (fits_write_comment(
 			fptr,
 			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
-			&status);
+			&status))
+		return 1;
 
 	if (fits_close_file(fptr, &status)){
 		fits_report_error(stderr, status);

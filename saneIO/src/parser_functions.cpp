@@ -460,23 +460,23 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 	return 0;
 }
 
-int read_ell_file(dictionary	*ini, string &ellFile, int rank){
+int read_ell_dir(dictionary	*ini, string &ellpath, int rank){
 
 
 	string str;
 
 
-	switch(read_parser_string(ini, "sanePS:ell_file", str)){
+	switch(read_parser_string(ini, "sanePS:ell_dir", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : sanePS:ell_file" << endl;
+			cout <<"You must add a line in ini file specifying : sanePS:ell_dir" << endl;
 		return 1;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : sanePS:ell_file" << endl;
+			cout <<"Key is empty : You must specify : sanePS:ell_dir" << endl;
 		return 1;
 	case 0:
-		ellFile=str;
+		ellpath=str;
 	}
 
 	return 0;
@@ -789,7 +789,7 @@ int read_load_data(dictionary *ini, int &load_data, int rank){
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, string &MixMatfile, string &ellFile, string &signame, long &ncomp, int &iterw,
+		double &fcut_sanePS, string &MixMatfile, string &signame, long &ncomp, int &iterw,
 		int &save_data, int &load_data, int rank, int size){
 
 	dictionary	*	ini ;
@@ -826,11 +826,15 @@ int parser_function(char * ini_name, struct common &dir,
 	if(read_common(ini, dir, rank)==1)
 		return 2;
 
+	if(read_ell_dir(ini, dir.ell_path, rank))
+		return 2;
+
 	if(rank==0){
 		check_path(dir.dirfile, "Input directory");
 		check_path(dir.output_dir, "Output directory");
 		check_path(dir.noise_dir, "Covariance Matrix directory");
 		check_path(dir.tmp_dir, "Temporary directory");
+		check_path(dir.ell_path, "Ell directory");
 		check_dirfile_paths(dir.tmp_dir);
 	}
 
@@ -871,7 +875,6 @@ int parser_function(char * ini_name, struct common &dir,
 
 	if(	read_param_positions(ini, pos_param, rank) ||
 			read_param_process(ini, proc_param, rank) ||
-			read_ell_file(ini, ellFile, rank) ||
 			read_map_file(ini, signame) ||
 			read_mixmatfile(ini, MixMatfile, rank)||
 			read_fcut(ini, fcut_sanePS, rank) ||

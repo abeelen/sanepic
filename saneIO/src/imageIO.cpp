@@ -98,8 +98,9 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 		free(header);
 	}
 
-	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
-			(char *) "table name", &fits_status);
+	if(fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
+			(char *) "table name", &fits_status))
+		return 1;
 
 
 	// write map data
@@ -622,7 +623,8 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 		return 1;
 	}
 
-	fits_get_img_size(fptr, 2, naxes, &status);
+	if(fits_get_img_size(fptr, 2, naxes, &status))
+		return 1;
 
 	NAXIS1=(long)naxes[0];
 	NAXIS2=(long)naxes[1];

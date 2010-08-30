@@ -261,7 +261,7 @@ void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, doubl
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_total, PHI, &status);
 }
 
-// TODO : same as in saneSplit, should teleport to a common library ?
+
 void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
 /*! copy offsets table from input to output file */
 {
@@ -279,7 +279,7 @@ void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
 
 }
 
-// TODO : same as in saneSplit, should teleport to a common library ?
+
 void copy_channels(fitsfile * fptr, fitsfile *outfptr)
 /*! copy offsets table from input to output file */
 {
@@ -289,8 +289,6 @@ void copy_channels(fitsfile * fptr, fitsfile *outfptr)
 
 	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status); // move input pointer to "channels" table
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
-
-
 	fits_copy_col(fptr, outfptr,  1, 1,	0, &status); // copy whole channel table to output
 
 }
