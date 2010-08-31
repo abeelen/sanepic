@@ -84,8 +84,8 @@ struct PS
 /*! A structure that contains user options about sanePS procedure */
 {
 	double fcutPS;
-	std::string ell_file;
-	std::string mixmat;
+	std::string ell_path;
+	std::string mix_path;
 	std::string signame;
 	long ncomp;
 };

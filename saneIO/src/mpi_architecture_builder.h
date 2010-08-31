@@ -68,7 +68,9 @@ int verify_parallelization_scheme(int rank, std::string outdir,struct samples sa
 long readFitsLength(std::string filename);
 void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
 
-void readBoxFile(std::string filename, std::vector<struct box> & boxList);
+//void readBoxFile(std::string filename, std::vector<struct box> & boxList); // useless
+
+int who_do_it(int size, int rank, int ii);
 
 #define parallel_scheme_filename  "parallel_scheme.txt";
 

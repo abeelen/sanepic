@@ -793,36 +793,60 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 
 
 
+// Useless now
+//void readBoxFile(string filename, std::vector<struct box> & boxList){
+//	// Read a file with 4 number on a line, describing the boxes
+//	// 2 numbers for the bottom_left_corner (blc)
+//	// 2 numbers for the top_right_corner (trc)
+//
+//	ifstream file;
+//	file.open(filename.c_str(), ios::in);
+//	if(!file.is_open()){
+//		cerr << "File [" << filename << "] Invalid." << endl;
+//		exit(-1);
+//	}
+//
+//	double x_min, x_max, y_min, y_max;
+//
+//	while(file >> x_min >> y_min >> x_max >> y_max) {
+//		struct box ibox;
+//		struct corner icorn;
+//
+//		icorn.x = x_min;
+//		icorn.y = y_min;
+//		ibox.blc = icorn;
+//
+//		icorn.x = x_max;
+//		icorn.y = y_max;
+//		ibox.trc = icorn;
+//
+//		boxList.push_back(ibox);
+//	}
+//
+//	file.close();
+//
+//}
 
-void readBoxFile(string filename, std::vector<struct box> & boxList){
-	// Read a file with 4 number on a line, describing the boxes
-	// 2 numbers for the bottom_left_corner (blc)
-	// 2 numbers for the top_right_corner (trc)
+int who_do_it(int size, int rank, int ii)
+/*!\brief This function determines which processor has to treat the given loop referenced by his number
+ * \param size Number of Processor used
+ * \param rank processor rank number
+ * \param ii A scan number
+ * \return integer : A processor's rank, the rank determines which processor has to compute the scan
+ */
+{
 
-	ifstream file;
-	file.open(filename.c_str(), ios::in);
-	if(!file.is_open()){
-		cerr << "File [" << filename << "] Invalid." << endl;
-		exit(-1);
+	if(size==1) // if there is only 1 proc, he has to do the job
+		return 0;
+
+	if(size>=ii) // if the loop number is smaller than the number of MPI processors
+		return ii;
+
+	if(size<ii){ // if the loop number is larger than the number of MPI processors
+		while(ii>size)
+			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
+		return ii;
 	}
 
-	double x_min, x_max, y_min, y_max;
-
-	while(file >> x_min >> y_min >> x_max >> y_max) {
-		struct box ibox;
-		struct corner icorn;
-
-		icorn.x = x_min;
-		icorn.y = y_min;
-		ibox.blc = icorn;
-
-		icorn.x = x_max;
-		icorn.y = y_max;
-		ibox.trc = icorn;
-
-		boxList.push_back(ibox);
-	}
-
-	file.close();
-
+	return -1; // error in the program
 }
