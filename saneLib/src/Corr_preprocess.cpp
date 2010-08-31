@@ -62,10 +62,7 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 		if(read_samptopix(ns, samptopix, dir, filename, det.boloname[idet1]))
 			return 1;
 
-		//				cout << "samptopix : " << endl;
-		//				cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
-
-		// temporary down
+		//TODO :  temporary down
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
@@ -98,7 +95,7 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 
 
 
-	double *data, *bfilter, *data_lp, *Ps;
+	double *data, *data_lp, *Ps;
 	int *flag=NULL;
 	long long *samptopix;
 
@@ -138,21 +135,18 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 
 	samptopix = new long long[ns];
 	Ps = new double[ns];
-	bfilter = new double[ns/2+1];
+	//	bfilter = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
 
 	fill(data_lp,data_lp+ns,0.0);
 	fill(Ps,Ps+ns,0.0);
-	fill(bfilter,bfilter+(ns/2+1),0.0);
+	//	fill(bfilter,bfilter+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
 	for (long ii=0;ii<ns/2+1;ii++){
 		fdata[ii][0] = 0.0;
 		fdata[ii][1] = 0.0;
 	}
-
-	//Fourier transform of the data
-	//	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
 
 
 	int factdupl = 1;
@@ -176,7 +170,7 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 #endif
 
 		field1 = det.boloname[idet1];
-		//				cout << field1 << endl;
+//		cout << field1 << endl;
 
 		//				if (rank==1)
 		//					cout << idet1 << endl;
@@ -188,7 +182,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 			fdata[ii][0] = 0.0;
 			fdata[ii][1] = 0.0;
 		}
-		//		cout << field1 << "  apres ALLOC "  << endl;
 
 
 
@@ -239,11 +232,11 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 
 		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
 					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,bfilter,
+			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
 					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 		}
 
@@ -289,7 +282,7 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 	delete[] data_lp;
 	delete[] samptopix;
 	delete[] Ps;
-	delete[] bfilter;
+	//	delete[] bfilter;
 	delete[] fdata;
 
 #ifdef DEBUG

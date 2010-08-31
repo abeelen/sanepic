@@ -664,27 +664,29 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 }
 
-
 void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
-		int orderpoly, double f_lppix, double *data_lp, double *bfilter, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
+		int orderpoly, double f_lppix, double *data_lp, /*double *bfilter,*/ bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
 	//long ii;
 	double aa, bb;
 
-	double *data_out, *data_out_lp;
+	double *data_out/*, *data_out_lp*/;
+	double *bfilter;
 
 	data_out = new double[ns];
-	data_out_lp = new double[ns];
+	bfilter = new double[ns/2+1];
+	//	data_out_lp = new double[ns];
 
 	fill(data_out,data_out+ns,0.0);
-	fill(data_out_lp,data_out_lp+ns,0.0);
+	fill(bfilter,bfilter+ns/2+1,0.0);
+	//	fill(data_out_lp,data_out_lp+ns,0.0);
 
 
 	//TODO : TEST : Change the removal of the map here => means ??
-	//TODO : Optimize the memory management here.... We have data/data_out/data_out_lp/data_lp
-	//TODO : This routine CHANGES *data : is this really wanted ?
-	//
+	// Optimize the memory management here....
+	// This routine CHANGES *data : is this really wanted ? => YES
+
 	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
@@ -693,15 +695,15 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	if (NOFILLGAP == 0){
 		//fill gaps with straight line
 		fillgaps2(data,ns,data_out,flag,40);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
+		//		for (long ii=0;ii<ns;ii++)
+		//			data[ii] = data_out[ii];
 	}
 
 	if(remove_polynomia){
 		//remove polynomia to correct from time varying calibration
-		remove_poly(data,ns,orderpoly,data_out,flag);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
+		remove_poly(data_out,ns,orderpoly,data,flag);
+		//		for (long ii=0;ii<ns;ii++)
+		//			data[ii] = data_out[ii];
 	}
 
 	//linear prediction
@@ -719,9 +721,9 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
-		butterworth(data_lp,ns,f_lppix,8,data_out_lp,bfilter,1,napod,0);
-		for (long ii=0;ii<(ns);ii++)
-			data_lp[ii] = data_out_lp[ii];
+		butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
+		//		for (long ii=0;ii<(ns);ii++)
+		//			data_lp[ii] = data_out_lp[ii];
 	} else{
 		for (long ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = 1.0;
@@ -731,11 +733,11 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 	//******************* process gaps
 	if (NOFILLGAP == 0){
-		for (long ii=0;ii<ns;ii++)
-			data_out[ii] = data_lp[ii];
-		fillgaps2(data_out,ns,data,flag,40);
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data[ii];
+		//		for (long ii=0;ii<ns;ii++)
+		//			data_out[ii] = data_lp[ii];
+		fillgaps2(data_out,ns,data_lp,flag,40);
+		//		for (long ii=0;ii<ns;ii++)
+		//			data_lp[ii] = data[ii];
 	}
 
 	if (Ps != NULL){
@@ -746,7 +748,8 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 
 	delete [] data_out;
-	delete [] data_out_lp;
+	delete [] bfilter;
+	//	delete [] data_out_lp;
 
 
 
