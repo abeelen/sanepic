@@ -11,7 +11,7 @@ struct checkHDU {
 };
 
 /*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
-int who_do_it(int size, int rank, int ii);
+//int who_do_it(int size, int rank, int ii);
 
 /*! this function determines whether the user list of detectors is correct or not */
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, std::string filename);

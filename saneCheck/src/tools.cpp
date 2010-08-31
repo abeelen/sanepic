@@ -31,24 +31,24 @@ extern "C" {
 using namespace std;
 
 
-int who_do_it(int size, int rank, int ii)
-/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
-{
-
-	if(size==1) // if there is only 1 proc, he has to do the job
-		return 0;
-
-	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
-		return ii;
-
-	if(size<ii){ // if the fits file number is larger than the number of MPI processors
-		while(ii>size)
-			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
-		return ii;
-	}
-
-	return -1; // error in the program
-}
+//int who_do_it(int size, int rank, int ii)
+///*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
+//{
+//
+//	if(size==1) // if there is only 1 proc, he has to do the job
+//		return 0;
+//
+//	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
+//		return ii;
+//
+//	if(size<ii){ // if the fits file number is larger than the number of MPI processors
+//		while(ii>size)
+//			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
+//		return ii;
+//	}
+//
+//	return -1; // error in the program
+//}
 
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, string filename)
 /*! this function determines whether the user list of detectors is correct or not */
