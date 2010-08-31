@@ -158,7 +158,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		}
 
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
-		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
@@ -311,7 +311,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 	int *flag;
 
-	double *data, *data_lp, *Ps=NULL, *bfilter;
+	double *data, *data_lp, *Ps=NULL;
 	double  *commontmp;
 	double *Nell, *Nk;
 	long long *samptopix; // sample to pixel projection matrix
@@ -322,7 +322,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 
 	data_lp = new double[ns]; // data low passed
-	bfilter = new double[ns/2+1]; // buttter filter values
+//	bfilter = new double[ns/2+1]; // buttter filter values
 	commontmp = new double[ns]; //
 	Nell = new double[nbins]; // binned noise PS
 	Nk = new double[ns/2+1]; // noise PS
@@ -332,8 +332,8 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		Ps = new double[ns];
 	}
 
-	for(long ii=0;ii<ns/2+1;ii++)
-		bfilter[ii] = 1.0;
+//	for(long ii=0;ii<ns/2+1;ii++)
+//		bfilter[ii] = 1.0;
 
 
 	fill(commontmp,commontmp+ns,0.0);
@@ -382,7 +382,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		}
 
 
-		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,bfilter,
+		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
 		for (long ii=0;ii<ns;ii++)
@@ -462,7 +462,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 	delete [] data_lp ;
 	delete [] data ;
-	delete [] bfilter ;
+//	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;
 	delete [] Nk;
