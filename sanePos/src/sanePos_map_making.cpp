@@ -224,6 +224,7 @@ int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples sample
 
 	string fits_file;
 	string field;
+	int drop_sanepos=0;
 
 
 
@@ -276,7 +277,8 @@ int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples sample
 			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
 					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
 
-				cerr << "WW - " << field << " has no usable data : Check !!" << endl;
+				cerr << "WARNING - frame : " << fits_file << " : " << field << " has no usable data : Check !!" << endl;
+				drop_sanepos++;
 
 			} else {
 
@@ -293,9 +295,12 @@ int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples sample
 		}
 
 
-
-
 	}
+
+
+	if(drop_sanepos>0)
+		return 1;
+
 
 	/// add a small interval of 10 arcmin
 	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);

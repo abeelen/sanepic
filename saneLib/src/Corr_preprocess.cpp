@@ -22,7 +22,6 @@
 
 #include <gsl/gsl_math.h>
 #include <fftw3.h>
-//#include <time.h>
 
 using namespace std;
 
@@ -172,10 +171,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 		field1 = det.boloname[idet1];
 //		cout << field1 << endl;
 
-		//				if (rank==1)
-		//					cout << idet1 << endl;
-
-
 		fill(data_lp,data_lp+ns,0.0);
 
 		for (long ii=0;ii<ns/2+1;ii++){
@@ -213,9 +208,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 			//// Read pointing
 			if(read_samptopix(ns, samptopix, tmp_dir, fits_filename, field1))
 				return 1;
-
-			//			cout << "samptopix : " << endl;
-			//			cout << samptopix[0] << " " << samptopix[1] << " " << samptopix[2] << endl;
 
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
@@ -332,7 +324,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 	double **SpN_all;
 
-	//TODO : This is a butterworth filter.... why not use butterworth()
+	// This is a butterworth filter.... why not use butterworth()
 	// Cause we want 1/butterworth() + we don't want to deal with fourier transform here !
 	for (long ii=0;ii<ns/2+1;ii++){
 		powered=gsl_pow_int(double(ii)/f_lppix,16);
@@ -381,7 +373,6 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 		//**************************************** Noise power spectrum
 		string extname = "_InvNoisePS";
-		//string suffix = Basename(noise_table[iframe]) + extname;
 		string suffix = FitsBasename(noise_table[iframe]) + extname;
 
 		//read noise PS file for idet1
@@ -583,7 +574,6 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 		fill(data_out,data_out+ns,0.0);
 
 		//fill gaps with straight line
-		//		fillgaps(data,ns,data_out,flag,0);
 		fillgaps2(data,ns,data_out,flag,40);
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_out[ii];
@@ -618,16 +608,13 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 
 
 		for (long ii=0;ii<ns;ii++){
-			//if(PNd[indpix[samptopix[ii]]]!=0.0)
 			PNd[indpix[samptopix[ii]]] += data[ii];
 		}
 
 		//compute hit counts
-		//if (hits != NULL){
 		for (long ii=0;ii<ns;ii++){
 			hits[indpix[samptopix[ii]]] += 1;
 		}
-		//}
 
 
 	}// end of idet1 loop

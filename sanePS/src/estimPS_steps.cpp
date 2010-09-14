@@ -64,7 +64,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	fftw_plan fftplan;
 
 
-	double *data, *data_lp, *Ps, *bfilter;
+	double *data, *data_lp, *Ps/*, *bfilter*/;
 	long long *samptopix; // sample to pixel projection matrix
 	double **iCov, **Cov, *ivec, **l;
 	double *uvec;
@@ -81,7 +81,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // deprojected signal
 	samptopix = new long long[ns]; // sample to pixel proj matrix
-	bfilter = new double[ns/2+1]; // buttter filter values
+	//	bfilter = new double[ns/2+1]; // buttter filter values
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 
 
@@ -98,8 +98,8 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
 
-	for(long ii=0;ii<ns/2+1;ii++)
-		bfilter[ii] = 1.0;
+	//	for(long ii=0;ii<ns/2+1;ii++)
+	//		bfilter[ii] = 1.0;
 
 
 	sign = new double[det.ndet];
@@ -113,7 +113,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	for (long idet=0;idet<det.ndet;idet++){
 
 		field = det.boloname[idet];
-		//		cout << field << " " << idet << endl;
+//		cout << field << endl;
 
 		long test_ns;
 		if(read_signal_from_fits(fits_filename, field, data, test_ns))
@@ -124,12 +124,11 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		}
 
 		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
-		return 1;
+			return 1;
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 			exit(-1);
 		}
-
 
 
 		//TODO: subtract the signal only if needed
@@ -157,9 +156,12 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 				data[ii] = data[ii] - Ps[ii];
 		}
 
+
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
+
+//		cout << "after map mak\n";
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
@@ -184,7 +186,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 			}*/
 
 
-
 		/// compute sigma of the noise
 		mm = 0.0;
 		for (long ii=ns/2;ii<ns/2+500;ii++) mm += data[ii]; // sur 500 samples seulement ??
@@ -203,7 +204,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
 		delete [] flag;
-
 	}
 
 	//test
@@ -274,7 +274,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	delete [] data_lp ;
 	delete [] Ps ;
 	delete [] samptopix;
-	delete [] bfilter ;
+	//	delete [] bfilter ;
 	delete [] fdata1 ;
 	delete [] uvec ;
 	delete [] ivec;
@@ -322,7 +322,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 
 	data_lp = new double[ns]; // data low passed
-//	bfilter = new double[ns/2+1]; // buttter filter values
+	//	bfilter = new double[ns/2+1]; // buttter filter values
 	commontmp = new double[ns]; //
 	Nell = new double[nbins]; // binned noise PS
 	Nk = new double[ns/2+1]; // noise PS
@@ -332,8 +332,8 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		Ps = new double[ns];
 	}
 
-//	for(long ii=0;ii<ns/2+1;ii++)
-//		bfilter[ii] = 1.0;
+	//	for(long ii=0;ii<ns/2+1;ii++)
+	//		bfilter[ii] = 1.0;
 
 
 	fill(commontmp,commontmp+ns,0.0);
@@ -351,12 +351,15 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 		field = det.boloname[idet];
 
+		//		cout << "before read_signal\n";
 		long test_ns;
 		read_signal_from_fits(fits_filename, field, data, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
 			exit(-1);
 		}
+
+		//		cout << "after read_signal\n";
 
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
 		if (test_ns != ns) {
@@ -406,10 +409,11 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 
+
 		delete [] flag;
 	}
 
-
+	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 
 	////*********************** Component power spectra
@@ -454,6 +458,9 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 				for (long jj=0;jj<nbins;jj++)
 					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
+
+	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
+
 	// clean up
 	if (S != NULL){
 		delete [] Ps ;
@@ -462,7 +469,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 	delete [] data_lp ;
 	delete [] data ;
-//	delete [] bfilter ;
+	//	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;
 	delete [] Nk;
@@ -638,6 +645,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 		double *SPref, double *ell)
 {
 
+	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	//***** Fourth part
 	//*********************** fit component and noise power spectra, and mixing matrix *************//
@@ -983,7 +991,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 
 
 		//printf("A[1][2] =  %10.15g\n", mixmat[1][2]) ;
-		//printf("N[2][3] =  %10.15g\n", N[2][3]) ;Rellth
+		//printf("N[2][3] =  %10.15g\n", N[2][3]) ;
 		//printf("P[2][3] =  %10.15g\n", P[2][3]) ;
 
 
@@ -1035,6 +1043,9 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 		for (long jj=nbins2;jj<nbins;jj++)
 			for (long idet=0;idet<ndet;idet++)
 				Rellth[idet*ndet+idet][jj] = Rellexp[idet*ndet+idet][jj]*SPref[jj];
+
+
+	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	//----------------------------------- END -------------------------------//
 
@@ -1250,6 +1261,8 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
+	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
+
 	if(write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth))
 		return 1;
 
@@ -1310,22 +1323,22 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 	//TODO : One should define a fits format for that => useless ! The same is done for Nfinal _uncnoise !
 	//**************** Write component power spectra to disk
-//	for (long idet1=0;idet1<det.ndet;idet1++){
-//
-//		tempstr1 = det.boloname[idet1];
-//		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
-//
-//		// récupérer une chaîne de caractères
-//		nameSpfile= temp_stream.str();
-//		temp_stream.str("");
-//
-//		fp = fopen(nameSpfile.c_str(),"w");
-//		for (long ii=0;ii<nbins;ii++){
-//			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
-//		}
-//		fprintf(fp,"\n");
-//		fclose(fp);
-//	}
+	for (long idet1=0;idet1<det.ndet;idet1++){
+
+		tempstr1 = det.boloname[idet1];
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
+
+		// récupérer une chaîne de caractères
+		nameSpfile= temp_stream.str();
+		temp_stream.str("");
+
+		fp = fopen(nameSpfile.c_str(),"w");
+		for (long ii=0;ii<nbins;ii++){
+			fprintf(fp,"%10.15g\n",N[idet1][ii]*SPref[ii]);
+		}
+		fprintf(fp,"\n");
+		fclose(fp);
+	}
 
 	data1d = new double[det.ndet*nbins];
 	for (long i=0; i< det.ndet; i++)

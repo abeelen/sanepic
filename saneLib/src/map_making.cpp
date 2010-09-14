@@ -691,6 +691,8 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
 
+//	cout << "avant fill 1\n";
+
 	//*********************************************************************
 	if (NOFILLGAP == 0){
 		//fill gaps with straight line
@@ -698,6 +700,8 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		//		for (long ii=0;ii<ns;ii++)
 		//			data[ii] = data_out[ii];
 	}
+
+//	cout << "apres fill 1\n\n";
 
 	if(remove_polynomia){
 		//remove polynomia to correct from time varying calibration
@@ -739,6 +743,7 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		//		for (long ii=0;ii<ns;ii++)
 		//			data_lp[ii] = data[ii];
 	}
+//	cout << "apres fill 2\n\n";
 
 	if (Ps != NULL){
 		for (long ii=0;ii<ns;ii++)

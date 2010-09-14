@@ -637,7 +637,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 		return 1;
 	}
 
-	//TODO : Not sure this is sufficient.... Check if a loop on S indicies is not better
+	// seems to work correctly
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;

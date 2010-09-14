@@ -511,7 +511,7 @@ int read_channels(fitsfile *fptr, char **& data, long &nBolos){
 		data[i] = new char[repeat];
 	}
 
-	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
+	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status); // TBYTE pour PACS ??
 
 	return 0;
 }

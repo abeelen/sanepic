@@ -167,7 +167,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-												{
+																								{
 
 	//int ii;
 	double *apodis;
@@ -189,7 +189,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-												}
+																								}
 
 
 
@@ -859,6 +859,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	std::vector<long> buf_0, buf_1;
 	long p=0;
 	double *sx, *sy, *a;
+	long p_beg_init = 0, p_end_init = 0;
 
 	a = new double[2];
 	a[0]=0.0;
@@ -901,13 +902,17 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	buf_0.erase(buf_0.begin());
 	buf_1.erase(buf_1.begin());
 
-	//	for(long jj=0;jj<(long)buf_0.size();jj++)
-	//		cout << buf_0[jj] << " ";
-	//	cout <<  endl;
-	//
-	//	for(long jj=0;jj<(long)buf_1.size();jj++)
-	//		cout << buf_1[jj] << " ";
-	//	cout <<  endl;
+//	cout << (long)buf_0.size() << endl;
+//
+//	for(long jj=0;jj<(long)buf_0.size();jj++)
+//		cout << buf_0[jj] << " ";
+//	cout <<  endl;
+//
+//	cout << (long)buf_1.size() << endl;
+//
+//	for(long jj=0;jj<(long)buf_1.size();jj++)
+//		cout << buf_1[jj] << " ";
+//	cout <<  endl;
 
 
 	long n=(long)buf_0.size();
@@ -915,18 +920,21 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	long flag_precedent=0;
 	long init=0;
 
-	if(buf_0[0]==0)
-		init=(long)buf_1[0];
+	if(buf_0[0]==0){
+//		init=(long)buf_1[0];
+		p_beg_init=0;
+		p_end_init=buf_1[0];
+	}
 
 	long i=0;
 	long reste;
 	long p_beg=0, p_end=0;
 	long miss=0;
-	int case_b=1;
-	int case_e=1;
+	//	int case_b=1;
+	//	int case_e=1;
 
 	while(i<n-1){
-		//		cout << "\nsolution pour i = " << i << "sur " << n-1 << endl;
+//				cout << "\nsolution pour i = " << i << "sur " << n-1 << endl;
 
 		fill(sx,sx+taille,0.0);
 		fill(sy,sy+taille,0.0);
@@ -936,7 +944,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		if(buf_0[i]>=taille/2){ // enough samples before gap
 			p_beg=buf_0[i]-taille/2+flag_precedent; // get first indice in data array (we don't take flagged samples)
 			//			cout << "case 1 : p_beg = " << p_beg << endl;
-			case_b=1;
+			//			case_b=1;
 			for(int gg=0;gg<taille/2;gg++){ // fill x and y arrays for fitpoly with the good samples found
 				sx[gg]=gg;
 				sy[gg]=data[p_beg+gg];
@@ -946,9 +954,10 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		}else{ // not enough samples before gap
 
 			p_beg=flag_precedent+init; // get first indice in data array (we don't take flagged samples)
+//			p_beg=flag_precedent;// get first indice in data array (we don't take flagged samples)
 			reste=taille/2-buf_0[i]; // reste = number of samples to take after gap because there were not enough before
 			//			cout << "case 2 : p_beg = " << p_beg << endl;
-			case_b=2;
+			//			case_b=2;
 			for(int gg=0;gg<buf_0[i];gg++){ // fill x and y arrays for fitpoly with the good samples found
 				sx[gg]=gg;
 				sy[gg]=data[p_beg+gg];
@@ -960,7 +969,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		if(buf_0[i+1]>=(taille/2+reste)){ // enough samples just after the gap
 			p_end=taille+buf_1[i]+p_beg-init-1;
 			//			cout << "case 1 : p_end = " << p_end << endl;
-			case_e=1;
+			//			case_e=1;
 			for(int gg=taille/2-reste;gg<taille;gg++){
 				sx[gg]=buf_1[i]+gg;
 				sy[gg]=data[p_beg+buf_1[i]-init+gg];
@@ -979,7 +988,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 				for(long ff=old_i;ff<i;ff++)
 					p_end+=buf_1[ff];
 				//				cout << "case 2 : p_end = " << p_end << endl;
-				case_e=2;
+				//				case_e=2;
 
 			}else{ // end of flag array and we have not enough (<taille) good samples for fitpoly
 
@@ -987,7 +996,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 				for(long ff=old_i;ff<i;ff++)
 					p_end+=buf_1[ff];
 				//				cout << "case 3 : p_end = " << p_end << endl;
-				case_e=3;
+				//				case_e=3;
 			}
 			i--;
 
@@ -1007,9 +1016,14 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		fitpoly(1, taille-miss, sx, sy, a);
 
 		for (long j=p_beg;j<=p_end;j++){
-			if(flag[j]==1)
+			if(flag[j]!=0) // TODO flag!=0 !!!
 				yout[j] = a[0]+a[1]*(j-p_beg);
 		}
+
+		if(init!=0)
+			for(long j=p_beg_init;j<p_end_init;j++)
+				yout[j] = a[0]+a[1]*(j-p_beg_init);
+
 
 		i++;
 		if(i<n-1){
@@ -1018,31 +1032,6 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 			for(long gg=0;gg<i;gg++)
 				flag_precedent+=buf_0[gg] + buf_1[gg];
 		}
-
-
-		//if(((case_b==2)&&(case_e==2))||(case_e==3)){
-		//cout << "\nsolution pour i = " << i << "sur " << n-1 << endl;
-		//cout << "case_b = " << case_b << " et case_e = " << case_e << endl;
-		//cout << "p_beg = " << p_beg << " et p_end = " << p_end << endl;
-		//cout << taille-miss << endl;
-		//// debug
-		//cout << "flag_prec : " << flag_precedent << endl;
-		//cout << "sx : ";
-		//for(int gg=0;gg<taille;gg++)
-		//cout << sx[gg] << " ";
-		//cout << "\nsy : ";
-		//for(int gg=0;gg<taille;gg++)
-		//	cout << sy[gg] << " ";
-		//cout << "\n";
-		//for(long jj=0;jj<(long)buf_0.size();jj++)
-		//	cout << buf_0[jj] << " ";
-		//cout <<  endl;
-		//for(long jj=0;jj<(long)buf_1.size();jj++)
-		//	cout << buf_1[jj] << " ";
-		//cout <<  endl;
-		//}
-
-
 
 		init=0;
 

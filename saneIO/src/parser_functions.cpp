@@ -222,7 +222,6 @@ int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &sam
 	return 0;
 }
 
-
 int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
 
 
@@ -233,7 +232,6 @@ int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<str
 		cerr << "File [" << fname << "] Invalid." << endl;
 		exit(-1);
 	}
-
 
 	framegiven=0;
 

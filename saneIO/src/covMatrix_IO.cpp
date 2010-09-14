@@ -60,6 +60,8 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
  */
 
 
+
+
 //sanePS
 int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
 /*
@@ -71,10 +73,8 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long nBolos = bolos.size();
 
-	if (fits_create_file(&fptr, fname.c_str(), &status)){
+	if (fits_create_file(&fptr, fname.c_str(), &status))
 		fits_report_error(stderr, status);
-		return 1;
-	}
 
 	// ---------------------------------------------
 	// write the Channel List
@@ -85,66 +85,143 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	char **data;
 	data = vString2carray(bolos);
 
+	//TODO : error handling
 
-	if (fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
-			(char*)"Channel List", &status))
-		return 1;
-	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status))
-		return 1;
-	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
-			(char *) "physical unit of the field", &status))
-		return 1;
+	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
+			(char*)"Channel List", &status);
+	fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status);
+	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+			(char *) "physical unit of the field", &status);
 
 	// ---------------------------------------------
 	// write the Ells
 	naxes[0] = nbins + 1;
-	if (fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status))
-		return 1;
-	if (fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status))
-		return 1;
-	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
-			(char *) "physical unit of the field", &status))
-		return 1;
-	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
-			(char *) "name of this binary table extension", &status))
-		return 1;
+	fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status);
+	fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status);
+	fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
+			(char *) "physical unit of the field", &status);
+	fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
+			(char *) "name of this binary table extension", &status);
 
 	// ---------------------------------------------
 	// write the spectras
 	naxes[0] = nbins;
 	naxes[1] = nBolos * nBolos;
-	if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
+	fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status);
 
-		// since Rellth is a NR matrix, one has to write it line by line :
-		for (long i = 0; i < nBolos * nBolos; i++) {
-			fpixel[1] = i + 1;
-			if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
-				return 1;
-		}
-	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+	// since Rellth is a NR matrix, one has to write it line by line :
+	for (long i = 0; i < nBolos * nBolos; i++) {
+		fpixel[1] = i + 1;
+		fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status);
+	}
+	fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
 			(char *) "Covariance Matrices",
-			(char *) "name of this binary table extension", &status))
-		return 1;
-	if (fits_write_comment(
+			(char *) "name of this binary table extension", &status);
+	fits_write_comment(
 			fptr,
 			(char *) "This contains the Fourrier transform of the covariance matrices",
-			&status))
-		return 1;
-	if (fits_write_comment(
+			&status);
+	fits_write_comment(
 			fptr,
 			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
-			&status))
-		return 1;
+			&status);
 
-	if (fits_close_file(fptr, &status)){
+	if (fits_close_file(fptr, &status))
 		fits_report_error(stderr, status);
-		return 1;
-	}
 
 	delete [] data;
 
 	return 0;
+
 }
+
+
+////sanePS
+//int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
+///*
+// * This function write the NoiseNoise Matrices in a fits file.
+// */
+//{
+//	fitsfile *fptr;
+//	int status = 0;
+//	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+//	long nBolos = bolos.size();
+//
+//	if (fits_create_file(&fptr, fname.c_str(), &status)){
+//		fits_report_error(stderr, status);
+//		return 1;
+//	}
+//
+//	// ---------------------------------------------
+//	// write the Channel List
+//
+//	char *ttype[] = { (char*) "NAME" };
+//	char *tform[] = { tableFormat(bolos) };
+//	char *tunit[] = { (char*) "None" };
+//	char **data;
+//	data = vString2carray(bolos);
+//
+//
+//	if (fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
+//			(char*)"Channel List", &status))
+//		return 1;
+//	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status))
+//		return 1;
+//	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+//			(char *) "physical unit of the field", &status))
+//		return 1;
+//
+//	// ---------------------------------------------
+//	// write the Ells
+//	naxes[0] = nbins + 1;
+//	if (fits_create_img(fptr, FLOAT_IMG, 1, naxes, &status))
+//		return 1;
+//	if (fits_write_pix(fptr, TDOUBLE, fpixel, naxes[0], ell, &status))
+//		return 1;
+//	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "Hz",
+//			(char *) "physical unit of the field", &status))
+//		return 1;
+//	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME", (char *) "Frequency",
+//			(char *) "name of this binary table extension", &status))
+//		return 1;
+//
+//	// ---------------------------------------------
+//	// write the spectras
+//	naxes[0] = nbins;
+//	naxes[1] = nBolos * nBolos;
+//	if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
+//
+//		// since Rellth is a NR matrix, one has to write it line by line :
+//		for (long i = 0; i < nBolos * nBolos; i++) {
+//			fpixel[1] = i + 1;
+//			if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
+//				return 1;
+//		}
+//	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
+//			(char *) "Covariance Matrices",
+//			(char *) "name of this binary table extension", &status))
+//		return 1;
+//	if (fits_write_comment(
+//			fptr,
+//			(char *) "This contains the Fourrier transform of the covariance matrices",
+//			&status))
+//		return 1;
+//	if (fits_write_comment(
+//			fptr,
+//			(char *) "Each line contains a couple of detector (NAXIS1) vs Frequency (NAXIS2)",
+//			&status))
+//		return 1;
+//
+//	if (fits_close_file(fptr, &status)){
+//		fits_report_error(stderr, status);
+//		return 1;
+//	}
+//
+//	delete [] data;
+//
+//	return 0;
+//}
+
 
 //saneInv
 int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, double **&Rellth)
