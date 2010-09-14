@@ -594,7 +594,7 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 	for(int jj=0;jj<det.ndet;jj++){
 
-		cout << det.boloname[jj];
+//		cout << det.boloname[jj];
 		ii=1;
 		sum=0;
 		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
@@ -624,17 +624,20 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 		}
 
-		cout << " " << sum << endl;
+//		cout << " " << sum << endl;
 
 		if(sum==ns){ // fully flagged detector found
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
 			bolos_global[jj]=1;
 		}else{
 			if(sum>80*ns/100){ // valid worst detector found
-				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged" << endl;
+				double percent = sum/(double)ns*100;
+				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged : " << percent << endl;
 				bolos_global_80[jj]=1;
-			}else if(sum>50*ns/100)
-				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged" << endl;
+			}else if(sum>50*ns/100){
+				double percent = sum/(double)ns*100;
+				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged : " << percent << endl;
+			}
 		}
 
 		delete [] flag;
