@@ -38,13 +38,13 @@ int check_NAN_altpositionHDU(std::string fname,long ns,struct detectors det, str
 bool check_bolos(std::vector<std::string> bolo_fits_vect, std::vector<std::string> bolo_fits_0_vect);
 
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
-int check_flag(std::string fname,struct detectors det,long ns, std::string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it);
+int check_flag(std::string fname,struct detectors det,long ns, std::string outname,long *&bolos_global,long *&bolos_global_80, double *percent_tab, struct checkHDU check_it);
 
 /*! check for time gaps in time table */
 int check_time_gaps(std::string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it);
 
 /*! generating log files for user information */
-void log_gen(long  *bolo_, std::string outname, struct detectors det);
+void log_gen(long  *bolo_, std::string outname, struct detectors det, double *percent_tab=NULL);
 
 
 

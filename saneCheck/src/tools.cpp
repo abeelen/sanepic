@@ -579,7 +579,7 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80, struct checkHDU check_it)
+int check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, struct checkHDU check_it)
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
@@ -594,7 +594,7 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 	for(int jj=0;jj<det.ndet;jj++){
 
-//		cout << det.boloname[jj];
+		//		cout << det.boloname[jj];
 		ii=1;
 		sum=0;
 		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
@@ -624,7 +624,7 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 		}
 
-//		cout << " " << sum << endl;
+		//		cout << " " << sum << endl;
 
 		if(sum==ns){ // fully flagged detector found
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
@@ -634,6 +634,7 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 				double percent = sum/(double)ns*100;
 				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged : " << percent << endl;
 				bolos_global_80[jj]=1;
+				percent_tab[jj]=percent;
 			}else if(sum>50*ns/100){
 				double percent = sum/(double)ns*100;
 				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged : " << percent << endl;
@@ -694,11 +695,11 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 	}
 
 	// print to std
-	for (long tt=0;tt<size_tmp;tt++)
-		cout <<  freq[tt] << " ";
-	cout << endl;
-	for (long tt=0;tt<size_tmp;tt++)
-		cout << counter[tt] << " ";
+//	for (long tt=0;tt<size_tmp;tt++)
+//		cout <<  freq[tt] << " ";
+//	cout << endl;
+//	for (long tt=0;tt<size_tmp;tt++)
+//		cout << counter[tt] << " ";
 
 
 
@@ -764,7 +765,7 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 }
 
 
-void log_gen(long  *bolo_, string outname, struct detectors det)
+void log_gen(long  *bolo_, string outname, struct detectors det, double *percent_tab)
 /*! generating log files for user information */
 {
 
@@ -777,9 +778,13 @@ void log_gen(long  *bolo_, string outname, struct detectors det)
 	for(long ii=0; ii< det.ndet; ii++)
 		if(bolo_[ii]>0){
 			string temp = det.boloname[ii]; // copy the name of the wrong or bad detector in this ascii log file
-			fprintf(fp, "%s\n", (char*)temp.c_str());
+			if(percent_tab!=NULL)
+				fprintf(fp, "%s %lf%%\n", (char*)temp.c_str(),percent_tab[ii]);
+			else
+				fprintf(fp, "%s\n", (char*)temp.c_str());
 			tot++;
 		}
+
 	if(tot>0)
 		cout << "There are " << tot << " bolometers in this file !\n";
 
