@@ -146,7 +146,45 @@ int main(int argc, char *argv[])
 	//First time run S=0, after sanepic, S = Pure signal
 	if(signame != "NOSIGFILE"){
 
+		long NAXIS1_read=0, NAXIS2_read=0;
+		long long addnpix=0;
+		int factdupl=1;
+		double *PNdtot;
+		int nwcs=1;
+		long long npixsrc=0;
+		long long *indpsrc;
+		long long npix2=0;
+		struct wcsprm * wcs;
+		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2); // read keyrec file
+		if(rank==0)
+			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
+
+		wcsvfree(&nwcs, &wcs);
+
+		long long test_size;
+		if(read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir)){ // read mask index
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
+		if(test_size != NAXIS1*NAXIS2){ // check size compatibility
+			if(rank==0)
+				cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
 		//TODO : Add some check for the map size/ind_size/npix
+
+		addnpix = samples_struct.ntotscan*npixsrc;
+
+		if (pos_param.flgdupl) factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 		if(read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)){ // read map indexes
 #ifdef USE_MPI
@@ -156,13 +194,55 @@ int main(int argc, char *argv[])
 			return(EXIT_FAILURE);
 		}
 
+		if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){ // check size compatibility
+			if(rank==0)
+				cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
+		if(read_PNd(PNdtot, npix2,  dir.tmp_dir)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
+
+		if (npix!=npix2){ // check size compatibility
+			if(rank==0)
+				cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
+		delete [] indpsrc;
+		delete [] PNdtot;
+
 		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
 		if(rank==0)
 			cout << "Reading model map : " << signame << endl;
 		S = new double[npix]; // pure signal
 
 		// read pure signal
-		if(read_fits_signal(signame, S, indpix, NAXIS1, NAXIS2)){
+		if(read_fits_signal(signame, S, indpix, NAXIS1_read, NAXIS2_read)){
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return(EXIT_FAILURE);
+		}
+
+		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
+			if(rank==0)
+				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << signame << endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -178,8 +258,6 @@ int main(int argc, char *argv[])
 		fclose(fp);
 #endif
 
-		if(rank==0)
-			cout << "         map size : " << NAXIS1 << "x" << NAXIS2 << endl;
 
 	}
 
