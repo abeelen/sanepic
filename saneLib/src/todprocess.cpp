@@ -1016,7 +1016,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		fitpoly(1, taille-miss, sx, sy, a);
 
 		for (long j=p_beg;j<=p_end;j++){
-			if(flag[j]!=0) // TODO flag!=0 !!!
+			if(flag[j]!=0)
 				yout[j] = a[0]+a[1]*(j-p_beg);
 		}
 

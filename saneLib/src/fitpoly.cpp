@@ -29,19 +29,19 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 	gsl_vector *Y, *res, *tau, *residual;
 
 
-	if(taille<norder+1){ // TODO useless now ?? test it !!!! with A2218
-		cout << "Warning in fitpoly : Polynomial is not unique; degree >= number of data points.\n";
-		cout << "data points : " << taille << endl;
-		cout << "degree : " << norder +1 << endl;
-		cout << "Returning degree 0 polynomia instead ...\n";
-		double mean=0.0;
-		for(long jj=0; jj<taille; jj++)
-			mean += sy[jj];
-		a[0]=mean/(double)taille;
-		for(long jj=1; jj<norder+1; jj++)
-			a[jj]=0.0;
-		return;
-	}
+//	if(taille<norder+1){ // useless now !! test it !!!! with A2218
+//		cout << "Warning in fitpoly : Polynomial is not unique; degree >= number of data points.\n";
+//		cout << "data points : " << taille << endl;
+//		cout << "degree : " << norder +1 << endl;
+//		cout << "Returning degree 0 polynomia instead ...\n";
+//		double mean=0.0;
+//		for(long jj=0; jj<taille; jj++)
+//			mean += sy[jj];
+//		a[0]=mean/(double)taille;
+//		for(long jj=1; jj<norder+1; jj++)
+//			a[jj]=0.0;
+//		return;
+//	}
 
 	//declaration de la taille des matrices et vecteurs utilisés
 	V=gsl_matrix_calloc ((size_t) taille, (size_t) norder+1);
