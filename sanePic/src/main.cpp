@@ -284,7 +284,11 @@ int main(int argc, char *argv[])
 	if(test_size != NAXIS1*NAXIS2){ // check size compatibility
 		if(rank==0)
 			cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
-		exit(0);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
 	}
 
 	// each frame contains npixsrc pixels with index indsprc[] for which
@@ -308,7 +312,11 @@ int main(int argc, char *argv[])
 	if(ind_size!=(factdupl*NAXIS1*NAXIS2+2 + addnpix)){ // check size compatibility
 		if(rank==0)
 			cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
-		exit(0);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
 	}
 
 	// read (At N-1 d) from file
@@ -324,7 +332,11 @@ int main(int argc, char *argv[])
 	if (npix!=npix2){ // check size compatibility
 		if(rank==0)
 			cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
-		exit(0);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
 	}
 
 
@@ -334,7 +346,11 @@ int main(int argc, char *argv[])
 
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
-		exit(1);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
 	}
 
 	/* Crash recovery Procedure */
