@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 			if((n_iter==1)&&(samples_struct.ntotscan!=1))
 				channelOut=channelIn;
 			else
-				channelOut=detector_tab[n_iter-1].boloname;
+				channelOut=detector_tab[ii].boloname;
 
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 			ndet = channelOut.size();
