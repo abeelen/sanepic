@@ -97,7 +97,7 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 			continue;
 		}
 		cout << indice[ii] << " " << time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
-		// TODO in case gap negatif : sauter à l'indice suivant et remplacer le time faux !
+		//  in case gap negatif : sauter à l'indice suivant et remplacer le time faux !
 		// calculate the gap size
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
 		if(gap>0){
@@ -408,7 +408,7 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	long ns_temp = 0;
 	int status =0; // fits error status
 	int *mask, *mask_fixed;
-	long ii=1;// singleton seeker indexes
+//	long ii=1;// singleton seeker indexes
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status); // move input pointer to mask
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
@@ -419,14 +419,14 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
 		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read input mask row
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total, suppress_time_sample); // fill gaps in mask row
-		ii=1;
-		while(ii<ns_total-1){
-			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
-				mask_fixed[ii]=1; // TODO : do we keep singletons now ??
-				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
-			}
-			ii++;
-		}
+//		ii=1;
+//		while(ii<ns_total-1){
+//			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
+////				mask_fixed[ii]=1; // TODO : do we keep singletons now ??
+//				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
+//			}
+//			ii++;
+//		}
 		insert_mask_in_image(fptr, outfptr, det.boloname[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
 		delete [] mask;
 	}
