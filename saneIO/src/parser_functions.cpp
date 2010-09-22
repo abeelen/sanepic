@@ -903,6 +903,9 @@ int parser_function(char * ini_name, struct common &dir,
 		free_dmatrix(Rellth, 0, nBolos * nBolos - 1, 0, nbins - 1);
 	}
 
+
+	iniparser_freedict(ini);
+
 	// if only one fcut, extend to all scans
 	if((int)fcut.size()==1)
 		fcut.resize(samples_struct.ntotscan, fcut[0]);

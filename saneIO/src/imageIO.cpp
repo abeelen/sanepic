@@ -21,7 +21,7 @@ using namespace std;
 
 
 
-//TODO : check and optimize
+
 int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist)
 {
 	// all angles in degrees
