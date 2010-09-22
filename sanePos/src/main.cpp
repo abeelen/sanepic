@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
 
 	pixon = new long long[sky_size];
-	fill(pixon,pixon+(sky_size),0);
+	fill(pixon,pixon+(sky_size),0); // TODO test si ca marche avec des long long !
 
 	//**********************************************************************************
 	// Compute pixels indices

@@ -366,6 +366,9 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 			delete [] theta;
 			delete [] phi;
 			delete [] wcsstatus;
+			delete [] ra;
+			delete [] dec;
+
 
 
 
@@ -455,6 +458,7 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 			delete [] samptopix;
 			delete [] xx;
 			delete [] yy;
+			delete [] flag;
 
 		}
 	}
