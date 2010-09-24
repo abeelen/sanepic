@@ -743,8 +743,11 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] PNd;
+	delete [] PNdNaiv;
 	delete [] Mp;
 	delete [] hits;
+	delete [] hitsNaiv;
+
 
 
 	delete [] samples_struct.nsamples;
