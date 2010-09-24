@@ -218,7 +218,11 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 		return 1;
 	}
 
+
+	for(long ii=0;ii<nBolos;ii++)
+		delete [] data[ii];
 	delete [] data;
+	delete [] *tform;
 
 	return 0;
 }
