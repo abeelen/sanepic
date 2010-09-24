@@ -183,9 +183,9 @@ int main(int argc, char *argv[]) {
 			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
 
-			if((n_iter==1)&&(samples_struct.ntotscan!=1))
-				channelOut=channelIn;
-			else
+//			if((n_iter==1)&&(samples_struct.ntotscan!=1))
+//				channelOut=channelIn;
+//			else
 				channelOut=detector_tab[ii].boloname;
 
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
