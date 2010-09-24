@@ -202,6 +202,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
+		delete [] data;
 		delete [] flag;
 	}
 
@@ -231,7 +232,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 	cholesky(ncomp,Cov,l);
 
-	printf("cnomp:%ld", ncomp);
+	printf("ncomp:%ld", ncomp);
 
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ncomp;jj++)
@@ -269,13 +270,13 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 	// clean up
 	delete [] sign;
-	delete [] data ;
-	delete [] data_lp ;
-	delete [] Ps ;
+//	delete [] data;
+	delete [] data_lp;
+	delete [] Ps;
 	delete [] samptopix;
 	//	delete [] bfilter ;
-	delete [] fdata1 ;
-	delete [] uvec ;
+	delete [] fdata1;
+	delete [] uvec;
 	delete [] ivec;
 
 	for (int i = 0; i <ncomp; i++)
@@ -408,7 +409,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 
-
+		delete [] data;
 		delete [] flag;
 	}
 
@@ -467,7 +468,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 	}
 
 	delete [] data_lp ;
-	delete [] data ;
+//	delete [] data ;
 	//	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;
@@ -1312,6 +1313,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
+	fprintf(fp,"%ld\n",ncomp); // ajout 20/09/10 pour etre cohérent avec la fonction de read !
 	for (long ii=0;ii<det.ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++)
 			fprintf(fp,"%10.15g \n",mixmat[ii][jj]);
