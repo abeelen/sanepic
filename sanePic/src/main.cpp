@@ -375,23 +375,27 @@ int main(int argc, char *argv[])
 	//		getchar();
 
 	if(load_data>0){
-		cout << "load data is ON\n";
+		if(rank==0)
+			cout << "load data is ON\n";
 		struct checksum chk_t,chk_t2;
 		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
 		read_checksum(dir.tmp_dir, chk_t2);
 		if(compare_checksum(chk_t, chk_t2)){
-			cout << "les checksum sont differents !!!" << endl;
+			if(rank==0)
+				cout << "les checksum sont differents !!!" << endl;
 			return EXIT_FAILURE;
 		}
 	}
 
 
 	if(save_data>0){
-		cout << "save data is ON\n";
-		struct checksum chk_t;
-		/* Compute Checsum for crash recovery ! */
-		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
-		write_checksum(dir.tmp_dir, chk_t);
+		if(rank==0){
+			cout << "save data is ON\n";
+			struct checksum chk_t;
+			/* Compute Checsum for crash recovery ! */
+			compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+			write_checksum(dir.tmp_dir, chk_t);
+		}
 	}
 
 
@@ -991,9 +995,13 @@ int main(int argc, char *argv[])
 
 
 
+
+
 #ifdef USE_MPI
+			fill(PNdtot,PNdtot+npix,0.0);
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
+			delete [] PNdtot;
 			PNdtot=PNd; // ajout Mat 02/07
 #endif
 		}
