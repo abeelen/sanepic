@@ -540,7 +540,7 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 	double aa, bb;
 	int *flag;
 
-	data =  new double[ns];
+//	data =  new double[ns];
 	data_lp =  new double[ns];
 	data_out = new double[ns];
 	samptopix = new long long[ns];
@@ -616,16 +616,17 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 			hits[indpix[samptopix[ii]]] += 1;
 		}
 
+		delete[] data;
+		delete[] flag;
 
 	}// end of idet1 loop
 
 
 	delete[] samptopix;
-	delete[] data;
 	delete[] data_out;
 	delete[] data_lp;
 	delete[] bfilter;
-	delete[] flag;
+
 
 	return 0;
 }

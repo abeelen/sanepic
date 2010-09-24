@@ -705,14 +705,15 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 	if(remove_polynomia){
 		//remove polynomia to correct from time varying calibration
-		remove_poly(data_out,ns,orderpoly,data,flag);
+		remove_poly(data_out,ns,orderpoly,data_lp,flag);
 		//		for (long ii=0;ii<ns;ii++)
 		//			data[ii] = data_out[ii];
 	}
 
 	//linear prediction
 	for (long ii=0;ii<ns;ii++)
-		data_lp[ii] = data[ii];
+		data[ii] = data_lp[ii];
+//		data_lp[ii] = data[ii];
 
 
 	if (NORMLIN == 0){
