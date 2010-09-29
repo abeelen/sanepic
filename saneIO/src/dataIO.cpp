@@ -189,6 +189,7 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 
 int read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
+	// quelle est l'unitée du fichier ? conversion si besoin !
 
 	int status = 0;
 

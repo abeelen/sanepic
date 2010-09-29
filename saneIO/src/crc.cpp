@@ -9,6 +9,10 @@
 
 #include "crc.h"
 
+extern "C" {
+#include "wcslib/wcshdr.h"
+}
+
 using namespace std;
 
 unsigned checksum(void *buffer, size_t len, unsigned int seed)
@@ -29,7 +33,7 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	size_t len;
 	string file;
 	char buf[6144];
-//	struct checksum chk2;
+	//	struct checksum chk2;
 
 
 	if (NULL == (fp = fopen(ini_file.c_str(), "r")))
@@ -40,8 +44,8 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	len = fread(buf, sizeof(char), sizeof(buf), fp);
 	char buf2[len-116];
 	for(long hh=0;hh<(long)(len-116);hh++)
-	buf2[hh]=buf[hh];
-//	printf("%d bytes read\n", len);
+		buf2[hh]=buf[hh];
+	//	printf("%d bytes read\n", len);
 	fclose(fp);
 
 	chk.chk_ini_file=checksum(buf2, len-116, 0);
@@ -152,9 +156,9 @@ void read_checksum(std::string tmp_dir, struct checksum &chk)
 	len+=fread(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
 
-//	cout << "chkini : " << chk.chk_ini_file << endl;
+	//	cout << "chkini : " << chk.chk_ini_file << endl;
 
-//	cout << "len read : " << len << endl;
+	//	cout << "len read : " << len << endl;
 
 	fclose(fp);
 
@@ -180,7 +184,8 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double
 	string fits_temp;
 	std::ostringstream oss;
 	long NAXIS1, NAXIS2;
-
+	struct wcsprm * wcs; // TODO change this to deal with REAL wcs !!
+	int nwcs = 1;
 
 	if (NULL == (fp = fopen(file.c_str(), "rb")))
 	{
@@ -196,11 +201,16 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double
 
 	oss << out_dir + "optimMap_" << iter << "b.fits";
 	fits_temp=oss.str();
-	read_fits_signal(fits_temp, S, indpix, NAXIS1, NAXIS2);
+	read_MapHeader(tmp_dir,wcs,&NAXIS1, &NAXIS2);
+	read_fits_signal(fits_temp, S, indpix, NAXIS1, NAXIS2, wcs);
 
 	iter++;
 
+
+
 	fclose(fp);
+
+	wcsvfree(&nwcs, &wcs);
 }
 
 

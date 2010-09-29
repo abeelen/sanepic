@@ -2,7 +2,6 @@
 #define CRC_H_
 
 #include <stdlib.h>
-
 #include "struct_definition.h"
 
 unsigned checksum(void *buffer, size_t len, unsigned int seed);
