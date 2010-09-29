@@ -287,6 +287,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
 
+//	fftw_cleanup();
 
 	//----------------------------------- END -------------------------------//
 

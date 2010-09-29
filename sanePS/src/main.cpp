@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 		if(rank==0)
 			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
 
-		wcsvfree(&nwcs, &wcs);
+
 
 		long long test_size;
 		if(read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir)){ // read mask index
@@ -180,7 +180,6 @@ int main(int argc, char *argv[])
 			return(EXIT_FAILURE);
 		}
 
-		//TODO : Add some check for the map size/ind_size/npix
 
 		addnpix = samples_struct.ntotscan*npixsrc;
 
@@ -232,13 +231,15 @@ int main(int argc, char *argv[])
 		S = new double[npix]; // pure signal
 
 		// read pure signal
-		if(read_fits_signal(signame, S, indpix, NAXIS1_read, NAXIS2_read)){
+		if(read_fits_signal(signame, S, indpix, NAXIS1_read, NAXIS2_read, wcs)){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EXIT_FAILURE);
 		}
+
+		wcsvfree(&nwcs, &wcs);
 
 		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
 			if(rank==0)
@@ -360,7 +361,7 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.index_table;
 	delete [] samples_struct.noise_table;
 
-
+	fftw_cleanup();
 
 	if(signame == "NOSIGFILE"){
 		//		int nwcs = 1;
