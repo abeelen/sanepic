@@ -916,7 +916,7 @@ int parser_function(char * ini_name, struct common &dir,
 
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+		filename= dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
 		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return 2;
