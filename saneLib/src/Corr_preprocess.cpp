@@ -84,6 +84,8 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 	delete[] Ps;
 	delete[] fdata;
 
+//	fftw_cleanup();
+
 	return 0;
 }
 
@@ -276,6 +278,8 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 	delete[] Ps;
 	//	delete[] bfilter;
 	delete[] fdata;
+//	fftw_cleanup();
+
 
 #ifdef DEBUG
 	file.close();
@@ -519,6 +523,9 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	delete[] Nk;
 	delete[] fdata;
 	delete[] Ndf;
+
+//	fftw_cleanup();
+
 
 #ifdef DEBUG
 	file.close();

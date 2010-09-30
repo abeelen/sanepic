@@ -112,6 +112,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 	delete [] fdata;
 	delete [] Nd;
 
+//	fftw_cleanup();
 
 }
 
@@ -553,6 +554,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	//clean up
 	fftw_destroy_plan(fftplan);
 
+//	fftw_cleanup();
 
 }
 
@@ -660,6 +662,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	//clean up
 	fftw_destroy_plan(fftplan);
+//	fftw_cleanup();
 
 
 }
@@ -860,6 +863,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	delete []  apodwind;
 
 	fftw_destroy_plan(fftplan);
+//	fftw_cleanup();
 
 }
 

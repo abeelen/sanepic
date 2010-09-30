@@ -21,7 +21,7 @@ struct common
 	std::string output_dir;
 	std::string tmp_dir;
 	std::string noise_dir;
-	std::string ell_path;
+	std::string input_dir;
 
 	std::string channel;
 	std::string fits_filelist;
@@ -84,7 +84,7 @@ struct PS
 /*! A structure that contains user options about sanePS procedure */
 {
 	double fcutPS;
-	std::string ell_path;
+//	std::string ell_path;
 	std::string mix_path;
 	std::string signame;
 	long ncomp;

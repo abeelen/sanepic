@@ -46,7 +46,8 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 		return -1;
 
 	if(rank==0)
-		if(check_path(dir.dirfile, "Input directory") ||
+		if(check_path(dir.dirfile, "Data directory") ||
+				check_path(dir.input_dir, "Input directory") ||
 				check_path(dir.noise_dir, "Noise directory") ||
 				check_path(dir.output_dir, "Output directory") ||
 				check_path(dir.tmp_dir, "Temporary directory") ||

@@ -19,11 +19,11 @@ extern "C"{
 }
 
 
-
-int read_dirfile(dictionary	*ini, struct common &dir, int rank);
-int read_tmpdir(dictionary	*ini, struct common &dir, int rank);
-int read_outdir(dictionary	*ini, struct common &dir, int rank);
-int read_outdir(dictionary	*ini, struct common &dir, int rank);
+int read_dir(dictionary	*ini, struct common &dir, std::string dirtype ,int rank);
+//int read_dirfile(dictionary	*ini, struct common &dir, int rank);
+//int read_tmpdir(dictionary	*ini, struct common &dir, int rank);
+//int read_outdir(dictionary	*ini, struct common &dir, int rank);
+//int read_outdir(dictionary	*ini, struct common &dir, int rank);
 
 int read_channel_list(std::string fname, std::vector<std::string> &bolonames, int rank);
 //int read_channel_list(dictionary	*ini, struct common &dir,std::vector<std::string> &bolonames, int rank);

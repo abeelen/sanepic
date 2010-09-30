@@ -161,7 +161,7 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
-	//TODO: Remove this step
+	//TODO: Remove this step : check si il y a un * 15.0 qlq part ailleurs dans le code pour travailler avec des degree et non des heures !
 	// transform RA in hours
 	for(long ii = 0; ii<ns; ii++)
 		RA[ii]=RA[ii]/15.0;
@@ -189,7 +189,7 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 
 int read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
-	// quelle est l'unitée du fichier ? conversion si besoin !
+	//TODO : quelle est l'unitée du fichier ? conversion si besoin !
 
 	int status = 0;
 

@@ -170,7 +170,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		// TODO: Do we need to compute and save ffts here ???
 		//       fdata are used in cross power spectrum estimation...
 		//       BUT it is done differently than power spectrum estimation WHY ?
-		// TODO: Check how to speed up ffts :  why destroy all plan ?
+
 		// compute fft and save data to disk for later
 		fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 		fftw_execute(fftplan);
@@ -1358,7 +1358,6 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 
 	//TODO: One should define a fits format for that
-	//TODO: Does not appear in the output????
 	for (long jj=0;jj<ncomp;jj++){
 
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise_" << base_n << ".psd";

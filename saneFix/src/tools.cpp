@@ -422,7 +422,7 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 //		ii=1;
 //		while(ii<ns_total-1){
 //			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
-////				mask_fixed[ii]=1; // TODO : do we keep singletons now ??
+////				mask_fixed[ii]=1; // do we keep singletons now ??
 //				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
 //			}
 //			ii++;

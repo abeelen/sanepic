@@ -64,7 +64,7 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	//	fdata1 = fourier transform
 	//	fdata2 = fourier transform
 
-	if(read_double(dir.dirfile+ellFile+".ell", ell, nbins)) // read ell in ellfile
+	if(read_double(dir.input_dir+ellFile+".ell", ell, nbins)) // read ell in ellfile
 		return 1;
 	nbins = nbins-1;
 
@@ -101,7 +101,7 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 
 	//----------------------------------- READ MIXMAT PART -------------------------------//
 	cout << "[ " << rank << " ] 1/6 - Reading Mixing Matrix" << endl;
-	if(read_mixmat_file(MixMatfile, dir.noise_dir, mixmat, det.ndet,ncomp))
+	if(read_mixmat_file(MixMatfile, dir.input_dir, mixmat, det.ndet,ncomp))
 		return 1;
 
 	// compute common mode : return commonm2

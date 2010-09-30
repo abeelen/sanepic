@@ -17,107 +17,169 @@ extern "C"{
 #include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 #include "covMatrix_IO.h"
+#include "crc.h"
 
 
 using namespace std;
 
 
-int read_dirfile(dictionary	*ini, struct common &dir, int rank){
+
+int read_dir(dictionary	*ini, struct common &dir, string dirtype ,int rank){
 
 	string str;
 
-	switch(read_parser_string(ini, "commons:data_directory", str)){
+	switch(read_parser_string(ini, dirtype, str)){
 	case 2:
-		if(rank==0)
-			cout <<"You must add a line in ini file specifying : commons:data_directory" << endl;
-		return 1;
-	case 1:
-		if(rank==0)
-			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
-		return 1;
-	case 0:
-		if (str[str.length()-1] != '/')
-			str = str + '/';
-		dir.dirfile = str;
-
-	}
-	return 0;
-}
-
-
-int read_tmpdir(dictionary	*ini, struct common &dir, int rank){
-
-	char *pPath;
-	string str;
-
-	pPath = getenv ("TMPBATCH");
-	if (pPath!=NULL){
-		dir.tmp_dir=pPath;
-	}else{
-		switch(read_parser_string(ini, "commons:temp_dir", str)){
-		case 2:
-			if(rank==0)
-				cout <<"You must add a line in ini file specifying : commons:temp_dir" << endl;
-			return 1;
-		case 1:
-			if(rank==0)
-				cout <<"Key is empty : You must specify : commons:temp_dir" << endl;
-			return 1;
-		case 0:
-			if (str[str.length()-1] != '/')
-				str = str + '/';
-			dir.tmp_dir=str;
-
+		if(rank==0){
+			cout << "WARNING ! You must add a line in ini file specifying : " << dirtype << endl;
+			cout << "Using default directory : ./" << endl;
 		}
-	}
-	return 0;
-
-}
-
-
-int read_outdir(dictionary	*ini, struct common &dir, int rank){
-
-	string str;
-
-
-	switch(read_parser_string(ini, "commons:output_dir", str)){
-	case 2:
-		if(rank==0)
-			cout <<"You must add a line in ini file specifying : commons:output_dir" << endl;
-		return 1;
+		str="./";
+		break;
+		//			return 1;
 	case 1:
-		if(rank==0)
-			cout <<"Key is empty : You must specify : commons:output_dir" << endl;
-		return 1;
+		if(rank==0){
+			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
+			cout << "Using default directory : ./" << endl;
+		}
+		//			return 1;
+		str="./";
+		break;
 	case 0:
 		if (str[str.length()-1] != '/')
 			str = str + '/';
-		dir.output_dir=str;
+		break;
 	}
+
+
+//	unsigned int chkk=(checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0));
+//	cout << "chkk : " << chkk << endl;
+
+	switch((unsigned int)checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0)){
+	case (unsigned int)2308: // commons:data_directory
+	dir.dirfile=str;
+	break;
+
+	case (unsigned int)1674: // commons:temp_dir
+	dir.tmp_dir=str;
+	break;
+
+	case (unsigned int)1925: // commons:output_dir
+	dir.output_dir=str;
+	break;
+
+	case (unsigned int)1738: 	//saneInv:noise_dir
+	dir.noise_dir=str;
+	break;
+
+	case (unsigned int)2458: 	//commons:input_dir
+	dir.input_dir=str;
+	break;
+
+	}
+
+
 	return 0;
+
 
 }
 
-int read_noisedir(dictionary	*ini, struct common &dir, int rank){
-
-	string str;
-	switch(read_parser_string(ini, "saneInv:noise_dir", str)){
-	case 2:
-		if(rank==0)
-			cout <<"You must add a line in ini file specifying : saneInv:noise_dir" << endl;
-		return 1;
-	case 1:
-		if(rank==0)
-			cout <<"Key is empty : You must specify : saneInv:noise_dir" << endl;
-		return 1;
-	case 0:
-		if (str[str.length()-1] != '/')
-			str = str + '/';
-		dir.noise_dir=str;
-	}
-	return 0;
-
-}
+//int read_dirfile(dictionary	*ini, struct common &dir, int rank){
+//
+//	string str;
+//
+//	switch(read_parser_string(ini, "commons:data_directory", str)){
+//	case 2:
+//		if(rank==0)
+//			cout <<"You must add a line in ini file specifying : commons:data_directory" << endl;
+//		return 1;
+//	case 1:
+//		if(rank==0)
+//			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
+//		return 1;
+//	case 0:
+//		if (str[str.length()-1] != '/')
+//			str = str + '/';
+//		dir.dirfile = str;
+//
+//	}
+//	return 0;
+//}
+//
+//
+//int read_tmpdir(dictionary	*ini, struct common &dir, int rank){
+//
+//	char *pPath;
+//	string str;
+//
+//	pPath = getenv ("TMPBATCH");
+//	if (pPath!=NULL){
+//		dir.tmp_dir=pPath;
+//	}else{
+//		switch(read_parser_string(ini, "commons:temp_dir", str)){
+//		case 2:
+//			if(rank==0)
+//				cout <<"You must add a line in ini file specifying : commons:temp_dir" << endl;
+//			return 1;
+//		case 1:
+//			if(rank==0)
+//				cout <<"Key is empty : You must specify : commons:temp_dir" << endl;
+//			return 1;
+//		case 0:
+//			if (str[str.length()-1] != '/')
+//				str = str + '/';
+//			dir.tmp_dir=str;
+//
+//		}
+//	}
+//	return 0;
+//
+//}
+//
+//
+//int read_outdir(dictionary	*ini, struct common &dir, int rank){
+//
+//	string str;
+//
+//
+//	switch(read_parser_string(ini, "commons:output_dir", str)){
+//	case 2:
+//		if(rank==0)
+//			cout <<"You must add a line in ini file specifying : commons:output_dir" << endl;
+//		return 1;
+//	case 1:
+//		if(rank==0)
+//			cout <<"Key is empty : You must specify : commons:output_dir" << endl;
+//		return 1;
+//	case 0:
+//		if (str[str.length()-1] != '/')
+//			str = str + '/';
+//		dir.output_dir=str;
+//	}
+//	return 0;
+//
+//}
+//
+//int read_noisedir(dictionary	*ini, struct common &dir, int rank){
+//
+//	string str;
+//	switch(read_parser_string(ini, "saneInv:noise_dir", str)){
+//	case 2:
+//		if(rank==0)
+//			cout <<"You must add a line in ini file specifying : saneInv:noise_dir" << endl;
+//		return 1;
+//	case 1:
+//		if(rank==0)
+//			cout <<"Key is empty : You must specify : saneInv:noise_dir" << endl;
+//		return 1;
+//	case 0:
+//		if (str[str.length()-1] != '/')
+//			str = str + '/';
+//		dir.noise_dir=str;
+//	}
+//	return 0;
+//
+//}
 
 //int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &bolonames, int rank){
 //
@@ -580,10 +642,14 @@ int read_parser_string(dictionary	*ini, string line, string & str){
 
 int read_common(dictionary	*ini, struct common &dir, int rank){
 
-	return read_dirfile(ini, dir, rank) || \
-			read_tmpdir(ini, dir, rank)  ||	\
-			read_outdir(ini, dir, rank) || \
-			read_noisedir(ini, dir, rank);
+
+
+	return read_dir(ini, dir, "commons:data_directory" , rank) || \
+			read_dir(ini, dir, "commons:input_directory" , rank) || \
+			read_dir(ini, dir, "commons:output_dir" , rank) || \
+			read_dir(ini, dir, "commons:temp_dir" , rank) || \
+			read_dir(ini, dir, "saneInv:noise_dir" , rank);
+
 
 }
 
@@ -704,6 +770,7 @@ void print_param_process(struct param_process proc_param){
 void print_common(struct common dir){
 
 	cout << "Data directory : " << dir.dirfile << "\n";
+	cout << "Input directory : " << dir.input_dir << "\n";
 	cout << "Temporary directory : " << dir.tmp_dir << "\n";
 	cout << "Output directory : " << dir.output_dir << "\n";
 	cout << "Noise directory : " << dir.noise_dir << endl;
@@ -821,18 +888,18 @@ int parser_function(char * ini_name, struct common &dir,
 		return 2;
 	}
 
-	if(read_common(ini, dir, rank)==1)
+	if(read_common(ini, dir, 0)==1)
 		return 2;
 
-	if(read_ell_dir(ini, dir.ell_path, rank))
-		return 2;
+//	if(read_ell_dir(ini, dir.ell_path, rank))
+//		return 2;
 
 	if(rank==0){
-		check_path(dir.dirfile, "Input directory");
+		check_path(dir.dirfile, "Data directory");
+		check_path(dir.input_dir, "Input directory");
 		check_path(dir.output_dir, "Output directory");
 		check_path(dir.noise_dir, "Covariance Matrix directory");
 		check_path(dir.tmp_dir, "Temporary directory");
-		check_path(dir.ell_path, "Ell directory");
 		check_dirfile_paths(dir.tmp_dir);
 	}
 

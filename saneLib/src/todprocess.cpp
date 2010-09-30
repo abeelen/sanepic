@@ -160,6 +160,8 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 	fftw_destroy_plan(fftplan);
 
 	delete [] fdata;
+//	fftw_cleanup();
+
 
 }
 

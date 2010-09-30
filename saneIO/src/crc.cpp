@@ -184,7 +184,7 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double
 	string fits_temp;
 	std::ostringstream oss;
 	long NAXIS1, NAXIS2;
-	struct wcsprm * wcs; // TODO change this to deal with REAL wcs !!
+	struct wcsprm * wcs;
 	int nwcs = 1;
 
 	if (NULL == (fp = fopen(file.c_str(), "rb")))

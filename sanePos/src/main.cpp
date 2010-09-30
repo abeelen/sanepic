@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
 	time_t t2, t3;//, t3, t4, t5, dt;
 #endif
 
+
+
 	// -----------------------------------------------------------------------------//
 	int parsed=0;
 	// Parse ini file
@@ -161,6 +163,7 @@ int main(int argc, char *argv[])
 		default :;
 		}
 
+
 	if ((parsed>0)||(!compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank))){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -190,7 +193,7 @@ int main(int argc, char *argv[])
 		int test=0;
 		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
 			MPI_Barrier(MPI_COMM_WORLD);

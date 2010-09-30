@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
 		string fname = dir.output_dir + parallel_scheme_filename;
 		//		cout << fname << endl;
 
-		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
 			MPI_Barrier(MPI_COMM_WORLD);

@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 		fname = dir.output_dir + parallel_scheme_filename;
 		cout << fname << endl;
 
-		test = define_parallelization_scheme(rank,fname,dir.dirfile,samples_struct,size, iframe_min, iframe_max);
+		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 #else
 	fname = dir.output_dir + parallel_scheme_filename;
 	int test=0;
-	test=check_ParallelizationScheme(fname,dir.dirfile,samples_struct,size);
+	test=check_ParallelizationScheme(fname,dir.input_dir,samples_struct,size);
 	if (test==-1){
 		if(rank==0)
 			cerr << "Error in check_parallelizationScheme non-MPI " << endl;
@@ -1104,7 +1104,7 @@ int main(int argc, char *argv[])
 
 	wcsvfree(&nwcs, &wcs);
 
-
+	fftw_cleanup();
 
 
 #ifdef USE_MPI

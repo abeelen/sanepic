@@ -85,7 +85,7 @@ void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN,
 //	char **data;
 //	data = vString2carray(bolos);
 //
-//	//TODO : error handling : corresponding function is below : to be tested !!!
+//
 //
 //	fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
 //			(char*)"Channel List", &status);
