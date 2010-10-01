@@ -52,8 +52,8 @@ int read_dir(dictionary	*ini, struct common &dir, string dirtype ,int rank){
 	}
 
 
-//	unsigned int chkk=(checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0));
-//	cout << "chkk : " << chkk << endl;
+	//	unsigned int chkk=(checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0));
+	//	cout << "chkk : " << chkk << endl;
 
 	switch((unsigned int)checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0)){
 	case (unsigned int)2308: // commons:data_directory
@@ -850,6 +850,19 @@ int read_load_data(dictionary *ini, int &load_data, int rank){
 
 }
 
+int read_bolo_suffix(dictionary	*ini, string &suffix){
+
+
+	string str;
+
+	if (read_parser_string(ini,"commons:bolo_suffix", str)){
+		suffix="";
+	}else{
+		suffix=str;
+	}
+	return 0;
+}
+
 
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
@@ -860,6 +873,7 @@ int parser_function(char * ini_name, struct common &dir,
 	dictionary	*	ini ;
 	string filename;
 	struct detectors det;
+	string suffix;
 
 	// default values :
 	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
@@ -891,8 +905,8 @@ int parser_function(char * ini_name, struct common &dir,
 	if(read_common(ini, dir, 0)==1)
 		return 2;
 
-//	if(read_ell_dir(ini, dir.ell_path, rank))
-//		return 2;
+	//	if(read_ell_dir(ini, dir.ell_path, rank))
+	//		return 2;
 
 	if(rank==0){
 		check_path(dir.dirfile, "Data directory");
@@ -914,9 +928,14 @@ int parser_function(char * ini_name, struct common &dir,
 		return 2;
 	}
 
+	if(read_bolo_suffix(ini, suffix)==1)
+		return 2;
+
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-		filename= dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix +".bolo";
+
 		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return 2;

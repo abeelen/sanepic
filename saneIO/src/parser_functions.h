@@ -66,6 +66,8 @@ void print_common(struct common dir);
 int check_path(std::string strPath, std::string path_type);
 int check_dirfile_paths(std::string strPath);
 
+int read_bolo_suffix(dictionary	*ini, std::string &suffix);
+
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,

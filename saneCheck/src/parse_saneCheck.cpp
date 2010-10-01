@@ -55,6 +55,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	string text;
 	string str;
 	string filename;
+	string suffix;
 	struct detectors det;
 
 	string s;
@@ -88,9 +89,12 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
+	if(read_bolo_suffix(ini, suffix)==1)
+			return 2;
+
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + ".bolo";
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix + ".bolo";
 		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return -1;
