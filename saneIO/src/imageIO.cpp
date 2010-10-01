@@ -608,7 +608,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	long mi;
 	double *map;
 	char comment[80];
-	long crpix1=0, crpix2=0;
+	double crpix1=0, crpix2=0;
 	double crval1=0.0, crval2=0.0;
 	double cdelt1=0.0, cdelt2=0.0;
 	double lonpole=0.0, latpole=0.0;
@@ -619,12 +619,17 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 		return 1;
 	}
 
+	// TODO: Change that...
+	// - read the whole header
+	// - and make a wcs struct out of it
+	// - and write a routine to compare two wcs struct
+	//
 	// Read fits header keys
-	if (fits_read_key(fptr,TLONG, (char *) "CRPIX1", &crpix1, (char *) &comment, &status)){
+	if (fits_read_key(fptr,TDOUBLE, (char *) "CRPIX1", &crpix1, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
-	if (fits_read_key(fptr,TLONG, (char *) "CRPIX2", &crpix2, (char *) &comment, &status)){
+	if (fits_read_key(fptr,TDOUBLE, (char *) "CRPIX2", &crpix2, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -656,7 +661,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 
 	// compatibility verifications !
 
-	if((double)crpix1!=wcs->crpix[0] || (double)crpix2!=wcs->crpix[1]){
+	if(crpix1!=wcs->crpix[0] || crpix2!=wcs->crpix[1]){
 		cout << "CRPIX are different between mapheader.keyrec and the map_file : " <<  fname << endl;
 		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
 		return 1;
