@@ -513,9 +513,8 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 	int i;
 
 	i = iniparser_getint(ini, "sanePic:iterW", 0);
-	if(i>0){
-		iterw=i;
-	}//iterw =  ;
+	iterw=i;
+	//iterw =  ;
 
 	return 0;
 }
@@ -820,29 +819,29 @@ int check_dirfile_paths(string strPath){
 
 }
 
-int read_save_data(dictionary *ini, int &save_data, int rank){
+//int read_save_data(dictionary *ini, int &save_data, int rank){
+//
+//	string str;
+//
+//	if (read_parser_string(ini, "sanePic:save_data", str)==0){
+//		save_data=atoi(str.c_str());
+//	}else{
+//		cout << "Please mention sanePic:save_data !\n";
+//		return 1;
+//	}
+//
+//	return 0;
+//
+//}
+
+int read_restore(dictionary *ini, int &restore, int rank){
 
 	string str;
 
-	if (read_parser_string(ini, "sanePic:save_data", str)==0){
-		save_data=atoi(str.c_str());
+	if (read_parser_string(ini, "sanePic:restore", str)==0){
+		restore=atoi(str.c_str());
 	}else{
-		cout << "Please mention sanePic:save_data !\n";
-		return 1;
-	}
-
-	return 0;
-
-}
-
-int read_load_data(dictionary *ini, int &load_data, int rank){
-
-	string str;
-
-	if (read_parser_string(ini, "sanePic:load_data", str)==0){
-		load_data=atoi(str.c_str());
-	}else{
-		cout << "Please mention sanePic:load_data !\n";
+		cout << "Please mention sanePic:restore !\n";
 		return 1;
 	}
 
@@ -868,7 +867,7 @@ int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
 		double &fcut_sanePS, string &MixMatfile, string &signame, long &ncomp, int &iterw,
-		int &save_data, int &load_data, int rank, int size){
+		int &save_data, int &restore, int rank, int size){
 
 	dictionary	*	ini ;
 	string filename;
@@ -891,7 +890,7 @@ int parser_function(char * ini_name, struct common &dir,
 	ncomp=1;
 	iterw=10;
 	save_data=0;
-	load_data=0;
+	restore=0;
 
 
 	// load dictionnary
@@ -963,14 +962,24 @@ int parser_function(char * ini_name, struct common &dir,
 			read_mixmatfile(ini, MixMatfile, rank)||
 			read_fcut(ini, fcut_sanePS, rank) ||
 			read_ncomp(ini, ncomp, rank) ||
-			read_save_data(ini, save_data, rank) ||
-			read_load_data(ini, load_data, rank))
+			read_restore(ini, restore, rank))
 		return 2;
 
 	//	cout << "parser save data : " << save_data << endl;
-	//	cout << "parser load data : " << load_data << endl;
+	//	cout << "parser load data : " << restore << endl;
 
 	read_iter(ini, iterw, rank);
+
+	if(iterw==0){
+		save_data=0;
+		iterw=10;
+	}else{
+		if(iterw<0)
+			save_data=0;
+		else
+			save_data=1;
+	}
+
 	read_noise_cut_freq(ini, proc_param, fcut,rank);
 
 	if((int)fcut.size()==0){
@@ -1005,8 +1014,8 @@ int parser_function(char * ini_name, struct common &dir,
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
 
-		cout << "parser save data : " << save_data << endl;
-		cout << "parser load data : " << load_data << endl;
+		cout << "sanePic save data : " << save_data << endl;
+		cout << "sanePic restore : " << restore << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 		printf("Number of bolometers : \n");

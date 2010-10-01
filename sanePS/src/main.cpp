@@ -108,12 +108,12 @@ int main(int argc, char *argv[])
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 		int iterw=10;
-		int save_data, load_data;
+		int save_data, restore;
 		std::vector<double> fcut_vector;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut_vector,
-				fcut, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase

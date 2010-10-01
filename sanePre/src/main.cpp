@@ -139,11 +139,11 @@ int main(int argc, char *argv[])
 		string MixMatfile, signame;
 		long ncomp=1;
 		int iterw=10;
-		int save_data, load_data;
+		int save_data, restore;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
 	}
 
 

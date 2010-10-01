@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
-	int load_data, save_data;
+	int restore, save_data;
 
 
 	// main loop variables
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 	//		cout << "test\n";
 	//		getchar();
 
-	if(load_data>0){
+	if(restore>0){
 		if(rank==0)
 			cout << "load data is ON\n";
 		struct checksum chk_t,chk_t2;
@@ -590,7 +590,7 @@ int main(int argc, char *argv[])
 
 		cout << var0 << endl;
 
-		if(load_data>0){
+		if(restore>0){
 			cout << "loading data !\n";
 			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, r, indpix, npixeff, var_n, delta_n, iter);
 			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;

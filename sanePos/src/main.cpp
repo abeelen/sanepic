@@ -144,9 +144,9 @@ int main(int argc, char *argv[])
 		string MixMatfile, signame;
 		long ncomp=1;
 		int iterw=10;
-		int save_data, load_data;
+		int save_data, restore;
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, load_data, rank, size);
+				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
