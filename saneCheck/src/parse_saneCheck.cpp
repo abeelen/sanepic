@@ -47,7 +47,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	struct param_process proc_param;
 	std::vector<double> fcut;
 	double fcut_double;
-	string MixMatfile, signame;
+	string MixMatsuffix, signame;
 	long ncomp=1;
 	int iterw=10;
 
@@ -122,7 +122,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 
 	read_map_file(ini, signame);
-	read_mixmatfile(ini, MixMatfile, rank);
+	read_mixmatfile_suffix(ini, MixMatsuffix, rank);
 	read_ncomp(ini, ncomp, rank);
 	read_fcut(ini, fcut_double, rank);
 
@@ -197,7 +197,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "\n\n";
 
 		text += "[sanePS]\n\n";
-		text += "noise_estim = " + MixMatfile + " ; Enter filename containing the mixing matrix of noise components.\n";
+		text += "MixingMatrix_suffix = " + MixMatsuffix + " ; Enter the mixing matrix of noise components suffix.\n";
 //		text += "ell_dir = " + dir.ell_path + " ; file containing the bin for the noise spectrum\n";
 		text += "ncomp = " + StringOf(ncomp) + " ; number of component(s) to estimate\n";
 		text += "fcut = " + StringOf(fcut_double) + " ; freq above which value of the noise will not be estimated\n";

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	std::vector<detectors> detector_tab;
 
 	int nwcs=1; // number of wcs : 1
-	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
+//	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int factdupl = 1; /*! map duplication factor */
@@ -110,10 +110,10 @@ int main(int argc, char *argv[])
 
 	string field; /*! actual boloname in the bolo loop */
 	string prefixe; /*! prefix used for temporary name file creation */
-
+	struct sanePic struct_sanePic;
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
-	int restore, save_data;
+//	int restore, save_data;
 
 
 	// main loop variables
@@ -131,13 +131,12 @@ int main(int argc, char *argv[])
 		// Parse ini file
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		double fcut_sanePS=0.0;
-		string MixMatfile, signame;
-		long ncomp=1;
+		struct PS structPS;
+
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
+				structPS, struct_sanePic, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -374,7 +373,7 @@ int main(int argc, char *argv[])
 	//		cout << "test\n";
 	//		getchar();
 
-	if(restore>0){
+	if(struct_sanePic.restore>0){
 		if(rank==0)
 			cout << "load data is ON\n";
 		struct checksum chk_t,chk_t2;
@@ -388,7 +387,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	if(save_data>0){
+	if(struct_sanePic.save_data>0){
 		if(rank==0){
 			cout << "save data is ON\n";
 			struct checksum chk_t;
@@ -590,7 +589,7 @@ int main(int argc, char *argv[])
 
 		cout << var0 << endl;
 
-		if(restore>0){
+		if(struct_sanePic.restore>0){
 			cout << "loading data !\n";
 			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, r, indpix, npixeff, var_n, delta_n, iter);
 			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
@@ -773,9 +772,9 @@ int main(int argc, char *argv[])
 
 
 
-				if (iterw && (iter % iterw) == 0){ // saving iterated maps
+				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0){ // saving iterated maps
 
-					if((save_data>0)&&(iter!=0)){
+					if((struct_sanePic.save_data>0)&&(iter!=0)){
 						write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
 						cout << "Data saved on disk for iteration : " << iter << endl;
 					}

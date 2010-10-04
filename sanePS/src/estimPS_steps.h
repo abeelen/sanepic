@@ -23,7 +23,8 @@
 #include <fftw3.h>
 
 
-int read_mixmat_file(std::string Mixmatfile, std::string dir, double **&mixmat, long ndet, long ncomp);
+//int read_mixmat_file(std::string Mixmatfile, std::string dir, double **&mixmat, long ndet, long ncomp);
+int read_mixmat_file(std::string Mixmatfile, double **&mixmat, long ndet, long ncomp);
 
 int common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
 		struct common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,

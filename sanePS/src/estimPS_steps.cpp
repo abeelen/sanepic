@@ -29,12 +29,12 @@ extern "C" {
 
 using namespace std;
 
-int read_mixmat_file(string Mixmatfile, string dir, double **&mixmat, long ndet, long ncomp){
+//int read_mixmat_file(string Mixmatfile, string dir, double **&mixmat, long ndet, long ncomp){
+int read_mixmat_file(string Mixmatfile, double **&mixmat, long ndet, long ncomp){
 
+	//	string file = dir + "mixmat_" + Mixmatfile + ".txt";
 
-	string file = dir + "mixmat_" + Mixmatfile + ".txt";
-
-	if(read_mixmat_txt(file, ndet, ncomp,mixmat))
+	if(read_mixmat_txt(Mixmatfile, ndet, ncomp,mixmat))
 		return 1;
 
 	return 0;
@@ -112,7 +112,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	for (long idet=0;idet<det.ndet;idet++){
 
 		field = det.boloname[idet];
-//		cout << field << endl;
+		//		cout << field << endl;
 
 		long test_ns;
 		if(read_signal_from_fits(fits_filename, field, data, test_ns))
@@ -160,7 +160,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
-//		cout << "after map mak\n";
+		//		cout << "after map mak\n";
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
@@ -270,7 +270,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 	// clean up
 	delete [] sign;
-//	delete [] data;
+	//	delete [] data;
 	delete [] data_lp;
 	delete [] Ps;
 	delete [] samptopix;
@@ -287,7 +287,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
 
-//	fftw_cleanup();
+	//	fftw_cleanup();
 
 	//----------------------------------- END -------------------------------//
 
@@ -469,7 +469,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 	}
 
 	delete [] data_lp ;
-//	delete [] data ;
+	//	delete [] data ;
 	//	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;

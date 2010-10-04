@@ -140,13 +140,15 @@ int main(int argc, char *argv[])
 		parsed=-1;
 	} else {
 		std::vector<double> fcut;
-		double fcut_sanePS=0.0;
-		string MixMatfile, signame;
-		long ncomp=1;
-		int iterw=10;
-		int save_data, restore;
+//		double fcut_sanePS=0.0;
+//		string MixMatfile, signame;
+//		long ncomp=1;
+//		int iterw=10;
+//		int save_data, restore;
+		struct PS structPS;
+		struct sanePic struct_sanePic;
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				fcut_sanePS, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
+				structPS, struct_sanePic, rank, size);
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */

@@ -519,28 +519,53 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 	return 0;
 }
 
-int read_ell_dir(dictionary	*ini, string &ellpath, int rank){
+int read_ell_suffix(dictionary	*ini, string &ell_suffix, int rank){
 
 
 	string str;
 
 
-	switch(read_parser_string(ini, "sanePS:ell_dir", str)){
+	switch(read_parser_string(ini, "sanePS:ell_suffix", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : sanePS:ell_dir" << endl;
-		return 1;
+			cout <<"You must add a line in ini file specifying : sanePS:ell_suffix" << endl;
+		ell_suffix="";
+		//		return 1;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : sanePS:ell_dir" << endl;
-		return 1;
+			cout <<"Key is empty : You must specify : sanePS:ell_suffix" << endl;
+		ell_suffix="";
+		//		return 1;
 	case 0:
-		ellpath=str;
+		ell_suffix=str;
 	}
 
 	return 0;
 }
 
+int read_ell_global_file(dictionary	*ini, string &ell_global_file, int rank){
+
+
+	string str;
+
+
+	switch(read_parser_string(ini, "sanePS:ell_global_file", str)){
+	case 2:
+		if(rank==0)
+			cout <<"You must add a line in ini file specifying : sanePS:ell_global_file" << endl;
+		ell_global_file="";
+		//		return 1;
+	case 1:
+		if(rank==0)
+			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
+		ell_global_file="";
+		//		return 1;
+	case 0:
+		ell_global_file=str;
+	}
+
+	return 0;
+}
 
 int read_map_file(dictionary	*ini, string &signame){
 
@@ -575,14 +600,27 @@ int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
 
 }
 
-int read_mixmatfile(dictionary	*ini, string &MixMatfile, int rank){
+int read_mixmatfile_suffix(dictionary	*ini, string &MixMat_suffix, int rank){
 
 	string str;
 
-	if (read_parser_string(ini,"sanePS:noise_estim", str)){
-		MixMatfile = "NOFILE";
+	if (read_parser_string(ini,"sanePS:MixingMatrix_Suffix", str)){
+		MixMat_suffix = "";
 	}else{
-		MixMatfile = str;
+		MixMat_suffix = str;
+	}
+
+	return 0;
+}
+
+int read_mixmat_global_file(dictionary	*ini, string &MixMat_global, int rank){
+
+	string str;
+
+	if (read_parser_string(ini,"sanePS:MixingMatrix_global_file", str)){
+		MixMat_global = "";
+	}else{
+		MixMat_global = str;
 	}
 
 	return 0;
@@ -862,12 +900,29 @@ int read_bolo_suffix(dictionary	*ini, string &suffix){
 	return 0;
 }
 
+void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct){
+
+
+	for(long ii=0;ii<samples_struct.ntotscan;ii++){
+		if(structPS.mix_global_file!="")
+			structPS.mix_names.push_back(structPS.mix_global_file);
+		else
+			structPS.mix_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
+
+		if(structPS.ell_global_file!="")
+			structPS.ell_names.push_back(structPS.ell_global_file);
+		else
+			structPS.ell_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
+	}
+
+}
 
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, string &MixMatfile, string &signame, long &ncomp, int &iterw,
-		int &save_data, int &restore, int rank, int size){
+		struct PS &structPS, struct sanePic &sanePic_struct, int rank, int size){
+	//		double &fcut_sanePS, string &MixMatSuffix, string &ell_suffix, string &signame, long &ncomp, int &iterw,
+	//		int &save_data, int &restore, int rank, int size){
 
 	dictionary	*	ini ;
 	string filename;
@@ -887,10 +942,10 @@ int parser_function(char * ini_name, struct common &dir,
 	proc_param.f_lp = 0.0; // low pass filter frequency
 	pos_param.flgdupl = 0; // map duplication factor
 	pos_param.maskfile = "";
-	ncomp=1;
-	iterw=10;
-	save_data=0;
-	restore=0;
+	structPS.ncomp=1;
+	sanePic_struct.iterw=10;
+	sanePic_struct.save_data=0;
+	sanePic_struct.restore=0;
 
 
 	// load dictionnary
@@ -933,7 +988,7 @@ int parser_function(char * ini_name, struct common &dir,
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 
-		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix +".bolo";
+		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
 
 		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
@@ -958,27 +1013,32 @@ int parser_function(char * ini_name, struct common &dir,
 
 	if(	read_param_positions(ini, pos_param, rank) ||
 			read_param_process(ini, proc_param, rank) ||
-			read_map_file(ini, signame) ||
-			read_mixmatfile(ini, MixMatfile, rank)||
-			read_fcut(ini, fcut_sanePS, rank) ||
-			read_ncomp(ini, ncomp, rank) ||
-			read_restore(ini, restore, rank))
+			read_map_file(ini, structPS.signame) ||
+			read_mixmatfile_suffix(ini, structPS.mix_suffix, rank) ||
+			read_ell_suffix(ini, structPS.ell_suffix, rank) ||
+			read_ell_global_file(ini, structPS.ell_global_file, rank) ||
+			read_fcut(ini, structPS.fcutPS, rank) ||
+			read_ncomp(ini, structPS.ncomp, rank) ||
+			read_mixmat_global_file(ini, structPS.mix_global_file, rank) ||
+
+			read_restore(ini, sanePic_struct.restore, rank))
 		return 2;
 
 	//	cout << "parser save data : " << save_data << endl;
 	//	cout << "parser load data : " << restore << endl;
 
-	read_iter(ini, iterw, rank);
+	read_iter(ini, sanePic_struct.iterw, rank);
 
-	if(iterw==0){
-		save_data=0;
-		iterw=10;
+	if(sanePic_struct.iterw==0){
+		sanePic_struct.save_data=0;
+		sanePic_struct.iterw=10;
 	}else{
-		if(iterw<0)
-			save_data=0;
+		if(sanePic_struct.iterw<0)
+			sanePic_struct.save_data=0;
 		else
-			save_data=1;
+			sanePic_struct.save_data=1;
 	}
+
 
 	read_noise_cut_freq(ini, proc_param, fcut,rank);
 
@@ -1014,8 +1074,8 @@ int parser_function(char * ini_name, struct common &dir,
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
 
-		cout << "sanePic save data : " << save_data << endl;
-		cout << "sanePic restore : " << restore << endl;
+		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
+		cout << "sanePic restore : " << sanePic_struct.restore << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 		printf("Number of bolometers : \n");

@@ -43,10 +43,13 @@ int read_baseline(dictionary	    *ini, struct param_process &proc_param, int ran
 int read_correlation(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_remove_poly(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_iter(dictionary	        *ini, int &iterw, int rank);
-int read_ell_dir(dictionary	*ini, std::string &ellpath, int rank);
+//int read_ell_dir(dictionary	*ini, std::string &ellpath, int rank);
+int read_ell_suffix(dictionary	*ini, std::string &ell_suffix, int rank);
+int read_ell_global_file(dictionary	*ini, std::string &ell_global_file, int rank);
 int read_map_file(dictionary	*ini, std::string &signame);
 int read_cov_matrix_file(dictionary	*ini, std::string &fname, int rank);
-int read_mixmatfile(dictionary	*ini, std::string &MixMatfile, int rank);
+int read_mixmatfile_suffix(dictionary	*ini, std::string &MixMat_suffix, int rank);
+int read_mixmat_global_file(dictionary	*ini, std::string &MixMat_global, int rank);
 int read_ncomp(dictionary	*ini, long &ncomp, int rank);
 
 int read_nofillgap(dictionary	*ini, struct param_process &com, int rank);
@@ -70,10 +73,16 @@ int read_restore(dictionary *ini, int &restore, int rank);
 
 int read_bolo_suffix(dictionary	*ini, std::string &suffix);
 
+void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct);
+
 int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		double &fcut_sanePS, std::string &MixMatfile, std::string &signame, long &ncomp, int &iterw, int &save_data, int &restore,
-		int rank, int size);
+		struct PS &structPS, struct sanePic &sanePic_struct, int rank, int size);
+//int parser_function(char * ini_name, struct common &dir,
+//		std::vector<detectors> &detector_tab,struct samples &samples_struct,
+//		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
+//		double &fcut_sanePS, std::string &MixMatfile, std::string &ell_suffix, std::string &signame, long &ncomp, int &iterw, int &save_data, int &restore,
+//		int rank, int size);
 
 #endif /* PARSER_FUNCTIONS_H_ */

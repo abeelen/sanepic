@@ -87,18 +87,18 @@ int main(int argc, char *argv[])
 	string prefixe; // prefix used for temporary name file creation
 
 
-	string MixMatfile = "NOFILE"; // mixing matrix file
-	string signame; // map filename
+//	string MixMatfile = "NOFILE"; // mixing matrix file
+	//	string signame; // map filename
 
 
 	long iframe_min=0, iframe_max=0;
 
 	// main loop variables
 	double *S = NULL; // signal
+	struct PS structPS;
 
-
-	long ncomp; // number of noise component to estimate
-	double fcut; // cut-off freq : dont focus on freq larger than fcut for the estimation !
+	//	long ncomp; // number of noise component to estimate
+	//	double fcut; // cut-off freq : dont focus on freq larger than fcut for the estimation !
 
 	int parsed=0; // parser error code
 	if (argc<2) { // too few arguments
@@ -107,13 +107,14 @@ int main(int argc, char *argv[])
 	} else {
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		int iterw=10;
-		int save_data, restore;
+		//		int iterw=10;
+		//		int save_data, restore;
 		std::vector<double> fcut_vector;
+		struct sanePic struct_sanePic;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut_vector,
-				fcut, MixMatfile, signame, ncomp, iterw, save_data, restore, rank, size);
+				structPS, struct_sanePic, rank, size);
 	}
 
 	if (parsed>0){ // error during parser phase
@@ -139,12 +140,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+
+
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table= new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
+	fill_sanePS_struct(dir.input_dir,structPS,samples_struct);
+
 	//First time run S=0, after sanepic, S = Pure signal
-	if(signame != "NOSIGFILE"){
+	if(structPS.signame != "NOSIGFILE"){
 
 		long NAXIS1_read=0, NAXIS2_read=0;
 		long long addnpix=0;
@@ -227,11 +232,11 @@ int main(int argc, char *argv[])
 
 		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
 		if(rank==0)
-			cout << "Reading model map : " << signame << endl;
+			cout << "Reading model map : " << structPS.signame << endl;
 		S = new double[npix]; // pure signal
 
 		// read pure signal
-		if(read_fits_signal(signame, S, indpix, NAXIS1_read, NAXIS2_read, wcs)){
+		if(read_fits_signal(structPS.signame, S, indpix, NAXIS1_read, NAXIS2_read, wcs)){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -243,7 +248,7 @@ int main(int argc, char *argv[])
 
 		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
 			if(rank==0)
-				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << signame << endl;
+				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << structPS.signame << endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -329,16 +334,16 @@ int main(int argc, char *argv[])
 		ns = samples_struct.nsamples[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
 		cout << "[ " << rank << " ] " << fits_filename << endl;
-		oss << fits_filename;
-		string filename = oss.str();
-		MixMatfile=Basename(filename);
-		oss.str("");
+//		oss << fits_filename;
+//		string filename = oss.str();
+//		MixMatfile=Basename(filename);
+//		oss.str("");
 
 		struct detectors det = detector_tab[iframe];
 
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
-				iframe, indpix,	S, MixMatfile, MixMatfile,
-				fits_filename, ncomp, fcut, rank);
+				iframe, indpix,	S, structPS.mix_names[iframe], structPS.ell_names[iframe],
+				fits_filename, structPS.ncomp, structPS.fcutPS, rank);
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels
 		// iframe = scan number
@@ -363,7 +368,7 @@ int main(int argc, char *argv[])
 
 	fftw_cleanup();
 
-	if(signame == "NOSIGFILE"){
+	if(structPS.signame == "NOSIGFILE"){
 		//		int nwcs = 1;
 		//		wcsvfree(&nwcs, &wcs);
 	}else{

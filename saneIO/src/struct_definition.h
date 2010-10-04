@@ -34,7 +34,7 @@ struct samples
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
 
-//	std::vector<std::string> mixmat_file;
+	//	std::vector<std::string> mixmat_file;
 	std::string cov_matrix_file;
 
 	bool framegiven;
@@ -84,8 +84,12 @@ struct PS
 /*! A structure that contains user options about sanePS procedure */
 {
 	double fcutPS;
-//	std::string ell_path;
-	std::string mix_path;
+	std::string ell_suffix;
+	std::string mix_suffix;
+	std::string ell_global_file;
+	std::string mix_global_file;
+	std::vector<std::string> ell_names;
+	std::vector<std::string> mix_names;
 	std::string signame;
 	long ncomp;
 };
@@ -93,8 +97,10 @@ struct PS
 struct sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
-	long iterw;
-	long itermax;
+	int iterw;
+	int itermax;
+	int save_data;
+	int restore;
 	double thresholds;
 };
 
