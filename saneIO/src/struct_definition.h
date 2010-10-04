@@ -4,16 +4,6 @@
 #include <vector>
 #include <string>
 
-struct corner{
-	double x;
-	double y;
-};
-
-struct box {
-	struct corner blc;
-	struct corner trc;
-};
-
 struct common
 /*! A structure that contains everything about directories, channel list and frame list */
 {

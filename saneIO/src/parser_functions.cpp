@@ -233,7 +233,7 @@ int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &sam
 			cout <<"Key is empty : You must specify : commons:fits_filelist" << endl;
 		return 1;
 	case 0:
-		samples_str.filename=str;
+		samples_str.filename=dir.input_dir + str;
 
 		// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
 		if(read_fits_list(samples_str.filename, \
@@ -436,7 +436,7 @@ int read_filter_frequency(dictionary *ini, struct param_process &proc_param, int
 }
 
 
-int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::vector<double> &fcut, int rank){
+int read_noise_cut_freq(dictionary	*ini, struct common dir, struct param_process &proc_param, std::vector<double> &fcut, int rank){
 
 	string str;
 
@@ -453,10 +453,10 @@ int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::
 			cout <<"Key is empty : You must specify : sanePre:fcut_file" << endl;
 		return 1;
 	case 0:
-		proc_param.fcut_file = str;
+		proc_param.fcut_file = dir.input_dir + str;
 
 		std::vector<string> dummy2;
-		if(read_strings(str,dummy2))
+		if(read_strings(proc_param.fcut_file,dummy2))
 			return 1;
 
 		if(((int)dummy2.size())==0){
@@ -1020,7 +1020,6 @@ int parser_function(char * ini_name, struct common &dir,
 			read_fcut(ini, structPS.fcutPS, rank) ||
 			read_ncomp(ini, structPS.ncomp, rank) ||
 			read_mixmat_global_file(ini, structPS.mix_global_file, rank) ||
-
 			read_restore(ini, sanePic_struct.restore, rank))
 		return 2;
 
@@ -1040,7 +1039,7 @@ int parser_function(char * ini_name, struct common &dir,
 	}
 
 
-	read_noise_cut_freq(ini, proc_param, fcut,rank);
+	read_noise_cut_freq(ini, dir, proc_param, fcut,rank);
 
 	if((int)fcut.size()==0){
 		string fname;

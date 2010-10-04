@@ -38,7 +38,7 @@ int read_filter_frequency(dictionary	*ini, struct param_process &proc_param, int
 
 
 int read_fcut(dictionary	*ini, double &fcut, int rank);
-int read_noise_cut_freq(dictionary	*ini, struct param_process &proc_param, std::vector<double> &fcut, int rank);
+int read_noise_cut_freq(dictionary	*ini, struct common dir, struct param_process &proc_param, std::vector<double> &fcut, int rank);
 int read_baseline(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_correlation(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_remove_poly(dictionary	    *ini, struct param_process &proc_param, int rank);
