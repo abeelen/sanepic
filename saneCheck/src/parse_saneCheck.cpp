@@ -118,7 +118,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	read_param_process(ini, proc_param, rank);
 
 
-	read_noise_cut_freq(ini, proc_param, fcut,rank);
+	read_noise_cut_freq(ini, dir, proc_param, fcut,rank);
 
 
 	read_map_file(ini, signame);
