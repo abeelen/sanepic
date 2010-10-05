@@ -918,12 +918,12 @@ void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples sam
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++){
 		if(structPS.mix_global_file!="")
-			structPS.mix_names.push_back(structPS.mix_global_file);
+			structPS.mix_names.push_back(dir + structPS.mix_global_file);
 		else
 			structPS.mix_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
 
 		if(structPS.ell_global_file!="")
-			structPS.ell_names.push_back(structPS.ell_global_file);
+			structPS.ell_names.push_back(dir + structPS.ell_global_file);
 		else
 			structPS.ell_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
 	}
@@ -1002,7 +1002,7 @@ int parser_function(char * ini_name, struct common &dir,
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 
 		if(bolo_global_filename!="")
-			filename=bolo_global_filename;
+			filename=dir.input_dir + bolo_global_filename;
 		else
 			filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
 
