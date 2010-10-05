@@ -5,6 +5,7 @@
 #include "parseInv.h"
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
+#include "parser_functions.h"
 
 #include <iostream>
 #include <string>
@@ -82,18 +83,36 @@ int main(int argc, char *argv[]) {
 
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
-	int parsed=1;
-
-	if (argc<2) { // wrong number of arguments
-		if(rank==0)
+	int parsed=0;
+		// Parse ini file
+		if (argc<2) {
 			printf("Please run %s using a *.ini file\n",argv[0]);
-		parsed = -2;
-	} else {
-		parsed=parse_saneInv_ini_file(argv[1],samples_struct,dir, detector_tab, rank);
-	}
+			parsed=-1;
+		} else {
+			std::vector<double> fcut;
+			struct param_positions pos_param;
+			struct param_process proc_param;
+			struct PS structPS;
+			struct sanePic struct_sanePic;
+			parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+					structPS, struct_sanePic, rank, size);
+		}
+		if (rank==0)
+			switch (parsed){/* error during parsing phase */
 
+			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+			break;
 
-	if (parsed<0){
+			case 2 : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+			case 3 : printf("Exiting...\n");
+			break;
+
+			default :;
+			}
+
+	if (parsed>0){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();

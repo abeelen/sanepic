@@ -49,13 +49,8 @@ int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
 
 
-//int write_ParallelizationScheme(std::string fname, long  *position, long  *frnum, long  *ns,  long  ntotscan, int  size,
-//		std::vector<std::string> fitsvect, std::vector<std::string> noisevect, std::vector<int> &scans_index);
 int write_ParallelizationScheme(std::string fname, long *position, long *frnum, int size, struct samples samples_struct);
 
-//void read_ParallelizationScheme(string fname,  long **position, long **frnum, long **ns,  long *ntotscan, int *size);
-//int check_ParallelizationScheme(string fname, long *ns, long ntotscan, int size, long **position, long **frnum);
-//int define_parallelization_scheme(int rank,string fname,long **frnum,long ntotscan,int size,long *nsamples,long *fframes);
 
 ///////////////
 //int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles,string *&fits_table, string *&noise_table, long *&index_table);
@@ -67,8 +62,6 @@ int verify_parallelization_scheme(int rank, std::string outdir,struct samples sa
 
 long readFitsLength(std::string filename);
 void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
-
-//void readBoxFile(std::string filename, std::vector<struct box> & boxList); // useless
 
 int who_do_it(int size, int rank, int ii);
 

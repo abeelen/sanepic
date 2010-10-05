@@ -600,7 +600,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 
 	long size_tmp = 0;
-	int return_error = 0;
+//	int return_error = 0;
 	int num_frame = 0;
 	char c;
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
@@ -624,7 +624,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 	if((size_tmp)>size){
 		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-		return return_error =1;
+		return 1;
 	}else{
 
 		samples_struct.scans_index.resize( size_tmp );
@@ -643,7 +643,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 				break;
 				default:
 					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
-					return return_error =1;
+					return 1;
 					break;
 				}
 			}
@@ -653,7 +653,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 			if(num_frame==0){
 				cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
-				return return_error =1;
+				return 1;
 			}
 
 
@@ -663,7 +663,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 			for(long ii=0;ii<size_tmp;ii++)
 				if(samples_struct.scans_index[ii]!=ii){
 					cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
-					return return_error =1;
+					return 1;
 				}
 		}
 	}
@@ -680,19 +680,9 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
 			cerr << "File [" << outfile << "] Invalid : Unable to create it !" << endl;
-			return return_error = 1;
+			return 1;
 		}
 	}
-
-
-	//	MPI_Barrier(MPI_COMM_WORLD);
-	//	MPI_Bcast(&return_error,1,MPI_INT,0,MPI_COMM_WORLD);
-
-	//	if(return_error>0){
-	//		MPI_Finalize();
-	//		exit(0);
-	//
-	//	}
 
 	string temp;
 	size_t found;
@@ -784,42 +774,6 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 }
 
 
-
-
-// Useless now
-//void readBoxFile(string filename, std::vector<struct box> & boxList){
-//	// Read a file with 4 number on a line, describing the boxes
-//	// 2 numbers for the bottom_left_corner (blc)
-//	// 2 numbers for the top_right_corner (trc)
-//
-//	ifstream file;
-//	file.open(filename.c_str(), ios::in);
-//	if(!file.is_open()){
-//		cerr << "File [" << filename << "] Invalid." << endl;
-//		exit(-1);
-//	}
-//
-//	double x_min, x_max, y_min, y_max;
-//
-//	while(file >> x_min >> y_min >> x_max >> y_max) {
-//		struct box ibox;
-//		struct corner icorn;
-//
-//		icorn.x = x_min;
-//		icorn.y = y_min;
-//		ibox.blc = icorn;
-//
-//		icorn.x = x_max;
-//		icorn.y = y_max;
-//		ibox.trc = icorn;
-//
-//		boxList.push_back(ibox);
-//	}
-//
-//	file.close();
-//
-//}
-
 int who_do_it(int size, int rank, int ii)
 /*!\brief This function determines which processor has to treat the given loop referenced by his number
  * \param size Number of Processor used
@@ -841,5 +795,5 @@ int who_do_it(int size, int rank, int ii)
 		return ii;
 	}
 
-	return -1; // error in the program
+	return -1;
 }

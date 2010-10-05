@@ -72,6 +72,7 @@ int check_dirfile_paths(std::string strPath);
 int read_restore(dictionary *ini, int &restore, int rank);
 
 int read_bolo_suffix(dictionary	*ini, std::string &suffix);
+int read_bolo_global_file(dictionary *ini, std::string &bolo_global_filename);
 
 void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct);
 

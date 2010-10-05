@@ -91,7 +91,7 @@ struct sanePic
 	int itermax;
 	int save_data;
 	int restore;
-	double thresholds;
+	double thresholds; // determine thresholds
 };
 
 

@@ -900,6 +900,19 @@ int read_bolo_suffix(dictionary	*ini, string &suffix){
 	return 0;
 }
 
+int read_bolo_global_file(dictionary *ini, string &bolo_global_filename){
+
+	string str;
+
+	if (read_parser_string(ini,"commons:bolo_global_file", str)){
+		bolo_global_filename="";
+	}else{
+		bolo_global_filename=str;
+	}
+	return 0;
+
+}
+
 void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct){
 
 
@@ -927,7 +940,7 @@ int parser_function(char * ini_name, struct common &dir,
 	dictionary	*	ini ;
 	string filename;
 	struct detectors det;
-	string suffix;
+	string suffix, bolo_global_filename;
 
 	// default values :
 	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
@@ -982,13 +995,17 @@ int parser_function(char * ini_name, struct common &dir,
 		return 2;
 	}
 
-	if(read_bolo_suffix(ini, suffix)==1)
-		return 2;
+	read_bolo_suffix(ini, suffix);
 
+	read_bolo_global_file(ini, bolo_global_filename);
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 
-		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
+		if(bolo_global_filename!="")
+			filename=bolo_global_filename;
+		else
+			filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
+
 
 		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
