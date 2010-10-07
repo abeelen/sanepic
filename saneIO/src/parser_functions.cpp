@@ -1043,7 +1043,8 @@ int parser_function(char * ini_name, struct common &dir,
 	//	cout << "parser save data : " << save_data << endl;
 	//	cout << "parser load data : " << restore << endl;
 
-	pos_param.maskfile = dir.input_dir + pos_param.maskfile;
+	if(pos_param.maskfile!="")
+		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
 
 	read_iter(ini, sanePic_struct.iterw, rank);
 
