@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	std::vector<detectors> detector_tab;
 
 	int nwcs=1; // number of wcs : 1
-//	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
+	//	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int factdupl = 1; /*! map duplication factor */
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	struct sanePic struct_sanePic;
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
-//	int restore, save_data;
+	//	int restore, save_data;
 
 
 	// main loop variables
@@ -382,6 +382,10 @@ int main(int argc, char *argv[])
 		if(compare_checksum(chk_t, chk_t2)){
 			if(rank==0)
 				cout << "les checksum sont differents !!!" << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
 			return EXIT_FAILURE;
 		}
 	}
@@ -587,12 +591,14 @@ int main(int argc, char *argv[])
 		//start loop
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
-		cout << var0 << endl;
+		//		cout << var0 << endl;
 
 		if(struct_sanePic.restore>0){
-			cout << "loading data !\n";
+			if(rank==0)
+				cout << "loading data !\n";
 			load_from_disk(dir.tmp_dir,  dir.output_dir, S, d, r, indpix, npixeff, var_n, delta_n, iter);
-			cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
+			if(rank==0)
+				cout << iter << " " << npixeff << " " << var_n << " " << delta_n << endl;
 		}
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
@@ -775,8 +781,10 @@ int main(int argc, char *argv[])
 				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0){ // saving iterated maps
 
 					if((struct_sanePic.save_data>0)&&(iter!=0)){
-						write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
-						cout << "Data saved on disk for iteration : " << iter << endl;
+						if(rank==0)
+							write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
+						if(rank==0)
+							cout << "\nData saved on disk for iteration : " << iter << endl;
 					}
 
 					// Every iterw iteration compute the map and save it
