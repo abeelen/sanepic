@@ -121,29 +121,46 @@ int main(int argc, char *argv[])
 
 	// parallel scheme file
 	string fname; /*! parallel scheme filename */
-
+	int indice_argv=1;
 
 	int parsed=0;
 
-	if (argc<2) // no enough arguments
+	if ((argc<2)||(argc>3)) // no enough arguments
 		parsed=1;
 	else{
 		// Parse ini file
+		struct_sanePic.restore=0;
 
-		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
+		// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 		struct PS structPS;
+		//		cout << "argc : " << argc <<endl;
+		if(argc==3){
+			struct_sanePic.restore=1;
+			if(strcmp(argv[1],(char*)"--restore")!=0){
+				if(strcmp(argv[2],(char*)"--restore")!=0)
+					indice_argv=-1;
+				else
+					indice_argv=1;
+			}else{
+				indice_argv=2;
+			}
+		}
 
 
-		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-				structPS, struct_sanePic, rank, size);
+		if(indice_argv > 0)
+			/* parse ini file and fill structures */
+			parsed=parser_function(argv[indice_argv], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+					structPS, struct_sanePic, rank, size);
+		else
+			parsed=1;
+
 	}
 
 	if (parsed>0){ // error during parser phase
 		if (rank==0)
 			switch (parsed){
 
-			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+			case 1: printf("Please run %s using the following options : sanepic_ini.ini (--restore) \n",argv[0]);
 			break;
 
 			case 2 : printf("Wrong program options or argument. Exiting !\n");
@@ -352,32 +369,12 @@ int main(int argc, char *argv[])
 		return(EXIT_FAILURE);
 	}
 
-	/* Crash recovery Procedure */
-
-	//		bool crash_recovery(argv[1],dir.tmp_dir);
-	//		      FILE *fp;
-	//		      size_t len;
-	//		      char buf[4096], *file = "/home/mhusson/workspace/sanepic_A2218.ini";
-	//
-	//		      if (NULL == (fp = fopen(file, "rb")))
-	//		      {
-	//		            printf("Unable to open %s for reading\n", file);
-	//		            return -1;
-	//		      }
-	//		      len = fread(buf, sizeof(char), sizeof(buf), fp);
-	//		      printf("%d bytes read\n", len);
-	//		      printf("The checksum of %s is %#x\n", file, checksum(buf, len, 0));
-	//		      printf("The checksum of %s is %u\n", file, checksum(buf, len, 0));
-	//		      return 0;
-
-	//		cout << "test\n";
-	//		getchar();
 
 	if(struct_sanePic.restore>0){
 		if(rank==0)
 			cout << "load data is ON\n";
 		struct checksum chk_t,chk_t2;
-		compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+		compute_checksum(argv[indice_argv],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
 		read_checksum(dir.tmp_dir, chk_t2);
 		if(compare_checksum(chk_t, chk_t2)){
 			if(rank==0)
@@ -396,7 +393,7 @@ int main(int argc, char *argv[])
 			cout << "save data is ON\n";
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			compute_checksum(argv[1],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
+			compute_checksum(argv[indice_argv],dir.tmp_dir,PNdtot,npix,indpix,indpsrc,test_size, chk_t);
 			write_checksum(dir.tmp_dir, chk_t);
 		}
 	}

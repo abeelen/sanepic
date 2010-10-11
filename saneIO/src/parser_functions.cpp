@@ -557,7 +557,7 @@ int read_ell_global_file(dictionary	*ini, string &ell_global_file, int rank){
 		//		return 1;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
+//			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
 		ell_global_file="";
 		//		return 1;
 	case 0:
@@ -872,20 +872,20 @@ int check_dirfile_paths(string strPath){
 //
 //}
 
-int read_restore(dictionary *ini, int &restore, int rank){
-
-	string str;
-
-	if (read_parser_string(ini, "sanePic:restore", str)==0){
-		restore=atoi(str.c_str());
-	}else{
-		cout << "Please mention sanePic:restore !\n";
-		return 1;
-	}
-
-	return 0;
-
-}
+//int read_restore(dictionary *ini, int &restore, int rank){
+//
+//	string str;
+//
+//	if (read_parser_string(ini, "sanePic:restore", str)==0){
+//		restore=atoi(str.c_str());
+//	}else{
+//		cout << "Please mention sanePic:restore !\n";
+//		return 1;
+//	}
+//
+//	return 0;
+//
+//}
 
 int read_bolo_suffix(dictionary	*ini, string &suffix){
 
@@ -958,7 +958,7 @@ int parser_function(char * ini_name, struct common &dir,
 	structPS.ncomp=1;
 	sanePic_struct.iterw=10;
 	sanePic_struct.save_data=0;
-	sanePic_struct.restore=0;
+//	sanePic_struct.restore=0;
 
 
 	// load dictionnary
@@ -1036,8 +1036,8 @@ int parser_function(char * ini_name, struct common &dir,
 			read_ell_global_file(ini, structPS.ell_global_file, rank) ||
 			read_fcut(ini, structPS.fcutPS, rank) ||
 			read_ncomp(ini, structPS.ncomp, rank) ||
-			read_mixmat_global_file(ini, structPS.mix_global_file, rank) ||
-			read_restore(ini, sanePic_struct.restore, rank))
+			read_mixmat_global_file(ini, structPS.mix_global_file, rank))
+//			read_restore(ini, sanePic_struct.restore, rank))
 		return 2;
 
 	//	cout << "parser save data : " << save_data << endl;

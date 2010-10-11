@@ -69,7 +69,7 @@ void print_common(struct common dir);
 int check_path(std::string strPath, std::string path_type);
 int check_dirfile_paths(std::string strPath);
 
-int read_restore(dictionary *ini, int &restore, int rank);
+//int read_restore(dictionary *ini, int &restore, int rank);
 
 int read_bolo_suffix(dictionary	*ini, std::string &suffix);
 int read_bolo_global_file(dictionary *ini, std::string &bolo_global_filename);
