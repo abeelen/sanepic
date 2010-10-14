@@ -422,14 +422,14 @@ int main(int argc, char *argv[])
 	// see (for a complete description of the following variables) : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 	double *PtNPmatS,  *PtNPmatStot=NULL, *r, *q, *qtot=NULL, *d, *Mp, *Mptot=NULL, *s; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
-	long *hits, *hitstot=NULL; // coverage map and global coverage for MPI
-	double *PNd; // (At N-1 d)
+	//	long *hits, *hitstot=NULL; // coverage map and global coverage for MPI
+	double *PNd=NULL; // (At N-1 d)
 
 	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0; // conjugate gradient convergence criteria
 	double delta_o, rtq, beta; // conjugate gradient needed parameters (see paper for a complete description)
 
 	long mi;
-	double *map1d; // buffer used to store maps before exporting to fits
+	double *map1d=NULL; // buffer used to store maps before exporting to fits
 
 	int iter; // conjugate gradient loop counter
 	double  f_lppix_Nk,f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
@@ -443,9 +443,9 @@ int main(int argc, char *argv[])
 	Mp          = new double[npix];
 	s           = new double[npix];
 	PtNPmatS    = new double[npix];
-	hits        = new long[npix];
-	PNd         = new double[npix];
-	map1d       = new double[NAXIS1*NAXIS2];
+	//	hits        = new long[npix];
+
+
 
 	// in case flagged pixels are put in a duplicated map
 	for (int idupl = 0;idupl<=pos_param.flgdupl;idupl++){
@@ -458,11 +458,11 @@ int main(int argc, char *argv[])
 
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
-		fill(hits,hits+npix,0);
+		//		fill(hits,hits+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
 		fill(s,s+npix,0.0);
-		fill(PNd,PNd+npix,0.0);
+		//		fill(PNd,PNd+npix,0.0);
 
 
 
@@ -498,11 +498,11 @@ int main(int argc, char *argv[])
 #endif
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
+						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,NULL, name_rank);
 				// return Pnd = At N-1 d
 #else
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
-						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
+						proc_param.fsamp,ns, rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,NULL, name_rank);
 
 #endif
 
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
 
 				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,f_lppix_Nk,
 						proc_param.fsamp, pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2, npix,
-						iframe,samples_struct.fits_table[iframe], PtNPmatS, Mp, hits,rank,size);
+						iframe,samples_struct.fits_table[iframe], PtNPmatS, Mp, NULL,rank,size);
 			}
 
 		} // end of iframe loop
@@ -520,23 +520,21 @@ int main(int argc, char *argv[])
 
 		if(rank==0){ // malloc only for first processor that reduces the data
 			PtNPmatStot = new double[npix];
-			hitstot=new long[npix];
+			//			hitstot=new long[npix];
 			Mptot = new double[npix];
-			qtot = new double[npix];
 
-			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
-			fill(hitstot,hitstot+npix,0);
-			fill(Mptot,Mptot+npix,0.0);
+			qtot = new double[npix];
 			fill(qtot,qtot+npix,0.0);
+			fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+			fill(Mptot,Mptot+npix,0.0);
+
 		}
 
 		MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-		MPI_Reduce(hits,hitstot,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 		MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 
 		PtNPmatStot=PtNPmatS; // in case non-MPI : pointer equality
-		hitstot=hits;
 		Mptot=Mp;
 
 #endif
@@ -785,6 +783,7 @@ int main(int argc, char *argv[])
 					}
 
 					// Every iterw iteration compute the map and save it
+					map1d = new double[NAXIS1*NAXIS2];
 
 					for (long ii=0; ii<NAXIS1; ii++) {
 						for (long jj=0; jj<NAXIS2; jj++) {
@@ -903,6 +902,8 @@ int main(int argc, char *argv[])
 					}
 					if(write_fits_hitory(fname , NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, detector_tab[0], samples_struct))
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
+
+					delete [] map1d;
 				} // end of saving iterated maps
 
 
@@ -945,9 +946,9 @@ int main(int argc, char *argv[])
 		// which will now replace the flagged data by data from the signal map
 
 		if  ((pos_param.projgaps || (pos_param.flgdupl)) && !idupl){
-
-
+			PNd = new double[npix];
 			fill(PNd,PNd+npix,0.0);
+
 
 			for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
@@ -1002,7 +1003,8 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-			fill(PNdtot,PNdtot+npix,0.0);
+			if(rank==0)
+				fill(PNdtot,PNdtot+npix,0.0);
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			delete [] PNdtot;
@@ -1021,6 +1023,16 @@ int main(int argc, char *argv[])
 #endif
 
 
+	// clean up of conjugate gradient variables
+	delete [] r;
+	delete [] q;
+	delete [] d;
+	delete [] Mp;
+	delete [] s;
+	delete [] PtNPmatS;
+	//	delete [] map1d;
+	delete [] PNd;
+
 	//******************************  write final map in file ********************************
 
 	if (rank == 0){
@@ -1034,9 +1046,9 @@ int main(int argc, char *argv[])
 		fclose(fp);
 #endif
 
-		write_maps_to_disk(S, NAXIS1, NAXIS2, dir.output_dir, indpix, indpsrc,
+		write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				proc_param, pos_param, detector_tab[0], samples_struct, fcut,
+				proc_param, pos_param, detector_tab, samples_struct, fcut,
 				wcs, pos_param.maskfile);
 	}// end of rank==0
 
@@ -1047,22 +1059,8 @@ int main(int argc, char *argv[])
 	delete [] Mptot;
 	delete [] PtNPmatStot;
 	delete [] hitstot;
+	delete [] PNdtot;
 #endif
-
-
-
-	// clean up of conjugate gradient variables
-	delete [] r;
-	delete [] q;
-	delete [] d;
-	delete [] Mp;
-	delete [] s;
-	delete [] PtNPmatS;
-	delete [] hits;
-	delete [] map1d;
-	delete [] PNd;
-
-
 
 
 	//******************************************************************//
@@ -1104,7 +1102,7 @@ int main(int argc, char *argv[])
 
 	delete [] indpsrc;
 	delete [] indpix;
-	delete [] PNdtot;
+	//	delete [] PNdtot;
 
 	wcsvfree(&nwcs, &wcs);
 

@@ -14,9 +14,9 @@
 using namespace std;
 
 
-int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long long *indpix, long long *indpsrc,
+int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
-		struct param_process proc_param, struct param_positions pos_param, struct detectors det,
+		struct param_process proc_param, struct param_positions pos_param, std::vector<detectors> detector_tab,
 		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile){
 
 
@@ -25,7 +25,8 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long 
 	double *map1d;
 	string fname;
 	long mi;
-
+	struct detectors det=detector_tab[0];
+	string outdir = dir.output_dir;
 	map1d= new double [NAXIS1*NAXIS2];
 
 
@@ -58,6 +59,8 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long 
 		return 1;
 	}
 
+	fill(map1d,map1d+NAXIS1*NAXIS2,0.0);
+
 
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
@@ -86,7 +89,66 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, string outdir, long 
 	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1)){
 		cerr << "Error Writing map : EXITING ... \n";
 	}
-	//
+
+	fill(map1d,map1d+NAXIS1*NAXIS2,0.0);
+
+	//compute hits map
+	long *hits;
+	long long *samptopix;
+	hits  = new long[npix];
+	fill(hits,hits+npix,0.0);
+
+	for (long iframe=0;iframe<samples_struct.ntotscan;iframe++){
+		long ns = samples_struct.nsamples[iframe];
+		samptopix=new long long [ns];
+		struct detectors det_tmp =detector_tab[iframe];
+		for (long idet1=0;idet1<det_tmp.ndet;idet1++){
+
+			string field1 = det_tmp.boloname[idet1];
+			if(read_samptopix(ns, samptopix, dir.tmp_dir, samples_struct.fits_table[iframe], field1))
+				return 1;
+			//compute hit counts
+			for (long ii=0;ii<ns;ii++){
+				hits[indpix[samptopix[ii]]] += 1;
+			}
+		}
+		delete [] samptopix;
+	}
+
+
+	for (long jj=0; jj<NAXIS2; jj++) {
+		for (long ii=0; ii<NAXIS1; ii++) {
+			mi = jj*NAXIS1 + ii;
+			if (indpix[mi] >= 0){
+				map1d[mi] = hits[indpix[mi]];
+			} else {
+				map1d[mi] = 0;
+			}
+		}
+	}
+
+	if (addnpix){
+		for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+			for (long jj=0; jj<NAXIS2; jj++) {
+				for (long ii=0; ii<NAXIS1; ii++) {
+					mi = jj*NAXIS1 + ii;
+					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+					if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
+						map1d[mi] += hits[indpix[ll]];
+				}
+			}
+		}
+	}
+
+	if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1)){ // open naive Map fits file and fill hit (or coverage) image
+		cerr << "Error Writing coverage map  ... \n";
+	}
+
+
+
+	delete [] hits;
+	//////////////////
+
 	//	if (addnpix){
 	//		// initialize the container
 	//		for (long jj=0; jj<NAXIS2 ; jj++){
