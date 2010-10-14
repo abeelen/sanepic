@@ -3,12 +3,7 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
-struct checkHDU {
-	bool checkREFERENCEPOSITION;
-	bool checkOFFSETS;
-	bool checkRA;
-	bool checkDEC;
-};
+
 
 /*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
 //int who_do_it(int size, int rank, int ii);
@@ -43,10 +38,15 @@ int check_flag(std::string fname,struct detectors det,long ns, std::string outna
 /*! check for time gaps in time table */
 int check_time_gaps(std::string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it);
 
+
+int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct detectors det, struct checkHDU check_it);
+
+double median(std::vector<double> vec);
+
 /*! generating log files for user information */
 void log_gen(long  *bolo_, std::string outname, struct detectors det, double *percent_tab=NULL);
 
-
+int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, long ndet);
 
 
 

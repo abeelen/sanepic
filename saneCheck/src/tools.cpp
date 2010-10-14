@@ -695,11 +695,11 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 	}
 
 	// print to std
-//	for (long tt=0;tt<size_tmp;tt++)
-//		cout <<  freq[tt] << " ";
-//	cout << endl;
-//	for (long tt=0;tt<size_tmp;tt++)
-//		cout << counter[tt] << " ";
+	//	for (long tt=0;tt<size_tmp;tt++)
+	//		cout <<  freq[tt] << " ";
+	//	cout << endl;
+	//	for (long tt=0;tt<size_tmp;tt++)
+	//		cout << counter[tt] << " ";
 
 
 
@@ -764,6 +764,89 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 
 }
 
+int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct detectors det, struct checkHDU check_it){
+
+
+	long ns_test=0;
+	double *signal_tot, *signal_samp;
+	double *signal;
+	signal_tot=new double[ns];
+	signal_samp=new double[det.ndet];
+//	cout << det.ndet << endl;
+
+	// test median !
+//	double *test;
+//	test=new double[4];
+//	test[0]=1;
+//	test[1]=2;
+//	test[2]=10;
+//	test[3]=4;
+//
+//	std::vector<double> test_vec(test, test+4);
+//	double med=median(test_vec);
+//	cout << test_vec[0] << " " << test_vec[1] << " " << test_vec[2] << " " << test_vec[3] <<  endl;
+//	cout << med << endl;
+//
+//	delete [] test;
+//	getchar();
+	//---------------
+	fill(signal_tot,signal_tot+ns,0.0);
+
+	// sum up all detectors signal
+	for(int jj=0;jj<ns;jj++){
+		fill(signal_samp,signal_samp+det.ndet,0.0);
+
+		if(read_sample_signal_from_fits(fname, jj+1, signal_samp, det.ndet))
+			return 1;
+
+		std::vector<double> signal_vec(signal_samp, signal_samp+det.ndet);
+		//		cout << signal_vec[0] << endl;
+		signal_tot[jj]=median(signal_vec);
+		//		cout << signal_tot[jj] << endl;
+	}
+
+	fill(signal_samp,signal_samp+det.ndet,0.0);
+
+	for(long jj=0;jj<10;jj++)
+		cout << signal_tot[jj] << " " ;
+	getchar();
+	for(long idet=0;idet<det.ndet;idet++){
+		std::vector<double> signal_vec;
+		read_signal_from_fits(fname, det.boloname[idet], signal, ns_test);
+
+		for(long ii=0;ii<ns;ii++)
+			signal_vec.push_back(signal_tot[ii]/signal[ii]);
+
+		signal_samp[idet]=median(signal_vec); // store gain in signal_samp
+
+		//		signal_vec.clear();
+		delete [] signal;
+	}
+
+	cout << "gain \n";
+	for(long ii=0;ii<det.ndet;ii++)
+		cout << signal_samp[ii] << " ";
+	cout << endl;
+
+	//clean up
+	delete [] signal_samp;
+	delete [] signal_tot;
+
+	return 0;
+}
+
+double median(std::vector<double> vec){
+
+	long size;
+	struct sortclass_double sortobject;
+	sort(vec.begin(), vec.end(), sortobject);
+	size= (long)vec.size();
+
+	long mid = size/ 2;
+
+	return size % 2 == 0 ? (vec[mid] + vec[mid-1]) / 2.0 : vec[mid];
+}
+
 
 void log_gen(long  *bolo_, string outname, struct detectors det, double *percent_tab)
 /*! generating log files for user information */
@@ -792,3 +875,69 @@ void log_gen(long  *bolo_, string outname, struct detectors det, double *percent
 
 }
 
+int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, long ndet){
+	//TODO : Handle unit to transform to a common internal known unit
+
+	// HIPE like format
+
+	fitsfile *fptr;
+	int status = 0;
+	int naxis = 0, anynul;
+	long ns;
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	// ---------------------------------------------
+	// Move ptr to signal hdu
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	// ---------------------------------------------
+	// Retrieve the size of the signal
+	if (fits_get_img_dim(fptr, &naxis, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+	if(naxis != 2){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_img_size(fptr, 2, naxes, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	// ---------------------------------------------
+	// Allocate Memory
+	ns = naxes[0];
+	double temp;
+
+	for(int idet=1;idet<=(int)ndet;idet++){
+		//		cout << idet << endl;
+		// ---------------------------------------------
+		// Retrieve the corresponding pix
+		fpixel[0] = sample;
+		fpixel[1] = idet;
+		if (fits_read_pix(fptr, TDOUBLE, fpixel, 1, 0, &temp, &anynul, &status)){
+			fits_report_error(stderr, status);
+			return 1;
+		}
+		signal_samp[idet]=temp;
+	}
+
+	// ---------------------------------------------
+	// close file
+	if(fits_close_file(fptr, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	return 0;
+
+}
