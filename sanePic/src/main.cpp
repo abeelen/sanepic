@@ -1058,7 +1058,7 @@ int main(int argc, char *argv[])
 	delete [] qtot;
 	delete [] Mptot;
 	delete [] PtNPmatStot;
-	delete [] hitstot;
+//	delete [] hitstot;
 	delete [] PNdtot;
 #endif
 
