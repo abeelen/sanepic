@@ -1,8 +1,0 @@
-/ENDIAN little
-/ENCODING none
-/PROTECT none
-/VERSION 7
-
-/INCLUDE Indexes/format
-/INCLUDE Fourier_data/format
-/INCLUDE Noise_data/format
