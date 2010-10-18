@@ -27,10 +27,15 @@
 								</outputEntries>
 							</builder>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1572451908" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.182229813" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
+							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.182229813" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.157861767" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.2075804097" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.paths.2083581457" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath"/>
+								<option id="gnu.cpp.compiler.option.include.paths.2083581457" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+								</option>
 								<option id="gnu.cpp.compiler.option.debugging.prof.94536855" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.1682272641" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.793667300" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-Wunused -c -fmessage-length=0" valueType="string"/>
@@ -1034,10 +1039,10 @@
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.162873735" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.1898512467" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.884115994" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1603207215" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -2036,10 +2041,10 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.908340852" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1419605277" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.217617070" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.debugging.prof.565188734" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.625585517" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -3052,10 +3057,10 @@
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.463879013" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.1446413628" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.173577689" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.977511379" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="USE_MPI"/>
@@ -4061,10 +4066,10 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.27087899" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.748319846" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.72641271" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.debugging.prof.1706836624" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.522130558" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -5076,10 +5081,10 @@
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.1066832812" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.531906203" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1721439550" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.583453747" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="PARA_BOLO"/>
