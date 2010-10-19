@@ -36,7 +36,8 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	// Read original tables
-	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp);
+//	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp);
+	read_ReferencePosition_from_fits(name, RA, DEC, PHI, ns_temp);
 
 	RA_bis = new double [ns_final];
 	DEC_bis = new double [ns_final];
@@ -185,7 +186,7 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 
 		string field= det.boloname[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
-		long fpixel[2]={1,rowIndex}; // write the mask which row number is roxIndex
+		long fpixel[2]={1,rowIndex}; // write the mask which row number is rowIndex
 		fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
 	}
 
@@ -226,9 +227,9 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 		string field= det.boloname[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the correct row number in output table
 		long fpixel[2]={1,rowIndex};
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move to RA table
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move to RA table
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // Write RA row
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move to DEC table
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move to DEC table
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // Write DEC row
 	}
 

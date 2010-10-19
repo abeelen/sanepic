@@ -1,10 +1,3 @@
-/*
- * NoCorr_preprocess.h
- *
- *  Created on: 28 mai 2009
- *      Author: matthieu
- */
-
 #ifndef NOCORR_PREPROCESS_H_
 #define NOCORR_PREPROCESS_H_
 

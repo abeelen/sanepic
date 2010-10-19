@@ -40,8 +40,6 @@ int compare_global_array_long_long (const void *array_1, const void *array_2)
 void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS2,
 		long long *indpix, long long *samptopix, long long npix, double *PNd){
 
-	//long ii, k;
-	//long ll;
 
 	double *Nd;
 	fftw_complex  *fdata, *Ndf;
@@ -69,35 +67,6 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 	fftw_execute(fftplan);
 	fftw_destroy_plan(fftplan);
 
-
-
-	//for (ii=-marge;ii<ndata-marge;ii++){
-	// if ((ii < 0) || (ii >= ndata-2*marge)){
-	//   PNd[indpix[factdupl*NAXIS1*NAXIS2]] += Nd[ii+marge];
-	// } else {
-	//   if (rejectsamp[ii] == 2)
-	//	PNd[indpix[factdupl*NAXIS1*NAXIS2]] += Nd[ii+marge];
-	//   if (rejectsamp[ii] == 0){
-	//	ll = indpix[yy[ii]*nn + xx[ii]];
-	//	PNd[ll] += Nd[ii+marge];
-	//   }
-	//   if (rejectsamp[ii] == 1){
-	//	if (flgdupl){
-	//	  ll = indpix[(yy[ii]*nn + xx[ii])+NAXIS1*NAXIS2];
-	//	  PNd[ll] += Nd[ii+marge];
-	//	} else {
-	//	  PNd[indpix[NAXIS1*NAXIS2+1]] += Nd[ii+marge];
-	//	}
-	//	if (rejectsamp[ii] == 3){
-	//	  PNd[indpix[factdupl*NAXIS1*NAXIS2+1]] += Nd[ii+marge];
-	//	}
-	//   }
-	// }
-	//}
-
-
-
-
 	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			PNd[npix-2] += Nd[ii];
@@ -112,7 +81,6 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 	delete [] fdata;
 	delete [] Nd;
 
-//	fftw_cleanup();
 
 }
 
@@ -120,336 +88,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 
 
 
-/*
 
-void compute_PtNmd_corr(double *data, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
-		long ndata, int *xx, int *yy, int nn,
-		long *indpix, int npix, double *PNd){
-
-	long ii, k, ll;
-
-	double *Nd;
-	fftw_complex  *fdata, *Ndf;
-	fftw_plan fftplan;
-
-	fdata = new fftw_complex[ndata/2+1];
-	Ndf = new fftw_complex[ndata/2+1];
-	Nd = new double[ndata];
-
-
-
-	//Fourier transform of the data
-	fftplan = fftw_plan_dft_r2c_1d(ndata, data, fdata, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-	fftw_destroy_plan(fftplan);
-
-
-	for (k=0;k<ndata/2+1;k++){
-		Ndf[k][0] = fdata[k][0]*Nk[k];
-		Ndf[k][1] = fdata[k][1]*Nk[k];
-	}
-
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-	fftw_destroy_plan(fftplan);
-
-
-
-	for (ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			PNd[npix-2] += Nd[ii];
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					PNd[npix-2] += Nd[ii];
-				} else {
-					ll = indpix[yy[ii]*nn + xx[ii]];
-					PNd[ll] += Nd[ii];
-				}
-			} else {
-				PNd[npix-1] += Nd[ii];
-			}
-		}
-	}
-
-	delete [] Ndf;
-	delete [] fdata;
-	delete [] Nd;
-
-
-}
-
- */
-
-
-
-/*
-void compute_PtNmfftd_corr(fftw_complex *fdata, double *Nk, unsigned char *rejectsamp, unsigned char *binsamp,
-		long ndata, long marge, int *xx, int *yy, int nn,
-		long *indpix, int npix, double *PNd){
-
-	long ii, k, ll;
-
-	double *Nd;
-	fftw_complex *Ndf;
-	fftw_plan fftplan;
-
-
-	Ndf = new fftw_complex[ndata/2+1];
-	Nd = new double[ndata];
-
-
-	for (k=0;k<ndata/2+1;k++){
-		Ndf[k][0] = fdata[k][0]*Nk[k];
-		Ndf[k][1] = fdata[k][1]*Nk[k];
-	}
-
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Ndf, Nd, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-	fftw_destroy_plan(fftplan);
-
-
-
-
-	for (ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			PNd[npix-2] += Nd[ii];
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					PNd[npix-2] += Nd[ii];
-				} else {
-					ll = indpix[yy[ii]*nn + xx[ii]];
-					PNd[ll] += Nd[ii];
-				}
-			} else {
-				PNd[npix-1] += Nd[ii];
-			}
-		}
-	}
-
-	delete [] Ndf;
-	delete [] Nd;
-
-
-}
-
-
- */
-
-
-
-
-/*
-void compute_PtNP(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
-		int *xx, int *yy, int nn, long *indpix,
-		int npix, double f_lppix, double *PtNP){
-
-
-	long jj, ll, ll2, indPtNP;
-	int *pixpos;
-	long *jj_sqr;
-
-
-	//fft stuff
-	fftw_complex  *Nk_;
-	double *N_;
-	fftw_plan fftplan;
-
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	pixpos = new int[ndata];
-	jj_sqr = new long[npix];
-
-
-	// N^-1
-	for (long k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = 1.0/Nk[k]/(double)ndata/(double)ndata;
-		Nk_[k][1] = 0.0;
-	}
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-
-
-
-
-	for (long ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			pixpos[ii] = npix-2;
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					pixpos[ii] = npix-2;
-				} else {
-					pixpos[ii] = indpix[yy[ii]*nn + xx[ii]];
-				}
-			}
-			else {
-				pixpos[ii] = npix-1;
-			}
-		}
-	}
-
-
-	for (long ii=0;ii<npix;ii++)
-		jj_sqr[ii] = ii*(ii+1)/2;
-
-
-
-	for (long ii=0;ii<ndata;ii++){
-		ll = pixpos[ii];
-		ll2 = ll*(ll+1)/2;
-		if (ii){
-			for (long kk=MAX(ii-(ndata)/MAX(2,int(f_lppix+0.5)),0);kk<ii;kk++){
-				//for (kk=0;kk<=ii;kk++){
-				jj = pixpos[kk];
-				if (ll < jj){
-					indPtNP = jj*(jj+1)/2 + ll;
-					//indPtNP = jj_sqr[jj] + ll;
-				}else{
-					indPtNP = ll2 + jj;
-				}
-				PtNP[indPtNP] += N_[ii-kk];
-				//if (ii == kk) PtNP[indPtNP] -= N_[ii-kk]/2.0;
-			}
-		}
-		PtNP[ll2+ll] += N_[0]/2.0;
-		if ((ii % 20000) == 0)
-			printf("%lf \n",pow((double)ii/double(ndata),2));
-	}
-
-
-	delete[] N_;
-	delete[] Nk_;
-	delete[] pixpos;
-	delete[] jj_sqr;
-
-	//clean up
-	fftw_destroy_plan(fftplan);
-
-
-
-}
- */
-
-
-
-
-/*
-
-void compute_PtNP_frac(double *Nk, unsigned char *rejectsamp, unsigned char *binsamp, long ndata,
-		int *xx, int *yy, int nn, long *indpix,
-		int npix, double f_lppix, double *PtNP, int nfrac, int ifrac){
-
-
-	long ii, k, jj, kk, ll, ii2, indPtNP;
-	long *pixpos;
-	long *jj_sqr;
-	long ndataf;
-	long count;
-	long *pixtosamp_select;
-
-
-	long indmin = ifrac*npix/nfrac;
-	long indmax = (ifrac+1)*npix/nfrac;
-
-
-	//fft stuff
-	fftw_complex  *Nk_;
-	double *N_;
-	fftw_plan fftplan;
-
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	pixpos = new long[ndata];
-	jj_sqr = new long[npix];
-	pixtosamp_select = new long[ndata];
-
-
-	// N^-1
-	for (k=0;k<ndata/2+1;k++){
-		Nk_[k][0] = 1.0/Nk[k]/(double)ndata/(double)ndata;
-		Nk_[k][1] = 0.0;
-	}
-	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
-	fftw_execute(fftplan);
-
-
-
-
-
-
-	for (ii=0;ii<ndata;ii++){
-		if ((ii < 0) || (ii >= ndata)){
-			pixpos[ii] = npix-2;
-		} else {
-			if (rejectsamp[ii] == 0){
-				if (binsamp[ii] == 1){
-					pixpos[ii] = npix-2;
-				} else {
-					pixpos[ii] = indpix[yy[ii]*nn + xx[ii]];
-				}
-			}
-			else {
-				pixpos[ii] = npix-1;
-			}
-		}
-	}
-
-
-	for (ii=0;ii<npix;ii++)
-		jj_sqr[ii] = ii*(ii+1)/2;
-
-
-
-
-
-	count=0;
-	for (ii=0;ii<ndata;ii++){
-		if ((pixpos[ii] >= indmin) && (pixpos[ii] < indmax)){
-			pixtosamp_select[count] = ii;
-			count++;
-		}
-	}
-
-
-
-	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
-
-	for (ii=0;ii<count;ii++){
-		ii2 = pixtosamp_select[ii];
-		ll = pixpos[ii2]-indmin;
-		if (ll > indmax-indmin)
-			printf("ALERT ll = %ld\n",ll);
-		for (kk=MAX(ii2-ndataf,0);kk<MIN(ii2+ndataf,ndata);kk++){ //MIN(ii2+(ndata)/MAX(2,int(f_lppix+0.5)),ndata);kk++){
-			jj = pixpos[kk];
-			indPtNP = ll*npix + jj;
-			PtNP[indPtNP] += N_[abs(ii2-kk)];
-		}
-
-		if ((int((double)ii/(double)count*(double)ndata) % 20000) == 0)
-			printf("%lf \n",(double)ii/double(count));
-	}
-
-
-
-	delete[] N_;
-	delete[] Nk_;
-	delete[] pixpos;
-	delete[] jj_sqr;
-	delete[] pixtosamp_select;
-
-
-	//clean up
-	fftw_destroy_plan(fftplan);
-
-
-
-}
-
-
-
- */
 
 
 //TODO : Check compute_diagPtNP and compute_diagPtNPCorr
@@ -543,7 +182,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		}
 	}
 
-
+	// memory dealloc
 	delete[] N_;
 	delete[] Nk_;
 	delete[] pixpos;
@@ -554,13 +193,8 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	//clean up
 	fftw_destroy_plan(fftplan);
 
-//	fftw_cleanup();
 
 }
-
-
-
-
 
 
 void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
@@ -640,7 +274,6 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 				ii2 = pixtosamp[ii];
 				if ((ipix == npix-1) || (ipix == npix-2)){ //This is just to avoid spending to much time computing this pixel
 					dPtNP[ipix] += N_[0];
-					//printf("TEST");
 				} else {
 					for (long long kk=count_;kk<count;kk++){
 						kk2 = pixtosamp[kk];
@@ -662,28 +295,24 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	//clean up
 	fftw_destroy_plan(fftplan);
-//	fftw_cleanup();
 
 
 }
 
 void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
-		int orderpoly, double f_lppix, double *data_lp, /*double *bfilter,*/ bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
+		int orderpoly, double f_lppix, double *data_lp, bool NORMLIN, bool NOFILLGAP,bool remove_polynomia, double *Ps){
 
 
-	//long ii;
 	double aa, bb;
 
-	double *data_out/*, *data_out_lp*/;
+	double *data_out;
 	double *bfilter;
 
 	data_out = new double[ns];
 	bfilter = new double[ns/2+1];
-	//	data_out_lp = new double[ns];
 
 	fill(data_out,data_out+ns,0.0);
 	fill(bfilter,bfilter+ns/2+1,0.0);
-	//	fill(data_out_lp,data_out_lp+ns,0.0);
 
 
 	//TODO : TEST : Change the removal of the map here => means ??
@@ -694,29 +323,19 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data[ii] - Ps[ii];
 
-//	cout << "avant fill 1\n";
 
 	//*********************************************************************
-	if (NOFILLGAP == 0){
-		//fill gaps with straight line
+	if (NOFILLGAP == 0)
 		fillgaps2(data,ns,data_out,flag,40);
-		//		for (long ii=0;ii<ns;ii++)
-		//			data[ii] = data_out[ii];
-	}
 
-//	cout << "apres fill 1\n\n";
 
-	if(remove_polynomia){
+	if(remove_polynomia)
 		//remove polynomia to correct from time varying calibration
 		remove_poly(data_out,ns,orderpoly,data_lp,flag);
-		//		for (long ii=0;ii<ns;ii++)
-		//			data[ii] = data_out[ii];
-	}
 
 	//linear prediction
 	for (long ii=0;ii<ns;ii++)
 		data[ii] = data_lp[ii];
-//		data_lp[ii] = data[ii];
 
 
 	if (NORMLIN == 0){
@@ -730,8 +349,6 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
 		butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
-		//		for (long ii=0;ii<(ns);ii++)
-		//			data_lp[ii] = data_out_lp[ii];
 	} else{
 		for (long ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = 1.0;
@@ -740,26 +357,17 @@ void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
 
 
 	//******************* process gaps
-	if (NOFILLGAP == 0){
-		//		for (long ii=0;ii<ns;ii++)
-		//			data_out[ii] = data_lp[ii];
+	if (NOFILLGAP == 0)
 		fillgaps2(data_out,ns,data_lp,flag,40);
-		//		for (long ii=0;ii<ns;ii++)
-		//			data_lp[ii] = data[ii];
-	}
-//	cout << "apres fill 2\n\n";
 
-	if (Ps != NULL){
+	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] = data_lp[ii] + Ps[ii];
-	}
 
 
 
 	delete [] data_out;
 	delete [] bfilter;
-	//	delete [] data_out_lp;
-
 
 
 }
@@ -811,7 +419,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 	//power spectrum
 	for (long k=0;k<ns/2+1;k++){
-		Nk[k] = gsl_pow_2(fdata[k][0]) + gsl_pow_2(fdata[k][1]);// pow(fdata[k][0],2) + pow(fdata[k][1],2);
+		Nk[k] = gsl_pow_2(fdata[k][0]) + gsl_pow_2(fdata[k][1]);
 		Nk[k] = Nk[k]/(totapod/(double)ns)/(double)ns;
 	}
 
@@ -849,7 +457,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	}
 
 
-	// interpol logarithmically the spectrum and filter
+	// interpolate logarithmically the spectrum and filter
 	binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
 
 
@@ -863,7 +471,6 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	delete []  apodwind;
 
 	fftw_destroy_plan(fftplan);
-//	fftw_cleanup();
 
 }
 

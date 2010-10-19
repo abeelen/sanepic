@@ -89,8 +89,6 @@ int main(int argc, char *argv[])
 	struct param_positions pos_param;
 	struct common dir; /*! structure that contains output input temp directories */
 	std::vector<detectors> detector_tab;
-//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
-
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
 	string flagfield; /*! flagfield = field+fextension;*/
 
 #ifdef DEBUG_PRINT
-	time_t t2, t3;//, t3, t4, t5, dt;
+	time_t t2, t3;
 #endif
 
 
@@ -140,11 +138,6 @@ int main(int argc, char *argv[])
 		parsed=-1;
 	} else {
 		std::vector<double> fcut;
-//		double fcut_sanePS=0.0;
-//		string MixMatfile, signame;
-//		long ncomp=1;
-//		int iterw=10;
-//		int save_data, restore;
 		struct PS structPS;
 		struct sanePic struct_sanePic;
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
@@ -252,9 +245,8 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
 
-	ofstream file;
+	ofstream file; // write down the configuration used by sanePos
 	string outfile = dir.output_dir + parallel_scheme_filename;
-	//	cout << "outfile : " << outfile << endl;
 	file.open(outfile.c_str(), ios::out);
 	if(!file.is_open()){
 		cerr << "File [" << outfile << "] Invalid." << endl;
@@ -286,10 +278,8 @@ int main(int argc, char *argv[])
 
 	if (pos_param.maskfile == ""){
 
-		//		if(iframe_min!=iframe_max)
 		if(rank==0)
 			printf("\n\nDetermining the size of the map\n");
-		//	printf("[%2.2i] Determining the size of the map\n",rank);
 
 		// TODO: Different ways of computing the map parameters :
 		// 1 - find minmax of the pointings on the sky -> define map parameters from that
@@ -376,7 +366,7 @@ int main(int argc, char *argv[])
 
 		string extname="mask";
 
-		if (read_mask_wcs(pos_param.maskfile, extname, /*(char) 's',*/ wcs, NAXIS1, NAXIS2, mask )){
+		if (read_mask_wcs(pos_param.maskfile, extname, wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);

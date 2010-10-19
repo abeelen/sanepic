@@ -1,9 +1,3 @@
-/*
- * NoCorr_preprocess.cpp
- *
- *  Created on: 28 mai 2009
- *      Author: matthieu
- */
 #include <iostream>
 #include <vector>
 #include <string>
@@ -71,8 +65,6 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
 			exit(-1);
 		}
-
-
 
 
 		//// Read pointing

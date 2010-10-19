@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,12 +12,6 @@
 #include "struct_definition.h"
 #include "covMatrix_IO.h"
 #include <time.h>
-
-
-//temp
-#include <fstream>
-#include <iostream>
-#include <sstream>
 
 #include <gsl/gsl_math.h>
 #include <fftw3.h>
@@ -84,8 +77,6 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 	delete[] Ps;
 	delete[] fdata;
 
-//	fftw_cleanup();
-
 	return 0;
 }
 
@@ -103,24 +94,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
-
-	//	if(!fftw_import_system_wisdom()){
-	//	FILE * input_file;
-	//	string olol = tmp_dir + "wisdom_global";
-	//	cout << olol << endl;
-	//	input_file = fopen(olol.c_str(),"r");
-	//	if (fftw_import_wisdom_from_file(input_file)==0)
-	//		printf("Error reading wisdom!\n");
-	//
-	//	//	int ret = fftw_import_wisdom_from_file(input_file);
-	//	//	cout << ret << " " << "wisdom" << endl;
-	//	//	getchar();
-	//	fclose(input_file);
-	//	}
-
-
-
-
 	string field1, fits_filename;
 
 #ifdef DEBUG
@@ -136,12 +109,10 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 
 	samptopix = new long long[ns];
 	Ps = new double[ns];
-	//	bfilter = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
 
 	fill(data_lp,data_lp+ns,0.0);
 	fill(Ps,Ps+ns,0.0);
-	//	fill(bfilter,bfilter+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
 	for (long ii=0;ii<ns/2+1;ii++){
@@ -154,8 +125,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
 	fits_filename = samples_struct.fits_table[iframe];
-	//	cout << "fits file : " << fits_filename << endl;
-
 
 
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
@@ -171,7 +140,6 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 #endif
 
 		field1 = det.boloname[idet1];
-//		cout << field1 << endl;
 
 		fill(data_lp,data_lp+ns,0.0);
 
@@ -235,23 +203,9 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 		}
 
 
-		//		FILE * input_file;
-		//		string olol = tmp_dir + "wisdom_global";
-		//		input_file = fopen(olol.c_str(),"r");
-		//		int ret = fftw_import_wisdom_from_file(input_file);
-		//		cout << ret << " " << "wisdom" << endl;
-		//		getchar();
-		//		fclose(input_file);
 
 		//Fourier transform of the data
 		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
-		//		FILE *fp;
-		//		string olol = tmp_dir +  "wisdom_global";
-		//		fp = fopen(olol.c_str(),"a");
-		//		fftw_export_wisdom_to_file(fp);
-		//		fclose(fp);
-		//		//		fftw_print_plan(fftplan);
-		//		//		getchar();
 
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
@@ -271,14 +225,11 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 		delete [] data;
 	} // idet1
 
-	//fftw_destroy_plan(fftplan);
 
 	delete[] data_lp;
 	delete[] samptopix;
 	delete[] Ps;
-	//	delete[] bfilter;
 	delete[] fdata;
-//	fftw_cleanup();
 
 
 #ifdef DEBUG
@@ -524,8 +475,6 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	delete[] fdata;
 	delete[] Ndf;
 
-//	fftw_cleanup();
-
 
 #ifdef DEBUG
 	file.close();
@@ -547,7 +496,6 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 	double aa, bb;
 	int *flag;
 
-//	data =  new double[ns];
 	data_lp =  new double[ns];
 	data_out = new double[ns];
 	samptopix = new long long[ns];

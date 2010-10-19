@@ -1,10 +1,3 @@
-/*
- * sanePre_preprocess.cpp
- *
- *  Created on: 25 juin 2009
- *      Author: matthieu
- */
-
 #include "sanePos_preprocess.h"
 
 #include <iostream>
@@ -35,7 +28,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 
 	// TODO : samptopix unsigned long
 	long long  *samptopix;
-	//	long ndet = bolonames.size();
 
 	string field;
 	string fits_file;
@@ -55,7 +47,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 		// TODO : This function should also return the PRJCODE to be used below...
 		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
 			return 1;
-		//		cout << offsets[100][0] << " " << offsets[100][1] << endl;
 
 		// read reference position
 		long test_ns;
@@ -145,11 +136,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 				yy[ii]  = (long long) (pixcrd[2*ii+1]-0.5);
 			}
 
-			//						for (unsigned long ii = 0; ii < 20; ii++){
-			//							cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-			//							cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-			//						}
-
 			delete [] world;
 			delete [] imgcrd;
 			delete [] pixcrd;
@@ -187,12 +173,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod)) bolo_flag[ii] = 3;
 
 			}
-
-			//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
-			//			for (unsigned long ii=0; ii<ns; ii++)
-			//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
-			//				if (bolo_flag[ii]==1)
-			//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
 			samptopix = new long long[ns];
@@ -355,10 +335,6 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 				yy[ii]  = (long long) (pixcrd[2*ii+1]-0.5);
 			}
 
-			//			for (unsigned long ii = 0; ii < 20; ii++){
-			//				cout << world[2*ii] << " " << world[2*ii+1] << " : ";
-			//				cout << int(pixcrd[2*ii]-0.5)<< " " << int(pixcrd[2*ii+1]-0.5) << endl;
-			//			}
 
 			delete [] world;
 			delete [] imgcrd;
@@ -399,12 +375,6 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod))    bolo_flag[ii] = 3;
 
 			}
-
-			//			cout << "NOFILLGAP : " << NOFILLGAP << endl;
-			//			for (unsigned long ii=0; ii<ns; ii++)
-			//			cout << ii << " " << (NOFILLGAP && (bolo_flag[ii] == 1) << endl;
-			//				if (bolo_flag[ii]==1)
-			//					cout << ii << " bolo flag" << endl;
 
 			// Compute sample pixel index according to its flag
 

@@ -70,23 +70,16 @@ int main(int argc, char *argv[]) {
 	int status=0; /* fits error status */
 	fitsfile *fptr; /*! input fits file pointer */
 	fitsfile *outfptr; /*! output fits file pointer */
-	std::ostringstream oss; // we need to store the string in a stringstream before using basename
 
 
 	int format_fits=0; // 1= HIPE, 2 = SANEPIC
 	for(long ii=0; ii<samples_struct.ntotscan-1;ii++){ // for each scan that has to be merged
 		format_fits+=test_format(samples_struct.fitsvect[ii]); // Check each scan fits format
-		oss << samples_struct.fitsvect[ii];
-		string filename = oss.str();
-		outname += Basename(filename) + "_merged_with_"; // generate output filename !
-		oss.str("");
+		outname += FitsBasename(samples_struct.fitsvect[ii]) + "_merged_with_"; // generate output filename !
 	}
 
 	format_fits+=test_format(samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
-	oss << samples_struct.fitsvect[samples_struct.ntotscan-1];
-	string filename = oss.str();
-	outname += Basename(filename) + ".fits";
-	oss.str("");
+	outname += FitsBasename(samples_struct.fitsvect[samples_struct.ntotscan-1]) + ".fits";
 	outname = "!" + outdir + outname; // complete output path + file name
 	cout << outname << endl;
 

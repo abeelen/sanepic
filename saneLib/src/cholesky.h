@@ -1,10 +1,3 @@
-/*
- * cholesky.h
- *
- *  Created on: 31 mai 2010
- *      Author: stage
- */
-
 #ifndef CHOLESKY_H_
 #define CHOLESKY_H_
 

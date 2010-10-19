@@ -22,4 +22,5 @@ int computePixelIndex_HIPE(std::string outdir, std::vector<detectors> det_vect,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
+
 #endif /* SANEPOS_PREPROCESS_H_ */

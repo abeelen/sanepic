@@ -1,10 +1,3 @@
-/*
- * fitpoly.h
- *
- *  Created on: 31 mai 2010
- *      Author: stage
- */
-
 #ifndef FITPOLY_H_
 #define FITPOLY_H_
 

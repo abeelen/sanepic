@@ -82,8 +82,7 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
-	std::vector<detectors> detector_tab;
+	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
 
 	// default parameters
 	int nwcs=1; /// number of wcs that will be used
@@ -124,7 +123,7 @@ int main(int argc, char *argv[])
 	std::vector<double> fcut; /* noise cutting frequency */
 
 	// Processing time estimation
-	time_t t2, t3;// t4, t5, dt;
+	time_t t2, t3;
 
 	int parsed=0; // parser error status
 
@@ -135,13 +134,9 @@ int main(int argc, char *argv[])
 		// Parse ini file
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-//		double fcut_sanePS=0.0;
-		//		string MixMatfile, signame;
-		//		long ncomp=1;
-		//		int iterw=10;
-		//		int save_data, restore;
 		struct PS structPS;
 		struct sanePic struct_sanePic;
+
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);

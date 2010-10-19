@@ -59,10 +59,7 @@ int read_indices_file(string fname, struct common dir, std::vector<long> &indice
 	std::ifstream file;
 	long readed;
 
-	std::ostringstream oss;
-	oss << fname;
-	string filename = oss.str();
-	string fname2 = dir.tmp_dir + Basename(filename) + "_saneFix_indices.bin"; // sanecheck log filename
+	string fname2 = dir.tmp_dir + FitsBasename(fname) + "_saneFix_indices.bin"; // sanecheck log filename
 
 	file.open(fname2.c_str(), ios::in);
 	if(!file.is_open()){
@@ -419,14 +416,6 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
 		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read input mask row
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total, suppress_time_sample); // fill gaps in mask row
-//		ii=1;
-//		while(ii<ns_total-1){
-//			if((mask_fixed[ii]==0)&&(mask_fixed[ii+1]!=0)&&(mask_fixed[ii-1]!=0)){
-////				mask_fixed[ii]=1; // do we keep singletons now ??
-//				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
-//			}
-//			ii++;
-//		}
 		insert_mask_in_image(fptr, outfptr, det.boloname[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
 		delete [] mask;
 	}
@@ -468,7 +457,10 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_total, (char*)"Number of rows", &status); // update output header (sample size has changed)
 
-	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp); // read input RA, DEC and PHI tables
+//	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp); // read input RA, DEC and PHI tables
+	read_ReferencePosition_from_fits(name, RA, DEC, PHI, ns_temp);
+
+
 	for(long nn=0; nn<ns_temp;nn++)
 		RA[nn]=RA[nn]*15.0;
 

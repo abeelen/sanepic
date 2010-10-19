@@ -18,11 +18,6 @@ extern "C" {
 #define dmod(A,B) ((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
 	:(A)+(B)*floor(-(A)/(B))):(A))
 
-
-//void computeMapMinima(std::vector<std::string> bolonames, std::string *fits_table,
-//		long iframe_min, long iframe_max, long *nsamples,double pixdeg,
-//		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
-
 int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);

@@ -190,15 +190,10 @@ int main(int argc, char *argv[])
 
 	std::ostringstream oss; // we need to store the string in a stringstream before using basename
 	// Or the original string is affected ...
-	oss << samples_struct.fitsvect[0];
-	string filename = oss.str();
-	string fname2 = Basename(filename) + "_split_";
-
-	oss.str(""); // set string stream to void
+	string fname2 = FitsBasename(samples_struct.fitsvect[0]) + "_split_";
 
 	fname=samples_struct.fitsvect[0];
 	for(int ii=0; ii < m_count ; ii++){ // for each correct time limits
-		//		cout << setprecision(20) << min_time[ii] << " " << max_time[ii] << endl; // print to console
 
 		// generate a name for the output fits files
 		oss << dir.output_dir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";

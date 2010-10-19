@@ -105,15 +105,7 @@ int main(int argc, char *argv[]) {
 			// total number of samples in the fixed fits file
 			long ns_total = samples_struct.nsamples[ii] + samples_to_add;
 
-			// We have to declare stringstream in order to use Basename ...
-			std::ostringstream oss;
-			oss << samples_struct.fitsvect[ii];
-			string filename = oss.str();
-			string fname2 = Basename(filename) + "_fixed.fits"; // output fits filename
-			oss.str("");
-			oss << "!" << dir.output_dir << fname2;
-			string temp = oss.str(); // output path + output fits filename
-			oss.str("");
+			string fname2 = dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
 			string fname=samples_struct.fitsvect[ii]; // input fits filename
 
 			int status=0; // fits error status
@@ -124,7 +116,7 @@ int main(int argc, char *argv[]) {
 				fits_report_error(stderr, status);
 
 			// create ouput fixed fits file
-			if (fits_create_file(&outfptr, temp.c_str(), &status))
+			if (fits_create_file(&outfptr, fname2.c_str(), &status))
 				fits_report_error(stderr, status);
 
 			// read channels list

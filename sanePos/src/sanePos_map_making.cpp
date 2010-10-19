@@ -25,14 +25,6 @@ extern "C" {
 
 using namespace std;
 
-
-//void computeMapMinima(std::vector<string> bolonames, string *fits_table,
-//		long iframe_min, long iframe_max, long *nsamples, double pixdeg,
-//		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
-
-//int computeMapMinima(std::vector<string> bolonames, struct samples samples_struct,
-//		long iframe_min, long iframe_max,
-//		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
@@ -43,7 +35,6 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 
 	string fits_file;
 	string field; // test
-	//	double *ra_off,*dec_off; // test
 
 
 	// Define default values
@@ -66,10 +57,6 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
 			return 1;
 
-		//		for (long idet = 0; idet < ndet; idet++){
-		//			cout << offsets[idet][0]*3600 << " " << offsets[idet][1]*3600 << endl;
-		//		}
-
 		// read reference position
 		long test_ns;
 		if(read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns))
@@ -83,7 +70,6 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 
 		// find the pointing solution at each time stamp for each detector
 		struct celprm celestial;
-		//		struct prjprm celestial;
 		celini(&celestial);
 
 		// TODO: use the PRJCODE read from the file...
@@ -93,8 +79,6 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 
 			celestial.ref[0] =  ra[ii]*15.0;
 			celestial.ref[1] =  dec[ii];
-			//			celestial.ref[2] =  180.0;
-			//			celestial.ref[3] =  dec[ii];
 			if(celset(&celestial))
 				cout << "problem celset\n";
 
@@ -259,11 +243,6 @@ int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples sample
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				exit(-1);
 			}
-			//			read_dec_from_fits(fits_file, field, dec, test_ns);
-			//			if (test_ns != ns) {
-			//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
-			//				exit(-1);
-			//			}
 
 			if(read_flag_from_fits(fits_file, field, flag, test_ns))
 				return 1;

@@ -617,10 +617,7 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 
 	std::vector<long> indice;
 
-	std::ostringstream oss;
-	oss << fname;
-	string filename = oss.str();
-	string fname2 = dir.tmp_dir + Basename(filename) + "_saneFix_indices.bin"; // output saneFix logfile filename
+	string fname2 = dir.tmp_dir + FitsBasename(fname) + "_saneFix_indices.bin"; // output saneFix logfile filename
 
 	double *time,*diff;
 	double sum=0.0;

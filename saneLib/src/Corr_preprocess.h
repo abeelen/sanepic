@@ -1,10 +1,3 @@
-/*
- * Corr_preprocess.h
- *
- *  Created on: 20 juil. 2009
- *      Author: matthieu
- */
-
 #ifndef CORR_PREPROCESS_H_
 #define CORR_PREPROCESS_H_
 
