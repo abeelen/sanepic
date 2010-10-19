@@ -8,7 +8,7 @@
 #include <gsl/gsl_math.h>
 
 #include "imageIO.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "Corr_preprocess.h"
 #include "NoCorr_preprocess.h"
 #include "parser_functions.h"

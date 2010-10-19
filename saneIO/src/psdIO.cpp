@@ -1,10 +1,3 @@
-/*
- * psdIO.cpp
- *
- *  Created on: 16 juin 2009
- *      Author: matthieu
- */
-
 #include "psdIO.h"
 #include "imageIO.h"
 

@@ -12,11 +12,12 @@
 #include <vector>
 #include "todprocess.h"
 #include "map_making.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "inputFileIO.h"
 #include <sstream>
 #include <cmath>
 #include <cstring>
+#include <iomanip>
 
 #include "dataIO.h"
 #include "covMatrix_IO.h"
@@ -414,7 +415,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		delete [] flag;
 	}
 
-	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
+//	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 
 	////*********************** Component power spectra
@@ -460,7 +461,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
-	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
+//	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	// clean up
 	if (S != NULL){
@@ -481,7 +482,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 
 int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
-		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename)
+		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
@@ -532,8 +533,10 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 				Rellexp[idet1*det.ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
-
-		cout << "Computing Rellexp :" << idet1*100./det.ndet << "%\r" << flush ;
+		//		if(idet1==0)
+		for(int rk=0;rk<rank;rk++)
+			cout << "\t\t\t"; // try to deal with MPI screen outputs
+		cout << "[ " << rank << " ]" << " Rellexp :" << setprecision(2) << idet1*100./det.ndet << "%\r" << flush ;
 
 	}
 
@@ -641,12 +644,12 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 }
 
 
-void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
+int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
 		string outdirSpN,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N,
-		double *SPref, double *ell)
+		double *SPref, double *ell, int rank)
 {
 
-	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
+//	cout << endl << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	//***** Fourth part
 	//*********************** fit component and noise power spectra, and mixing matrix *************//
@@ -1004,10 +1007,13 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 		///// here is the problem
 
 		f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
-		cout << "em->iter: " << iter*100./nbiter << " %\r" << flush;
+		//		if(iter==0)
+		for(int rk=0;rk<rank;rk++)
+			cout << "\t\t\t\t"; // try to deal with MPI screen outputs
+		cout << "[ " << rank << " ]" << " em->iter: " << setprecision(2) << iter*100./nbiter << " %\r" << flush;
 		if (isnan(f) || isinf(f)) {
 			cout << "Nan........." << endl;
-			exit(1);
+			return 1;
 		}
 
 
@@ -1023,7 +1029,7 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	//****************************** Compute covariance matrix from the fitted model
 
 
-	printf("EM step completed\n");
+	printf("\nEM step completed\n");
 
 
 	for (long jj=0;jj<nbins;jj++)
@@ -1080,6 +1086,8 @@ void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long
 	free_dmatrix(ACq,0,ndet-1,0,ncomp-1);
 	free_dmatrix(Cq,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(Wq,0,ndet-1,0,ncomp-1);
+
+	return 0;
 }
 
 

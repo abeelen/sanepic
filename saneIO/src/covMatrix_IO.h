@@ -23,10 +23,6 @@ void read_InvNoise_interpPowerSpectra(std::string outputDir, double *&SpN_tot, l
 
 /*! This function writes the NoiseNoise Matrices in a fits file (also Writes the mixing matrices) */
 int write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbins, double *ell, double **Rellth);
-//void write_CovMatrix2(std::string fname, std::vector<std::string> bolos, long nbins, double *ell, double **Rellth);
-
-/*! Writes the reduced mixing matrix in a binary file */
-//void write_ReducedMixingMatrix(double **mixmat,long ndet,int ncomp, std::string outputDir);
 
 /*! Writes the reduced mixing matrix from a binary file */
 void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, std::string dir);
@@ -42,6 +38,8 @@ long maxStringLength(std::vector<std::string> strings);
 
 /*! Transform a vector of string into a array of char*/
 char** vString2carray(std::vector<std::string> strings);
+
+int write_psd_tofits(std::string fname, long nx, long ny,char dtype, void * psd1d);
 
 
 #endif /* COVMATRIX_IO_H_ */

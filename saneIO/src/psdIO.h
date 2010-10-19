@@ -1,10 +1,3 @@
-/*
- * psdIO.h
- *
- *  Created on: 16 juin 2009
- *      Author: matthieu
- */
-
 #ifndef PSDIO_H_
 #define PSDIO_H_
 

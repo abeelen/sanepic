@@ -13,7 +13,7 @@
 
 #include "todprocess.h"
 #include "map_making.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "dataIO.h"
 #include "NoCorr_preprocess.h"
 

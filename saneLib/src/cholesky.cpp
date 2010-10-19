@@ -9,7 +9,7 @@
 
 #include "cholesky.h"
 #include "imageIO.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "mpi_architecture_builder.h"
 #include "todprocess.h"
 

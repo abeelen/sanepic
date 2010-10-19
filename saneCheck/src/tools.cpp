@@ -30,26 +30,6 @@ extern "C" {
 
 using namespace std;
 
-
-//int who_do_it(int size, int rank, int ii)
-///*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
-//{
-//
-//	if(size==1) // if there is only 1 proc, he has to do the job
-//		return 0;
-//
-//	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
-//		return ii;
-//
-//	if(size<ii){ // if the fits file number is larger than the number of MPI processors
-//		while(ii>size)
-//			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
-//		return ii;
-//	}
-//
-//	return -1; // error in the program
-//}
-
 void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, string filename)
 /*! this function determines whether the user list of detectors is correct or not */
 {
@@ -62,7 +42,6 @@ void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, 
 			// Warn user
 			cout << "Warning ! The detector " << det.boloname[jj] << " is not referenced in the fits " << filename << endl;
 	}
-
 
 }
 
@@ -602,29 +581,11 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 		while(ii<ns-1){
 
-			//			if((flag[ii]==0)&&(flag[ii+1]!=0)&&(flag[ii-1]!=0)){
-			//				tt=ii-1;
-			//				rr=ii+1;
-			//
-			//				while((tt>0)&&(flag[tt]!=0)&&((ii-tt)<marge+2))
-			//					tt--;
-			//
-			//				while((rr<ns)&&(flag[rr]!=0)&&((rr-ii)<marge+2))
-			//					rr++;
-			//			}
-			//
-			//			if(((rr-ii)>=marge)&&((ii-tt)>=marge)){ // singleton has been found
-			//				cout << ii << " " << rr-ii << " " << ii-tt << endl;
-			//				flag[ii]=1;
-			//				cout << "singleton found : " << det.boloname[jj] << " sample n° " << ii << endl;
-			//			}
 			if(flag[ii]!=0)
 				sum++;
 			ii++;
 
 		}
-
-		//		cout << " " << sum << endl;
 
 		if(sum==ns){ // fully flagged detector found
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
@@ -694,16 +655,6 @@ int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struc
 		counter[tt]=count(freq.begin(), freq.end(),freq[tt]); // Frequencies occurence
 	}
 
-	// print to std
-	//	for (long tt=0;tt<size_tmp;tt++)
-	//		cout <<  freq[tt] << " ";
-	//	cout << endl;
-	//	for (long tt=0;tt<size_tmp;tt++)
-	//		cout << counter[tt] << " ";
-
-
-
-
 	long maxi = *max_element(counter,counter+size_tmp); // max occurence
 
 	long ind=0;
@@ -772,23 +723,23 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct dete
 	double *signal;
 	signal_tot=new double[ns];
 	signal_samp=new double[det.ndet];
-//	cout << det.ndet << endl;
+	//	cout << det.ndet << endl;
 
 	// test median !
-//	double *test;
-//	test=new double[4];
-//	test[0]=1;
-//	test[1]=2;
-//	test[2]=10;
-//	test[3]=4;
-//
-//	std::vector<double> test_vec(test, test+4);
-//	double med=median(test_vec);
-//	cout << test_vec[0] << " " << test_vec[1] << " " << test_vec[2] << " " << test_vec[3] <<  endl;
-//	cout << med << endl;
-//
-//	delete [] test;
-//	getchar();
+	//	double *test;
+	//	test=new double[4];
+	//	test[0]=1;
+	//	test[1]=2;
+	//	test[2]=10;
+	//	test[3]=4;
+	//
+	//	std::vector<double> test_vec(test, test+4);
+	//	double med=median(test_vec);
+	//	cout << test_vec[0] << " " << test_vec[1] << " " << test_vec[2] << " " << test_vec[3] <<  endl;
+	//	cout << med << endl;
+	//
+	//	delete [] test;
+	//	getchar();
 	//---------------
 	fill(signal_tot,signal_tot+ns,0.0);
 

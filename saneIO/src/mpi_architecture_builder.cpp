@@ -72,10 +72,6 @@ double randg_archi(long nombre, int seedpass) {
 	for (long i=0;i<nombre/2;i++) {
 		cout << "hmm problem" << endl;
 		exit(0);
-		//double t1 = (double(rand())/RAND_MAX);
-		//double t2 = (double(rand())/RAND_MAX);
-		//	nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-		///	nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
 	}
 
 	if (nombre/2!=nombre/2.) {
@@ -116,7 +112,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 		ntot += ns[ii];
 
 
-	//cout << ntot << endl;
 
 	maxproc = new double[nessai];
 	std = new double[nessai];
@@ -137,7 +132,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 	//init random generator
 	valtemp = randg(1,0); // valtemp is a random double between 0/1. with 0 the seed of random function is fixed
-	//cout << valtemp << endl;
 
 	//init arrays
 	for (long ii=0;ii<ntotscan+1;ii++)
@@ -148,7 +142,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 		for (long kk=0;kk<ntotscan;kk++){
 			valtemp = randg(1,-1); // return a random value between 0/1
-			//cout << valtemp[0] << endl;
 			dat_compare[kk] = valtemp[0];
 			delete [] valtemp;
 		}
@@ -185,17 +178,10 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 		for (long kk=frnum[count];kk<ntotscan;kk++)
 			sizeperproc[count] += double(ns_order[kk]);
 
-		//	for(long kk=0;kk<ntotscan;kk++)
-		//  cout << kk << " " <<  sizeperproc[kk] << endl;
-
-		//exit(0);
 		//*********** check values
 		maxproctmp = *max_element(sizeperproc, sizeperproc+ntotscan);
-		//		minmax(sizeperproc,ntotscan,&temp,&maxproctmp,&tmpposmin,&tmpposmax);
-		//cout << "maxproc " << jj << " " << maxproctmp << endl;
 
 		maxproc[jj] = maxproctmp;
-		//seeds(jj+1,*) = seed;
 		std[jj] = 0.0;
 		for(long kk=0;kk<ntotscan;kk++)
 			if (sizeperproc[kk] > 0.5)
@@ -205,9 +191,7 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 	}// end of first ntotscan loop
 
 	valmin = *min_element(maxproc, maxproc+nessai);
-	//	minmax(maxproc,nessai,&valmin,&temp,&tmpposmin,&tmpposmax);
 
-	//stdmin = double(ntot*ntot);
 	stdmin=(double)ntot; // was working on 64 bits but not on 32 ...
 	stdmin=stdmin*stdmin;
 	for (int ii=0;ii<nessai;ii++)
@@ -277,7 +261,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 #ifdef DEBUG_PRINT
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 #endif
-		//		getchar();
 	}
 
 	delete [] maxproc;
@@ -292,17 +275,9 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 }
 
-//int write_ParallelizationScheme(string fname, long *position, long *frnum, long *ns, long ntotscan, int size,
-//		std::vector<string> fitsvect, std::vector<string> noisevect, std::vector<int> &scans_index)
 int write_ParallelizationScheme(string fname, long *position, long *frnum, int size, struct samples samples_struct)
 // Write the Parrallelization Scheme for further use.
 {
-	//FILE *fp;
-
-	/*	if ((fp = fopen(fname.c_str(),"w")) == NULL){
-	cerr << "Error : couldn't open file to write parallelization Scheme : " << fname << endl << "Exiting..." << endl;
-	return -1;
-	}*/
 
 	ofstream file;
 	file.open(fname.c_str(), ios::out);
@@ -323,25 +298,17 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	noisevect_temp = new string [samples_struct.ntotscan];
 	scans_index_temp = new int [samples_struct.ntotscan];
 
-//	cout << "write" << endl;
-//	cout << samples_struct.fitsvect[0] << " "  << samples_struct.fitsvect[1] << endl;
-//	cout << samples_struct.noisevect[0] << endl; //" "  << samples_struct.noisevect[1] << endl;
 
 	for (long ii=0;ii<samples_struct.ntotscan;ii++){
-		//cout << position[ii] << endl;
 		temp = samples_struct.fitsvect[position[ii]];
 		found=temp.find_last_of('/');
-		// cout << " file: " << str.substr(found+1) << endl;
 
 
 		fitsvect_temp[ii] = temp.substr(found+1);
 		noisevect_temp[ii] = samples_struct.noisevect[position[ii]];
-		//cout << fitsvect_temp[ii] << " " << noisevect_temp[ii] << endl;
-		// scans_index_temp[ii] = scans_index[position[ii]];
 	}
 
 	int val_proc = 0;
-	//scans_index[0] = 0;
 
 	for (long ii=1;ii<samples_struct.ntotscan+1;ii++){
 		if(frnum[ii]==0)
@@ -355,10 +322,6 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	cout << "nb proc : " << val_proc << endl;
 #endif
 
-	//	//DEBUG
-	//	cout << fitsvect[0] << " "  << fitsvect[1] << endl;
-	//	cout << noisevect[0] << " "  << noisevect[1] << endl;
-	//	cout << scans_index[0] << " "  << scans_index[1] << endl;
 
 	if(val_proc>size){
 		cerr << "Error in frame order repartition, number of processor are not equal to mpi size\n";
@@ -367,7 +330,6 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 
 	for (long ii=0;ii<samples_struct.ntotscan;ii++){
 		file << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << scans_index_temp[ii] << endl;
-		//cout << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << endl;
 	}
 
 	file.close();
@@ -375,37 +337,10 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	delete [] fitsvect_temp;
 	delete [] noisevect_temp;
 
-//	cout << "fin fonction\n";
 
 	return 0;
 
 }
-/*
-int read_ParallelizationScheme(string fname,string dirfile, long ntotscan, int size, long *&nsamples,string *&fits_table, long* &index_table)
-// read the Parrallelization Scheme for further use.
-
-{
-	std::vector<string> fits_dummy;
-	std::vector<string> noise_dummy;
-	std::vector<long> index_dummy;
-	long ntotscan_dummy;
-	bool framegiven;
-	long *fframes, *nsamples_dummy;
-
-	read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven);
-
-	if((framegiven==0)||((int)fits_dummy.size()==0))
-		return -1;
-
-
-	for(int ii=0;ii<(int)fits_dummy.size();ii++){
-		cout << dirfile + fits_dummy[ii] << endl;
-		fitsvect[ii] = dirfile + fits_dummy[ii];}
-
-	readFrames( &ntotscan_dummy , fits_dummy, fframes, nsamples_dummy);
-
-
-}*/
 
 //int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
 int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, int size)
@@ -418,7 +353,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	std::vector<int> index_dummy;
 	long ntotscan_dummy;
 	long size_tmp;
-	//size_t found;
 
 	bool framegiven;
 	long *nsamples_dummy;
@@ -433,16 +367,10 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
 
 
-	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
-	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
-	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
 	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
 		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
 #endif
 
-	//	cout << fits_dummy[0] << " " << fits_dummy[1] << " " << fits_dummy[2] << " " << fits_dummy[3] << endl;
-	//	cout <<  noise_dummy[0] << " " <<  noise_dummy[1] << " " <<  noise_dummy[2] << " " <<  noise_dummy[3] << endl;
-	//	cout <<   index_dummy[0] << " " <<  index_dummy[1] << " " <<   index_dummy[2] << " " <<  index_dummy[3] << endl;
 #ifdef DEBUG_PRINT
 	cout << "framegiven : " << framegiven << endl;
 #endif
@@ -464,7 +392,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 		vector2array(index_dummy,  samples_struct.index_table);
 
 	for(int ii=0;ii<(int)fits_dummy.size();ii++){
-		//	cout << dirfile + fits_dummy[ii] << endl;
 		fits_dummy[ii] = dirfile + fits_dummy[ii];
 	}
 
@@ -478,11 +405,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	struct sortclass_string sortobject;
 	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
 	sort((samples_struct.fitsvect).begin(), (samples_struct.fitsvect).end(), sortobject);
-
-	//	cout << "comparaison triée : " << endl;
-
-
-
 
 	if ((int)((samples_struct.noisevect).size())>0){
 
@@ -540,7 +462,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 //int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table, long iframe_min, long iframe_max){
 int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
-	//cout << "rank" << rank << endl;
 	int test=0;
 
 	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);
@@ -600,17 +521,14 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 
 	long size_tmp = 0;
-//	int return_error = 0;
 	int num_frame = 0;
 	char c;
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-	//	if(rank==0){
 
 	struct sortclass_int sortobject;
 	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
 	std::vector<int>::iterator it;
-	//			int size_tmp=0;
 
 	// using default comparison:
 	it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
@@ -629,9 +547,6 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 		samples_struct.scans_index.resize( size_tmp );
 
-//		cout << "trié + unique : " << samples_struct.scans_index[0] <<  " " << samples_struct.scans_index[1] << endl;
-
-
 		if((size_tmp)<size){
 			if(rank==0){
 				cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
@@ -639,7 +554,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 				c=getchar();
 				switch (c){
 				case('y') :
-					cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+											cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 				break;
 				default:
 					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
@@ -667,15 +582,12 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 				}
 		}
 	}
-	//	}
 
 
 
 	if(rank==0){
 
-		//		string outfile = outdir + samples_struct.filename + ".txt";
 		string outfile = outdir + parallel_scheme_filename;
-		//		cout << "outfile : " << outfile;
 
 		file.open(outfile.c_str(), ios::out);
 		if(!file.is_open()){
@@ -762,8 +674,6 @@ long readFitsLength(string filename){
 }
 
 void readFrames(std::vector<string> &inputList, long *& nsamples){
-
-	//read_strings(filename, inputList);
 
 	long nScan  = inputList.size();
 	nsamples = new long[nScan];

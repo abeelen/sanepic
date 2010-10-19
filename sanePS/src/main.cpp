@@ -10,7 +10,7 @@
 
 
 #include "imageIO.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
 #include "estimPS.h"
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 
 	ofstream file;
-
+ // TODO : add MPI reorder bolo filelist ! follow the order of the scans ! (it's the same !)
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;

@@ -1,10 +1,3 @@
-/*
- * parser_functions.h
- *
- *  Created on: 20 oct. 2009
- *      Author: matthieu
- */
-
 #ifndef PARSER_FUNCTIONS_H_
 #define PARSER_FUNCTIONS_H_
 
@@ -20,13 +13,8 @@ extern "C"{
 
 
 int read_dir(dictionary	*ini, struct common &dir, std::string dirtype ,int rank);
-//int read_dirfile(dictionary	*ini, struct common &dir, int rank);
-//int read_tmpdir(dictionary	*ini, struct common &dir, int rank);
-//int read_outdir(dictionary	*ini, struct common &dir, int rank);
-//int read_outdir(dictionary	*ini, struct common &dir, int rank);
 
 int read_channel_list(std::string fname, std::vector<std::string> &bolonames, int rank);
-//int read_channel_list(dictionary	*ini, struct common &dir,std::vector<std::string> &bolonames, int rank);
 int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &samples_str, int rank);
 int read_fits_list(std::string fname, std::vector<std::string> &fitsfiles, std::vector<std::string> &noisefiles, std::vector<int> &frameorder, bool &framegiven);
 
@@ -43,7 +31,6 @@ int read_baseline(dictionary	    *ini, struct param_process &proc_param, int ran
 int read_correlation(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_remove_poly(dictionary	    *ini, struct param_process &proc_param, int rank);
 int read_iter(dictionary	        *ini, int &iterw, int rank);
-//int read_ell_dir(dictionary	*ini, std::string &ellpath, int rank);
 int read_ell_suffix(dictionary	*ini, std::string &ell_suffix, int rank);
 int read_ell_global_file(dictionary	*ini, std::string &ell_global_file, int rank);
 int read_map_file(dictionary	*ini, std::string &signame);
@@ -69,10 +56,9 @@ void print_common(struct common dir);
 int check_path(std::string strPath, std::string path_type);
 int check_dirfile_paths(std::string strPath);
 
-//int read_restore(dictionary *ini, int &restore, int rank);
-
 int read_bolo_suffix(dictionary	*ini, std::string &suffix);
 int read_bolo_global_file(dictionary *ini, std::string &bolo_global_filename);
+int read_bolo_gain_global_file(dictionary *ini, std::string dir, std::string &bolo_global_filename, int rank);
 
 void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct);
 
@@ -80,10 +66,5 @@ int parser_function(char * ini_name, struct common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
 		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
 		struct PS &structPS, struct sanePic &sanePic_struct, int rank, int size);
-//int parser_function(char * ini_name, struct common &dir,
-//		std::vector<detectors> &detector_tab,struct samples &samples_struct,
-//		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-//		double &fcut_sanePS, std::string &MixMatfile, std::string &ell_suffix, std::string &signame, long &ncomp, int &iterw, int &save_data, int &restore,
-//		int rank, int size);
 
 #endif /* PARSER_FUNCTIONS_H_ */

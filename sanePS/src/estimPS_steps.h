@@ -48,15 +48,15 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param, str
 //		double *Nk, double *Nell, double factapod,double **Rellexp, double **N, double **P, std::string outdirSpN, fftw_complex *fdata1, fftw_complex  *fdata2,
 //		double *SPref, std::vector<std::string> bolonames);
 int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
-		double factapod,double **Rellexp, double **N, double **P, double *SPref, std::string fits_filename);
+		double factapod,double **Rellexp, double **N, double **P, double *SPref, std::string fits_filename, int rank);
 
 //void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp, long ff,
 //		std::string outdirSpN, 	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N, double **Cov, double *p,
 //		double *uvec, double *ivec, double **iCov, double *SPref, double *ell);
 
-void expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
+int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
 		std::string outdirSpN,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N,
-		double *SPref, double *ell);
+		double *SPref, double *ell, int rank);
 
 double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, long ndet, long ncomp, long nbins);
 

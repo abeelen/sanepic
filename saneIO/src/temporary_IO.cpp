@@ -9,7 +9,7 @@
 #include "inputFileIO.h"
 #include <iostream>
 
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 
 
 extern "C" {
@@ -118,8 +118,6 @@ int write_samptopix(long ns, long long *&samptopix, string outdir, string filena
 /*!  write a sample to pixel vector to disk  */
 {
 	FILE *fp;
-	// créer un flux de sortie
-	//	std::ostringstream oss;
 	string outfile;
 
 	outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".bi";
@@ -167,10 +165,6 @@ int read_samptopix(long ns, long long *&samptopix, string outdir, string filenam
 	FILE *fp;
 	size_t result;
 	long long ns2;
-
-	//	std::ostringstream oss;
-	//	oss << outdir + "/Indexes/samptopix_" << iframe << "_" << boloname  << ".bi";
-	//	std::string testfile = oss.str();
 
 	string outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".bi";
 

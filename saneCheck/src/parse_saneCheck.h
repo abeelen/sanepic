@@ -1,10 +1,3 @@
-/*
- * parse_saneCheck.h
- *
- *  Created on: 3 déc. 2009
- *      Author: matthieu
- */
-
 #include "struct_definition.h"
 
 extern "C"{

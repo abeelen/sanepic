@@ -50,11 +50,11 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	//fdata_buffer= new fftw_complex[(ns/2+1)*ndet];
 
 	// to print processing time
-	time_t t1;
+//	time_t t1;
 
 
 	printf("\nEstimation procedure started : \n");
-	t1=time(NULL);
+//	t1=time(NULL);
 
 	//	data = raw data
 	//	data_lp = data low passed
@@ -120,14 +120,14 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 	cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 	if(estimate_CovMat_of_Rexp(iframe, dir, det, nbins, ns, ell, ncomp, mixmat, proc_param.fsamp,
-			factapod, Rellexp, N, P, SPref, fits_filename))
+			factapod, Rellexp, N, P, SPref, fits_filename, rank))
 		return 1;
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
 	cout << "[ " << rank << " ] 5/6 - Expectation Maximization" << endl;
-	expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp,
-			dir.output_dir,  Rellexp, Rellth, mixmat, P, N, SPref, ell);
-
+	if(expectation_maximization_algorithm(fcut, nbins, det.ndet, ncomp, ns, proc_param.fsamp,
+			dir.output_dir,  Rellexp, Rellth, mixmat, P, N, SPref, ell, rank))
+		return 1;
 	//----------------------------------- WRITE TO DISK -------------------------------//
 	cout << "[ " << rank << " ] 6/6 - Saving to disk" << endl;
 	if(write_to_disk(dir.output_dir, fits_filename, det, nbins, ell, mixmat, Rellth,

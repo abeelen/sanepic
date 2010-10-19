@@ -85,20 +85,11 @@ int read_double(string fname, double *& array, long & size){
 
 
 std::string		Basename(std::string path)
-//std::string		Basename(char* path)
 {
-	//	std::string		Result;
-
-//	cout << "starts with :" << path << ":" << endl;
-
 
 	char * pch=NULL;
 	char * temp=NULL;
-	//	char * tmp=NULL;
 	string basename;
-	//	strcpy(path.c_str(),tmp);
-	//	string temp_str=path;
-	//	printf ("Splitting string \"%s\" into tokens:\n",path.c_str());
 	pch = strtok ((char *) path.c_str(),"/.");
 	while (pch != NULL)
 	{
@@ -110,19 +101,13 @@ std::string		Basename(std::string path)
 
 	}
 
-	//	cout << "result : " << temp << endl;
 	basename = (string)temp;
-//	cout << "result :" << basename << ":" << endl;
-	//		getchar();
-	//	Result = fname;
-	//	Result += ext;
 	return basename;
 
 }
 
 std::string FitsBasename(std::string path)
 {
-//	cout << "FitsBasename starts with :" << path << ":" << endl;
 
 	size_t found;
 	string filename;

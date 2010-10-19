@@ -20,8 +20,6 @@ extern "C" {
 using namespace std;
 
 
-
-
 int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist)
 {
 	// all angles in degrees
@@ -136,9 +134,6 @@ int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
 	std::ostringstream oss;
-
-	//	int naxis = 2;                  // number of dimensions
-	//	long naxes[] = {NAXIS1, NAXIS2};
 
 	if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status))
 		fits_report_error(stderr, fits_status);
@@ -469,25 +464,6 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 		fits_report_error(stderr, status);
 		return 1;
 	}
-	//		break;
-	//	case 'i':
-	//		data = new int[NAXIS1*NAXIS2];
-	//		if (fits_read_pix(fptr, TINT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
-	//			fits_report_error(stderr, status);
-	//		break;
-	//	case 'f':
-	//		data = new float[NAXIS1*NAXIS2];
-	//		if (fits_read_pix(fptr, TFLOAT, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
-	//			fits_report_error(stderr, status);
-	//		break;
-	//	case 'd':
-	//		data = new double[NAXIS1*NAXIS2];
-	//		if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, data, &anynul, &status))
-	//			fits_report_error(stderr, status);
-	//		break;
-	//	default:
-	//		print_fits_error(BAD_DATATYPE);
-	//	}
 
 	// retrieve the wcs header
 	if (fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status)){
@@ -519,82 +495,6 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 	free(header);
 	return(0);
 }
-
-
-//void write_fits_naivmap(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, char maptype)
-//{
-//	// all angles in degrees
-//
-//	fitsfile *fp;
-//	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
-//
-//	int naxis = 2;                  // number of dimensions
-//	long naxes[] = {NAXIS1, NAXIS2}; // size of dimensions
-//	long fpixel[] = {1, 1};          // index for write_pix
-//	long long ndata = NAXIS1 * NAXIS2;            // number of data points
-//
-//	char *header, *hptr;
-//	int nkeyrec;
-//
-//	if(maptype=='n')
-//		write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, dtype, map1d);
-//	else
-//		if((maptype=='h')||(maptype=='v')||(maptype==i)){
-//
-//			if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-//				fits_report_error(stderr, status);
-//
-//			// create fits image (switch on data type)
-//			switch (dtype) {
-//			case 'd':    // double
-//				if ( fits_create_img(fp, DOUBLE_IMG, naxis, naxes, &fits_status) )
-//					print_fits_error(fits_status);
-//				break;
-//			case 'l':    // long
-//				if ( fits_create_img(fp, LONG_IMG, naxis, naxes, &fits_status) )
-//					print_fits_error(fits_status);
-//				break;
-//			default:
-//				printf("write_fits: data type %c not supported. Exiting.\n",dtype);
-//				exit(1);
-//			}
-//
-//			// Transform wcsprm struture to header
-//			if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
-//				printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
-//				exit(fits_status);
-//			}
-//
-//			hptr = header;
-//			// write it to the fits file
-//			for (int keyrec = 0; keyrec < nkeyrec; keyrec++, hptr += 80)
-//				if ( fits_write_record(fp, (const char*) hptr, &fits_status))
-//					print_fits_error(fits_status);
-//
-//			free(header);
-//
-//			// write date to file
-//			if ( fits_write_date(fp, &fits_status) )
-//				print_fits_error(fits_status);
-//		}
-//
-//	// write map data
-//	switch (dtype) {
-//	case 'd':    // double
-//		if ( fits_write_pix(fp, TDOUBLE, fpixel, ndata, (double*) data, &fits_status) )
-//			print_fits_error(fits_status);
-//		break;
-//	case 'l':    // long
-//		if ( fits_write_pix(fp, TLONG, fpixel, ndata, (long*) data, &fits_status) )
-//			print_fits_error(fits_status);
-//		break;
-//	}
-//
-//	// close file
-//	if(fits_close_file(fp, &fits_status))
-//		print_fits_error(fits_status);
-//}
-
 
 
 int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, struct wcsprm * wcs)

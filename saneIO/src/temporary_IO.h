@@ -1,10 +1,3 @@
-/*
- * inline_IO2.h
- *
- *  Created on: 23 juin 2009
- *      Author: matthieu
- */
-
 #ifndef INLINE_IO2_H_
 #define INLINE_IO2_H_
 
@@ -15,14 +8,12 @@
 
 extern "C" {
 #include "nrutil.h"
-//#include "getdata.h"
 }
 
 
 // sanePos functions
 
 bool compute_dirfile_format_file(std::string outdir, struct samples samples_struct, std::vector<detectors> detector_tab, int rank);
-//bool compute_dirfile_format_file(std::string outdir, std::vector<detectors> detector_tab, long ntotscan, int rank);
 bool compute_dirfile_format_noisePS(std::string outdir, std::vector<std::string> det, std::string suffix);
 bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, std::vector<detectors> detector_tab, int rank);
 
@@ -108,29 +99,6 @@ int write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string o
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
 int read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string outdir, long idet, std::string filename, std::vector<std::string> bolonames);
-
-/*!
- * Writes fourier transform of the data in a binary file \n
- * -ns is the number of samples for the iframe frame \n
- * -iframe is the frame number \n
- * -idet is the detector number \n
- * -fdata is the fourier transform of the iframe data, for detector idet
- */
-// void write_fPs(long ns, fftw_complex *fdata, std::string outdir, long idet, long iframe, std::vector<std::string> bolonames);
-
-/*!
- * Writes information for a second run of sanepic \n
- * -nn is the size of a map side
- * -npix is the number of filled pixels
- * -pixdeg is the pixel size in degrees
- * -tancoord is the tangent point coordinates
- * -tanpix are the tangent point pixel indices
- * -coordsyst : the coordinate system
- * -flagon indicates whether a sample was rejected
- * -indpix is the pixel indices in the map
- */
-//void write_info_for_second_part(string outdir, int NAXIS1, int NAXIS2, int npix,
-//		double pixdeg, double *tancoord, double* tanpix, int coordsyst, bool flagon, long* indpix);
 
 /*!
  * Reads mixing matrix in a .txt file \n

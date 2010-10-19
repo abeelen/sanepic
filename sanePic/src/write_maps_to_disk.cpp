@@ -6,7 +6,7 @@
 #include <gsl/gsl_math.h>
 
 #include "imageIO.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"

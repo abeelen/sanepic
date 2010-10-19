@@ -6,7 +6,7 @@
 
 #include "Corr_preprocess.h"
 #include "dataIO.h"
-#include "inline_IO2.h"
+#include "temporary_IO.h"
 #include "inputFileIO.h"
 #include "todprocess.h"
 #include "map_making.h"

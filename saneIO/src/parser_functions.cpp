@@ -84,128 +84,6 @@ int read_dir(dictionary	*ini, struct common &dir, string dirtype ,int rank){
 
 }
 
-//int read_dirfile(dictionary	*ini, struct common &dir, int rank){
-//
-//	string str;
-//
-//	switch(read_parser_string(ini, "commons:data_directory", str)){
-//	case 2:
-//		if(rank==0)
-//			cout <<"You must add a line in ini file specifying : commons:data_directory" << endl;
-//		return 1;
-//	case 1:
-//		if(rank==0)
-//			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
-//		return 1;
-//	case 0:
-//		if (str[str.length()-1] != '/')
-//			str = str + '/';
-//		dir.dirfile = str;
-//
-//	}
-//	return 0;
-//}
-//
-//
-//int read_tmpdir(dictionary	*ini, struct common &dir, int rank){
-//
-//	char *pPath;
-//	string str;
-//
-//	pPath = getenv ("TMPBATCH");
-//	if (pPath!=NULL){
-//		dir.tmp_dir=pPath;
-//	}else{
-//		switch(read_parser_string(ini, "commons:temp_dir", str)){
-//		case 2:
-//			if(rank==0)
-//				cout <<"You must add a line in ini file specifying : commons:temp_dir" << endl;
-//			return 1;
-//		case 1:
-//			if(rank==0)
-//				cout <<"Key is empty : You must specify : commons:temp_dir" << endl;
-//			return 1;
-//		case 0:
-//			if (str[str.length()-1] != '/')
-//				str = str + '/';
-//			dir.tmp_dir=str;
-//
-//		}
-//	}
-//	return 0;
-//
-//}
-//
-//
-//int read_outdir(dictionary	*ini, struct common &dir, int rank){
-//
-//	string str;
-//
-//
-//	switch(read_parser_string(ini, "commons:output_dir", str)){
-//	case 2:
-//		if(rank==0)
-//			cout <<"You must add a line in ini file specifying : commons:output_dir" << endl;
-//		return 1;
-//	case 1:
-//		if(rank==0)
-//			cout <<"Key is empty : You must specify : commons:output_dir" << endl;
-//		return 1;
-//	case 0:
-//		if (str[str.length()-1] != '/')
-//			str = str + '/';
-//		dir.output_dir=str;
-//	}
-//	return 0;
-//
-//}
-//
-//int read_noisedir(dictionary	*ini, struct common &dir, int rank){
-//
-//	string str;
-//	switch(read_parser_string(ini, "saneInv:noise_dir", str)){
-//	case 2:
-//		if(rank==0)
-//			cout <<"You must add a line in ini file specifying : saneInv:noise_dir" << endl;
-//		return 1;
-//	case 1:
-//		if(rank==0)
-//			cout <<"Key is empty : You must specify : saneInv:noise_dir" << endl;
-//		return 1;
-//	case 0:
-//		if (str[str.length()-1] != '/')
-//			str = str + '/';
-//		dir.noise_dir=str;
-//	}
-//	return 0;
-//
-//}
-
-//int read_channel_list(dictionary	*ini, struct common &dir, std::vector<string> &bolonames, int rank){
-//
-//	string str;
-//
-//
-//	switch(read_parser_string(ini, "commons:channel", str)){
-//	case 2:
-//		if(rank==0)
-//			cout <<"You must add a line in ini file specifying : commons:channel" << endl;
-//		return 1;
-//	case 1:
-//		if(rank==0)
-//			cout <<"Key is empty : You must specify : commons:channel" << endl;
-//		return 1;
-//	case 0:
-//		dir.channel=str;
-//		if(read_strings(str, bolonames))
-//			return 1;
-//	}
-//
-//
-//	return 0;
-//
-//}
-
 
 int read_channel_list(std::string fname, std::vector<string> &bolonames, int rank){
 
@@ -557,8 +435,8 @@ int read_ell_global_file(dictionary	*ini, string &ell_global_file, int rank){
 		//		return 1;
 	case 1:
 		if(rank==0)
-//			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
-		ell_global_file="";
+			//			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
+			ell_global_file="";
 		//		return 1;
 	case 0:
 		ell_global_file=str;
@@ -857,36 +735,6 @@ int check_dirfile_paths(string strPath){
 
 }
 
-//int read_save_data(dictionary *ini, int &save_data, int rank){
-//
-//	string str;
-//
-//	if (read_parser_string(ini, "sanePic:save_data", str)==0){
-//		save_data=atoi(str.c_str());
-//	}else{
-//		cout << "Please mention sanePic:save_data !\n";
-//		return 1;
-//	}
-//
-//	return 0;
-//
-//}
-
-//int read_restore(dictionary *ini, int &restore, int rank){
-//
-//	string str;
-//
-//	if (read_parser_string(ini, "sanePic:restore", str)==0){
-//		restore=atoi(str.c_str());
-//	}else{
-//		cout << "Please mention sanePic:restore !\n";
-//		return 1;
-//	}
-//
-//	return 0;
-//
-//}
-
 int read_bolo_suffix(dictionary	*ini, string &suffix){
 
 
@@ -912,6 +760,23 @@ int read_bolo_global_file(dictionary *ini, string &bolo_global_filename){
 	return 0;
 
 }
+
+
+int read_bolo_gain_global_file(dictionary *ini, string dir, string &bolo_global_filename, int rank){
+
+	string str;
+
+	if (read_parser_string(ini,"saneCheck:bolo_gain_global_file", str)){
+		cout << "Warning! saneCheck:bolo_global_file field is void or absent in the ini file. Assuming 1 bolo_gain file per scan :\n";
+		bolo_global_filename="";
+	}else{
+		bolo_global_filename=dir + str;
+	}
+	return 0;
+
+
+}
+
 
 void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct){
 
@@ -958,7 +823,7 @@ int parser_function(char * ini_name, struct common &dir,
 	structPS.ncomp=1;
 	sanePic_struct.iterw=10;
 	sanePic_struct.save_data=0;
-//	sanePic_struct.restore=0;
+	//	sanePic_struct.restore=0;
 
 
 	// load dictionnary
@@ -1037,11 +902,8 @@ int parser_function(char * ini_name, struct common &dir,
 			read_fcut(ini, structPS.fcutPS, rank) ||
 			read_ncomp(ini, structPS.ncomp, rank) ||
 			read_mixmat_global_file(ini, structPS.mix_global_file, rank))
-//			read_restore(ini, sanePic_struct.restore, rank))
+		//			read_restore(ini, sanePic_struct.restore, rank))
 		return 2;
-
-	//	cout << "parser save data : " << save_data << endl;
-	//	cout << "parser load data : " << restore << endl;
 
 	if(pos_param.maskfile!="")
 		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
@@ -1094,7 +956,7 @@ int parser_function(char * ini_name, struct common &dir,
 		print_param_positions(pos_param);
 
 		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
-		cout << "sanePic restore : " << sanePic_struct.restore << endl;
+//		cout << "sanePic restore : " << sanePic_struct.restore << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 		printf("Number of bolometers : \n");

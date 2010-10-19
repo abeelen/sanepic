@@ -74,44 +74,6 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
 	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
 
-
-	//	file = tmp_dir + "checksum.bin";
-	//	if (NULL == (fp = fopen(file.c_str(), "w")))
-	//	{
-	//		cout << "Unable to open " << file << " for writing\n";
-	//		return;
-	//	}
-	//		for(int ii =0;ii<5;ii++)
-	//	fwrite(chk_tabl,sizeof(unsigned int),5,fp);
-	//	fprintf(fp,"%u ",chk_tabl[ii]);
-
-	//	fclose(fp);
-
-	//	for (int ii=0;ii<5;ii++){
-	//		chk_tabl[ii]=0;
-	//		printf("chk_tabl[%d] is %u\n", ii,chk_tabl[ii]);
-	//	}
-
-	//	unsigned int *tab;
-	//	tab= new unsigned int[5];
-	//
-	//	file = tmp_dir + "checksum.bin";
-	//	if (NULL == (fp = fopen(file.c_str(), "rb")))
-	//	{
-	//		cout << "Unable to open " << file << " for reading\n";
-	//		return;
-	//	}
-	//	//for(int ii =0;ii<5;ii++)
-	//	//fscanf(fp,"%u ",tab+ii);
-	//	len=fread(tab,sizeof(unsigned int),5,fp);
-	//	fclose(fp);
-	//
-	//	cout << "len : " << len << endl;
-	//	cout << "size : " << sizeof(unsigned int) << endl;
-	//
-	//	for (int ii=0;ii<5;ii++)
-	//		printf("tab[%d] is %u\n", ii,tab[ii]);
-
 }
 
 
@@ -154,11 +116,6 @@ void read_checksum(std::string tmp_dir, struct checksum &chk)
 	len+=fread(&chk.chk_pnd,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpix,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
-
-
-	//	cout << "chkini : " << chk.chk_ini_file << endl;
-
-	//	cout << "len read : " << len << endl;
 
 	fclose(fp);
 

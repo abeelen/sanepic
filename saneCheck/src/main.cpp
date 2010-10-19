@@ -124,8 +124,6 @@ int main(int argc, char *argv[]) {
 			double *percent_tab;
 			int return_value=0;
 
-			//			struct checkHDU Check_it;
-
 			// initialize default values
 			check_struct.Check_it.checkDEC=1;
 			check_struct.Check_it.checkRA=1;

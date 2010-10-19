@@ -24,7 +24,6 @@ struct samples
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
 
-	//	std::vector<std::string> mixmat_file;
 	std::string cov_matrix_file;
 
 	bool framegiven;
@@ -104,6 +103,26 @@ struct checksum
 	unsigned int chk_pnd;
 	unsigned int chk_indpix;
 	unsigned int chk_indpsrc;
+
+};
+
+struct checkHDU {
+	bool checkREFERENCEPOSITION;
+	bool checkOFFSETS;
+	bool checkRA;
+	bool checkDEC;
+};
+
+struct saneCheck
+/*! A structure that contains saneCheck specific ini file informations */
+{
+	struct checkHDU Check_it;
+	std::vector<double>  bolo_gain_check;
+	bool checkNAN;
+	bool checktime;
+	bool checkGain;
+	bool checkflag;
+
 
 };
 

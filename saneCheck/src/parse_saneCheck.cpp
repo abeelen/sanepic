@@ -75,9 +75,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	if(read_common(ini, dir, rank)==1)
 		return -1;
 
-	//	if(read_ell_dir(ini, dir.ell_path, rank))
-	//			return -1;
-
 	check_path(dir.dirfile, "Data directory");
 	check_path(dir.input_dir, "Input directory");
 	check_path(dir.output_dir, "Output directory");
@@ -205,7 +202,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 		text += "[sanePS]\n\n";
 		text += "MixingMatrix_suffix = " + MixMatsuffix + " ; Enter the mixing matrix of noise components suffix.\n";
-		//		text += "ell_dir = " + dir.ell_path + " ; file containing the bin for the noise spectrum\n";
 		text += "ncomp = " + StringOf(ncomp) + " ; number of component(s) to estimate\n";
 		text += "fcut = " + StringOf(fcut_double) + " ; freq above which value of the noise will not be estimated\n";
 		text += "map_file = " + signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n\n";
