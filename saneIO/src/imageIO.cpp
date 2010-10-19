@@ -156,10 +156,7 @@ int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct
 		oss << "Source" << num;
 		string keyname = oss.str();
 		oss.str("");
-		oss << samples_struct.fits_table[num];
-		string filename = oss.str();
-		oss.str("");
-		string value = Basename(filename) + ".fits";
+		string value = FitsBasename(samples_struct.fits_table[num]) + ".fits";
 		string comm = "Data Source Fits File";
 		if (fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
 			fits_report_error(stderr, fits_status);

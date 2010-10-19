@@ -869,10 +869,8 @@ int parser_function(char * ini_name, struct common &dir,
 		if(bolo_global_filename!="")
 			filename=dir.input_dir + bolo_global_filename;
 		else
-			filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
+			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
 
-
-		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return 2;
 		det.ndet = (long)((det.boloname).size());
@@ -890,7 +888,6 @@ int parser_function(char * ini_name, struct common &dir,
 		det.boloname.clear();
 
 	}
-	//	cout << detector_tab[0].ndet << endl;
 
 
 	if(	read_param_positions(ini, pos_param, rank) ||
@@ -902,7 +899,6 @@ int parser_function(char * ini_name, struct common &dir,
 			read_fcut(ini, structPS.fcutPS, rank) ||
 			read_ncomp(ini, structPS.ncomp, rank) ||
 			read_mixmat_global_file(ini, structPS.mix_global_file, rank))
-		//			read_restore(ini, sanePic_struct.restore, rank))
 		return 2;
 
 	if(pos_param.maskfile!="")

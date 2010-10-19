@@ -151,54 +151,6 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 }
 
 
-int read_ReferencePosition_from_pointer(fitsfile * fptr, double *&RA, double *&DEC, double *&PHI, long &ns){
-	//TODO : Handle angle unit to transform to a common internal known unit
-	//TODO : quelle est l'unitée du fichier ? conversion si besoin !
-
-	int status = 0;
-
-	int colnum;
-
-
-	// ---------------------------------------------
-	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
-		fits_report_error(stderr, status);
-		return 1;
-	}
-
-	// Retrieve size of the array and ...
-	fits_get_num_rows(fptr, &ns, &status);
-
-	// ... allocate corresponding memory
-	RA   = new double[ns];
-	DEC  = new double[ns];
-	PHI  = new double[ns];
-
-	// Read RA
-	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
-
-	//TODO: Remove this step
-	// transform RA in hours
-	for(long ii = 0; ii<ns; ii++)
-		RA[ii]=RA[ii]/15.0;
-
-	// Read DEC
-	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, DEC, 0, &status);
-
-	// Read PHI
-	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
-	//fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
-
-	return 0;
-
-}
-
 int read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// HIPE like format

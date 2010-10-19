@@ -84,28 +84,6 @@ int read_double(string fname, double *& array, long & size){
 }
 
 
-std::string		Basename(std::string path)
-{
-
-	char * pch=NULL;
-	char * temp=NULL;
-	string basename;
-	pch = strtok ((char *) path.c_str(),"/.");
-	while (pch != NULL)
-	{
-		if (strcmp (pch,(char*)"fits") == 0)
-			break;
-		temp=pch;
-		//		printf ("%s\n",temp);
-		pch = strtok (NULL, "/.");
-
-	}
-
-	basename = (string)temp;
-	return basename;
-
-}
-
 std::string FitsBasename(std::string path)
 {
 
@@ -127,7 +105,6 @@ std::string FitsBasename(std::string path)
 	if (found != string::npos)
 			filename = 	filename.substr(0,found-4);
 
-//	cout << "FitsBasename ends with :" << filename << ":" << endl;
 	return filename;
 }
 
