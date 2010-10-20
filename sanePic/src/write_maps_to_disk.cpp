@@ -52,7 +52,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct co
 		}
 	}
 
-	//	fname = '!' + outdir + "optimMap_flux.fits";
 	fname = outdir + "optimMap_sanePic.fits";
 	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Image", 0)){
 		cerr << "Error Writing map : EXITING ... \n";
@@ -85,7 +84,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct co
 	}
 
 
-	//	fname = '!' + outdir + "optimMap_noisevar.fits";
 	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1)){
 		cerr << "Error Writing map : EXITING ... \n";
 	}

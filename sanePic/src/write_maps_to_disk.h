@@ -1,4 +1,3 @@
-
 #ifndef WRITE_MAPS_TO_DISK_H_
 #define WRITE_MAPS_TO_DISK_H_
 

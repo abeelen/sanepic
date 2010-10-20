@@ -85,11 +85,10 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
-	std::vector<detectors> detector_tab;
+	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and number */
 
 	int nwcs=1; // number of wcs : 1
-	//	int iterw; // sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
+	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
 	int factdupl = 1; /*! map duplication factor */
@@ -113,27 +112,24 @@ int main(int argc, char *argv[])
 	struct sanePic struct_sanePic;
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
-	//	int restore, save_data;
-
-
 	// main loop variables
 	double *S; /*! Pure signal */
 
 	// parallel scheme file
 	string fname; /*! parallel scheme filename */
-	int indice_argv=1;
 
+	// parser variables
+	int indice_argv=1;
 	int parsed=0;
 
 	if ((argc<2)||(argc>3)) // no enough arguments
 		parsed=1;
 	else{
-		// Parse ini file
-		struct_sanePic.restore=0;
+		struct_sanePic.restore=0; //default
 
 		// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 		struct PS structPS;
-		//		cout << "argc : " << argc <<endl;
+
 		if(argc==3){
 			struct_sanePic.restore=1;
 			if(strcmp(argv[1],(char*)"--restore")!=0){
@@ -358,8 +354,6 @@ int main(int argc, char *argv[])
 
 	/*************************************************************/
 
-	//	printf("[%2.2i] iframe_min %ld\tiframe_max %ld \n",rank,iframe_min,iframe_max);
-
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 #ifdef USE_MPI
@@ -422,7 +416,6 @@ int main(int argc, char *argv[])
 	// see (for a complete description of the following variables) : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 	double *PtNPmatS,  *PtNPmatStot=NULL, *r, *q, *qtot=NULL, *d, *Mp, *Mptot=NULL, *s; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
-	//	long *hits, *hitstot=NULL; // coverage map and global coverage for MPI
 	double *PNd=NULL; // (At N-1 d)
 
 	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0; // conjugate gradient convergence criteria
@@ -443,7 +436,6 @@ int main(int argc, char *argv[])
 	Mp          = new double[npix];
 	s           = new double[npix];
 	PtNPmatS    = new double[npix];
-	//	hits        = new long[npix];
 
 
 
@@ -458,11 +450,9 @@ int main(int argc, char *argv[])
 
 		fill(PtNPmatS,PtNPmatS+npix,0.0);
 		fill(Mp,Mp+npix,0.0);
-		//		fill(hits,hits+npix,0);
 		fill(r,r+npix,0.0);
 		fill(d,d+npix,0.0);
 		fill(s,s+npix,0.0);
-		//		fill(PNd,PNd+npix,0.0);
 
 
 
@@ -569,7 +559,6 @@ int main(int argc, char *argv[])
 
 			delta0 = delta_n; // delta_0 <= delta_new
 			var0 = var_n;
-			//			printf("var0 = %lf\n",var0);
 
 		}
 
@@ -586,8 +575,6 @@ int main(int argc, char *argv[])
 		//start loop
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
-		//		cout << var0 << endl;
-
 		if(struct_sanePic.restore>0){
 			if(rank==0)
 				cout << "loading data !\n";
@@ -599,8 +586,6 @@ int main(int argc, char *argv[])
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
 				|| (!idupl && var_n/var0 > 1e-6) ){
-
-			//			cout << var0 << " " << " " << delta0 << " " << delta_o << endl;
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
@@ -674,7 +659,6 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
-			//cout << rank << " S bcast\n";
 			MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
 
@@ -1008,7 +992,7 @@ int main(int argc, char *argv[])
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			delete [] PNdtot;
-			PNdtot=PNd; // ajout Mat 02/07
+			PNdtot=PNd;
 #endif
 		}
 
@@ -1030,7 +1014,6 @@ int main(int argc, char *argv[])
 	delete [] Mp;
 	delete [] s;
 	delete [] PtNPmatS;
-	//	delete [] map1d;
 	delete [] PNd;
 
 	//******************************  write final map in file ********************************
@@ -1102,7 +1085,6 @@ int main(int argc, char *argv[])
 
 	delete [] indpsrc;
 	delete [] indpix;
-	//	delete [] PNdtot;
 
 	wcsvfree(&nwcs, &wcs);
 
