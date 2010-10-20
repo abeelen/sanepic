@@ -1,5 +1,3 @@
-
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -17,7 +15,6 @@
 #include <cmath>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
-#include <unistd.h>   // For access()
 
 
 extern "C" {

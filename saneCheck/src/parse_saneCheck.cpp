@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -44,7 +42,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	dictionary	*	ini ;
 
-	string bolo_gain_gile;
+	string bolo_gain_file="";
 	struct param_positions pos_param;
 	struct param_process proc_param;
 	std::vector<double> fcut;
@@ -62,7 +60,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	string s;
 	ofstream file;
-
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -86,7 +83,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
 		return -1;
 
-	read_bolo_gain_global_file(ini, dir.input_dir, bolo_gain_gile, rank);
+	read_bolo_gain_global_file(ini, dir.input_dir, bolo_gain_file, rank);
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
@@ -96,7 +93,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix;
-		//		cout << filename << endl;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return -1;
 		det.ndet = (long)((det.boloname).size());
@@ -127,12 +123,12 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	read_ncomp(ini, ncomp, rank);
 	read_fcut(ini, fcut_double, rank);
 
-	read_saneCheck_ini(ini,check_struct, rank);
+	read_saneCheck_ini(ini, check_struct, rank);
 
 	fsamp=proc_param.fsamp;
 
 	// Read bolometer_gain
-	//bolometer_gain
+	//read it and put it in the structure tab !
 
 	if(rank==0){
 		cout << "\nYou have specified the following options : \n\n";
@@ -165,11 +161,15 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "\n\n";
 
 		text += "[commons]\n\n";
-		text += "data_directory = " + dir.dirfile + " ; source data directory\n";
+		text += "data_directory = " + dir.dirfile + " ; source data directory (only the data themselves)\n";
+		text += "input_directory = " + dir.input_dir + " ; input directory with all the configurations files\n";
 		text += "channel = " + dir.channel + " ; file listing bolometers name\n";
 		text += "output_dir = " + dir.output_dir + " ; output directory\n";
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";
 		text += "fits_filelist = " + samples_struct.filename + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
+		text += "bolo_global_file = " + bolo_gain_file + " ; every scans have the same detector list which name is filled in this field\n";
+		text += "bolo_suffix = " + suffix + " ; bolometers filelist suffix : can be void\n";
+
 
 		text += "\n\n";
 

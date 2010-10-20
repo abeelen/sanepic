@@ -18,7 +18,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
 
@@ -29,7 +28,7 @@ using namespace std;
 void usage(char *name)
 /*! You must give,  as an input, the inifile, the fits filename, and one or more pairs of -m -M options */
 {
-	cerr << "USAGE: " << name << " inifile.ini [-f<path/filename>] [-m<min time>] [-M<max time>]" << endl;
+	cerr << "USAGE: " << name << " inifile.ini [-f <path/filename>] [-m <min time>] [-M <max time>]" << endl;
 	cerr << "USAGE: You can use multiple -m and -M options, each -m followed by a -M\n";
 
 }
@@ -188,8 +187,7 @@ int main(int argc, char *argv[])
 	fitsfile *fptr; /* input fits file pointer */
 	fitsfile *outfptr; /* output fits file pointer */
 
-	std::ostringstream oss; // we need to store the string in a stringstream before using basename
-	// Or the original string is affected ...
+	std::ostringstream oss; // we need to store the string in a stringstream because of numbers min_time, max_time
 	string fname2 = FitsBasename(samples_struct.fitsvect[0]) + "_split_";
 
 	fname=samples_struct.fitsvect[0];
@@ -255,7 +253,6 @@ int main(int argc, char *argv[])
 		if(format_fits==1){ // HIPE format
 			cout << "HIPE format found\n";
 
-			// separate HIPE format tables
 			// 1 signal
 			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
 

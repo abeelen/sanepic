@@ -36,7 +36,6 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
 	// Read original tables
-//	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp);
 	read_ReferencePosition_from_fits(name, RA, DEC, PHI, ns_temp);
 
 	RA_bis = new double [ns_final];
