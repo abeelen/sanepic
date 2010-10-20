@@ -46,8 +46,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	struct param_positions pos_param;
 	struct param_process proc_param;
 	std::vector<double> fcut;
-	double fcut_double;
-	string MixMatsuffix, signame;
+	double fcutPS;
+	string mix_suffix, signame, mix_global_file, ell_suffix, ell_global_file;
 	long ncomp=1;
 	int iterw=10;
 
@@ -111,17 +111,21 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		return -1;
 
 	read_param_positions(ini, pos_param, rank);
-
 	read_param_process(ini, proc_param, rank);
+	read_map_file(ini, signame);
+	read_mixmatfile_suffix(ini, mix_suffix, rank);
+	read_ell_suffix(ini, ell_suffix, rank);
+	read_ell_global_file(ini, ell_global_file, rank);
+	read_fcut(ini, fcutPS, rank);
+	read_ncomp(ini, ncomp, rank);
+	read_mixmat_global_file(ini, mix_global_file, rank);
 
+	if(pos_param.maskfile!="")
+		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
+
+	read_iter(ini, iterw, rank);
 
 	read_noise_cut_freq(ini, dir, proc_param, fcut,rank);
-
-
-	read_map_file(ini, signame);
-	read_mixmatfile_suffix(ini, MixMatsuffix, rank);
-	read_ncomp(ini, ncomp, rank);
-	read_fcut(ini, fcut_double, rank);
 
 	read_saneCheck_ini(ini, check_struct, rank);
 
@@ -163,7 +167,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "[commons]\n\n";
 		text += "data_directory = " + dir.dirfile + " ; source data directory (only the data themselves)\n";
 		text += "input_directory = " + dir.input_dir + " ; input directory with all the configurations files\n";
-		text += "channel = " + dir.channel + " ; file listing bolometers name\n";
 		text += "output_dir = " + dir.output_dir + " ; output directory\n";
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";
 		text += "fits_filelist = " + samples_struct.filename + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
@@ -201,10 +204,13 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		text += "\n\n";
 
 		text += "[sanePS]\n\n";
-		text += "MixingMatrix_suffix = " + MixMatsuffix + " ; Enter the mixing matrix of noise components suffix.\n";
+		text += "MixingMatrix_suffix = " + mix_suffix + " ; Mixing matrix files suffix : the mixmat files are not the same : each scan has a mixmat file named : basename(scan_filename) + MixingMatrix_suffix\n";
+		text += "MixingMatrix_global_file = " + mix_global_file + " ;  the MixingMatrix file  (fill this field if the MixingMatrix file is the same for all the scans !)\n";
 		text += "ncomp = " + StringOf(ncomp) + " ; number of component(s) to estimate\n";
-		text += "fcut = " + StringOf(fcut_double) + " ; freq above which value of the noise will not be estimated\n";
-		text += "map_file = " + signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n\n";
+		text += "fcut = " + StringOf(fcutPS) + " ; freq above which value of the noise will not be estimated\n";
+		text += "map_file = " + signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n";
+		text += "ell_global_file = " + ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
+		text += "ell_suffix = " + ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";
 
 		text += "\n\n";
 
@@ -215,6 +221,16 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 		else{
 			text += "iterW = " + StringOf(iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
 		}
+
+		text += "\n\n";
+
+		text += "[saneCheck]\n\n";
+		text += "check_NAN = " + StringOf(check_struct.checkNAN ? "True" : "False") + "; check whether there are NANs in every tables and flag them if needed\n";
+		text += "check_time_gaps = " + StringOf(check_struct.checktime ? "True" : "False") + "; check whether there are gaps in time table and fill those gaps with flagged data to ensure continuity\n";
+		text += "check_flag = " + StringOf(check_struct.checkflag ? "True" : "False") + "; check whether there are detectors that are fully or more than 80% flagged\n";
+		text += "check_bolo_gain = " + StringOf(check_struct.checkGain ? "True" : "False") + "; Compute detector gain and print to screen \n";
+
+		text += "\n\n";
 
 		string outfile = dir.output_dir + "sanepic_ini_model.txt";
 		file.open(outfile.c_str(), ios::out);
