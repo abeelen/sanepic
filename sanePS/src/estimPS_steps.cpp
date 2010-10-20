@@ -1,10 +1,3 @@
-/*
- * estimPS_steps.cpp
- *
- *  Created on: 19 août 2009
- *      Author: matthieu
- */
-
 #include "estimPS_steps.h"
 #include "cholesky.h"
 
@@ -30,10 +23,7 @@ extern "C" {
 
 using namespace std;
 
-//int read_mixmat_file(string Mixmatfile, string dir, double **&mixmat, long ndet, long ncomp){
 int read_mixmat_file(string Mixmatfile, double **&mixmat, long ndet, long ncomp){
-
-	//	string file = dir + "mixmat_" + Mixmatfile + ".txt";
 
 	if(read_mixmat_txt(Mixmatfile, ndet, ncomp,mixmat))
 		return 1;
@@ -69,10 +59,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	double **iCov, **Cov, *ivec, **l;
 	double *uvec;
 
-
-
 	fftw_complex *fdata1;
-
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2;
@@ -97,23 +84,14 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
-
-	//	for(long ii=0;ii<ns/2+1;ii++)
-	//		bfilter[ii] = 1.0;
-
-
 	sign = new double[det.ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
-
-	// test
-	//	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 
 	// loop over detectors
 	for (long idet=0;idet<det.ndet;idet++){
 
 		field = det.boloname[idet];
-		//		cout << field << endl;
 
 		long test_ns;
 		if(read_signal_from_fits(fits_filename, field, data, test_ns))
@@ -161,7 +139,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
 				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
 
-		//		cout << "after map mak\n";
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
 		for (long ii=0;ii<ns;ii++)
@@ -180,11 +157,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 		if(write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, fits_filename, det.boloname))
 			return 1;
-		/*for(long ii=0;ii<ns/2+1;ii++){
-				fdata_buffer[idet*(ns/2+1)+ii][0]=fdata1[ii][0];
-				fdata_buffer[idet*(ns/2+1)+ii][1]=fdata1[ii][1];
-			}*/
-
 
 		/// compute sigma of the noise
 		mm = 0.0;
@@ -206,9 +178,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		delete [] data;
 		delete [] flag;
 	}
-
-	//test
-	//	fftw_destroy_plan(fftplan);
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -252,30 +221,11 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 			for (long kk=0;kk<ncomp;kk++)
 				commonm2[jj][ii] += iCov[jj][kk] * commonm[kk][ii]; //common mode * (AtN-1A)-1
 
-
-
-	//	factapod = 0.0;
-	//	for (long ii=0;ii<ns;ii++)
-	//		factapod += apodwind[ii]*apodwind[ii]/ns; // factapod ?? apodization factor ?
-
-
-
-	/// filter common mode to fcut Hz
-	//for (long ii=0;ii<ncomp;ii++){
-	//for (long jj=0;jj<ns;jj++)
-	//commontmp[jj] = commonm2[ii][jj];
-	//butterworth(commontmp,ns,fcut/fsamp*double(ns),8,commonm_f,bfilter,1,0,0);
-	//for (long jj=0;jj<ns;jj++)
-	//common_f[ii][jj] = commontmp[jj];                         //// - commonm_f[jj];
-	//}
-
 	// clean up
 	delete [] sign;
-	//	delete [] data;
 	delete [] data_lp;
 	delete [] Ps;
 	delete [] samptopix;
-	//	delete [] bfilter ;
 	delete [] fdata1;
 	delete [] uvec;
 	delete [] ivec;
@@ -287,10 +237,6 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
-
-	//	fftw_cleanup();
-
-	//----------------------------------- END -------------------------------//
 
 	return 0;
 }
@@ -308,7 +254,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 	string nameSpfile, field;
 	string testfile;
 	string base_n;
-	std::ostringstream temp_stream; // used to remove sprintf horror
+	std::ostringstream temp_stream;
 	FILE *fp;
 
 	int *flag;
@@ -324,7 +270,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 
 	data_lp = new double[ns]; // data low passed
-	//	bfilter = new double[ns/2+1]; // buttter filter values
 	commontmp = new double[ns]; //
 	Nell = new double[nbins]; // binned noise PS
 	Nk = new double[ns/2+1]; // noise PS
@@ -333,9 +278,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		samptopix = new long long[ns]; // sample to pixel proj matrix
 		Ps = new double[ns];
 	}
-
-	//	for(long ii=0;ii<ns/2+1;ii++)
-	//		bfilter[ii] = 1.0;
 
 
 	fill(commontmp,commontmp+ns,0.0);
@@ -361,7 +303,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 			exit(-1);
 		}
 
-		//		cout << "after read_signal\n";
 
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
 		if (test_ns != ns) {
@@ -415,7 +356,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		delete [] flag;
 	}
 
-//	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 
 	////*********************** Component power spectra
@@ -426,15 +366,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		noisepectrum_estim(commontmp,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
-
-		// subtract a factor to correct from noise
-		//for (jj=0;jj<nbins;jj++)
-		//  P[ii][jj] -= iCov[ii][ii]*sign0*sign0;
-		//for (jj=0;jj<nbins;jj++)
-		//  if (P[ii][jj] < 0)
-		//	P[ii][jj] = 0.0;
-
-		//printf("iCov[%ld] = %10.15g\n",ii,iCov[ii][ii]*sign0*sign0);
 
 		base_n = FitsBasename(fits_filename);
 
@@ -461,8 +392,6 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
-//	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
-
 	// clean up
 	if (S != NULL){
 		delete [] Ps ;
@@ -470,13 +399,10 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 	}
 
 	delete [] data_lp ;
-	//	delete [] data ;
-	//	delete [] bfilter ;
 	delete [] commontmp;
 	delete [] Nell;
 	delete [] Nk;
 
-	//----------------------------------- END -------------------------------//
 	return 0;
 }
 
@@ -509,22 +435,11 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 		if(read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, fits_filename, det.boloname))
 			return 1;
 
-		/*for(long ii=0;ii<ns/2+1;ii++){
-			fdata1[ii][0]=fdata_buffer[(ns/2+1)*idet1+ii][0];
-			fdata1[ii][1]=fdata_buffer[(ns/2+1)*idet1+ii][1];
-		}*/
-
-
 		for (long idet2=0;idet2<det.ndet;idet2++) {
 
 			// read data from disk
 			if(read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, fits_filename, det.boloname))
 				return 1;
-
-			/*for(long ii=0;ii<ns/2+1;ii++){
-						fdata2[ii][0]=fdata_buffer[(ns/2+1)*idet2+ii][0];
-						fdata2[ii][1]=fdata_buffer[(ns/2+1)*idet2+ii][1];
-	}*/
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
@@ -533,7 +448,6 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 				Rellexp[idet1*det.ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
-		//		if(idet1==0)
 		for(int rk=0;rk<rank;rk++)
 			cout << "\t\t\t"; // try to deal with MPI screen outputs
 		cout << "[ " << rank << " ]" << " Rellexp :" << setprecision(2) << idet1*100./det.ndet << "%\r" << flush ;
@@ -639,7 +553,7 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 	delete [] fdata2;
 	delete [] Nell;
 	delete [] Nk;
-	//----------------------------------- END -------------------------------//
+
 	return 0;
 }
 
@@ -649,26 +563,22 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		double *SPref, double *ell, int rank)
 {
 
-//	cout << endl << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	//***** Fourth part
 	//*********************** fit component and noise power spectra, and mixing matrix *************//
 	//********* Using Expectation/Maximization algorithm
 	long nbiter = 500;
 	long ib=0; // used as an iterator
-	//long iter;
 
 	double tottest=0.0;
 
 	double f;
-	//	FILE *fp;
 
 	double *iN, *Pr, *w;
 	double **Rxs, **Rxsq, **RnRxsb, **Rxx, **Rxxq, **Rss, **Rssq, **RnRssb;
 	double **Pr2, **AiNA, **Mattmp, **ImDR, **ACq, **Cq, **Wq;
 	long nbins2=0;
 
-	//ib = 0;
 	while ((ell[ib] < fcut) && (ib < nbins)){
 		nbins2 = ib+1;
 		ib++;
@@ -722,25 +632,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		w[ii] = (ell[ii+1] - ell[ii])*ns/fsamp;
 
 
-
-	//	std::ostringstream temp_stream;
-	//
-	//	//sprintf(testfile,"%s%s%d%s%s",outdirSpN.c_str(),"weights_",(int)ff,termin.c_str(),".txt");
-	//	temp_stream << outdirSpN + "weights_" << ff << ".txt";
-	//
-	//	string testfile;
-	//// récupérer une chaîne de caractères
-	//	testfile= temp_stream.str();
-	//	temp_stream.str("");
-	//
-	//	fp = fopen(testfile.c_str(),"w");
-	//	for (long jj=0;jj<nbins2;jj++){
-	//		fprintf(fp,"%10.15g \t",w[jj]);
-	//	}
-	//	fprintf(fp,"\n");
-	//	fclose(fp);
-
-
 	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 	printf("Pre em:   obj: %10.15g\n", f) ;
 
@@ -750,8 +641,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 	for (long iter=1;iter<=nbiter;iter++){
 
-		//init1D_double(iN,0,ndet,0.0);
-		//init1D_double(Pr,0,ncomp,0.0);
 		fill(iN,iN+ndet,0.0);
 		fill(Pr,Pr+ncomp,0.0);
 		init2D_double(Rxs,0,0,ndet,ncomp,0.0);
@@ -992,18 +881,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		}
 
 
-
-
-		//printf("A[1][2] =  %10.15g\n", mixmat[1][2]) ;
-		//printf("N[2][3] =  %10.15g\n", N[2][3]) ;
-		//printf("P[2][3] =  %10.15g\n", P[2][3]) ;
-
-
-		// Fixing the indeterminacies.  Is it useful here?
-		//    rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
-
-
-
 		///// here is the problem
 
 		f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
@@ -1022,9 +899,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 	// Fixing the indeterminacies.  Is it useful here?
 	rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
-
-
-
 
 	//****************************** Compute covariance matrix from the fitted model
 
@@ -1050,11 +924,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		for (long jj=nbins2;jj<nbins;jj++)
 			for (long idet=0;idet<ndet;idet++)
 				Rellth[idet*ndet+idet][jj] = Rellexp[idet*ndet+idet][jj]*SPref[jj];
-
-
-	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
-
-	//----------------------------------- END -------------------------------//
 
 
 	//cleaning up
@@ -1095,7 +964,6 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 	double f;
 
-	//long ib, ii, jj, kk;
 	double triRhR, logdetiR;
 
 	double *uvec, *ivec;
@@ -1121,15 +989,13 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	init2D_double(hR,0,0,ndet,ndet,0.0);
 	init2D_double(eR,0,0,ndet,ndet,0.0);
 	init2D_double(iR,0,0,ndet,ndet,0.0);
-	//init1D_double(Pl,0,ncomp,0.0);
-	//init1D_double(Pnl,0,ndet,0.0);
 	fill(Pl,Pl+ncomp,0.0);
 	fill(Pnl,Pnl+ndet,0.0);
 	init2D_double(iRhR,0,0,ndet,ndet,0.0);
 
 
 	// init
-	f   = 0. ;
+	f   = 0.0 ;
 
 	for (long ib=0;ib<nbins;ib++){
 
@@ -1153,10 +1019,6 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 			}
 
 
-		//printf("ib=%d\n",ib);
-		/// inverting Rth
-
-
 		for (long ii=0;ii<ndet;ii++){
 			for (long jj=0;jj<ndet;jj++)
 				eR[ii][jj] = R[ii][jj];
@@ -1174,9 +1036,6 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 		}
 
-		// printf("ib=%d\n",ib);
-
-
 		/// computing mismatch from Rexp and Rth
 		for (long ii=0;ii<ndet;ii++)
 			for (long jj=0;jj<ndet;jj++){
@@ -1189,13 +1048,11 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 		triRhR = 0.0;
 		logdetiR = 0;
 		for (long ii=0;ii<ndet;ii++){
-			//      cout << ii << " " << iRhR[ii][ii] << " , " << p[ii] << " : " << triRhR << " , " << detiR << endl;
 			triRhR += iRhR[ii][ii];
 			logdetiR -= log(l[ii][ii]*l[ii][ii]);
 		}
 
 
-		//f   +=  w[ib] * ( triRhR - log(det(iRhR)) - ndet ) ;
 		f   +=  w[ib] * (triRhR - logdetiR - ndet ) ; //pb when hR non inversible
 
 	}
@@ -1223,12 +1080,10 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 
-	//long ii, jj, ib;
 	double *norm2ratio;
 
 	norm2ratio = new double[ncomp];
 
-	//init1D_double(norm2ratio,0,ncomp,0.0);
 	fill(norm2ratio,norm2ratio+ncomp,0.0);
 
 	for (long ii=0;ii<ncomp;ii++){

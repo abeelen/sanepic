@@ -1,4 +1,3 @@
-
 #include "covMatrix_IO.h"
 #include "invMatrix.h"
 #include "temporary_IO.h"
@@ -72,7 +71,6 @@ int main(int argc, char *argv[]) {
 	string base_name="";/*! output noise file suffix */
 	string fname; /*! covariance matrix fits filename */
 	string fname2;
-	//	char* fname_temp;
 	string boloname;/*! channels list file */
 	string extname = "_InvNoisePS";
 
@@ -84,33 +82,33 @@ int main(int argc, char *argv[]) {
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
 	int parsed=0;
-		// Parse ini file
-		if (argc<2) {
-			printf("Please run %s using a *.ini file\n",argv[0]);
-			parsed=-1;
-		} else {
-			std::vector<double> fcut;
-			struct param_positions pos_param;
-			struct param_process proc_param;
-			struct PS structPS;
-			struct sanePic struct_sanePic;
-			parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
-					structPS, struct_sanePic, rank, size);
+	// Parse ini file
+	if (argc<2) {
+		printf("Please run %s using a *.ini file\n",argv[0]);
+		parsed=-1;
+	} else {
+		std::vector<double> fcut;
+		struct param_positions pos_param;
+		struct param_process proc_param;
+		struct PS structPS;
+		struct sanePic struct_sanePic;
+		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+				structPS, struct_sanePic, rank, size);
+	}
+	if (rank==0)
+		switch (parsed){/* error during parsing phase */
+
+		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+		break;
+
+		case 2 : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+		case 3 : printf("Exiting...\n");
+		break;
+
+		default :;
 		}
-		if (rank==0)
-			switch (parsed){/* error during parsing phase */
-
-			case 1: printf("Please run %s using a *.ini file\n",argv[0]);
-			break;
-
-			case 2 : printf("Wrong program options or argument. Exiting !\n");
-			break;
-
-			case 3 : printf("Exiting...\n");
-			break;
-
-			default :;
-			}
 
 	if (parsed>0){
 #ifdef USE_MPI
@@ -132,7 +130,6 @@ int main(int argc, char *argv[]) {
 			cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
 	}else{
 		n_iter = (long)samples_struct.noisevect.size();
-		//		n_iter = (int)samples_struct.noisevect.size();
 		if(n_iter==0){
 			if(rank==0)
 				cerr << "WARNING. You have forgotten to mention covariance matrix in ini file or fits_filelist\n";
@@ -147,33 +144,6 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	//	channelOut = detector_tab[0].boloname;
-	//
-	//	if(samples_struct.ntotscan>1){
-	//		for(long iframe=1;iframe<samples_struct.ntotscan;iframe++)
-	//			channelOut.insert(channelOut.end(),detector_tab[iframe].boloname.begin(), detector_tab[iframe].boloname.end());
-	//
-	//		struct sortclass_string sortobject;
-	//		sort(channelOut.begin(), channelOut.end(), sortobject); // sort channel vector
-	//
-	//		std::vector<std::string>::iterator it;
-	//		it = unique(channelOut.begin(),channelOut.end()); // get only unique values
-	//
-	//		channelOut.erase(it,channelOut.end());
-	//	}
-	//	for(long ii=0;ii<channelOut.size();ii++)
-	//		cout << channelOut[ii] << endl;
-
-	//	// Input argument for output : channellist
-	//	if(read_strings(boloname, channelOut)){
-	//#ifdef USE_MPI
-	//		MPI_Barrier(MPI_COMM_WORLD);
-	//		MPI_Finalize();
-	//#endif
-	//		return 0;
-	//	}
-
-
 	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 	//	ndet = channelOut.size();
 
@@ -183,12 +153,12 @@ int main(int argc, char *argv[]) {
 			fname="";
 			fname+=(string)samples_struct.noisevect[ii];
 			base_name=FitsBasename(fname);
-			cout << base_name << endl;
-			base_name=FitsBasename(fname);
+			cout << "Inversion of : " << base_name << endl;
 
 			// get input covariance matrix file name
 			fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
-			//			cout << fname2 << endl;
+
+
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
 			// -the input channel list => channelIn
@@ -201,17 +171,12 @@ int main(int argc, char *argv[]) {
 
 			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
-
-//			if((n_iter==1)&&(samples_struct.ntotscan!=1))
-//				channelOut=channelIn;
-//			else
-				channelOut=detector_tab[ii].boloname;
+			channelOut=detector_tab[ii].boloname;
 
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 			ndet = channelOut.size();
 
 			printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
-
 
 			//Deal with bolometer reduction and fill Rellth and mixmat
 			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
@@ -219,7 +184,6 @@ int main(int argc, char *argv[]) {
 			// Inverse reduced covariance Matrix : Returns iRellth
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
-			//			cout << base_name + extname << endl;
 			// write inversed noisePS in a binary file for each detector
 			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname)){
 #ifdef USE_MPI

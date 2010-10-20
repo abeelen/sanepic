@@ -1,10 +1,3 @@
-/*
- * estimPS.h
- *
- *  Created on: 28 mai 2009
- *      Author: matthieu
- */
-
 #ifndef ESTIMPS_H_
 #define ESTIMPS_H_
 

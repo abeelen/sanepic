@@ -1,13 +1,5 @@
-/*
- * estimPS.cpp
- *
- *  Created on: 28 mai 2009
- *      Author: matthieu
- */
-
 #include "estimPS.h"
 
-// temp
 #include <iostream>
 
 #include <vector>
@@ -44,25 +36,16 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	double *ell;// bins values, Nell = binned noise PS
 	double **mixmat; // mixing matrix
 
-	//fftw_plan fftplan;
-	//	fftw_complex *fdata1, *fdata2; // fourier transform of the data
-	//fftw_complex *fdata_buffer ;
-	//fdata_buffer= new fftw_complex[(ns/2+1)*ndet];
-
-	// to print processing time
-//	time_t t1;
 
 
 	printf("\nEstimation procedure started : \n");
-//	t1=time(NULL);
 
 	//	data = raw data
 	//	data_lp = data low passed
 	//	samptopix = sample to pixel projection matrix
 	//	Nk = noise PS
 	//	bfilter = butterworth filter values
-	//	fdata1 = fourier transform
-	//	fdata2 = fourier transform
+	//	fdata = fourier transform
 
 	if(read_double(ellFile, ell, nbins)) // read ell in ellfile
 		return 1;
@@ -87,10 +70,6 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	init2D_double(Rellth,0,0, (det.ndet)*(det.ndet),nbins ,0.0);
 
 	init2D_double(commonm2,0,0,ncomp,ns,0.0);
-	//	fill(commontmp,commontmp+ns,0.0);
-	//	fill(commonm_f,commonm_f+ns,0.0);
-	//	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
-	//	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
 	//apodization
 	apodwind = apodwindow(ns,int(ns*0.04));
@@ -104,10 +83,10 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 	if(read_mixmat_file(MixMatfile, mixmat, det.ndet,ncomp))
 		return 1;
 
-	// compute common mode : return commonm2
+	//----------------------------------- COMMON MODE -------------------------------//
 	cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
 	if(common_mode_computation(det,proc_param, pos_param, dir, apodwind, ns, NAXIS1, NAXIS2, npix, iframe, S, indpix,
-			mixmat, ncomp, commonm2, factapod, fits_filename))
+			mixmat, ncomp, commonm2, factapod, fits_filename)) // return commonm2
 		return 1;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//

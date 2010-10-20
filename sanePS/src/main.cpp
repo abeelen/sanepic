@@ -5,10 +5,6 @@
 #include <sstream>
 
 
-
-
-
-
 #include "imageIO.h"
 #include "temporary_IO.h"
 #include "mpi_architecture_builder.h"
@@ -37,8 +33,6 @@ int main(int argc, char *argv[])
 {
 
 
-	// read framesorder
-
 	int size;//,size_det;
 	int rank;//,rank_det;
 #ifdef USE_MPI
@@ -49,8 +43,6 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	//	cout << size << endl;
-	//	cout << rank << endl;
 	if(rank==0)
 		printf("\nSanepic Noise Estimation Procedure:\n");
 
@@ -66,16 +58,12 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
 	struct common dir; /*! structure that contains output input temp directories */
-	//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
-	std::vector<detectors> detector_tab;
+	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
 
+	// map making parameters
 	int flagon; /*!  if one sample is rejected, flagon=1 */
 	long long ind_size; // indpix size
 	long long *indpix; // map index
-
-	// map making parameters
-
-
 	long NAXIS1, NAXIS2; // map size
 	long long npix; // npix = number of filled pixels
 
@@ -86,19 +74,14 @@ int main(int argc, char *argv[])
 	string field; // actual boloname in the bolo loop
 	string prefixe; // prefix used for temporary name file creation
 
-
-//	string MixMatfile = "NOFILE"; // mixing matrix file
-	//	string signame; // map filename
-
-
 	long iframe_min=0, iframe_max=0;
 
 	// main loop variables
 	double *S = NULL; // signal
 	struct PS structPS;
 
-	//	long ncomp; // number of noise component to estimate
-	//	double fcut; // cut-off freq : dont focus on freq larger than fcut for the estimation !
+	//	ncomp = number of noise component to estimate
+	//	fcut = cut-off freq : dont focus on freq larger than fcut for the estimation !
 
 	int parsed=0; // parser error code
 	if (argc<2) { // too few arguments
@@ -107,8 +90,6 @@ int main(int argc, char *argv[])
 	} else {
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		//		int iterw=10;
-		//		int save_data, restore;
 		std::vector<double> fcut_vector;
 		struct sanePic struct_sanePic;
 
@@ -271,12 +252,11 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 
 	ofstream file;
- // TODO : add MPI reorder bolo filelist ! follow the order of the scans ! (it's the same !)
+	// TODO : add MPI reorder bolo filelist ! follow the order of the scans ! (it's the same !)
 	if(samples_struct.scans_index.size()==0){
 
 		int test=0;
 		string fname = dir.output_dir + parallel_scheme_filename;
-		//		cout << fname << endl;
 
 		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
@@ -334,10 +314,6 @@ int main(int argc, char *argv[])
 		ns = samples_struct.nsamples[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
 		cout << "[ " << rank << " ] " << fits_filename << endl;
-//		oss << fits_filename;
-//		string filename = oss.str();
-//		MixMatfile=Basename(filename);
-//		oss.str("");
 
 		struct detectors det = detector_tab[iframe];
 
@@ -368,13 +344,11 @@ int main(int argc, char *argv[])
 
 	fftw_cleanup();
 
-	if(structPS.signame == "NOSIGFILE"){
-		//		int nwcs = 1;
-		//		wcsvfree(&nwcs, &wcs);
-	}else{
+	if(structPS.signame != "NOSIGFILE"){
 		delete [] S;
 		delete [] indpix;
 	}
+
 	printf("\nEnd of sanePS\n");
 	return 0;
 }

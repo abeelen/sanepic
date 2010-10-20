@@ -152,28 +152,3 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	delete [] l;
 }
 
-
-//int who_do_it(int size, int rank, int ii)
-///*!\brief This function determines which processor has to treat the given loop referenced by his number
-// * \param size Number of Processor used
-// * \param rank processor rank number
-// * \param ii A scan number
-// * \return integer : A processor's rank, the rank determines which processor has to compute the scan
-// */
-//{
-//
-//	if(size==1) // if there is only 1 proc, he has to do the job
-//		return 0;
-//
-//	if(size>=ii) // if the loop number is smaller than the number of MPI processors
-//		return ii;
-//
-//	if(size<ii){ // if the loop number is larger than the number of MPI processors
-//		while(ii>size)
-//			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
-//		return ii;
-//	}
-//
-//	return -1; // error in the program
-//}
-
