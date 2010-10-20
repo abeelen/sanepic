@@ -1,4 +1,3 @@
-
 #ifndef PARSE_SANEMERGE_H_
 #define PARSE_SANEMERGE_H_
 

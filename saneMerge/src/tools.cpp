@@ -1,5 +1,3 @@
-
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -19,7 +17,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 #include <fitsio.h>
 }
 
@@ -145,8 +142,7 @@ void copy_ref_pos(fitsfile *outfptr, struct samples samples_struct, long ns_fina
 
 		double *RA, *DEC, *PHI; // input RA DEC PHI tables
 
-//		read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp); // read RA DEC and PHI table from input file
-		read_ReferencePosition_from_fits(fname, RA, DEC, PHI, ns_temp);
+		read_ReferencePosition_from_fits(fname, RA, DEC, PHI, ns_temp); // read RA DEC and PHI table from input file
 
 		for(long ii = 0; ii< ns_temp; ii++){ // add RA DEC and PHI values to the ouput table
 			RA_bis[indice_debut+ii]=RA[ii]*15.0;
