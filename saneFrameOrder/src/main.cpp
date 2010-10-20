@@ -1,10 +1,3 @@
-/*
- * main.cpp
- *
- *  Created on: 15 juin 2009
- *      Author: matthieu
- */
-
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -44,9 +37,6 @@ int main(int argc, char *argv[])
 	int rank=0;
 
 #ifdef USE_MPI
-	// int tag = 10;
-	//	MPI_Status status;
-
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -87,7 +77,6 @@ int main(int argc, char *argv[])
 
 
 		if(samples_struct.scans_index.size()!=0){
-			//			cout << "non null : " << samples_struct.scans_index.size() << endl;
 			cerr << "You have already given processors order in the fits filelist. Exiting\n";
 			sort (samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
@@ -99,7 +88,6 @@ int main(int argc, char *argv[])
 
 		}
 
-		//cout << ntotscan << endl;
 
 		ruleorder     = new long[samples_struct.ntotscan];
 		frnum         = new long[samples_struct.ntotscan+1];
@@ -115,8 +103,8 @@ int main(int argc, char *argv[])
 			}
 			frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
 
-			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
-			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
+//			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
+//			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
 
 			//write parallel schema in a file
 			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
@@ -126,8 +114,8 @@ int main(int argc, char *argv[])
 			/********************* Define parallelization scheme   *******/
 			find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
 
-			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
-			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
+//			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
+//			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
 
 			//write parallel schema in a file
 			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
