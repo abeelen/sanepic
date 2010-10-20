@@ -292,9 +292,6 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	fill(Nk,Nk+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
-
-
-
 	for (long idet1=rank*det.ndet/size;idet1<(rank+1)*det.ndet/size;idet1++){
 #ifdef DEBUG
 		cout << "[ " << rank << " ] progression do_ptNd : " << 100.0*(1.0-((double)(rank+1)-(double)idet1*(double)size/(double)det.ndet)) << " %" << endl;

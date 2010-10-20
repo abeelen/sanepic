@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 
 #endif
 
-	//	read_info_pointing(NAXIS1, NAXIS2, proc_param.output_dir, tanpix, tancoord);
+	//	read pointing informations
 	struct wcsprm * wcs;
 	read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2); // read keyrec file
 
@@ -1041,7 +1041,6 @@ int main(int argc, char *argv[])
 	delete [] qtot;
 	delete [] Mptot;
 	delete [] PtNPmatStot;
-//	delete [] hitstot;
 	delete [] PNdtot;
 #endif
 

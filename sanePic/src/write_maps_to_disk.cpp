@@ -143,61 +143,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct co
 	}
 
 
-
-	delete [] hits;
-	//////////////////
-
-	//	if (addnpix){
-	//		// initialize the container
-	//		for (long jj=0; jj<NAXIS2 ; jj++){
-	//			for (long ii=0; ii<NAXIS1 ; ii++){
-	//				mi = jj*NAXIS1 + ii;
-	//				map1d[mi] = 0.0;
-	//			}
-	//		}
-	//		// loop thru frame to coadd all pixels
-	//		for (long ii=0; ii<NAXIS1; ii++) {
-	//			for (long jj=0; jj<NAXIS2; jj++)	 {
-	//				mi = jj*NAXIS1 + ii;
-	//				double b = 0.;
-	//				for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-	//					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-	//					if ((indpsrc[mi] != -1) && (indpix[ll] != -1)){
-	//						map1d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
-	//						b += 1./gsl_pow_2(Mptot[indpix[ll]]);
-	//					}
-	//				}
-	//				if (b >= 1)
-	//					map1d[mi] /= b;
-	//			}
-	//		}
-	//		// replace the non observed pixels by NAN
-	//		for (long ii=0; ii<NAXIS1; ii++) {
-	//			for (long jj=0; jj<NAXIS2; jj++) {
-	//				mi = jj*NAXIS1 + ii;
-	//				if (map1d[mi] == 0.0)
-	//					map1d[mi] = NAN;
-	//			}
-	//		}
-	//
-	//		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, "CCR Image", 1);
-	//
-	//		for (long ii=0; ii<NAXIS1; ii++) {
-	//			for (long jj=0; jj<NAXIS2; jj++) {
-	//				mi = jj*NAXIS1 + ii;
-	//				for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
-	//
-	//					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
-	//					if ((indpsrc[mi] != -1)  && (indpix[ll] != -1))
-	//						map1d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
-	//				}
-	//				if (map1d[mi] != 0)
-	//					map1d[mi] = 1./sqrt(map1d[mi]);
-	//			}
-	//		}
-	//		write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"CCR Error",1);
-	//	}
-
 	if (maskfile != "")
 		if(write_fits_mask(fname, maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
@@ -207,7 +152,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct co
 
 	// clean
 	delete [] map1d;
-
+	delete [] hits;
 	// end of write map function
 
 	return 0;

@@ -19,7 +19,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 #include <fitsio.h>
 }
 

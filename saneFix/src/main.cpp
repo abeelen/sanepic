@@ -17,7 +17,6 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "nrcode.h"
 }
 
 using namespace std;

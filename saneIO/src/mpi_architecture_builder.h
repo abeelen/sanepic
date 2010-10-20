@@ -51,6 +51,7 @@ int verify_parallelization_scheme(int rank, std::string outdir,struct samples sa
 long readFitsLength(std::string filename);
 void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
 
+/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
 int who_do_it(int size, int rank, int ii);
 
 #define parallel_scheme_filename  "parallel_scheme.txt";
