@@ -92,7 +92,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix;
+		filename= dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + suffix;
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return -1;
 		det.ndet = (long)((det.boloname).size());
