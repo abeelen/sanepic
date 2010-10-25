@@ -20,6 +20,7 @@
 #include "dataIO.h"
 #include "imageIO.h"
 #include "temporary_IO.h"
+#include "inputFileIO.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -196,6 +197,22 @@ int main(int argc, char *argv[])
 			MPI_Finalize();
 			exit(1);
 		}
+
+		if(dir.bolo_global_filename==""){
+			detector_tab.clear();
+			for(long oo=0;oo<samples_struct.ntotscan;oo++){
+				struct detectors det;
+				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
+
+				if(read_channel_list(filename, det.boloname, rank)==1)
+					return 2;
+				det.ndet = (long)((det.boloname).size());
+				detector_tab.push_back(det);
+				//				det.ndet=0;
+				//				det.boloname.clear();
+			}
+		}
+
 		// user has given a processor order
 	}else{
 		int test=0;
@@ -269,7 +286,9 @@ int main(int argc, char *argv[])
 
 #endif
 
-
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
 
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){

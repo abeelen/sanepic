@@ -17,6 +17,7 @@
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"
 #include "crc.h"
+#include "inputFileIO.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -217,7 +218,24 @@ int main(int argc, char *argv[]) {
 			MPI_Finalize();
 			exit(1);
 		}
-	} else {
+
+		if(dir.bolo_global_filename==""){
+			detector_tab.clear();
+			for(long oo=0;oo<samples_struct.ntotscan;oo++){
+				struct detectors det;
+				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
+
+				if(read_channel_list(filename, det.boloname, rank)==1)
+					return 2;
+				det.ndet = (long)((det.boloname).size());
+				detector_tab.push_back(det);
+				//				det.ndet=0;
+				//				det.boloname.clear();
+			}
+		}
+
+	}else{
+
 		int test=0;
 		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
 
@@ -269,6 +287,10 @@ int main(int argc, char *argv[]) {
 	iframe_max = samples_struct.ntotscan;
 
 #endif
+
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
 
 	//	read pointing informations
 	struct wcsprm * wcs;
@@ -914,13 +936,13 @@ int main(int argc, char *argv[]) {
 				if (rank == 0) {
 					cout << "iter = " << iter;
 					cout << ", crit  = " << setiosflags(ios::scientific)
-									<< setiosflags(ios::floatfield) << var_n / var0;
+											<< setiosflags(ios::floatfield) << var_n / var0;
 					cout << ", crit2 = " << setiosflags(ios::scientific)
-									<< setiosflags(ios::floatfield) << delta_n / delta0;
+											<< setiosflags(ios::floatfield) << delta_n / delta0;
 					cout << ", var_n  = " << setiosflags(ios::scientific)
-									<< setiosflags(ios::floatfield) << var_n;
+											<< setiosflags(ios::floatfield) << var_n;
 					cout << ", delta_n = " << setiosflags(ios::scientific)
-									<< setiosflags(ios::floatfield) << delta_n;
+											<< setiosflags(ios::floatfield) << delta_n;
 					cout << "\r " << flush;
 				}
 

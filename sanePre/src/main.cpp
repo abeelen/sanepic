@@ -15,6 +15,7 @@
 #include "temporary_IO.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
+#include "inputFileIO.h"
 
 
 extern "C" {
@@ -268,6 +269,22 @@ int main(int argc, char *argv[])
 			MPI_Finalize();
 			exit(1);
 		}
+
+		if(dir.bolo_global_filename==""){
+			detector_tab.clear();
+			for(long oo=0;oo<samples_struct.ntotscan;oo++){
+				struct detectors det;
+				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
+
+				if(read_channel_list(filename, det.boloname, rank)==1)
+					return 2;
+				det.ndet = (long)((det.boloname).size());
+				detector_tab.push_back(det);
+				//				det.ndet=0;
+				//				det.boloname.clear();
+			}
+		}
+
 	}else{
 		int test=0; // User has given a processor index in file_list
 		// Verify its validity
@@ -331,6 +348,10 @@ int main(int argc, char *argv[])
 
 
 #endif
+
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
 
 	// (At N-1 D) memory allocation
 	PNd = new double[npix];
