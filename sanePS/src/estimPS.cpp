@@ -38,7 +38,7 @@ int EstimPowerSpectra(struct param_process proc_param,struct detectors det,struc
 
 
 
-	printf("\nEstimation procedure started : \n");
+//	printf("\nEstimation procedure started : \n");
 
 	//	data = raw data
 	//	data_lp = data low passed

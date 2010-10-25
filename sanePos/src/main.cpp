@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0) {
 		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
-		if(save_MapHeader(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
+		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();

@@ -502,6 +502,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	fitsfile *fptr;
 	int status = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+	long miNAXES1, miNAXES2;
 	long mi;
 	double *map;
 //	char comment[80];
@@ -523,7 +524,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	// TODO: Change that...
 	// - read the whole header
 	// - and make a wcs struct out of it
-	// - and write a routine to compare two wcs struct
+	// - and write a routine to compare two wcs struct (and NAXIS keywords)
 	//
 	// Read fits header keys
 //	if (fits_read_key(fptr,TDOUBLE, (char *) "CRPIX1", &crpix1, (char *) &comment, &status)){
@@ -587,23 +588,23 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	if(fits_get_img_size(fptr, 2, naxes, &status))
 		return 1;
 
-	NAXIS1=(long)naxes[0];
-	NAXIS2=(long)naxes[1];
+	imNAXIS1=(long)naxes[0];
+	imNAXIS2=(long)naxes[1];
 
 
 
 	// Initialize the data container
-	map = new double [NAXIS1*NAXIS2];
+	map = new double [imNAXIS1*imNAXIS2];
 
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) NAXIS1*NAXIS2, 0, map, &anynul, &status)){
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, (long long) imNAXIS1*imNAXIS2, 0, map, &anynul, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
 
 	// seems to work correctly
-	for (long ii=0; ii<NAXIS1; ii++) {
-		for (long jj=0; jj<NAXIS2; jj++) {
-			mi = jj*NAXIS1 + ii;
+	for (long ii=0; ii<imNAXIS1; ii++) {
+		for (long jj=0; jj<imNAXIS2; jj++) {
+			mi = jj*imNAXIS1 + ii;
 			if (indpix[mi] >= 0){
 				S[indpix[mi]]= map[mi];
 			}
@@ -619,7 +620,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 }
 
 
-int save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
+int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 
 	FILE *fout;
 	int nkeyrec, status;
@@ -665,7 +666,7 @@ void print_MapHeader(struct wcsprm *wcs){
 
 }
 
-void read_MapHeader(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){
+void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){
 
 	outdir = outdir + "mapHeader.keyrec";
 

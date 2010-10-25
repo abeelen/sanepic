@@ -20,8 +20,8 @@ int write_fits_hitory(std::string fnaivname,long NAXIS1, long NAXIS2, std::strin
 int write_fits_mask(std::string fnaivname, std::string maskfile);
 int read_mask_wcs(string fname, string extname, /*char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data);
 int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, struct wcsprm * wcs);
-int save_MapHeader(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
-void read_MapHeader(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
+int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
+void read_keyrec(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
 void print_MapHeader(struct wcsprm * wcs);
 
 

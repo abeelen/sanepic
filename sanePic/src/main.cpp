@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
 
 	//	read pointing informations
 	struct wcsprm * wcs;
-	read_MapHeader(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2); // read keyrec file
+	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2); // read keyrec file
 
 	if (rank == 0)
 		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size

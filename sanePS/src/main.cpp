@@ -43,15 +43,14 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	if(rank==0)
-		printf("\nSanepic Noise Estimation Procedure:\n");
 
 #else
 	size = 1;
 	rank = 0;
-	printf("\nSanepic Noise Estimation Procedure:\n\n");
-	cout << "Mpi will not be used for the main loop" << endl;
 #endif
+
+	if(rank==0)
+		cout << endl << "sanePS :  Noise Power Spectra Estimation" << endl;
 
 
 	struct param_process proc_param; /*! A structure that contains user options about preprocessing properties */
@@ -132,16 +131,16 @@ int main(int argc, char *argv[])
 	//First time run S=0, after sanepic, S = Pure signal
 	if(structPS.signame != "NOSIGFILE"){
 
-		long NAXIS1_read=0, NAXIS2_read=0;
+//		long NAXIS1_read=0, NAXIS2_read=0;
 		long long addnpix=0;
 		int factdupl=1;
-		double *PNdtot;
+//		double *PNdtot;
 		int nwcs=1;
 		long long npixsrc=0;
 		long long *indpsrc;
-		long long npix2=0;
+//		long long npix2=0;
 		struct wcsprm * wcs;
-		read_MapHeader(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2); // read keyrec file
+		read_keyrec(dir.tmp_dir,wcs, &NAXIS1, &NAXIS2); // read keyrec file
 		if(rank==0)
 			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
 
@@ -149,7 +148,7 @@ int main(int argc, char *argv[])
 
 		//TODO: is a mask always used ???
 		long long test_size;
-		
+
 		if(read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir)){ // read mask index
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -214,13 +213,14 @@ int main(int argc, char *argv[])
 //		delete [] indpsrc;
 //		delete [] PNdtot;
 
-		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
+		//TODO; only rank 0 should read the map and broadcast the result
+		// if map argument build S from map
 		if(rank==0)
 			cout << "Reading model map : " << structPS.signame << endl;
 		S = new double[npix]; // pure signal
 
 		// read pure signal
-		if(read_fits_signal(structPS.signame, S, indpix, NAXIS1_read, NAXIS2_read, wcs)){
+		if(read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -229,16 +229,16 @@ int main(int argc, char *argv[])
 		}
 
 		wcsvfree(&nwcs, &wcs);
-
-		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
-			if(rank==0)
-				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << structPS.signame << endl;
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			return(EXIT_FAILURE);
-		}
+//
+//		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
+//			if(rank==0)
+//				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << structPS.signame << endl;
+//#ifdef USE_MPI
+//			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Finalize();
+//#endif
+//			return(EXIT_FAILURE);
+//		}
 
 #ifdef DEBUG
 		FILE * fp;
@@ -317,10 +317,11 @@ int main(int argc, char *argv[])
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){ // proceed scan by scan
 		ns = samples_struct.nsamples[iframe];
 		fits_filename=samples_struct.fits_table[iframe];
-		cout << "[ " << rank << " ] " << fits_filename << endl;
+//		cout << "[ " << rank << " ] " << fits_filename << endl;
 
 		struct detectors det = detector_tab[iframe];
 
+		//TODO : Handle return code
 		EstimPowerSpectra(proc_param,det,dir, pos_param, ns, NAXIS1,NAXIS2, npix,
 				iframe, indpix,	S, structPS.mix_names[iframe], structPS.ell_names[iframe],
 				fits_filename, structPS.ncomp, structPS.fcutPS, rank);
