@@ -584,8 +584,8 @@ int main(int argc, char *argv[])
 		}
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while( ( (iter < 2000) && (var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl) )
-				|| (!idupl && var_n/var0 > 1e-6) ){
+		while(  (iter < 2000) && ((var_n/var0 > 1e-10) && (idupl || !pos_param.flgdupl)
+				|| (!idupl && var_n/var0 > 1e-6)) ){
 
 			fill(q,q+npixeff,0.0); // q <= A*d
 
