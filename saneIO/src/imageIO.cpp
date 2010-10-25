@@ -502,7 +502,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	fitsfile *fptr;
 	int status = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-	long miNAXES1, miNAXES2;
+	long imNAXIS1, imNAXIS2;
 	long mi;
 	double *map;
 //	char comment[80];

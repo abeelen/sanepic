@@ -158,7 +158,7 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double
 
 	oss << out_dir + "optimMap_" << iter << "b.fits";
 	fits_temp=oss.str();
-	read_MapHeader(tmp_dir,wcs,&NAXIS1, &NAXIS2);
+	read_keyrec(tmp_dir,wcs,&NAXIS1, &NAXIS2);
 	read_fits_signal(fits_temp, S, indpix, NAXIS1, NAXIS2, wcs);
 
 	iter++;
