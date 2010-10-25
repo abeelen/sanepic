@@ -30,27 +30,6 @@ extern "C" {
 using namespace std;
 
 
-
-int who_do_it(int size, int rank, int ii)
-/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
-{
-
-	if(size==1) // if there is only 1 proc, he has to do the job
-		return 0;
-
-	if(size>=ii) // if the fits file number is smaller than the number of MPI processors
-		return ii;
-
-	if(size<ii){ // if the fits file number is larger than the number of MPI processors
-		while(ii>size)
-			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
-		return ii;
-	}
-
-	return -1; // error in the program
-}
-
-
 int read_indices_file(string fname, struct common dir, std::vector<long> &indice, double &fsamp)
 /*! read saneCheck log files : get sample indices => where the gaps are */
 {
@@ -292,38 +271,6 @@ void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, doubl
 	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_total, RA, &status); // write columns one by one
 	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_total, DEC, &status);
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_total, PHI, &status);
-}
-
-
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
-/*! copy offsets table from input to output file */
-{
-
-	int status=0; // fits error status
-
-	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){// move input pointer to "offsets" HDU
-		cout << "WARNING : offsets table was not found, skipping this table...\n";
-		return;
-	}
-	fits_copy_header(fptr, outfptr, &status); // copy header to output file
-
-	for(int col=1;col<4;col++) // copy the table column by column
-		fits_copy_col(fptr, outfptr,  col, col,	0, &status);
-
-}
-
-
-void copy_channels(fitsfile * fptr, fitsfile *outfptr)
-/*! copy offsets table from input to output file */
-{
-
-	int status=0; // fits error status
-
-
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status); // move input pointer to "channels" table
-	fits_copy_header(fptr, outfptr, &status); // copy header to output
-	fits_copy_col(fptr, outfptr,  1, 1,	0, &status); // copy whole channel table to output
-
 }
 
 void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)

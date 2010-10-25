@@ -736,20 +736,24 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct dete
 	//---------------
 	fill(signal_tot,signal_tot+ns,0.0);
 
+	cout << " here " << endl;
 	// sum up all detectors signal
 	for(int jj=0;jj<ns;jj++){
 		fill(signal_samp,signal_samp+det.ndet,0.0);
 
-		if(read_sample_signal_from_fits(fname, jj+1, signal_samp, det.ndet))
+		cout << "before read\n";
+		if(read_sample_signal_from_fits(fname, jj+1, signal_samp, det))
 			return 1;
-
+		cout << "before alloc\n";
 		std::vector<double> signal_vec(signal_samp, signal_samp+det.ndet);
-		//		cout << signal_vec[0] << endl;
+		cout << signal_vec[0] << endl;
 		signal_tot[jj]=median(signal_vec);
-		//		cout << signal_tot[jj] << endl;
+		cout << signal_tot[jj] << endl;
 	}
 
 	fill(signal_samp,signal_samp+det.ndet,0.0);
+
+	cout << " here " << endl;
 
 	for(long jj=0;jj<10;jj++)
 		cout << signal_tot[jj] << " " ;
@@ -819,7 +823,7 @@ void log_gen(long  *bolo_, string outname, struct detectors det, double *percent
 
 }
 
-int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, long ndet){
+int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, struct detectors det){
 	//TODO : Handle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -862,25 +866,30 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 	ns = naxes[0];
 	double temp;
 
-	for(int idet=1;idet<=(int)ndet;idet++){
+	for(int idet=1;idet<=(int)det.ndet;idet++){
 		//		cout << idet << endl;
 		// ---------------------------------------------
 		// Retrieve the corresponding pix
 		fpixel[0] = sample;
-		fpixel[1] = idet;
+		string field = det.boloname[idet];
+		fpixel[1] = find_channel_index(fptr, (char *)field.c_str());
 		if (fits_read_pix(fptr, TDOUBLE, fpixel, 1, 0, &temp, &anynul, &status)){
 			fits_report_error(stderr, status);
 			return 1;
 		}
 		signal_samp[idet]=temp;
+		cout << signal_samp[idet] << " " << temp << endl;
 	}
 
 	// ---------------------------------------------
 	// close file
 	if(fits_close_file(fptr, &status)){
+		cout << status << endl;
 		fits_report_error(stderr, status);
 		return 1;
 	}
+
+	cout << "after close\n";
 
 	return 0;
 

@@ -6,12 +6,6 @@
 /*! Copy RA DEC and PHI (reference detector) tables from input fits to output */
 void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, std::string name, long min_sample, long max_sample);
 
-/*! copy bolometers offsets (in regards to ref detector) from input to output */
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr);
-
-/*! Copy channel list table from input fits to output */
-void copy_channels(fitsfile * fptr, fitsfile *outfptr);
-
 /*! Copy resized time table from input fits to output */
 void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample, long max_sample);
 

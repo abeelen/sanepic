@@ -72,36 +72,6 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 
 }
 
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
-/*! copy bolometers offsets (in regards to ref detector) from input to output */
-{
-
-	int status=0; // fits error status
-
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status); // copy header
-
-	for(int col=1;col<4;col++)
-		fits_copy_col(fptr, outfptr,  col, col,	0, &status); // copy the 3 columns
-
-}
-
-
-void copy_channels(fitsfile * fptr, fitsfile *outfptr)
-/*! Copy channel list table from input fits to output */
-{
-
-	int status=0; // fits error status
-
-
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status);
-	fits_copy_header(fptr, outfptr, &status); // copy header
-
-
-	fits_copy_col(fptr, outfptr,  1, 1,	0, &status); // copy channel list
-
-}
-
 void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample, long max_sample)
 /*! Copy resized time table from input fits to output */
 {

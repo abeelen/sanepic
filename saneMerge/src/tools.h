@@ -7,12 +7,6 @@ void file_compatibility_verification(struct samples samples_struct);
 /*! copy reference position tables from each file to output file */
 void copy_ref_pos(fitsfile *outfptr, struct samples samples_struct, long ns_final);
 
-/*! copy offsets table from this file to output file */
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr);
-
-/*! copy channels list from this file to output file */
-void copy_channels(fitsfile * fptr, fitsfile *outfptr);
-
 /*! copy time tables from each file to output file */
 void copy_time(fitsfile *outfptr, struct samples samples_struct, long ns_final);
 

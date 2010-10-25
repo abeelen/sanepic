@@ -1,8 +1,6 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
-/*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
-int who_do_it(int size, int rank, int ii);
 
 /*! read saneCheck log files : get sample indices => where the gaps are */
 int read_indices_file(std::string fname, struct common dir, std::vector<long> &indice, double &fsamp);
@@ -30,12 +28,6 @@ void insert_mask_in_image(fitsfile *fptr, fitsfile *outfptr, std::string field, 
 
 /*! insert "reference position" table in the output fits file */
 void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, double *DEC,double *PHI, long ns_total);
-
-/*! copy offsets table from input to output file */
-void copy_offsets(fitsfile * fptr, fitsfile *outfptr);
-
-/*! copy offsets table from input to output file */
-void copy_channels(fitsfile * fptr, fitsfile *outfptr);
 
 /*! Copy input signal header to output and fill the gaps in signal table */
 void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);

@@ -43,7 +43,7 @@ double median(std::vector<double> vec);
 void log_gen(long *bolo_, std::string outname, struct detectors det, double *percent_tab=NULL);
 
 /*! read the signal for all detector and for one given time sample */
-int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, long ndet);
+int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, struct detectors det);
 
 
 
