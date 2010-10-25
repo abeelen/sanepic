@@ -79,17 +79,12 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_process proc_param,
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
 
-		}
-
-
-		if (S != NULL){
+//		}
+//		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
-					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
-		}
-		else {
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
-					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
+			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp,  Ps);
+		} else {
+			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
 		}
 
 

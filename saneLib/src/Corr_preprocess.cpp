@@ -186,20 +186,18 @@ int write_ftrProcesdata(double *S, struct param_process proc_param, struct sampl
 			} else {
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
-		}
+//		}
 
 
 		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 
-		if (S != NULL){
+//		if (S != NULL){
 			//********************  pre-processing of data ********************//
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
-					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia,Ps);
+			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
 		}
 		else {
-			MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,f_lppix,data_lp,
-					proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
+			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
 		}
 
 

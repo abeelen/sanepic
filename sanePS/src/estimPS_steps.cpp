@@ -1,20 +1,21 @@
-#include "estimPS_steps.h"
-#include "cholesky.h"
 
 //#include "psdIO.h"
 #include <vector>
-#include "todprocess.h"
-#include "map_making.h"
-#include "temporary_IO.h"
-#include "inputFileIO.h"
 #include <sstream>
 #include <cmath>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <sysexits.h>
 
+#include "todprocess.h"
+#include "map_making.h"
+#include "temporary_IO.h"
+#include "inputFileIO.h"
 #include "dataIO.h"
 #include "covMatrix_IO.h"
+#include "estimPS_steps.h"
+#include "cholesky.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -24,20 +25,9 @@ extern "C" {
 
 using namespace std;
 
-int read_mixmat_file(string Mixmatfile, double **&mixmat, long ndet, long ncomp){
-
-	if(read_mixmat_txt(Mixmatfile, ndet, ncomp,mixmat))
-		return 1;
-
-	return 0;
-}
-
-
-
-
 int common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
 		struct common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
-		long iframe, double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
+		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
 {
 	//*************************** Read data and compute components
@@ -96,17 +86,17 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 		long test_ns;
 		if(read_signal_from_fits(fits_filename, field, data, test_ns))
-			return 1;
+			return EX_NOINPUT;
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 
 		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
-			return 1;
+			return EX_NOINPUT;
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 
 
@@ -115,7 +105,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 		if (S != NULL){
 			//Read pointing data
 			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, det.boloname[idet]))
-				return 1;
+				return EX_NOINPUT;
 
 
 			//TODO : Check this function on what it does/should do
@@ -137,8 +127,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
-		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
-				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
+		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
 
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
@@ -157,7 +146,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 
 		if(write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, fits_filename, det.boloname))
-			return 1;
+			return EX_DATAERR;
 
 		/// compute sigma of the noise
 		mm = 0.0;
@@ -203,7 +192,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 	cholesky(ncomp,Cov,l);
 
-	printf("ncomp:%ld", ncomp);
+//	printf("ncomp:%ld", ncomp);
 
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ncomp;jj++)
@@ -214,7 +203,7 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 			iCov[ii][jj] = ivec[jj];
 	}
 
-	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
+//	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
 
 
 	for (long ii=0;ii<ns;ii++)
@@ -239,14 +228,14 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
 
-	return 0;
+	return EX_OK;
 }
 
 
 
 int estimate_noise_PS(struct detectors det, struct param_process proc_param,struct param_positions pos_param,
 		struct common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
-		long NAXIS2, long long npix, double *&ell, double *S, long iframe,long long *indpix,
+		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
 {
@@ -319,7 +308,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 		if (S != NULL){
 			//Read pointing data
 			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, field))
-				return 1;
+				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
@@ -328,9 +317,8 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 
 		}
 
-
-		MapMakPreProcessData(data,flag,ns,proc_param.napod,proc_param.poly_order,1.0,data_lp,
-				proc_param.NORMLIN,proc_param.NOFILLGAP,proc_param.remove_polynomia);
+		//TODO : why f_lppix set to 1.0 ?
+		MapMakePreProcessData(data,  flag, ns, proc_param, 1.0, data_lp, NULL);
 
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii] * apodwind[ii];
@@ -404,11 +392,11 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 	delete [] Nell;
 	delete [] Nk;
 
-	return 0;
+	return EX_OK;
 }
 
 
-int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 
@@ -434,13 +422,13 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 
 		// read data from disk
 		if(read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, fits_filename, det.boloname))
-			return 1;
+			return EX_NOINPUT;
 
 		for (long idet2=0;idet2<det.ndet;idet2++) {
 
 			// read data from disk
 			if(read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, fits_filename, det.boloname))
-				return 1;
+				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
@@ -449,10 +437,11 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 				Rellexp[idet1*det.ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
+#ifdef DEBUG
 		for(int rk=0;rk<rank;rk++)
 			cout << "\t\t\t"; // try to deal with MPI screen outputs
 		cout << "[ " << rank << " ]" << " Rellexp :" << setprecision(2) << idet1*100./det.ndet << "%\r" << flush ;
-
+#endif
 	}
 
 	////// normalize to the first detector power spectrum in order to avoid numerical problems
@@ -460,9 +449,10 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 		SPref[ii] = Rellexp[0][ii]; // first detector PS
 
 	for (long ii=0;ii<nbins;ii++)
-		if ( isnan(SPref[ii]) || isinf(SPref[ii]))
+		if ( isnan(SPref[ii]) || isinf(SPref[ii])){
 			cout << " Problem in the first detector power spectrum\n";
-
+			exit(-1);
+		}
 	for (long idet1=0;idet1<det.ndet;idet1++)
 		for (long idet2=0;idet2<det.ndet;idet2++)
 			for (long ii=0;ii<nbins;ii++)
@@ -555,7 +545,7 @@ int estimate_CovMat_of_Rexp(long iframe, struct common dir, struct detectors det
 	delete [] Nell;
 	delete [] Nk;
 
-	return 0;
+	return EX_OK;
 }
 
 
@@ -886,12 +876,14 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 		f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 		//		if(iter==0)
+#ifdef DEBUG
 		for(int rk=0;rk<rank;rk++)
 			cout << "\t\t\t\t"; // try to deal with MPI screen outputs
 		cout << "[ " << rank << " ]" << " em->iter: " << setprecision(2) << iter*100./nbiter << " %\r" << flush;
+#endif
 		if (isnan(f) || isinf(f)) {
 			cout << "Nan........." << endl;
-			return 1;
+			return EX_SOFTWARE;
 		}
 
 
@@ -957,7 +949,7 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 	free_dmatrix(Cq,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(Wq,0,ndet-1,0,ncomp-1);
 
-	return 0;
+	return EX_OK;
 }
 
 
@@ -1129,7 +1121,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	if(write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth))
-		return 1;
+		return EX_IOERR;
 
 
 	temp_stream << outdirSpN + "Ell_" << base_n << ".psd";
@@ -1253,6 +1245,6 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 	delete [] data1d;
 
-	return 0;
+	return EX_OK;
 
 }

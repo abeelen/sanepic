@@ -4,7 +4,7 @@
 
 #include <string>
 #include <fftw3.h>
-
+#include "struct_definition.h"
 
 #define D2PI 6.2831853071795864769252867665590057683943387987502
 
@@ -25,10 +25,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 			  long NAXIS1, long NAXIS2, long long *indpix,
 			  long long npix, double f_lppix, double *dPtNP);
 
-
-void MapMakPreProcessData(double *data,  int *flag, long ns, int napod,
-			  int orderpoly, double f_lppix, double *data_lp, bool NORMLIN,
-			  bool NOFILLGAP,bool remove_polynomia, double *Ps = NULL);
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_process proc_param, double f_lppix, double *data_lp, double *Ps);
 
 
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,
