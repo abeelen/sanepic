@@ -26,4 +26,10 @@ long find_channel_index(fitsfile *fptr, const char * field);
 int read_time_from_fits(string filename, double *& time, long ns);
 int test_format(string fitsname);
 
+/*! copy offsets table from this file to output file */
+void copy_offsets(fitsfile * fptr, fitsfile *outfptr);
+
+/*! copy channels list from this file to output file */
+void copy_channels(fitsfile * fptr, fitsfile *outfptr);
+
 #endif /* DATAIO_H_ */

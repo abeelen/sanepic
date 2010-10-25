@@ -216,8 +216,8 @@ int main(int argc, char *argv[])
 
 		int test=0;
 		fname = dir.output_dir + parallel_scheme_filename;
-		cout << fname << endl;
-
+		if(rank==0)
+			cout << "Getting configuration and frame order from file : " << fname << endl;
 		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){
@@ -569,7 +569,7 @@ int main(int argc, char *argv[])
 		MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
 
-		//		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
+		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
 
 		//start loop

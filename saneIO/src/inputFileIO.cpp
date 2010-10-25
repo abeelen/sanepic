@@ -1,11 +1,3 @@
-/*
- * inputFileIO.cpp
- *
- *  Created on: 25 sept. 2009
- *      Author: abeelen
- */
-
-
 #include <string>
 #include <vector>
 #include <cstdlib>

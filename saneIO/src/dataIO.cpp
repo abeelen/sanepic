@@ -1,4 +1,3 @@
-
 #include <string>
 #include <stdio.h>
 #include <iostream>
@@ -620,3 +619,32 @@ int test_format(string fitsname){
 	return format;
 }
 
+void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
+/*! copy offsets table from this file to output file */
+{
+
+	int status=0; // fits error status
+
+	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status); // move HDU pointer to offsets table
+	fits_copy_header(fptr, outfptr, &status); // copy header informations
+
+	for(int col=1;col<4;col++) // copy the 3 columns to output file
+		fits_copy_col(fptr, outfptr,  col, col,	0, &status);
+
+}
+
+
+void copy_channels(fitsfile * fptr, fitsfile *outfptr)
+/*! copy channels list from this file to output file */
+{
+
+	int status=0; // fits error status
+
+
+	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status); // move HDU pointer to channels table
+	fits_copy_header(fptr, outfptr, &status); // copy header information
+
+
+	fits_copy_col(fptr, outfptr,  1, 1,	0, &status); // copy detectors list
+
+}

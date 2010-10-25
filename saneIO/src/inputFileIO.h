@@ -1,7 +1,3 @@
-/*
- * inputFileIO.h
- */
-
 #ifndef INPUTFILEIO_H_
 #define INPUTFILEIO_H_
 

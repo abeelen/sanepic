@@ -261,8 +261,8 @@ int main(int argc, char *argv[])
 
 		int test=0;
 		fname = dir.output_dir + parallel_scheme_filename; // get parallel scheme file name
-		cout << fname << endl;
-
+		if(rank==0)
+			cout << "Getting configuration and frame order from file : " << fname << endl;
 		// and spread scans between processors
 		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
-	for(int ii = 0; ii< samples_struct.ntotscan;ii++){ // add input directory to input fits file names
+	for(int ii = 0; ii< samples_struct.ntotscan;ii++){ // add data directory to input fits file names
 		samples_struct.fits_table[ii]=dir.dirfile + samples_struct.fits_table[ii];
 	}
 
@@ -705,11 +705,8 @@ int main(int argc, char *argv[])
 
 	//debug : computation time
 #ifdef USE_MPI
-	if(iframe_min!=iframe_max)
-		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
-
-
 	if(rank==0){
+		printf("[%2.2i] Time : %d sec\n",rank, (int)(t3-t2));
 		// clean up
 		delete [] PNdtot;
 		delete [] Mptot;

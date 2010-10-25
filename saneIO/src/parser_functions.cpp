@@ -263,7 +263,7 @@ int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int 
 	int i;
 
 	i = iniparser_getint(ini, "sanePre:apodize_Nsamples", -1);
-	proc_param.napod=i;
+	proc_param.napod=(long)i;
 
 	if( i<0 && rank==0 ){
 		printf("You must choose a positive number of samples to apodize\n");

@@ -286,7 +286,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 		return -1;
 	}
 
-	cout << "parallelization scheme file " << fname << endl;
+	cout << "parallelization scheme written in file : \n" << fname << endl;
 
 
 	string *fitsvect_temp, *noisevect_temp;
@@ -420,7 +420,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 				cout << fits_dummy[ii] << endl;
 				cout << samples_struct.fitsvect[ii] << endl;
 #endif
-				cerr << "Parallelscheme file and " << fname << " do not have the same sample files or noise files. Exiting\n";
+				cerr << "Your fits_filelist file and " << fname << " do not have the same sample files or noise files. Exiting\n";
 				return -1;
 			}
 	}else{
@@ -431,7 +431,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 				cout << fits_dummy[ii] << endl;
 				cout << samples_struct.fitsvect[ii] << endl;
 #endif
-				cerr << "Parallelscheme file and " << fname << " do not have the same sample files. Exiting\n";
+				cerr << "Your fits_filelist file and " << fname << " do not have the same sample files. Exiting\n";
 				return -1;
 			}
 	}
@@ -445,7 +445,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 		if((size_tmp+1)!=size){
 			cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-			return -1;
+			return -1; // TODO : ne semble pas marcher !
 		}
 	}
 
@@ -470,12 +470,12 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 
 
 #ifdef DEBUG_PRINT
-	cout << "Et ca donne ca !" << endl;
-
-	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
-	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
+//	cout << "Et ca donne ca !" << endl;
+//
+//	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
+//	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
+//	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
+//	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
 
 
 	cout << "mon rank : " << rank << endl;
@@ -577,7 +577,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 			for(long ii=0;ii<size_tmp;ii++)
 				if(samples_struct.scans_index[ii]!=ii){
-					cerr << "There is a problem in the fits filelist : you have forgot a processor to use. Exiting" << endl;
+					cerr << "There is a problem in the fits filelist : you have forgot a processor to use or the processor numbers are not continuous. Exiting" << endl;
 					return 1;
 				}
 		}

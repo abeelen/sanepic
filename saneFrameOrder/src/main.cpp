@@ -103,9 +103,6 @@ int main(int argc, char *argv[])
 			}
 			frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
 
-//			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
-//			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
-
 			//write parallel schema in a file
 			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
 		}else{
@@ -113,9 +110,6 @@ int main(int argc, char *argv[])
 
 			/********************* Define parallelization scheme   *******/
 			find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
-
-//			cout << ruleorder[0] <<  " " << ruleorder[1] << " " << ruleorder[2] << " " << ruleorder[3] << endl;
-//			cout << frnum[0] <<  " " << frnum[1] << " " << frnum[2] << " " << frnum[3] <<  " " << frnum[4] <<  endl;
 
 			//write parallel schema in a file
 			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
@@ -149,6 +143,6 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << "End of saneFrameOrder\n";
+		cout << "\nEnd of saneFrameOrder\n";
 	return 0;
 }

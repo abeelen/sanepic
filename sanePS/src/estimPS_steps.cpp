@@ -1,7 +1,7 @@
 #include "estimPS_steps.h"
 #include "cholesky.h"
 
-#include "psdIO.h"
+//#include "psdIO.h"
 #include <vector>
 #include "todprocess.h"
 #include "map_making.h"
@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstring>
 #include <iomanip>
+#include <iostream>
 
 #include "dataIO.h"
 #include "covMatrix_IO.h"
