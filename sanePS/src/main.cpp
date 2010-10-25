@@ -147,7 +147,9 @@ int main(int argc, char *argv[])
 
 
 
+		//TODO: is a mask always used ???
 		long long test_size;
+		
 		if(read_indpsrc( test_size, npixsrc, indpsrc,  dir.tmp_dir)){ // read mask index
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -188,28 +190,29 @@ int main(int argc, char *argv[])
 #endif
 			return(EXIT_FAILURE);
 		}
-
-		if(read_PNd(PNdtot, npix2,  dir.tmp_dir)){
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			return(EXIT_FAILURE);
-		}
-
-
-		if (npix!=npix2){ // check size compatibility
-			if(rank==0)
-				cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
-#ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-#endif
-			return(EXIT_FAILURE);
-		}
-
-		delete [] indpsrc;
-		delete [] PNdtot;
+		// TODO: Tests not necessary : Right test is only to test for WCS used for pixel index and image...
+		//		long long test_size;
+//		if(read_PNd(PNdtot, npix2,  dir.tmp_dir)){
+//#ifdef USE_MPI
+//			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Finalize();
+//#endif
+//			return(EXIT_FAILURE);
+//		}
+//
+//
+//		if (npix!=npix2){ // check size compatibility
+//			if(rank==0)
+//				cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
+//#ifdef USE_MPI
+//			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Finalize();
+//#endif
+//			return(EXIT_FAILURE);
+//		}
+//
+//		delete [] indpsrc;
+//		delete [] PNdtot;
 
 		// if second launch of estimPS, read S and NAXIS1/2 in the previously generated fits map
 		if(rank==0)
