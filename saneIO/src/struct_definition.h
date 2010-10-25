@@ -15,6 +15,8 @@ struct common
 
 	std::string channel;
 	std::string fits_filelist;
+	std::string bolo_global_filename;
+	std::string suffix;
 };
 
 struct samples

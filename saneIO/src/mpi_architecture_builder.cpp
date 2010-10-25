@@ -445,7 +445,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 		if((size_tmp+1)!=size){
 			cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-			return -1; // TODO : ne semble pas marcher !
+			return -1;
 		}
 	}
 

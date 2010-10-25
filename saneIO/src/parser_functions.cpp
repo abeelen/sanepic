@@ -805,7 +805,6 @@ int parser_function(char * ini_name, struct common &dir,
 	dictionary	*	ini ;
 	string filename;
 	struct detectors det;
-	string suffix, bolo_global_filename;
 
 	// default values :
 	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
@@ -860,16 +859,16 @@ int parser_function(char * ini_name, struct common &dir,
 		return 2;
 	}
 
-	read_bolo_suffix(ini, suffix);
+	read_bolo_suffix(ini, dir.suffix);
 
-	read_bolo_global_file(ini, bolo_global_filename);
+	read_bolo_global_file(ini, dir.bolo_global_filename);
 
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 
-		if(bolo_global_filename!="")
-			filename=dir.input_dir + bolo_global_filename;
+		if(dir.bolo_global_filename!="")
+			filename=dir.input_dir + dir.bolo_global_filename;
 		else
-			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + suffix ; //  + ".bolo"
+			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
 
 		if(read_channel_list(filename, det.boloname, rank)==1)
 			return 2;
@@ -886,7 +885,10 @@ int parser_function(char * ini_name, struct common &dir,
 		detector_tab.push_back(det);
 		det.ndet=0;
 		det.boloname.clear();
-
+		if(dir.bolo_global_filename!="") {
+			detector_tab.resize(samples_struct.ntotscan, detector_tab[0]);
+			break;
+		}
 	}
 
 
@@ -952,12 +954,12 @@ int parser_function(char * ini_name, struct common &dir,
 		print_param_positions(pos_param);
 
 		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
-//		cout << "sanePic restore : " << sanePic_struct.restore << endl;
+		//		cout << "sanePic restore : " << sanePic_struct.restore << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-		printf("Number of bolometers : \n");
-		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
+//		printf("Number of bolometers : \n");
+//		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+//			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
 	}
 
 
