@@ -15,7 +15,7 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct common &dir,std::vector<detectors> &detector_tab, int rank)
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct param_common &dir,std::vector<detectors> &detector_tab, int rank)
 {
 	dictionary	*	ini ;
 

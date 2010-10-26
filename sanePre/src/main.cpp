@@ -73,13 +73,12 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-	  printf("\nsanepic_preprocess\n");
+		cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
-
-	struct param_process proc_param; /*! contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /*! contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
-	struct param_positions pos_param; /*! contains user options about map projection and properties */
-	struct common dir; /*! contains output input temp directories */
+	struct param_sanePos pos_param; /*! contains user options about map projection and properties */
+	struct param_common dir; /*! contains output input temp directories */
 	std::vector<detectors> detector_tab; /*! everything about the detectors names and their number */
 
 	// default parameters
@@ -132,8 +131,8 @@ int main(int argc, char *argv[])
 		// Parse ini file
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		struct PS structPS;
-		struct sanePic struct_sanePic;
+		struct param_sanePS structPS;
+		struct param_sanePic struct_sanePic;
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
@@ -777,10 +776,11 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	if(rank==0)
-		printf("\nEnd of sanePre \n");
+	if (rank == 0)
+		cout << endl << "done." << endl;
 
-	return 0;
+	return EXIT_SUCCESS;
+
 }
 
 //******************************************************************//

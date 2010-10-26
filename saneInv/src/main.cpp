@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
 	double *ell; /*! bins values */
 
-	struct common dir;
+	struct param_common dir;
 	struct samples samples_struct;
 	/*!
 	 * -Rellth : Reduced NoiseNoise matrix
@@ -87,10 +87,10 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	} else {
 		std::vector<double> fcut;
-		struct param_positions pos_param;
-		struct param_process proc_param;
-		struct PS structPS;
-		struct sanePic struct_sanePic;
+		struct param_sanePos pos_param;
+		struct param_sanePre proc_param;
+		struct param_sanePS structPS;
+		struct param_sanePic struct_sanePic;
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
 	}

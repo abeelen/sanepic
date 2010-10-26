@@ -35,7 +35,7 @@ std::string StringOf(const T& object){
 }
 
 
-int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
+int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct, double &fsamp,struct saneCheck &check_struct, int rank)
 {
 
@@ -43,8 +43,8 @@ int parse_saneCheck_ini_file(char * ini_name, struct common &dir,
 	dictionary	*	ini ;
 
 	string bolo_gain_file="";
-	struct param_positions pos_param;
-	struct param_process proc_param;
+	struct param_sanePos pos_param;
+	struct param_sanePre proc_param;
 	std::vector<double> fcut;
 	double fcutPS;
 	string mix_suffix, signame, mix_global_file, ell_suffix, ell_global_file;

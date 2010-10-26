@@ -72,10 +72,10 @@ int main(int argc, char *argv[]) {
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_process proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
-	struct common dir; /*! structure that contains output input temp directories */
+	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
+	struct param_common dir; /*! structure that contains output input temp directories */
 	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and number */
 
 	int nwcs = 1; // number of wcs : 1
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
 	string field; /*! actual boloname in the bolo loop */
 	string prefixe; /*! prefix used for temporary name file creation */
-	struct sanePic struct_sanePic;
+	struct param_sanePic struct_sanePic;
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
 	// main loop variables
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 		struct_sanePic.restore = 0; //default
 
 		// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
-		struct PS structPS;
+		struct param_sanePS structPS;
 
 		if (argc == 3) {
 			struct_sanePic.restore = 1;

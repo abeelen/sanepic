@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct common dir; /*! structure that contains output input temp directories */
+	struct param_common dir; /*! structure that contains output input temp directories */
 	string fname; /*! fits filename variable */
 	std::vector< double > min_time, max_time; /*! vectors to store time limits for the output fits files */
 

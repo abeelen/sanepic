@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_process proc_param;
-	struct param_positions pos_param;
-	struct common dir; /*! structure that contains output input temp directories */
+	struct param_sanePre proc_param;
+	struct param_sanePos pos_param;
+	struct param_common dir; /*! structure that contains output input temp directories */
 	std::vector<detectors> detector_tab;
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
@@ -139,8 +139,8 @@ int main(int argc, char *argv[])
 		parsed=-1;
 	} else {
 		std::vector<double> fcut;
-		struct PS structPS;
-		struct sanePic struct_sanePic;
+		struct param_sanePS structPS;
+		struct param_sanePic struct_sanePic;
 		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
 	}

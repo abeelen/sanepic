@@ -24,7 +24,7 @@ using namespace std;
 
 
 
-int read_dir(dictionary	*ini, struct common &dir, string dirtype ,int rank){
+int read_dir(dictionary	*ini, struct param_common &dir, string dirtype ,int rank){
 
 	string str;
 
@@ -96,7 +96,7 @@ int read_channel_list(std::string fname, std::vector<string> &bolonames, int ran
 }
 
 
-int read_fits_file_list(dictionary	*ini, struct common &dir, struct samples &samples_str, int rank){
+int read_fits_file_list(dictionary	*ini, struct param_common &dir, struct samples &samples_str, int rank){
 
 	string str;
 
@@ -258,7 +258,7 @@ int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<str
 }
 
 
-int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_apodize_samples(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	int i;
 
@@ -274,7 +274,7 @@ int read_apodize_samples(dictionary	*ini, struct param_process &proc_param, int 
 
 }
 
-int read_nofillgap(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_nofillgap(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	proc_param.NOFILLGAP = iniparser_getboolean(ini, "sanePre:nofill_gap", 0);
 
@@ -282,7 +282,7 @@ int read_nofillgap(dictionary	*ini, struct param_process &proc_param, int rank){
 
 }
 
-int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_sampling_frequency(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	double d;
 
@@ -298,7 +298,7 @@ int read_sampling_frequency(dictionary	*ini, struct param_process &proc_param, i
 }
 
 
-int read_filter_frequency(dictionary *ini, struct param_process &proc_param, int rank){
+int read_filter_frequency(dictionary *ini, struct param_sanePre &proc_param, int rank){
 
 	double d;
 
@@ -314,7 +314,7 @@ int read_filter_frequency(dictionary *ini, struct param_process &proc_param, int
 }
 
 
-int read_noise_cut_freq(dictionary	*ini, struct common dir, struct param_process &proc_param, std::vector<double> &fcut, int rank){
+int read_noise_cut_freq(dictionary	*ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut, int rank){
 
 	string str;
 
@@ -349,7 +349,7 @@ int read_noise_cut_freq(dictionary	*ini, struct common dir, struct param_process
 }
 
 
-int read_baseline(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_baseline(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	bool b;
 
@@ -360,7 +360,7 @@ int read_baseline(dictionary	*ini, struct param_process &proc_param, int rank){
 
 }
 
-int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_correlation(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	bool b;
 
@@ -370,7 +370,7 @@ int read_correlation(dictionary	*ini, struct param_process &proc_param, int rank
 	return 0;
 }
 
-int read_remove_poly(dictionary	*ini, struct param_process &proc_param, int rank){
+int read_remove_poly(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	int	i = -1;
 	i = iniparser_getint(ini, "sanePre:poly_order", -1);
@@ -555,7 +555,7 @@ int read_parser_string(dictionary	*ini, string line, string & str){
 	return 0;
 }
 
-int read_common(dictionary	*ini, struct common &dir, int rank){
+int read_common(dictionary	*ini, struct param_common &dir, int rank){
 
 
 
@@ -569,7 +569,7 @@ int read_common(dictionary	*ini, struct common &dir, int rank){
 }
 
 // when a function is wrong, it crashes the reading procedure and the other parameters are not read so I changed || to +
-int read_param_process(dictionary *ini,struct param_process &proc_param, int rank){
+int read_param_process(dictionary *ini,struct param_sanePre &proc_param, int rank){
 
 	int returned=0;
 
@@ -586,7 +586,7 @@ int read_param_process(dictionary *ini,struct param_process &proc_param, int ran
 
 }
 
-int read_param_positions(dictionary *ini, struct param_positions &pos_param, int rank){
+int read_param_positions(dictionary *ini, struct param_sanePos &pos_param, int rank){
 
 	string str;
 	bool b;
@@ -626,7 +626,7 @@ int read_param_positions(dictionary *ini, struct param_positions &pos_param, int
 	return 0;
 }
 
-void print_param_positions(struct param_positions pos_param) {
+void print_param_positions(struct param_sanePos pos_param) {
 
 	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
 
@@ -644,7 +644,7 @@ void print_param_positions(struct param_positions pos_param) {
 }
 
 
-void print_param_process(struct param_process proc_param){
+void print_param_process(struct param_sanePre proc_param){
 
 
 
@@ -682,7 +682,7 @@ void print_param_process(struct param_process proc_param){
 	cout << endl;
 }
 
-void print_common(struct common dir){
+void print_common(struct param_common dir){
 
 	cout << "Data directory : " << dir.dirfile << "\n";
 	cout << "Input directory : " << dir.input_dir << "\n";
@@ -778,7 +778,7 @@ int read_bolo_gain_global_file(dictionary *ini, string dir, string &bolo_global_
 }
 
 
-void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples samples_struct){
+void fill_sanePS_struct(std::string dir, struct param_sanePS &structPS, struct samples samples_struct){
 
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++){
@@ -795,10 +795,10 @@ void fill_sanePS_struct(std::string dir, struct PS &structPS, struct samples sam
 
 }
 
-int parser_function(char * ini_name, struct common &dir,
+int parser_function(char * ini_name, struct param_common &dir,
 		std::vector<detectors> &detector_tab,struct samples &samples_struct,
-		struct param_positions &pos_param, struct param_process &proc_param, std::vector<double> &fcut,
-		struct PS &structPS, struct sanePic &sanePic_struct, int rank, int size){
+		struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
+		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, int rank, int size){
 	//		double &fcut_sanePS, string &MixMatSuffix, string &ell_suffix, string &signame, long &ncomp, int &iterw,
 	//		int &save_data, int &restore, int rank, int size){
 

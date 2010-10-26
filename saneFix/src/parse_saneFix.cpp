@@ -29,7 +29,7 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneFix_ini_file(char * ini_name, struct common &dir,
+int parse_saneFix_ini_file(char * ini_name, struct param_common &dir,
 		struct samples &samples_struct, int rank)
 {
 

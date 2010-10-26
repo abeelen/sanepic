@@ -30,7 +30,7 @@ extern "C" {
 using namespace std;
 
 
-int read_indices_file(string fname, struct common dir, std::vector<long> &indice, double &fsamp)
+int read_indices_file(string fname, struct param_common dir, std::vector<long> &indice, double &fsamp)
 /*! read saneCheck log files : get sample indices => where the gaps are */
 {
 

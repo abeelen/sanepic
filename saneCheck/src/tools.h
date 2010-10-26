@@ -31,7 +31,7 @@ int check_flag(std::string fname, struct detectors det, long ns, std::string out
 		long *&bolos_global_80, double *percent_tab, struct checkHDU check_it);
 
 /*! check for time gaps in time table */
-int check_time_gaps(std::string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it);
+int check_time_gaps(std::string fname,long ns, double fsamp, struct param_common dir, struct checkHDU check_it);
 
 /*! check whether the detector gain is correct or not and estimates the gain for each detector */
 int check_bolo_gain(std::string fname,long ns, std::string bolo_gain_filename, struct detectors det, struct checkHDU check_it);

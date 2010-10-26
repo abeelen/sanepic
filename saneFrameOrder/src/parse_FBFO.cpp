@@ -24,7 +24,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_FBFO(char * ini_name,struct samples &samples_struct,struct common &dir)
+int parse_FBFO(char * ini_name,struct samples &samples_struct,struct param_common &dir)
 {
 	dictionary	*	ini ;
 

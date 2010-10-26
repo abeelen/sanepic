@@ -25,8 +25,8 @@ extern "C" {
 
 using namespace std;
 
-int common_mode_computation(struct detectors det, struct param_process proc_param, struct param_positions pos_param,
-		struct common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
+int common_mode_computation(struct detectors det, struct param_sanePre proc_param, struct param_sanePos pos_param,
+		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
 {
@@ -233,8 +233,8 @@ int common_mode_computation(struct detectors det, struct param_process proc_para
 
 
 
-int estimate_noise_PS(struct detectors det, struct param_process proc_param,struct param_positions pos_param,
-		struct common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
+int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,struct param_sanePos pos_param,
+		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
@@ -396,7 +396,7 @@ int estimate_noise_PS(struct detectors det, struct param_process proc_param,stru
 }
 
 
-int estimate_CovMat_of_Rexp(struct common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 

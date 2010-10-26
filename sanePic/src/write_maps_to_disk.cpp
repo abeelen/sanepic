@@ -14,9 +14,9 @@
 using namespace std;
 
 
-int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct common dir, long long *indpix, long long *indpsrc,
+int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
-		struct param_process proc_param, struct param_positions pos_param, std::vector<detectors> detector_tab,
+		struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<detectors> detector_tab,
 		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile){
 
 

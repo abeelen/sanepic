@@ -14,7 +14,7 @@
 using namespace std;
 
 int computePixelIndex(string outdir, std::vector<detectors> det_vect,
-		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
@@ -241,7 +241,7 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 }
 
 int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
-		struct samples samples_struct, struct param_process proc_param, struct param_positions pos_param,long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)

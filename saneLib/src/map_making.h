@@ -25,7 +25,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 			  long NAXIS1, long NAXIS2, long long *indpix,
 			  long long npix, double f_lppix, double *dPtNP);
 
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_process proc_param, double f_lppix, double *data_lp, double *Ps);
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_sanePre proc_param, double f_lppix, double *data_lp, double *Ps);
 
 
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,

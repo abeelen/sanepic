@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	int parsed=1;
 
 	struct samples samples_struct; /* fits file list + number of scans */
-	struct common dir; /* directories : temporary input and output */
+	struct param_common dir; /* directories : temporary input and output */
 	std::vector<long> indice; /*! gap indexes (sample index) */
 	std::vector <long> add_sample; /*! number of samples to add per gap */
 	double fsamp; /*! sampling frequency */

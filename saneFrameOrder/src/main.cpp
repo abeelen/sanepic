@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	if (rank == 0){
 
 		struct samples samples_struct;
-		struct common dir;
+		struct param_common dir;
 
 		long *ruleorder ;
 		long *frnum ;

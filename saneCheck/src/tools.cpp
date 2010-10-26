@@ -606,7 +606,7 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 }
 
 
-int check_time_gaps(string fname,long ns, double fsamp, struct common dir, struct checkHDU check_it)
+int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir, struct checkHDU check_it)
 /*! check for time gaps in time table */
 {
 

@@ -46,10 +46,10 @@ int main(int argc, char *argv[]) {
 	if (rank == 0)
 		cout << endl << "sanePS :  Noise Power Spectra Estimation" << endl;
 
-	struct param_process proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_positions pos_param; /*! A structure that contains user options about map projection and properties */
-	struct common dir; /*! structure that contains output input temp directories */
+	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
+	struct param_common dir; /*! structure that contains output input temp directories */
 	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
 
 	// map making parameters
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
 	// main loop variables
 	double *S = NULL; // signal
-	struct PS structPS;
+	struct param_sanePS structPS;
 
 	//	ncomp = number of noise component to estimate
 	//	fcut = cut-off freq : dont focus on freq larger than fcut for the estimation !
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 		std::vector<double> fcut_vector;
-		struct sanePic struct_sanePic;
+		struct param_sanePic struct_sanePic;
 
 		/* parse ini file and fill structures */
 		parsed = parser_function(argv[1], dir, detector_tab, samples_struct,
@@ -376,5 +376,5 @@ int main(int argc, char *argv[]) {
 	if (rank == 0)
 		cout << endl << "done." << endl;
 
-	return 0;
+	return EXIT_SUCCESS;
 }

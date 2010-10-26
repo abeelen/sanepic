@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 	int parsed=0; /* parser error status */
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct common dir;  /*! structure that contains output input temp directories */
+	struct param_common dir;  /*! structure that contains output input temp directories */
 	//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
 	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;

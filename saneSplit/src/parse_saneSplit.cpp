@@ -11,7 +11,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_saneSplit_ini_file(char * ini_name, struct common &dir)
+int parse_saneSplit_ini_file(char * ini_name, struct param_common &dir)
 {
 
 

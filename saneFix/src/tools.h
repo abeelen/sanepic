@@ -3,7 +3,7 @@
 
 
 /*! read saneCheck log files : get sample indices => where the gaps are */
-int read_indices_file(std::string fname, struct common dir, std::vector<long> &indice, double &fsamp);
+int read_indices_file(std::string fname, struct param_common dir, std::vector<long> &indice, double &fsamp);
 
 /*!  compute the number of sample that must be added to fill the gaps and have a continous timeline  */
 long how_many(std::string fname,long ns, std::vector <long> &indice, double fsamp, std::vector <long> &add_sample, std::vector <long> & suppress_time_sample);
