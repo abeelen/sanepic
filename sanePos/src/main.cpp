@@ -121,6 +121,12 @@ int main(int argc, char *argv[])
 
 	long long *pixon_tot=NULL;
 
+	// struct used in the parser
+	std::vector<double> fcut;
+	struct param_sanePS structPS;
+	struct param_sanePic struct_sanePic;
+	string output="";
+
 	string field; /*! actual boloname in the bolo loop */
 	string bolofield; /*! bolofield = boloname + bextension */
 	string flagfield; /*! flagfield = field+fextension;*/
@@ -138,11 +144,12 @@ int main(int argc, char *argv[])
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		parsed=-1;
 	} else {
-		std::vector<double> fcut;
-		struct param_sanePS structPS;
-		struct param_sanePic struct_sanePic;
-		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
@@ -159,14 +166,17 @@ int main(int argc, char *argv[])
 		default :;
 		}
 
-
-	if ((parsed>0)||(!compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank))){
+	if (parsed>0){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		exit(1);
 	}
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
 	t2=time(NULL);
@@ -196,21 +206,6 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 			exit(1);
-		}
-
-		if(dir.bolo_global_filename==""){
-			detector_tab.clear();
-			for(long oo=0;oo<samples_struct.ntotscan;oo++){
-				struct detectors det;
-				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
-
-				if(read_channel_list(filename, det.boloname, rank)==1)
-					return 2;
-				det.ndet = (long)((det.boloname).size());
-				detector_tab.push_back(det);
-				//				det.ndet=0;
-				//				det.boloname.clear();
-			}
 		}
 
 		// user has given a processor order
@@ -286,9 +281,20 @@ int main(int argc, char *argv[])
 
 #endif
 
+
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+
+
+
 
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){

@@ -72,6 +72,13 @@ int main(int argc, char *argv[]) {
 	string fname2;
 	string boloname;/*! channels list file */
 	string extname = "_InvNoisePS";
+	string output = "";
+
+	std::vector<double> fcut;
+	struct param_sanePos pos_param;
+	struct param_sanePre proc_param;
+	struct param_sanePS structPS;
+	struct param_sanePic struct_sanePic;
 
 	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
 	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
@@ -86,13 +93,11 @@ int main(int argc, char *argv[]) {
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		parsed=-1;
 	} else {
-		std::vector<double> fcut;
-		struct param_sanePos pos_param;
-		struct param_sanePre proc_param;
-		struct param_sanePS structPS;
-		struct param_sanePic struct_sanePic;
-		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
@@ -116,6 +121,26 @@ int main(int argc, char *argv[]) {
 #endif
 		return 0;
 	}
+
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
+
+
+	// read all bolo lists
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+
+	// START OF saneInv
 
 	std::vector<string>::iterator it;
 	long size_tmp;

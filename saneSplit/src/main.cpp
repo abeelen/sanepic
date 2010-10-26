@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
 	struct param_common dir; /*! structure that contains output input temp directories */
 	string fname; /*! fits filename variable */
 	std::vector< double > min_time, max_time; /*! vectors to store time limits for the output fits files */
+	string output = "";
 
 	int m_count = 0, f_count = 0; /*! counter for m, f and M options */
 	int mM_count = 0; /*! counter for m, f and M options */
@@ -58,9 +59,13 @@ int main(int argc, char *argv[])
 
 	if (argc<2) /* not enough argument */
 		parsed=1;
-	else
+	else{
 		// Parse ini file
-		parsed=parse_saneSplit_ini_file(argv[1],dir);
+		parsed=parse_saneSplit_ini_file(argv[1], output, dir);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
+	}
 
 	if (parsed>0){ /* error during parsing phase */
 		switch (parsed){

@@ -3,6 +3,6 @@
 
 #include "struct_definition.h"
 
-int parse_saneSplit_ini_file(char * ini_name, struct param_common &dir);
+int parse_saneSplit_ini_file(char * ini_name, std::string &output, struct param_common &dir);
 
 #endif /* PARSE_SANESPLIT_H_ */

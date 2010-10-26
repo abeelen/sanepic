@@ -77,6 +77,7 @@ struct samples
 	std::vector<int> scans_index;
 
 	std::string cov_matrix_file;
+	std::string cov_mat_suffix;
 
 	bool framegiven;
 	std::string *fits_table;
@@ -84,8 +85,9 @@ struct samples
 	int *index_table;
 	long *nsamples;
 	long ntotscan;
-	std::string filename; //TODO: What is this ? : name of the fits_filelist.txt file read in ini file !
+	std::string filename; // What is this ? : name of the fits_filelist.txt file read in ini file !
 };
+
 
 struct detectors
 /*! A structure that contains the name of the detectors + number of det */

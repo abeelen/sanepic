@@ -24,7 +24,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_FBFO(char * ini_name,struct samples &samples_struct,struct param_common &dir)
+int parse_FBFO(char * ini_name, string &output, struct samples &samples_struct,struct param_common &dir)
 {
 	dictionary	*	ini ;
 
@@ -40,12 +40,11 @@ int parse_FBFO(char * ini_name,struct samples &samples_struct,struct param_commo
 
 	samples_struct.ntotscan=0; /*! total number of scans*/
 
-	if(read_common(ini, dir,0)==-1)
+	if(read_common(output, ini, dir,0)==-1)
 		return -1;
 
-	if(read_fits_file_list(ini, dir,samples_struct,0)==-1)
+	if(read_fits_file_list(output, ini, dir,samples_struct,0)==-1)
 		return -1;
-
 
 	cout << "You have specified the following options : \n\n";
 

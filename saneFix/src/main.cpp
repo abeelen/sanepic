@@ -52,14 +52,17 @@ int main(int argc, char *argv[]) {
 	std::vector<long> indice; /*! gap indexes (sample index) */
 	std::vector <long> add_sample; /*! number of samples to add per gap */
 	double fsamp; /*! sampling frequency */
-
+	string output ="";
 
 	if(rank==0)
 		printf("\nBeginning of saneFix:\n\n");
 
 	// get directories and fits file list
-	parsed=parse_saneFix_ini_file(argv[1],dir,
+	parsed=parse_saneFix_ini_file(argv[1], output, dir,
 			samples_struct, rank);
+
+	// print parser warning and/or errors
+	cout << endl << output << endl;
 
 	if(parsed==-1){ /* error during parsing phase */
 #ifdef USE_MPI

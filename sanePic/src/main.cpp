@@ -100,6 +100,10 @@ int main(int argc, char *argv[]) {
 	struct param_sanePic struct_sanePic;
 	std::vector<double> fcut; /*! noise cutting frequency vector */
 
+	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
+	struct param_sanePS structPS;
+	string output = "";
+
 	// main loop variables
 	double *S; /*! Pure signal */
 
@@ -115,9 +119,6 @@ int main(int argc, char *argv[]) {
 	else {
 		struct_sanePic.restore = 0; //default
 
-		// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
-		struct param_sanePS structPS;
-
 		if (argc == 3) {
 			struct_sanePic.restore = 1;
 			if (strcmp(argv[1], (char*) "--restore") != 0) {
@@ -130,12 +131,16 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		if (indice_argv > 0)
+		if (indice_argv > 0){
 			/* parse ini file and fill structures */
-			parsed = parser_function(argv[indice_argv], dir, detector_tab,
+			parsed = parser_function(argv[indice_argv], output, dir,
 					samples_struct, pos_param, proc_param, fcut, structPS,
 					struct_sanePic, rank, size);
-		else
+
+			// print parser warning and/or errors
+			cout << endl << output << endl;
+
+		}else
 			parsed = 1;
 
 	}
@@ -168,6 +173,12 @@ int main(int argc, char *argv[]) {
 #endif
 		exit(1);
 	}
+
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
+
 
 	string name_rank = dir.output_dir + "debug_sanePic.txt"; // log file name
 
@@ -217,21 +228,6 @@ int main(int argc, char *argv[]) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 			exit(1);
-		}
-
-		if(dir.bolo_global_filename==""){
-			detector_tab.clear();
-			for(long oo=0;oo<samples_struct.ntotscan;oo++){
-				struct detectors det;
-				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
-
-				if(read_channel_list(filename, det.boloname, rank)==1)
-					return 2;
-				det.ndet = (long)((det.boloname).size());
-				detector_tab.push_back(det);
-				//				det.ndet=0;
-				//				det.boloname.clear();
-			}
 		}
 
 	}else{
@@ -288,9 +284,16 @@ int main(int argc, char *argv[]) {
 
 #endif
 
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
 	//	read pointing informations
 	struct wcsprm * wcs;

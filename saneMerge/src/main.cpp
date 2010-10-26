@@ -39,13 +39,18 @@ int main(int argc, char *argv[]) {
 	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
 	string outdir; /*! output directory */
 	string outname =""; /*! output filename */
+	string output = "";
 
 	printf("\nBeginning of saneMerge:\n\n");
 
 	if (argc<4)
 		parsed=1; /* wrong number of arguments */
-	else
-		parsed=parse_saneMerge_ini_file(argv, argc, outdir, samples_struct); /* parse ini file */
+	else{
+		parsed=parse_saneMerge_ini_file(argv, output, argc, outdir, samples_struct); /* parse ini file */
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
+	}
 
 	if (parsed>0){ /* check for error during parsing phase */
 		switch (parsed){

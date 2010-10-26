@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << endl << "sanePre :  Pre Processing of the data" << endl;
+	cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
 	struct param_sanePre proc_param; /*! contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
@@ -115,6 +115,10 @@ int main(int argc, char *argv[])
 	string fname; // parallel scheme file name
 	string prefixe; /*! prefix used for temporary name file creation*/
 
+	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
+	struct param_sanePS structPS;
+	struct param_sanePic struct_sanePic;
+	string output = "";
 
 	/* Parser inputs */
 	std::vector<double> fcut; /* noise cutting frequency */
@@ -128,15 +132,12 @@ int main(int argc, char *argv[])
 	if (argc<2)/* not enough argument */
 		parsed=1;
 	else {
-		// Parse ini file
-
-		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		struct param_sanePS structPS;
-		struct param_sanePic struct_sanePic;
-
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], dir, detector_tab, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
 	}
 
 
@@ -157,13 +158,17 @@ int main(int argc, char *argv[])
 		}
 
 	// in case there is a parsing error or the dirfile format file was not created correctly
-	if ((parsed>0)||(!compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank))){
+	if (parsed>0){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		exit(1);
 	}
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
 
 
 #ifdef DEBUG
@@ -269,20 +274,6 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 
-		if(dir.bolo_global_filename==""){
-			detector_tab.clear();
-			for(long oo=0;oo<samples_struct.ntotscan;oo++){
-				struct detectors det;
-				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
-
-				if(read_channel_list(filename, det.boloname, rank)==1)
-					return 2;
-				det.ndet = (long)((det.boloname).size());
-				detector_tab.push_back(det);
-				//				det.ndet=0;
-				//				det.boloname.clear();
-			}
-		}
 
 	}else{
 		int test=0; // User has given a processor index in file_list
@@ -348,9 +339,16 @@ int main(int argc, char *argv[])
 
 #endif
 
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
 	// (At N-1 D) memory allocation
 	PNd = new double[npix];

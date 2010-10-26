@@ -1,7 +1,15 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <string>
+#include <unistd.h>
+#include <string>
+#include <vector>
+#include <algorithm>
 #include <sys/types.h>  // For stat()
 #include <sys/stat.h>   // For stat()
 
@@ -23,24 +31,31 @@ extern "C"{
 using namespace std;
 
 
+template <typename T>
+std::string StringOf(const T& object){
+	std::ostringstream os;
+	os << object;
+	return os.str();
+}
 
-int read_dir(dictionary	*ini, struct param_common &dir, string dirtype ,int rank){
+
+int read_dir(string &output, dictionary	*ini, struct param_common &dir, string dirtype ,int rank){
 
 	string str;
 
 	switch(read_parser_string(ini, dirtype, str)){
 	case 2:
 		if(rank==0){
-			cout << "WARNING ! You must add a line in ini file specifying : " << dirtype << endl;
-			cout << "Using default directory : ./" << endl;
+			output += "WARNING ! You must add a line in ini file specifying : " + dirtype + "\n";
+			output +=  "Using default directory : ./ \n";
 		}
 		str="./";
 		break;
 		//			return 1;
 	case 1:
 		if(rank==0){
-			cout <<"Key is empty : You must specify : commons:data_directory" << endl;
-			cout << "Using default directory : ./" << endl;
+			output += "Key is empty : You must specify : commons:data_directory\n";
+			output += "Using default directory : ./ \n";
 		}
 		//			return 1;
 		str="./";
@@ -68,11 +83,11 @@ int read_dir(dictionary	*ini, struct param_common &dir, string dirtype ,int rank
 	dir.output_dir=str;
 	break;
 
-	case (unsigned int)1738: 	//saneInv:noise_dir
+	case (unsigned int)1738: 	// saneInv:noise_dir
 	dir.noise_dir=str;
 	break;
 
-	case (unsigned int)2458: 	//commons:input_dir
+	case (unsigned int)2458: 	// commons:input_dir
 	dir.input_dir=str;
 	break;
 
@@ -84,19 +99,7 @@ int read_dir(dictionary	*ini, struct param_common &dir, string dirtype ,int rank
 
 }
 
-
-int read_channel_list(std::string fname, std::vector<string> &bolonames, int rank){
-
-	if(read_strings(fname,bolonames)){
-		if(rank==0)
-			cout <<"You must create file specifying bolometer list named " << fname << endl;
-		return 1;
-	}
-	return 0;
-}
-
-
-int read_fits_file_list(dictionary	*ini, struct param_common &dir, struct samples &samples_str, int rank){
+int read_fits_file_list(string &output, dictionary	*ini, struct param_common &dir, struct samples &samples_str, int rank){
 
 	string str;
 
@@ -104,17 +107,17 @@ int read_fits_file_list(dictionary	*ini, struct param_common &dir, struct sample
 	switch(read_parser_string(ini, "commons:fits_filelist", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : commons:fits_filelist" << endl;
+			output += "You must add a line in ini file specifying : commons:fits_filelist\n";
 		return 1;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : commons:fits_filelist" << endl;
+			output += "Key is empty : You must specify : commons:fits_filelist\n";
 		return 1;
 	case 0:
 		samples_str.filename=dir.input_dir + str;
 
 		// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-		if(read_fits_list(samples_str.filename, \
+		if(read_fits_list(output, samples_str.filename, \
 				samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
 				samples_str.framegiven)!=0)
 			return 1;
@@ -141,11 +144,11 @@ int read_fits_file_list(dictionary	*ini, struct param_common &dir, struct sample
 			switch(read_parser_string(ini, "saneInv:cov_matrix_file", str)){
 			case 2:
 				if(rank==0)
-					cout <<"You must add a line in ini file specifying : saneInv:cov_matrix_file" << endl;
+					output += "You must add a line in ini file specifying : saneInv:cov_matrix_file\n";
 				return 1;
 			case 1:
 				if(rank==0)
-					cout <<"Key is empty : You must specify : saneInv:cov_matrix_file" << endl;
+					output += "Key is empty : You must specify : saneInv:cov_matrix_file\n";
 				return 1;
 			case 0:
 				samples_str.cov_matrix_file = str;
@@ -162,15 +165,15 @@ int read_fits_file_list(dictionary	*ini, struct param_common &dir, struct sample
 	return 0;
 }
 
-int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
+int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
 
 
 
 	ifstream file;
 	file.open(fname.c_str(), ios::in);
 	if(!file.is_open()){
-		cerr << "File [" << fname << "] Invalid." << endl;
-		exit(-1);
+		output += "File [" + fname + "] Invalid.\n";
+		return 1;
 	}
 
 	framegiven=0;
@@ -232,18 +235,18 @@ int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<str
 		break;
 
 	default:
-		cerr << "File [" << fname << "] must have at least one row and 2 colums. Exiting\n";
+		output += "File [" + fname + "] must have at least one row and 2 colums. Exiting\n";
 		return 1;
 		break;
 	}
 
 	if(fitsfiles.size()==0){
-		cerr << "File [" << fname << "] must have at least one row. Exiting\n";
+		output += "File [" + fname + "] must have at least one row. Exiting\n";
 		return 1;
 	}
 
 	if (file>>s){
-		cerr << "File [" << fname << "]. Each line must have the same number of rows. Exiting\n";
+		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
 		return 1;
 	}
 
@@ -258,7 +261,7 @@ int read_fits_list(string fname, std::vector<string> &fitsfiles, std::vector<str
 }
 
 
-int read_apodize_samples(dictionary	*ini, struct param_sanePre &proc_param, int rank){
+int read_apodize_samples(string &output, dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	int i;
 
@@ -266,7 +269,7 @@ int read_apodize_samples(dictionary	*ini, struct param_sanePre &proc_param, int 
 	proc_param.napod=(long)i;
 
 	if( i<0 && rank==0 ){
-		printf("You must choose a positive number of samples to apodize\n");
+		output += "You must choose a positive number of samples to apodize\n";
 		return 1 ;
 	}
 
@@ -282,14 +285,14 @@ int read_nofillgap(dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 }
 
-int read_sampling_frequency(dictionary	*ini, struct param_sanePre &proc_param, int rank){
+int read_sampling_frequency(string &output, dictionary	*ini, struct param_sanePre &proc_param, int rank){
 
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanePre:sampling_frequency", -1.0);
 	if (d<=0.0){
 		if(rank==0)
-			printf("sampling_frequency cannot be negative or 0 ! Or maybe you forgot to mention sampling frequency \n");
+			output += "sampling_frequency cannot be negative or 0 ! Or maybe you forgot to mention sampling frequency \n";
 		return 1;
 	}else
 		proc_param.fsamp=d;
@@ -298,14 +301,14 @@ int read_sampling_frequency(dictionary	*ini, struct param_sanePre &proc_param, i
 }
 
 
-int read_filter_frequency(dictionary *ini, struct param_sanePre &proc_param, int rank){
+int read_filter_frequency(string &output, dictionary *ini, struct param_sanePre &proc_param, int rank){
 
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanePre:filter_frequency", -1.0);
 	if (d<0.0){
 		if(rank==0)
-			printf("filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n");
+			output += "filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n";
 		return 1;
 	}else{
 		proc_param.f_lp=d;
@@ -314,21 +317,22 @@ int read_filter_frequency(dictionary *ini, struct param_sanePre &proc_param, int
 }
 
 
-int read_noise_cut_freq(dictionary	*ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut, int rank){
+int read_noise_cut_freq(string &output, dictionary	*ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut, int rank){
 
 	string str;
 
 
 	switch(read_parser_string(ini, "sanePre:fcut_file", str)){
 	case 2:
-		if(rank==0)
-			cout <<"Warning ! You must add a line in ini file specifying : sanePre:fcut_file" << endl;
-		cout << "Using min covariance frequency as default\n";
+		if(rank==0){
+			output += "Warning ! You must add a line in ini file specifying : sanePre:fcut_file\n";
+			output += "Using min covariance frequency value as default\n";
+		}
 		//return 1;
 		break;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : sanePre:fcut_file" << endl;
+			output += "Key is empty : You must specify : sanePre:fcut_file\n";
 		return 1;
 	case 0:
 		proc_param.fcut_file = dir.input_dir + str;
@@ -339,7 +343,7 @@ int read_noise_cut_freq(dictionary	*ini, struct param_common dir, struct param_s
 
 		if(((int)dummy2.size())==0){
 			if(rank==0)
-				printf("You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n");
+				output += "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
 			return 1;}
 		for(int ii=0; ii<(int)dummy2.size(); ii++)
 			fcut.push_back(atof(dummy2[ii].c_str()));
@@ -397,7 +401,7 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 	return 0;
 }
 
-int read_ell_suffix(dictionary	*ini, string &ell_suffix, int rank){
+int read_ell_suffix(string &output, dictionary	*ini, string &ell_suffix, int rank){
 
 
 	string str;
@@ -406,22 +410,25 @@ int read_ell_suffix(dictionary	*ini, string &ell_suffix, int rank){
 	switch(read_parser_string(ini, "sanePS:ell_suffix", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : sanePS:ell_suffix" << endl;
+			output += "You must add a line in ini file specifying : sanePS:ell_suffix\n";
 		ell_suffix="";
 		//		return 1;
+		break;
 	case 1:
 		if(rank==0)
-			cout <<"Key is empty : You must specify : sanePS:ell_suffix" << endl;
+			output += "Key is empty : You must specify : sanePS:ell_suffix\n";
 		ell_suffix="";
 		//		return 1;
+		break;
 	case 0:
 		ell_suffix=str;
+		break;
 	}
 
 	return 0;
 }
 
-int read_ell_global_file(dictionary	*ini, string &ell_global_file, int rank){
+int read_ell_global_file(string &output, dictionary	*ini, string &ell_global_file, int rank){
 
 
 	string str;
@@ -430,16 +437,19 @@ int read_ell_global_file(dictionary	*ini, string &ell_global_file, int rank){
 	switch(read_parser_string(ini, "sanePS:ell_global_file", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : sanePS:ell_global_file" << endl;
+			output += "You must add a line in ini file specifying : sanePS:ell_global_file\n";
 		ell_global_file="";
 		//		return 1;
+		break;
 	case 1:
 		if(rank==0)
 			//			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
 			ell_global_file="";
 		//		return 1;
+		break;
 	case 0:
 		ell_global_file=str;
+		break;
 	}
 
 	return 0;
@@ -458,21 +468,35 @@ int read_map_file(dictionary	*ini, string &signame){
 	return 0;
 }
 
-int read_cov_matrix_file(dictionary	*ini, string &fname, int rank){
+int read_cov_matrix_file(string &output, dictionary	*ini, string &fname, int rank){
 
 	string str;
 
 	switch(read_parser_string(ini, "saneInv:cov_matrix_file", str)){
 	case 2:
 		if(rank==0)
-			cout <<"You must add a line in ini file specifying : saneInv:cov_matrix_file" << endl;
-		return 1;
-	case 1:
-		if(rank==0)
-			cout <<"Key is empty : You must specify : saneInv:cov_matrix_file" << endl;
-		return 1;
+			output += "You must add a line in ini file specifying : saneInv:cov_matrix_file\n";
+		break;
 	case 0:
 		fname=str;
+		break;
+	}
+	return 0;
+
+}
+
+int read_cov_matrix_suffix(string &output, dictionary	*ini, string &fname, int rank){
+
+	string str;
+
+	switch(read_parser_string(ini, "saneInv:cov_matrix_suffix", str)){
+	case 2:
+		if(rank==0)
+			output += "You must add a line in ini file specifying : saneInv:cov_matrix_suffix\n";
+		break;
+	case 0:
+		fname=str;
+		break;
 	}
 	return 0;
 
@@ -504,14 +528,14 @@ int read_mixmat_global_file(dictionary	*ini, string &MixMat_global, int rank){
 	return 0;
 }
 
-int read_ncomp(dictionary	*ini, long &ncomp, int rank){
+int read_ncomp(string &output, dictionary	*ini, long &ncomp, int rank){
 
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanePS:ncomp", -1.0);
 	if (d<0.0){
 		if(rank==0)
-			printf("number of component cannot be negative ! or maybe you have to mention it in the ini file \n");
+			output += "number of component cannot be negative ! or maybe you have to mention it in the ini file \n";
 		return 1;
 	}else{
 
@@ -522,14 +546,14 @@ int read_ncomp(dictionary	*ini, long &ncomp, int rank){
 }
 
 
-int read_fcut(dictionary	*ini, double &fcut, int rank){
+int read_fcut(string &output, dictionary	*ini, double &fcut, int rank){
 
 	double d;
 
 	d = iniparser_getdouble(ini,(char*)"sanePS:fcut", 12.0);
 	if (d<0.0){
 		if(rank==0)
-			printf("noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n");
+			output += "noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n";
 		return 1;
 	}else{
 		fcut=d;
@@ -555,28 +579,28 @@ int read_parser_string(dictionary	*ini, string line, string & str){
 	return 0;
 }
 
-int read_common(dictionary	*ini, struct param_common &dir, int rank){
+int read_common(string &output, dictionary	*ini, struct param_common &dir, int rank){
 
 
 
-	return read_dir(ini, dir, "commons:data_directory" , rank) || \
-			read_dir(ini, dir, "commons:input_directory" , rank) || \
-			read_dir(ini, dir, "commons:output_dir" , rank) || \
-			read_dir(ini, dir, "commons:temp_dir" , rank) || \
-			read_dir(ini, dir, "saneInv:noise_dir" , rank);
+	return read_dir(output, ini, dir, "commons:data_directory" , rank) || \
+			read_dir(output, ini, dir, "commons:input_directory" , rank) || \
+			read_dir(output, ini, dir, "commons:output_dir" , rank) || \
+			read_dir(output, ini, dir, "commons:temp_dir" , rank) || \
+			read_dir(output, ini, dir, "saneInv:noise_dir" , rank);
 
 
 }
 
 // when a function is wrong, it crashes the reading procedure and the other parameters are not read so I changed || to +
-int read_param_process(dictionary *ini,struct param_sanePre &proc_param, int rank){
+int read_param_process(string &output, dictionary *ini,struct param_sanePre &proc_param, int rank){
 
 	int returned=0;
 
-	returned = read_apodize_samples(ini, proc_param, rank) + \
+	returned = read_apodize_samples(output, ini, proc_param, rank) + \
 			read_nofillgap(ini, proc_param, rank)              + \
-			read_sampling_frequency(ini, proc_param, rank)     + \
-			read_filter_frequency(ini, proc_param, rank)       + \
+			read_sampling_frequency(output, ini, proc_param, rank)     + \
+			read_filter_frequency(output, ini, proc_param, rank)       + \
 			read_baseline(ini, proc_param, rank)               + \
 			read_correlation(ini,proc_param,rank)              +\
 			read_remove_poly(ini, proc_param, rank);
@@ -586,7 +610,7 @@ int read_param_process(dictionary *ini,struct param_sanePre &proc_param, int ran
 
 }
 
-int read_param_positions(dictionary *ini, struct param_sanePos &pos_param, int rank){
+int read_param_positions(string &output, dictionary *ini, struct param_sanePos &pos_param, int rank){
 
 	string str;
 	bool b;
@@ -594,9 +618,10 @@ int read_param_positions(dictionary *ini, struct param_sanePos &pos_param, int r
 	// read the pixelsize
 	if (read_parser_string(ini, "sanePos:pixsize", str)==0)
 		pos_param.pixdeg=atof(str.c_str());
-	else
+	else{
+		output += "You have to mention pixdeg in sanePos:pixsize\n";
 		return 1;
-
+	}
 	// Read the mask_file if present
 	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
 		pos_param.maskfile=str;
@@ -609,7 +634,7 @@ int read_param_positions(dictionary *ini, struct param_sanePos &pos_param, int r
 
 	if(pos_param.pixdeg < 0){
 		if(rank==0)
-			printf("Pixsize cannot be negative ! or you forgot to mention pixel size\n");
+			output += "Pixsize cannot be negative ! or you forgot to mention pixel size\n";
 		return 1 ;
 	}
 
@@ -694,7 +719,7 @@ void print_common(struct param_common dir){
 
 }
 
-int check_path(string strPath, string path_type){
+int check_path(string &output, string strPath, string path_type){
 
 
 
@@ -710,16 +735,16 @@ int check_path(string strPath, string path_type){
 		}
 		else
 		{
-			cout << "Warning : The path " << path_type << " : " << strPath << " is a file." << endl;
+			output += "Warning : The path " + path_type + " : " + strPath + " is a file.\n";
 			return 1;
 		}
 	}
 	else
 	{
-		cout << "Warning : Path " << path_type << " : " << strPath << " doesn't exist." << endl;
+		output += "Warning : Path " + path_type + " : " + strPath + " doesn't exist.\n";
 		string make_it = "mkdir " + strPath;
 		system((char*)make_it.c_str());
-		cout << "Path : " << strPath << " created" << endl;
+		output += "Path : " + strPath + " created\n";
 		return 0;
 	}
 
@@ -727,11 +752,11 @@ int check_path(string strPath, string path_type){
 
 }
 
-int check_dirfile_paths(string strPath){
+int check_dirfile_paths(string &output,string strPath){
 
-	return check_path(strPath + "Fourier_data/","Fourier data binaries") || \
-			check_path(strPath + "Noise_data/","Noise data binaries") || \
-			check_path(strPath + "Indexes/","Indexes");
+	return check_path(output, strPath + "Fourier_data/","Fourier data binaries") || \
+			check_path(output, strPath + "Noise_data/","Noise data binaries") || \
+			check_path(output, strPath + "Indexes/","Indexes");
 
 }
 
@@ -762,12 +787,12 @@ int read_bolo_global_file(dictionary *ini, string &bolo_global_filename){
 }
 
 
-int read_bolo_gain_global_file(dictionary *ini, string dir, string &bolo_global_filename, int rank){
+int read_bolo_gain_global_file(string &output, dictionary *ini, string dir, string &bolo_global_filename, int rank){
 
 	string str;
 
 	if (read_parser_string(ini,"saneCheck:bolo_gain_global_file", str)){
-		cout << "Warning! saneCheck:bolo_global_file field is void or absent in the ini file. Assuming 1 bolo_gain file per scan :\n";
+		output += "Warning! saneCheck:bolo_global_file field is void or absent in the ini file. Assuming 1 bolo_gain file per scan :\n";
 		bolo_global_filename="";
 	}else{
 		bolo_global_filename=dir + str;
@@ -795,8 +820,8 @@ void fill_sanePS_struct(std::string dir, struct param_sanePS &structPS, struct s
 
 }
 
-int parser_function(char * ini_name, struct param_common &dir,
-		std::vector<detectors> &detector_tab,struct samples &samples_struct,
+int parser_function(char * ini_name, std::string &output, struct param_common &dir,
+		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
 		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, int rank, int size){
 	//		double &fcut_sanePS, string &MixMatSuffix, string &ell_suffix, string &signame, long &ncomp, int &iterw,
@@ -833,22 +858,22 @@ int parser_function(char * ini_name, struct param_common &dir,
 		return 2;
 	}
 
-	if(read_common(ini, dir, 0)==1)
+	if(read_common(output, ini, dir, 0)==1)
 		return 2;
 
 	//	if(read_ell_dir(ini, dir.ell_path, rank))
 	//		return 2;
 
 	if(rank==0){
-		check_path(dir.dirfile, "Data directory");
-		check_path(dir.input_dir, "Input directory");
-		check_path(dir.output_dir, "Output directory");
-		check_path(dir.noise_dir, "Covariance Matrix directory");
-		check_path(dir.tmp_dir, "Temporary directory");
-		check_dirfile_paths(dir.tmp_dir);
+		check_path(output, dir.dirfile, "Data directory");
+		check_path(output, dir.input_dir, "Input directory");
+		check_path(output, dir.output_dir, "Output directory");
+		check_path(output, dir.noise_dir, "Covariance Matrix directory");
+		check_path(output, dir.tmp_dir, "Temporary directory");
+		check_dirfile_paths(output, dir.tmp_dir);
 	}
 
-	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
+	if(read_fits_file_list(output, ini, dir,samples_struct, rank)==1)
 		return 2;
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
@@ -863,45 +888,19 @@ int parser_function(char * ini_name, struct param_common &dir,
 
 	read_bolo_global_file(ini, dir.bolo_global_filename);
 
-	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-
-		if(dir.bolo_global_filename!="")
-			filename=dir.input_dir + dir.bolo_global_filename;
-		else
-			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
-
-		if(read_channel_list(filename, det.boloname, rank)==1)
-			return 2;
-		det.ndet = (long)((det.boloname).size());
-		if (det.ndet == 0) {
-			if(rank==0)
-				cerr << "Must provide at least one channel.\n\n";
-			return 2;
-		}
-		if(size>det.ndet){
-			cerr << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!" << endl;
-			return 3;
-		}
-		detector_tab.push_back(det);
-		det.ndet=0;
-		det.boloname.clear();
-		if(dir.bolo_global_filename!="") {
-			detector_tab.resize(samples_struct.ntotscan, detector_tab[0]);
-			break;
-		}
-	}
-
-
-	if(	read_param_positions(ini, pos_param, rank) ||
-			read_param_process(ini, proc_param, rank) ||
+	if(	read_param_positions(output, ini, pos_param, rank) ||
+			read_param_process(output, ini, proc_param, rank) ||
 			read_map_file(ini, structPS.signame) ||
 			read_mixmatfile_suffix(ini, structPS.mix_suffix, rank) ||
-			read_ell_suffix(ini, structPS.ell_suffix, rank) ||
-			read_ell_global_file(ini, structPS.ell_global_file, rank) ||
-			read_fcut(ini, structPS.fcutPS, rank) ||
-			read_ncomp(ini, structPS.ncomp, rank) ||
+			read_ell_suffix(output, ini, structPS.ell_suffix, rank) ||
+			read_ell_global_file(output, ini, structPS.ell_global_file, rank) ||
+			read_fcut(output, ini, structPS.fcutPS, rank) ||
+			read_ncomp(output, ini, structPS.ncomp, rank) ||
 			read_mixmat_global_file(ini, structPS.mix_global_file, rank))
 		return 2;
+
+	read_cov_matrix_file(output, ini, samples_struct.cov_matrix_file, rank);
+	read_cov_matrix_suffix(output, ini, samples_struct.cov_mat_suffix, rank);
 
 	if(pos_param.maskfile!="")
 		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
@@ -918,8 +917,24 @@ int parser_function(char * ini_name, struct param_common &dir,
 			sanePic_struct.save_data=1;
 	}
 
+	if((structPS.ell_global_file=="") && (structPS.ell_suffix=="")){
+		output += "You must mention one of those parameters :\nsanePS:ell_global_file or sanePS:ell_suffix\n";
+		return 2;
+	}
+	if((structPS.mix_global_file=="") && (structPS.mix_suffix=="")){
+		output += "You must mention one of those parameters :\nsanePS:mix_global_file or sanePS:mix_suffix\n";
+		return 2;
+	}
+	if((samples_struct.cov_matrix_file=="") && (samples_struct.cov_mat_suffix=="")){
+		output += "You must mention one of those parameters :\nsaneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
+		return 2;
+	}
+	if((dir.bolo_global_filename=="") && (dir.suffix=="")){
+		output += "You must mention one of those parameters :\nparam_common:suffix or param_common:suffix\n";
+		return 2;
+	}
 
-	read_noise_cut_freq(ini, dir, proc_param, fcut,rank);
+	read_noise_cut_freq(output, ini, dir, proc_param, fcut,rank);
 
 	if((int)fcut.size()==0){
 		string fname;
@@ -928,7 +943,7 @@ int parser_function(char * ini_name, struct param_common &dir,
 		double *ell;
 		double **Rellth;
 
-		read_cov_matrix_file(ini, fname, rank);
+
 		fname = dir.noise_dir + fname;
 		read_CovMatrix(fname, bolos, nbins, ell, Rellth);
 		fcut.push_back(ell[0]);
@@ -944,6 +959,12 @@ int parser_function(char * ini_name, struct param_common &dir,
 	if((int)fcut.size()==1)
 		fcut.resize(samples_struct.ntotscan, fcut[0]);
 
+	return 0;
+}
+
+void parser_printOut(struct param_common dir, struct samples samples_struct,
+		struct param_sanePos pos_param, struct param_sanePre proc_param,
+		struct param_sanePS structPS, struct param_sanePic sanePic_struct, int rank){
 
 	if(rank==0){
 		cout << "\nYou have specified the following options : \n\n";
@@ -953,17 +974,10 @@ int parser_function(char * ini_name, struct param_common &dir,
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
 
-		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
-		//		cout << "sanePic restore : " << sanePic_struct.restore << endl;
+//		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-//		printf("Number of bolometers : \n");
-//		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-//			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
 	}
 
 
-	return 0;
 }
-
-

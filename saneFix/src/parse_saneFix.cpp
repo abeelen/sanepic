@@ -29,7 +29,7 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneFix_ini_file(char * ini_name, struct param_common &dir,
+int parse_saneFix_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, int rank)
 {
 
@@ -46,11 +46,11 @@ int parse_saneFix_ini_file(char * ini_name, struct param_common &dir,
 	}
 
 	// get directories path
-	if(read_common(ini, dir, rank)==1)
+	if(read_common(output, ini, dir, rank)==1)
 		return -1;
 
 	// get fits file that have to be fixed
-	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
+	if(read_fits_file_list(output, ini, dir,samples_struct, rank)==1)
 		return -1;
 
 	// store number of scans

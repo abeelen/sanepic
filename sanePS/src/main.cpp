@@ -17,6 +17,7 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
+
 #ifdef USE_MPI
 #include "mpi.h"
 #include <algorithm>
@@ -25,8 +26,8 @@ extern "C" {
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char *argv[])
+{
 	int size;//,size_det;
 	int rank;//,rank_det;
 #ifdef USE_MPI
@@ -72,6 +73,11 @@ int main(int argc, char *argv[]) {
 	double *S = NULL; // signal
 	struct param_sanePS structPS;
 
+	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
+	std::vector<double> fcut_vector;
+	struct param_sanePic struct_sanePic;
+	string output = "";
+
 	//	ncomp = number of noise component to estimate
 	//	fcut = cut-off freq : dont focus on freq larger than fcut for the estimation !
 
@@ -81,14 +87,12 @@ int main(int argc, char *argv[]) {
 		parsed = 1;
 	} else {
 
-		// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-		std::vector<double> fcut_vector;
-		struct param_sanePic struct_sanePic;
-
 		/* parse ini file and fill structures */
-		parsed = parser_function(argv[1], dir, detector_tab, samples_struct,
-				pos_param, proc_param, fcut_vector, structPS, struct_sanePic,
-				rank, size);
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut_vector,
+				structPS, struct_sanePic, rank, size);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
 	}
 
 	if (parsed > 0) { // error during parser phase
@@ -118,6 +122,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
+
+
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table = new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
@@ -127,7 +136,7 @@ int main(int argc, char *argv[]) {
 	//First time run S=0, after sanepic, S = Pure signal
 	if (structPS.signame != "NOSIGFILE") {
 
-		//		long NAXIS1_read=0, NAXIS2_read=0;
+			//		long NAXIS1_read=0, NAXIS2_read=0;
 		long long addnpix = 0;
 		int factdupl = 1;
 		//		double *PNdtot;
@@ -139,6 +148,7 @@ int main(int argc, char *argv[]) {
 		read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2); // read keyrec file
 		if (rank == 0)
 			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
+
 
 
 		//TODO: is a mask always used ???
@@ -164,7 +174,6 @@ int main(int argc, char *argv[]) {
 			return (EXIT_FAILURE);
 		}
 
-		addnpix = samples_struct.ntotscan * npixsrc;
 
 		if (pos_param.flgdupl)
 			factdupl = 2; // default 0 : if flagged data are put in a duplicated map
@@ -247,7 +256,9 @@ int main(int argc, char *argv[]) {
 		fclose(fp);
 #endif
 
+
 	}
+
 
 #ifdef USE_MPI
 
@@ -267,37 +278,22 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-
-		if(dir.bolo_global_filename==""){
-			detector_tab.clear();
-			for(long oo=0;oo<samples_struct.ntotscan;oo++){
-				struct detectors det;
-				string filename=dir.input_dir + FitsBasename(samples_struct.fits_table[oo]) + dir.suffix ; //  + ".bolo"
-
-				if(read_channel_list(filename, det.boloname, rank)==1)
-					return 2;
-				det.ndet = (long)((det.boloname).size());
-				detector_tab.push_back(det);
-				//				det.ndet=0;
-				//				det.boloname.clear();
-			}
-		}
-
-
-	} else {
+	}else{
 		int test=0;
 		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
+
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
 
-		if(test>0) {
+		if(test>0){
 			MPI_Finalize();
 			exit(0);
 
 		}
 
 	}
+
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -324,21 +320,25 @@ int main(int argc, char *argv[]) {
 	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
 
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
-//	printf("Number of bolometers : \n");
-//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-//		printf("Scan number %ld : %s %ld\n", iframe,(char*)(samples_struct.fits_table[iframe].c_str()), detector_tab[iframe].ndet);
 
 	string fits_filename; // input scan filename (fits file)
 	std::ostringstream oss; // we need to store the string in a stringstream before using basename
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
-		//		ns = samples_struct.nsamples[iframe];
-		//		fits_filename=samples_struct.fits_table[iframe];
-
-#ifdef DEBUG
-		cout << "[ " << rank << " ] " << fits_filename << endl;
-#endif
+		//ns = samples_struct.nsamples[iframe];
+		//fits_filename=samples_struct.fits_table[iframe];
+		//		cout << "[ " << rank << " ] " << fits_filename << endl;
 
 		struct detectors det = detector_tab[iframe];
 

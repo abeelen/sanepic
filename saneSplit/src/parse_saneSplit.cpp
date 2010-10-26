@@ -11,7 +11,7 @@ extern "C"{
 
 using namespace std;
 
-int parse_saneSplit_ini_file(char * ini_name, struct param_common &dir)
+int parse_saneSplit_ini_file(char * ini_name, string &output, struct param_common &dir)
 {
 
 
@@ -27,7 +27,7 @@ int parse_saneSplit_ini_file(char * ini_name, struct param_common &dir)
 		return 2 ;
 	}
 
-	if(read_common(ini, dir, 0)==1) /* read directories infos */
+	if(read_common(output, ini, dir, 0)==1) /* read directories infos */
 		return 2;
 
 	cout << "You have specified the following options : \n\n";

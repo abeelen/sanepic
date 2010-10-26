@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <cstring>
 
@@ -10,6 +11,15 @@
 #define EscapeChar "!#;"
 
 using namespace std;
+
+
+template <typename T>
+std::string StringOf(const T& object){
+	std::ostringstream os;
+	os << object;
+	return os.str();
+}
+
 
 /*!
  * Reads a detector list in a .txt file
@@ -95,8 +105,60 @@ std::string FitsBasename(std::string path)
 
 	found = filename.find_last_of(".fits");
 	if (found != string::npos)
-			filename = 	filename.substr(0,found-4);
+		filename = 	filename.substr(0,found-4);
 
 	return filename;
+}
+
+
+int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size){
+
+	string output = "";
+	string filename;
+	struct detectors det;
+	for(long oo=0;oo<samples_struct.ntotscan;oo++){
+
+		if(dir.bolo_global_filename!="")
+			filename=dir.input_dir + dir.bolo_global_filename;
+		else
+			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
+
+		if(read_channel_list(output, filename, det.boloname, rank)==1){
+			if(rank==0)
+				cout << endl << output << endl;
+			return 1;
+		}
+		det.ndet = (long)((det.boloname).size());
+		if (det.ndet == 0) {
+			if(rank==0)
+				cout << "Must provide at least one channel.\n\n";
+			return 1;
+		}
+		if(size>det.ndet){
+			if(rank==0)
+				cout << "You are using too many processors : " + StringOf(size) + " processors for only " + StringOf(detector_tab[oo].ndet) + " detectors!";
+			return 1;
+		}
+		detector_tab.push_back(det);
+		det.ndet=0;
+		det.boloname.clear();
+		if(dir.bolo_global_filename!="") {
+			detector_tab.resize(samples_struct.ntotscan, detector_tab[0]);
+			break;
+		}
+	}
+
+	return 0;
+}
+
+
+int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames, int rank){
+
+	if(read_strings(fname,bolonames)){
+		if(rank==0)
+			output += "You must create file specifying bolometer list named " + fname + "\n";
+		return 1;
+	}
+	return 0;
 }
 

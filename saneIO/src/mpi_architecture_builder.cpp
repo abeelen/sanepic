@@ -356,9 +356,9 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 	bool framegiven;
 	long *nsamples_dummy;
-	string temp;
+	string temp, output;
 
-	if(read_fits_list(fname, fits_dummy, noise_dummy, index_dummy, framegiven))
+	if(read_fits_list(output ,fname, fits_dummy, noise_dummy, index_dummy, framegiven))
 		return 1;
 
 #ifdef DEBUG_PRINT

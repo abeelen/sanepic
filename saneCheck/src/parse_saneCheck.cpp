@@ -34,9 +34,8 @@ std::string StringOf(const T& object){
 	return os.str();
 }
 
-
-int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
-		std::vector<detectors> &detector_tab,struct samples &samples_struct, double &fsamp,struct saneCheck &check_struct, int rank)
+int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
+		struct samples &samples_struct, double &fsamp,struct saneCheck &check_struct, int rank)
 {
 
 
@@ -57,7 +56,6 @@ int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
 	string filename;
 	string suffix;
 	struct detectors det;
-
 	string s;
 	ofstream file;
 
@@ -69,55 +67,37 @@ int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
 		return -1 ;
 	}
 
-	if(read_common(ini, dir, rank)==1)
+	if(read_common(output, ini, dir, rank)==1)
 		return -1;
 
-	check_path(dir.dirfile, "Data directory");
-	check_path(dir.input_dir, "Input directory");
-	check_path(dir.output_dir, "Output directory");
-	check_path(dir.noise_dir, "Covariance Matrix directory");
-	check_path(dir.tmp_dir, "Temporary directory");
-	check_dirfile_paths(dir.tmp_dir);
+	check_path(output, dir.dirfile, "Data directory");
+	check_path(output, dir.input_dir, "Input directory");
+	check_path(output, dir.output_dir, "Output directory");
+	check_path(output, dir.tmp_dir, "Temporary directory");
+	check_dirfile_paths(output, dir.tmp_dir);
 
 
-	if(read_fits_file_list(ini, dir,samples_struct, rank)==1)
+	if(read_fits_file_list(output, ini, dir,samples_struct, rank)==1)
 		return -1;
 
-	read_bolo_gain_global_file(ini, dir.input_dir, bolo_gain_file, rank);
+	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
 	if(read_bolo_suffix(ini, suffix)==1)
 		return 2;
 
-
-	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-		filename= dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + suffix;
-		if(read_channel_list(filename, det.boloname, rank)==1)
-			return -1;
-		det.ndet = (long)((det.boloname).size());
-		if (det.ndet == 0) {
-			if(rank==0)
-				cerr << "Must provide at least one channel.\n\n";
-			return -1;
-		}
-		detector_tab.push_back(det);
-		det.ndet=0;
-		det.boloname.clear();
-
-	}
-
 	if(read_iter(ini, iterw, rank)==-1)
 		return -1;
 
-	read_param_positions(ini, pos_param, rank);
-	read_param_process(ini, proc_param, rank);
+	read_param_positions(output, ini, pos_param, rank);
+	read_param_process(output, ini, proc_param, rank);
 	read_map_file(ini, signame);
 	read_mixmatfile_suffix(ini, mix_suffix, rank);
-	read_ell_suffix(ini, ell_suffix, rank);
-	read_ell_global_file(ini, ell_global_file, rank);
-	read_fcut(ini, fcutPS, rank);
-	read_ncomp(ini, ncomp, rank);
+	read_ell_suffix(output, ini, ell_suffix, rank);
+	read_ell_global_file(output, ini, ell_global_file, rank);
+	read_fcut(output, ini, fcutPS, rank);
+	read_ncomp(output, ini, ncomp, rank);
 	read_mixmat_global_file(ini, mix_global_file, rank);
 
 	if(pos_param.maskfile!="")
@@ -125,7 +105,7 @@ int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
 
 	read_iter(ini, iterw, rank);
 
-	read_noise_cut_freq(ini, dir, proc_param, fcut,rank);
+	read_noise_cut_freq(output, ini, dir, proc_param, fcut,rank);
 
 	read_saneCheck_ini(ini, check_struct, rank);
 
@@ -139,20 +119,17 @@ int parse_saneCheck_ini_file(char * ini_name, struct param_common &dir,
 
 
 		print_common(dir);
-		if(check_path(dir.output_dir, "output directory"))
+		if(check_path(output, dir.output_dir, "output directory"))
 			return -1;
-		check_path( dir.tmp_dir, "Temporary directory");
-		check_path( dir.noise_dir, "Covariance Matrix directory");
-		if(check_path( dir.dirfile, "Data directory"))
+		check_path(output, dir.tmp_dir, "Temporary directory");
+		check_path(output, dir.noise_dir, "Covariance Matrix directory");
+		if(check_path(output, dir.dirfile, "Data directory"))
 			return -1;
 		cout << endl;
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-		printf("Number of bolometers : \n");
-		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-			printf("Scan number %ld : %ld\n", iframe, detector_tab[iframe].ndet);
 
 		print_saneCheck_ini(check_struct, rank);
 

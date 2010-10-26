@@ -23,13 +23,13 @@
 using namespace std;
 
 
-int parse_saneMerge_ini_file(char * ini_name[], int arg, std::string &dir,
+int parse_saneMerge_ini_file(char * ini_name[], string &output, int arg, std::string &dir,
 		struct samples &samples_struct)
 /*! Parse user command line */
 {
 
 	dir=ini_name[1]; // ini file
-	if(check_path(dir, "saneMerge Output Directory")) // get output path from command line, check its validity
+	if(check_path(output, dir, "saneMerge Output Directory")) // get output path from command line, check its validity
 		return 2;
 
 	samples_struct.ntotscan = 0;

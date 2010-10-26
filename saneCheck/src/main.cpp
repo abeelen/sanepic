@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 	double fsamp; /*! sampling frequency */
 	struct saneCheck check_struct;
 	string outname; /*! Ouput log files name */
+	string output = "";
 	string bolo_gain_filename=""; // TODO change this
 
 	if(rank==0)
@@ -80,8 +81,11 @@ int main(int argc, char *argv[]) {
 	if (argc<2) /* not enough argument */
 		parsed=-1;
 	else {
-		parsed=parse_saneCheck_ini_file(argv[1],dir,
-				detector_tab, samples_struct, fsamp, check_struct, rank);
+		parsed=parse_saneCheck_ini_file(argv[1], output, dir,
+				samples_struct, fsamp, check_struct, rank);
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
 	}
 
 	if(parsed==-1){ /* error during parsing phase */
@@ -91,6 +95,17 @@ int main(int argc, char *argv[]) {
 #endif
 		exit(1);
 	}
+
+	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EXIT_FAILURE);
+	}
+	printf("Number of bolometers : \n");
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
 
 
@@ -202,9 +217,9 @@ int main(int argc, char *argv[]) {
 			}
 
 			if(check_struct.checkGain){
-//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
-//				check_bolo_gain(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : quelle bolo list on prend ?? selon les differents cas !!
-//				getchar();
+				//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
+				//				check_bolo_gain(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : quelle bolo list on prend ?? selon les differents cas !!
+				//				getchar();
 			}
 
 			if(check_struct.checkflag){
