@@ -1,8 +1,8 @@
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
 #include "parse_saneCheck.h"
+#include "parser_functions.h"
 #include "tools.h"
 #include "struct_definition.h"
 
@@ -69,7 +69,12 @@ int main(int argc, char *argv[]) {
 	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;
 
-	double fsamp; /*! sampling frequency */
+//	double fsamp; /*! sampling frequency */
+	struct param_sanePos pos_param;
+	struct param_sanePre proc_param;
+	struct param_sanePic sanePic_struct;
+	struct param_sanePS structPS;
+	std::vector<double> fcut;
 	struct saneCheck check_struct;
 	string outname; /*! Ouput log files name */
 	string output = "";
@@ -81,8 +86,8 @@ int main(int argc, char *argv[]) {
 	if (argc<2) /* not enough argument */
 		parsed=-1;
 	else {
-		parsed=parse_saneCheck_ini_file(argv[1], output, dir,
-				samples_struct, fsamp, check_struct, rank);
+		parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
+				structPS, sanePic_struct, check_struct, rank, size);
 
 		// print parser warning and/or errors
 		cout << endl << output << endl;
@@ -96,6 +101,12 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	// parser print screen function
+	parser_printOut(dir, samples_struct, pos_param,  proc_param,
+			structPS, sanePic_struct, rank);
+	print_saneCheck_ini(check_struct, rank);
+
+
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -105,7 +116,7 @@ int main(int argc, char *argv[]) {
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
 
 
 
@@ -213,7 +224,7 @@ int main(int argc, char *argv[]) {
 
 			if(check_struct.checktime){
 				cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
-				check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], fsamp, dir,check_struct.Check_it);
+				check_time_gaps(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], proc_param.fsamp, dir,check_struct.Check_it);
 			}
 
 			if(check_struct.checkGain){

@@ -35,29 +35,33 @@ std::string StringOf(const T& object){
 }
 
 int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
-		struct samples &samples_struct, double &fsamp,struct saneCheck &check_struct, int rank)
+		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
+		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)
 {
 
 
 	dictionary	*	ini ;
 
 	string bolo_gain_file="";
-	struct param_sanePos pos_param;
-	struct param_sanePre proc_param;
-	std::vector<double> fcut;
-	double fcutPS;
-	string mix_suffix, signame, mix_global_file, ell_suffix, ell_global_file;
-	long ncomp=1;
-	int iterw=10;
+	//	struct param_sanePos pos_param;
+	//	struct param_sanePre proc_param;
+	//	std::vector<double> fcut;
+	//	double fcutPS;
+	//	string mix_suffix, signame, mix_global_file, ell_suffix, ell_global_file;
+	//	long ncomp=1;
+	//	int iterw=10;
 
 
 	string text;
-	string str;
+	//	string str;
 	string filename;
-	string suffix;
-	struct detectors det;
-	string s;
+	//	string suffix;
+	//	string s;
 	ofstream file;
+
+	parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
+			structPS, sanePic_struct, rank, size);
+
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -67,72 +71,11 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		return -1 ;
 	}
 
-	if(read_common(output, ini, dir, rank)==1)
-		return -1;
-
-	check_path(output, dir.dirfile, "Data directory");
-	check_path(output, dir.input_dir, "Input directory");
-	check_path(output, dir.output_dir, "Output directory");
-	check_path(output, dir.tmp_dir, "Temporary directory");
-	check_dirfile_paths(output, dir.tmp_dir);
-
-
-	if(read_fits_file_list(output, ini, dir,samples_struct, rank)==1)
-		return -1;
-
 	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
 
-	samples_struct.ntotscan = (samples_struct.fitsvect).size();
-
-	if(read_bolo_suffix(ini, suffix)==1)
-		return 2;
-
-	if(read_iter(ini, iterw, rank)==-1)
-		return -1;
-
-	read_param_positions(output, ini, pos_param, rank);
-	read_param_process(output, ini, proc_param, rank);
-	read_map_file(ini, signame);
-	read_mixmatfile_suffix(ini, mix_suffix, rank);
-	read_ell_suffix(output, ini, ell_suffix, rank);
-	read_ell_global_file(output, ini, ell_global_file, rank);
-	read_fcut(output, ini, fcutPS, rank);
-	read_ncomp(output, ini, ncomp, rank);
-	read_mixmat_global_file(ini, mix_global_file, rank);
-
-	if(pos_param.maskfile!="")
-		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
-
-	read_iter(ini, iterw, rank);
-
-	read_noise_cut_freq(output, ini, dir, proc_param, fcut,rank);
-
-	read_saneCheck_ini(ini, check_struct, rank);
-
-	fsamp=proc_param.fsamp;
-
-	// Read bolometer_gain
-	//read it and put it in the structure tab !
+	iniparser_freedict(ini);
 
 	if(rank==0){
-		cout << "\nYou have specified the following options : \n\n";
-
-
-		print_common(dir);
-		if(check_path(output, dir.output_dir, "output directory"))
-			return -1;
-		check_path(output, dir.tmp_dir, "Temporary directory");
-		check_path(output, dir.noise_dir, "Covariance Matrix directory");
-		if(check_path(output, dir.dirfile, "Data directory"))
-			return -1;
-		cout << endl;
-		print_param_process(proc_param);
-		print_param_positions(pos_param);
-
-		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-
-		print_saneCheck_ini(check_struct, rank);
-
 
 		// Generates ini file model
 		text = "# Sanepic ini file :\n";
@@ -148,7 +91,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";
 		text += "fits_filelist = " + samples_struct.filename + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
 		text += "bolo_global_file = " + bolo_gain_file + " ; every scans have the same detector list which name is filled in this field\n";
-		text += "bolo_suffix = " + suffix + " ; bolometers filelist suffix : can be void\n";
+		text += "bolo_suffix = " + dir.suffix + " ; bolometers filelist suffix : can be void\n";
 
 
 		text += "\n\n";
@@ -181,22 +124,22 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "\n\n";
 
 		text += "[sanePS]\n\n";
-		text += "MixingMatrix_suffix = " + mix_suffix + " ; Mixing matrix files suffix : the mixmat files are not the same : each scan has a mixmat file named : basename(scan_filename) + MixingMatrix_suffix\n";
-		text += "MixingMatrix_global_file = " + mix_global_file + " ;  the MixingMatrix file  (fill this field if the MixingMatrix file is the same for all the scans !)\n";
-		text += "ncomp = " + StringOf(ncomp) + " ; number of component(s) to estimate\n";
-		text += "fcut = " + StringOf(fcutPS) + " ; freq above which value of the noise will not be estimated\n";
-		text += "map_file = " + signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n";
-		text += "ell_global_file = " + ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
-		text += "ell_suffix = " + ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";
+		text += "MixingMatrix_suffix = " + structPS.mix_suffix + " ; Mixing matrix files suffix : the mixmat files are not the same : each scan has a mixmat file named : basename(scan_filename) + MixingMatrix_suffix\n";
+		text += "MixingMatrix_global_file = " + structPS.mix_global_file + " ;  the MixingMatrix file  (fill this field if the MixingMatrix file is the same for all the scans !)\n";
+		text += "ncomp = " + StringOf(structPS.ncomp) + " ; number of component(s) to estimate\n";
+		text += "fcut = " + StringOf(structPS.fcutPS) + " ; freq above which value of the noise will not be estimated\n";
+		text += "map_file = " + structPS.signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n";
+		text += "ell_global_file = " + structPS.ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
+		text += "ell_suffix = " + structPS.ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";
 
 		text += "\n\n";
 
 		text += "[sanePic]\n\n";
 
-		if(read_iter(ini, iterw, 0)==-1)
+		if(read_iter(ini, sanePic_struct.iterw, 0)==-1)
 			text += "iterW =  ; Write temporary map files on disk every iterW number of loop\n";
 		else{
-			text += "iterW = " + StringOf(iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
+			text += "iterW = " + StringOf(sanePic_struct.iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
 		}
 
 		text += "\n\n";
@@ -222,8 +165,8 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		file.close();
 	}
 
-	iniparser_freedict(ini);
-	return 0;
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -249,7 +192,7 @@ void print_saneCheck_ini(struct saneCheck check_struct, int rank){
 
 	if(rank==0){
 
-		cout << "You specified the following options : " << endl;
+		cout << endl;
 
 		//	if(check_struct.bolo_gain_check!="")
 		//	check_struct.bolo_gain_check=""; // print ca !
