@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <fftw3.h>
+#include <sysexits.h>
 
 
 #include "Corr_preprocess.h"
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-	cout << endl << "sanePre :  Pre Processing of the data" << endl;
+		cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
 	struct param_sanePre proc_param; /*! contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return EX_CONFIG;
 	}
 
 	// parser print screen function
@@ -219,12 +220,16 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	if(test_size != NAXIS1*NAXIS2){
 		if(rank==0)
 			cout << "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos" << endl;
-		exit(0);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EX_IOERR);
 	}
 	// each frame contains npixsrc pixels with index indsprc[] for which
 	// crossing constraint are removed
@@ -240,7 +245,7 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 
 	// Check indpix readed size = expected size
@@ -249,7 +254,11 @@ int main(int argc, char *argv[])
 			cout << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos" << endl;
 			cout << ind_size << " != "  << (factdupl*NAXIS1*NAXIS2+2 + addnpix) << " " << factdupl << " " << addnpix << endl;
 		}
-		exit(0);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EX_IOERR);
 	}
 
 	//TODO: check the noise matrix file at the beginning of each frame/start of the program...
@@ -271,7 +280,7 @@ int main(int argc, char *argv[])
 		if(test==-1){ // define_parallelization did not worked : exit program
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(1);
+			return EX_IOERR;
 		}
 
 
@@ -285,8 +294,9 @@ int main(int argc, char *argv[])
 		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD); // all proc have to know if this operation worked fine or not
 
 		if(test>0){ // if not, all exit
+			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(0);
+			return EX_IOERR;
 
 		}
 
@@ -299,19 +309,10 @@ int main(int argc, char *argv[])
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
-	//	for(long ii=0;ii<size;ii++){ // print processors indexes
-	//		if(rank==ii)
-	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-	//		else
-	//			MPI_Barrier(MPI_COMM_WORLD);
-	//	}
-
 #else
 #if defined(USE_MPI) && defined(PARA_BOLO)
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index,  samples_struct.index_table);
 
@@ -324,7 +325,7 @@ int main(int argc, char *argv[])
 	if (test==-1){
 		if(rank==0)
 			cerr << "erreur dans check_parallelizationScheme non-MPI " << endl;
-		exit(0);
+		return EX_IOERR;
 	}
 
 	for(int ii = 0; ii< samples_struct.ntotscan;ii++){ // add data directory to input fits file names
@@ -339,12 +340,15 @@ int main(int argc, char *argv[])
 
 #endif
 
+	fill_noisevect(samples_struct);
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
@@ -403,9 +407,6 @@ int main(int argc, char *argv[])
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
 		struct detectors det = detector_tab[iframe];
-		//		if(iframe_min!=iframe_max)
-		//			printf("[%2.2i] iframe : %ld/%ld\n",rank,iframe+1,iframe_max);
-
 
 		// if there is correlation between detectors
 		if (proc_param.CORRon){
@@ -464,7 +465,7 @@ int main(int argc, char *argv[])
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
-				return -1;
+				return EX_SOFTWARE;
 			}
 
 #ifdef DEBUG
@@ -576,7 +577,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_NOINPUT);
 		}
 
 
@@ -740,7 +741,7 @@ int main(int argc, char *argv[])
 	file_rank.open(name_rank.c_str(), ios::out | ios::app);
 	if(!file_rank.is_open()){
 		cerr << "File [" << file_rank << "] Invalid." << endl;
-		return -1;
+		return EX_CANTCREAT;
 	}
 
 	file_rank << "[ " << rank << " ] Finish Time : " << asctime (timeinfo) << endl; // print total processing time in log file

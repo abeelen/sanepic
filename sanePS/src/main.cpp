@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <sysexits.h>
 
 #include "imageIO.h"
 #include "temporary_IO.h"
@@ -28,12 +29,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	int size;//,size_det;
-	int rank;//,rank_det;
+	int size;
+	int rank;
 #ifdef USE_MPI
-	// int tag = 10;
-	//MPI_Status status;
-
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -59,10 +57,6 @@ int main(int argc, char *argv[])
 	long long *indpix; // map index
 	long NAXIS1, NAXIS2; // map size
 	long long npix; // npix = number of filled pixels
-
-	//internal data params
-	//		long ns; // number of samples for this scan
-
 
 	string field; // actual boloname in the bolo loop
 	string prefixe; // prefix used for temporary name file creation
@@ -112,14 +106,14 @@ int main(int argc, char *argv[])
 				break;
 
 			default:
-				;
+				break;
 			}
 
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return 1;
+		return EX_CONFIG;
 	}
 
 	// parser print screen function
@@ -131,12 +125,12 @@ int main(int argc, char *argv[])
 	samples_struct.index_table = new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
-	fill_sanePS_struct(dir.input_dir, structPS, samples_struct);
+	fill_sanePS_struct(structPS, samples_struct);
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if (structPS.signame != "NOSIGFILE") {
 
-			//		long NAXIS1_read=0, NAXIS2_read=0;
+		//		long NAXIS1_read=0, NAXIS2_read=0;
 		long long addnpix = 0;
 		int factdupl = 1;
 		//		double *PNdtot;
@@ -150,30 +144,29 @@ int main(int argc, char *argv[])
 			cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
 
 
+		if(pos_param.maskfile!=""){ // in case a mask have been used
+			long long test_size;
 
-		//TODO: is a mask always used ???
-		long long test_size;
-
-		if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
+			if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
 #endif
-			return (EXIT_FAILURE);
-		}
+				return (EX_IOERR);
+			}
 
-		if (test_size != NAXIS1 * NAXIS2) { // check size compatibility
-			if (rank == 0)
-				cout
-						<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
-						<< endl;
+			if (test_size != NAXIS1 * NAXIS2) { // check size compatibility
+				if (rank == 0)
+					cout
+					<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
+					<< endl;
 #ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
 #endif
-			return (EXIT_FAILURE);
+				return (EX_IOERR);
+			}
 		}
-
 
 		if (pos_param.flgdupl)
 			factdupl = 2; // default 0 : if flagged data are put in a duplicated map
@@ -183,76 +176,48 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return (EXIT_FAILURE);
+			return (EX_IOERR);
 		}
 
 		if (ind_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix)) { // check size compatibility
 			if (rank == 0)
 				cout
-						<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
-						<< endl;
+				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
+				<< endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return (EXIT_FAILURE);
+			return (EX_IOERR);
 		}
-		// TODO: Tests not necessary : Right test is only to test for WCS used for pixel index and image...
-		//		long long test_size;
-		//		if(read_PNd(PNdtot, npix2,  dir.tmp_dir)){
-		//#ifdef USE_MPI
-		//			MPI_Barrier(MPI_COMM_WORLD);
-		//			MPI_Finalize();
-		//#endif
-		//			return(EXIT_FAILURE);
-		//		}
-		//
-		//
-		//		if (npix!=npix2){ // check size compatibility
-		//			if(rank==0)
-		//				cout << "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2" << endl;
-		//#ifdef USE_MPI
-		//			MPI_Barrier(MPI_COMM_WORLD);
-		//			MPI_Finalize();
-		//#endif
-		//			return(EXIT_FAILURE);
-		//		}
-		//
-		//		delete [] indpsrc;
-		//		delete [] PNdtot;
 
-		//TODO; only rank 0 should read the map and broadcast the result
-		// if map argument build S from map
-		if (rank == 0)
-			cout << "Reading model map : " << structPS.signame << endl;
 		S = new double[npix]; // pure signal
+		fill(S,S+npix,0.0); // TODO : maybe not needed !
+		// if map argument build S from map
+		if (rank == 0){
+			cout << "Reading model map : " << structPS.signame << endl;
 
-		// read pure signal
-		if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
+			// read pure signal
+			if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
 #ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+				MPI_Finalize();
 #endif
-			return (EXIT_FAILURE);
+				return (EX_IOERR);
+			}
 		}
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
+#endif
 
 		wcsvfree(&nwcs, &wcs);
-		//
-		//		if((NAXIS1_read!=NAXIS1) || (NAXIS2_read!=NAXIS2)){
-		//			if(rank==0)
-		//				cout << "Warning ! NAXIS1 and NAXIS2 are different between " << dir.tmp_dir + "mapHeader.keyrec" << " and " << structPS.signame << endl;
-		//#ifdef USE_MPI
-		//			MPI_Barrier(MPI_COMM_WORLD);
-		//			MPI_Finalize();
-		//#endif
-		//			return(EXIT_FAILURE);
-		//		}
 
 #ifdef DEBUG
 		FILE * fp;
 		fp = fopen("reconstructed_1dsignal.txt","w");
 		for (int i =0;i<npix;i++)
-		fprintf(fp,"%lf\n",S[i]);
+			fprintf(fp,"%lf\n",S[i]);
 		fclose(fp);
 #endif
 
@@ -263,90 +228,77 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 
 	ofstream file;
-	// TODO : add MPI reorder bolo filelist ! follow the order of the scans ! (it's the same !)
 	if(samples_struct.scans_index.size()==0) {
 
 		int test=0;
 		string fname = dir.output_dir + parallel_scheme_filename;
 		if(rank==0)
-		cout << "Getting configuration and frame order from file : " << fname << endl;
+			cout << "Getting configuration and frame order from file : " << fname << endl;
 		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(1);
+			return EX_SOFTWARE;
 		}
 
 	}else{
 		int test=0;
 		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
 
-
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
 
 		if(test>0){
 			MPI_Finalize();
-			exit(0);
+			return EX_SOFTWARE;
 
 		}
 
 	}
 
-
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min) { // test
+	if (iframe_max==iframe_min) {
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
 
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	//	for(long ii=0;ii<size;ii++){
-	//		if(rank==ii)
-	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-	//		else
-	//			MPI_Barrier(MPI_COMM_WORLD);
-	//	}
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(samples_struct.noisevect, samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
+
+	fill_noisevect(samples_struct);
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
 		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
 
-	string fits_filename; // input scan filename (fits file)
-	std::ostringstream oss; // we need to store the string in a stringstream before using basename
-
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
-		//ns = samples_struct.nsamples[iframe];
-		//fits_filename=samples_struct.fits_table[iframe];
-		//		cout << "[ " << rank << " ] " << fits_filename << endl;
 
 		struct detectors det = detector_tab[iframe];
 
-		//TODO : Handle return code
-
-		EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
-				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank);
-
+		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
+				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
+			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";
+			break;
+		}
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels
 		// iframe = scan number

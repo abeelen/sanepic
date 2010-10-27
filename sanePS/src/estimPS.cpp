@@ -35,8 +35,6 @@ int EstimPowerSpectra(struct detectors det, struct param_sanePre proc_param, str
 
 
 
-//	printf("\nEstimation procedure started : \n");
-
 	//	data = raw data
 	//	data_lp = data low passed
 	//	samptopix = sample to pixel projection matrix
@@ -44,7 +42,8 @@ int EstimPowerSpectra(struct detectors det, struct param_sanePre proc_param, str
 	//	bfilter = butterworth filter values
 	//	fdata = fourier transform
 
-	if(read_double(structPS.ell_names[iframe], ell, nbins)) // read ell in ellfile
+
+	if(read_double(dir.input_dir + structPS.ell_names[iframe], ell, nbins)) // read ell in ellfile
 		return 1;
 	nbins = nbins-1;
 
@@ -81,7 +80,7 @@ int EstimPowerSpectra(struct detectors det, struct param_sanePre proc_param, str
 	cout << "[ " << rank << " ] 1/6 - Reading Mixing Matrix" << endl;
 #endif
 
-	if(read_mixmat_txt(structPS.mix_names[iframe], det.ndet, structPS.ncomp, mixmat))
+	if(read_mixmat_txt(dir.input_dir + structPS.mix_names[iframe], det.ndet, structPS.ncomp, mixmat))
 		return 1;
 
 	//----------------------------------- COMMON MODE -------------------------------//

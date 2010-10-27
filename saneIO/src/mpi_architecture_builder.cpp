@@ -67,13 +67,6 @@ double randg_archi(long nombre, int seedpass) {
 	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
 	if (seedpass != -1) srandom(seed);
 
-	//	nombre_hasard= new double[nombre];
-
-	for (long i=0;i<nombre/2;i++) {
-		cout << "hmm problem" << endl;
-		exit(0);
-	}
-
 	if (nombre/2!=nombre/2.) {
 		double t1 = (double(rand())/RAND_MAX);
 		double t2 = (double(rand())/RAND_MAX);
@@ -206,7 +199,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 #ifdef DEBUG_PRINT
 	printf("max range min = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 #endif
-	//	getchar();
 
 	while ((stdtmp > stdmin) || ((long)valtmp > (long)valmin)){
 
@@ -252,7 +244,6 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 
 		//*********** check values
 		maxproctmp = *max_element(sizeperproc, sizeperproc+ntotscan);
-		//		minmax(sizeperproc,ntotscan,&temp,&maxproctmp,&tmpposmin,&tmpposmax);
 		valtmp = maxproctmp;
 		stdtmp = 0.0;
 		for(long kk=0;kk<ntotscan;kk++)
@@ -276,26 +267,25 @@ void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan
 }
 
 int write_ParallelizationScheme(string fname, long *position, long *frnum, int size, struct samples samples_struct)
-// Write the Parrallelization Scheme for further use.
+// Write the Parallelization Scheme for further use.
 {
 
 	ofstream file;
 	file.open(fname.c_str(), ios::out);
 	if(!file.is_open()){
 		cerr << "File [" << fname << "] Invalid." << endl;
-		return -1;
+		return 1;
 	}
 
 	cout << "parallelization scheme written in file : \n" << fname << endl;
 
 
-	string *fitsvect_temp, *noisevect_temp;
+	string *fitsvect_temp;
 	int *scans_index_temp;
 	string temp;
 	size_t found;
 
 	fitsvect_temp = new string [samples_struct.ntotscan];
-	noisevect_temp = new string [samples_struct.ntotscan];
 	scans_index_temp = new int [samples_struct.ntotscan];
 
 
@@ -305,7 +295,6 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 
 
 		fitsvect_temp[ii] = temp.substr(found+1);
-		noisevect_temp[ii] = samples_struct.noisevect[position[ii]];
 	}
 
 	int val_proc = 0;
@@ -329,27 +318,22 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 	}
 
 	for (long ii=0;ii<samples_struct.ntotscan;ii++){
-		file << fitsvect_temp[ii] << " " << noisevect_temp[ii] << " " << scans_index_temp[ii] << endl;
+		file << fitsvect_temp[ii] << " " << scans_index_temp[ii] << endl;
 	}
 
 	file.close();
 
 	delete [] fitsvect_temp;
-	delete [] noisevect_temp;
 
-
-	return 0;
-
+return 0;
 }
 
-//int check_ParallelizationScheme(string fname, string dirfile,long ntotscan, int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table)
 int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, int size)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
 
 	std::vector<string> fits_dummy;
-	std::vector<string> noise_dummy;
 	std::vector<int> index_dummy;
 	long ntotscan_dummy;
 	long size_tmp;
@@ -358,17 +342,18 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	long *nsamples_dummy;
 	string temp, output;
 
-	if(read_fits_list(output ,fname, fits_dummy, noise_dummy, index_dummy, framegiven))
+	if(read_fits_list(output ,fname, fits_dummy, index_dummy, framegiven))
 		return 1;
+
 
 #ifdef DEBUG_PRINT
 	cout <<" readed list : " << endl;
 	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
-		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
+		cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
 
 
 	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
-		cout << fits_dummy[ii] << " " << noise_dummy[ii] << " " << index_dummy[ii] << endl;
+		cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
 #endif
 
 #ifdef DEBUG_PRINT
@@ -387,7 +372,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	}
 
 	vector2array(fits_dummy, samples_struct.fits_table);
-	vector2array(noise_dummy, samples_struct.noise_table);
 	if(index_dummy.size()>0)
 		vector2array(index_dummy,  samples_struct.index_table);
 
@@ -406,35 +390,16 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
 	sort((samples_struct.fitsvect).begin(), (samples_struct.fitsvect).end(), sortobject);
 
-	if ((int)((samples_struct.noisevect).size())>0){
-
-		sort (noise_dummy.begin(), noise_dummy.end(), sortobject);
-		sort ((samples_struct.noisevect).begin(), (samples_struct.noisevect).end(), sortobject);
-
-		for(int ii=0;ii<samples_struct.ntotscan;ii++)
-			if((noise_dummy[ii]!=samples_struct.noisevect[ii])||(fits_dummy[ii]!=samples_struct.fitsvect[ii])){
+	for(int ii=0;ii<samples_struct.ntotscan;ii++)
+		if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
 #ifdef DEBUG_PRINT
-				cout << "comparaison triée : " << endl;
-				cout << noise_dummy[ii] << endl;
-				cout << samples_struct.noisevect[ii] << endl;
-				cout << fits_dummy[ii] << endl;
-				cout << samples_struct.fitsvect[ii] << endl;
+			cout << "comparaison triée : " << endl;
+			cout << fits_dummy[ii] << endl;
+			cout << samples_struct.fitsvect[ii] << endl;
 #endif
-				cerr << "Your fits_filelist file and " << fname << " do not have the same sample files or noise files. Exiting\n";
-				return -1;
-			}
-	}else{
-		for(int ii=0;ii<samples_struct.ntotscan;ii++)
-			if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
-#ifdef DEBUG_PRINT
-				cout << "comparaison triée : " << endl;
-				cout << fits_dummy[ii] << endl;
-				cout << samples_struct.fitsvect[ii] << endl;
-#endif
-				cerr << "Your fits_filelist file and " << fname << " do not have the same sample files. Exiting\n";
-				return -1;
-			}
-	}
+			cerr << "Your fits_filelist file and " << fname << " do not have the same sample files. Exiting\n";
+			return -1;
+		}
 
 	if(index_dummy.size()>0){
 		size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
@@ -459,7 +424,6 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 
 
-//int define_parallelization_scheme(int rank,string fname,string dirfile,long ntotscan,int size, long *&nsamples, std::vector<string> fitsfiles, std::vector<string> noisefiles, string *&fits_table, string *&noise_table, long *&index_table, long iframe_min, long iframe_max){
 int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
 	int test=0;
@@ -467,20 +431,6 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);
 	if (test==-1)
 		return test;
-
-
-#ifdef DEBUG_PRINT
-//	cout << "Et ca donne ca !" << endl;
-//
-//	cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-//	cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-//	cout << samples_struct.index_table[0] << " " << samples_struct.index_table[1] << " " << samples_struct.index_table[2] << " " << samples_struct.index_table[3] << endl;
-//	cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-
-
-	cout << "mon rank : " << rank << endl;
-
-#endif
 
 	iframe_min = -1;
 
@@ -554,7 +504,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 				c=getchar();
 				switch (c){
 				case('y') :
-											cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+													cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 				break;
 				default:
 					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
@@ -617,12 +567,11 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 			if(samples_struct.index_table[jj]==ii){
 
 				samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
-				samples_struct.noise_table[num_frame]=samples_struct.noisevect[jj];
 				samples_struct.nsamples[num_frame]=nsamples_temp[jj];
 				if(rank==0){
 					temp = samples_struct.fits_table[num_frame];
 					found=temp.find_last_of('/');
-					file << temp.substr(found+1) << " " << samples_struct.noise_table[num_frame] << " " << ii << endl;
+					file << temp.substr(found+1) << " " << ii << endl;
 
 				}
 				num_frame++;

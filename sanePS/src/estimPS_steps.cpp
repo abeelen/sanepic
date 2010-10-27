@@ -32,8 +32,6 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 {
 	//*************************** Read data and compute components
 
-	// samptopix, Ps, data, data_lp, fdata1, bfilter, cov, uvec,p,ivec, icov
-
 	string field; // detector name in the loop
 
 	double *sign;
@@ -59,7 +57,6 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // deprojected signal
 	samptopix = new long long[ns]; // sample to pixel proj matrix
-	//	bfilter = new double[ns/2+1]; // buttter filter values
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 
 
@@ -192,7 +189,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 
 	cholesky(ncomp,Cov,l);
 
-//	printf("ncomp:%ld", ncomp);
+	//	printf("ncomp:%ld", ncomp);
 
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ncomp;jj++)
@@ -203,7 +200,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 			iCov[ii][jj] = ivec[jj];
 	}
 
-//	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
+	//	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
 
 
 	for (long ii=0;ii<ns;ii++)
@@ -875,7 +872,7 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		///// here is the problem
 
 		f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
-		//		if(iter==0)
+
 #ifdef DEBUG
 		for(int rk=0;rk<rank;rk++)
 			cout << "\t\t\t\t"; // try to deal with MPI screen outputs
@@ -885,8 +882,6 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 			cout << "Nan........." << endl;
 			return EX_SOFTWARE;
 		}
-
-
 	}
 
 

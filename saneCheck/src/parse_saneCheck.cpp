@@ -43,20 +43,8 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 	dictionary	*	ini ;
 
 	string bolo_gain_file="";
-	//	struct param_sanePos pos_param;
-	//	struct param_sanePre proc_param;
-	//	std::vector<double> fcut;
-	//	double fcutPS;
-	//	string mix_suffix, signame, mix_global_file, ell_suffix, ell_global_file;
-	//	long ncomp=1;
-	//	int iterw=10;
-
-
 	string text;
-	//	string str;
 	string filename;
-	//	string suffix;
-	//	string s;
 	ofstream file;
 
 	parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
@@ -195,7 +183,7 @@ void print_saneCheck_ini(struct saneCheck check_struct, int rank){
 		cout << endl;
 
 		//	if(check_struct.bolo_gain_check!="")
-		//	check_struct.bolo_gain_check=""; // print ca !
+		//	check_struct.bolo_gain_check=""; // to be printed
 		cout <<  "Check NaNs in fits' tables : ";
 		if(!check_struct.checkNAN)
 			cout <<  "NO" << endl;

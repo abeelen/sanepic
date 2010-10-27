@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-
+#include <sysexits.h>
 
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
@@ -68,9 +68,6 @@ int main(int argc, char *argv[])
 	int rank; /*! rank = processor MPI rank*/
 
 #ifdef USE_MPI
-	// int tag = 10;
-	//MPI_Status status;
-
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size); // get mpi number of processors
@@ -171,19 +168,21 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return EX_CONFIG;
 	}
 
 	// parser print screen function
 	parser_printOut(dir, samples_struct, pos_param,  proc_param,
 			structPS, struct_sanePic, rank);
+
+
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
 	t2=time(NULL);
 #endif
 
+
 	samples_struct.fits_table  = new string[samples_struct.ntotscan];
-	samples_struct.noise_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table = new int[samples_struct.ntotscan];
 
 
@@ -205,11 +204,10 @@ int main(int argc, char *argv[])
 		if(test==-1){
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(1);
+			return EX_CONFIG;
 		}
 
-		// user has given a processor order
-	}else{
+	}else{ // user has given a processor order
 		int test=0;
 		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
 
@@ -219,36 +217,20 @@ int main(int argc, char *argv[])
 
 		if(test>0){
 			MPI_Finalize();
-			exit(0);
+			return EX_CONFIG;
 
 		}
 
 	}
 
-	//	if(rank==0){
-	//		//				file.close();
-	//		cout << "on aura : \n";
-	//		cout << samples_struct.fits_table[0] << " " << samples_struct.fits_table[1] << " " << samples_struct.fits_table[2] << " " << samples_struct.fits_table[3] << endl;
-	//		cout << samples_struct.noise_table[0] << " " << samples_struct.noise_table[1] << " " << samples_struct.noise_table[2] << " " << samples_struct.noise_table[3] << endl;
-	//		cout << samples_struct.nsamples[0] << " " << samples_struct.nsamples[1] << " " << samples_struct.nsamples[2] << " " << samples_struct.nsamples[3] << endl;
-	//		//cout << samples_struct.filename << endl;
-	//	}
-
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){ // test
+	if (iframe_max==iframe_min){
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
 
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
-	//	for(long ii=0;ii<size;ii++){
-	//		if(rank==ii)
-	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-	//		else
-	//			MPI_Barrier(MPI_COMM_WORLD);
-	//	}
 
 #else
 	iframe_min = 0;
@@ -263,7 +245,7 @@ int main(int argc, char *argv[])
 	file.open(outfile.c_str(), ios::out);
 	if(!file.is_open()){
 		cerr << "File [" << outfile << "] Invalid." << endl;
-		exit(0);
+		return EX_CANTCREAT;
 	}
 
 	string temp;
@@ -273,7 +255,7 @@ int main(int argc, char *argv[])
 
 		temp = samples_struct.fits_table[jj];
 		found=temp.find_last_of('/');
-		file << temp.substr(found+1) << " " << samples_struct.noisevect[jj] << " 0" << endl;
+		file << temp.substr(found+1) << " " << " 0" << endl;
 
 	}
 
@@ -282,12 +264,14 @@ int main(int argc, char *argv[])
 #endif
 
 
+	//	fill_noisevect(samples_struct);
+
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
@@ -299,7 +283,7 @@ int main(int argc, char *argv[])
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
-		exit(1);
+		return  EX_OSERR;
 	}
 
 	if (pos_param.maskfile == ""){
@@ -323,7 +307,7 @@ int main(int argc, char *argv[])
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
-					return(EXIT_FAILURE);
+					return(EX_OSERR);
 				}
 				break;
 			case 1:
@@ -334,7 +318,7 @@ int main(int argc, char *argv[])
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
-					return(EXIT_FAILURE);
+					return(EX_OSERR);
 				}
 				break;
 			}
@@ -398,7 +382,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_IOERR);
 		}
 
 
@@ -425,7 +409,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_CANTCREAT);
 		}
 	}
 
@@ -470,7 +454,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_OSERR);
 		}
 		break;
 	case 1:
@@ -484,7 +468,7 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_OSERR);
 		}
 		break;
 	}
@@ -519,14 +503,14 @@ int main(int argc, char *argv[])
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_CANTCREAT);
 		}
 		if(write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir)){
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return(EXIT_FAILURE);
+			return(EX_CANTCREAT);
 		}
 
 
@@ -563,7 +547,6 @@ int main(int argc, char *argv[])
 	delete [] pixon;
 
 	delete [] samples_struct.fits_table;
-	delete [] samples_struct.noise_table;
 	delete [] samples_struct.index_table;
 
 	int nwcs=1;
@@ -580,5 +563,5 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	return 0;
+	return EXIT_SUCCESS;
 }

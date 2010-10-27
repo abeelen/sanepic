@@ -1,4 +1,3 @@
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -13,7 +12,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
-
+#include <sysexits.h>
 
 extern "C" {
 #include "nrutil.h"
@@ -69,7 +68,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return EX_CONFIG;
 	}
 
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan
@@ -95,7 +94,8 @@ int main(int argc, char *argv[]) {
 
 			format_fits=test_format(samples_struct.fitsvect[ii]); // get fits file format
 			if(format_fits==0){
-				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
+				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Skipping file...\n";
+				continue;
 			}
 
 

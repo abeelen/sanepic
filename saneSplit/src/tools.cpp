@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
+#include <sysexits.h>
 
 
 extern "C" {

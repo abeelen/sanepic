@@ -1,5 +1,3 @@
-
-
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
@@ -72,7 +70,7 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 			continue;
 		}
 		cout << indice[ii] << " " << time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
-		//  in case gap negatif : sauter à l'indice suivant et remplacer le time faux !
+
 		// calculate the gap size
 		gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
 		if(gap>0){
@@ -87,7 +85,7 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 				indice_valid.push_back(indice[ii]);
 				suppress_time_sample.push_back(0);
 			}else{
-				cout << "gap negatif : " << gap << endl;
+				cout << "negativ gap : " << gap << endl;
 				continue_neg++;
 				long jj=1;
 				while((time[indice[ii]+jj]-time[indice[ii]])<0.0)
@@ -144,7 +142,6 @@ void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std:
 		if(add_sample[ii]==-1){ // compute the mean only if there is 1 sample to add
 			time_fixed[pointer_time]=(time[uu+1]+time[uu])/2;
 			add_sample[ii]=1;
-			//			cout << "detected -1\n";
 		}else{
 			uu+=suppress_time_sample[ii];
 			for(kk=pointer_time; kk < pointer_time + add_sample[ii]; kk++){ // fil the gap using sampling frequency
@@ -351,7 +348,6 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	long ns_temp = 0;
 	int status =0; // fits error status
 	int *mask, *mask_fixed;
-//	long ii=1;// singleton seeker indexes
 
 	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status); // move input pointer to mask
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
@@ -403,7 +399,6 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_total, (char*)"Number of rows", &status); // update output header (sample size has changed)
 
-//	read_ReferencePosition_from_pointer(fptr, RA, DEC, PHI, ns_temp); // read input RA, DEC and PHI tables
 	read_ReferencePosition_from_fits(name, RA, DEC, PHI, ns_temp);
 
 

@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <cmath>
 #include <gsl/gsl_math.h>
+#include <sysexits.h>
 
 #include "imageIO.h"
 #include "temporary_IO.h"
@@ -171,7 +172,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return EX_CONFIG;
 	}
 
 
@@ -197,7 +198,7 @@ int main(int argc, char *argv[]) {
 	file_rank.open(name_rank.c_str(), ios::out | ios::trunc); //& ios::trunc
 	if(!file_rank.is_open()) {
 		cerr << "File [" << file_rank << "] Invalid." << endl;
-		return -1;
+		return EX_CANTCREAT;
 	}
 	file_rank << "Opening file for writing debug at " << asctime (timeinfo) << endl;
 	file_rank.close();
@@ -227,7 +228,7 @@ int main(int argc, char *argv[]) {
 		if(test==-1) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(1);
+			return EX_SOFTWARE;
 		}
 
 	}else{
@@ -240,7 +241,7 @@ int main(int argc, char *argv[]) {
 
 		if(test>0) {
 			MPI_Finalize();
-			exit(0);
+			return EX_SOFTWARE;
 
 		}
 
@@ -248,23 +249,16 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min) { // test
+	if (iframe_max==iframe_min) {
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	//	for(long ii=0;ii<size;ii++){
-	//		if(rank==ii)
-	//			cout << "[ " << rank << " ]. iframemin : " << iframe_min << " iframemax : " << iframe_max << endl;
-	//		else
-	//			MPI_Barrier(MPI_COMM_WORLD);
-	//	}
 #else
 #if defined(USE_MPI) && defined(PARA_BOLO)
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(samples_struct.noisevect, samples_struct.noise_table);
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
 	vector2array(samples_struct.scans_index, samples_struct.index_table);
 
@@ -276,7 +270,7 @@ int main(int argc, char *argv[]) {
 	if (test == -1) {
 		if (rank == 0)
 			cerr << "Error in check_parallelizationScheme non-MPI " << endl;
-		exit(0);
+		return EX_CONFIG;
 	}
 #endif
 	iframe_min = 0;
@@ -284,12 +278,15 @@ int main(int argc, char *argv[]) {
 
 #endif
 
+	fill_noisevect(samples_struct);
+	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
@@ -308,7 +305,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 	if (test_size != NAXIS1 * NAXIS2) { // check size compatibility
 		if (rank == 0)
@@ -319,7 +316,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 
 	// each frame contains npixsrc pixels with index indsprc[] for which
@@ -338,7 +335,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 
 	if (ind_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix)) { // check size compatibility
@@ -350,7 +347,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 
 	// read (At N-1 d) from file
@@ -359,7 +356,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 
 	if (npix != npix2) { // check size compatibility
@@ -371,21 +368,19 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_IOERR);
 	}
 
 	/*************************************************************/
 
-	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max
-			> samples_struct.ntotscan) {
-		cerr
-		<< "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
-		<< endl;
+	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max	> samples_struct.ntotscan) {
+		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
+				<< endl;
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EXIT_FAILURE);
+		return (EX_SOFTWARE);
 	}
 
 	if (struct_sanePic.restore > 0) {
@@ -402,7 +397,7 @@ int main(int argc, char *argv[]) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return EXIT_FAILURE;
+			return EX_CONFIG;
 		}
 	}
 
@@ -413,7 +408,14 @@ int main(int argc, char *argv[]) {
 			/* Compute Checsum for crash recovery ! */
 			compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix,
 					indpix, indpsrc, test_size, chk_t);
-			write_checksum(dir.tmp_dir, chk_t);
+			if(write_checksum(dir.tmp_dir, chk_t)){
+#ifdef USE_MPI
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return EX_CANTCREAT;
+			}
+
 		}
 	}
 
@@ -491,7 +493,8 @@ int main(int argc, char *argv[]) {
 #if defined(USE_MPI) && !defined(PARA_BOLO)
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 				// read pointing + deproject + fourier transform
-#else
+
+#else // case para_frame and mono
 				write_tfAS(S, det, indpix, NAXIS1, NAXIS2, npix,
 						pos_param.flgdupl, dir.tmp_dir, ns,
 						samples_struct.fits_table[iframe], rank, size);
@@ -591,8 +594,6 @@ int main(int argc, char *argv[]) {
 		MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 		MPI_Bcast(d,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
-
-		//		printf("[%2.2i] Main Conjugate gradient loop started\n",rank);
 
 
 		//start loop
@@ -820,7 +821,7 @@ int main(int argc, char *argv[]) {
 						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
-						return 0;
+						return EX_CANTCREAT;
 					}
 
 					if (pos_param.flgdupl) {
@@ -846,7 +847,7 @@ int main(int argc, char *argv[]) {
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
-							return 0;
+							return EX_CANTCREAT;
 						}
 					}
 
@@ -895,7 +896,7 @@ int main(int argc, char *argv[]) {
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
-							return 0;
+							return EX_CANTCREAT;
 						}
 
 						for (long ii = 0; ii < NAXIS1; ii++) {
@@ -922,7 +923,7 @@ int main(int argc, char *argv[]) {
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
-							return 0;
+							return EX_CANTCREAT;
 						}
 					}
 					if (write_fits_hitory(fname, NAXIS1, NAXIS2, dir.dirfile,
@@ -939,13 +940,13 @@ int main(int argc, char *argv[]) {
 				if (rank == 0) {
 					cout << "iter = " << iter;
 					cout << ", crit  = " << setiosflags(ios::scientific)
-											<< setiosflags(ios::floatfield) << var_n / var0;
+																	<< setiosflags(ios::floatfield) << var_n / var0;
 					cout << ", crit2 = " << setiosflags(ios::scientific)
-											<< setiosflags(ios::floatfield) << delta_n / delta0;
+																	<< setiosflags(ios::floatfield) << delta_n / delta0;
 					cout << ", var_n  = " << setiosflags(ios::scientific)
-											<< setiosflags(ios::floatfield) << var_n;
+																	<< setiosflags(ios::floatfield) << var_n;
 					cout << ", delta_n = " << setiosflags(ios::scientific)
-											<< setiosflags(ios::floatfield) << delta_n;
+																	<< setiosflags(ios::floatfield) << delta_n;
 					cout << "\r " << flush;
 				}
 
@@ -1076,10 +1077,12 @@ int main(int argc, char *argv[]) {
 		fclose(fp);
 #endif
 
-		write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
+		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, detector_tab, samples_struct, fcut, wcs,
-				pos_param.maskfile);
+				pos_param.maskfile))
+			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
+
 	}// end of rank==0
 
 
@@ -1108,7 +1111,7 @@ int main(int argc, char *argv[]) {
 	file_rank.open(name_rank.c_str(), ios::out | ios::app);
 	if(!file_rank.is_open()) {
 		cerr << "File [" << file_rank << "] Invalid." << endl;
-		return -1;
+		return EX_CANTCREAT;
 	}
 
 	file_rank << "[ " << rank << " ] Finish Time : " << asctime (timeinfo) << endl;
@@ -1136,6 +1139,6 @@ int main(int argc, char *argv[]) {
 
 	cout << "\nEnd of sanePic" << endl;
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 

@@ -12,6 +12,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
+#include <sysexits.h>
 
 
 extern "C" {
@@ -69,7 +70,6 @@ int main(int argc, char *argv[]) {
 	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;
 
-//	double fsamp; /*! sampling frequency */
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;
 	struct param_sanePic sanePic_struct;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		exit(1);
+		return EX_CONFIG;
 	}
 
 	// parser print screen function
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
@@ -123,17 +123,14 @@ int main(int argc, char *argv[]) {
 	struct detectors bolo_fits_0; /* bolometers list of the first fits file given as input */
 	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0); /* Read the first fits file bolo table */
 
-	long *bolo_bad_tot; /*! bad detectors full list => fully flag detectors */
-	long *bolo_bad_80_tot; /*! valid worst detectors full list => more than 80% flag detectors */
-	//	double *percent_tab_tot;
+	long *bolo_bad_tot = NULL; /*! bad detectors full list => fully flag detectors */
+	long *bolo_bad_80_tot = NULL; /*! valid worst detectors full list => more than 80% flag detectors */
 
 	if(rank==0){ // only for MPI_reduce
 		bolo_bad_tot= new long [bolo_fits_0.ndet];
 		bolo_bad_80_tot= new long [bolo_fits_0.ndet];
-		//		percent_tab_tot= new double [bolo_fits_0.ndet];
 		fill(bolo_bad_tot, bolo_bad_tot + bolo_fits_0.ndet ,0);
 		fill(bolo_bad_80_tot, bolo_bad_80_tot + bolo_fits_0.ndet ,0);
-		//		fill(percent_tab_tot, percent_tab_tot + bolo_fits_0.ndet ,0.0);
 	}
 
 
@@ -165,7 +162,7 @@ int main(int argc, char *argv[]) {
 #ifdef USE_MPI
 				MPI_Finalize();
 #endif
-				exit(1);
+				return EX_IOERR;
 			}
 
 			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits); // read fits file detector list
@@ -197,18 +194,18 @@ int main(int argc, char *argv[]) {
 #ifdef USE_MPI
 				MPI_Finalize();
 #endif
-				exit(1);
+				return EX_SOFTWARE;
 			}
 
 
 
 			if(((format_fits==2)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
 					((format_fits==1)&&((!check_struct.Check_it.checkRA)||(!check_struct.Check_it.checkDEC)))){
-				cout << "not enough\n";
+				cout << "NO POSITION TABLES ARE PRESENTS : EXITING ...\n";
 #ifdef USE_MPI
 				MPI_Finalize();
 #endif
-				exit(1);
+				return EX_IOERR;
 			}
 
 			if(check_struct.checkNAN){
@@ -253,7 +250,6 @@ int main(int argc, char *argv[]) {
 			// inform processor 0 of bad or worst bolometer presence in fits files
 			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-			//			MPI_Reduce(percent_tab_tot,percent_tab,bolo_fits_0.ndet,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
 				bolo_bad_tot[kk]+=bolo_bad[kk];

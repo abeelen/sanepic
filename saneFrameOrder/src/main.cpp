@@ -6,7 +6,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-
+#include <sysexits.h>
 #include <vector>
 #include <stdio.h>
 #include <algorithm>
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 				cerr << "Problem in the parse function. Exiting\n";
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(0);
+			return EX_CONFIG;
 		}
 
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 			cerr << "This number must be at least equal to the number of scans you are using : ie. " << samples_struct.ntotscan << endl;
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(0);
+			return EX_CONFIG;
 		}
 
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 				cout << "Warning, you have to run MPI with " << samples_struct.scans_index[samples_struct.scans_index.size()-1]+1 << " processors and you are currently running MPI with " << size << " processors\n";
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(0);
+			return EX_CONFIG;
 
 		}
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 				cerr << "Write parallelization Error !" << endl;
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
-			exit(0);
+			return EX_CANTCREAT;
 		}
 
 		delete [] frnum;
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
 #else
 	cout << "Mpi is not used for this step. Exiting" << endl;
-	exit(0);
+	return EXIT_SUCCESS;
 #endif
 
 #ifdef USE_MPI
@@ -148,5 +148,5 @@ int main(int argc, char *argv[])
 
 	if(rank==0)
 		cout << "\nEnd of saneFrameOrder\n";
-	return 0;
+	return EXIT_SUCCESS;
 }

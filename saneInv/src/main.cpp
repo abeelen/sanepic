@@ -11,6 +11,7 @@
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
 #include <algorithm>
+#include <sysexits.h>
 
 extern "C" {
 #include "nrutil.h"
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return 0;
+		return EX_CONFIG;
 	}
 
 
@@ -134,13 +135,16 @@ int main(int argc, char *argv[]) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return(EXIT_FAILURE);
+		return(EX_IOERR);
 	}
 	printf("Number of bolometers : \n");
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
 		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
 
 	// START OF saneInv
+
+	// read all cov matrix files : one for all or one for each scan !
+	fill_noisevect(samples_struct);
 
 	std::vector<string>::iterator it;
 	long size_tmp;
@@ -161,15 +165,12 @@ int main(int argc, char *argv[]) {
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return 0;
+			return EX_CONFIG;
 		}
 		if(rank==0)
 			cout << n_iter << " covariance Matrix will be inverted\n" << endl;
 	}
 
-
-	//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
-	//	ndet = channelOut.size();
 
 	for(int ii=0; ii<n_iter; ii++){
 		// select which proc number compute this loop
@@ -181,7 +182,6 @@ int main(int argc, char *argv[]) {
 
 			// get input covariance matrix file name
 			fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
-
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
-				return 0;
+				return EX_CANTCREAT;
 			}
 			// MAJ format file
 			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
@@ -239,6 +239,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 	printf("\nEND OF SANEINV \n");
-	return 0;
+	return EXIT_SUCCESS;
 }
 

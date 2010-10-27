@@ -6,11 +6,6 @@
 #include <vector>
 
 
-//void read_noisefile(string fname, string bolo1bolo2, double *ell, double *SPN, long *nbins);
-
-
-
-
 /*!  This function writes the Inverse Covariance Matrices in binary format */
 int write_InvNoisePowerSpectra(std::vector<std::string> bolos, long nbins, double * ell, double **Rellth, std::string ouputDir, std::string suffix);
 

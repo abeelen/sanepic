@@ -150,9 +150,6 @@ void copy_ref_pos(fitsfile *outfptr, struct samples samples_struct, long ns_fina
 			PHI_bis[indice_debut+ii]=PHI[ii];
 		}
 
-
-		//		indice_fin = indice_debut + samples_struct.nsamples[iframe];
-
 		// update last written sample indice
 		indice_debut+=samples_struct.nsamples[iframe];
 

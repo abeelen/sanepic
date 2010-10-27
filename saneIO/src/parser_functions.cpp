@@ -51,13 +51,11 @@ int read_dir(string &output, dictionary	*ini, struct param_common &dir, string d
 		}
 		str="./";
 		break;
-		//			return 1;
 	case 1:
 		if(rank==0){
 			output += "Key is empty : You must specify : commons:data_directory\n";
 			output += "Using default directory : ./ \n";
 		}
-		//			return 1;
 		str="./";
 		break;
 	case 0:
@@ -65,10 +63,6 @@ int read_dir(string &output, dictionary	*ini, struct param_common &dir, string d
 			str = str + '/';
 		break;
 	}
-
-
-	//	unsigned int chkk=(checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0));
-	//	cout << "chkk : " << chkk << endl;
 
 	switch((unsigned int)checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0)){
 	case (unsigned int)2308: // commons:data_directory
@@ -118,7 +112,7 @@ int read_fits_file_list(string &output, dictionary	*ini, struct param_common &di
 
 		// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
 		if(read_fits_list(output, samples_str.filename, \
-				samples_str.fitsvect, samples_str.noisevect, samples_str.scans_index, \
+				samples_str.fitsvect, samples_str.scans_index, \
 				samples_str.framegiven)!=0)
 			return 1;
 
@@ -132,40 +126,11 @@ int read_fits_file_list(string &output, dictionary	*ini, struct param_common &di
 
 		// Populate the nsamples vector
 		readFrames(samples_str.fitsvect, samples_str.nsamples);
-
-
-		// read the possible noise file from the ini file
-
-		// if no noise file is given in fits_filelist
-		if((int)(samples_str.noisevect).size()==0 ){
-
-			// read the noise file name in the ini file
-
-			switch(read_parser_string(ini, "saneInv:cov_matrix_file", str)){
-			case 2:
-				if(rank==0)
-					output += "You must add a line in ini file specifying : saneInv:cov_matrix_file\n";
-				return 1;
-			case 1:
-				if(rank==0)
-					output += "Key is empty : You must specify : saneInv:cov_matrix_file\n";
-				return 1;
-			case 0:
-				samples_str.cov_matrix_file = str;
-
-				samples_str.noisevect.push_back(str);
-			}
-
-			if((int)((samples_str.fitsvect).size())>1)
-				// meme fichier de bruit pour tous les scans
-				(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
-
-		}
 	}
 	return 0;
 }
 
-int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<string> &noisefiles, std::vector<int> &frameorder, bool &framegiven) {
+int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven) {
 
 
 
@@ -178,7 +143,7 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 
 	framegiven=0;
 
-	string s, p, line, temp;
+	string s, line, temp;
 	int d;
 	char *pch;
 	int nb_elem = 0;
@@ -196,31 +161,18 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 	file.seekg (0, ios::beg);
 
 	switch(nb_elem) {
-	case 3:
+	case 2:
 		framegiven=1;
-		while(file >> s >> p >> d) {
+		while(file >> s >> d){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+
 			if (found == 0) continue;
 
 			fitsfiles.push_back(s);
-			noisefiles.push_back(p);
 			frameorder.push_back(d);
 		}
-		break;
-
-	case 2:
-		while(file >> s >> p){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-
-			if (found == 0) continue;
-
-			//			cout << "2 : " << s << " " << p << endl;
-			fitsfiles.push_back(s);
-			noisefiles.push_back(p);}
 		break;
 
 	case 1:
@@ -230,8 +182,8 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-			//			cout << "1 : " << s << endl;
-			fitsfiles.push_back(s);}
+			fitsfiles.push_back(s);
+		}
 		break;
 
 	default:
@@ -241,7 +193,7 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 	}
 
 	if(fitsfiles.size()==0){
-		output += "File [" + fname + "] must have at least one row. Exiting\n";
+		output += "File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
 		return 1;
 	}
 
@@ -328,7 +280,6 @@ int read_noise_cut_freq(string &output, dictionary	*ini, struct param_common dir
 			output += "Warning ! You must add a line in ini file specifying : sanePre:fcut_file\n";
 			output += "Using min covariance frequency value as default\n";
 		}
-		//return 1;
 		break;
 	case 1:
 		if(rank==0)
@@ -396,7 +347,6 @@ int read_iter(dictionary	*ini, int &iterw, int rank){
 
 	i = iniparser_getint(ini, "sanePic:iterW", 0);
 	iterw=i;
-	//iterw =  ;
 
 	return 0;
 }
@@ -412,13 +362,10 @@ int read_ell_suffix(string &output, dictionary	*ini, string &ell_suffix, int ran
 		if(rank==0)
 			output += "You must add a line in ini file specifying : sanePS:ell_suffix\n";
 		ell_suffix="";
-		//		return 1;
 		break;
 	case 1:
 		if(rank==0)
-			output += "Key is empty : You must specify : sanePS:ell_suffix\n";
-		ell_suffix="";
-		//		return 1;
+			ell_suffix="";
 		break;
 	case 0:
 		ell_suffix=str;
@@ -439,13 +386,10 @@ int read_ell_global_file(string &output, dictionary	*ini, string &ell_global_fil
 		if(rank==0)
 			output += "You must add a line in ini file specifying : sanePS:ell_global_file\n";
 		ell_global_file="";
-		//		return 1;
 		break;
 	case 1:
 		if(rank==0)
-			//			cout <<"Key is empty : You must specify : sanePS:ell_global_file" << endl;
 			ell_global_file="";
-		//		return 1;
 		break;
 	case 0:
 		ell_global_file=str;
@@ -592,7 +536,6 @@ int read_common(string &output, dictionary	*ini, struct param_common &dir, int r
 
 }
 
-// when a function is wrong, it crashes the reading procedure and the other parameters are not read so I changed || to +
 int read_param_process(string &output, dictionary *ini,struct param_sanePre &proc_param, int rank){
 
 	int returned=0;
@@ -671,9 +614,6 @@ void print_param_positions(struct param_sanePos pos_param) {
 
 void print_param_process(struct param_sanePre proc_param){
 
-
-
-
 	if(proc_param.NOFILLGAP)
 		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL NOT be filled\n";
 	else
@@ -748,8 +688,6 @@ int check_path(string &output, string strPath, string path_type){
 		return 0;
 	}
 
-
-
 }
 
 int check_dirfile_paths(string &output,string strPath){
@@ -803,19 +741,34 @@ int read_bolo_gain_global_file(string &output, dictionary *ini, string dir, stri
 }
 
 
-void fill_sanePS_struct(std::string dir, struct param_sanePS &structPS, struct samples samples_struct){
+void fill_sanePS_struct(struct param_sanePS &structPS, struct samples samples_struct){
 
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++){
 		if(structPS.mix_global_file!="")
-			structPS.mix_names.push_back(dir + structPS.mix_global_file);
+			structPS.mix_names.push_back(structPS.mix_global_file);
 		else
-			structPS.mix_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
+			structPS.mix_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
 
 		if(structPS.ell_global_file!="")
-			structPS.ell_names.push_back(dir + structPS.ell_global_file);
+			structPS.ell_names.push_back(structPS.ell_global_file);
 		else
-			structPS.ell_names.push_back(dir + FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
+			structPS.ell_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
+	}
+
+}
+
+void fill_noisevect(struct samples &samples_str){
+
+	if((samples_str.cov_matrix_file!="")){
+		samples_str.noisevect.push_back(samples_str.cov_matrix_file);
+
+		// same noise file for all the scans
+		(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+
+	}else{
+		for(long iframe = 0; iframe < samples_str.ntotscan ; iframe ++)
+			samples_str.noisevect.push_back(FitsBasename(samples_str.fits_table[iframe]) + samples_str.cov_mat_suffix);
 	}
 
 }
@@ -824,8 +777,6 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
 		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, int rank, int size){
-	//		double &fcut_sanePS, string &MixMatSuffix, string &ell_suffix, string &signame, long &ncomp, int &iterw,
-	//		int &save_data, int &restore, int rank, int size){
 
 	dictionary	*	ini ;
 	string filename;
@@ -835,7 +786,6 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
 	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 	samples_struct.ntotscan=0; /*! total number of scans */
-	//	det.ndet=0; /*! number of channels used*/
 	pos_param.flgdupl = 0; // map duplication factor
 	proc_param.fsamp = 0.0;// 25.0; /*! sampling frequency : BLAST Specific*/
 	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
@@ -847,7 +797,6 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	structPS.ncomp=1;
 	sanePic_struct.iterw=10;
 	sanePic_struct.save_data=0;
-	//	sanePic_struct.restore=0;
 
 
 	// load dictionnary
@@ -860,9 +809,6 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	if(read_common(output, ini, dir, 0)==1)
 		return 2;
-
-	//	if(read_ell_dir(ini, dir.ell_path, rank))
-	//		return 2;
 
 	if(rank==0){
 		check_path(output, dir.dirfile, "Data directory");
@@ -901,6 +847,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	read_cov_matrix_file(output, ini, samples_struct.cov_matrix_file, rank);
 	read_cov_matrix_suffix(output, ini, samples_struct.cov_mat_suffix, rank);
+
 
 	if(pos_param.maskfile!="")
 		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
@@ -973,8 +920,6 @@ void parser_printOut(struct param_common dir, struct samples samples_struct,
 		cout << endl;
 		print_param_process(proc_param);
 		print_param_positions(pos_param);
-
-//		cout << "sanePic save data : " << sanePic_struct.save_data << endl;
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 	}

@@ -40,7 +40,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 		ns = samples_struct.nsamples[iframe];
 		long ndet = det_vect[iframe].boloname.size();
 		double *ra, *dec, *phi, **offsets;
-		//		short *flag;
 
 
 		// read bolo offsets
@@ -230,7 +229,6 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 		}//end of idet loop
 		delete [] ra;
 		delete [] dec;
-		//		delete [] flag;
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 		delete [] cosphi;
 		delete [] sinphi;
@@ -255,7 +253,6 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 
 	// TODO : samptopix unsigned long
 	long long  *samptopix;
-	//	long ndet = bolonames.size();
 
 	string field;
 
@@ -296,11 +293,6 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				return 1;
 			}
-			//			read_dec_from_fits(fits_file, field, dec, test_ns);
-			//			if (test_ns != ns) {
-			//				cerr << "Read dec does not correspond to frame size : Check !!" << endl;
-			//				exit(-1);
-			//			}
 			if(read_flag_from_fits(fits_file, field, flag, test_ns))
 				return 1;
 			if (test_ns != ns) {
@@ -311,11 +303,6 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 				world[2*ii]   = ra[ii];
 				world[2*ii+1] = dec[ii];
 			}
-			//			for (long ii=0; ii<ns; ii++){
-			//				cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << endl;
-			//			}
-			// ... and reproject it back onto the map
-			//			cout << "before reproject" << endl;
 
 			if ((status = wcss2p(wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
 				printf("   wcss2p(1) ERROR %2d \n", status);

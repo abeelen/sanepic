@@ -153,8 +153,9 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 	// clean
 	delete [] map1d;
 	delete [] hits;
-	// end of write map function
 
+
+	// end of write map function
 	return 0;
 
 }

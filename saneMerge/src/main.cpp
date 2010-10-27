@@ -13,6 +13,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
+#include <sysexits.h>
 
 
 extern "C" {
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
 		default :;
 		}
 
-		exit(EXIT_FAILURE);
+		return EX_CONFIG;
 	}
 
 	string fname = samples_struct.fitsvect[0]; /* input fits file name */
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]) {
 	break;
 
 	default : cout << "The files you are trying to merge have not the same format or format is unknown. Exiting...\n";
-	exit(EXIT_FAILURE);
+	return EX_CONFIG;
 	}
 
 	long ns_total=0; // compute total number of samples in the ouput file
@@ -189,5 +190,7 @@ int main(int argc, char *argv[]) {
 	delete [] samples_struct.nsamples;
 
 	cout << "End of saneMerge\n";
+
+	return EXIT_SUCCESS;
 
 }

@@ -14,6 +14,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
+#include <sysexits.h>
 
 
 extern "C" {
@@ -80,7 +81,7 @@ int main(int argc, char *argv[])
 		default :;
 		}
 
-		exit(EXIT_FAILURE);
+		return(EX_CONFIG);
 	}
 
 
@@ -116,14 +117,14 @@ int main(int argc, char *argv[])
 	if((f_count>1)||(f_count==0)){
 		cout << "\nError ! You must give 1 file AND only one ! Exiting\n";
 		usage(argv[0]);
-		exit(EXIT_FAILURE);
+		return (EX_CONFIG);
 	}
 
 	// if no m or no M, return
 	if((m_count==0)||(mM_count!=0)){
 		cout << "\nError ! You must give at least 1 min and max value AND each -M must follow a -m option ! Exiting\n";
 		usage(argv[0]);
-		exit(EXIT_FAILURE);
+		return (EX_CONFIG);
 	}
 
 
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
 	for(int ii=0;ii<m_count;ii++){
 		if((min_time[ii]<0)||(max_time[ii]-min_time[ii])<=0){
 			cout << "Warning : you must provide a crescent order of Positives cut limits : M>m !\nExiting\n";
-			exit(EXIT_FAILURE);
+			return (EX_CONFIG);
 		}
 	}
 
@@ -172,7 +173,7 @@ int main(int argc, char *argv[])
 	/* in case the time limits were not correct and if no more limits have been given by user : EXIT */
 	if(m_count==0){
 		cout << "Warning : no more cut limits to apply ! Exiting ...\n";
-		exit(EXIT_FAILURE);
+		return (EX_CONFIG);
 	}
 
 
@@ -322,6 +323,8 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.nsamples;
 
 	cout << "End of saneSplit\n";
+
+	return EXIT_SUCCESS;
 
 }
 

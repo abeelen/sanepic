@@ -561,27 +561,18 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 	int *flag; // mask table
 	long sum=0; // used to compute the percentage of flagged data
 
-	//	int marge = 19; // a singleton is defined by : ['marge' samples flagged] 0 ['marge' samples flagged]
-	long ii=1;// singleton seeker indexes
-	//	long tt=0;// singleton seeker indexes
-	//	long rr=0;// singleton seeker indexes
 	cout << "ns : " << ns << endl;
 
 	for(int jj=0;jj<det.ndet;jj++){
 
-		//		cout << det.boloname[jj];
-		ii=1;
 		sum=0;
 		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
 			return 1;
 
-		while(ii<ns-1){
-
+		for(long ii = 0; ii<ns-1; ii++)
 			if(flag[ii]!=0)
 				sum++;
-			ii++;
 
-		}
 
 		if(sum==ns){ // fully flagged detector found
 			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
@@ -867,7 +858,6 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 	double temp;
 
 	for(int idet=1;idet<=(int)det.ndet;idet++){
-		//		cout << idet << endl;
 		// ---------------------------------------------
 		// Retrieve the corresponding pix
 		fpixel[0] = sample;

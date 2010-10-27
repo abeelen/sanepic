@@ -199,7 +199,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 	return 0;
 }
 
-// ici
+// here
 char** vString2carray(std::vector<string> strings) {
 	// Transform a vector of string into a array of char
 
@@ -219,7 +219,7 @@ char** vString2carray(std::vector<string> strings) {
 
 }
 
-// ici
+// here
 char* tableFormat(std::vector<string> strings) {
 	// Return the table Format for the given vector of string
 	stringstream stream_tform;
@@ -235,7 +235,7 @@ char* tableFormat(std::vector<string> strings) {
 }
 
 
-//ici
+// here
 long maxStringLength(std::vector<string> strings) {
 	// Return the longest string length of a string vector
 	unsigned long maxSize = 0;

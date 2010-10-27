@@ -1,4 +1,3 @@
-
 #include <cmath>
 #include <iostream>
 #include <algorithm>
@@ -412,53 +411,3 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	delete [] lat;
 
 }
-
-
-/*
-void reproj_to_map(double *data, int *xx, int *yy, int ns, double **map, double **count, int nn, short *flag, double **map_f, double **count_f)
-{
-
-	//int ii, jj;
-
-	for (int ii=0;ii<nn;ii++){
-		for (int jj=0;jj<nn;jj++){
-			map[ii][jj] = 0.0;
-			map_f[ii][jj] = 0.0;
-			count[ii][jj] = 0.0;
-			count_f[ii][jj] = 0.0;
-		}
-	}
-
-	// cerr << "reproj here1?\n";
-
-	for (long ii=0;ii<ns;ii++){
-		if (ii == 137909) cerr << ii << ", " << ns << endl;
-		if ((flag == NULL) || ((flag[ii] & 1) == 0)){
-			//if (ii == 137909) {
-	//cerr << xx[ii] << endl;
-	//cerr << yy[ii] << endl;
-	//cerr << data[ii] << endl;
-     // }
-			map[xx[ii]][yy[ii]] += data[ii];
-			count[xx[ii]][yy[ii]] += 1.0;
-		} else{
-			map_f[xx[ii]][yy[ii]] += data[ii];
-			count_f[xx[ii]][yy[ii]] += 1.0;
-		}
-	}
-	//cerr << "reproj here2?\n";
-
-	for (int ii=0;ii<nn;ii++){
-		for (int jj=0;jj<nn;jj++){
-			if (count[ii][jj]-0.5 > 0)
-				map[ii][jj] = -map[ii][jj]/count[ii][jj];
-			if (count_f[ii][jj]-0.5 > 0)
-				map_f[ii][jj] = -map_f[ii][jj]/count_f[ii][jj];
-		}
-	}
-
-
-}
-
- */
-

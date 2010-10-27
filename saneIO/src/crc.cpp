@@ -33,7 +33,6 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	size_t len;
 	string file;
 	char buf[6144];
-	//	struct checksum chk2;
 
 
 	if (NULL == (fp = fopen(ini_file.c_str(), "r")))
@@ -45,7 +44,6 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	char buf2[len-116];
 	for(long hh=0;hh<(long)(len-116);hh++)
 		buf2[hh]=buf[hh];
-	//	printf("%d bytes read\n", len);
 	fclose(fp);
 
 	chk.chk_ini_file=checksum(buf2, len-116, 0);
@@ -58,11 +56,9 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 		return;
 	}
 	len = fread(buf, sizeof(char), sizeof(buf), fp);
-	//	printf("%d bytes read\n", len);
 	fclose(fp);
 
 	chk.chk_wcs_file=checksum(buf, len, 0);
-	//	printf("The checksum of %s is %#x\n", file.c_str(), cksum);
 	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
 
 	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
@@ -77,7 +73,7 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 }
 
 
-void write_checksum(std::string tmp_dir, struct checksum chk)
+int write_checksum(std::string tmp_dir, struct checksum chk)
 {
 
 	FILE* fp;
@@ -87,7 +83,7 @@ void write_checksum(std::string tmp_dir, struct checksum chk)
 	if (NULL == (fp = fopen(file.c_str(), "wb")))
 	{
 		cout << "Unable to open " << file << " for writing\n";
-		return;
+		return 1;
 	}
 	len+=fwrite(&chk.chk_ini_file,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_wcs_file,sizeof(unsigned int),1,fp);
@@ -96,6 +92,8 @@ void write_checksum(std::string tmp_dir, struct checksum chk)
 	len+=fwrite(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
 	fclose(fp);
+
+	return 0;
 }
 
 void read_checksum(std::string tmp_dir, struct checksum &chk)
@@ -162,8 +160,6 @@ void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double
 	read_fits_signal(fits_temp, S, indpix, NAXIS1, NAXIS2, wcs);
 
 	iter++;
-
-
 
 	fclose(fp);
 
