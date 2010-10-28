@@ -167,11 +167,6 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, pos_param,  proc_param,
-			structPS, struct_sanePic, rank);
-
-
 #ifdef DEBUG
 	std::ostringstream oss;
 	string name_rank;
@@ -350,9 +345,10 @@ int main(int argc, char *argv[])
 #endif
 		return(EX_IOERR);
 	}
-	printf("Number of bolometers : \n");
-	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
 
 	// (At N-1 D) memory allocation
 	PNd = new double[npix];

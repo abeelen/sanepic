@@ -70,7 +70,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
 		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, int rank, int size);
 
-void parser_printOut(struct param_common dir, struct samples samples_struct,
+void parser_printOut(struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
 		struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct, int rank);
 

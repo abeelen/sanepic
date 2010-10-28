@@ -58,6 +58,8 @@ int main(int argc, char *argv[]) {
 
 	struct param_common dir;
 	struct samples samples_struct;
+	samples_struct.fits_table=NULL;
+
 	/*!
 	 * -Rellth : Reduced NoiseNoise matrix
 	 * -RellthOrig : Original NoiseNoise matrix
@@ -124,11 +126,6 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, pos_param,  proc_param,
-			structPS, struct_sanePic, rank);
-
-
 	// read all bolo lists
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
 #ifdef USE_MPI
@@ -137,9 +134,14 @@ int main(int argc, char *argv[]) {
 #endif
 		return(EX_IOERR);
 	}
-	printf("Number of bolometers : \n");
-	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+			structPS, struct_sanePic, rank);
+
+//	printf("Number of bolometers : \n");
+//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
+//		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
 
 	// START OF saneInv
 

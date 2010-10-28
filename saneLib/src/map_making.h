@@ -6,11 +6,6 @@
 #include <fftw3.h>
 #include "struct_definition.h"
 
-//#define D2PI 6.2831853071795864769252867665590057683943387987502
-
-/* dmod(A,B) - A modulo B (double) */
-//#define dmod(A,B) ((B)!=0.0?((A)*(B)>0.0?(A)-(B)*floor((A)/(B))\
-//                                        :(A)+(B)*floor(-(A)/(B))):(A))
 
 void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS2,
 		   long long *indpix, long long *samptopix, long long npix, double *PNd);

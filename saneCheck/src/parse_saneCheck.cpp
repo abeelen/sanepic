@@ -47,9 +47,10 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 	string filename;
 	ofstream file;
 
-	parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
-			structPS, sanePic_struct, rank, size);
 
+	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
+			structPS, sanePic_struct, rank, size))
+		return -1;
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);
@@ -59,9 +60,12 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		return -1 ;
 	}
 
-	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
+	read_saneCheck_ini(ini , check_struct, rank);
+	//	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
 
 	iniparser_freedict(ini);
+
+
 
 	if(rank==0){
 
@@ -91,6 +95,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
 		text += "mask_file = " + pos_param.maskfile + "; mask (fits file) : use to remove cross constraint due to strong sources\n";
 
+
 		text += "\n\n";
 
 		text += "[sanePre]\n\n";
@@ -103,11 +108,13 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "correlation = " + StringOf(proc_param.CORRon ? "True" : "False") + " ; Set this keyword to False if correlations between detectors are not included in the analysis (default = True)\n";
 		text += "nofill_gap = " + StringOf(proc_param.NOFILLGAP ? "True" : "False") +" ; Do we fill the gaps ? F = fill (default), T = don't fill\n";
 
+
 		text += "\n\n";
 
 		text += "[saneInv]\n\n";
 		text += "noise_dir = " + dir.noise_dir + " ; cov matrix directory\n";
 		text += "cov_matrix_file = " + samples_struct.cov_matrix_file + " ; this file contains the matrix you want to invert\n";
+		text += "cov_matrix_suffix = " + samples_struct.cov_matrix_suffix + " ; this file contains the matrix you want to invert\n";
 
 		text += "\n\n";
 
@@ -120,17 +127,15 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "ell_global_file = " + structPS.ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
 		text += "ell_suffix = " + structPS.ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";
 
+
 		text += "\n\n";
 
 		text += "[sanePic]\n\n";
 
-		if(read_iter(ini, sanePic_struct.iterw, 0)==-1)
-			text += "iterW =  ; Write temporary map files on disk every iterW number of loop\n";
-		else{
-			text += "iterW = " + StringOf(sanePic_struct.iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
-		}
+		text += "iterW = " + StringOf(sanePic_struct.iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
 
 		text += "\n\n";
+
 
 		text += "[saneCheck]\n\n";
 		text += "check_NAN = " + StringOf(check_struct.checkNAN ? "True" : "False") + "; check whether there are NANs in every tables and flag them if needed\n";
@@ -139,6 +144,8 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "check_bolo_gain = " + StringOf(check_struct.checkGain ? "True" : "False") + "; Compute detector gain and print to screen \n";
 
 		text += "\n\n";
+
+
 
 		string outfile = dir.output_dir + "sanepic_ini_model.txt";
 		file.open(outfile.c_str(), ios::out);

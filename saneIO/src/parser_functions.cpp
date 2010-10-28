@@ -768,7 +768,7 @@ void fill_noisevect(struct samples &samples_str){
 
 	}else{
 		for(long iframe = 0; iframe < samples_str.ntotscan ; iframe ++)
-			samples_str.noisevect.push_back(FitsBasename(samples_str.fits_table[iframe]) + samples_str.cov_mat_suffix);
+			samples_str.noisevect.push_back(FitsBasename(samples_str.fits_table[iframe]) + samples_str.cov_matrix_suffix);
 	}
 
 }
@@ -846,7 +846,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 		return 2;
 
 	read_cov_matrix_file(output, ini, samples_struct.cov_matrix_file, rank);
-	read_cov_matrix_suffix(output, ini, samples_struct.cov_mat_suffix, rank);
+	read_cov_matrix_suffix(output, ini, samples_struct.cov_matrix_suffix, rank);
 
 
 	if(pos_param.maskfile!="")
@@ -872,7 +872,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 		output += "You must mention one of those parameters :\nsanePS:mix_global_file or sanePS:mix_suffix\n";
 		return 2;
 	}
-	if((samples_struct.cov_matrix_file=="") && (samples_struct.cov_mat_suffix=="")){
+	if((samples_struct.cov_matrix_file=="") && (samples_struct.cov_matrix_suffix=="")){
 		output += "You must mention one of those parameters :\nsaneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
 		return 2;
 	}
@@ -909,7 +909,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	return 0;
 }
 
-void parser_printOut(struct param_common dir, struct samples samples_struct,
+void parser_printOut(struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
 		struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct, int rank){
 
@@ -922,7 +922,14 @@ void parser_printOut(struct param_common dir, struct samples samples_struct,
 		print_param_positions(pos_param);
 
 		printf("Number of scans      : %ld\n",samples_struct.ntotscan);
+		printf("Number of bolometers : \n");
+		for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
+			if(samples_struct.fits_table!=NULL)
+				printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+			else
+				printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+		}
+
+
 	}
-
-
 }

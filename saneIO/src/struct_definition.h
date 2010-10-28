@@ -77,7 +77,7 @@ struct samples
 	std::vector<int> scans_index;
 
 	std::string cov_matrix_file;
-	std::string cov_mat_suffix;
+	std::string cov_matrix_suffix;
 
 	bool framegiven;
 	std::string *fits_table;

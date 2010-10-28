@@ -116,11 +116,6 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, pos_param,  proc_param,
-			structPS, struct_sanePic, rank);
-
-
 	samples_struct.fits_table = new string[samples_struct.ntotscan];
 	samples_struct.index_table = new int[samples_struct.ntotscan];
 	samples_struct.noise_table = new string[samples_struct.ntotscan];
@@ -285,10 +280,10 @@ int main(int argc, char *argv[])
 #endif
 		return(EX_IOERR);
 	}
-	printf("Number of bolometers : \n");
-	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
+	// parser print screen function
+		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+				structPS, struct_sanePic, rank);
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 

@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
 	//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
 	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;
+	samples_struct.fits_table=NULL;
 
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;
@@ -94,17 +95,14 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(parsed==-1){ /* error during parsing phase */
+		if(rank==0)
+			cout << "Error during parsing step. Exiting ...\n";
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return EX_CONFIG;
 	}
-
-	// parser print screen function
-	parser_printOut(dir, samples_struct, pos_param,  proc_param,
-			structPS, sanePic_struct, rank);
-	print_saneCheck_ini(check_struct, rank);
 
 
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
@@ -114,9 +112,11 @@ int main(int argc, char *argv[]) {
 #endif
 		return(EX_IOERR);
 	}
-	printf("Number of bolometers : \n");
-	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+
+	// parser print screen function
+	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+			structPS, sanePic_struct, rank);
+	print_saneCheck_ini(check_struct, rank);
 
 
 
