@@ -27,7 +27,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
 
 	int size; // MPI number of procs
-	int rank; // My proc number
+	int rank; // this proc number
 
 #ifdef USE_MPI
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	string fname; /*! covariance matrix fits filename */
 	string fname2;
 	string boloname;/*! channels list file */
-	string extname = "_InvNoisePS";
+	string noise_suffix = "_InvNoisePS";
 	string output = "";
 
 	std::vector<double> fcut;
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
 			// write inversed noisePS in a binary file for each detector
-			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + extname)){
+			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + noise_suffix)){
 #ifdef USE_MPI
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
 				return EX_CANTCREAT;
 			}
 			// MAJ format file
-			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + extname);
+			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + noise_suffix);
 
 			// number of detector in the input channel list
 			nbolos = (int) channelIn.size();

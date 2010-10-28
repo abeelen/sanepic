@@ -136,15 +136,10 @@ int write_samptopix(long ns, long long *&samptopix, string outdir, string filena
 
 
 #ifdef DEBUG_PRINT
-	//	oss.str("");
-	//
-	//	// debug
-	//	oss << outdir + "samptopix_" << FitsBasename(filename) << "_" << boloname  << ".txt";
-	//	temp = oss.str();
 
 	outfile=outdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".txt";
 
-	if((fp = fopen(outfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+	if((fp = fopen(outfile.c_str(),"w"))){
 		fprintf(fp,"%ld ",ns);
 		for(long ii = 0; ii< ns; ii++)
 			fprintf(fp,"%lld ",samptopix[ii]);
@@ -250,10 +245,9 @@ int write_indpix(long long ind_size, long long npix, long long *indpix, string o
 	}
 
 #ifdef DEBUG_PRINT
-	//Debug
 	testfile2 = outdir + "Indpix_for_conj_grad.txt";
-	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		fprintf(fp,"%d\n",flagon); // mat 04/06
+	if((fp = fopen(testfile2.c_str(),"w"))){
+		fprintf(fp,"%d\n",flagon);
 		fprintf(fp,"%lld\n",npix);
 		fprintf(fp,"%lld\n",ind_size);
 		for(long ii =0;ii<ind_size;ii++)
@@ -278,7 +272,7 @@ int read_indpix(long long &ind_size, long long &npix, long long *&indpix, string
 
 	testfile2 = outdir + "Indpix_for_conj_grad.bi";
 	if ((fp = fopen(testfile2.c_str(),"r"))!=NULL){
-		result = fread(&flagon,sizeof(int),1,fp); // mat 04/06
+		result = fread(&flagon,sizeof(int),1,fp);
 		result = fread(&npix,sizeof(long long),1,fp);
 		result = fread(&ind_size,sizeof(long long),1,fp);
 		indpix=new long long[ind_size];
@@ -310,13 +304,9 @@ int write_PNd(double *PNd, long long npix,  string outdir)
 	}
 
 #ifdef DEBUG_PRINT
-	//Debug
 	testfile2 = outdir + "PNdCorr.txt";
 
-	if((fp = fopen(testfile2.c_str(),"w"))){ // doubles parenthèses sinon warning ...
-		//fprintf(fp,"%d\n",npix);
-		//for(long ii=0;ii<npix;ii++)
-		//fprintf(fp,"%lf ",PNd[ii]);
+	if((fp = fopen(testfile2.c_str(),"w"))){
 		fprintf(fp,"%lld\n",npix);
 		for(int ii= 0; ii<npix;ii++)
 			fprintf(fp,"%lf ",PNd[ii]);
@@ -359,9 +349,6 @@ int write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, lon
 	FILE *fp;
 	double data_size;
 
-	//	std::ostringstream oss;
-	//	oss << outdir + "/Fourier_data/" + prefixe << iframe << "_" << bolonames[idet] << ".bi";
-
 	// Transform into string
 	std::string outfile;
 
@@ -378,23 +365,13 @@ int write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, lon
 	}
 
 #ifdef DEBUG_PRINT
-	// Debug
-	//	oss.str("");
-	//	oss << outdir + "fdata_" << iframe << "_" << bolonames[idet] << ".txt";
-
-	// Transform into string
-	//	testfile = oss.str();
 	outfile=outdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".txt";
-	if((fp = fopen(outfile.c_str(),"w"))){ // doubles parenthèses sinon warning ...
+	if((fp = fopen(outfile.c_str(),"w"))){
 		data_size = (ns/2+1)*2;
-
 		fprintf(fp,"%ld ",data_size);
-		//if (data_size!=(ns/2+1)*2) cerr << "Error. fdata size does not correspond to expected size\n";
 		for(int ii=0;ii<(ns/2+1);ii++){
 			fprintf(fp,"%lf ",fdata[ii][0]);
 			fprintf(fp,"%lf \n",fdata[ii][1]);}
-
-		//cout << "writing fdata  : "  << (ns/2+1)*2 << " " << sizeof(double) << endl;
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not open " << outfile << endl;
@@ -447,7 +424,7 @@ int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat)
 		cout << "Advice : verify the file is in your noise directory and that his name is : " << MixMatfile << endl;
 		return 1;
 	}
-	result = fscanf(fp,"%ld",&ncomp2); // modified d => ld to avoid warning, mat-27/05
+	result = fscanf(fp,"%ld",&ncomp2);
 
 	mixmat = dmatrix(0,ndet-1,0,ncomp-1);
 

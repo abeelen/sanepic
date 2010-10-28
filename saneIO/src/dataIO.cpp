@@ -71,7 +71,7 @@ int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonam
 	for (long idet=0;idet<ndet;idet++){
 
 		indice = find_channel_index(fptr, (char *) bolonames[idet].c_str());
-		//		cout << bolonames[idet] << " " << indice << endl;
+
 		// transform arcsec to deg
 		offsets[idet][0] = temp_dx[indice-1]/3600;
 		offsets[idet][1] = temp_dy[indice-1]/3600;
@@ -214,7 +214,6 @@ int read_image_2D_from_fits(string filename, double*&image, string hdu_name, lon
 	int status = 0, anynul;
 	int naxis = 0;
 	long naxes[2] = { 1, 1 };
-	//	double *temp;
 	long fpixel[2]= { 1, 1 };
 	int nulval=0;
 	long inc=1;
@@ -248,15 +247,7 @@ int read_image_2D_from_fits(string filename, double*&image, string hdu_name, lon
 	ndet = naxes[1];
 
 	long lpixel[2]= { ns, ndet };
-	//	image = dmatrix((long)0, ndet-1, (long)0, ns-1);
 	image = new double[ndet*ns];
-	//	temp = new double[ns];
-	//
-	//	for (long idet=0;idet<ndet;idet++){
-	//		fits_read_col(fptr, TDOUBLE, idet+1, 1, 1, ns, NULL, temp, 0, &status);
-	//		for (long ii=0;ii<ns;ii++)
-	//			image[idet][ii]=temp[ii];
-	//	}
 
 	fits_read_subset(fptr, TDOUBLE, fpixel, lpixel, &inc,
 			&nulval, image, &anynul, &status);
@@ -344,11 +335,7 @@ int read_bolo_list(string fname, struct detectors &det){
 
 	fitsfile *fptr;
 	int status = 0;
-	//	int colnum;
-	//	long ndet_test=0;
 	char **temp_bolo;
-
-	//	det.boloname.clear();
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
@@ -357,10 +344,8 @@ int read_bolo_list(string fname, struct detectors &det){
 
 	read_channels(fptr,temp_bolo, det.ndet);
 
-	for (long ii=0; ii < det.ndet; ii++){
-		//		cout << temp_bolo[ii] << endl;
+	for (long ii=0; ii < det.ndet; ii++)
 		det.boloname.push_back(temp_bolo[ii]);
-	}
 
 	// close file
 	if(fits_close_file(fptr, &status)){
@@ -411,7 +396,6 @@ long find_channel_index(fitsfile *fptr, const char * field){
 	// read the channel list
 	read_channels(fptr,data,nBolos);
 
-	//	long idet;
 	//find the fits index of the bolo and return it
 	//fits index are 1 indexed, so indexes starts at 1
 	for (long idet = 1; idet <= nBolos; idet++)
@@ -542,7 +526,6 @@ int read_time_from_fits(string filename, double *& time, long ns){
 	int status = 0;
 	int ns_test = 0;
 	char comment[80];
-	//	int anynul;
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
@@ -598,12 +581,14 @@ int test_format(string fitsname){
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)>0)&& (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)>0)) // "ra" and "dec" tables were not found
+	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)>0) &&
+			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)>0)) // "ra" and "dec" tables were not found
 		format=2;
 
 	status = 0;
 
-	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)>0)&& (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)>0)){
+	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)>0) &&
+			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)>0)){ // both tables were not found
 		if(format==2)
 			format=0;
 		else

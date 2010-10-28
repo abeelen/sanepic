@@ -55,12 +55,12 @@ int main(int argc, char *argv[])
 		long *frnum ;
 		int parsed;
 
-		string fname, output = "";
+		string fname, parser_output = "";
 
-		parsed=parse_FBFO(argv[1], output, samples_struct,dir);
+		parsed=parse_FBFO(argv[1], parser_output, samples_struct,dir);
 
 		// print parser warning and/or errors
-		cout << endl << output << endl;
+		cout << endl << parser_output << endl;
 
 		if (parsed==-1){
 			if(rank==0)

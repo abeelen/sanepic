@@ -45,14 +45,10 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	//
 
-	int size;//, size_det;
-	int rank;//, rank_det;
+	int size;
+	int rank;
 #ifdef USE_MPI
-	// int tag = 10;
-	//MPI_Status status;
-
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -82,7 +78,7 @@ int main(int argc, char *argv[]) {
 	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
-	int flagon = 0; /*!  if one sample is rejected, flagon=1 */
+	int flagon = 0; /*!  if at least one sample is rejected, flagon=1 */
 	int factdupl = 1; /*! map duplication factor */
 	long long addnpix = 0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
 	long long npixsrc = 0; /*! number of pix in box constraint */
@@ -103,7 +99,7 @@ int main(int argc, char *argv[]) {
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
-	string output = "";
+	string parser_output = "";
 
 	// main loop variables
 	double *S; /*! Pure signal */
@@ -134,12 +130,12 @@ int main(int argc, char *argv[]) {
 
 		if (indice_argv > 0){
 			/* parse ini file and fill structures */
-			parsed = parser_function(argv[indice_argv], output, dir,
+			parsed = parser_function(argv[indice_argv], parser_output, dir,
 					samples_struct, pos_param, proc_param, fcut, structPS,
 					struct_sanePic, rank, size);
 
 			// print parser warning and/or errors
-			cout << endl << output << endl;
+			cout << endl << parser_output << endl;
 
 		}else
 			parsed = 1;
@@ -383,16 +379,16 @@ int main(int argc, char *argv[]) {
 		return (EX_SOFTWARE);
 	}
 
-	if (struct_sanePic.restore > 0) {
+	if (struct_sanePic.restore > 0) { // restore incomplete work with previous saved data
 		if (rank == 0)
 			cout << "load data is ON\n";
 		struct checksum chk_t, chk_t2;
 		compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix, indpix,
-				indpsrc, test_size, chk_t);
-		read_checksum(dir.tmp_dir, chk_t2);
-		if (compare_checksum(chk_t, chk_t2)) {
+				indpsrc, test_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
+		read_checksum(dir.tmp_dir, chk_t2); // read previous checksum
+		if (compare_checksum(chk_t, chk_t2)) { // compare them
 			if (rank == 0)
-				cout << "les checksum sont differents !!!" << endl;
+				cout << "Checksums are different !!! Exiting..." << endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
@@ -408,7 +404,7 @@ int main(int argc, char *argv[]) {
 			/* Compute Checsum for crash recovery ! */
 			compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix,
 					indpix, indpsrc, test_size, chk_t);
-			if(write_checksum(dir.tmp_dir, chk_t)){
+			if(write_checksum(dir.tmp_dir, chk_t)){ // write down on disk the checksum values
 #ifdef USE_MPI
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
@@ -488,13 +484,12 @@ int main(int argc, char *argv[]) {
 			// preconditioner computation : Mp
 			if (proc_param.CORRon) {
 
-				//TODO : What in the normal case ?
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(USE_MPI) && !defined(PARA_BOLO) //case para_frame
 				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 				// read pointing + deproject + fourier transform
 
-#else // case para_frame and mono
+#else // case para_bolo and mono
 				write_tfAS(S, det, indpix, NAXIS1, NAXIS2, npix,
 						pos_param.flgdupl, dir.tmp_dir, ns,
 						samples_struct.fits_table[iframe], rank, size);
@@ -602,6 +597,7 @@ int main(int argc, char *argv[]) {
 		if (struct_sanePic.restore > 0) {
 			if (rank == 0)
 				cout << "loading data !\n";
+			// fill S, d, r, indpix, npixeff, var_n, delta_n and iter with previously saved on disk values
 			load_from_disk(dir.tmp_dir, dir.output_dir, S, d, r, indpix,
 					npixeff, var_n, delta_n, iter);
 			if (rank == 0)
@@ -810,8 +806,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					temp_stream << dir.output_dir + "optimMap_" << iter
-							<< "b.fits";
+					temp_stream << dir.output_dir + "optimMap_" << iter	<< "b.fits";
 					fname = temp_stream.str();
 					temp_stream.str("");
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
@@ -940,13 +935,13 @@ int main(int argc, char *argv[]) {
 				if (rank == 0) {
 					cout << "iter = " << iter;
 					cout << ", crit  = " << setiosflags(ios::scientific)
-																	<< setiosflags(ios::floatfield) << var_n / var0;
+																			<< setiosflags(ios::floatfield) << var_n / var0;
 					cout << ", crit2 = " << setiosflags(ios::scientific)
-																	<< setiosflags(ios::floatfield) << delta_n / delta0;
+																			<< setiosflags(ios::floatfield) << delta_n / delta0;
 					cout << ", var_n  = " << setiosflags(ios::scientific)
-																	<< setiosflags(ios::floatfield) << var_n;
+																			<< setiosflags(ios::floatfield) << var_n;
 					cout << ", delta_n = " << setiosflags(ios::scientific)
-																	<< setiosflags(ios::floatfield) << delta_n;
+																			<< setiosflags(ios::floatfield) << delta_n;
 					cout << "\r " << flush;
 				}
 

@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	std::vector<double> fcut;
 	struct param_sanePS structPS;
 	struct param_sanePic struct_sanePic;
-	string output="";
+	string parser_output="";
 
 	string field; /*! actual boloname in the bolo loop */
 	string bolofield; /*! bolofield = boloname + bextension */
@@ -142,11 +142,11 @@ int main(int argc, char *argv[])
 		parsed=-1;
 	} else {
 
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, fcut,
 				structPS, struct_sanePic, rank, size);
 
 		// print parser warning and/or errors
-		cout << endl << output << endl;
+		cout << endl << parser_output << endl;
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
@@ -264,8 +264,6 @@ int main(int argc, char *argv[])
 #endif
 
 
-	//	fill_noisevect(samples_struct);
-
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -277,7 +275,7 @@ int main(int argc, char *argv[])
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
 		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
 
-
+ // TODO parser_printout ici et read_bolo output dedans
 
 
 	/************************ Look for distriBoxution failure *******************************/
@@ -370,13 +368,10 @@ int main(int argc, char *argv[])
 
 	} else {
 		// Map header is determined from the mask file
-
 		if(rank==0)
 			cout << "Reading Mask map : " << pos_param.maskfile << endl;
 
-		string extname="mask";
-
-		if (read_mask_wcs(pos_param.maskfile, extname, wcs, NAXIS1, NAXIS2, mask )){
+		if (read_mask_wcs(pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -384,7 +379,6 @@ int main(int argc, char *argv[])
 #endif
 			return(EX_IOERR);
 		}
-
 
 		npixsrc = 0;
 		indpsrc = new long long[NAXIS1*NAXIS2];
