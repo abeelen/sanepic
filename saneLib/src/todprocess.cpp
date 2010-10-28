@@ -56,7 +56,7 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 	for (long i=0;i<ndata;i++) yout[i] = y[i];
 	for (long i=0;i<ndata;i++)
 		for (int pp=0;pp<=norder;pp++)
-			yout[i] -= a[pp]*gsl_pow_int((double)i,pp);
+			yout[i] -= a[pp]*gsl_pow_int((double)i,pp); // TODO : generate a vector for poly instead of computing it each loop
 
 
 	delete [] sx;
@@ -544,47 +544,6 @@ void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins,
 
 }
 
-
-
-void cutdata(double y[], int indm, int indp, double *yout)
-{
-
-	for (int i=indm;i<=indp;i++){
-		yout[i-indm] = y[i];
-	}
-}
-
-
-void cutdata(unsigned char y[], int indm, int indp, unsigned char *yout)
-{
-	// int i;
-
-	for (int i=indm;i<=indp;i++){
-		yout[i-indm] = y[i];
-	}
-}
-
-
-void mergedata(double y1[], int ndata1, double y2[], int ndata2, double *yout)
-{
-
-	for (int i=0;i<ndata1;i++)
-		yout[i] = y1[i];
-	for (int i=0;i<ndata2;i++)
-		yout[i+ndata1] = y2[i];
-
-}
-
-
-void dindgen(int nn, double *y)
-{
-
-	for (int i=0;i<nn;i++)
-		y[i]=(double)i;
-
-}
-
-
 void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 	int indic=0;
@@ -771,33 +730,6 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 
 }
-
-double randg_value(long nombre, int seedpass) {
-
-	double nombre_hasard=0.0;
-	time_t temps;
-	temps = time(NULL);
-
-	unsigned int seed = 0;
-
-	if (seedpass == 0) seed = (unsigned int) temps;
-	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
-	if (seedpass != -1) srandom(seed);
-
-	for (long i=0;i<nombre/2;i++) {
-		cout << "problem in rang_value" << endl;
-		exit(0);
-	}
-
-	if (nombre/2!=nombre/2.) {
-		double t1 = (double(rand())/RAND_MAX);
-		double t2 = (double(rand())/RAND_MAX);
-		nombre_hasard=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-	}//
-
-	return nombre_hasard;
-}
-
 
 
 double* randg(long nombre, int seedpass) {

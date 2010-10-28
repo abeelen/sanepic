@@ -17,7 +17,7 @@ using namespace std;
 void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, struct detectors det, double f_lppix, double f_lppix_Nk,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
-		long long npixsrc, long iframe, double *S, int rank, int size)
+		long long npixsrc, long iframe, double *S, int para_bolo_indice, int para_bolo_size)
 {
 
 
@@ -48,7 +48,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 
 	fits_filename = samples_struct.fits_table[iframe];
 
-	for (long idet=rank*det.ndet/size;idet<(rank+1)*det.ndet/size;idet++){
+	for (long idet=para_bolo_indice*det.ndet/para_bolo_size;idet<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet++){
 		field = det.boloname[idet];
 
 
@@ -79,8 +79,6 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
 
-//		}
-//		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp,  Ps);
 		} else {
@@ -135,7 +133,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common dir,
 		struct detectors det,double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int rank, int size)
+		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
 
 {
 
@@ -157,7 +155,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common d
 	int factdupl = 1;
 	if(flgdupl==1) factdupl = 2;
 
-	for (long idet=rank*det.ndet/size;idet<(rank+1)*det.ndet/size;idet++){
+	for (long idet=para_bolo_indice*det.ndet/para_bolo_size;idet<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet++){
 
 		field = det.boloname[idet];
 
@@ -176,7 +174,6 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common d
 		}
 
 		extentnoiseSp = extentnoiseSp_all[iframe];
-		//sprintf(nameSpfile,"%s%s%s",noiseSppreffile.c_str(),field.c_str(),extentnoiseSp.c_str());
 		nameSpfile = dir.tmp_dir + field + extentnoiseSp;
 		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 
@@ -209,16 +206,3 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common d
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

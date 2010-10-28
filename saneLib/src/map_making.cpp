@@ -84,13 +84,6 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 
 }
 
-
-
-
-
-
-
-
 //TODO : Check compute_diagPtNP and compute_diagPtNPCorr
 void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		long  NAXIS1, long NAXIS2, long long *indpix,
@@ -111,7 +104,6 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
 	pixpos = new long long[ndata];
-	//pixtosamp = new long[ndata];
 
 
 	// N^-1
@@ -122,10 +114,6 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	fftplan = fftw_plan_dft_c2r_1d(ndata, Nk_, N_, FFTW_ESTIMATE);
 	fftw_execute(fftplan);
 
-
-
-
-
 	for (long ii=0;ii<ndata;ii++){
 		if ((ii < 0) || (ii >= ndata)){
 			pixpos[ii] = npix-2;
@@ -135,11 +123,8 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	}
 
 
-
 	data_compare = new long long[ndata];
 	pixtosamp = new long long[ndata];
-
-
 
 	for (long ii=0;ii<ndata;ii++)
 		pixtosamp[ii] = ii;
@@ -147,12 +132,8 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	for (long ii=0;ii<ndata;ii++)
 		data_compare[ii] = pixpos[ii];
 
-
-
 	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
 	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
-
-
 
 	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
@@ -192,7 +173,6 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 
 	//clean up
 	fftw_destroy_plan(fftplan);
-
 
 }
 
@@ -372,10 +352,6 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 }
 
 
-
-
-
-
 ///// measure power spectrum of the uncorrelated part of the noise
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
@@ -423,14 +399,11 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	}
 
 
-
-
 	//bin power spectrum
 	for (int q=0;q<nbins;q++){
 		Nell[q] = 0.0;
 		count[q] = 0;
 	}
-
 
 	qq=0;
 	for (long k=0;k<ns/2+1;k++){
@@ -441,11 +414,8 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 		count[qq] += 1;
 	}
 
-
 	for (int q=0;q<nbins;q++)
 		Nell[q] /= double(count[q]);
-
-
 
 	for(long ii=0;ii<ns/2+1;ii++){
 		if (bfilter == NULL){
@@ -458,7 +428,6 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 	// interpolate logarithmically the spectrum and filter
 	binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
-
 
 
 	//clean up
@@ -537,8 +506,6 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 	delete [] bfiltertemp;
 
 }
-
-
 
 void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 

@@ -19,13 +19,13 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 	// sx is normalised between -1 and 1
 
 	gsl_matrix *V;
-	gsl_vector *Y, *res, *tau, *residual;
+	gsl_vector *Y, *resultat, *tau, *residual;
 
 	// malloc
 	V=gsl_matrix_calloc ((size_t) taille, (size_t) norder+1);
 	Y = gsl_vector_calloc ((size_t) taille);
 	residual=gsl_vector_calloc((size_t) taille);
-	res = gsl_vector_calloc ((size_t) norder+1);
+	resultat = gsl_vector_calloc ((size_t) norder+1);
 	tau = gsl_vector_calloc ((size_t) norder+1);
 
 
@@ -49,17 +49,17 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 
 	// QR-decomposition and least-squares computation
 	gsl_linalg_QR_decomp (V, tau);
-	gsl_linalg_QR_lssolve (V, tau, Y, res,residual);
+	gsl_linalg_QR_lssolve (V, tau, Y, resultat,residual);
 
 	// converting a gls vector to the expected result
 	for(int i=0; i<norder+1; i++)
-		a[i]=gsl_vector_get(res,norder-i);
+		a[i]=gsl_vector_get(resultat,norder-i);
 
 	// memory cleanup
 	gsl_matrix_free (V);
 	gsl_vector_free (Y);
 	gsl_vector_free(residual);
-	gsl_vector_free (res);
+	gsl_vector_free (resultat);
 	gsl_vector_free (tau);
 
 }
