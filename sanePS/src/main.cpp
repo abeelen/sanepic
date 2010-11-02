@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	// main loop variables
 	double *S = NULL; // signal
 	struct param_sanePS structPS;
-
+	struct param_saneInv saneInv_struct;
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 	std::vector<double> fcut_vector;
 	struct param_sanePic struct_sanePic;
@@ -83,10 +83,11 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut_vector,
-				structPS, struct_sanePic, rank, size);
+				structPS, saneInv_struct, struct_sanePic, size);
 
-		// print parser warning and/or errors
-		cout << endl << output << endl;
+		if(rank==0)
+			// print parser warning and/or errors
+			cout << endl << output << endl;
 	}
 
 	if (parsed > 0) { // error during parser phase
@@ -270,7 +271,7 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
 
-	fill_noisevect(samples_struct);
+	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut_vector);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
@@ -281,9 +282,10 @@ int main(int argc, char *argv[])
 		return(EX_IOERR);
 	}
 
-	// parser print screen function
+	if(rank==0)
+		// parser print screen function
 		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-				structPS, struct_sanePic, rank);
+				structPS, struct_sanePic);
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 

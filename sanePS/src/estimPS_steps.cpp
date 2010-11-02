@@ -1,5 +1,3 @@
-
-//#include "psdIO.h"
 #include <vector>
 #include <sstream>
 #include <cmath>
@@ -621,11 +619,14 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 
 	f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
+
+#ifdef DEBUG
 	printf("Pre em:   obj: %10.15g\n", f) ;
 
 	cout << "nbins2 " << nbins2 << endl;
 	cout << "ndet   " << ndet << endl;
 	cout << "ncomp  " << ncomp << endl << endl;
+#endif
 
 	for (long iter=1;iter<=nbiter;iter++){
 
@@ -1112,8 +1113,6 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	// récupérer une chaîne de caractères
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
-
-	cout << Rellth[0][0] << " " << Rellth[10][10] << " " << Rellth[20][8] << endl;
 
 	if(write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth))
 		return EX_IOERR;
