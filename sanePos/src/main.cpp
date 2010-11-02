@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
 	// struct used in the parser
 	std::vector<double> fcut;
 	struct param_sanePS structPS;
+	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 	string parser_output="";
 
@@ -143,10 +144,11 @@ int main(int argc, char *argv[])
 	} else {
 
 		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, fcut,
-				structPS, struct_sanePic, rank, size);
+				structPS, saneInv_struct, struct_sanePic, size);
 
-		// print parser warning and/or errors
-		cout << endl << parser_output << endl;
+		if(rank==0)
+			// print parser warning and/or errors
+			cout << endl << parser_output << endl;
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
@@ -267,10 +269,10 @@ int main(int argc, char *argv[])
 		return(EX_IOERR);
 	}
 
-
-	// parser print screen function
+	if(rank==0)
+		// parser print screen function
 		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-				structPS, struct_sanePic, rank);
+				structPS, struct_sanePic);
 
 
 	/************************ Look for distriBoxution failure *******************************/

@@ -118,8 +118,9 @@ int main(int argc, char *argv[])
 
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
+	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
-	string output = "";
+	string parser_output = "";
 
 	/* Parser inputs */
 	std::vector<double> fcut; /* noise cutting frequency */
@@ -134,16 +135,16 @@ int main(int argc, char *argv[])
 		parsed=1;
 	else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
-				structPS, struct_sanePic, rank, size);
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, fcut,
+				structPS, saneInv_struct, struct_sanePic, size);
 
-		// print parser warning and/or errors
-		cout << endl << output << endl;
 	}
 
 
 
-	if (rank==0)
+	if (rank==0){
+		// print parser warning and/or errors
+		cout << endl << parser_output << endl;
 		switch (parsed){/* error during parsing phase */
 
 		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
@@ -157,6 +158,7 @@ int main(int argc, char *argv[])
 
 		default :;
 		}
+	}
 
 	// in case there is a parsing error or the dirfile format file was not created correctly
 	if (parsed>0){
@@ -279,8 +281,9 @@ int main(int argc, char *argv[])
 
 #endif
 
-	fill_noisevect(samples_struct);
+	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+
 
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank)){
 #ifdef USE_MPI
@@ -290,9 +293,10 @@ int main(int argc, char *argv[])
 		return(EX_IOERR);
 	}
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-			structPS, struct_sanePic, rank);
+	if(rank==0)
+		// parser print screen function
+		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+				structPS, struct_sanePic);
 
 
 

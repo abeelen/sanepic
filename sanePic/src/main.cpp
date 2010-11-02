@@ -99,6 +99,7 @@ int main(int argc, char *argv[]) {
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
+	struct param_saneInv saneInv_struct;
 	string parser_output = "";
 
 	// main loop variables
@@ -131,9 +132,10 @@ int main(int argc, char *argv[]) {
 		if (indice_argv > 0){
 			/* parse ini file and fill structures */
 			parsed = parser_function(argv[indice_argv], parser_output, dir,
-					samples_struct, pos_param, proc_param, fcut, structPS,
-					struct_sanePic, rank, size);
+					samples_struct, pos_param, proc_param, fcut, structPS, saneInv_struct,
+					struct_sanePic, size);
 
+			if(rank==0)
 			// print parser warning and/or errors
 			cout << endl << parser_output << endl;
 
@@ -268,7 +270,7 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-	fill_noisevect(samples_struct);
+	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
@@ -279,9 +281,10 @@ int main(int argc, char *argv[]) {
 		return(EX_IOERR);
 	}
 
+	if(rank==0)
 	// parser print screen function
 		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-				structPS, struct_sanePic, rank);
+				structPS, struct_sanePic);
 
 	//	read pointing informations
 	struct wcsprm * wcs;

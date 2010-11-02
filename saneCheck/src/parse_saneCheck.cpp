@@ -36,7 +36,7 @@ std::string StringOf(const T& object){
 
 int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
-		struct param_sanePS &structPS, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)
 {
 
 
@@ -49,7 +49,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 
 
 	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
-			structPS, sanePic_struct, rank, size))
+			structPS, saneInv_struct, sanePic_struct, size))
 		return -1;
 
 	// load dictionnary
@@ -60,7 +60,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		return -1 ;
 	}
 
-	read_saneCheck_ini(ini , check_struct, rank);
+	read_saneCheck_ini(ini , check_struct);
 	//	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
 
 	iniparser_freedict(ini);
@@ -113,8 +113,8 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 
 		text += "[saneInv]\n\n";
 		text += "noise_dir = " + dir.noise_dir + " ; cov matrix directory\n";
-		text += "cov_matrix_file = " + samples_struct.cov_matrix_file + " ; this file contains the matrix you want to invert\n";
-		text += "cov_matrix_suffix = " + samples_struct.cov_matrix_suffix + " ; this file contains the matrix you want to invert\n";
+		text += "cov_matrix_file = " + saneInv_struct.cov_matrix_file + " ; this file contains the matrix you want to invert\n";
+		text += "cov_matrix_suffix = " + saneInv_struct.cov_matrix_suffix + " ; this file contains the matrix you want to invert\n";
 
 		text += "\n\n";
 
@@ -165,7 +165,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 }
 
 
-int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct, int rank){
+int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct){
 
 
 	//	check_struct.bolo_gain_check="";
@@ -182,39 +182,36 @@ int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct, int ran
 	return 0;
 }
 
-void print_saneCheck_ini(struct saneCheck check_struct, int rank){
+void print_saneCheck_ini(struct saneCheck check_struct){
 
 
-	if(rank==0){
+	cout << endl;
 
-		cout << endl;
+	//	if(check_struct.bolo_gain_check!="")
+	//	check_struct.bolo_gain_check=""; // to be printed
+	cout <<  "Check NaNs in fits' tables : ";
+	if(!check_struct.checkNAN)
+		cout <<  "NO" << endl;
+	else
+		cout <<  "YES" << endl;
 
-		//	if(check_struct.bolo_gain_check!="")
-		//	check_struct.bolo_gain_check=""; // to be printed
-		cout <<  "Check NaNs in fits' tables : ";
-		if(!check_struct.checkNAN)
-			cout <<  "NO" << endl;
-		else
-			cout <<  "YES" << endl;
+	cout << "Check time gaps in time fits fable : ";
+	if(!check_struct.checktime)
+		cout <<  "NO" << endl;
+	else
+		cout <<  "YES" << endl;
 
-		cout << "Check time gaps in time fits fable : ";
-		if(!check_struct.checktime)
-			cout <<  "NO" << endl;
-		else
-			cout <<  "YES" << endl;
+	cout << "Check bolometer gains : ";
+	if(!check_struct.checkGain)
+		cout <<  "NO" << endl;
+	else
+		cout <<  "YES" << endl;
 
-		cout << "Check bolometer gains : ";
-		if(!check_struct.checkGain)
-			cout <<  "NO" << endl;
-		else
-			cout <<  "YES" << endl;
+	cout << "Check timelines flag %age : ";
+	if(!check_struct.checkflag)
+		cout <<  "NO" << endl;
+	else
+		cout <<  "YES" << endl;
 
-		cout << "Check timelines flag %age : ";
-		if(!check_struct.checkflag)
-			cout <<  "NO" << endl;
-		else
-			cout <<  "YES" << endl;
-
-	}
 
 }

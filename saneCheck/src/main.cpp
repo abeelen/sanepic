@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;
 	struct param_sanePic sanePic_struct;
+	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
 	std::vector<double> fcut;
 	struct saneCheck check_struct;
@@ -88,10 +89,11 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	else {
 		parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
-				structPS, sanePic_struct, check_struct, rank, size);
+				structPS, saneInv_struct, sanePic_struct, check_struct, rank, size);
 
-		// print parser warning and/or errors
-		cout << endl << output << endl;
+		if(rank==0)
+			// print parser warning and/or errors
+			cout << endl << output << endl;
 	}
 
 	if(parsed==-1){ /* error during parsing phase */
@@ -113,11 +115,12 @@ int main(int argc, char *argv[]) {
 		return(EX_IOERR);
 	}
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-			structPS, sanePic_struct, rank);
-	print_saneCheck_ini(check_struct, rank);
-
+	if(rank==0){
+		// parser print screen function
+		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+				structPS, sanePic_struct);
+		print_saneCheck_ini(check_struct);
+	}
 
 
 	struct detectors bolo_fits_0; /* bolometers list of the first fits file given as input */

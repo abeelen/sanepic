@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;
 	struct param_sanePS structPS;
+	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 
 	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
@@ -97,8 +98,9 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	} else {
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
-				structPS, struct_sanePic, rank, size);
+				structPS, saneInv_struct, struct_sanePic, size);
 
+		if(rank==0)
 		// print parser warning and/or errors
 		cout << endl << output << endl;
 	}
@@ -135,18 +137,15 @@ int main(int argc, char *argv[]) {
 		return(EX_IOERR);
 	}
 
-	// parser print screen function
-	parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
-			structPS, struct_sanePic, rank);
-
-//	printf("Number of bolometers : \n");
-//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++)
-//		printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+	if(rank==0)
+		// parser print screen function
+		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+				structPS, struct_sanePic);
 
 	// START OF saneInv
 
 	// read all cov matrix files : one for all or one for each scan !
-	fill_noisevect(samples_struct);
+	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 
 	std::vector<string>::iterator it;
 	long size_tmp;

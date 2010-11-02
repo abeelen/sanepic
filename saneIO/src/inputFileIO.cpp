@@ -13,13 +13,6 @@
 using namespace std;
 
 
-template <typename T>
-std::string StringOf(const T& object){
-	std::ostringstream os;
-	os << object;
-	return os.str();
-}
-
 
 /*!
  * Reads a detector list in a .txt file
@@ -123,7 +116,7 @@ int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_c
 		else
 			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
 
-		if(read_channel_list(output, filename, det.boloname, rank)==1){
+		if(read_channel_list(output, filename, det.boloname)==1){
 			if(rank==0)
 				cout << endl << output << endl;
 			return 1;
@@ -136,7 +129,7 @@ int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_c
 		}
 		if(size>det.ndet){
 			if(rank==0)
-				cout << "You are using too many processors : " + StringOf(size) + " processors for only " + StringOf(detector_tab[oo].ndet) + " detectors!";
+				cout << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!";
 			return 1;
 		}
 		detector_tab.push_back(det);
@@ -152,10 +145,9 @@ int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_c
 }
 
 
-int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames, int rank){
+int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames){
 
 	if(read_strings(fname,bolonames)){
-		if(rank==0)
 			output += "You must create file specifying bolometer list named " + fname + "\n";
 		return 1;
 	}

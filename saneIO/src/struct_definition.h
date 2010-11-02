@@ -45,6 +45,12 @@ struct param_sanePre
 	std::string fcut_file;
 };
 
+struct param_saneInv
+{
+	std::string cov_matrix_file;
+	std::string cov_matrix_suffix;
+};
+
 struct param_sanePS
 /*! A structure that contains user options about sanePS procedure */
 {
@@ -75,13 +81,15 @@ struct samples
 	std::vector<std::string> fitsvect;
 	std::vector<std::string> noisevect;
 	std::vector<int> scans_index;
+	std::vector<std::string> bolovect;
 
-	std::string cov_matrix_file;
-	std::string cov_matrix_suffix;
+//	std::string cov_matrix_file;
+//	std::string cov_matrix_suffix; // TODO struct saneInv
 
 	bool framegiven;
 	std::string *fits_table;
 	std::string *noise_table;
+	std::string *bolo_table;
 	int *index_table;
 	long *nsamples;
 	long ntotscan;

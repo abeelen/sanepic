@@ -40,10 +40,10 @@ int parse_FBFO(char * ini_name, string &parser_output, struct samples &samples_s
 
 	samples_struct.ntotscan=0; /*! total number of scans*/
 
-	if(read_common(parser_output, ini, dir,0)==-1)
+	if(read_common(parser_output, ini, dir)==-1)
 		return -1;
 
-	if(read_fits_file_list(parser_output, ini, dir,samples_struct,0)==-1)
+	if(read_fits_file_list(parser_output, ini, dir,samples_struct)==-1)
 		return -1;
 
 	cout << "You have specified the following options : \n\n";

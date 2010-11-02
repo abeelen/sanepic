@@ -46,11 +46,11 @@ int parse_saneFix_ini_file(char * ini_name, string &output, struct param_common 
 	}
 
 	// get directories path
-	if(read_common(output, ini, dir, rank)==1)
+	if(read_common(output, ini, dir)==1)
 		return -1;
 
 	// get fits file that have to be fixed
-	if(read_fits_file_list(output, ini, dir,samples_struct, rank)==1)
+	if(read_fits_file_list(output, ini, dir,samples_struct)==1)
 		return -1;
 
 	// store number of scans
