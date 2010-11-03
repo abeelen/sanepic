@@ -6,13 +6,17 @@
 #include <fstream>
 #include <cstring>
 
+#include "imageIO.h"
 #include "inputFileIO.h"
+#include "covMatrix_IO.h"
+
+extern "C"{
+#include "nrutil.h"
+}
 
 #define EscapeChar "!#;"
 
 using namespace std;
-
-
 
 /*!
  * Reads a detector list in a .txt file
@@ -46,7 +50,7 @@ int read_strings(string fname, std::vector<string> &bolos) {
 
 int read_double(string fname, double *& array, long & size){
 	string line;
-	vector<double> temp;
+	std::vector<double> temp;
 	size_t found;
 
 	ifstream inputFile(fname.c_str(), ios::in);
@@ -103,6 +107,45 @@ std::string FitsBasename(std::string path)
 	return filename;
 }
 
+long readFitsLength(string filename){
+
+	fitsfile *fptr;
+	int status = 0;
+	long ns;
+	char comment[80];
+
+	//	Open the fits file
+	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
+		fits_report_error(stderr, status);
+
+	// Go to the signal Extension ...
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+		fits_report_error(stderr, status);
+		exit(0);
+	}
+
+	// ... and check for the NAXIS1 keyword...
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns, (char *) &comment, &status)){
+		fits_report_error(stderr, status);
+		cout << "naxis\n";
+		exit(0);
+	}
+
+	if(fits_close_file(fptr, &status))
+		fits_report_error(stderr, status);
+
+	return ns;
+}
+
+void readFrames(std::vector<string> &inputList, long *& nsamples){
+
+	long nScan  = inputList.size();
+	nsamples = new long[nScan];
+	for (long i=0; i<nScan; i++){
+		nsamples[i] = readFitsLength(inputList[i]);
+	}
+
+}
 
 int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size){
 
@@ -148,7 +191,7 @@ int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_c
 int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames){
 
 	if(read_strings(fname,bolonames)){
-			output += "You must create file specifying bolometer list named " + fname + "\n";
+		output += "You must create file specifying bolometer list named " + fname + "\n";
 		return 1;
 	}
 	return 0;
@@ -235,4 +278,62 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 	file.close();
 
 	return 0;
+}
+
+
+void fill_sanePS_struct(struct param_sanePS &structPS, struct samples samples_struct){
+
+
+	for(long ii=0;ii<samples_struct.ntotscan;ii++){
+		if(structPS.mix_global_file!="")
+			structPS.mix_names.push_back(structPS.mix_global_file);
+		else
+			structPS.mix_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
+
+		if(structPS.ell_global_file!="")
+			structPS.ell_names.push_back(structPS.ell_global_file);
+		else
+			structPS.ell_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
+	}
+
+}
+
+void fill_noisevect_fcut(struct param_common dir, struct samples &samples_str, struct param_saneInv &saneInv_struct, std::vector<double> &fcut){
+
+	if((saneInv_struct.cov_matrix_file!="")){
+		samples_str.noisevect.push_back(saneInv_struct.cov_matrix_file);
+
+	}else{
+		for(long iframe = 0; iframe < samples_str.ntotscan ; iframe ++)
+			samples_str.noisevect.push_back(FitsBasename(samples_str.fits_table[iframe]) + saneInv_struct.cov_matrix_suffix);
+	}
+
+
+	if((int)fcut.size()==0){
+
+		for(long iframe = 0; iframe < (long)samples_str.noisevect.size() ; iframe ++){
+
+			std::vector<string> bolos;
+			long nbins;
+			double *ell;
+			double **Rellth;
+
+			read_CovMatrix(dir.noise_dir + samples_str.noisevect[iframe], bolos, nbins, ell, Rellth);
+			fcut.push_back(ell[0]);
+			delete [] ell;
+			long nBolos=bolos.size();
+			free_dmatrix(Rellth, 0, nBolos * nBolos - 1, 0, nbins - 1);
+
+		}
+	}
+
+	if((samples_str.noisevect.size() == 1) && (samples_str.ntotscan > 1)){
+		// same noise file for all the scans
+		(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
+
+		// if only one fcut, extend to all scans
+		fcut.resize(samples_str.ntotscan, fcut[0]);
+	}
+
+
 }

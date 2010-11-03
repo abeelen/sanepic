@@ -590,49 +590,6 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples samples
 
 }
 
-
-
-long readFitsLength(string filename){
-
-	fitsfile *fptr;
-	int status = 0;
-	long ns;
-	char comment[80];
-
-	//	Open the fits file
-	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status))
-		fits_report_error(stderr, status);
-
-	// Go to the signal Extension ...
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
-		fits_report_error(stderr, status);
-		exit(0);
-	}
-
-	// ... and check for the NAXIS1 keyword...
-	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns, (char *) &comment, &status)){
-		fits_report_error(stderr, status);
-		cout << "naxis\n";
-		exit(0);
-	}
-
-	if(fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
-
-	return ns;
-}
-
-void readFrames(std::vector<string> &inputList, long *& nsamples){
-
-	long nScan  = inputList.size();
-	nsamples = new long[nScan];
-	for (long i=0; i<nScan; i++){
-		nsamples[i] = readFitsLength(inputList[i]);
-	}
-
-}
-
-
 int who_do_it(int size, int rank, int ii)
 /*!\brief This function determines which processor has to treat the given loop referenced by his number
  * \param size Number of Processor used

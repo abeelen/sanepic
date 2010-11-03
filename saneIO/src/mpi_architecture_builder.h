@@ -48,9 +48,6 @@ int check_ParallelizationScheme(std::string fname, std::string dirfile,struct sa
 int define_parallelization_scheme(int rank,std::string fname,std::string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max);
 int verify_parallelization_scheme(int rank, std::string outdir,struct samples samples_struct, int size, long &iframe_min, long &iframe_max);
 
-long readFitsLength(std::string filename);
-void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
-
 /*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
 int who_do_it(int size, int rank, int ii);
 
