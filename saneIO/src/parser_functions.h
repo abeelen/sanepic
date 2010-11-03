@@ -17,18 +17,17 @@ extern "C"{
 #include "dictionary.h"
 }
 
-//template <typename T>
-//std::string StringOf(const T& object){
-//	std::ostringstream os;
-//	os << object;
-//	return os.str();
-//}
+template <typename T>
+std::string StringOf(const T& object){
+	std::ostringstream os;
+	os << object;
+	return os.str();
+}
 
 int read_dir(std::string &output, dictionary	*ini, struct param_common &dir, std::string dirtype);
 
 
 int read_fits_file_list(std::string &output, dictionary	*ini, struct param_common &dir, struct samples &samples_str);
-int read_fits_list(std::string &output, std::string fname, std::vector<std::string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven);
 
 int read_apodize_samples(std::string &output, dictionary	*ini, struct param_sanePre &com);
 
@@ -38,24 +37,24 @@ int read_filter_frequency(std::string &output, dictionary	*ini, struct param_san
 
 int read_fcut(std::string &output, dictionary	*ini, double &fcut);
 int read_noise_cut_freq(std::string &output, dictionary	*ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut);
-int read_baseline(dictionary	    *ini, struct param_sanePre &proc_param);
-int read_correlation(dictionary	    *ini, struct param_sanePre &proc_param);
-int read_remove_poly(dictionary	    *ini, struct param_sanePre &proc_param);
-int read_iter(dictionary	        *ini, int &iterw);
+int read_baseline(std::string &output, dictionary *ini, struct param_sanePre &proc_param);
+int read_correlation(std::string &output, dictionary	*ini, struct param_sanePre &proc_param);
+int read_remove_poly(std::string &output, dictionary	*ini, struct param_sanePre &proc_param);
+int read_iter(std::string &output, dictionary *ini, int &iterw);
 int read_ell_suffix(std::string &output, dictionary	*ini, std::string &ell_suffix);
 int read_ell_global_file(std::string &output, dictionary	*ini, std::string &ell_global_file);
-int read_map_file(dictionary	*ini, std::string &signame);
-int read_cov_matrix_file(std::string &output, dictionary	*ini, std::string &fname);
-int read_cov_matrix_suffix(std::string &output, dictionary	*ini, std::string &fname);
-int read_mixmatfile_suffix(dictionary	*ini, std::string &MixMat_suffix);
+int read_map_file(dictionary *ini, std::string &signame);
+int read_cov_matrix_file(std::string &output, dictionary *ini, std::string &fname);
+int read_cov_matrix_suffix(std::string &output, dictionary *ini, std::string &fname);
+int read_mixmatfile_suffix(dictionary *ini, std::string &MixMat_suffix);
 int read_mixmat_global_file(dictionary	*ini, std::string &MixMat_global);
 int read_ncomp(std::string &output, dictionary	*ini, long &ncomp);
 
-int read_nofillgap(dictionary	*ini, struct param_sanePre &com);
+int read_nofillgap(std::string &output, dictionary *ini, struct param_sanePre &com);
 
 int read_common(std::string &output, dictionary	*ini, struct param_common &dir);
 
-int read_parser_string(dictionary	*ini,  std::string line, std::string & str);
+int read_parser_string(dictionary *ini,  std::string line, std::string & str);
 int read_param_process(std::string &output, dictionary *ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut);
 int read_param_positions(std::string &output, dictionary *ini, struct param_sanePos &pos_param);
 int read_param_saneInv(std::string &output, dictionary *ini, struct param_saneInv &saneInv_struct);

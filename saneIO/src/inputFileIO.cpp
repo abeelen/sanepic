@@ -154,3 +154,85 @@ int read_channel_list(std::string &output, std::string fname, std::vector<string
 	return 0;
 }
 
+
+int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven) {
+
+
+
+	ifstream file;
+	file.open(fname.c_str(), ios::in);
+	if(!file.is_open()){
+		output += "File [" + fname + "] Invalid.\n";
+		return 1;
+	}
+
+	framegiven=0;
+
+	string s, line, temp;
+	int d;
+	char *pch;
+	int nb_elem = 0;
+
+	// count number of elements on the first line !
+	getline(file, line);
+	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
+	pch = strtok ((char*) line.c_str()," ,;\t");
+
+	while (pch != NULL) {
+		pch = strtok (NULL, " ,;\t");
+		nb_elem++; 	}
+
+	// set pointer back to the beginning of file in order to parse the first line too
+	file.seekg (0, ios::beg);
+
+	switch(nb_elem) {
+	case 2:
+		framegiven=1;
+		while(file >> s >> d){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+
+			if (found == 0) continue;
+
+			fitsfiles.push_back(s);
+			frameorder.push_back(d);
+		}
+		break;
+
+	case 1:
+		while(file >> s){
+			size_t found;
+			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			if (found == 0) continue;
+
+			fitsfiles.push_back(s);
+		}
+		break;
+
+	default:
+		output += "File [" + fname + "] must have at least one row and 2 colums. Exiting\n";
+		return 1;
+		break;
+	}
+
+	if(fitsfiles.size()==0){
+		output += "File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
+		return 1;
+	}
+
+	if (file>>s){
+		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
+		return 1;
+	}
+
+
+#ifdef DEBUG_PRINT
+	cout << "read fits list ok !!!\n";
+#endif
+
+	file.close();
+
+	return 0;
+}

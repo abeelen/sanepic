@@ -27,7 +27,7 @@ int parse_saneSplit_ini_file(char * ini_name, string &output, struct param_commo
 		return 2 ;
 	}
 
-	if(read_common(output, ini, dir, 0)==1) /* read directories infos */
+	if(read_common(output, ini, dir)==1) /* read directories infos */
 		return 2;
 
 	cout << "You have specified the following options : \n\n";

@@ -31,8 +31,79 @@ extern "C"{
 using namespace std;
 
 
+template <class T>
+bool from_string(T &Value,const std::string &str,std::ios_base & (*f)(std::ios_base&))
+// converts string to streamable value, and returns true on success and false otherwise.
+{
+	std::istringstream stream(str);
+	stream>>f>>Value;
+	return (!stream.fail()) && stream.get()==std::istringstream::traits_type::eof();
+}
 
+template <class T>
+T convert_from_string(string str)
+{
+	T value;
+	string type = (typeid (T).name());
+	char type_c = (char)type[0];
+	//	cout << "type : " << type_c << endl;
+	switch(type_c){
+	case 'i' :
+		value = atoi((char*)str.c_str());
+		break;
+	case 'l' :
+		value = atol((char*)str.c_str());
+		break;
+	case 'd' :
+		value = atof((char*)str.c_str());
+		break;
+	case 'b' :
+		if(str.length()>1){
+			std::transform(str.begin(), str.end(),
+					str.begin(), ::tolower);
+			if(!from_string(value,str,std::boolalpha))
+				cout << "from_string failed !!!" << endl;
+		}else
+			if(!from_string(value,str,std::noboolalpha))
+				cout << "from_string failed !!!" << endl;
+		break;
+	}
 
+	return value;
+}
+
+template <class T>
+int read_item(string &output, dictionary *ini, T &value, T default_value, string field, bool mandatory)
+{
+
+	string str;
+
+	switch(read_parser_string(ini, field, str)){
+	case 2:
+		if(mandatory)
+			return 2;
+		else{
+			output += "WARNING ! You must add a line in ini file specifying : " + field + "\n";
+			output +=  "Using default : " + StringOf(default_value) + "\n";
+			value=default_value;
+		}
+		break;
+	case 1:
+		if(mandatory)
+			return 1;
+		else{
+			output += "Key is empty : You must specify : " + field + "\n";
+			output += "Using default : " + StringOf(default_value) + "\n";
+			value=default_value;
+		}
+		break;
+	case 0:
+		value=convert_from_string<T>(str);
+		break;
+	}
+
+	return 0;
+}
 
 int read_dir(string &output, dictionary	*ini, struct param_common &dir, string dirtype){
 
@@ -119,97 +190,12 @@ int read_fits_file_list(string &output, dictionary	*ini, struct param_common &di
 	return 0;
 }
 
-int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven) {
-
-
-
-	ifstream file;
-	file.open(fname.c_str(), ios::in);
-	if(!file.is_open()){
-		output += "File [" + fname + "] Invalid.\n";
-		return 1;
-	}
-
-	framegiven=0;
-
-	string s, line, temp;
-	int d;
-	char *pch;
-	int nb_elem = 0;
-
-	// count number of elements on the first line !
-	getline(file, line);
-	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str()," ,;\t");
-
-	while (pch != NULL) {
-		pch = strtok (NULL, " ,;\t");
-		nb_elem++; 	}
-
-	// set pointer back to the beginning of file in order to parse the first line too
-	file.seekg (0, ios::beg);
-
-	switch(nb_elem) {
-	case 2:
-		framegiven=1;
-		while(file >> s >> d){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-
-			if (found == 0) continue;
-
-			fitsfiles.push_back(s);
-			frameorder.push_back(d);
-		}
-		break;
-
-	case 1:
-		while(file >> s){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-			if (found == 0) continue;
-
-			fitsfiles.push_back(s);
-		}
-		break;
-
-	default:
-		output += "File [" + fname + "] must have at least one row and 2 colums. Exiting\n";
-		return 1;
-		break;
-	}
-
-	if(fitsfiles.size()==0){
-		output += "File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
-		return 1;
-	}
-
-	if (file>>s){
-		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
-		return 1;
-	}
-
-
-#ifdef DEBUG_PRINT
-	cout << "read fits list ok !!!\n";
-#endif
-
-	file.close();
-
-	return 0;
-}
-
-
 int read_apodize_samples(string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	int i;
+	if(read_item<long>(output, ini, proc_param.napod, 100, "sanePre:apodize_Nsamples", 1))
+		return 2;
 
-	i = iniparser_getint(ini, "sanePre:apodize_Nsamples", -1);
-	proc_param.napod=(long)i;
-
-	if(i<0){
+	if(proc_param.napod<0){
 		output += "You must choose a positive number of samples to apodize\n";
 		return 1 ;
 	}
@@ -218,9 +204,10 @@ int read_apodize_samples(string &output, dictionary	*ini, struct param_sanePre &
 
 }
 
-int read_nofillgap(dictionary	*ini, struct param_sanePre &proc_param){
+int read_nofillgap(std::string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	proc_param.NOFILLGAP = iniparser_getboolean(ini, "sanePre:nofill_gap", 0);
+	if(read_item<bool>(output, ini, proc_param.NOFILLGAP, 0, "sanePre:nofill_gap", 0))
+		return 2;
 
 	return 0;
 
@@ -228,14 +215,13 @@ int read_nofillgap(dictionary	*ini, struct param_sanePre &proc_param){
 
 int read_sampling_frequency(string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	double d;
+	if(read_item<double>(output, ini, proc_param.fsamp, -1.0, "sanePre:sampling_frequency", 1))
+		return 2;
 
-	d = iniparser_getdouble(ini,(char*)"sanePre:sampling_frequency", -1.0);
-	if (d<=0.0){
-		output += "sampling_frequency cannot be negative or 0 ! Or maybe you forgot to mention sampling frequency \n";
+	if (proc_param.fsamp<=0.0){
+		output += "sampling_frequency cannot be negative or 0 ! \n";
 		return 1;
-	}else
-		proc_param.fsamp=d;
+	}
 
 	return 0;
 }
@@ -243,15 +229,14 @@ int read_sampling_frequency(string &output, dictionary	*ini, struct param_sanePr
 
 int read_filter_frequency(string &output, dictionary *ini, struct param_sanePre &proc_param){
 
-	double d;
+	if(read_item<double>(output, ini, proc_param.f_lp, -1.0, "sanePre:filter_frequency", 1))
+		return 2;
 
-	d = iniparser_getdouble(ini,(char*)"sanePre:filter_frequency", -1.0);
-	if (d<0.0){
-		output += "filter_frequency cannot be negative ! or maybe you have to mention filter frequency \n";
+	if (proc_param.f_lp<0.0){
+		output += "filter_frequency cannot be negative ! \n";
 		return 1;
-	}else{
-		proc_param.f_lp=d;
 	}
+
 	return 0;
 }
 
@@ -289,58 +274,48 @@ int read_noise_cut_freq(string &output, dictionary	*ini, struct param_common dir
 }
 
 
-int read_baseline(dictionary	*ini, struct param_sanePre &proc_param){
+int read_baseline(std::string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	bool b;
-
-	b = iniparser_getboolean(ini, "sanePre:no_baseline", 0);
-	proc_param.NORMLIN=b;
+	if(read_item<bool>(output, ini, proc_param.NORMLIN, 0, "sanePre:no_baseline", 0))
+		return 2;
 
 	return 0;
 
 }
 
-int read_correlation(dictionary	*ini, struct param_sanePre &proc_param){
+int read_correlation(std::string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	bool b;
-
-	b = iniparser_getboolean(ini, "sanePre:correlation", 1);
-	proc_param.CORRon=b;
+	if(read_item<bool>(output, ini, proc_param.CORRon, 1, "sanePre:correlation", 0))
+		return 2;
 
 	return 0;
 }
 
-int read_remove_poly(dictionary	*ini, struct param_sanePre &proc_param){
+int read_remove_poly(std::string &output, dictionary	*ini, struct param_sanePre &proc_param){
 
-	int	i = -1;
-	i = iniparser_getint(ini, "sanePre:poly_order", -1);
-	if(i>=0){
+	if(read_item<int>(output, ini, proc_param.poly_order, 1, "sanePre:poly_order", 0))
+		return 2;
+
+	if(proc_param.poly_order>=0)
 		proc_param.remove_polynomia=1;
-		proc_param.poly_order=i;
-	}else{
+	else
 		proc_param.remove_polynomia=0;
-	}
 
 	return 0;
-
 }
 
 
-int read_iter(dictionary	*ini, int &iterw){
+int read_iter(std::string &output, dictionary	*ini, int &iterw){
 
-	int i;
-
-	i = iniparser_getint(ini, "sanePic:iterW", 0);
-	iterw=i;
+	if(read_item<int>(output, ini, iterw, 10, "sanePic:iterW", 0))
+		return 2;
 
 	return 0;
 }
 
 int read_ell_suffix(string &output, dictionary	*ini, string &ell_suffix){
 
-
 	string str;
-
 
 	switch(read_parser_string(ini, "sanePS:ell_suffix", str)){
 	case 2:
@@ -360,9 +335,7 @@ int read_ell_suffix(string &output, dictionary	*ini, string &ell_suffix){
 
 int read_ell_global_file(string &output, dictionary	*ini, string &ell_global_file){
 
-
 	string str;
-
 
 	switch(read_parser_string(ini, "sanePS:ell_global_file", str)){
 	case 2:
@@ -381,7 +354,6 @@ int read_ell_global_file(string &output, dictionary	*ini, string &ell_global_fil
 }
 
 int read_map_file(dictionary	*ini, string &signame){
-
 
 	string str;
 
@@ -453,15 +425,12 @@ int read_mixmat_global_file(dictionary	*ini, string &MixMat_global){
 
 int read_ncomp(string &output, dictionary	*ini, long &ncomp){
 
-	double d;
+	if(read_item<long>(output, ini, ncomp, 1, "sanePS:ncomp", 1))
+		return 2;
 
-	d = iniparser_getdouble(ini,(char*)"sanePS:ncomp", -1.0);
-	if (d<0.0){
-		output += "number of component cannot be negative ! or maybe you have to mention it in the ini file \n";
+	if (ncomp<=0){
+		output += "number of component ncomp cannot be negative or zero ! \n";
 		return 1;
-	}else{
-
-		ncomp=(long)d;
 	}
 
 	return 0;
@@ -470,15 +439,13 @@ int read_ncomp(string &output, dictionary	*ini, long &ncomp){
 
 int read_fcut(string &output, dictionary	*ini, double &fcut){
 
-	double d;
+	if(read_item<double>(output, ini, fcut, 12.0, "sanePS:fcut", 0))
+		return 2;
 
-	d = iniparser_getdouble(ini,(char*)"sanePS:fcut", 12.0);
-	if (d<0.0){
-		output += "noise cut frequency cannot be negative ! or maybe you have to mention it in the ini file \n";
+	if (fcut<0.0){
+		output += "noise cut frequency cannot be negative ! \n";
 		return 1;
-	}else{
-		fcut=d;
-	} // default = 12
+	}
 
 	return 0;
 }
@@ -501,8 +468,6 @@ int read_parser_string(dictionary	*ini, string line, string & str){
 }
 
 int read_common(string &output, dictionary	*ini, struct param_common &dir){
-
-
 
 	read_dir(output, ini, dir, "commons:data_directory") || \
 			read_dir(output, ini, dir, "commons:input_directory") || \
@@ -528,12 +493,12 @@ int read_param_process(string &output, dictionary *ini, struct param_common dir,
 	int returned=0;
 
 	returned = read_apodize_samples(output, ini, proc_param) + \
-			read_nofillgap(ini, proc_param)              + \
+			read_nofillgap(output, ini, proc_param)              + \
 			read_sampling_frequency(output, ini, proc_param)     + \
 			read_filter_frequency(output, ini, proc_param)       + \
-			read_baseline(ini, proc_param)               + \
-			read_correlation(ini,proc_param)              +\
-			read_remove_poly(ini, proc_param);
+			read_baseline(output, ini, proc_param)               + \
+			read_correlation(output, ini,proc_param)              + \
+			read_remove_poly(output, ini, proc_param);
 
 	read_noise_cut_freq(output, ini, dir, proc_param, fcut);
 
@@ -545,15 +510,15 @@ int read_param_process(string &output, dictionary *ini, struct param_common dir,
 int read_param_positions(string &output, dictionary *ini, struct param_sanePos &pos_param){
 
 	string str;
-	bool b;
 
-	// read the pixelsize
-	if (read_parser_string(ini, "sanePos:pixsize", str)==0)
-		pos_param.pixdeg=atof(str.c_str());
-	else{
-		output += "You have to mention pixdeg in sanePos:pixsize\n";
-		return 1;
+	if(read_item<double>(output, ini, pos_param.pixdeg, 6/3600, "sanePos:pixsize", 1))
+		return 2;
+
+	if(pos_param.pixdeg < 0){
+		output += "Pixsize cannot be negative ! \n";
+		return 1 ;
 	}
+
 	// Read the mask_file if present
 	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
 		pos_param.maskfile=str;
@@ -562,22 +527,22 @@ int read_param_positions(string &output, dictionary *ini, struct param_sanePos &
 	// default to SANEPIC file format (with reference position & offsets)
 	// 0: sanepic format with reference position & offsets
 	// 1: 'hipe' like format with RA/DEC for each time/bolo
-	pos_param.fileFormat = iniparser_getint(ini, "sanePos:file_format", 0);
+	if(read_item<int>(output, ini, pos_param.fileFormat, 0, "sanePos:file_format", 0))
+		return 2;
 
-	if(pos_param.pixdeg < 0){
-		output += "Pixsize cannot be negative ! or you forgot to mention pixel size\n";
-		return 1 ;
+	if((pos_param.fileFormat!=0) && (pos_param.fileFormat!=1)){
+		output += "Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
+		return 1;
 	}
 
 	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
-	b = (bool)iniparser_getboolean(ini, "sanePos:map_flagged_data", (bool)0);
-	pos_param.flgdupl=b;
+	if(read_item<bool>(output, ini, pos_param.flgdupl, 0, "sanePos:map_flagged_data", 0))
+		return 2;
 
 
 	// Read what to do with gaps : (default : 0 -- no projection)
-	b = (bool)iniparser_getboolean(ini, "sanePos:project_gaps", (bool)0);
-	pos_param.projgaps=b;
-
+	if(read_item<bool>(output, ini, pos_param.projgaps, 0, "sanePos:project_gaps", 0))
+		return 2;
 
 	return 0;
 }
@@ -621,7 +586,7 @@ int read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS 
 
 int read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &sanePic_struct){
 
-	read_iter(ini, sanePic_struct.iterw);
+	read_iter(output, ini, sanePic_struct.iterw);
 
 	if(sanePic_struct.iterw==0){
 		sanePic_struct.save_data=0;

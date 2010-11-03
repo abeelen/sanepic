@@ -8,8 +8,8 @@
 
 
 #include "mpi_architecture_builder.h"
-#include "struct_definition.h"
 #include "parser_functions.h"
+#include "inputFileIO.h"
 
 
 extern "C" {
