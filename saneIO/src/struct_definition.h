@@ -46,6 +46,7 @@ struct param_sanePre
 };
 
 struct param_saneInv
+/*! A structure that contains informations about covariance matrices filenames */
 {
 	std::string cov_matrix_file;
 	std::string cov_matrix_suffix;
@@ -69,10 +70,10 @@ struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-	int itermax;
+//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
 	int save_data;
 	int restore;
-	double thresholds; // determine thresholds
+//	double thresholds; // determine thresholds
 };
 
 struct samples
@@ -83,17 +84,15 @@ struct samples
 	std::vector<int> scans_index;
 	std::vector<std::string> bolovect;
 
-//	std::string cov_matrix_file;
-//	std::string cov_matrix_suffix; // TODO struct saneInv
-
 	bool framegiven;
 	std::string *fits_table;
 	std::string *noise_table;
 	std::string *bolo_table;
 	int *index_table;
+
 	long *nsamples;
 	long ntotscan;
-	std::string filename; // What is this ? : name of the fits_filelist.txt file read in ini file !
+	std::string filename; // name of the fits_filelist.txt file read in ini file !
 };
 
 
@@ -103,6 +102,7 @@ struct detectors
 	long ndet;
 	std::vector<std::string> boloname;
 };
+
 struct checksum
 /*! A structure that contains sanePic input checksum values for crash recovery procedure */
 {

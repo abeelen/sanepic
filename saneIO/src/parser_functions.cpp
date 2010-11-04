@@ -1,12 +1,8 @@
 #include <iostream>
-//#include <fstream>
-//#include <sstream>
-//#include <iomanip>
 #include <string>
 #include <cstdlib>
 #include <cstdio>
 #include <string>
-#include <unistd.h>
 #include <vector>
 #include <algorithm>
 #include <sys/types.h>  // For stat()
@@ -20,10 +16,8 @@ extern "C"{
 
 #include "inputFileIO.h"
 #include "parser_functions.h"
-#include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 #include "crc.h"
-
 
 using namespace std;
 
@@ -149,6 +143,23 @@ int read_dir(string &output, dictionary	*ini, struct param_common &dir, string d
 	return 0;
 }
 
+int read_parser_string(dictionary	*ini, string line, string & str){
+	char *s;
+
+	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
+
+	// Key is not present :
+	if(s==(char*)NULL)
+		return 2;
+
+	// Key is empty...
+	if (s[0] == '\0')
+		return 1;
+
+	str=(string)s;
+	return 0;
+}
+
 int read_fits_file_list(string &output, dictionary	*ini, struct param_common &dir, struct samples &samples_str){
 
 	string str;
@@ -219,14 +230,6 @@ int read_noise_cut_freq(string &output, dictionary	*ini, struct param_common dir
 
 	return 0;
 
-}
-
-int read_iter(std::string &output, dictionary	*ini, int &iterw){
-
-	if(read_item<int>(output, ini, iterw, 10, "sanePic:iterW", 0))
-		return 2;
-
-	return 0;
 }
 
 int read_ell_suffix(string &output, dictionary	*ini, string &ell_suffix){
@@ -347,20 +350,43 @@ int read_mixmat_global_file(string &output, dictionary	*ini, string &MixMat_glob
 	return 0;
 }
 
-int read_parser_string(dictionary	*ini, string line, string & str){
-	char *s;
+int read_bolo_suffix(dictionary	*ini, string &suffix){
 
-	s = iniparser_getstring(ini, line.c_str(), (char*)NULL);
+	string str;
 
-	// Key is not present :
-	if(s==(char*)NULL)
-		return 2;
+	if (read_parser_string(ini,"commons:bolo_suffix", str)){
+		suffix="";
+	}else{
+		suffix=str;
+	}
+	return 0;
+}
 
-	// Key is empty...
-	if (s[0] == '\0')
-		return 1;
+int read_bolo_global_file(dictionary *ini, string &bolo_global_filename){
 
-	str=(string)s;
+	string str;
+
+	if (read_parser_string(ini,"commons:bolo_global_file", str)){
+		bolo_global_filename="";
+	}else{
+		bolo_global_filename=str;
+	}
+
+	return 0;
+}
+
+
+int read_bolo_gain_global_file(string &output, dictionary *ini, string dir, string &bolo_global_filename){
+
+	string str;
+
+	if (read_parser_string(ini,"saneCheck:bolo_gain_global_file", str)){
+		output += "Warning! saneCheck:bolo_global_file field is void or absent in the ini file. Assuming 1 bolo_gain file per scan :\n";
+		bolo_global_filename="";
+	}else{
+		bolo_global_filename=dir + str;
+	}
+
 	return 0;
 }
 
@@ -374,6 +400,37 @@ int read_common(string &output, dictionary	*ini, struct param_common &dir){
 
 	read_bolo_suffix(ini, dir.suffix);
 	read_bolo_global_file(ini, dir.bolo_global_filename);
+
+	return 0;
+}
+
+int read_param_positions(string &output, dictionary *ini, struct param_common dir, struct param_sanePos &pos_param){
+
+	string str;
+
+	if(read_item<double>(output, ini, pos_param.pixdeg, 6/3600, "sanePos:pixsize", 1))
+		return 2;
+
+	// Read the mask_file if present
+	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
+		pos_param.maskfile=str;
+
+	if(pos_param.maskfile!="")
+		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
+	// Read the file format if present
+	// default to SANEPIC file format (with reference position & offsets)
+	// 0: sanepic format with reference position & offsets
+	// 1: 'hipe' like format with RA/DEC for each time/bolo
+	if(read_item<int>(output, ini, pos_param.fileFormat, 0, "sanePos:file_format", 0))
+		return 2;
+
+	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
+	if(read_item<bool>(output, ini, pos_param.flgdupl, 0, "sanePos:map_flagged_data", 0))
+		return 2;
+
+	// Read what to do with gaps : (default : 0 -- no projection)
+	if(read_item<bool>(output, ini, pos_param.projgaps, 0, "sanePos:project_gaps", 0))
+		return 2;
 
 	return 0;
 }
@@ -411,38 +468,6 @@ int read_param_process(string &output, dictionary *ini, struct param_common dir,
 	return 0;
 
 }
-
-int read_param_positions(string &output, dictionary *ini, struct param_common dir, struct param_sanePos &pos_param){
-
-	string str;
-
-	if(read_item<double>(output, ini, pos_param.pixdeg, 6/3600, "sanePos:pixsize", 1))
-		return 2;
-
-	// Read the mask_file if present
-	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
-		pos_param.maskfile=str;
-
-	if(pos_param.maskfile!="")
-		pos_param.maskfile = dir.input_dir + pos_param.maskfile;
-	// Read the file format if present
-	// default to SANEPIC file format (with reference position & offsets)
-	// 0: sanepic format with reference position & offsets
-	// 1: 'hipe' like format with RA/DEC for each time/bolo
-	if(read_item<int>(output, ini, pos_param.fileFormat, 0, "sanePos:file_format", 0))
-		return 2;
-
-	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
-	if(read_item<bool>(output, ini, pos_param.flgdupl, 0, "sanePos:map_flagged_data", 0))
-		return 2;
-
-	// Read what to do with gaps : (default : 0 -- no projection)
-	if(read_item<bool>(output, ini, pos_param.projgaps, 0, "sanePos:project_gaps", 0))
-		return 2;
-
-	return 0;
-}
-
 
 int read_param_saneInv(std::string &output, dictionary *ini, struct param_saneInv &saneInv_struct){
 
@@ -489,67 +514,6 @@ int read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePi
 	return 0;
 }
 
-
-void print_param_positions(struct param_sanePos pos_param) {
-
-	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
-
-	if(pos_param.flgdupl)
-		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";
-
-	if(pos_param.projgaps)
-		cout << "GAP FILLING : " << setw(10) << "PROJECTED\n";
-	else
-		cout << "GAP FILLING : " << setw(10) << "NOT projected (default)\n";
-
-	cout << endl;
-}
-
-
-void print_param_process(struct param_sanePre proc_param){
-
-	if(proc_param.NOFILLGAP)
-		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL NOT be filled\n";
-	else
-		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL be filled\n";
-
-
-	if(proc_param.NORMLIN)
-		cout << "Baseline : " << setw(10) << "NOT removed from the data\n";
-	else
-		cout << "Baseline : " << setw(10) << "WILL BE removed from the data (default)\n";
-
-
-	if(proc_param.CORRon)
-		cout << "Correlations : " << setw(10) << "INCLUDED in the analysis\n";
-	else
-		cout << "Correlations : " << setw(10) << "NOT INCLUDED in the analysis\n";
-
-	if(proc_param.remove_polynomia)
-		cout << "Polynomia order : " << setw(18) << proc_param.poly_order << endl;
-	else
-		cout << "Polynomia : " << setw(10) << "No polynomia will be used\n";
-
-	if(proc_param.napod>0)
-		cout << "Number of samples to apodize : " << setw(7) << proc_param.napod << "\n";
-
-	cout << "HP Filter Frequency : " << setw(18) << proc_param.f_lp << " Hz\n";
-
-	cout << "Sampling frequency : " << setw(16) <<proc_param.fsamp << " Hz\n";
-
-	cout << endl;
-}
-
-void print_common(struct param_common dir){
-
-	cout << "Data directory : " << dir.dirfile << "\n";
-	cout << "Input directory : " << dir.input_dir << "\n";
-	cout << "Temporary directory : " << dir.tmp_dir << "\n";
-	cout << "Output directory : " << dir.output_dir << "\n";
-	cout << "Noise directory : " << dir.noise_dir << endl;
-	cout << endl;
-}
-
 int check_path(string &output, string strPath, string path_type){
 
 	if ( access( strPath.c_str(), 0 ) == 0 )
@@ -584,46 +548,6 @@ int check_dirfile_paths(string &output,string strPath){
 			check_path(output, strPath + "Noise_data/","Noise data binaries") || \
 			check_path(output, strPath + "Indexes/","Indexes");
 
-}
-
-int read_bolo_suffix(dictionary	*ini, string &suffix){
-
-	string str;
-
-	if (read_parser_string(ini,"commons:bolo_suffix", str)){
-		suffix="";
-	}else{
-		suffix=str;
-	}
-	return 0;
-}
-
-int read_bolo_global_file(dictionary *ini, string &bolo_global_filename){
-
-	string str;
-
-	if (read_parser_string(ini,"commons:bolo_global_file", str)){
-		bolo_global_filename="";
-	}else{
-		bolo_global_filename=str;
-	}
-
-	return 0;
-}
-
-
-int read_bolo_gain_global_file(string &output, dictionary *ini, string dir, string &bolo_global_filename){
-
-	string str;
-
-	if (read_parser_string(ini,"saneCheck:bolo_gain_global_file", str)){
-		output += "Warning! saneCheck:bolo_global_file field is void or absent in the ini file. Assuming 1 bolo_gain file per scan :\n";
-		bolo_global_filename="";
-	}else{
-		bolo_global_filename=dir + str;
-	}
-
-	return 0;
 }
 
 int check_common(string &output, struct param_common dir){
@@ -722,20 +646,20 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	struct detectors det;
 
 	// default values :
-//	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
-//	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
-//	samples_struct.ntotscan=0; /*! total number of scans */
-//	pos_param.flgdupl = 0; // map duplication factor
-//	proc_param.fsamp = 0.0;// sampling frequency
-//	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
-//	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
-//	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
-//	proc_param.f_lp = 0.0; // low pass filter frequency
-//	pos_param.flgdupl = 0; // map duplication factor
-//	pos_param.maskfile = "";
-//	structPS.ncomp=1;
-//	sanePic_struct.iterw=10;
-//	sanePic_struct.save_data=0;
+	//	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
+	//	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
+	//	samples_struct.ntotscan=0; /*! total number of scans */
+	//	pos_param.flgdupl = 0; // map duplication factor
+	//	proc_param.fsamp = 0.0;// sampling frequency
+	//	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	//	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	//	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	//	proc_param.f_lp = 0.0; // low pass filter frequency
+	//	pos_param.flgdupl = 0; // map duplication factor
+	//	pos_param.maskfile = "";
+	//	structPS.ncomp=1;
+	//	sanePic_struct.iterw=10;
+	//	sanePic_struct.save_data=0;
 
 
 	// load dictionnary
@@ -777,16 +701,137 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	return 0;
 }
 
-void parser_printOut(struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
+void print_common(struct param_common dir){
+
+	cout << "Data directory : " << dir.dirfile << "\n";
+	cout << "Input directory : " << dir.input_dir << "\n";
+	cout << "Temporary directory : " << dir.tmp_dir << "\n";
+	cout << "Output directory : " << dir.output_dir << "\n";
+	cout << "Noise directory : " << dir.noise_dir << endl;
+	cout << endl;
+}
+
+void print_param_positions(struct param_sanePos pos_param) {
+
+	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
+
+	if(pos_param.flgdupl)
+		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";
+
+	if(pos_param.projgaps)
+		cout << "GAP FILLING : " << setw(10) << "PROJECTED\n";
+	else
+		cout << "GAP FILLING : " << setw(10) << "NOT projected (default)\n";
+
+	cout << endl;
+}
+
+void print_param_process(struct param_sanePre proc_param){
+
+	if(proc_param.NOFILLGAP)
+		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL NOT be filled\n";
+	else
+		cout << "NOFILLGAPS : " << setw(27) << "the gaps in data timeline WILL be filled\n";
+
+
+	if(proc_param.NORMLIN)
+		cout << "Baseline : " << setw(10) << "NOT removed from the data\n";
+	else
+		cout << "Baseline : " << setw(10) << "WILL BE removed from the data (default)\n";
+
+
+	if(proc_param.CORRon)
+		cout << "Correlations : " << setw(10) << "INCLUDED in the analysis\n";
+	else
+		cout << "Correlations : " << setw(10) << "NOT INCLUDED in the analysis\n";
+
+	if(proc_param.remove_polynomia)
+		cout << "Polynomia order : " << setw(18) << proc_param.poly_order << endl;
+	else
+		cout << "Polynomia : " << setw(10) << "No polynomia will be used\n";
+
+	if(proc_param.napod>0)
+		cout << "Number of samples to apodize : " << setw(7) << proc_param.napod << "\n";
+
+	cout << "HP Filter Frequency : " << setw(18) << proc_param.f_lp << " Hz\n";
+
+	cout << "Sampling frequency : " << setw(16) <<proc_param.fsamp << " Hz\n";
+
+	cout << endl;
+}
+
+void print_param_sanePic(struct param_sanePic sanepic_struct)
+{
+
+	if(sanepic_struct.save_data)
+		cout << "Saving temporary map every iterW : " << sanepic_struct.iterw << " iterations\n";
+	else
+		cout << "Save_data is OFF : You will not be able to restore the iterations done in case of crashes \n";
+
+	if(sanepic_struct.restore)
+		cout << "Restore_data is ON : sanePic will continue iterations from last run \n";
+
+	cout << endl;
+}
+
+void print_param_sanePS(struct param_sanePS structPS)
+{
+
+	cout << "Frequency above which noise will not be estimated : " << structPS.fcutPS << " Hz" << endl;
+
+	if(structPS.signame!="NOSIGFILE")
+		cout << "A map will be removed from the data signal before estimation of the noise : " << structPS.signame << endl;
+
+	cout << "Number of noise component to estimate : " << structPS.ncomp << endl;
+
+	cout << endl;
+}
+
+void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
 		struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct){
+
+	string basename (prog_name);
+	basename=FitsBasename(basename);
+	char prog_letter;
+	prog_letter = basename[5];
 
 	cout << "\nYou have specified the following options : \n\n";
 
 	print_common(dir);
 	cout << endl;
-	print_param_process(proc_param);
-	print_param_positions(pos_param);
+	switch(prog_letter){
+	case 'o':
+//		cout << "sanePos detected !!!\n";
+		print_param_positions(pos_param);
+		break;
+	case 'S':
+//		cout << "sanePS detected !!!\n";
+		print_param_positions(pos_param);
+		print_param_process(proc_param);
+		print_param_sanePS(structPS);
+		break;
+	case 'n':
+//		cout << "saneInv detected !!!\n";
+		break;
+	case 'r':
+//		cout << "sanePre detected !!!\n";
+		print_param_positions(pos_param);
+		print_param_process(proc_param);
+		break;
+	case 'i':
+//		cout << "sanePic detected !!!\n";
+		print_param_positions(pos_param);
+		print_param_process(proc_param);
+		print_param_sanePic(sanePic_struct);
+		break;
+	default : // saneCheck
+		print_param_positions(pos_param); // TODO : for saneCheck : print all ? or nothing ?
+		print_param_process(proc_param);
+		print_param_sanePic(sanePic_struct);
+		print_param_sanePS(structPS);
+		break;
+	}
 
 	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
 	printf("Number of bolometers : \n");
@@ -796,6 +841,5 @@ void parser_printOut(struct param_common dir, struct samples samples_struct, std
 		else
 			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
 	}
-
 
 }

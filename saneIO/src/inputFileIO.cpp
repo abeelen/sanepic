@@ -82,27 +82,61 @@ int read_double(string fname, double *& array, long & size){
 	return 0;
 }
 
+std::string remplace_all(std::string str, std::string tobe_replace, std::string with_this)
+{
+	int len = tobe_replace.size(), pos;
+	while((pos=str.find(tobe_replace)) != (int)string::npos)
+	{
+		str.replace(pos, len, with_this);
+	}
+
+	return str;
+}
 
 std::string FitsBasename(std::string path)
 {
 
-	size_t found;
+	//	size_t found;
 	string filename;
+	int i;
+
+
+//	cout << path << " deb fonction" << endl;
+
+	path=remplace_all(path, "\\", "/");
 
 	// Strip the path and get the filename
 	// Find the last " directory separator
-	found = path.find_last_of("/\\");
+	//	found = path.find_last_of("/\\");
+	i=path.rfind("/");
 
-	if (found != string::npos)
-		filename = 	path.substr(found+1);
-	else
+//	cout << " i : " << i << endl;
+
+	if((i<0) || (i>(int)path.size()))
 		filename = path;
+	else
+		filename.assign(path.begin()+i+1,path.end());
+
+//	cout << filename << " apres path" << endl;
+
+	//	if (found != string::npos)
+	//		filename = 	path.substr(found+1);
+	//	else
+	//		filename = path;
 
 	// Strip the file extension (whatever is after the last ".fits"
 
-	found = filename.find_last_of(".fits");
-	if (found != string::npos)
-		filename = 	filename.substr(0,found-4);
+	//	found = filename.find_last_of(".fits");
+	i=filename.rfind(".fits");
+	//	cout << " i : " << i << endl;
+
+	//	if (found != string::npos)
+	//		filename = 	filename.substr(0,found-4);
+
+	if((i>0) && (i<(int)path.size()))
+		filename.erase(filename.begin()+i,filename.end());
+
+//	cout << filename << " fin fonction" << endl;
 
 	return filename;
 }

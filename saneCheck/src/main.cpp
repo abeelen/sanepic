@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 
 	if(rank==0){
 		// parser print screen function
-		parser_printOut(dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
 				structPS, sanePic_struct);
 		print_saneCheck_ini(check_struct);
 	}
