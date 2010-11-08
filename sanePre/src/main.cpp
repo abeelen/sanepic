@@ -584,8 +584,10 @@ int main(int argc, char *argv[])
 		}
 
 
-		cout << "\nNaive step :" << endl;
-		string fnaivname;
+		string fnaivname = '!' + dir.output_dir + "naivMap.fits";
+
+		cout << "Output file : " << fnaivname << endl;
+
 		double *map1d;
 		long long mi;
 		map1d = new double[NAXIS1*NAXIS2];
@@ -605,15 +607,13 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		fnaivname = '!' + dir.output_dir + "naivMap.fits";
-		cout << "Output file : " << fnaivname << endl;
 		if(write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0)){ // create naive Map fits file with first de-noised map image
 			cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
-			return 0;
+			return EXIT_FAILURE;
 		}
 		// TODO: Save the map of flag data if needed
 
@@ -629,7 +629,6 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		fnaivname = dir.output_dir + "naivMap.fits";
 		if(write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Ultra Naiv",1)){ // open naive Map fits file and fill ultra naive map image
 			cerr << "Error Writing Ultra Naiv map ... \n";
 		}

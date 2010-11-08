@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <sys/types.h>  // For stat()
 #include <sys/stat.h>   // For stat()
-
+#include <typeinfo>
 
 extern "C"{
 #include "iniparser.h"

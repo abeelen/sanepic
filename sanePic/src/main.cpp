@@ -779,7 +779,8 @@ int main(int argc, char *argv[]) {
 					d[ii] = s[ii] + beta * d[ii]; // d = s + beta * d
 
 
-				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0) { // saving iterated maps
+				// saving iterated maps
+				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0) {
 
 					if ((struct_sanePic.save_data > 0) && (iter != 0)) {
 						if (rank == 0)
@@ -929,19 +930,18 @@ int main(int argc, char *argv[]) {
 					delete[] map1d;
 				} // end of saving iterated maps
 
+				//TODO: Unify theses two output.... and add time !!
 
-				if (rank == 0) {
-					cout << "iter = " << iter;
-					cout << ", crit  = " << setiosflags(ios::scientific)
-																			<< setiosflags(ios::floatfield) << var_n / var0;
-					cout << ", crit2 = " << setiosflags(ios::scientific)
-																			<< setiosflags(ios::floatfield) << delta_n / delta0;
-					cout << ", var_n  = " << setiosflags(ios::scientific)
-																			<< setiosflags(ios::floatfield) << var_n;
-					cout << ", delta_n = " << setiosflags(ios::scientific)
-																			<< setiosflags(ios::floatfield) << delta_n;
-					cout << "\r " << flush;
-				}
+				cout << "iter = " << iter;
+				cout << ", crit  = "   << setiosflags(ios::scientific)
+									   << setiosflags(ios::floatfield) << var_n / var0;
+				cout << ", crit2 = "   << setiosflags(ios::scientific)
+									   << setiosflags(ios::floatfield) << delta_n / delta0;
+				cout << ", var_n  = "  << setiosflags(ios::scientific)
+									   << setiosflags(ios::floatfield) << var_n;
+				cout << ", delta_n = " << setiosflags(ios::scientific)
+									   << setiosflags(ios::floatfield) << delta_n;
+				cout << "\r " << flush;
 
 				temp_stream << dir.output_dir + "ConvFile.txt";
 
