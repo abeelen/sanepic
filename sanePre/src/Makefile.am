@@ -1,19 +1,21 @@
-AUTOMAKE_OPTIONS = gnu
 bin_PROGRAMS = sanePre
 
-if MPC
-   sanePre_CPPFLAGS = -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+sanePre_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
+	$(SANEIO_INCLUDE) $(SANELIB_INCLUDE)
+sanePre_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS)  \
+	$(SANEIO_LIB) $(SANELIB_LIB)
+
+if PARAFRAME
+   sanePre_CPPFLAGS += -DPARA_FRAME
    ext=_PARA_FRAME
 endif
 
-if PARAC 
-   sanePre_CPPFLAGS = -DPARA_BOLO -DMPICH_IGNORE_CXX_SEEK
+if PARABOLO
+   sanePre_CPPFLAGS += -DPARA_BOLO
    ext=_PARA_BOLO
 endif
 
 EXEEXT=$(ext)
 
-sanePre_SOURCES = main.cpp
-
-LDADD = ../saneLib/libsaneLib.la ../saneIO/libsaneIO.la ../nr/libnr.la ../iniparser/libiniparser.la
-INCLUDES = -I../saneLib -I../saneIO -I../nr -I../iniparser
+sanePre_SOURCES = \
+main.cpp

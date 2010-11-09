@@ -1,11 +1,22 @@
-AUTOMAKE_OPTIONS = gnu
 lib_LTLIBRARIES = libsaneLib.la
-libsaneLib_la_SOURCES = Corr_preprocess.cpp  map_making.cpp  NoCorr_preprocess.cpp  todprocess.cpp fitpoly.cpp cholesky.cpp
-include_HEADERS = Corr_preprocess.h  map_making.h  NoCorr_preprocess.h  todprocess.h fitpoly.h cholesky.h
-
-libsaneLib_la_LIBADD = ../nr/libnr.la ../iniparser/libiniparser.la ../saneIO/libsaneIO.la
-INCLUDES = -I ../nr -I ../iniparser -I ../saneIO
-
 libsaneLib_la_LDFLAGS = -version-info 0:0:0
 
-ACLOCAL_AMFLAGS = -I m4
+libsaneLib_la_LIBADD = $(NR_LIB) $(INIPARSER_LIB) $(DEBUG)  \
+	$(SANEIO_LIB)
+libsaneLib_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) \
+	$(SANEIO_INCLUDE) 
+
+
+libsaneLib_la_SOURCES = \
+cholesky.cpp \
+Corr_preprocess.cpp \
+fitpoly.cpp \
+map_making.cpp \
+NoCorr_preprocess.cpp \
+todprocess.cpp \
+cholesky.h \
+Corr_preprocess.h \
+fitpoly.h \
+map_making.h \
+NoCorr_preprocess.h \
+todprocess.h

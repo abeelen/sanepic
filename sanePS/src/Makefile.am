@@ -1,23 +1,26 @@
-AUTOMAKE_OPTIONS = gnu
 bin_PROGRAMS = sanePS
 
+sanePS_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
+	$(SANEIO_INCLUDE) $(SANELIB_INCLUDE)
+sanePS_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
+	$(SANEIO_LIB) $(SANELIB_LIB)
 
-
-if MPC
-   sanePS_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+if PARAFRAME
+   sanePS_CPPFLAGS += -DPARA_FRAME
    ext=_PARA_FRAME
 endif
 
-if MPC2
-   sanePS_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+if PARABOLO
+   sanePS_CPPFLAGS += -DPARA_FRAME
    ext=_PARA_FRAME
 endif
 
 EXEEXT=$(ext)
 
-sanePS_SOURCES = main.cpp  estimPS.cpp estimPS.h estimPS_steps.cpp estimPS_steps.h
 
-LDADD = ../saneIO/libsaneIO.la ../nr/libnr.la ../iniparser/libiniparser.la ../saneLib/libsaneLib.la
-INCLUDES = -I../saneIO -I../nr -I../iniparser -I../saneLib
-
-
+sanePS_SOURCES = \
+estimPS.cpp \
+estimPS.h \
+estimPS_steps.cpp \
+estimPS_steps.h \
+main.cpp

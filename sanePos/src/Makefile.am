@@ -1,23 +1,26 @@
-AUTOMAKE_OPTIONS = gnu
 bin_PROGRAMS = sanePos
 
+sanePos_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
+	$(SANEIO_INCLUDE)
+sanePos_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
+	$(SANEIO_LIB)
 
-
-if MPC
-   sanePos_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+if PARAFRAME
+   sanePos_CPPFLAGS += -DPARA_FRAME
    ext=_PARA_FRAME
 endif
 
-if MPC2
-   sanePos_CPPFLAGS= -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK
+if PARABOLO
+   sanePos_CPPFLAGS += -DPARA_FRAME
    ext=_PARA_FRAME
 endif
 
 EXEEXT=$(ext)
 
-sanePos_SOURCES = main.cpp  sanePos_map_making.cpp  sanePos_preprocess.cpp sanePos_map_making.h  sanePos_preprocess.h
 
-LDADD = ../saneIO/libsaneIO.la ../nr/libnr.la ../iniparser/libiniparser.la
-INCLUDES = -I../saneIO -I../nr -I../iniparser
-
-
+sanePos_SOURCES = \
+main.cpp \
+sanePos_map_making.cpp \
+sanePos_map_making.h \
+sanePos_preprocess.cpp \
+sanePos_preprocess.h
