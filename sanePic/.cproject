@@ -40,15 +40,15 @@
 								<option id="gnu.cpp.compiler.option.debugging.gprof.1682272641" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.793667300" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-Wunused -c -fmessage-length=0" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.preprocessor.undef.1183361841" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
-									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
-									<listOptionValue builtIn="false" value="USE_MPI"/>
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+									<listOptionValue builtIn="false" value="PARA_BOLO"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.48881838" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1934663227" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.905841506" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.838447468" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.1466387814" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath"/>
+								<option id="gnu.c.compiler.option.include.paths.1466387814" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1427305637" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.2018537136" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -75,7 +75,7 @@
 								</inputType>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.285790783" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug">
-								<option id="gnu.both.asm.option.include.paths.723207970" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath"/>
+								<option id="gnu.both.asm.option.include.paths.723207970" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1053725110" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
@@ -1043,6 +1043,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.1947869339" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+									<listOptionValue builtIn="false" value="PARA_BOLO"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1603207215" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -2053,7 +2057,7 @@
 									<listOptionValue builtIn="false" value="PARA_BOLO"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.768386584" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="USE_MPI"/>
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.268597859" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -3063,7 +3067,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.977511379" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="USE_MPI"/>
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.undef.806631387" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
@@ -4074,10 +4078,11 @@
 								<option id="gnu.cpp.compiler.option.debugging.prof.1706836624" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.522130558" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.2001964283" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-Wunused -c -fmessage-length=0" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.preprocessor.undef.2145384355" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.2145384355" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.471021482" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="PARA_BOLO"/>
-									<listOptionValue builtIn="false" value="USE_MPI"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2012222695" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -5090,7 +5095,9 @@
 									<listOptionValue builtIn="false" value="PARA_BOLO"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.undef.1141673398" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.1141673398" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2059456771" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.651067482" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">

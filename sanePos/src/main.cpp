@@ -33,6 +33,9 @@ extern "C" {
 #include "sanePos_preprocess.h"
 #include "parser_functions.h"
 
+#if defined(PARA_FRAME)
+#define USE_MPI
+#endif
 
 #ifdef USE_MPI
 #include "mpi.h"

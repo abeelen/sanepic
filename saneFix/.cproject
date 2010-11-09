@@ -32,6 +32,9 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.debugging.prof.842850747" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.debugging.gprof.1767185754" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.606116931" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1960120304" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.779398401" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -511,6 +514,9 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.451852810" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.809116932" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.514814280" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -989,7 +995,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1951532251" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="USE_MPI"/>
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.219188672" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -1470,7 +1476,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.258846187" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="USE_MPI"/>
+									<listOptionValue builtIn="false" value="PARA_FRAME"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1356176810" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>

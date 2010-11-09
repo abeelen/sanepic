@@ -25,10 +25,9 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-#ifdef PARA_BOLO
+#if defined(PARA_BOLO) || defined(PARA_FRAME)
 #define USE_MPI
 #endif
-
 
 #ifdef USE_MPI
 #include "mpi.h"

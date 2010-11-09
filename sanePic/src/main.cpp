@@ -24,7 +24,7 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-#if defined(PARA_BOLO) && ! defined(USE_MPI)
+#if defined(PARA_BOLO) || defined(PARA_FRAME)
 #define USE_MPI
 #endif
 

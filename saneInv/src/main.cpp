@@ -17,6 +17,10 @@ extern "C" {
 #include "nrutil.h"
 }
 
+#if defined(PARA_FRAME)
+#define USE_MPI
+#endif
+
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
