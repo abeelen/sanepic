@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	struct param_sanePre proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /*! structure that contains output input temp directories */
-	std::vector<detectors> detector_tab;
+//	std::vector<detectors> detector_tab;
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, detector_tab,rank)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
 	if(rank==0)
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
-				if(computeMapMinima(detector_tab,samples_struct,
+				if(computeMapMinima(samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef USE_MPI
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 				}
 				break;
 			case 1:
-				if(computeMapMinima_HIPE(detector_tab,samples_struct,
+				if(computeMapMinima_HIPE(samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef USE_MPI
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
 
 	switch (pos_param.fileFormat) {
 	case 0:
-		if(computePixelIndex(dir.tmp_dir, detector_tab,samples_struct,
+		if(computePixelIndex(dir.tmp_dir, samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 		}
 		break;
 	case 1:
-		if(computePixelIndex_HIPE(dir.tmp_dir, detector_tab,samples_struct,
+		if(computePixelIndex_HIPE(dir.tmp_dir, samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,

@@ -5,7 +5,7 @@
 #include <string>
 #include "mpi_architecture_builder.h"
 
-int EstimPowerSpectra(struct detectors det, struct param_sanePre proc_param, struct param_common dir, struct param_sanePos pos_param, struct param_sanePS structPS, struct samples samples_struct,
+int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sanePre proc_param, struct param_common dir, struct param_sanePos pos_param, struct param_sanePS structPS, struct samples samples_struct,
 		long NAXIS1, long NAXIS2, long long npix, long iframe, long long *indpix, double *S, int rank);
 
 #endif /* ESTIMPS_H_ */

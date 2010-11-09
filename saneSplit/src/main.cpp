@@ -53,7 +53,9 @@ int main(int argc, char *argv[])
 	int format_fits=0; /*! 0 = Hipe format, 1 = SanePic format */
 	double *time=NULL; /*! input fits file time vector */
 	double time_min=0, time_max=0; /*! input file min and max time */
-	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	std::vector<string> det;
+	long ndet;
 
 	printf("\nBeginning of saneSplit:\n\n");
 
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* read the bolo list in the fits file */
-	read_bolo_list(samples_struct.fitsvect[0], det);
+	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
 
 
 	int status; /* fits error status number */
@@ -260,13 +262,13 @@ int main(int argc, char *argv[])
 			cout << "HIPE format found\n";
 
 			// 1 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 2 RA 3 DEC
-			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
+			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 4 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 5 time
 			copy_time(fptr, outfptr, time, min_sample, max_sample);
@@ -301,10 +303,10 @@ int main(int argc, char *argv[])
 			copy_time(fptr, outfptr, time, min_sample, max_sample);
 
 			// 5 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
+			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 6 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det);
+			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 		}
 
 		// close both fits files

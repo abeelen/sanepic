@@ -12,9 +12,9 @@ extern "C" {
 
 
 // dirfile functions
-bool compute_dirfile_format_file(std::string outdir, struct samples samples_struct, std::vector<detectors> detector_tab, int rank);
+bool compute_dirfile_format_file(std::string outdir, struct samples samples_struct, int rank);
 bool compute_dirfile_format_noisePS(std::string outdir, std::vector<std::string> det, std::string suffix);
-bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, std::vector<detectors> detector_tab, int rank);
+bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, int rank);
 
 /*!
  * Writes indpix in a binary file \n

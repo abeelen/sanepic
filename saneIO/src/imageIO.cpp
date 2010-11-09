@@ -129,7 +129,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 
 
 
-int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct detectors det, struct samples samples_struct, long ncomp){
+int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, long ncomp){
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
@@ -321,16 +321,16 @@ int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct
 	}
 
 
-	oss << det.ndet;
-	keyname = "NUMDET";
-	value = oss.str();
-	comm = "Number of detectors that were used for the analysis";
-	oss.str("");
-
-	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
-		fits_report_error(stderr, fits_status);
-		return 1;
-	}
+//	oss << det.ndet;
+//	keyname = "NUMDET";
+//	value = oss.str();
+//	comm = "Number of detectors that were used for the analysis";
+//	oss.str("");
+//
+//	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+//		fits_report_error(stderr, fits_status);
+//		return 1;
+//	}
 
 	if(ncomp>0){
 		oss << ncomp;

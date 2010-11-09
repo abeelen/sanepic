@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
-	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
+	//	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
 
 	// map making parameters
 	int flagon; /*!  if one sample is rejected, flagon=1 */
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut_vector);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -288,14 +288,22 @@ int main(int argc, char *argv[])
 
 	if(rank==0)
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 
-		struct detectors det = detector_tab[iframe];
+		std::vector<string> det;
 
-		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)det.size();
+
+
+		if(EstimPowerSpectra(det, ndet, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
 			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";
 			break;

@@ -26,22 +26,22 @@ extern "C" {
 
 using namespace std;
 
-void check_detector_is_in_fits(struct detectors det,struct detectors bolo_fits, string filename)
+void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vector<std::string> bolo_fits, string filename)
 /*! this function determines whether the user list of detectors is correct or not */
 {
 
 	int mycount=0; /* used to count the number of wrong detectors name */
 
-	for(int jj=0;jj< det.ndet; jj++){
-		mycount = (int) count (bolo_fits.boloname.begin(), bolo_fits.boloname.end(), det.boloname[jj]); /* count the number of time a bolometer appears in the detector list */
+	for(int jj=0;jj< ndet; jj++){
+		mycount = (int) count (bolo_fits.begin(), bolo_fits.end(), det[jj]); /* count the number of time a bolometer appears in the detector list */
 		if(mycount==0) // if this detector never appears
 			// Warn user
-			cout << "Warning ! The detector " << det.boloname[jj] << " is not referenced in the fits " << filename << endl;
+			cout << "Warning ! The detector " << det[jj] << " is not referenced in the fits " << filename << endl;
 	}
 
 }
 
-int check_positionHDU(string fname,long ns,struct detectors det, int format, struct checkHDU &check_it)
+int check_positionHDU(string fname,long ns, long ndet, int format, struct checkHDU &check_it)
 /*! this function determines whether reference and offsets HDUs are present and have the correct size */
 {
 
@@ -103,8 +103,8 @@ int check_positionHDU(string fname,long ns,struct detectors det, int format, str
 	}else{
 
 		fits_get_num_rows(fptr, &ndet_test, &status);
-		if(det.ndet!=ndet_test){ // check offsets table's size
-			cout << "\"offsets\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
+		if(ndet!=ndet_test){ // check offsets table's size
+			cout << "\"offsets\" has a wrong number of rows (must be equal to ndet : " << ndet << " )" << endl;
 			return -1;
 		}
 
@@ -158,7 +158,7 @@ int check_positionHDU(string fname,long ns,struct detectors det, int format, str
 
 }
 
-int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
+int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 /*! this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
 {
 
@@ -183,8 +183,8 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 
 		ndet_test=0;
 		fits_get_num_rows(fptr, &ndet_test, &status);
-		if(ndet_test!=det.ndet){ // Is the size correct ?
-			cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << det.ndet << " )" << endl;
+		if(ndet_test!=ndet){ // Is the size correct ?
+			cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << ndet << " )" << endl;
 			return -1;
 		}
 
@@ -259,8 +259,8 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 				return -1;
 			}else{
 
-				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
-					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){
+					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -294,8 +294,8 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 					return -1;
 				}
 
-				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){
-					cout << "\"mask\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){
+					cout << "\"mask\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -313,7 +313,7 @@ int check_commonHDU(string fname,long ns,struct detectors det, struct checkHDU &
 }
 
 
-int check_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU &check_it)
+int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 /*! check RA/DEc table presence : only for HIPE format */
 {
 
@@ -345,8 +345,8 @@ int check_altpositionHDU(string fname,long ns,struct detectors det, struct check
 				return -1;
 			}else{
 
-				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){ // check size
-					cout << "\"ra\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
+					cout << "\"ra\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -376,8 +376,8 @@ int check_altpositionHDU(string fname,long ns,struct detectors det, struct check
 				return -1;
 			}else{
 
-				if((naxes[0]!=ns)&&(naxes[1]!=det.ndet)){ // check size
-					cout << "\"dec\" has a wrong size, it must be ns*ndet : " << ns << " x " << det.ndet << endl;
+				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
+					cout << "\"dec\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -391,7 +391,7 @@ int check_altpositionHDU(string fname,long ns,struct detectors det, struct check
 	return 0;
 }
 
-int check_NAN_positionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! Check presence of non-flagged NANs in position tables */
 {
 
@@ -402,11 +402,11 @@ int check_NAN_positionHDU(string fname,long ns,struct detectors det, struct chec
 
 	int *flag; // to read mask table
 	if(check_it.checkREFERENCEPOSITION){
-		for(int ii=0;ii<det.ndet;ii++){
+		for(int ii=0;ii<ndet;ii++){
 			if(read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test)) // read ra dec and phi
 				return 1;
 
-			if(read_flag_from_fits(fname, det.boloname[ii], flag, ns)) // read mask image
+			if(read_flag_from_fits(fname, det[ii], flag, ns)) // read mask image
 				return 1;
 
 			for(long jj=0;jj<ns_test;jj++){ // check NANs
@@ -430,24 +430,24 @@ int check_NAN_positionHDU(string fname,long ns,struct detectors det, struct chec
 
 	if(check_it.checkOFFSETS){
 		// flag indepedent
-		if(read_all_bolo_offsets_from_fits(fname, det.boloname, offsets)) // read offsets table
+		if(read_all_bolo_offsets_from_fits(fname, det, offsets)) // read offsets table
 			return 1;
 
-		for(int ii=0;ii<det.ndet;ii++)
+		for(int ii=0;ii<ndet;ii++)
 			if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){ // check NANs
 				cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
 				cout << "You should not take this detector for the computation of Sanepic\n";
 			}
 
 		// clean up
-		free_dmatrix(offsets,(long)0,det.ndet-1,(long)0,2-1);
+		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
 	return 0;
 
 }
 
-int check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! check presence of non-flagged NANs in time, signal and mask tables */
 {
 
@@ -458,8 +458,8 @@ int check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkH
 
 
 	// check nans in mask image
-	for(long jj=0;jj<det.ndet;jj++){
-		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
+	for(long jj=0;jj<ndet;jj++){
+		if(read_flag_from_fits(fname, det[jj], flag, ns))
 			return 1;
 		for(int kk=0;kk<ns;kk++){
 			if(isnan(flag[kk])){
@@ -482,8 +482,8 @@ int check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkH
 
 
 	// check nans in signal
-	for(int ii=0;ii<det.ndet;ii++){
-		if(read_signal_from_fits(fname, det.boloname[ii], signal,ns_test))
+	for(int ii=0;ii<ndet;ii++){
+		if(read_signal_from_fits(fname, det[ii], signal,ns_test))
 			return 1;
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(signal[jj])&&(flag[jj]==0)){
@@ -496,7 +496,7 @@ int check_NAN_commonHDU(string fname,long ns,struct detectors det, struct checkH
 	return 0;
 }
 
-int check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct checkHDU check_it)
+int check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! check non-flagged NANs in RA/DEC HIPE format */
 {
 
@@ -507,11 +507,11 @@ int check_NAN_altpositionHDU(string fname,long ns,struct detectors det, struct c
 	int *flag;
 
 
-	for(int ii=0;ii<det.ndet;ii++){
-		if(read_flag_from_fits(fname, det.boloname[ii], flag, ns_test)) // read mask image
+	for(int ii=0;ii<ndet;ii++){
+		if(read_flag_from_fits(fname, det[ii], flag, ns_test)) // read mask image
 			return 1;
 
-		if(read_ra_dec_from_fits(fname, det.boloname[ii], ra, dec, ns_test)) // read RA and DEC tables
+		if(read_ra_dec_from_fits(fname, det[ii], ra, dec, ns_test)) // read RA and DEC tables
 			return 1;
 
 		for(long jj=0;jj<ns_test;jj++){
@@ -554,7 +554,7 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname,struct detectors det,long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, struct checkHDU check_it)
+int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, struct checkHDU check_it)
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
@@ -563,10 +563,10 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 	cout << "ns : " << ns << endl;
 
-	for(int jj=0;jj<det.ndet;jj++){
+	for(int jj=0;jj<ndet;jj++){
 
 		sum=0;
-		if(read_flag_from_fits(fname, det.boloname[jj], flag, ns))
+		if(read_flag_from_fits(fname, det[jj], flag, ns))
 			return 1;
 
 		for(long ii = 0; ii<ns-1; ii++)
@@ -575,17 +575,17 @@ int check_flag(string fname,struct detectors det,long ns, string outname,long *&
 
 
 		if(sum==ns){ // fully flagged detector found
-			cout << "Warning ! " << det.boloname[jj] << " is totally flagged" << endl;
+			cout << "Warning ! " << det[jj] << " is totally flagged" << endl;
 			bolos_global[jj]=1;
 		}else{
 			if(sum>80*ns/100){ // valid worst detector found
 				double percent = sum/(double)ns*100;
-				cout << "Warning ! " << det.boloname[jj] << " is more than 80% flagged : " << percent << endl;
+				cout << "Warning ! " << det[jj] << " is more than 80% flagged : " << percent << endl;
 				bolos_global_80[jj]=1;
 				percent_tab[jj]=percent;
 			}else if(sum>50*ns/100){
 				double percent = sum/(double)ns*100;
-				cout << "Warning ! " << det.boloname[jj] << " is more than 50% flagged : " << percent << endl;
+				cout << "Warning ! " << det[jj] << " is more than 50% flagged : " << percent << endl;
 			}
 		}
 
@@ -699,14 +699,14 @@ int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir,
 
 }
 
-int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct detectors det, struct checkHDU check_it){
+int check_bolo_gain(string fname,long ns, string bolo_gain_filename, std::vector<std::string> det, long ndet, struct checkHDU check_it){
 
 
 	long ns_test=0;
 	double *signal_tot, *signal_samp;
 	double *signal;
 	signal_tot=new double[ns];
-	signal_samp=new double[det.ndet];
+	signal_samp=new double[ndet];
 	//	cout << det.ndet << endl;
 
 	// test median !
@@ -730,28 +730,28 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct dete
 	cout << " here " << endl;
 	// sum up all detectors signal
 	for(int jj=0;jj<ns;jj++){
-		fill(signal_samp,signal_samp+det.ndet,0.0);
+		fill(signal_samp,signal_samp+ndet,0.0);
 
 		cout << "before read\n";
-		if(read_sample_signal_from_fits(fname, jj+1, signal_samp, det))
+		if(read_sample_signal_from_fits(fname, jj+1, signal_samp, det, ndet))
 			return 1;
 		cout << "before alloc\n";
-		std::vector<double> signal_vec(signal_samp, signal_samp+det.ndet);
+		std::vector<double> signal_vec(signal_samp, signal_samp+ndet);
 		cout << signal_vec[0] << endl;
 		signal_tot[jj]=median(signal_vec);
 		cout << signal_tot[jj] << endl;
 	}
 
-	fill(signal_samp,signal_samp+det.ndet,0.0);
+	fill(signal_samp,signal_samp+ndet,0.0);
 
 	cout << " here " << endl;
 
 	for(long jj=0;jj<10;jj++)
 		cout << signal_tot[jj] << " " ;
 	getchar();
-	for(long idet=0;idet<det.ndet;idet++){
+	for(long idet=0;idet<ndet;idet++){
 		std::vector<double> signal_vec;
-		read_signal_from_fits(fname, det.boloname[idet], signal, ns_test);
+		read_signal_from_fits(fname, det[idet], signal, ns_test);
 
 		for(long ii=0;ii<ns;ii++)
 			signal_vec.push_back(signal_tot[ii]/signal[ii]);
@@ -763,7 +763,7 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, struct dete
 	}
 
 	cout << "gain \n";
-	for(long ii=0;ii<det.ndet;ii++)
+	for(long ii=0;ii<ndet;ii++)
 		cout << signal_samp[ii] << " ";
 	cout << endl;
 
@@ -787,7 +787,7 @@ double median(std::vector<double> vec){
 }
 
 
-void log_gen(long  *bolo_, string outname, struct detectors det, double *percent_tab)
+void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long ndet, double *percent_tab)
 /*! generating log files for user information */
 {
 
@@ -797,9 +797,9 @@ void log_gen(long  *bolo_, string outname, struct detectors det, double *percent
 
 	fp=fopen(outname.c_str(),"w");
 
-	for(long ii=0; ii< det.ndet; ii++)
+	for(long ii=0; ii< ndet; ii++)
 		if(bolo_[ii]>0){
-			string temp = det.boloname[ii]; // copy the name of the wrong or bad detector in this ascii log file
+			string temp = det[ii]; // copy the name of the wrong or bad detector in this ascii log file
 			if(percent_tab!=NULL)
 				fprintf(fp, "%s %lf%%\n", (char*)temp.c_str(),percent_tab[ii]);
 			else
@@ -814,7 +814,7 @@ void log_gen(long  *bolo_, string outname, struct detectors det, double *percent
 
 }
 
-int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, struct detectors det){
+int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, std::vector<std::string> det, long ndet){
 	//TODO : Handle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -857,11 +857,11 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 	ns = naxes[0];
 	double temp;
 
-	for(int idet=1;idet<=(int)det.ndet;idet++){
+	for(int idet=1;idet<=(int)ndet;idet++){
 		// ---------------------------------------------
 		// Retrieve the corresponding pix
 		fpixel[0] = sample;
-		string field = det.boloname[idet];
+		string field = det[idet];
 		fpixel[1] = find_channel_index(fptr, (char *)field.c_str());
 		if (fits_read_pix(fptr, TDOUBLE, fpixel, 1, 0, &temp, &anynul, &status)){
 			fits_report_error(stderr, status);

@@ -25,7 +25,7 @@ using namespace std;
 	#include <sstream>
 #endif
 
-int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		bool flgdupl, string dir, long ns, string filename, int para_bolo_indice, int para_bolo_size)
 {
 
@@ -53,10 +53,10 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 
 
 
-	for (long idet1=para_bolo_indice*det.ndet/para_bolo_size;idet1<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet1++){
+	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 		//Read pointing data
-		if(read_samptopix(ns, samptopix, dir, filename, det.boloname[idet1]))
+		if(read_samptopix(ns, samptopix, dir, filename, det[idet1]))
 			return 1;
 
 		//TODO :  temporary down
@@ -73,7 +73,7 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 //				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
 //			}
 //		else
-			if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det.boloname))
+			if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det))
 				return 1;
 
 	}
@@ -86,7 +86,7 @@ int write_tfAS(double *S, struct detectors det,long long *indpix, long NAXIS1, l
 }
 
 int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param,
-		string tmp_dir,	struct detectors det, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
+		string tmp_dir,	std::vector<std::string> det,long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname)
 {
 
@@ -132,7 +132,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	fits_filename = samples_struct.fits_table[iframe];
 
 
-	for (long idet1=para_bolo_indice*det.ndet/para_bolo_size;idet1<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet1++){
+	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 #ifdef DEBUG
 		cout << "[ " << para_bolo_indice << " ] progression write_ftr : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)det.ndet)) << " %" << endl;
@@ -145,7 +145,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		file << "Writing file : " << oss.str() << " at " << asctime (timeinfo) << endl;
 #endif
 
-		field1 = det.boloname[idet1];
+		field1 = det[idet1];
 
 		fill(data_lp,data_lp+ns,0.0);
 
@@ -221,7 +221,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 //			}
 //		else
 			//write fourier transform to disk
-			if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det.boloname))
+			if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det))
 				return 1;
 
 
@@ -244,7 +244,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 }
 
 int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
-		struct detectors det, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
+		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe, string filename,
 		double *Mp, long *hits,std::string fname)
 {
@@ -296,7 +296,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 	fill(Nk,Nk+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
-	for (long idet1=para_bolo_indice*det.ndet/para_bolo_size;idet1<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet1++){
+	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 #ifdef DEBUG
 		cout << "[ " << para_bolo_indice << " ] progression do_ptNd : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)det.ndet)) << " %" << endl;
 		ostringstream oss;
@@ -308,7 +308,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
 #endif
 
-		field1 = det.boloname[idet1];
+		field1 = det[idet1];
 		//		cout << field1 << endl;
 
 
@@ -347,7 +347,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		timeinfo = localtime ( &rawtime );
 		file << "after read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
-		if(det.ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 		SpN = new double[nbins];
 		fill(SpN,SpN+nbins,0.0);
@@ -359,8 +359,8 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 		}
 
 
-		for (long idet2=0;idet2<det.ndet;idet2++){
-			field2 = det.boloname[idet2];
+		for (long idet2=0;idet2<ndet;idet2++){
+			field2 = det[idet2];
 
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
@@ -372,7 +372,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 //				}
 //			else
 				//read Fourier transform of the data
-				if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det.boloname))
+				if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
 					return 1;
 
 
@@ -462,7 +462,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 		delete[] ell;
 		delete[] SpN;
-		free_dmatrix(SpN_all,0,det.ndet-1,0,nbins-1);
+		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 
 
 	}// end of idet1 loop
@@ -485,7 +485,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 }
 
 
-int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detectors det, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
+int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long iframe, long *hits)
 {
 
@@ -503,8 +503,8 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file,	struct detecto
 	bfilter = new double[ns/2+1];
 
 
-	for (long idet1=para_bolo_indice*det.ndet/para_bolo_size;idet1<(para_bolo_indice+1)*det.ndet/para_bolo_size;idet1++){
-		field1 = det.boloname[idet1];
+	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+		field1 = det[idet1];
 
 
 

@@ -10,6 +10,7 @@
 
 #include "sanePos_map_making.h"
 #include "dataIO.h"
+#include "inputFileIO.h"
 
 
 extern "C" {
@@ -24,7 +25,7 @@ extern "C" {
 
 using namespace std;
 
-int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_struct,
+int computeMapMinima(struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
 {
@@ -45,7 +46,14 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
-		long ndet = det_vect[iframe].boloname.size();
+		std::vector<string> det_vect;
+
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)det_vect.size();
 
 		double *ra, *dec, *phi, **offsets;
 
@@ -53,7 +61,7 @@ int computeMapMinima(std::vector<detectors> det_vect, struct samples samples_str
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
+		if(read_all_bolo_offsets_from_fits(fits_file, det_vect, offsets))
 			return 1;
 
 		// read reference position
@@ -198,7 +206,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 	return EXIT_SUCCESS;
 }
 
-int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples samples_struct,
+int computeMapMinima_HIPE(struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
@@ -223,13 +231,20 @@ int computeMapMinima_HIPE(std::vector<detectors> det_vect, struct samples sample
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
-		long ndet = det_vect[iframe].boloname.size();
+		std::vector<string> det_vect;
+
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)det_vect.size();
 
 		long ns = samples_struct.nsamples[iframe];
 
 		for (long idet=0; idet < ndet; idet++){
 
-			field = det_vect[iframe].boloname[idet];
+			field = det_vect[idet];
 
 			double *ra, *dec;
 			int *flag=NULL;

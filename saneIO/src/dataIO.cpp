@@ -331,7 +331,7 @@ int read_signal_from_fits(string filename, string field, double *& signal, long 
 
 }
 
-int read_bolo_list(string fname, struct detectors &det){
+int read_bolo_list(string fname,std::vector<string> &boloname, long &ndet){
 
 	fitsfile *fptr;
 	int status = 0;
@@ -342,10 +342,10 @@ int read_bolo_list(string fname, struct detectors &det){
 		return 1;
 	}
 
-	read_channels(fptr,temp_bolo, det.ndet);
+	read_channels(fptr,temp_bolo, ndet);
 
-	for (long ii=0; ii < det.ndet; ii++)
-		det.boloname.push_back(temp_bolo[ii]);
+	for (long ii=0; ii < ndet; ii++)
+		boloname.push_back(temp_bolo[ii]);
 
 	// close file
 	if(fits_close_file(fptr, &status)){
@@ -353,7 +353,7 @@ int read_bolo_list(string fname, struct detectors &det){
 		return 1;
 	}
 
-	for (long ii=0; ii < det.ndet; ii++)
+	for (long ii=0; ii < ndet; ii++)
 		delete [] temp_bolo[ii];
 	delete [] temp_bolo;
 

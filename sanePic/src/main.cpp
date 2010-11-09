@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
-	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and number */
+	//	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and number */
 
 	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
@@ -136,8 +136,8 @@ int main(int argc, char *argv[]) {
 					struct_sanePic, size);
 
 			if(rank==0)
-			// print parser warning and/or errors
-			cout << endl << parser_output << endl;
+				// print parser warning and/or errors
+				cout << endl << parser_output << endl;
 
 		}else
 			parsed = 1;
@@ -273,7 +273,7 @@ int main(int argc, char *argv[]) {
 	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -282,8 +282,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(rank==0)
-	// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		// parser print screen function
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 	//	read pointing informations
@@ -477,18 +477,28 @@ int main(int argc, char *argv[]) {
 			ns = samples_struct.nsamples[iframe];
 			f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
 
-			struct detectors det = detector_tab[iframe];
+			string output_read = "";
+			std::vector<string> det;
+			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+				cout << output_read << endl;
+#ifdef USE_MPI
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return EX_CONFIG;
+			}
+			long ndet = (long)det.size();
 
 			// preconditioner computation : Mp
 			if (proc_param.CORRon) {
 
 
 #if defined(USE_MPI) && !defined(PARA_BOLO) //case para_frame
-				write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
+				write_tfAS(S,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 				// read pointing + deproject + fourier transform
 
 #else // case para_bolo and mono
-				write_tfAS(S, det, indpix, NAXIS1, NAXIS2, npix,
+				write_tfAS(S, det, ndet, indpix, NAXIS1, NAXIS2, npix,
 						pos_param.flgdupl, dir.tmp_dir, ns,
 						samples_struct.fits_table[iframe], rank, size);
 #endif
@@ -504,12 +514,12 @@ int main(int argc, char *argv[]) {
 				MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet, f_lppix_Nk,
 						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,NULL, name_rank);
 				// return Pnd = At N-1 d
 #else
 				do_PtNd(PtNPmatS, samples_struct.noise_table, dir.tmp_dir,
-						"fPs_", det, f_lppix_Nk, proc_param.fsamp, ns, rank,
+						"fPs_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns, rank,
 						size, indpix, NAXIS1, NAXIS2, npix, iframe,
 						samples_struct.fits_table[iframe], Mp, NULL, name_rank);
 
@@ -517,7 +527,7 @@ int main(int argc, char *argv[]) {
 
 			} else {
 
-				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det,
+				do_PtNPS_nocorr(S, samples_struct.noise_table, dir, det, ndet,
 						f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl, ns,
 						indpix, NAXIS1, NAXIS2, npix, iframe,
 						samples_struct.fits_table[iframe], PtNPmatS, Mp, NULL,
@@ -613,15 +623,26 @@ int main(int argc, char *argv[]) {
 
 				ns = samples_struct.nsamples[iframe];
 				f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
-				struct detectors det = detector_tab[iframe];
+
+				string output_read = "";
+				std::vector<string> det;
+				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+					cout << output_read << endl;
+#ifdef USE_MPI
+					MPI_Barrier(MPI_COMM_WORLD);
+					MPI_Finalize();
+#endif
+					return EX_CONFIG;
+				}
+				long ndet = (long)det.size();
 
 				if (proc_param.CORRon) {
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-					write_tfAS(d,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
+					write_tfAS(d,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 					// read pointing + deproject + fourier transform
 #else
-					write_tfAS(d, det, indpix, NAXIS1, NAXIS2, npix,
+					write_tfAS(d, det, ndet, indpix, NAXIS1, NAXIS2, npix,
 							pos_param.flgdupl, dir.tmp_dir, ns,
 							samples_struct.fits_table[iframe], rank, size);
 
@@ -639,11 +660,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet,f_lppix_Nk,
 							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 #else
 					do_PtNd(q, samples_struct.noise_table, dir.tmp_dir, "fPs_",
-							det, f_lppix_Nk, proc_param.fsamp, ns, rank, size,
+							det, ndet, f_lppix_Nk, proc_param.fsamp, ns, rank, size,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fits_table[iframe], NULL, NULL,
 							name_rank);
@@ -652,7 +673,7 @@ int main(int argc, char *argv[]) {
 
 				} else {
 
-					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det,
+					do_PtNPS_nocorr(d, samples_struct.noise_table, dir, det, ndet,
 							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl,
 							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fits_table[iframe], q, NULL, NULL,
@@ -692,15 +713,26 @@ int main(int argc, char *argv[]) {
 				for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
-					struct detectors det = detector_tab[iframe];
+
+					string output_read = "";
+					std::vector<string> det;
+					if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+						cout << output_read << endl;
+#ifdef USE_MPI
+						MPI_Barrier(MPI_COMM_WORLD);
+						MPI_Finalize();
+#endif
+						return EX_CONFIG;
+					}
+					long ndet = (long)det.size();
 
 					if (proc_param.CORRon) {
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-						write_tfAS(S,det,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
+						write_tfAS(S,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 						// read pointing + deproject + fourier transform
 #else
-						write_tfAS(S, det, indpix, NAXIS1, NAXIS2, npix,
+						write_tfAS(S, det, ndet, indpix, NAXIS1, NAXIS2, npix,
 								pos_param.flgdupl, dir.tmp_dir, ns,
 								samples_struct.fits_table[iframe], rank, size);
 #endif
@@ -715,12 +747,12 @@ int main(int argc, char *argv[]) {
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det,f_lppix_Nk,
+						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet,f_lppix_Nk,
 								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 						// return Pnd = At N-1 d
 #else
 						do_PtNd(PtNPmatS, samples_struct.noise_table,
-								dir.tmp_dir, "fPs_", det, f_lppix_Nk,
+								dir.tmp_dir, "fPs_", det, ndet, f_lppix_Nk,
 								proc_param.fsamp, ns, rank, size, indpix,
 								NAXIS1, NAXIS2, npix, iframe,
 								samples_struct.fits_table[iframe], NULL, NULL,
@@ -729,7 +761,7 @@ int main(int argc, char *argv[]) {
 					} else {
 
 						do_PtNPS_nocorr(S, samples_struct.noise_table, dir,
-								det, f_lppix_Nk, proc_param.fsamp,
+								det, ndet, f_lppix_Nk, proc_param.fsamp,
 								pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
 								npix, iframe,
 								samples_struct.fits_table[iframe], PtNPmatS,
@@ -921,8 +953,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					if (write_fits_hitory(fname, NAXIS1, NAXIS2, dir.dirfile,
-							proc_param, pos_param, fcut, detector_tab[0],
-							samples_struct))
+							proc_param, pos_param, fcut, samples_struct))
 						cerr
 						<< "WARNING ! No history will be included in the file : "
 						<< fname << endl;
@@ -982,18 +1013,29 @@ int main(int argc, char *argv[]) {
 				ns = samples_struct.nsamples[iframe];
 				f_lppix = proc_param.f_lp * double(ns) / proc_param.fsamp;
 				f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
-				struct detectors det = detector_tab[iframe];
+
+				string output_read = "";
+				std::vector<string> det;
+				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+					cout << output_read << endl;
+#ifdef USE_MPI
+					MPI_Barrier(MPI_COMM_WORLD);
+					MPI_Finalize();
+#endif
+					return EX_CONFIG;
+				}
+				long ndet = (long)det.size();
 
 				if (proc_param.CORRon) {
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det, ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns, iframe, 0, 1, name_rank);
 					// fillgaps + butterworth filter + fourier transform
 					// "fdata_" files generation (fourier transform of the data)
 #else
 					write_ftrProcesdata(S, proc_param, samples_struct,
-							pos_param, dir.tmp_dir, det, indpix, indpsrc,
+							pos_param, dir.tmp_dir, det, ndet, indpix, indpsrc,
 							NAXIS1, NAXIS2, npix, npixsrc, addnpix, f_lppix,
 							ns, iframe, rank, size, name_rank);
 #endif
@@ -1010,12 +1052,12 @@ int main(int argc, char *argv[]) {
 #endif
 
 #if defined(USE_MPI) && !defined(PARA_BOLO)
-					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det,f_lppix_Nk,
+					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det, ndet,f_lppix_Nk,
 							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 					// return Pnd = At N-1 d
 #else
 					do_PtNd(PNd, samples_struct.noise_table, dir.tmp_dir,
-							"fdata_", det, f_lppix_Nk, proc_param.fsamp, ns,
+							"fdata_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns,
 							rank, size, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fits_table[iframe], NULL, NULL,
 							name_rank);
@@ -1023,7 +1065,7 @@ int main(int argc, char *argv[]) {
 				} else {
 
 					do_PtNd_nocorr(PNd, dir.tmp_dir, proc_param, pos_param,
-							samples_struct, det, f_lppix, f_lppix_Nk, addnpix,
+							samples_struct, det, ndet, f_lppix, f_lppix_Nk, addnpix,
 							ns, indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc,
 							iframe, S, rank, size);
 				}
@@ -1072,7 +1114,7 @@ int main(int argc, char *argv[]) {
 
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				proc_param, pos_param, detector_tab, samples_struct, fcut, wcs,
+				proc_param, pos_param, samples_struct, fcut, wcs,
 				pos_param.maskfile))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 

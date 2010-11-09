@@ -643,7 +643,6 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	dictionary	*	ini ;
 	string filename;
-	struct detectors det;
 
 	// default values :
 	//	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
@@ -787,7 +786,7 @@ void print_param_sanePS(struct param_sanePS structPS)
 	cout << endl;
 }
 
-void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
+void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct,
 		struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct){
 
@@ -826,20 +825,20 @@ void parser_printOut(char * prog_name, struct param_common dir, struct samples s
 		print_param_sanePic(sanePic_struct);
 		break;
 	default : // saneCheck
-		print_param_positions(pos_param); // TODO : for saneCheck : print all ? or nothing ?
-		print_param_process(proc_param);
-		print_param_sanePic(sanePic_struct);
-		print_param_sanePS(structPS);
+//		print_param_positions(pos_param); // for saneCheck : print nothing
+//		print_param_process(proc_param);
+//		print_param_sanePic(sanePic_struct);
+//		print_param_sanePS(structPS);
 		break;
 	}
 
 	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-	printf("Number of bolometers : \n");
-	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
-		if(samples_struct.fits_table!=NULL)
-			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
-		else
-			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
-	}
+//	printf("Number of bolometers : \n");
+//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
+//		if(samples_struct.fits_table!=NULL)
+//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+//		else
+//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+//	}
 
 }

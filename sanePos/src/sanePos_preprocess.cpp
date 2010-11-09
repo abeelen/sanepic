@@ -7,13 +7,14 @@
 #include "sanePos_map_making.h"
 #include "dataIO.h"
 #include "temporary_IO.h"
+#include "inputFileIO.h"
 
 
 
 
 using namespace std;
 
-int computePixelIndex(string outdir, std::vector<detectors> det_vect,
+int computePixelIndex(string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -38,13 +39,22 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
 		ns = samples_struct.nsamples[iframe];
-		long ndet = det_vect[iframe].boloname.size();
+		std::vector<string> det_vect;
+
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)det_vect.size();
+
+
 		double *ra, *dec, *phi, **offsets;
 
 
 		// read bolo offsets
 		// TODO : This function should also return the PRJCODE to be used below...
-		if(read_all_bolo_offsets_from_fits(fits_file, det_vect[iframe].boloname, offsets))
+		if(read_all_bolo_offsets_from_fits(fits_file, det_vect, offsets))
 			return 1;
 
 		// read reference position
@@ -84,7 +94,7 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 
 		for (long idet = 0; idet<ndet; idet++){
 
-			string field = det_vect[iframe].boloname[idet];
+			string field = det_vect[idet];
 
 			double offxx, offyy, lon, lat, ra_deg, dec_deg;
 			int status;
@@ -218,7 +228,7 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[iframe].boloname[idet]))
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;
@@ -238,7 +248,7 @@ int computePixelIndex(string outdir, std::vector<detectors> det_vect,
 	return 0;
 }
 
-int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
+int computePixelIndex_HIPE(string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -264,13 +274,22 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 		// for each scan
 		fits_file=samples_struct.fits_table[iframe];
 		ns = samples_struct.nsamples[iframe];
-		long ndet = det_vect[iframe].boloname.size();
+
+		std::vector<string> det_vect;
+
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)det_vect.size();
+
 
 		double *ra, *dec;
 		int *flag=NULL;
 
 		for (long idet = 0; idet<ndet; idet++){
-			string field = det_vect[iframe].boloname[idet];
+			string field = det_vect[idet];
 
 			double *world, *imgcrd, *pixcrd;
 			double *theta, *phi;
@@ -408,7 +427,7 @@ int computePixelIndex_HIPE(string outdir, std::vector<detectors> det_vect,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[iframe].boloname[idet]))
+			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;

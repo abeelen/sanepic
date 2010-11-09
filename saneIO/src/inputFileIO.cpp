@@ -181,11 +181,11 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 
 }
 
-int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size){
-
+//int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size){
+int read_bolo_for_all_scans(struct param_common dir, struct samples &samples_struct, int rank, int size){
 	string output = "";
 	string filename;
-	struct detectors det;
+//	struct detectors det;
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 
 		if(dir.bolo_global_filename!="")
@@ -193,27 +193,28 @@ int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_c
 		else
 			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
 
-		if(read_channel_list(output, filename, det.boloname)==1){
-			if(rank==0)
-				cout << endl << output << endl;
-			return 1;
-		}
-		det.ndet = (long)((det.boloname).size());
-		if (det.ndet == 0) {
-			if(rank==0)
-				cout << "Must provide at least one channel.\n\n";
-			return 1;
-		}
-		if(size>det.ndet){
-			if(rank==0)
-				cout << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!";
-			return 1;
-		}
-		detector_tab.push_back(det);
-		det.ndet=0;
-		det.boloname.clear();
+//		if(read_channel_list(output, filename, det.boloname)==1){
+//			if(rank==0)
+//				cout << endl << output << endl;
+//			return 1;
+//		}
+//		det.ndet = (long)((det.boloname).size());
+//		if (det.ndet == 0) {
+//			if(rank==0)
+//				cout << "Must provide at least one channel.\n\n";
+//			return 1;
+//		}
+//		if(size>det.ndet){
+//			if(rank==0)
+//				cout << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!";
+//			return 1;
+//		}
+		samples_struct.bolovect.push_back(filename);
+//		detector_tab.push_back(det);
+//		det.ndet=0;
+//		det.boloname.clear();
 		if(dir.bolo_global_filename!="") {
-			detector_tab.resize(samples_struct.ntotscan, detector_tab[0]);
+			samples_struct.bolovect.resize(samples_struct.ntotscan, samples_struct.bolovect[0]);
 			break;
 		}
 	}

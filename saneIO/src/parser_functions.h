@@ -69,7 +69,7 @@ void print_param_sanePic(struct param_sanePic sanepic_struct);
 void print_param_sanePS(struct param_sanePS structPS);
 
 // calls print_* routines
-void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct, std::vector<detectors> detector_tab,
+void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct,
 		struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct);
 

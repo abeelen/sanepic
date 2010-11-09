@@ -270,7 +270,7 @@ void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, doubl
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_total, PHI, &status);
 }
 
-void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
+void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
 /*! Copy input signal header to output and fill the gaps in signal table */
 {
 
@@ -285,17 +285,17 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 
 	signal_fixed = new double [ns_total];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
-		read_signal_from_fits(name, det.boloname[jj], signal, ns_temp); // read signal row
+	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
+		read_signal_from_fits(name, det[jj], signal, ns_temp); // read signal row
 		fix_row(signal, signal_fixed, indice, add_sample, ns_total, suppress_time_sample); // fill the gaps
-		insert_row_in_image(fptr, outfptr, det.boloname[jj], signal_fixed, ns_total); // insert in output fits file
+		insert_row_in_image(fptr, outfptr, det[jj], signal_fixed, ns_total); // insert in output fits file
 		delete [] signal;
 	}
 	delete [] signal_fixed;
 
 }
 
-void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
+void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
 /*! Copy input RA and DEC header to output and fill the gaps in those tables : HIPE format only */
 {
 
@@ -322,17 +322,17 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 	RA_fixed = new double [ns_total];
 	DEC_fixed = new double [ns_total];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
-		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp); // read input RA and DEC row
+	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
+		read_ra_dec_from_fits(name, det[jj], RA, DEC, ns_temp); // read input RA and DEC row
 		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move output pointer to RA table
 		fix_row(RA, RA_fixed, indice, add_sample, ns_total, suppress_time_sample); // fill gaps in RA row
-		insert_row_in_image(fptr, outfptr, det.boloname[jj], RA_fixed, ns_total); // insert the filled RA row in ouput table
+		insert_row_in_image(fptr, outfptr, det[jj], RA_fixed, ns_total); // insert the filled RA row in ouput table
 
 
 		// same process for DEC
 		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status);
 		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total, suppress_time_sample);
-		insert_row_in_image(fptr, outfptr, det.boloname[jj], DEC_fixed, ns_total);
+		insert_row_in_image(fptr, outfptr, det[jj], DEC_fixed, ns_total);
 		delete [] RA;
 		delete [] DEC;
 	}
@@ -341,7 +341,7 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 
 }
 
-void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
+void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
 /*! Copy input mask header to output and fill the gaps with ones */
 {
 
@@ -355,17 +355,17 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 
 	mask_fixed = new int [ns_total];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector (column)
-		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read input mask row
+	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
+		read_flag_from_fits(name, det[jj], mask, ns_temp); // read input mask row
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total, suppress_time_sample); // fill gaps in mask row
-		insert_mask_in_image(fptr, outfptr, det.boloname[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
+		insert_mask_in_image(fptr, outfptr, det[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
 		delete [] mask;
 	}
 	delete [] mask_fixed;
 
 }
 
-void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp, std::vector <long> suppress_time_sample)
+void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp, std::vector <long> suppress_time_sample)
 /*! Copy input time header to output and fill the gaps with computed values using sampling frequency */
 {
 
@@ -381,7 +381,7 @@ void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_tot
 }
 
 
-void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
+void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample)
 /*! copy "reference position" table to output and fill the gaps with average values */
 {
 

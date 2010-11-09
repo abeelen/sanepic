@@ -23,7 +23,7 @@ extern "C" {
 
 using namespace std;
 
-int common_mode_computation(struct detectors det, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int common_mode_computation(std::vector<std::string> det, long ndet, struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
@@ -70,14 +70,14 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
-	sign = new double[det.ndet];
+	sign = new double[ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
 	// loop over detectors
-	for (long idet=0;idet<det.ndet;idet++){
+	for (long idet=0;idet<ndet;idet++){
 
-		field = det.boloname[idet];
+		field = det[idet];
 
 		long test_ns;
 		if(read_signal_from_fits(fits_filename, field, data, test_ns))
@@ -99,7 +99,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, det.boloname[idet]))
+			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, field))
 				return EX_NOINPUT;
 
 
@@ -140,7 +140,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 		fftw_destroy_plan(fftplan);
 
 
-		if(write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, fits_filename, det.boloname))
+		if(write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, fits_filename, det))
 			return EX_DATAERR;
 
 		/// compute sigma of the noise
@@ -176,7 +176,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 	/////////// AtN-1A
 	for (long jj=0;jj<ncomp;jj++){
 		for (long kk=0;kk<ncomp;kk++){
-			for (long ii=0;ii<det.ndet;ii++){
+			for (long ii=0;ii<ndet;ii++){
 				Cov[jj][kk] += mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii];
 			}
 		}
@@ -228,7 +228,7 @@ int common_mode_computation(struct detectors det, struct param_sanePre proc_para
 
 
 
-int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,struct param_sanePos pos_param,
+int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sanePre proc_param,struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
@@ -276,9 +276,9 @@ int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,stru
 
 
 	/////////////////////////////////////// loop again over detectors
-	for (long idet=0;idet<det.ndet;idet++){
+	for (long idet=0;idet<ndet;idet++){
 
-		field = det.boloname[idet];
+		field = det[idet];
 
 		//		cout << "before read_signal\n";
 		long test_ns;
@@ -332,7 +332,7 @@ int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,stru
 		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
 		for (long ii=0;ii<nbins;ii++){
-			Rellth[idet*det.ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
+			Rellth[idet*ndet+idet][ii] += Nell[ii]/factapod; // uncorrelated part added in covariance matrix ??
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 
@@ -369,11 +369,11 @@ int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,stru
 
 	}
 
-	for (long ii=0;ii<det.ndet;ii++)
-		for (long kk=0;kk<det.ndet;kk++)
+	for (long ii=0;ii<ndet;ii++)
+		for (long kk=0;kk<ndet;kk++)
 			for (long ll=0;ll<ncomp;ll++)
 				for (long jj=0;jj<nbins;jj++)
-					Rellth[ii*det.ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
+					Rellth[ii*ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
 	// clean up
@@ -391,14 +391,14 @@ int estimate_noise_PS(struct detectors det, struct param_sanePre proc_param,stru
 }
 
 
-int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long ndet, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
 	double *data1d; // buffer used to write down 1d array
-	data1d = new double[det.ndet*nbins];
+	data1d = new double[ndet*nbins];
 	string testfile;
 	string base_n;
 	fftw_complex *fdata1, *fdata2;
@@ -413,29 +413,29 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 	FILE *fp;
 
 	/////////////////////////////////////// loop again over detectors
-	for (long idet1=0;idet1<det.ndet;idet1++){
+	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		if(read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, fits_filename, det.boloname))
+		if(read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, fits_filename, det))
 			return EX_NOINPUT;
 
-		for (long idet2=0;idet2<det.ndet;idet2++) {
+		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			if(read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, fits_filename, det.boloname))
+			if(read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, fits_filename, det))
 				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
 
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*det.ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
+				Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
 		}
 #ifdef DEBUG
 		for(int rk=0;rk<rank;rk++)
 			cout << "\t\t\t"; // try to deal with MPI screen outputs
-		cout << "[ " << rank << " ]" << " Rellexp :" << setprecision(2) << idet1*100./det.ndet << "%\r" << flush ;
+		cout << "[ " << rank << " ]" << " Rellexp :" << setprecision(2) << idet1*100./ndet << "%\r" << flush ;
 #endif
 	}
 
@@ -448,14 +448,14 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 			cout << " Problem in the first detector power spectrum\n";
 			exit(-1);
 		}
-	for (long idet1=0;idet1<det.ndet;idet1++)
-		for (long idet2=0;idet2<det.ndet;idet2++)
+	for (long idet1=0;idet1<ndet;idet1++)
+		for (long idet2=0;idet2<ndet;idet2++)
 			for (long ii=0;ii<nbins;ii++)
-				Rellexp[idet1*det.ndet+idet2][ii] = Rellexp[idet1*det.ndet+idet2][ii]/SPref[ii]; // normalize to first detector
+				Rellexp[idet1*ndet+idet2][ii] = Rellexp[idet1*ndet+idet2][ii]/SPref[ii]; // normalize to first detector
 	for (long jj=0;jj<ncomp;jj++)
 		for (long ii=0;ii<nbins;ii++)
 			P[jj][ii] = P[jj][ii]/SPref[ii]; // normalize common mode part
-	for (long jj=0;jj<det.ndet;jj++)
+	for (long jj=0;jj<ndet;jj++)
 		for (long ii=0;ii<nbins;ii++)
 			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
@@ -471,9 +471,9 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 
 	fp = fopen(testfile.c_str(),"w");
 	for (long jj=0;jj<nbins;jj++)
-		for (long ii=0;ii<det.ndet;ii++)
-			for (long kk=0;kk<det.ndet;kk++)
-				fprintf(fp,"%10.15g \t",Rellexp[ii*det.ndet+kk][jj]); // cross power spectrum
+		for (long ii=0;ii<ndet;ii++)
+			for (long kk=0;kk<ndet;kk++)
+				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]); // cross power spectrum
 	fprintf(fp,"\n");
 	fclose(fp);
 
@@ -484,7 +484,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<det.ndet;ii++){
+	for (long ii=0;ii<ndet;ii++){
 		for (long jj=0;jj<nbins;jj++)
 			fprintf(fp,"%10.15g \t",N[ii][jj]); // uncorralated part of the noise
 		fprintf(fp,"\n");
@@ -492,7 +492,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 	fclose(fp);
 
 
-	for (long i=0; i< det.ndet; i++)
+	for (long i=0; i< ndet; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
@@ -502,7 +502,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
-	write_psd_tofits(testfile.c_str(),det.ndet,nbins,'d', data1d); //resized uncorralated part
+	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
 
 	temp_stream << dir.output_dir + "Pinit_" << base_n << ".txt";
 
@@ -525,7 +525,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, struct detectors det, long 
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<det.ndet;ii++)
+	for (long ii=0;ii<ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++){
 			fprintf(fp,"%10.15g \t",mixmat[ii][jj]); // mixing matrix
 			fprintf(fp,"\n");
@@ -1093,7 +1093,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	long nbins, double *ell, double **mixmat,
+int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::string> det, long ndet, long nbins, double *ell, double **mixmat,
 		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P)
 {
 
@@ -1114,7 +1114,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
-	if(write_CovMatrix(nameSpfile, det.boloname, nbins, ell, Rellth))
+	if(write_CovMatrix(nameSpfile, det, nbins, ell, Rellth))
 		return EX_IOERR;
 
 
@@ -1138,17 +1138,17 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 	fp = fopen(nameSpfile.c_str(),"w");
 
-	for (long idet1=0;idet1<det.ndet;idet1++){
-		for (long idet2=0;idet2<det.ndet;idet2++){
+	for (long idet1=0;idet1<ndet;idet1++){
+		for (long idet2=0;idet2<ndet;idet2++){
 
 			///// write power spectrum to disk
-			tempstr1 = det.boloname[idet1];
-			tempstr2 = det.boloname[idet2];
+			tempstr1 = det[idet1];
+			tempstr2 = det[idet2];
 			fprintf(fp,"%s%s%s\n",tempstr1.c_str(),"-",tempstr2.c_str());
 			fprintf(fp,"%d\n",(int)nbins);
 			for (long ii=0;ii<nbins;ii++){
 				fprintf(fp,"%g\t",ell[ii]);
-				fprintf(fp,"%10.15g\n",(Rellexp[idet1*(det.ndet)+idet2][ii]+Rellexp[idet2*(det.ndet)+idet1][ii])/2.0*SPref[ii]);
+				fprintf(fp,"%10.15g\n",(Rellexp[idet1*(ndet)+idet2][ii]+Rellexp[idet2*(ndet)+idet1][ii])/2.0*SPref[ii]);
 			}
 			fprintf(fp,"%g\n",ell[nbins]);
 		}
@@ -1165,7 +1165,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 	fp = fopen(testfile.c_str(),"w");
 	fprintf(fp,"%ld\n",ncomp); // ajout 20/09/10 pour etre cohérent avec la fonction de read !
-	for (long ii=0;ii<det.ndet;ii++)
+	for (long ii=0;ii<ndet;ii++)
 		for (long jj=0;jj<ncomp;jj++)
 			fprintf(fp,"%10.15g \n",mixmat[ii][jj]);
 	fprintf(fp,"\n");
@@ -1175,9 +1175,9 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 
 	//TODO : One should define a fits format for that => useless ! The same is done for Nfinal _uncnoise !
 	//**************** Write component power spectra to disk
-	for (long idet1=0;idet1<det.ndet;idet1++){
+	for (long idet1=0;idet1<ndet;idet1++){
 
-		tempstr1 = det.boloname[idet1];
+		tempstr1 = det[idet1];
 		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
 
 		// récupérer une chaîne de caractères
@@ -1192,8 +1192,8 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 		fclose(fp);
 	}
 
-	data1d = new double[det.ndet*nbins];
-	for (long i=0; i< det.ndet; i++)
+	data1d = new double[ndet*nbins];
+	for (long i=0; i< ndet; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
@@ -1202,7 +1202,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct detectors det,	
 	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
-	write_psd_tofits(testfile,nbins,det.ndet,'d',data1d);
+	write_psd_tofits(testfile,nbins,ndet,'d',data1d);
 	delete [] data1d;
 
 

@@ -37,7 +37,9 @@ int main(int argc, char *argv[]) {
 	int parsed=1;  /* parser error status */
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
+//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
+	std::vector<string> det;
+	long ndet;
 	string outdir; /*! output directory */
 	string outname =""; /*! output filename */
 	string output = "";
@@ -112,7 +114,7 @@ int main(int argc, char *argv[]) {
 	file_compatibility_verification(samples_struct);
 
 	// read the first file detector list (which is the same in every scans)
-	read_bolo_list(samples_struct.fitsvect[0], det);
+	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
 
 	// open final fits file
 	if (fits_create_file(&outfptr, outname.c_str(), &status))
@@ -121,13 +123,13 @@ int main(int argc, char *argv[]) {
 	if(format_fits==1){ // HIPE format
 
 		// 1 signal
-		copy_signal(outfptr, samples_struct, det, ns_total); // copy signal tables from each file to output file
+		copy_signal(outfptr, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
 
 		// 2 RA 3 DEC
-		copy_RA_DEC(outfptr, samples_struct, det, ns_total); // copy RA and DEC tables from each file to output file
+		copy_RA_DEC(outfptr, samples_struct, det, ndet, ns_total); // copy RA and DEC tables from each file to output file
 
 		// 4 mask
-		copy_mask(outfptr, samples_struct, det, ns_total); // copy flag tables from each file to output file
+		copy_mask(outfptr, samples_struct, det,  ndet, ns_total); // copy flag tables from each file to output file
 
 		// 5 time
 		copy_time(outfptr, samples_struct, ns_total); // copy time tables from each file to output file
@@ -176,10 +178,10 @@ int main(int argc, char *argv[]) {
 		copy_time(outfptr, samples_struct, ns_total); // copy time tables from each file to output file
 
 		// 5 signal
-		copy_signal(outfptr, samples_struct, det, ns_total); // copy signal tables from each file to output file
+		copy_signal(outfptr, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
 
 		// 6 mask
-		copy_mask(outfptr, samples_struct, det, ns_total); // copy flag tables from each file to output file
+		copy_mask(outfptr, samples_struct, det, ndet, ns_total); // copy flag tables from each file to output file
 	}
 
 

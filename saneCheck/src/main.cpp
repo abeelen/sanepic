@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_common dir;  /*! structure that contains output input temp directories */
 	//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
-	std::vector<detectors> detector_tab;
+	//	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;
 	samples_struct.fits_table=NULL;
 
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -121,23 +121,24 @@ int main(int argc, char *argv[]) {
 
 	if(rank==0){
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, sanePic_struct);
 		print_saneCheck_ini(check_struct);
 	}
 
 
-	struct detectors bolo_fits_0; /* bolometers list of the first fits file given as input */
-	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0); /* Read the first fits file bolo table */
+	std::vector<string> bolo_fits_0; /* bolometers list of the first fits file given as input */
+	long ndet0;
+	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0,ndet0); /* Read the first fits file bolo table */
 
 	long *bolo_bad_tot = NULL; /*! bad detectors full list => fully flag detectors */
 	long *bolo_bad_80_tot = NULL; /*! valid worst detectors full list => more than 80% flag detectors */
 
 	if(rank==0){ // only for MPI_reduce
-		bolo_bad_tot= new long [bolo_fits_0.ndet];
-		bolo_bad_80_tot= new long [bolo_fits_0.ndet];
-		fill(bolo_bad_tot, bolo_bad_tot + bolo_fits_0.ndet ,0);
-		fill(bolo_bad_80_tot, bolo_bad_80_tot + bolo_fits_0.ndet ,0);
+		bolo_bad_tot= new long [ndet0];
+		bolo_bad_80_tot= new long [ndet0];
+		fill(bolo_bad_tot, bolo_bad_tot + ndet0 ,0);
+		fill(bolo_bad_80_tot, bolo_bad_80_tot + ndet0 ,0);
 	}
 
 
@@ -147,7 +148,8 @@ int main(int argc, char *argv[]) {
 
 		if(rank==do_it){ /* if this rank has to do the job ... */
 
-			struct detectors bolo_fits;
+			std::vector<string> bolo_fits;
+			long ndet_fits;
 			long *bolo_bad;
 			long *bolo_bad_80;
 			double *percent_tab;
@@ -172,28 +174,39 @@ int main(int argc, char *argv[]) {
 				return EX_IOERR;
 			}
 
-			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits); // read fits file detector list
-			if(check_bolos(bolo_fits.boloname, bolo_fits_0.boloname)){ // compare to the first input fits file to ensure compatibility between scans
+			read_bolo_list(samples_struct.fitsvect[ii],bolo_fits,ndet_fits); // read fits file detector list
+			if(check_bolos(bolo_fits, bolo_fits_0)){ // compare to the first input fits file to ensure compatibility between scans
 				cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run only together scans that correspond to the same field\n";
 				continue;
 			}
 
-			struct detectors det = detector_tab[ii];
-			check_detector_is_in_fits(det,bolo_fits,samples_struct.fitsvect[ii]); // check wether used detector user list is correct
+			string output_read = "";
+			std::vector<string> det_vect;
+			if(read_channel_list(output_read, samples_struct.bolovect[ii], det_vect)){
+				cout << output_read << endl;
+#ifdef USE_MPI
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return EX_CONFIG;
+			}
+			long ndet_vect = (long)det_vect.size();
 
-			bolo_bad = new long[bolo_fits.ndet]; // this scan bad detectors list
-			bolo_bad_80 = new long[bolo_fits.ndet]; // this scan valid worst detectors list
-			percent_tab = new double[bolo_fits.ndet];
-			fill(bolo_bad,bolo_bad+bolo_fits.ndet,0);
-			fill(bolo_bad_80,bolo_bad_80+bolo_fits.ndet,0);
-			fill(percent_tab,percent_tab+bolo_fits.ndet,0.0);
+			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits,samples_struct.fitsvect[ii]); // check wether used detector user list is correct
+
+			bolo_bad = new long[ndet_fits]; // this scan bad detectors list
+			bolo_bad_80 = new long[ndet_fits]; // this scan valid worst detectors list
+			percent_tab = new double[ndet_fits];
+			fill(bolo_bad,bolo_bad+ndet_fits,0);
+			fill(bolo_bad_80,bolo_bad_80+ndet_fits,0);
+			fill(percent_tab,percent_tab+ndet_fits,0.0);
 
 			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
-			return_value+=check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
-			return_value+=check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, format_fits,check_struct.Check_it); // check presence of reference positions and offsets HDUs
+			return_value+=check_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
+			return_value+=check_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits, format_fits,check_struct.Check_it); // check presence of reference positions and offsets HDUs
 			if(format_fits==1){ // check RA/DEC table presence for HIPE format
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
-				return_value+=check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,check_struct.Check_it);
+				return_value+=check_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it);
 			}
 
 
@@ -217,13 +230,13 @@ int main(int argc, char *argv[]) {
 
 			if(check_struct.checkNAN){
 				cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
-				check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,check_struct.Check_it);
-				check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,check_struct.Check_it);
+				check_NAN_commonHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
+				check_NAN_positionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if((format_fits==1)&&(check_struct.checkNAN)){ // check NANs presence in RA/DEc tables for HIPE format
 				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
-				check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits,check_struct.Check_it);
+				check_NAN_altpositionHDU(samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if(check_struct.checktime){
@@ -240,25 +253,25 @@ int main(int argc, char *argv[]) {
 			if(check_struct.checkflag){
 				// Lookfor fully or more than 80% flagged detectors, also flag singletons
 				cout << "\n[" << rank <<  "] Checking flagged detectors\n"; // check for time gaps in time table
-				check_flag(samples_struct.fitsvect[ii],bolo_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80,percent_tab,check_struct.Check_it);
+				check_flag(samples_struct.fitsvect[ii],bolo_fits,ndet_fits, samples_struct.nsamples[ii],outname, bolo_bad,bolo_bad_80,percent_tab,check_struct.Check_it);
 
 				// generating log files :
 				outname = dir.output_dir + "bolo_totally_flagged_" + FitsBasename(samples_struct.fitsvect[ii]) +".txt";
 				cout << "Writing informations in :\n" << outname << endl << endl;
-				log_gen(bolo_bad,outname, bolo_fits_0); // generate bad detectors log file
+				log_gen(bolo_bad,outname, bolo_fits_0,ndet0); // generate bad detectors log file
 
 
 				outname = dir.output_dir + "bolo_80_percent_flagged_" + FitsBasename(samples_struct.fitsvect[ii]) +".txt";
 				cout << "Writing informations in :\n" << outname << endl;
-				log_gen(bolo_bad_80, outname, bolo_fits_0, percent_tab); // generate valid worst detectors log file
+				log_gen(bolo_bad_80, outname, bolo_fits_0, ndet0, percent_tab); // generate valid worst detectors log file
 			}
 
 #ifdef USE_MPI
 			// inform processor 0 of bad or worst bolometer presence in fits files
-			MPI_Reduce(bolo_bad,bolo_bad_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
-			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,bolo_fits_0.ndet,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+			MPI_Reduce(bolo_bad,bolo_bad_tot,ndet0,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,ndet0,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-			for(long kk = 0; kk< bolo_fits_0.ndet; kk++){ // sum up the bad bolometers status
+			for(long kk = 0; kk< ndet0; kk++){ // sum up the bad bolometers status
 				bolo_bad_tot[kk]+=bolo_bad[kk];
 				bolo_bad_80_tot[kk]+=bolo_bad_80[kk];
 			}
@@ -274,12 +287,12 @@ int main(int argc, char *argv[]) {
 		// generating log files :
 		outname = dir.output_dir + "bolo_totally_flagged.txt";
 		cout << "Writing informations in :\n" << outname << endl << endl;
-		log_gen(bolo_bad_tot,outname, bolo_fits_0); // generate bad detectors log file
+		log_gen(bolo_bad_tot,outname, bolo_fits_0, ndet0); // generate bad detectors log file
 
 
 		outname = dir.output_dir + "bolo_80_percent_flagged.txt";
 		cout << "Writing informations in :\n" << outname << endl;
-		log_gen(bolo_bad_80_tot, outname, bolo_fits_0); // generate valid worst detectors log file
+		log_gen(bolo_bad_80_tot, outname, bolo_fits_0, ndet0); // generate valid worst detectors log file
 
 
 		cout << "\nEnd of saneCheck\n";

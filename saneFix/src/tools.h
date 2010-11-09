@@ -30,18 +30,18 @@ void insert_mask_in_image(fitsfile *fptr, fitsfile *outfptr, std::string field, 
 void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, double *DEC,double *PHI, long ns_total);
 
 /*! Copy input signal header to output and fill the gaps in signal table */
-void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
+void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
 
 /*! Copy input RA and DEC header to output and fill the gaps in those tables : HIPE format only */
-void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
+void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
 
 /*! Copy input mask header to output and fill the gaps with ones */
-void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
+void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
 
 /*! Copy input time header to output and fill the gaps with computed values using sampling frequency */
-void fix_time_table(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp, std::vector <long> suppress_time_sample);
+void fix_time_table(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp, std::vector <long> suppress_time_sample);
 
 /*! copy "reference position" table to output and fill the gaps with average values */
-void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, struct detectors det, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
+void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample);
 
 #endif /* TOOLS_H_ */

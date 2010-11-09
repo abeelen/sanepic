@@ -33,16 +33,16 @@ struct param_sanePre
 /*! A structure that contains user options about preprocessing properties */
 {
 	bool NORMLIN;
-	bool NOFILLGAP;
-	bool CORRon;
-	bool remove_polynomia;
+		bool NOFILLGAP;
+		bool CORRon;
+		bool remove_polynomia;
 
-	long napod;
-	int poly_order;
-	double fsamp;
-	double f_lp;
+		long napod;
+		int poly_order;
+		double fsamp;
+		double f_lp;
 
-	std::string fcut_file;
+		std::string fcut_file;
 };
 
 struct param_saneInv
@@ -96,12 +96,12 @@ struct samples
 };
 
 
-struct detectors
-/*! A structure that contains the name of the detectors + number of det */
-{
-	long ndet;
-	std::vector<std::string> boloname;
-};
+//struct detectors
+///*! A structure that contains the name of the detectors + number of det */
+//{
+//	long ndet;
+//	std::vector<std::string> boloname;
+//};
 
 struct checksum
 /*! A structure that contains sanePic input checksum values for crash recovery procedure */

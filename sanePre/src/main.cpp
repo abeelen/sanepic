@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! contains user options about map projection and properties */
 	struct param_common dir; /*! contains output input temp directories */
-	std::vector<detectors> detector_tab; /*! everything about the detectors names and their number */
+	//	std::vector<detectors> detector_tab; /*! everything about the detectors names and their number */
 
 	// default parameters
 	int nwcs=1; /// number of wcs that will be used
@@ -283,8 +283,9 @@ int main(int argc, char *argv[])
 	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
+	getchar();
 
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, detector_tab, rank)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, rank)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -294,7 +295,7 @@ int main(int argc, char *argv[])
 
 	if(rank==0)
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 
@@ -408,7 +409,17 @@ int main(int argc, char *argv[])
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
-		struct detectors det = detector_tab[iframe];
+		string output_read = "";
+		std::vector<string> det_vect;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+#ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return EX_CONFIG;
+		}
+		long ndet = (long)det_vect.size();
 
 		// if there is correlation between detectors
 		if (proc_param.CORRon){
@@ -442,19 +453,19 @@ int main(int argc, char *argv[])
 
 			}
 
-			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,name_rank,fdata_buffer);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 #else
 
 #if defined(USE_MPI) && ! defined(PARA_BOLO)
-			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe,0,1, name_rank);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
 #else
-			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size, name_rank);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
@@ -502,23 +513,23 @@ int main(int argc, char *argv[])
 			// *Mp = Null :
 			// *Hits = Null (map hits)
 #ifdef LARGE_MEMORY
-			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,Mp,hits, name_rank,fdata_buffer);
 			// Returns Pnd = (At N-1 d), Mp and hits
 #else
 
 #if defined(USE_MPI) && ! defined(PARA_BOLO)
-			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
 					proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 
-			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
+			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det_vect,ndet,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
 			// Returns Pnd = (At N-1 d), Mp and hits
 #else
-			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det,f_lppix_Nk,
+			pb+=do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
 					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,hits, name_rank);
 			// Returns Pnd = (At N-1 d), Mp and hits
 
-			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
+			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fits_table, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
 #endif
@@ -542,7 +553,7 @@ int main(int argc, char *argv[])
 
 
 			do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param,samples_struct,
-					det,f_lppix,f_lppix_Nk,addnpix,
+					det_vect,ndet,f_lppix,f_lppix_Nk,addnpix,
 					ns,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
 			// fillgaps + butterworth filter + fourier transform and PNd generation
 
@@ -702,7 +713,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, detector_tab[0], samples_struct)) // write sanePre parameters in naive Map fits file header
+		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, samples_struct)) // write sanePre parameters in naive Map fits file header
 			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
 		if (pos_param.maskfile != "")
 			if(write_fits_mask(fnaivname, pos_param.maskfile)) // copy mask in naive map file

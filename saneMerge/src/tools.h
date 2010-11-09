@@ -11,12 +11,12 @@ void copy_ref_pos(fitsfile *outfptr, struct samples samples_struct, long ns_fina
 void copy_time(fitsfile *outfptr, struct samples samples_struct, long ns_final);
 
 /*! copy signal tables from each file to output file */
-void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final);
+void copy_signal(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final);
 
 /*! copy flag tables from each file to output file */
-void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final);
+void copy_mask(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final);
 
 /*! copy RA and DEC tables (HIPE format only) from each file to output file */
-void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final);
+void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final);
 
 #endif /* TOOLS_H_ */

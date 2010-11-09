@@ -15,14 +15,14 @@ extern "C"{
 using namespace std;
 
 
-int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct param_common &dir,std::vector<detectors> &detector_tab, int rank)
-{
+int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struct param_common &dir, int rank)
+{ // TODO : add bolo_global_file !!!
 	dictionary	*	ini ;
 
 	/* Some temporary variables to hold query results */
 	//	char		*	s ;
 	string filename;
-	struct detectors det;
+//	struct detectors det;
 	string suffix;
 
 	// load dictionnary
@@ -67,20 +67,20 @@ int parse_saneInv_ini_file(char * ini_name, struct samples &samples_struct,struc
 	for(long oo=0;oo<samples_struct.ntotscan;oo++){
 		filename= dir.dirfile + FitsBasename(samples_struct.fitsvect[oo]) + suffix + ".bolo";
 		//		cout << filename << endl;
-		if(read_channel_list(filename, det.boloname, rank)==1)
-			return -1;
-
-		det.ndet = (long)((det.boloname).size());
-
-		if (det.ndet == 0) {
-			if(rank==0)
-				cerr << "Must provide at least one channel.\n\n";
-			return -1;
-		}
-
-		detector_tab.push_back(det);
-		det.ndet=0;
-		det.boloname.clear();
+//		if(read_channel_list(filename, det.boloname, rank)==1)
+//			return -1;
+//
+//		det.ndet = (long)((det.boloname).size());
+//
+//		if (det.ndet == 0) {
+//			if(rank==0)
+//				cerr << "Must provide at least one channel.\n\n";
+//			return -1;
+//		}
+//
+//		detector_tab.push_back(det);
+//		det.ndet=0;
+//		det.boloname.clear();
 	}
 
 

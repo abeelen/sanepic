@@ -91,8 +91,6 @@ int main(int argc, char *argv[]) {
 	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
 	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
 
-	std::vector<detectors> detector_tab;
-
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
 	int parsed=0;
@@ -105,8 +103,8 @@ int main(int argc, char *argv[]) {
 				structPS, saneInv_struct, struct_sanePic, size);
 
 		if(rank==0)
-		// print parser warning and/or errors
-		cout << endl << output << endl;
+			// print parser warning and/or errors
+			cout << endl << output << endl;
 	}
 	if (rank==0)
 		switch (parsed){/* error during parsing phase */
@@ -133,7 +131,7 @@ int main(int argc, char *argv[]) {
 
 
 	// read all bolo lists
-	if(read_bolo_for_all_scans(detector_tab, dir, samples_struct, rank, size)){
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -143,7 +141,7 @@ int main(int argc, char *argv[]) {
 
 	if(rank==0)
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, detector_tab, pos_param,  proc_param,
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 	// START OF saneInv
@@ -200,7 +198,17 @@ int main(int argc, char *argv[]) {
 
 			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
-			channelOut=detector_tab[ii].boloname;
+			string output_read = "";
+			//			channelOut=detector_tab[ii].boloname;
+			if(read_channel_list(output_read, samples_struct.bolovect[ii], channelOut)){
+				cout << output_read << endl;
+#ifdef USE_MPI
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return EX_CONFIG;
+			}
+
 
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 			ndet = channelOut.size();

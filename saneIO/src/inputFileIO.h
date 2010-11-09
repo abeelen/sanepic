@@ -18,7 +18,8 @@ std::string FitsBasename(std::string path);
 void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
 
 long readFitsLength(std::string filename);
-int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size);
+//int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size);
+int read_bolo_for_all_scans(struct param_common dir, struct samples &samples_struct, int rank, int size);
 int read_channel_list(std::string &output, std::string fname, std::vector<std::string> &bolonames);
 int read_fits_list(std::string &output, std::string fname, std::vector<std::string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven);
 

@@ -36,7 +36,9 @@ void file_compatibility_verification(struct samples samples_struct)
 	for(long ii = 1; ii< numscan; ii++ ){ // for each scan
 
 		double *time_one, *time_two; // 2 fits input time tables
-		struct detectors det_one, det_two; // 2 detectors lists
+		std::vector<string> det_one;
+		std::vector<string> det_two; // 2 detectors lists
+		long ndet1, ndet2;
 
 		// TODO : Do we have to test that offsets are the same ??
 
@@ -65,18 +67,18 @@ void file_compatibility_verification(struct samples samples_struct)
 			exit(EXIT_FAILURE);
 		}
 
-		read_bolo_list(file1, det_one); // read both bolometers lists and store in detectors structure
-		read_bolo_list(file2, det_two);
+		read_bolo_list(file1, det_one, ndet1); // read both bolometers lists and store in detectors structure
+		read_bolo_list(file2, det_two, ndet2);
 
-		if(det_one.ndet!=det_two.ndet){ // check number of detector is the same
+		if(ndet1!=ndet2){ // check number of detector is the same
 			cout << "Error ! The channel lists in " << file1 << " and " << file2 << " are not the same. Exiting... \n";
 			exit(EXIT_FAILURE);
 		}
 
-		for(long jj=0; jj<det_one.ndet; jj++) // check each detector from first file is present in second one
-			if(det_one.boloname[jj]!=det_two.boloname[jj]){
+		for(long jj=0; jj<ndet2; jj++) // check each detector from first file is present in second one
+			if(det_one[jj]!=det_two[jj]){
 				cout << "Error ! The channel lists in " << file1 << " and " << file2 << " are not the same.\n";
-				cout << det_one.boloname[jj] << " != " << det_two.boloname[jj] << ". Exiting...\n";
+				cout << det_one[jj] << " != " << det_two[jj] << ". Exiting...\n";
 				exit(EXIT_FAILURE);
 			}
 
@@ -84,10 +86,10 @@ void file_compatibility_verification(struct samples samples_struct)
 		// ckean up
 		delete [] time_one;
 		delete [] time_two;
-		det_one.boloname.clear();
-		det_two.boloname.clear();
-		det_one.ndet=0;
-		det_two.ndet=0;
+		det_one.clear();
+		det_two.clear();
+		ndet1=0;
+		ndet2=0;
 
 		// close both fits file
 		if (fits_close_file(fptr1, &status))
@@ -225,7 +227,7 @@ void copy_time(fitsfile *outfptr, struct samples samples_struct, long ns_final)
 
 }
 
-void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final)
+void copy_signal(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final)
 /*! copy signal tables from each file to output file */
 {
 
@@ -235,7 +237,7 @@ void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detect
 	double  *signal_bis; // output signal table
 	signal_bis = new double [ns_final];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector
+	for(long jj=0;jj<ndet;jj++){ // for each detector
 		int status=0; // fits error status
 
 		for(long iframe=0; iframe<samples_struct.ntotscan;iframe++){ // for each scan
@@ -259,7 +261,7 @@ void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detect
 
 			double *signal;
 
-			read_signal_from_fits(fname, det.boloname[jj], signal, ns_temp); // read input signal table
+			read_signal_from_fits(fname, det[jj], signal, ns_temp); // read input signal table
 			for(long ii = 0; ii< ns_temp; ii++)
 				signal_bis[indice_debut+ii]=signal[ii]; // add to signal output table
 
@@ -274,7 +276,7 @@ void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detect
 
 		} // end of iframe loop
 
-		string field= det.boloname[jj]; // actual detector name
+		string field= det[jj]; // actual detector name
 
 		string fname=samples_struct.fitsvect[0]; // first input file name
 
@@ -301,7 +303,7 @@ void copy_signal(fitsfile *outfptr, struct samples samples_struct, struct detect
 
 }
 
-void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final)
+void copy_mask(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final)
 /*! copy flag tables from each file to output file */
 {
 
@@ -311,7 +313,7 @@ void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detector
 	double  *mask_bis; // output flag table
 	mask_bis = new double [ns_final];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector in detector list
+	for(long jj=0;jj<ndet;jj++){ // for each detector in detector list
 		int status=0; // fits error status
 
 		for(long iframe=0; iframe<samples_struct.ntotscan;iframe++){ // for each scan
@@ -334,7 +336,7 @@ void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detector
 
 			double *mask;
 
-			read_signal_from_fits(fname, det.boloname[jj], mask, ns_temp); // read input file flag table
+			read_signal_from_fits(fname, det[jj], mask, ns_temp); // read input file flag table
 
 			for(long ii = 0; ii< ns_temp; ii++) // add flag values to ouput flag table
 				mask_bis[indice_debut+ii]=mask[ii];
@@ -350,7 +352,7 @@ void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detector
 
 		}
 
-		string field= det.boloname[jj]; // actual bolometer's name
+		string field= det[jj]; // actual bolometer's name
 		string fname=samples_struct.fitsvect[0]; // first input file name
 
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
@@ -377,7 +379,7 @@ void copy_mask(fitsfile *outfptr, struct samples samples_struct, struct detector
 }
 
 
-void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detectors det, long ns_final)
+void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final)
 /*! copy RA and DEC tables (HIPE format only) from each file to output file */
 {
 
@@ -389,7 +391,7 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detect
 	RA_bis = new double [ns_final];
 	DEC_bis = new double [ns_final];
 
-	for(long jj=0;jj<det.ndet;jj++){ // for each detector
+	for(long jj=0;jj<ndet;jj++){ // for each detector
 		int status=0;
 
 		for(long iframe=0; iframe<samples_struct.ntotscan;iframe++){ // for each scan
@@ -416,7 +418,7 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detect
 			}
 
 			double *RA, *DEC;
-			read_ra_dec_from_fits(fname, det.boloname[jj], RA, DEC, ns_temp); // read RA and DEC tables
+			read_ra_dec_from_fits(fname, det[jj], RA, DEC, ns_temp); // read RA and DEC tables
 
 			for(long ii = 0; ii< ns_temp; ii++){ // add RA and DEC values to output tables
 				RA_bis[indice_debut + ii]=RA[ii];
@@ -436,7 +438,7 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, struct detect
 		} // end of scan loop
 
 		// for this bolometer, find index in first input detector list
-		string field= det.boloname[jj];
+		string field= det[jj];
 		string fname=samples_struct.fitsvect[0];
 
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits file

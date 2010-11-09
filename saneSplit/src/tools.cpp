@@ -99,7 +99,7 @@ void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample
 
 }
 
-void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, struct detectors det)
+void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
 /*! Copy resized signal table from input fits to output */
 {
 
@@ -113,15 +113,15 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 
 	double *signal, *signal_bis;
 	signal_bis = new double [ns_final];
-	for(long jj=0;jj<det.ndet;jj++){
+	for(long jj=0;jj<ndet;jj++){
 
-		read_signal_from_fits(name, det.boloname[jj], signal, ns_temp); // read input data
+		read_signal_from_fits(name, det[jj], signal, ns_temp); // read input data
 
 		// copy corresponding data
 		for(long ii = 0; ii< ns_final; ii++)
 			signal_bis[ii]=signal[min_sample+ii];
 
-		string field= det.boloname[jj];
+		string field= det[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
 		long fpixel[2]={1,rowIndex}; // write a row which row number is roxIndex
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, signal_bis, &status);
@@ -132,7 +132,7 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 
 }
 
-void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample, long max_sample, struct detectors det)
+void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
 /*! Copy resized mask table from input fits to output */
 {
 
@@ -147,13 +147,13 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 
 	int *mask, *mask_bis;
 	mask_bis = new int [ns_final];
-	for(long jj=0;jj<det.ndet;jj++){
+	for(long jj=0;jj<ndet;jj++){
 
-		read_flag_from_fits(name, det.boloname[jj], mask, ns_temp); // read detector flag row
+		read_flag_from_fits(name, det[jj], mask, ns_temp); // read detector flag row
 		for(long ii = 0; ii< ns_final; ii++)
 			mask_bis[ii]=mask[min_sample+ii];
 
-		string field= det.boloname[jj];
+		string field= det[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
 		long fpixel[2]={1,rowIndex}; // write the mask which row number is rowIndex
 		fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
@@ -164,7 +164,7 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 }
 
 
-void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, struct detectors det)
+void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
 /*! Copy resized RA and DEC tables from input fits to output */
 // Only for HIPE format
 {
@@ -185,15 +185,15 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 	double *DEC, *DEC_bis;
 	RA_bis = new double [ns_final];
 	DEC_bis = new double [ns_final];
-	for(long jj=0;jj<det.ndet;jj++){
+	for(long jj=0;jj<ndet;jj++){
 
-		read_ra_dec_from_fits(name, det.boloname[jj], RA, DEC, ns_temp);  // read data from input
+		read_ra_dec_from_fits(name, det[jj], RA, DEC, ns_temp);  // read data from input
 		for(long ii = 0; ii< ns_final; ii++){
 			RA_bis[ii]=RA[min_sample+ii]; // copy corresponding data
 			DEC_bis[ii]=DEC[min_sample+ii];
 		}
 
-		string field= det.boloname[jj];
+		string field= det[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the correct row number in output table
 		long fpixel[2]={1,rowIndex};
 		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move to RA table
