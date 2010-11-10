@@ -508,12 +508,6 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, lo
 	long mi;
 	double *map;
 	struct wcsprm *wcs_fits;
-	//	char comment[80];
-	//	double crpix1=0, crpix2=0;
-	//	double crval1=0.0, crval2=0.0;
-	//	double cdelt1=0.0, cdelt2=0.0;
-	//	double lonpole=0.0, latpole=0.0;
-
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);

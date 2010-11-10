@@ -341,7 +341,7 @@ int read_mixmat_global_file(string &output, dictionary	*ini, string &MixMat_glob
 
 	switch(read_parser_string(ini,"sanePS:MixingMatrix_global_file", str)){
 	case 2:
-		output += "You should add a line in ini file specifying : sanePS:MixingMatrix_Suffix \n";
+		output += "You should add a line in ini file specifying : sanePS:MixingMatrix_global_file \n";
 		break;
 	case 0:
 		MixMat_global = str;

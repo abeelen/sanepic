@@ -424,7 +424,7 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 
 
-int define_parallelization_scheme(int rank,string fname,string dirfile,struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
+int define_parallelization_scheme(int rank,string fname, string dirfile, string data_dir, struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
 	int test=0;
 
@@ -456,7 +456,7 @@ int define_parallelization_scheme(int rank,string fname,string dirfile,struct sa
 #endif
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++)
-		samples_struct.fits_table[ii] = dirfile + samples_struct.fits_table[ii];
+		samples_struct.fits_table[ii] = data_dir + samples_struct.fits_table[ii];
 
 
 	return 0;

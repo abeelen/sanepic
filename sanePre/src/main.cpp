@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 		if(rank==0)
 			cout << "Getting configuration and frame order from file : " << fname << endl;
 		// and spread scans between processors
-		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
+		test = define_parallelization_scheme(rank,fname,dir.input_dir, dir.dirfile, samples_struct,size, iframe_min, iframe_max);
 
 		if(test==-1){ // define_parallelization did not worked : exit program
 			MPI_Barrier(MPI_COMM_WORLD);
