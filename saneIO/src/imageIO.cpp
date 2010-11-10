@@ -321,16 +321,16 @@ int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct
 	}
 
 
-//	oss << det.ndet;
-//	keyname = "NUMDET";
-//	value = oss.str();
-//	comm = "Number of detectors that were used for the analysis";
-//	oss.str("");
-//
-//	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
-//		fits_report_error(stderr, fits_status);
-//		return 1;
-//	}
+	//	oss << det.ndet;
+	//	keyname = "NUMDET";
+	//	value = oss.str();
+	//	comm = "Number of detectors that were used for the analysis";
+	//	oss.str("");
+	//
+	//	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+	//		fits_report_error(stderr, fits_status);
+	//		return 1;
+	//	}
 
 	if(ncomp>0){
 		oss << ncomp;
@@ -494,22 +494,25 @@ int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *
 }
 
 
-int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, long &NAXIS2, struct wcsprm * wcs)
+int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, long NAXIS2, struct wcsprm * wcs)
 /*
  * This function read the sanePic generated map and converts it into S (only seen pixels)
  */
 {
 	fitsfile *fptr;
-	int status = 0, anynul;
+	int status = 0, anynul, wcsstatus[NWCSFIX];
+	char *header;
+	int nkeyrec, nwcs, nreject;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 	long imNAXIS1, imNAXIS2;
 	long mi;
 	double *map;
-//	char comment[80];
-//	double crpix1=0, crpix2=0;
-//	double crval1=0.0, crval2=0.0;
-//	double cdelt1=0.0, cdelt2=0.0;
-//	double lonpole=0.0, latpole=0.0;
+	struct wcsprm *wcs_fits;
+	//	char comment[80];
+	//	double crpix1=0, crpix2=0;
+	//	double crval1=0.0, crval2=0.0;
+	//	double cdelt1=0.0, cdelt2=0.0;
+	//	double lonpole=0.0, latpole=0.0;
 
 
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
@@ -521,68 +524,28 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 		fits_report_error(stderr, status);
 		return 1;
 	}
-	// TODO: Change that...
-	// - read the whole header
-	// - and make a wcs struct out of it
-	// - and write a routine to compare two wcs struct (and NAXIS keywords)
-	//
-	// Read fits header keys
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CRPIX1", &crpix1, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CRPIX2", &crpix2, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CRVAL1", &crval1, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CRVAL2", &crval2, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CDELT1", &cdelt1, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "CDELT2", &cdelt2, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "LONPOLE", &lonpole, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_read_key(fptr,TDOUBLE, (char *) "LATPOLE", &latpole, (char *) &comment, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//
-//
-//	// compatibility verifications !
-//
-//	if(crpix1!=wcs->crpix[0] || crpix2!=wcs->crpix[1]){
-//		cout << "CRPIX are different between mapheader.keyrec and the map_file : " <<  fname << endl;
-//		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
-//		return 1;
-//	}
-//	if(crval1!=wcs->crval[0] || crval2!=wcs->crval[1]){
-//		cout << "CRVAL are different between mapheader.keyrec and the map_file : " <<  fname << endl;
-//		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
-//		return 1;
-//	}
-//	if(cdelt1!=wcs->cdelt[0] || cdelt2!=wcs->cdelt[1]){
-//		cout << "CDELT are different between mapheader.keyrec and the map_file : " <<  fname << endl;
-//		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
-//		return 1;
-//	}
-//	if(lonpole!=wcs->lonpole || latpole!=wcs->latpole){
-//		cout << "LONPOLE and/or LATPOLE are different between mapheader.keyrec and the map_file : " <<  fname << endl;
-//		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
-//		return 1;
-//	}
+
+	// retrieve the wcs header
+	if (fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status)){
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	if (( status = wcspih(header, nkeyrec, WCSHDR_all, 2, &nreject, &nwcs, &wcs_fits))) {
+		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
+	}
+
+	if ((status = wcsfix(7, 0, wcs_fits, wcsstatus))) {
+		for (long ii = 0; ii < NWCSFIX; ii++) {
+			if (wcsstatus[ii] > 0) {
+				fprintf(stderr, "wcsfix ERROR %d: %s.\n", status, wcsfix_errmsg[wcsstatus[ii]]);
+			}
+		}
+	}
+
+	if ((status= wcsset(wcs_fits))) {
+		printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
+	}
 
 
 	if(fits_get_img_size(fptr, 2, naxes, &status))
@@ -591,7 +554,8 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 	imNAXIS1=(long)naxes[0];
 	imNAXIS2=(long)naxes[1];
 
-
+	if(compare_wcs(fname, wcs, wcs_fits, NAXIS1, NAXIS2, imNAXIS1, imNAXIS2))
+		return 1;
 
 	// Initialize the data container
 	map = new double [imNAXIS1*imNAXIS2];
@@ -616,6 +580,9 @@ int read_fits_signal(string fname, double *S, long long* indpix, long &NAXIS1, l
 		return 1;
 	}
 
+	//	nwcs=1;
+	wcsvfree(&nwcs, &wcs_fits);
+	free(header);
 	return 0;
 }
 
@@ -704,6 +671,42 @@ void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAX
 	}
 	delete[] memblock;
 	//	free(comment);
+
+}
+
+
+int compare_wcs(std::string fname, struct wcsprm *wcs, struct wcsprm *wcs_fits, long NAXIS1, long NAXIS2, long imNAXIS1, long imNAXIS2){
+
+	// compatibility verifications !
+
+	if(wcs_fits->crpix[0]!=wcs->crpix[0] || wcs_fits->crpix[1]!=wcs->crpix[1]){
+		cout << "CRPIX are different between mapheader.keyrec and the map_file : " <<  fname << endl;
+		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
+		return 1;
+	}
+	if(wcs_fits->crval[0]!=wcs->crval[0] || wcs_fits->crval[1]!=wcs->crval[1]){
+		cout << "CRVAL are different between mapheader.keyrec and the map_file : " <<  fname << endl;
+		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
+		return 1;
+	}
+	if(wcs_fits->cdelt[0]!=wcs->cdelt[0] || wcs_fits->cdelt[1]!=wcs->cdelt[1]){
+		cout << "CDELT are different between mapheader.keyrec and the map_file : " <<  fname << endl;
+		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
+		return 1;
+	}
+	if(wcs_fits->lonpole!=wcs->lonpole || wcs_fits->latpole!=wcs->latpole){
+		cout << "LONPOLE and/or LATPOLE are different between mapheader.keyrec and the map_file : " <<  fname << endl;
+		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
+		return 1;
+	}
+	if(NAXIS1!=imNAXIS1 || NAXIS2!=imNAXIS2){
+		cout << "NAXIS are different between mapheader.keyrec and the map_file : " <<  fname << endl;
+		cout << "Please re-run sanePos with the correct data/ini_file. Exiting...\n";
+		return 1;
+	}
+
+
+	return 0;
 
 }
 
