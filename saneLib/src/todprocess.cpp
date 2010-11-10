@@ -732,51 +732,51 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 }
 
 
-double* randg(long nombre, int seedpass) {
+//double* randg(long nombre, int seedpass) {
+//
+//	double* nombre_hasard;
+//	time_t temps;
+//	temps = time(NULL);
+//
+//	unsigned int seed = 0;
+//
+//	if (seedpass == 0) seed = (unsigned int) temps;
+//	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
+//	if (seedpass != -1) srandom(seed);
+//
+//	nombre_hasard= new double[nombre];
+//
+//	for (long i=0;i<nombre/2;i++) {
+//		double t1 = (double(rand())/RAND_MAX);
+//		double t2 = (double(rand())/RAND_MAX);
+//		nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
+//		nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
+//	}
+//
+//	if (nombre/2!=nombre/2.) {
+//		double t1 = (double(rand())/RAND_MAX);
+//		double t2 = (double(rand())/RAND_MAX);
+//		nombre_hasard[nombre-1]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
+//	}//
+//
+//
+//	return nombre_hasard;
+//}
 
-	double* nombre_hasard;
-	time_t temps;
-	temps = time(NULL);
 
-	unsigned int seed = 0;
-
-	if (seedpass == 0) seed = (unsigned int) temps;
-	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
-	if (seedpass != -1) srandom(seed);
-
-	nombre_hasard= new double[nombre];
-
-	for (long i=0;i<nombre/2;i++) {
-		double t1 = (double(rand())/RAND_MAX);
-		double t2 = (double(rand())/RAND_MAX);
-		nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-		nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
-	}
-
-	if (nombre/2!=nombre/2.) {
-		double t1 = (double(rand())/RAND_MAX);
-		double t2 = (double(rand())/RAND_MAX);
-		nombre_hasard[nombre-1]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-	}//
-
-
-	return nombre_hasard;
-}
-
-
-double* rand(long nombre, int seed) {
-
-	double* nombre_hasard;
-	time_t temps;
-	temps = time(NULL);
-	if (seed == 0) seed = (unsigned int) temps;
-	if (seed != -1) srandom(seed);
-
-	nombre_hasard= new double[nombre];
-
-	for (long i=0;i<nombre;i++) nombre_hasard[i]=(double(rand())/RAND_MAX);
-
-	return nombre_hasard;
-}
+//double* rand(long nombre, int seed) {
+//
+//	double* nombre_hasard;
+//	time_t temps;
+//	temps = time(NULL);
+//	if (seed == 0) seed = (unsigned int) temps;
+//	if (seed != -1) srandom(seed);
+//
+//	nombre_hasard= new double[nombre];
+//
+//	for (long i=0;i<nombre;i++) nombre_hasard[i]=(double(rand())/RAND_MAX);
+//
+//	return nombre_hasard;
+//}
 
 
