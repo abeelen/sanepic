@@ -1,12 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.67])
+AC_PREREQ([2.61])
 AC_INIT([sanepic], [0.3], [sanepic@ias.u-psud.fr])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([-Wall -Werror])
-LT_PREREQ([2.2])
-LT_INIT
 
 AC_LANG(C++)
 
@@ -17,7 +15,7 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_INSTALL
-
+AC_PROG_LIBTOOL
 
 # Configure options
 AC_ARG_ENABLE([debug],
@@ -54,9 +52,14 @@ AM_CONDITIONAL([PARAFRAME],[test "x$paraframe" = xyes])
 AM_CONDITIONAL([PARABOLO],[test "x$parabolo" = xyes])
 
 if test "x$paraframe" = xyes || test "x$parabolo" = xyes; then
-   AX_MPI
+   AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
+   AC_CHECK_PROGS(MPICXX, mpicxx, $CXX)
    CXX="$MPICXX"
+   AC_SUBST(MPICXX)
+dnl   AC_CHECK_FUNC(MPI_Init, [MPILIBS=" "])
+   AC_CHECK_LIB(mpich, MPI_Init, [MPILIBS="-lmpich"])
    CPPFLAGS="$CPPFLAGS -DMPICH_IGNORE_CXX_SEEK"
+   LIBS="$LIBS $MPILIBS"
 fi
 
 if test -d "sanePS" && test -d "saneCheck" && test -d "saneFix" && test -d "saneMerge" && test -d "saneSplit"; then

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libsaneIO.la
-libsaneIO_la_LDFLAGS = -version-info 0:0:0
+libsaneIO_la_LDFLAGS = -version-info 0:3:0
 
 libsaneIO_la_LIBADD = $(NR_LIB) $(INIPARSER_LIB)
 libsaneIO_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG)
