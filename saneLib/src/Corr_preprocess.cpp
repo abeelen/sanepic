@@ -135,9 +135,9 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 #ifdef DEBUG
-		cout << "[ " << para_bolo_indice << " ] progression write_ftr : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)det.ndet)) << " %" << endl;
+		cout << "[ " << para_bolo_indice << " ] progression write_ftr : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)ndet)) << " %" << endl;
 		ostringstream oss;
-		oss << tmp_dir + "fdata_" << iframe << "_" << det.boloname[idet1] << ".bi";
+		oss << tmp_dir + "fdata_" << iframe << "_" << det[idet1] << ".bi";
 		time_t rawtime;
 		struct tm * timeinfo;
 		time ( &rawtime );
@@ -298,9 +298,9 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 #ifdef DEBUG
-		cout << "[ " << para_bolo_indice << " ] progression do_ptNd : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)det.ndet)) << " %" << endl;
+		cout << "[ " << para_bolo_indice << " ] progression do_ptNd : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)ndet)) << " %" << endl;
 		ostringstream oss;
-		oss << "frame : " << iframe << " bolo : " << det.boloname[idet1];
+		oss << "frame : " << iframe << " bolo : " << det[idet1];
 		time_t rawtime;
 		struct tm * timeinfo;
 		time ( &rawtime );
