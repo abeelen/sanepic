@@ -24,10 +24,6 @@ AC_ARG_ENABLE([parabolo],
 	[enable channel parallel processing output (default is no)])],
 	[parabolo=yes],[parabolo=no])
 
-if test "x$paraframe" = xyes || test "x$parabolo" = xyes; then
-   AC_CONFIG_SUBDIRS([saneFrameOrder])
-fi
-
 if test -d "sanePS" && test -d "saneCheck" && test -d "saneFix" && test -d "saneMerge" && test -d "saneSplit"; then
    AC_CONFIG_SUBDIRS([sanePS saneCheck saneFix saneMerge saneSplit])
    AC_SUBST([OPT_SUBDIRS],["sanePS saneCheck saneFix saneMerge saneSplit"])
@@ -37,7 +33,7 @@ AM_CONDITIONAL([PARAFRAME],[test "x$paraframe" = xyes])
 AM_CONDITIONAL([PARABOLO],[test "x$parabolo" = xyes])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SUBDIRS([nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic])
+AC_CONFIG_SUBDIRS([nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic saneFrameOrder])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
