@@ -15,11 +15,7 @@
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 
-#if defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #endif
 
@@ -40,7 +36,7 @@ int main(int argc, char *argv[])
 	int size=1;
 	int rank=0;
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -143,7 +139,7 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 #endif
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	//wait for the other processors
 	MPI_Barrier(MPI_COMM_WORLD);
 	// Close MPI process

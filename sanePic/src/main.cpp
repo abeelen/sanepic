@@ -24,11 +24,11 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-#if defined(PARA_BOLO) || defined(PARA_FRAME)
-#define USE_MPI
+#ifdef PARA_BOLO
+#define PARA_FRAME
 #endif
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
 	int size;
 	int rank;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 				;
 			}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
 
 	/********************* Define parallelization scheme   *******/
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 	ofstream file;
 
 	if(samples_struct.scans_index.size()==0) {
@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD);
 
 #else
-#if defined(USE_MPI) && defined(PARA_BOLO)
+#if defined(PARA_FRAME) && defined(PARA_BOLO)
 
 	//convert vector to standard C array to speed up memory accesses
 	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
@@ -274,7 +274,7 @@ int main(int argc, char *argv[]) {
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -295,7 +295,7 @@ int main(int argc, char *argv[]) {
 
 	long long test_size;
 	if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -306,7 +306,7 @@ int main(int argc, char *argv[]) {
 			cout
 			<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 			<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
 
 	// read indpix
 	if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map index
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
 			cout
 			<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 			<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
 
 	// read (At N-1 d) from file
 	if (read_PNd(PNdtot, npix2, dir.tmp_dir)) {
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -358,7 +358,7 @@ int main(int argc, char *argv[]) {
 			cout
 			<< "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2"
 			<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max	> samples_struct.ntotscan) {
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
 				<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -387,7 +387,7 @@ int main(int argc, char *argv[]) {
 		if (compare_checksum(chk_t, chk_t2)) { // compare them
 			if (rank == 0)
 				cout << "Checksums are different !!! Exiting..." << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -403,7 +403,7 @@ int main(int argc, char *argv[]) {
 			compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix,
 					indpix, indpsrc, test_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t)){ // write down on disk the checksum values
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -481,7 +481,7 @@ int main(int argc, char *argv[]) {
 			std::vector<string> det;
 			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 				cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -493,7 +493,7 @@ int main(int argc, char *argv[]) {
 			if (proc_param.CORRon) {
 
 
-#if defined(USE_MPI) && !defined(PARA_BOLO) //case para_frame
+#if defined(PARA_FRAME) && !defined(PARA_BOLO) //case para_frame
 				write_tfAS(S,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 				// read pointing + deproject + fourier transform
 
@@ -513,7 +513,7 @@ int main(int argc, char *argv[]) {
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 				do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet, f_lppix_Nk,
 						proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],Mp,NULL, name_rank);
 				// return Pnd = At N-1 d
@@ -536,7 +536,7 @@ int main(int argc, char *argv[]) {
 
 		} // end of iframe loop
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 		if(rank==0) { // malloc only for first processor that reduces the data
 			PtNPmatStot = new double[npix];
@@ -591,7 +591,7 @@ int main(int argc, char *argv[]) {
 
 		}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&var0,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 		MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -628,7 +628,7 @@ int main(int argc, char *argv[]) {
 				std::vector<string> det;
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
@@ -638,7 +638,7 @@ int main(int argc, char *argv[]) {
 
 				if (proc_param.CORRon) {
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 					write_tfAS(d,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 					// read pointing + deproject + fourier transform
 #else
@@ -659,7 +659,7 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 					do_PtNd(q, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet,f_lppix_Nk,
 							proc_param.fsamp,ns, 0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 #else
@@ -682,7 +682,7 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			qtot = q;
@@ -700,7 +700,7 @@ int main(int argc, char *argv[]) {
 					S[ii] += alpha * d[ii]; // x = x + alpha * d, x = S = signal
 			}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(S ,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
@@ -718,7 +718,7 @@ int main(int argc, char *argv[]) {
 					std::vector<string> det;
 					if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 						cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
@@ -728,7 +728,7 @@ int main(int argc, char *argv[]) {
 
 					if (proc_param.CORRon) {
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 						write_tfAS(S,det, ndet,indpix,NAXIS1, NAXIS2,npix,pos_param.flgdupl, dir.tmp_dir,ns,samples_struct.fits_table[iframe], 0, 1);
 						// read pointing + deproject + fourier transform
 #else
@@ -746,7 +746,7 @@ int main(int argc, char *argv[]) {
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 						do_PtNd(PtNPmatS, samples_struct.noise_table,dir.tmp_dir,"fPs_",det, ndet,f_lppix_Nk,
 								proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 						// return Pnd = At N-1 d
@@ -770,7 +770,7 @@ int main(int argc, char *argv[]) {
 				} // end of iframe loop
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				//				cout << rank << " PtNPmatS reduction\n";
 				MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
@@ -843,7 +843,7 @@ int main(int argc, char *argv[]) {
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
 							(void *) map1d, (char *) "Image", 0)) {
 						cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
@@ -869,7 +869,7 @@ int main(int argc, char *argv[]) {
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
 								(void *) map1d, (char *) "Flagged Data", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
@@ -918,7 +918,7 @@ int main(int argc, char *argv[]) {
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
 								(void *) map1d, "CCR Image", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
@@ -945,7 +945,7 @@ int main(int argc, char *argv[]) {
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
 								(void *) map1d, (char *) "CCR Error", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
@@ -989,7 +989,7 @@ int main(int argc, char *argv[]) {
 			} // end of if (rank == 0)
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			// BCast updated criteria and map d
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Bcast(&var_n,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -1018,7 +1018,7 @@ int main(int argc, char *argv[]) {
 				std::vector<string> det;
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
@@ -1028,7 +1028,7 @@ int main(int argc, char *argv[]) {
 
 				if (proc_param.CORRon) {
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 					write_ftrProcesdata(S,proc_param,samples_struct,pos_param,dir.tmp_dir,det, ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 							npixsrc,addnpix,f_lppix,ns, iframe, 0, 1, name_rank);
 					// fillgaps + butterworth filter + fourier transform
@@ -1051,7 +1051,7 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-#if defined(USE_MPI) && !defined(PARA_BOLO)
+#if defined(PARA_FRAME) && !defined(PARA_BOLO)
 					do_PtNd(PNd, samples_struct.noise_table,dir.tmp_dir,"fdata_",det, ndet,f_lppix_Nk,
 							proc_param.fsamp,ns, 0, 1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fits_table[iframe],NULL,NULL, name_rank);
 					// return Pnd = At N-1 d
@@ -1073,7 +1073,7 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			if(rank==0)
 				fill(PNdtot,PNdtot+npix,0.0);
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -1086,7 +1086,7 @@ int main(int argc, char *argv[]) {
 	}// end of idupl loop
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1121,7 +1121,7 @@ int main(int argc, char *argv[]) {
 	}// end of rank==0
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	delete [] qtot;
 	delete [] Mptot;
 	delete [] PtNPmatStot;
@@ -1135,7 +1135,7 @@ int main(int argc, char *argv[]) {
 	//******************************************************************//
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1168,7 +1168,7 @@ int main(int argc, char *argv[]) {
 
 	fftw_cleanup();
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Finalize();
 #endif
 

@@ -17,11 +17,7 @@ extern "C" {
 #include "nrutil.h"
 }
 
-#if defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #endif
 
@@ -33,7 +29,7 @@ int main(int argc, char *argv[]) {
 	int size; // MPI number of procs
 	int rank; // this proc number
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -122,7 +118,7 @@ int main(int argc, char *argv[]) {
 		}
 
 	if (parsed>0){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -132,7 +128,7 @@ int main(int argc, char *argv[]) {
 
 	// read all bolo lists
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -164,7 +160,7 @@ int main(int argc, char *argv[]) {
 		if(n_iter==0){
 			if(rank==0)
 				cerr << "WARNING. You have forgotten to mention covariance matrix in ini file or fits_filelist\n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -202,7 +198,7 @@ int main(int argc, char *argv[]) {
 			//			channelOut=detector_tab[ii].boloname;
 			if(read_channel_list(output_read, samples_struct.bolovect[ii], channelOut)){
 				cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -223,7 +219,7 @@ int main(int argc, char *argv[]) {
 
 			// write inversed noisePS in a binary file for each detector
 			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + noise_suffix)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -246,7 +242,7 @@ int main(int argc, char *argv[]) {
 	// clean up
 	delete [] samples_struct.nsamples;
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif

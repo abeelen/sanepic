@@ -19,11 +19,7 @@ extern "C" {
 #include "nrutil.h"
 }
 
-#if defined(PARA_BOLO) || defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #endif
 
@@ -35,7 +31,7 @@ int main(int argc, char *argv[]) {
 
 	int rank, size; /* MPI processor rank and MPI total number of used processors */
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -103,7 +99,7 @@ int main(int argc, char *argv[]) {
 	if(parsed==-1){ /* error during parsing phase */
 		if(rank==0)
 			cout << "Error during parsing step. Exiting ...\n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -112,7 +108,7 @@ int main(int argc, char *argv[]) {
 
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -168,7 +164,7 @@ int main(int argc, char *argv[]) {
 			format_fits=test_format(samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
 			if(format_fits==0){
 				cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Finalize();
 #endif
 				return EX_IOERR;
@@ -184,7 +180,7 @@ int main(int argc, char *argv[]) {
 			std::vector<string> det_vect;
 			if(read_channel_list(output_read, samples_struct.bolovect[ii], det_vect)){
 				cout << output_read << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -211,7 +207,7 @@ int main(int argc, char *argv[]) {
 
 
 			if(return_value<0){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Finalize();
 #endif
 				return EX_SOFTWARE;
@@ -222,7 +218,7 @@ int main(int argc, char *argv[]) {
 			if(((format_fits==2)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
 					((format_fits==1)&&((!check_struct.Check_it.checkRA)||(!check_struct.Check_it.checkDEC)))){
 				cout << "NO POSITION TABLES ARE PRESENTS : EXITING ...\n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Finalize();
 #endif
 				return EX_IOERR;
@@ -266,7 +262,7 @@ int main(int argc, char *argv[]) {
 				log_gen(bolo_bad_80, outname, bolo_fits_0, ndet0, percent_tab); // generate valid worst detectors log file
 			}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			// inform processor 0 of bad or worst bolometer presence in fits files
 			MPI_Reduce(bolo_bad,bolo_bad_tot,ndet0,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 			MPI_Reduce(bolo_bad_80,bolo_bad_80_tot,ndet0,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
@@ -303,7 +299,7 @@ int main(int argc, char *argv[]) {
 	delete [] bolo_bad_tot;
 	delete [] bolo_bad_80_tot;
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif

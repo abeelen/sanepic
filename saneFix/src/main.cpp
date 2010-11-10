@@ -20,11 +20,7 @@ extern "C" {
 
 using namespace std;
 
-#if defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #endif
 
@@ -35,7 +31,7 @@ int main(int argc, char *argv[]) {
 
 	int rank, size; /* MPI processor rank and MPI total number of used processors */
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -68,7 +64,7 @@ int main(int argc, char *argv[]) {
 	cout << endl << output << endl;
 
 	if(parsed==-1){ /* error during parsing phase */
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -199,7 +195,7 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		cout << "\nEnd of saneFix\n";
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif

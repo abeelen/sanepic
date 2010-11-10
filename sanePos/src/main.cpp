@@ -33,11 +33,8 @@ extern "C" {
 #include "sanePos_preprocess.h"
 #include "parser_functions.h"
 
-#if defined(PARA_FRAME)
-#define USE_MPI
-#endif
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #endif
 
@@ -70,7 +67,7 @@ int main(int argc, char *argv[])
 	int size; /*! size = number of processor used for this step*/
 	int rank; /*! rank = processor MPI rank*/
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size); // get mpi number of processors
@@ -169,7 +166,7 @@ int main(int argc, char *argv[])
 		}
 
 	if (parsed>0){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -187,7 +184,7 @@ int main(int argc, char *argv[])
 
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	ofstream file;
 
@@ -265,7 +262,7 @@ int main(int argc, char *argv[])
 
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -301,7 +298,7 @@ int main(int argc, char *argv[])
 				if(computeMapMinima(samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
@@ -312,7 +309,7 @@ int main(int argc, char *argv[])
 				if(computeMapMinima_HIPE(samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
@@ -322,7 +319,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
@@ -373,7 +370,7 @@ int main(int argc, char *argv[])
 
 		if (read_mask_wcs(pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -399,7 +396,7 @@ int main(int argc, char *argv[])
 	if (rank == 0) {
 		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -444,7 +441,7 @@ int main(int argc, char *argv[])
 				mask,factdupl,
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -458,7 +455,7 @@ int main(int argc, char *argv[])
 				mask,factdupl,
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -468,7 +465,7 @@ int main(int argc, char *argv[])
 	}
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	if(rank==0){
 		pixon_tot = new long long[sky_size];
 	}
@@ -493,14 +490,14 @@ int main(int argc, char *argv[])
 		 * flagon : if some pixels are apodized or outside the map
 		 */
 		if(write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_CANTCREAT);
 		}
 		if(write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -550,7 +547,7 @@ int main(int argc, char *argv[])
 		printf("End of sanePos\n");
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	if(rank==0)
 		delete [] pixon_tot;
 	MPI_Barrier(MPI_COMM_WORLD);

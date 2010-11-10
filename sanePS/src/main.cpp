@@ -18,12 +18,7 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-#if defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
-
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 #include "mpi.h"
 #include <algorithm>
 #include <fstream>
@@ -35,7 +30,7 @@ int main(int argc, char *argv[])
 {
 	int size;
 	int rank;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -114,7 +109,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -148,7 +143,7 @@ int main(int argc, char *argv[])
 			long long test_size;
 
 			if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -160,7 +155,7 @@ int main(int argc, char *argv[])
 					cout
 					<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 					<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
@@ -172,7 +167,7 @@ int main(int argc, char *argv[])
 			factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 		if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map indexes
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -184,7 +179,7 @@ int main(int argc, char *argv[])
 				cout
 				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 				<< endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
@@ -199,14 +194,14 @@ int main(int argc, char *argv[])
 
 			// read pure signal
 			if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 				MPI_Finalize();
 #endif
 				return (EX_IOERR);
 			}
 		}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
 #endif
@@ -225,7 +220,7 @@ int main(int argc, char *argv[])
 	}
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	ofstream file;
 	if(samples_struct.scans_index.size()==0) {
@@ -279,7 +274,7 @@ int main(int argc, char *argv[])
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
@@ -316,7 +311,7 @@ int main(int argc, char *argv[])
 		// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
 	}
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif
