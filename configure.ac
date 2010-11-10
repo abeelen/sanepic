@@ -4,7 +4,7 @@
 AC_PREREQ([2.67])
 AC_INIT([sanepic], [0.3], [sanepic@ias.u-psud.fr])
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror])
 LT_PREREQ([2.2])
 LT_INIT
 

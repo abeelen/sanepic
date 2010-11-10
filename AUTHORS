@@ -1,0 +1,9 @@
+Guillaume Patanchon (patanchon@apc.univ-paris7.fr) - Initial algorithm, initial code implementation, tests with simulations and real data (BLAST).
+
+Alexandre Beelen (abeelen@ias.u-psud.fr) - Code tests and validations on real data sets (LABOCA/SPIRE), general code modifications, overall design, code optimizations, WCS library integration, automake/autoconf adaptation of the code, bug corrections, FITS file integration, code modularization and many few changes like output file names/organization/format, routine optimizations, ...
+
+Matthieu Husson (mhusson@ias.u-psud.fr) - Code tests and validation on real data sets (LABOCA/SPIRE), general code modifications and speed optimizations, security validation and memory leak tracking, code profiling, iniparser library  integration, bolometer paralellization with MPI for sanePre and sanePic programs implementation, MPI (scan-parallelization) processors and scans gestion has been modified a lot, output FITS history routines and HIPE-like format integration, code modularization and many few changes like output file names/organization/format, routine optimizations, kst format integration for temporary data, ...
+
+Many routines have been rewritten by Alexandre and Matthieu
+
+Lola Guillot - GSL/LAPACK library integration. Polyfit routine and cholesky decomposition + system solve routines development to remove NR dependencies.

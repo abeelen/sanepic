@@ -1,0 +1,64 @@
+SANEPIC - Signal And Noise Estimation Procedure Including Correlation
+=====================================================================
+
+This is Sanepic, a bolometer arrays data reduction algorithm implemented in C/C++.
+
+Sanepic is a free, public software, you can redistribute it and/or modify it under
+the terms of General Public License.
+
+The GNU General Public License does not permit this software to be
+redistributed in proprietary programs.
+
+This project is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Availability
+============
+
+The current stable version of Sanepic is always available from 
+
+http://www.ias.u-psud.fr/sanepic/
+
+in the download "section"
+
+
+Installation
+============
+
+Sanepic follows the standard GNU installation procedure (automake/autoconf).  Please consult
+the INSTALL file in this distribution for more detailed instructions.
+
+For information about specific platforms and compilers see the
+"Compilation Notes" section in the INSTALL file.
+
+More information about Sanepic
+==========================
+
+The project homepage is http://www.ias.u-psud.fr/sanepic/
+
+The Sanepic user Manual is accessible from IAS wiki at the address below : 
+
+http://www.ias.u-psud.fr/wiki/tiki-index.php?page=SpirePhotSanepic&structure=Herschel
+
+User guide is in English only. No translation in other language is planned.
+
+Reporting Bugs
+==============
+
+Details of compilation problems can be found in the INSTALL file.
+
+If you find a bug, please report it using the "support" section in 
+
+http://www.ias.u-psud.fr/sanepic/
+
+All bug reports should include:
+
+       The hardware and operating system
+       The compiler used, including version number and compilation options
+       A description of the bug behaviour
+
+Any errors or omissions in the manual can also be reported to the
+same address.
+
+
