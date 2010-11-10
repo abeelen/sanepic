@@ -18,6 +18,11 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
+
+#ifdef PARA_BOLO
+#define PARA_FRAME
+#endif
+
 #ifdef PARA_FRAME
 #include "mpi.h"
 #include <algorithm>

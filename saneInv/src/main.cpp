@@ -17,6 +17,11 @@ extern "C" {
 #include "nrutil.h"
 }
 
+
+#ifdef PARA_BOLO
+#define PARA_FRAME
+#endif
+
 #ifdef PARA_FRAME
 #include "mpi.h"
 #endif

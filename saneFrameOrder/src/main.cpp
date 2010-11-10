@@ -15,6 +15,11 @@
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 
+
+#ifdef PARA_BOLO
+#define PARA_FRAME
+#endif
+
 #ifdef PARA_FRAME
 #include "mpi.h"
 #endif
