@@ -23,80 +23,6 @@ extern "C"{
 using namespace std;
 
 
-template <class T>
-bool from_string(T &Value,const std::string &str,std::ios_base & (*f)(std::ios_base&))
-// converts string to streamable value, and returns true on success and false otherwise.
-{
-	std::istringstream stream(str);
-	stream>>f>>Value;
-	return (!stream.fail()) && stream.get()==std::istringstream::traits_type::eof();
-}
-
-template <class T>
-T convert_from_string(string str)
-{
-	T value;
-	string type = (typeid (T).name());
-	char type_c = (char)type[0];
-	//	cout << "type : " << type_c << endl;
-	switch(type_c){
-	case 'i' :
-		value = atoi((char*)str.c_str());
-		break;
-	case 'l' :
-		value = atol((char*)str.c_str());
-		break;
-	case 'd' :
-		value = atof((char*)str.c_str());
-		break;
-	case 'b' :
-		if(str.length()>1){
-			std::transform(str.begin(), str.end(),
-					str.begin(), ::tolower);
-			if(!from_string(value,str,std::boolalpha))
-				cout << "from_string failed !!!" << endl;
-		}else
-			if(!from_string(value,str,std::noboolalpha))
-				cout << "from_string failed !!!" << endl;
-		break;
-	}
-
-	return value;
-}
-
-template <class T>
-int read_item(string &output, dictionary *ini, T &value, T default_value, string field, bool mandatory)
-{
-
-	string str;
-
-	switch(read_parser_string(ini, field, str)){
-	case 2:
-		output += "WARNING ! You must add a line in ini file specifying : " + field + "\n";
-		if(mandatory)
-			return 2;
-		else{
-			output +=  "Using default : " + StringOf(default_value) + "\n";
-			value=default_value;
-		}
-		break;
-	case 1:
-		output += "Key is empty : You should specify : " + field + "\n";
-		if(mandatory){
-			return 1;
-		}else{
-			output += "Using default : " + StringOf(default_value) + "\n";
-			value=default_value;
-		}
-		break;
-	case 0:
-		value=convert_from_string<T>(str);
-		break;
-	}
-
-	return 0;
-}
-
 int read_dir(string &output, dictionary	*ini, struct param_common &dir, string dirtype){
 
 	string str;
@@ -400,9 +326,15 @@ int read_common(string &output, dictionary	*ini, struct param_common &dir){
 int read_param_positions(string &output, dictionary *ini, struct param_common dir, struct param_sanePos &pos_param){
 
 	string str;
+	double d;
+	int i;
 
-	if(read_item<double>(output, ini, pos_param.pixdeg, 6/3600, "sanePos:pixsize", 1))
+	d = iniparser_getdouble(ini,(char*)"sanePos:pixsize", -1.0);
+	if(d<0.0){
+		output += "You should mention sanePos:pixsize, and/or give a positiv pixel size\n";
 		return 2;
+	}else
+		pos_param.pixdeg = d;
 
 	// Read the mask_file if present
 	if (read_parser_string(ini,"sanePos:mask_file",str)==0)
@@ -414,42 +346,59 @@ int read_param_positions(string &output, dictionary *ini, struct param_common di
 	// default to SANEPIC file format (with reference position & offsets)
 	// 0: sanepic format with reference position & offsets
 	// 1: 'hipe' like format with RA/DEC for each time/bolo
-	if(read_item<int>(output, ini, pos_param.fileFormat, 0, "sanePos:file_format", 0))
-		return 2;
+	i = iniparser_getint(ini,(char*)"sanePos:file_format", 0);
+	pos_param.fileFormat = i;
+
 
 	// Read what to do with flagged data : (default : 0 -- map in a single pixel)
-	if(read_item<bool>(output, ini, pos_param.flgdupl, 0, "sanePos:map_flagged_data", 0))
-		return 2;
+	i = iniparser_getboolean(ini, "sanePos:map_flagged_data", 0);
+	pos_param.flgdupl = (bool)i;
 
 	// Read what to do with gaps : (default : 0 -- no projection)
-	if(read_item<bool>(output, ini, pos_param.projgaps, 0, "sanePos:project_gaps", 0))
-		return 2;
+	i = iniparser_getboolean(ini, "sanePos:project_gaps", 0);
+	pos_param.projgaps = (bool)i;
 
 	return 0;
 }
 
 int read_param_process(string &output, dictionary *ini, struct param_common dir, struct param_sanePre &proc_param, std::vector<double> &fcut){
 
-	if(read_item<long>(output, ini, proc_param.napod, 100, "sanePre:apodize_Nsamples", 1))
-		return 2;
+	int i;
+	double d;
 
-	if(read_item<bool>(output, ini, proc_param.NOFILLGAP, 0, "sanePre:nofill_gap", 0))
+	i = iniparser_getint(ini,(char*)"sanePre:apodize_Nsamples", -1);
+	if(i<0){
+		output += "You should mention sanePre:apodize_Nsamples, and/or give a positiv number of samples to apodize\n";
 		return 2;
+	}else
+		proc_param.napod=i;
 
-	if(read_item<double>(output, ini, proc_param.fsamp, -1.0, "sanePre:sampling_frequency", 1))
-		return 2;
+	i = iniparser_getboolean(ini, "sanePre:nofill_gap", 0);
+	proc_param.NOFILLGAP = (bool)i;
 
-	if(read_item<double>(output, ini, proc_param.f_lp, -1.0, "sanePre:filter_frequency", 1))
+	d = iniparser_getdouble(ini,(char*)"sanePre:sampling_frequency", -1.0);
+	if(d<0.0){
+		output += "You should mention sanePre:sampling_frequency, and/or give a positiv sampling frequency\n";
 		return 2;
+	}else
+		proc_param.fsamp=d;
 
-	if(read_item<bool>(output, ini, proc_param.NORMLIN, 0, "sanePre:no_baseline", 0))
+	d = iniparser_getdouble(ini,(char*)"sanePre:filter_frequency", -1.0);
+	if(d<0.0){
+		output += "You should mention sanePre:filter_frequency, and/or give a positiv filter frequency\n";
 		return 2;
+	}else
+		proc_param.f_lp=d;
 
-	if(read_item<bool>(output, ini, proc_param.CORRon, 1, "sanePre:correlation", 0))
-		return 2;
 
-	if(read_item<int>(output, ini, proc_param.poly_order, 1, "sanePre:poly_order", 0))
-		return 2;
+	i = iniparser_getboolean(ini, "sanePre:no_baseline", 0);
+	proc_param.NORMLIN = (bool)i;
+
+	i = iniparser_getboolean(ini, "sanePre:correlation", 1);
+	proc_param.CORRon = (bool)i;
+
+	i = iniparser_getint(ini, "sanePre:poly_order", 1);
+	proc_param.poly_order = i;
 
 	if(proc_param.poly_order>=0)
 		proc_param.remove_polynomia=1;
@@ -472,11 +421,18 @@ int read_param_saneInv(std::string &output, dictionary *ini, struct param_saneIn
 
 int read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS &sanePS_struct){
 
+	int i;
+	double d;
 
-	if(read_item<long>(output, ini, sanePS_struct.ncomp, 1, "sanePS:ncomp", 1))
+	i = iniparser_getint(ini, "sanePS:ncomp", -1);
+	if(i<0){
+		output += "You should mention sanePS:ncomp, and/or give a positiv number of noise component\n";
 		return 2;
-	if(read_item<double>(output, ini, sanePS_struct.fcutPS, 12.0, "sanePS:fcut", 0))
-		return 2;
+	}else
+		sanePS_struct.ncomp = (long)i;
+
+	d = iniparser_getdouble(ini,(char*)"sanePre:filter_frequency", 12.0);
+	sanePS_struct.fcutPS = d;
 
 	if(read_map_file(ini, sanePS_struct.signame) ||
 			read_mixmatfile_suffix(output, ini, sanePS_struct.mix_suffix) ||
@@ -490,9 +446,10 @@ int read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS 
 
 int read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &sanePic_struct){
 
-	//	read_iter(output, ini, sanePic_struct.iterw);
-	if(read_item<int>(output, ini, sanePic_struct.iterw, 10, "sanePic:iterW", 0))
-		return 2;
+	int i;
+
+	i = iniparser_getint(ini, "sanePic:iterW", 0);
+	sanePic_struct.iterw = i;
 
 	if(sanePic_struct.iterw==0){
 		sanePic_struct.save_data=0;
@@ -788,8 +745,6 @@ void parser_printOut(char * prog_name, struct param_common dir, struct samples s
 	string basename (prog_name);
 	basename=FitsBasename(basename);
 	int i;
-	//	char prog_letter;
-	//	prog_letter = basename[5];
 
 	cout << "\nYou have specified the following options : \n\n";
 
@@ -826,12 +781,5 @@ void parser_printOut(char * prog_name, struct param_common dir, struct samples s
 	}
 
 	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-	//	printf("Number of bolometers : \n");
-	//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
-	//		if(samples_struct.fits_table!=NULL)
-	//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
-	//		else
-	//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
-	//	}
 
 }
