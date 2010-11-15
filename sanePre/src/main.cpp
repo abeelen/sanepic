@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
 	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
-	getchar();
+//	getchar();
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, rank)){
 #ifdef PARA_FRAME
@@ -595,7 +595,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		string fnaivname = '!' + dir.output_dir + "naivMap.fits";
+		string fnaivname = dir.output_dir + "naivMap.fits";
 
 		cout << "Output file : " << fnaivname << endl;
 
@@ -618,7 +618,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0)){ // create naive Map fits file with first de-noised map image
+		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0)){ // create naive Map fits file with first de-noised map image
 			cerr << "Error Writing map : EXITING ... \n";
 #ifdef PARA_FRAME
 			MPI_Barrier(MPI_COMM_WORLD);
