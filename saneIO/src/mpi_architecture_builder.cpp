@@ -464,7 +464,7 @@ int define_parallelization_scheme(int rank,string fname, string dirfile, string 
 }
 
 
-int verify_parallelization_scheme(int rank, string outdir,struct samples samples_struct, int size, long &iframe_min, long &iframe_max){
+int verify_parallelization_scheme(int rank, string outdir,struct samples &samples_struct, int size, long &iframe_min, long &iframe_max){
 
 
 	ofstream file;

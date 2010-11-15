@@ -118,28 +118,20 @@ int read_dir(string &output, dictionary	*ini, struct param_common &dir, string d
 		break;
 	}
 
-	switch((unsigned int)checksum((char*)dirtype.c_str(), (size_t)dirtype.size(), 0)){
-	case (unsigned int)2308: // commons:data_directory
-	dir.dirfile=str;
-	break;
+	if(dirtype=="commons:data_directory")
+		dir.dirfile=str;
 
-	case (unsigned int)1674: // commons:temp_dir
-	dir.tmp_dir=str;
-	break;
+	if(dirtype=="commons:temp_dir")
+		dir.tmp_dir=str;
 
-	case (unsigned int)1925: // commons:output_dir
-	dir.output_dir=str;
-	break;
+	if(dirtype=="commons:output_dir")
+		dir.output_dir=str;
 
-	case (unsigned int)1738: 	// saneInv:noise_dir
-	dir.noise_dir=str;
-	break;
+	if(dirtype=="saneInv:noise_dir")
+		dir.noise_dir=str;
 
-	case (unsigned int)2458: 	// commons:input_dir
-	dir.input_dir=str;
-	break;
-
-	}
+	if(dirtype=="commons:input_directory")
+		dir.input_dir=str;
 
 	return 0;
 }
@@ -537,8 +529,10 @@ int check_path(string &output, string strPath, string path_type){
 	{
 		output += "Warning : Path " + path_type + " : " + strPath + " doesn't exist.\n";
 		string make_it = "mkdir " + strPath;
-		system((char*)make_it.c_str());
-		output += "Path : " + strPath + " created\n";
+		if(system((char*)make_it.c_str())==0)
+			output += "Path : " + strPath + " created\n";
+		else
+			return 1;
 	}
 	return 0;
 }
@@ -793,53 +787,51 @@ void parser_printOut(char * prog_name, struct param_common dir, struct samples s
 
 	string basename (prog_name);
 	basename=FitsBasename(basename);
-	char prog_letter;
-	prog_letter = basename[5];
+	int i;
+	//	char prog_letter;
+	//	prog_letter = basename[5];
 
 	cout << "\nYou have specified the following options : \n\n";
 
 	print_common(dir);
 	cout << endl;
-	switch(prog_letter){
-	case 'o':
-//		cout << "sanePos detected !!!\n";
+
+	i=basename.find("sanePos");
+	if((i>=0) && (i<(int)basename.size())){
+		//		cout << "sanePos detected !!!\n";
 		print_param_positions(pos_param);
-		break;
-	case 'S':
-//		cout << "sanePS detected !!!\n";
+	}
+
+	i=basename.find("sanePS");
+	if((i>=0) && (i<(int)basename.size())){
+		//		cout << "sanePS detected !!!\n";
 		print_param_positions(pos_param);
 		print_param_process(proc_param);
 		print_param_sanePS(structPS);
-		break;
-	case 'n':
-//		cout << "saneInv detected !!!\n";
-		break;
-	case 'r':
-//		cout << "sanePre detected !!!\n";
+	}
+
+	i=basename.find("sanePre");
+	if((i>=0) && (i<(int)basename.size())){
+		//		cout << "sanePre detected !!!\n";
 		print_param_positions(pos_param);
 		print_param_process(proc_param);
-		break;
-	case 'i':
-//		cout << "sanePic detected !!!\n";
+	}
+
+	i=basename.find("sanePic");
+	if((i>=0) && (i<(int)basename.size())){
+		//		cout << "sanePic detected !!!\n";
 		print_param_positions(pos_param);
 		print_param_process(proc_param);
 		print_param_sanePic(sanePic_struct);
-		break;
-	default : // saneCheck
-//		print_param_positions(pos_param); // for saneCheck : print nothing
-//		print_param_process(proc_param);
-//		print_param_sanePic(sanePic_struct);
-//		print_param_sanePS(structPS);
-		break;
 	}
 
 	printf("Number of scans      : %ld\n",samples_struct.ntotscan);
-//	printf("Number of bolometers : \n");
-//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
-//		if(samples_struct.fits_table!=NULL)
-//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
-//		else
-//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
-//	}
+	//	printf("Number of bolometers : \n");
+	//	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
+	//		if(samples_struct.fits_table!=NULL)
+	//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fits_table[iframe]).c_str()), detector_tab[iframe].ndet);
+	//		else
+	//			printf("Scan number %ld : %s %ld\n", iframe,(char*)(FitsBasename(samples_struct.fitsvect[iframe]).c_str()), detector_tab[iframe].ndet);
+	//	}
 
 }
