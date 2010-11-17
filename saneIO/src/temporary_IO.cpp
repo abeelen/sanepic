@@ -44,7 +44,7 @@ bool compute_dirfile_format_file(std::string outdir, struct samples samples_stru
 				cout << samples_struct.bolovect[iframe] << endl;
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
 					cout << output_read << endl;
-					return 1;
+					return 0;
 				}
 				long ndet = (long)det_vect.size();
 
@@ -110,7 +110,7 @@ bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_str
 				string output_read = "";
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
 					cout << output_read << endl;
-					return 1;
+					return 0;
 				}
 				long ndet = (long)det_vect.size();
 
@@ -389,7 +389,7 @@ int write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, lon
 	outfile=outdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".txt";
 	if((fp = fopen(outfile.c_str(),"w"))){
 		data_size = (ns/2+1)*2;
-		fprintf(fp,"%ld ",data_size);
+		fprintf(fp,"%ld ",(long)data_size);
 		for(int ii=0;ii<(ns/2+1);ii++){
 			fprintf(fp,"%lf ",fdata[ii][0]);
 			fprintf(fp,"%lf \n",fdata[ii][1]);}

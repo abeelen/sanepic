@@ -37,7 +37,7 @@ int computePixelIndex(string outdir,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fits_table[iframe];
+		fits_file=samples_struct.fitsvect[iframe];
 		ns = samples_struct.nsamples[iframe];
 		std::vector<string> det_vect;
 
@@ -272,7 +272,7 @@ int computePixelIndex_HIPE(string outdir,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fits_table[iframe];
+		fits_file=samples_struct.fitsvect[iframe];
 		ns = samples_struct.nsamples[iframe];
 
 		std::vector<string> det_vect;

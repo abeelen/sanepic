@@ -1,11 +1,3 @@
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "dataIO.h"
-#include "parse_saneCheck.h"
-#include "parser_functions.h"
-#include "tools.h"
-#include "struct_definition.h"
-
 #include <iostream>
 #include <algorithm>
 #include <string>
@@ -13,6 +5,14 @@
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
 #include <sysexits.h>
+
+#include "inputFileIO.h"
+#include "mpi_architecture_builder.h"
+#include "dataIO.h"
+#include "parse_saneCheck.h"
+#include "parser_functions.h"
+#include "tools.h"
+#include "struct_definition.h"
 
 
 extern "C" {
@@ -66,10 +66,7 @@ int main(int argc, char *argv[]) {
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_common dir;  /*! structure that contains output input temp directories */
-	//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
-	//	std::vector<detectors> detector_tab;
 	//	std::vector<double> bolometer_gain;
-	samples_struct.fits_table=NULL;
 
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;

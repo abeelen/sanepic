@@ -45,7 +45,7 @@ int computeMapMinima(struct samples samples_struct,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fits_table[iframe];
+		fits_file=samples_struct.fitsvect[iframe];
 		std::vector<string> det_vect;
 
 		string output_read = "";
@@ -230,7 +230,7 @@ int computeMapMinima_HIPE(struct samples samples_struct,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fits_table[iframe];
+		fits_file=samples_struct.fitsvect[iframe];
 		std::vector<string> det_vect;
 
 		string output_read = "";

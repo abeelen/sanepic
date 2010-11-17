@@ -34,11 +34,6 @@ extern "C" {
 #include "parser_functions.h"
 
 
-#ifdef PARA_BOLO
-#define PARA_FRAME
-#endif
-
-
 #ifdef PARA_FRAME
 #include "mpi.h"
 #endif
@@ -91,7 +86,6 @@ int main(int argc, char *argv[])
 	struct param_sanePre proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /*! structure that contains output input temp directories */
-//	std::vector<detectors> detector_tab;
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
@@ -138,8 +132,6 @@ int main(int argc, char *argv[])
 	time_t t2, t3;
 #endif
 
-
-
 	// -----------------------------------------------------------------------------//
 	int parsed=0;
 	// Parse ini file
@@ -182,10 +174,6 @@ int main(int argc, char *argv[])
 #ifdef DEBUG_PRINT
 	t2=time(NULL);
 #endif
-
-
-	samples_struct.fits_table  = new string[samples_struct.ntotscan];
-	samples_struct.index_table = new int[samples_struct.ntotscan];
 
 
 
@@ -238,10 +226,6 @@ int main(int argc, char *argv[])
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
-	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-
-
 	ofstream file; // write down the configuration used by sanePos
 	string outfile = dir.output_dir + parallel_scheme_filename;
 	file.open(outfile.c_str(), ios::out);
@@ -255,7 +239,7 @@ int main(int argc, char *argv[])
 
 	for(long jj = 0; jj<samples_struct.ntotscan; jj++){
 
-		temp = samples_struct.fits_table[jj];
+		temp = samples_struct.fitsvect[jj];
 		found=temp.find_last_of('/');
 		file << temp.substr(found+1) << " " << " 0" << endl;
 
@@ -268,7 +252,6 @@ int main(int argc, char *argv[])
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return(EX_IOERR);
@@ -304,7 +287,6 @@ int main(int argc, char *argv[])
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef PARA_FRAME
-					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return(EX_OSERR);
@@ -315,7 +297,6 @@ int main(int argc, char *argv[])
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef PARA_FRAME
-					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return(EX_OSERR);
@@ -376,7 +357,6 @@ int main(int argc, char *argv[])
 		if (read_mask_wcs(pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_IOERR);
@@ -402,7 +382,6 @@ int main(int argc, char *argv[])
 		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_CANTCREAT);
@@ -447,7 +426,6 @@ int main(int argc, char *argv[])
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_OSERR);
@@ -461,7 +439,6 @@ int main(int argc, char *argv[])
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_OSERR);
@@ -496,14 +473,12 @@ int main(int argc, char *argv[])
 		 */
 		if(write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon)){
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_CANTCREAT);
 		}
 		if(write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir)){
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return(EX_CANTCREAT);
@@ -541,9 +516,6 @@ int main(int argc, char *argv[])
 	delete [] samples_struct.nsamples;
 
 	delete [] pixon;
-
-	delete [] samples_struct.fits_table;
-	delete [] samples_struct.index_table;
 
 	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);

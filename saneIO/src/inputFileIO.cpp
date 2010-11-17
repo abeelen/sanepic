@@ -340,11 +340,11 @@ void fill_noisevect_fcut(struct param_common dir, struct samples &samples_str, s
 
 	}else{
 		for(long iframe = 0; iframe < samples_str.ntotscan ; iframe ++)
-			samples_str.noisevect.push_back(FitsBasename(samples_str.fits_table[iframe]) + saneInv_struct.cov_matrix_suffix);
+			samples_str.noisevect.push_back(FitsBasename(samples_str.fitsvect[iframe]) + saneInv_struct.cov_matrix_suffix);
 	}
 
 
-	if((int)fcut.size()==0){
+	if((int)fcut.size()==0){ // TODO : if fcut a la bonne taille : réorganiser dans mpi_define etc...
 
 		for(long iframe = 0; iframe < (long)samples_str.noisevect.size() ; iframe ++){
 

@@ -12,7 +12,7 @@ void do_PtNd_nocorr(double *PNd,std::string tmp_dir, struct param_sanePre proc_p
 		long long npixsrc, long iframe, double *S, int para_bolo_indice, int para_bolo_size);
 
 
-void do_PtNPS_nocorr(double *S, std::string *extentnoiseSp_all, struct param_common dir,
+void do_PtNPS_nocorr(double *S, std::vector<std::string> noisevect, struct param_common dir,
 		std::vector<std::string> det, long ndet, double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe, std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size);

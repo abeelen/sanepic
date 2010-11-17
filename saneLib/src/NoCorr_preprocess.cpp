@@ -46,7 +46,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 
 	string fits_filename;
 
-	fits_filename = samples_struct.fits_table[iframe];
+	fits_filename = samples_struct.fitsvect[iframe];
 
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
 		field = det[idet];
@@ -98,7 +98,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 
 
 		//****************** Compute (or read) input power spectrum of the NOISE  ***************//
-		extentnoiseSp = samples_struct.noise_table[iframe];
+		extentnoiseSp = samples_struct.noisevect[iframe];
 		nameSpfile = tmp_dir + field + extentnoiseSp;
 
 		readNSpectrum(nameSpfile,bfilter,ns,proc_param.fsamp,Nk);
@@ -130,7 +130,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 
 
 
-void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common dir,
+void do_PtNPS_nocorr(double *S, std::vector<std::string> noisevect, struct param_common dir,
 		std::vector<std::string> det, long ndet, double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
@@ -173,7 +173,7 @@ void do_PtNPS_nocorr(double *S, string *extentnoiseSp_all, struct param_common d
 			bfilter[ii] = powered /(1.0+powered);
 		}
 
-		extentnoiseSp = extentnoiseSp_all[iframe];
+		extentnoiseSp = noisevect[iframe];
 		nameSpfile = dir.tmp_dir + field + extentnoiseSp;
 		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 

@@ -19,10 +19,6 @@ extern "C" {
 }
 
 
-#ifdef PARA_BOLO
-#define PARA_FRAME
-#endif
-
 #ifdef PARA_FRAME
 #include "mpi.h"
 #include <algorithm>
@@ -121,9 +117,9 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-	samples_struct.fits_table = new string[samples_struct.ntotscan];
-	samples_struct.index_table = new int[samples_struct.ntotscan];
-	samples_struct.noise_table = new string[samples_struct.ntotscan];
+//	samples_struct.fits_table = new string[samples_struct.ntotscan];
+//	samples_struct.index_table = new int[samples_struct.ntotscan];
+//	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 	fill_sanePS_struct(structPS, samples_struct);
 
@@ -271,12 +267,12 @@ int main(int argc, char *argv[])
 	iframe_max = samples_struct.ntotscan;
 
 	//convert vector to standard C array to speed up memory accesses
-	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-	vector2array(samples_struct.scans_index, samples_struct.index_table);
+//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
+//	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
 
 	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut_vector);
-	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
 
 	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
 #ifdef PARA_FRAME
@@ -323,9 +319,9 @@ int main(int argc, char *argv[])
 
 	//clean up
 	delete[] samples_struct.nsamples;
-	delete[] samples_struct.fits_table;
-	delete[] samples_struct.index_table;
-	delete[] samples_struct.noise_table;
+//	delete[] samples_struct.fits_table;
+//	delete[] samples_struct.index_table;
+//	delete[] samples_struct.noise_table;
 
 	fftw_cleanup();
 

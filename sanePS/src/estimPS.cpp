@@ -61,7 +61,9 @@ int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sane
 	commonm2 = dmatrix(0,structPS.ncomp,0,samples_struct.nsamples[iframe]-1);
 
 	// One has to initialize the two matrices for each iteration...
+//	cout << Rellexp[0][0] << " " << Rellexp[10][10] << endl;
 	init2D_double(Rellexp,0,0, (ndet)*(ndet),nbins ,0.0);
+//	cout << Rellexp[0][0] << " " << Rellexp[10][10] << endl;
 	init2D_double(Rellth,0,0, (ndet)*(ndet),nbins ,0.0);
 
 	init2D_double(commonm2,0,0,structPS.ncomp,samples_struct.nsamples[iframe],0.0);
@@ -87,7 +89,7 @@ int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sane
 	cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
 #endif
 	if(common_mode_computation(det, ndet,proc_param, pos_param, dir, apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix,
-			mixmat, structPS.ncomp, commonm2, factapod, samples_struct.fits_table[iframe])) // return commonm2
+			mixmat, structPS.ncomp, commonm2, factapod, samples_struct.fitsvect[iframe])) // return commonm2
 		return 1;
 
 	//----------------------------------- ESTIMATE NOISE PS -------------------------------//
@@ -96,7 +98,7 @@ int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sane
 #endif
 	if(estimate_noise_PS(det, ndet,  proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], NAXIS1,
 			NAXIS2, npix, ell, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2,
-			factapod,Rellth, N, P, samples_struct.fits_table[iframe]))
+			factapod,Rellth, N, P, samples_struct.fitsvect[iframe]))
 		return 1;
 
 	//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
@@ -104,7 +106,7 @@ int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sane
 	cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 #endif
 	if(estimate_CovMat_of_Rexp(dir, det, ndet, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, proc_param.fsamp,
-			factapod, Rellexp, N, P, SPref, samples_struct.fits_table[iframe], rank))
+			factapod, Rellexp, N, P, SPref, samples_struct.fitsvect[iframe], rank))
 		return 1;
 
 	//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
@@ -118,7 +120,7 @@ int EstimPowerSpectra(std::vector<std::string> det, long ndet, struct param_sane
 #ifdef DEBUG
 	cout << "[ " << rank << " ] 6/6 - Saving to disk" << endl;
 #endif
-	if(write_to_disk(dir.output_dir, samples_struct.fits_table[iframe], det, ndet, nbins, ell, mixmat, Rellth,
+	if(write_to_disk(dir.output_dir, samples_struct.fitsvect[iframe], det, ndet, nbins, ell, mixmat, Rellth,
 			Rellexp, structPS.ncomp, N, SPref,P))
 		return 1;
 	//----------------------------------- END OF ESTIMPS -------------------------------//

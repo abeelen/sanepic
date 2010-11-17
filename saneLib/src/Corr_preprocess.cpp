@@ -129,7 +129,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
-	fits_filename = samples_struct.fits_table[iframe];
+	fits_filename = samples_struct.fitsvect[iframe];
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
@@ -243,7 +243,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	return 0;
 }
 
-int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
+int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string prefixe,
 		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe, string filename,
 		double *Mp, long *hits,std::string fname)
@@ -309,8 +309,6 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 #endif
 
 		field1 = det[idet1];
-		//		cout << field1 << endl;
-
 
 
 #ifdef DEBUG
@@ -329,7 +327,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 
 		//**************************************** Noise power spectrum
 		string extname = "_InvNoisePS";
-		string suffix = FitsBasename(noise_table[iframe]) + extname;
+		string suffix = FitsBasename(noisevect[iframe]) + extname;
 
 		//read noise PS file for idet1
 		long ndet2;
@@ -485,7 +483,7 @@ int do_PtNd(double *PNd, string *noise_table, string dir, string prefixe,
 }
 
 
-int do_PtNd_Naiv(double *PNd, std::string dir, std::string* file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
+int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long iframe, long *hits)
 {
 

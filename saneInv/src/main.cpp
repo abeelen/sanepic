@@ -18,10 +18,6 @@ extern "C" {
 }
 
 
-#ifdef PARA_BOLO
-#define PARA_FRAME
-#endif
-
 #ifdef PARA_FRAME
 #include "mpi.h"
 #endif
@@ -63,7 +59,6 @@ int main(int argc, char *argv[]) {
 
 	struct param_common dir;
 	struct samples samples_struct;
-	samples_struct.fits_table=NULL;
 
 	/*!
 	 * -Rellth : Reduced NoiseNoise matrix

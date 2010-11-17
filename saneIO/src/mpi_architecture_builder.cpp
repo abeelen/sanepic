@@ -325,16 +325,15 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 
 	delete [] fitsvect_temp;
 
-return 0;
+	return 0;
 }
 
-int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, int size)
+int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, std::vector<int> &index_dummy, int size, int rank)
 // read and check that the saved Parallelization Scheme corresponds to the actual data
 {
 
 
 	std::vector<string> fits_dummy;
-	std::vector<int> index_dummy;
 	long ntotscan_dummy;
 	long size_tmp;
 
@@ -347,17 +346,16 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 
 
 #ifdef DEBUG_PRINT
-	cout <<" readed list : " << endl;
-	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
-		cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
-
-
-	for(int ii = 0; ii< (int)fits_dummy.size();ii++)
-		cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
+	if(rank==0){
+		cout <<" readed list : " << endl;
+		for(int ii = 0; ii< (int)fits_dummy.size();ii++)
+			cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
+	}
 #endif
 
 #ifdef DEBUG_PRINT
-	cout << "framegiven : " << framegiven << endl;
+	if(rank==0)
+		cout << "framegiven : " << framegiven << endl;
 #endif
 
 	if((framegiven==0)||((int)fits_dummy.size()==0)){
@@ -371,19 +369,19 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 		return -1;
 	}
 
-	vector2array(fits_dummy, samples_struct.fits_table);
-	if(index_dummy.size()>0)
-		vector2array(index_dummy,  samples_struct.index_table);
 
 	for(int ii=0;ii<(int)fits_dummy.size();ii++){
 		fits_dummy[ii] = dirfile + fits_dummy[ii];
 	}
+	std::vector<string> fits_copy(fits_dummy);
 
-	readFrames( fits_dummy, nsamples_dummy);
+	readFrames(fits_dummy, nsamples_dummy);
 
 #ifdef DEBUG_PRINT
-	cout << "ntotscan" << endl;
-	cout << samples_struct.ntotscan << " vs " << ntotscan_dummy << endl;
+	if(rank==0){
+		cout << "ntotscan" << endl;
+		cout << samples_struct.ntotscan << " vs " << ntotscan_dummy << endl;
+	}
 #endif
 
 	struct sortclass_string sortobject;
@@ -393,19 +391,22 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 	for(int ii=0;ii<samples_struct.ntotscan;ii++)
 		if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
 #ifdef DEBUG_PRINT
-			cout << "comparaison triée : " << endl;
-			cout << fits_dummy[ii] << endl;
-			cout << samples_struct.fitsvect[ii] << endl;
+			if(rank==0){
+				cout << "comparaison triée : " << endl;
+				cout << fits_dummy[ii] << endl;
+				cout << samples_struct.fitsvect[ii] << endl;
+			}
 #endif
 			cerr << "Your fits_filelist file and " << fname << " do not have the same sample files. Exiting\n";
 			return -1;
 		}
 
 	if(index_dummy.size()>0){
-		size_tmp = *max_element(samples_struct.index_table, samples_struct.index_table+samples_struct.ntotscan);
+		size_tmp = *max_element(index_dummy.begin(), index_dummy.end());
 
 #ifdef DEBUG_PRINT
-		cout << size << " vs size : " <<  size_tmp+1 << endl;
+		if(rank==0)
+			cout << size << " vs size : " <<  size_tmp+1 << endl;
 #endif
 
 		if((size_tmp+1)!=size){
@@ -414,9 +415,11 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 		}
 	}
 
-
 	for(int ii=0;ii<samples_struct.ntotscan;ii++)
 		samples_struct.nsamples[ii]=nsamples_dummy[ii];
+
+	samples_struct.fitsvect.clear();
+	samples_struct.fitsvect = fits_copy;
 
 	delete [] nsamples_dummy;
 	return 0;
@@ -427,15 +430,17 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 int define_parallelization_scheme(int rank,string fname, string dirfile, string data_dir, struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
 
 	int test=0;
+	std::vector<int> index_dummy;
 
-	test=check_ParallelizationScheme(fname,dirfile,samples_struct,size);
+
+	test=check_ParallelizationScheme(fname,dirfile,samples_struct, index_dummy, size, rank);
 	if (test==-1)
 		return test;
 
 	iframe_min = -1;
 
 	for(long ii=0;ii<samples_struct.ntotscan;ii++){
-		if((samples_struct.index_table[ii]==rank)&&(iframe_min == -1)){
+		if((index_dummy[ii]==rank)&&(iframe_min == -1)){
 			iframe_min=ii;
 			break;
 		}
@@ -443,7 +448,7 @@ int define_parallelization_scheme(int rank,string fname, string dirfile, string 
 
 	iframe_max=iframe_min;
 	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
-		if(samples_struct.index_table[iframe_max]!=rank){
+		if(index_dummy[iframe_max]!=rank){
 			iframe_max--;
 			break;
 		}
@@ -455,8 +460,8 @@ int define_parallelization_scheme(int rank,string fname, string dirfile, string 
 	cout << rank << " iframe_max : " << iframe_max << endl;
 #endif
 
-	for(long ii=0;ii<samples_struct.ntotscan;ii++)
-		samples_struct.fits_table[ii] = data_dir + samples_struct.fits_table[ii];
+	//	for(long ii=0;ii<samples_struct.ntotscan;ii++)
+	//		samples_struct.fitsvect[ii] = data_dir + samples_struct.fitsvect[ii]; // should no more be needed
 
 
 	return 0;
@@ -473,7 +478,9 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 	long size_tmp = 0;
 	int num_frame = 0;
 	char c;
-	vector2array(samples_struct.scans_index,  samples_struct.index_table);
+	int *index_copy;
+	index_copy= new int[samples_struct.ntotscan];
+	vector2array(samples_struct.scans_index,  index_copy);
 
 	struct sortclass_int sortobject;
 	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
@@ -485,9 +492,10 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 	size_tmp = it - samples_struct.scans_index.begin();
 
 #ifdef DEBUG_PRINT
-	cout << "size unique : " << size_tmp << endl;
-
-	cout << size << " vs size : " <<  size_tmp << endl;
+	if(rank==0){
+		cout << "size unique : " << size_tmp << endl;
+		cout << size << " vs size : " <<  size_tmp << endl;
+	}
 #endif
 
 	if((size_tmp)>size){
@@ -504,7 +512,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 				c=getchar();
 				switch (c){
 				case('y') :
-													cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+											cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 				break;
 				default:
 					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
@@ -553,6 +561,8 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 	iframe_min=0;
 	iframe_max=0;
 
+	std::vector<string> fits_copy(samples_struct.fitsvect);
+
 	long * nsamples_temp;
 	nsamples_temp = new long[samples_struct.ntotscan];
 
@@ -564,12 +574,12 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 		if(rank==ii)
 			iframe_min=num_frame;
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++){
-			if(samples_struct.index_table[jj]==ii){
+			if(index_copy[jj]==ii){
 
-				samples_struct.fits_table[num_frame]=samples_struct.fitsvect[jj];
+				samples_struct.fitsvect[num_frame]=fits_copy[jj]; // TEST IT
 				samples_struct.nsamples[num_frame]=nsamples_temp[jj];
 				if(rank==0){
-					temp = samples_struct.fits_table[num_frame];
+					temp = samples_struct.fitsvect[num_frame];
 					found=temp.find_last_of('/');
 					file << temp.substr(found+1) << " " << ii << endl;
 
@@ -582,6 +592,7 @@ int verify_parallelization_scheme(int rank, string outdir,struct samples &sample
 	}
 
 	delete [] nsamples_temp;
+	delete [] index_copy;
 
 	if(rank==0)
 		file.close();

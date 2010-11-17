@@ -13,7 +13,7 @@ struct param_common
 	std::string noise_dir;
 	std::string input_dir;
 
-	std::string channel;
+//	std::string channel;
 	std::string fits_filelist;
 	std::string bolo_global_filename;
 	std::string suffix;
@@ -33,16 +33,16 @@ struct param_sanePre
 /*! A structure that contains user options about preprocessing properties */
 {
 	bool NORMLIN;
-		bool NOFILLGAP;
-		bool CORRon;
-		bool remove_polynomia;
+	bool NOFILLGAP;
+	bool CORRon;
+	bool remove_polynomia;
 
-		long napod;
-		int poly_order;
-		double fsamp;
-		double f_lp;
+	long napod;
+	int poly_order;
+	double fsamp;
+	double f_lp;
 
-		std::string fcut_file;
+	std::string fcut_file;
 };
 
 struct param_saneInv
@@ -70,10 +70,10 @@ struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
+	//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
 	int save_data;
 	int restore;
-//	double thresholds; // determine thresholds
+	//	double thresholds; // determine thresholds
 };
 
 struct samples
@@ -85,10 +85,9 @@ struct samples
 	std::vector<std::string> bolovect;
 
 	bool framegiven;
-	std::string *fits_table;
-	std::string *noise_table;
-	std::string *bolo_table;
-	int *index_table;
+//	std::string *fits_table;
+//	std::string *noise_table;
+//	int *index_table;
 
 	long *nsamples;
 	long ntotscan;

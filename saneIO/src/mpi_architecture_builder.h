@@ -44,7 +44,7 @@ double* randg(long nombre, int seedpass);
 
 int write_ParallelizationScheme(std::string fname, long *position, long *frnum, int size, struct samples samples_struct);
 
-int check_ParallelizationScheme(std::string fname, std::string dirfile,struct samples &samples_struct, int size);
+int check_ParallelizationScheme(std::string fname, std::string dirfile,struct samples &samples_struct, std::vector<int> &index_dummy, int size, int rank);
 int define_parallelization_scheme(int rank,std::string fname, std::string dirfile, std::string data_dir, struct samples &samples_struct,int size, long &iframe_min, long &iframe_max);
 int verify_parallelization_scheme(int rank, std::string outdir,struct samples &samples_struct, int size, long &iframe_min, long &iframe_max);
 
