@@ -5,6 +5,9 @@
 #include <vector>
 #include <iomanip>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
+#include <cstring>
 #include <gsl/gsl_math.h>
 #include <sysexits.h>
 
@@ -95,7 +98,7 @@ int main(int argc, char *argv[]) {
 	string field; /*! actual boloname in the bolo loop */
 	string prefixe; /*! prefix used for temporary name file creation */
 	struct param_sanePic struct_sanePic;
-	std::vector<double> fcut; /*! noise cutting frequency vector */
+//	std::vector<double> fcut; /*! noise cutting frequency vector */
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
@@ -112,6 +115,7 @@ int main(int argc, char *argv[]) {
 	int indice_argv = 1;
 	int parsed = 0;
 
+	//TODO: Use getopt instead of this....
 	if ((argc < 2) || (argc > 3)) // no enough arguments
 		parsed = 1;
 	else {
@@ -132,7 +136,7 @@ int main(int argc, char *argv[]) {
 		if (indice_argv > 0){
 			/* parse ini file and fill structures */
 			parsed = parser_function(argv[indice_argv], parser_output, dir,
-					samples_struct, pos_param, proc_param, fcut, structPS, saneInv_struct,
+					samples_struct, pos_param, proc_param, structPS, saneInv_struct,
 					struct_sanePic, size);
 
 			if(rank==0)
@@ -174,9 +178,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	string name_rank = dir.output_dir + "debug_sanePic.txt"; // log file name
-
-
 #ifdef DEBUG
+
 	std::ostringstream oss;
 	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
 	name_rank = oss.str();
@@ -196,13 +199,6 @@ int main(int argc, char *argv[]) {
 	file_rank.close();
 
 #endif
-
-	////////////////////////////////////////////////////////////////
-
-	// Memory allocation
-	//	samples_struct.fits_table = new string[samples_struct.ntotscan];
-	//	samples_struct.index_table = new int[samples_struct.ntotscan];
-	//	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
 	/********************* Define parallelization scheme   *******/
 
@@ -266,17 +262,6 @@ int main(int argc, char *argv[]) {
 	iframe_max = samples_struct.ntotscan;
 
 #endif
-
-	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
-	//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
-
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
 
 	if(rank==0)
 		// parser print screen function
@@ -376,7 +361,7 @@ int main(int argc, char *argv[]) {
 
 	if (struct_sanePic.restore > 0) { // restore incomplete work with previous saved data
 		if (rank == 0)
-			cout << "load data is ON\n";
+			cout << "Checking previous session\n";
 		struct checksum chk_t, chk_t2;
 		compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix, indpix,
 				indpsrc, test_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
@@ -394,7 +379,6 @@ int main(int argc, char *argv[]) {
 
 	if (struct_sanePic.save_data > 0) {
 		if (rank == 0) {
-			cout << "save data is ON\n";
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
 			compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix,
@@ -422,9 +406,6 @@ int main(int argc, char *argv[]) {
 	fill(S, S + npix, 0.0);
 
 	//////////////////////////////////// Computing of sanePic starts here
-
-
-	FILE *fp;
 	string testfile; // log file to follow evolution of both criteria
 	ostringstream temp_stream; // fits files filename string stream
 
@@ -472,7 +453,7 @@ int main(int argc, char *argv[]) {
 		for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 			ns = samples_struct.nsamples[iframe];
-			f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
+			f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
 			string output_read = "";
 			std::vector<string> det;
@@ -596,12 +577,13 @@ int main(int argc, char *argv[]) {
 #endif
 
 
+		//TODO: max_iter should go to the inifile with default to 20000
 		//start loop
 		iter = 0; // max iter = 2000, but ~100 iterations are required to achieve convergence
 
 		if (struct_sanePic.restore > 0) {
 			if (rank == 0)
-				cout << "loading data !\n";
+				cout << "loading session\n";
 			// fill S, d, r, indpix, npixeff, var_n, delta_n and iter with previously saved on disk values
 			load_from_disk(dir.tmp_dir, dir.output_dir, S, d, r, indpix,
 					npixeff, var_n, delta_n, iter);
@@ -619,7 +601,7 @@ int main(int argc, char *argv[]) {
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
-				f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
+				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
 				string output_read = "";
 				std::vector<string> det;
@@ -709,7 +691,7 @@ int main(int argc, char *argv[]) {
 
 				for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 					ns = samples_struct.nsamples[iframe];
-					f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
+					f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
 					string output_read = "";
 					std::vector<string> det;
@@ -811,14 +793,8 @@ int main(int argc, char *argv[]) {
 				// saving iterated maps
 				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0) {
 
-					if ((struct_sanePic.save_data > 0) && (iter != 0)) {
-						if (rank == 0)
-							write_disk(dir.tmp_dir, d, r, npixeff, var_n,
-									delta_n, iter);
-						if (rank == 0)
-							cout << "\nData saved on disk for iteration : "
-							<< iter << endl;
-					}
+					if ((struct_sanePic.save_data > 0) && (iter != 0))
+						write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
 
 					// Every iterw iteration compute the map and save it
 					map1d = new double[NAXIS1 * NAXIS2];
@@ -950,7 +926,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					if (write_fits_hitory(fname, NAXIS1, NAXIS2, dir.dirfile,
-							proc_param, pos_param, fcut, samples_struct))
+							proc_param, pos_param, samples_struct.fcut, samples_struct))
 						cerr
 						<< "WARNING ! No history will be included in the file : "
 						<< fname << endl;
@@ -958,30 +934,30 @@ int main(int argc, char *argv[]) {
 					delete[] map1d;
 				} // end of saving iterated maps
 
-				//TODO: Unify theses two output.... and add time !!
+				char mytime[25];
 
-				cout << "iter = " << iter;
-				cout << ", crit  = "   << setiosflags(ios::scientific)
-											   << setiosflags(ios::floatfield) << var_n / var0;
-				cout << ", crit2 = "   << setiosflags(ios::scientific)
-											   << setiosflags(ios::floatfield) << delta_n / delta0;
-				cout << ", var_n  = "  << setiosflags(ios::scientific)
-											   << setiosflags(ios::floatfield) << var_n;
-				cout << ", delta_n = " << setiosflags(ios::scientific)
-											   << setiosflags(ios::floatfield) << delta_n;
-				cout << "\r " << flush;
-
-				temp_stream << dir.output_dir + "ConvFile.txt";
-
-				// Transform into string
-				testfile = temp_stream.str();
-
-				// Clear ostringstream buffer
+				time_t rawtime;
+				time ( &rawtime );
+				strncpy(mytime, ctime(&rawtime),24); // remove the newline character
+				mytime[24] = '\0';
 				temp_stream.str("");
-				fp = fopen(testfile.c_str(), "a");
-				fprintf(fp, "iter = %d, crit = %10.15g, crit2 = %10.15g\n",
-						iter, var_n / var0, delta_n / delta0);
-				fclose(fp);
+				temp_stream << "[" << mytime << "] ";
+				temp_stream << "iter = "      << setw(4) << iter;
+				temp_stream << ", crit = "    << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
+				temp_stream << ", crit2 = "   << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
+//				temp_stream << ", var_n = "   << setiosflags(ios::scientific) << setprecision (2) << var_n;
+//				temp_stream << ", delta_n = " << setiosflags(ios::scientific) << setprecision (2) << delta_n;
+
+				// Output to screen ...
+				cout << temp_stream.str() << "\r" << flush;
+
+				// ... and to a logfile
+				ofstream logfile;
+				string filename = dir.output_dir + "ConvFile.txt";
+				logfile.open(filename.c_str(),  ios::out | ios::app);
+				logfile << temp_stream.str() << endl;
+				logfile.close();
+				temp_stream.str("");
 
 			} // end of if (rank == 0)
 
@@ -1009,7 +985,7 @@ int main(int argc, char *argv[]) {
 
 				ns = samples_struct.nsamples[iframe];
 				f_lppix = proc_param.f_lp * double(ns) / proc_param.fsamp;
-				f_lppix_Nk = fcut[iframe] * double(ns) / proc_param.fsamp;
+				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
 				string output_read = "";
 				std::vector<string> det;
@@ -1111,7 +1087,7 @@ int main(int argc, char *argv[]) {
 
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				proc_param, pos_param, samples_struct, fcut, wcs,
+				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
 				pos_param.maskfile))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 

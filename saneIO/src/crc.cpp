@@ -47,7 +47,7 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	fclose(fp);
 
 	chk.chk_ini_file=checksum(buf2, len-116, 0);
-	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
+//	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
 
 	file= tmp_dir + "mapHeader.keyrec";
 	if (NULL == (fp = fopen(file.c_str(), "r")))
@@ -59,16 +59,16 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	fclose(fp);
 
 	chk.chk_wcs_file=checksum(buf, len, 0);
-	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
+//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
 
 	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
-	printf("The checksum of PNd is %u\n", chk.chk_pnd);
+//	printf("The checksum of PNd is %u\n", chk.chk_pnd);
 
 	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
-	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
+//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
 
 	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
-	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
+//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
 
 }
 

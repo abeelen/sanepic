@@ -23,12 +23,15 @@ extern "C" {
 
 using namespace std;
 
-int common_mode_computation(std::vector<std::string> det, long ndet, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int common_mode_computation(std::vector<std::string> det, struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
 {
 	//*************************** Read data and compute components
+
+	//TODO : The beginning of this function look a lot like write_ftrProcesdata
+	//       Check and replace/reuse if possible...
 
 	string field; // detector name in the loop
 
@@ -46,6 +49,8 @@ int common_mode_computation(std::vector<std::string> det, long ndet, struct para
 	double **iCov, **Cov, *ivec, **l;
 	double *uvec;
 
+	long ndet = (long)det.size();
+
 	fftw_complex *fdata1;
 
 	int factdupl = 1;
@@ -62,7 +67,7 @@ int common_mode_computation(std::vector<std::string> det, long ndet, struct para
 	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
 	uvec = new double[ncomp];
 	ivec = new double[ncomp];
-	l=new double*[ncomp];
+	l    = new double*[ncomp];
 	for(int i=0; i<ncomp; i++)
 		l[i]=new double [ncomp];
 
@@ -96,33 +101,24 @@ int common_mode_computation(std::vector<std::string> det, long ndet, struct para
 
 
 		//TODO: subtract the signal only if needed
-
 		if (S != NULL){
 			//Read pointing data
 			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, field))
 				return EX_NOINPUT;
 
-
 			//TODO : Check this function on what it does/should do
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
-
-#ifdef DEBUG
-			FILE * fp;
-			fp = fopen("testDeproject.txt","w");
-			for (int i =0;i<ns;i++)
-				fprintf(fp,"%lf %lf\n",data[i],Ps[i]);
-			fclose(fp);
-			exit(-1);
-#endif
-
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
 		}
 
 
+
+
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
 		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
+
 
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
@@ -228,7 +224,7 @@ int common_mode_computation(std::vector<std::string> det, long ndet, struct para
 
 
 
-int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sanePre proc_param,struct param_sanePos pos_param,
+int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_param,struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
@@ -238,7 +234,7 @@ int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sane
 
 	string nameSpfile, field;
 	string testfile;
-	string base_n;
+	string basename;
 	std::ostringstream temp_stream;
 	FILE *fp;
 
@@ -249,6 +245,7 @@ int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sane
 	double *Nell, *Nk;
 	long long *samptopix; // sample to pixel projection matrix
 
+	long ndet = (long)det.size();
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2; // map duplication factor
@@ -351,9 +348,9 @@ int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sane
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
 
-		base_n = FitsBasename(fits_filename);
+		basename = FitsBasename(fits_filename);
 
-		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << base_n << ".bi";
+		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << basename << ".bi";
 		// Get the string
 		testfile= temp_stream.str();
 		// Clear ostringstream buffer
@@ -391,18 +388,21 @@ int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sane
 }
 
 
-int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long ndet, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
+
+	long ndet = (long)det.size();
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
 	double *data1d; // buffer used to write down 1d array
 	data1d = new double[ndet*nbins];
 	string testfile;
-	string base_n;
+	string basename;
 	fftw_complex *fdata1, *fdata2;
 	double * Nell, *Nk;
+
 
 	Nell = new double[nbins]; // binned noise PS
 	Nk = new double[ns/2+1]; // noise PS
@@ -460,10 +460,10 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
 
-	base_n = FitsBasename(fits_filename);
+	basename = FitsBasename(fits_filename);
 
 	// write Rellexp to disk and also first guess of parameters
-	temp_stream << dir.output_dir + "Rellexp_" << base_n << ".txt";
+	temp_stream << dir.output_dir + "Rellexp_" << basename << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -477,7 +477,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 	fprintf(fp,"\n");
 	fclose(fp);
 
-	temp_stream << dir.output_dir + "Ninit_" << base_n << ".txt";
+	temp_stream << dir.output_dir + "Ninit_" << basename << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -496,7 +496,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
-	temp_stream << "!" + dir.output_dir + "Ninit_" << base_n << ".fits";
+	temp_stream << "!" + dir.output_dir + "Ninit_" << basename << ".fits";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -504,7 +504,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 
 	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
 
-	temp_stream << dir.output_dir + "Pinit_" << base_n << ".txt";
+	temp_stream << dir.output_dir + "Pinit_" << basename << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -518,7 +518,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 	fclose(fp);
 
 
-	temp_stream << dir.output_dir + "Ainit_" << base_n << ".txt";
+	temp_stream << dir.output_dir + "Ainit_" << basename << ".txt";
 
 	// get filename
 	testfile= temp_stream.str();
@@ -1093,8 +1093,8 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 
-int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::string> det, long ndet, long nbins, double *ell, double **mixmat,
-		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P)
+int write_to_disk(string outdirSpN, string fits_filename, struct param_sanePS structPS, std::vector<std::string> det,  long nbins, double *ell, double **mixmat,
+		double **Rellth, double **Rellexp, double **N, double *SPref, double **P)
 {
 
 
@@ -1102,15 +1102,25 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 	string testfile;
 	string tempstr1, tempstr2;
 	string nameSpfile;
-	string base_n;
+	string basename;
+
+	long ndet = (long)det.size();
 
 	FILE *fp;
 	double *data1d;
 
-	base_n = FitsBasename(fits_filename);
-	temp_stream << "!" + outdirSpN + "BoloPS_" << base_n << "_psd.fits";
+	basename = FitsBasename(fits_filename);
 
-	// récupérer une chaîne de caractères
+	temp_stream << outdirSpN << basename << structPS.ell_suffix;
+	nameSpfile= temp_stream.str();
+	temp_stream.str("");
+
+	fp = fopen(nameSpfile.c_str(),"w");
+	for (long ii=0;ii<nbins;ii++)
+		fprintf(fp,"%g\n",ell[ii]);
+	fclose(fp);
+
+	temp_stream << "!" << outdirSpN << basename << structPS.cov_matrix_suffix;
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
@@ -1118,24 +1128,19 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 		return EX_IOERR;
 
 
-	temp_stream << outdirSpN + "Ell_" << base_n << ".psd";
-
-	// get filename
+	temp_stream << "!" << outdirSpN << basename << "_exp" << structPS.cov_matrix_suffix;
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
 
-	fp = fopen(nameSpfile.c_str(),"w");
-	for (long ii=0;ii<nbins;ii++){
-		fprintf(fp,"%g\n",ell[ii]);
-	}
-	fclose(fp);
+	if(write_CovMatrix(nameSpfile, det, nbins, ell, Rellexp))
+		return EX_IOERR;
 
-	temp_stream << outdirSpN + "BoloPS_" << base_n << "_exp.psd";
 
-	// get filename
+#ifdef DEBUG
+	//TODO: do we need that ?
+	temp_stream << outdirSpN << basename << "_exp.psd";
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
-
 	fp = fopen(nameSpfile.c_str(),"w");
 
 	for (long idet1=0;idet1<ndet;idet1++){
@@ -1155,32 +1160,29 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 	}
 	fclose(fp);
 
+#endif
 
-
-	temp_stream << outdirSpN + "Afinal_" << base_n << ".txt";
-
-	// get filename
+	temp_stream << outdirSpN  << basename << structPS.mix_suffix;
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
 	fp = fopen(testfile.c_str(),"w");
-	fprintf(fp,"%ld\n",ncomp); // ajout 20/09/10 pour etre cohérent avec la fonction de read !
+	fprintf(fp,"%i\n",structPS.ncomp);
 	for (long ii=0;ii<ndet;ii++)
-		for (long jj=0;jj<ncomp;jj++)
+		for (long jj=0;jj<structPS.ncomp;jj++)
 			fprintf(fp,"%10.15g \n",mixmat[ii][jj]);
 	fprintf(fp,"\n");
 	fclose(fp);
 
 
+#ifdef DEBUG
 
 	//TODO : One should define a fits format for that => useless ! The same is done for Nfinal _uncnoise !
 	//**************** Write component power spectra to disk
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		tempstr1 = det[idet1];
-		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << base_n << ".psd";
-
-		// récupérer une chaîne de caractères
+		temp_stream << outdirSpN + tempstr1 + "_uncnoise_" << basename << ".psd";
 		nameSpfile= temp_stream.str();
 		temp_stream.str("");
 
@@ -1197,9 +1199,7 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j]*SPref[j];
 
-	temp_stream << "!" + outdirSpN + "Nfinal_" << base_n << "_uncnoise.fits";
-
-	// get filename
+	temp_stream << "!" + outdirSpN + "Nfinal_" << basename << "_uncnoise.fits";
 	testfile= temp_stream.str();
 	temp_stream.str("");
 	write_psd_tofits(testfile,nbins,ndet,'d',data1d);
@@ -1208,11 +1208,9 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 
 
 	//TODO: One should define a fits format for that
-	for (long jj=0;jj<ncomp;jj++){
+	for (long jj=0;jj<structPS.ncomp;jj++){
 
-		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise_" << base_n << ".psd";
-
-		// get filename
+		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise_" << basename << ".psd";
 		nameSpfile= temp_stream.str();
 		temp_stream.str("");
 
@@ -1224,17 +1222,21 @@ int write_to_disk(string outdirSpN, string fits_filename, std::vector<std::strin
 		fclose(fp);
 	}
 
-	data1d = new double[ncomp*nbins];
-	for (long i=0; i< ncomp; i++)
+#endif
+
+
+	data1d = new double[structPS.ncomp*nbins];
+	for (long i=0; i< structPS.ncomp; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = P[i][j]*SPref[j];
 
-	temp_stream << "!" + outdirSpN + "Nfinal_" << base_n << "_cnoise.fits";
+	temp_stream << "!" + outdirSpN + "Nfinal_" << basename << "_cnoise.fits";
 
 	// get filename
 	testfile= temp_stream.str();
 	temp_stream.str("");
-	write_psd_tofits(testfile,nbins,ncomp,'d',data1d);
+	write_psd_tofits(testfile,nbins,structPS.ncomp,'d',data1d);
+
 
 
 	delete [] data1d;

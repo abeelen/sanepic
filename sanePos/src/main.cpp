@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
 	long long *pixon_tot=NULL;
 
 	// struct used in the parser
-	std::vector<double> fcut;
 	struct param_sanePS structPS;
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
@@ -140,7 +139,7 @@ int main(int argc, char *argv[])
 		parsed=-1;
 	} else {
 
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, struct_sanePic, size);
 
 		if(rank==0)
@@ -250,12 +249,12 @@ int main(int argc, char *argv[])
 #endif
 
 
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
-#ifdef PARA_FRAME
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
+//	if(!compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
+//#ifdef PARA_FRAME
+//		MPI_Finalize();
+//#endif
+//		return(EX_IOERR);
+//	}
 
 	if(rank==0)
 		// parser print screen function

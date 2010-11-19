@@ -181,49 +181,9 @@ void readFrames(std::vector<string> &inputList, long *& nsamples){
 
 }
 
-//int read_bolo_for_all_scans(std::vector<detectors> &detector_tab, struct param_common dir, struct samples samples_struct, int rank, int size){
-int read_bolo_for_all_scans(struct param_common dir, struct samples &samples_struct, int rank, int size){
-	string output = "";
-	string filename;
-//	struct detectors det;
-	for(long oo=0;oo<samples_struct.ntotscan;oo++){
-
-		if(dir.bolo_global_filename!="")
-			filename=dir.input_dir + dir.bolo_global_filename;
-		else
-			filename=dir.input_dir + FitsBasename(samples_struct.fitsvect[oo]) + dir.suffix ; //  + ".bolo"
-
-//		if(read_channel_list(output, filename, det.boloname)==1){
-//			if(rank==0)
-//				cout << endl << output << endl;
-//			return 1;
-//		}
-//		det.ndet = (long)((det.boloname).size());
-//		if (det.ndet == 0) {
-//			if(rank==0)
-//				cout << "Must provide at least one channel.\n\n";
-//			return 1;
-//		}
-//		if(size>det.ndet){
-//			if(rank==0)
-//				cout << "You are using too many processors : " << size << " processors for only " << detector_tab[oo].ndet << " detectors!";
-//			return 1;
-//		}
-		samples_struct.bolovect.push_back(filename);
-//		detector_tab.push_back(det);
-//		det.ndet=0;
-//		det.boloname.clear();
-		if(dir.bolo_global_filename!="") {
-			samples_struct.bolovect.resize(samples_struct.ntotscan, samples_struct.bolovect[0]);
-			break;
-		}
-	}
-
-	return 0;
-}
-
-
 int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames){
+
+	bolonames.clear();
 
 	if(read_strings(fname,bolonames)){
 		output += "You must create file specifying bolometer list named " + fname + "\n";
@@ -233,9 +193,12 @@ int read_channel_list(std::string &output, std::string fname, std::vector<string
 }
 
 
-int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles, std::vector<int> &frameorder, bool &framegiven) {
+int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 
 
+	std::vector<string> &fitsfiles = samples_str.fitsvect;
+	std::vector<int> &frameorder = samples_str.scans_index;
+	bool &framegiven = samples_str.framegiven;
 
 	ifstream file;
 	file.open(fname.c_str(), ios::in);
@@ -290,7 +253,7 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 		break;
 
 	default:
-		output += "File [" + fname + "] must have at least one row and 2 colums. Exiting\n";
+		output += "File [" + fname + "] must have at least one row and at most 2 colums. Exiting\n";
 		return 1;
 		break;
 	}
@@ -315,60 +278,3 @@ int read_fits_list(string &output, string fname, std::vector<string> &fitsfiles,
 	return 0;
 }
 
-
-void fill_sanePS_struct(struct param_sanePS &structPS, struct samples samples_struct){
-
-
-	for(long ii=0;ii<samples_struct.ntotscan;ii++){
-		if(structPS.mix_global_file!="")
-			structPS.mix_names.push_back(structPS.mix_global_file);
-		else
-			structPS.mix_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.mix_suffix);
-
-		if(structPS.ell_global_file!="")
-			structPS.ell_names.push_back(structPS.ell_global_file);
-		else
-			structPS.ell_names.push_back(FitsBasename(samples_struct.fitsvect[ii]) + structPS.ell_suffix);
-	}
-
-}
-
-void fill_noisevect_fcut(struct param_common dir, struct samples &samples_str, struct param_saneInv &saneInv_struct, std::vector<double> &fcut){
-
-	if((saneInv_struct.cov_matrix_file!="")){
-		samples_str.noisevect.push_back(saneInv_struct.cov_matrix_file);
-
-	}else{
-		for(long iframe = 0; iframe < samples_str.ntotscan ; iframe ++)
-			samples_str.noisevect.push_back(FitsBasename(samples_str.fitsvect[iframe]) + saneInv_struct.cov_matrix_suffix);
-	}
-
-
-	if((int)fcut.size()==0){ // TODO : if fcut a la bonne taille : réorganiser dans mpi_define etc...
-
-		for(long iframe = 0; iframe < (long)samples_str.noisevect.size() ; iframe ++){
-
-			std::vector<string> bolos;
-			long nbins;
-			double *ell;
-			double **Rellth;
-
-			read_CovMatrix(dir.noise_dir + samples_str.noisevect[iframe], bolos, nbins, ell, Rellth);
-			fcut.push_back(ell[0]);
-			delete [] ell;
-			long nBolos=bolos.size();
-			free_dmatrix(Rellth, 0, nBolos * nBolos - 1, 0, nbins - 1);
-
-		}
-	}
-
-	if((samples_str.noisevect.size() == 1) && (samples_str.ntotscan > 1)){
-		// same noise file for all the scans
-		(samples_str.noisevect).resize(samples_str.fitsvect.size(),samples_str.noisevect[0]);
-
-		// if only one fcut, extend to all scans
-		fcut.resize(samples_str.ntotscan, fcut[0]);
-	}
-
-
-}

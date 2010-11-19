@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	struct param_sanePS structPS;
 	struct param_saneInv saneInv_struct;
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-	std::vector<double> fcut_vector;
+//	std::vector<double> fcut_vector;
 	struct param_sanePic struct_sanePic;
 	string output = "";
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	} else {
 
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut_vector,
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, struct_sanePic, size);
 
 		if(rank==0)
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 //	samples_struct.index_table = new int[samples_struct.ntotscan];
 //	samples_struct.noise_table = new string[samples_struct.ntotscan];
 
-	fill_sanePS_struct(structPS, samples_struct);
+	fill_sanePS_struct(structPS, samples_struct, dir);
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if (structPS.signame != "NOSIGFILE") {
@@ -200,14 +200,7 @@ int main(int argc, char *argv[])
 #endif
 				return (EX_IOERR);
 			}
-		}
 
-#ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
-#endif
-
-		wcsvfree(&nwcs, &wcs);
 
 #ifdef DEBUG
 		FILE * fp;
@@ -216,6 +209,15 @@ int main(int argc, char *argv[])
 			fprintf(fp,"%lf\n",S[i]);
 		fclose(fp);
 #endif
+
+		}
+
+#ifdef PARA_FRAME
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
+#endif
+
+		wcsvfree(&nwcs, &wcs);
 
 
 	}
@@ -265,22 +267,8 @@ int main(int argc, char *argv[])
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
-
-	//convert vector to standard C array to speed up memory accesses
-//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-//	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
 
-	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut_vector);
-//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
-
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
 
 	if(rank==0)
 		// parser print screen function
@@ -296,10 +284,8 @@ int main(int argc, char *argv[])
 			cout << output_read << endl;
 			return 1;
 		}
-		long ndet = (long)det.size();
 
-
-		if(EstimPowerSpectra(det, ndet, proc_param, dir, pos_param, structPS,
+		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
 			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";
 			break;

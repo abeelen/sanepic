@@ -325,7 +325,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 
 	delete [] fitsvect_temp;
 
-	return 0;
+return 0;
 }
 
 int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, std::vector<int> &index_dummy, int size, int rank)
@@ -333,15 +333,21 @@ int check_ParallelizationScheme(string fname, string dirfile,struct samples &sam
 {
 
 
-	std::vector<string> fits_dummy;
+	//TODO: Ugly fix... change function to use samples structure
+	struct samples samples_str_dummy;
+
+	std::vector<string> &fits_dummy = samples_str_dummy.fitsvect;
+	index_dummy = samples_str_dummy.scans_index;
+	bool &framegiven = samples_str_dummy.framegiven;
+
 	long ntotscan_dummy;
 	long size_tmp;
 
-	bool framegiven;
 	long *nsamples_dummy;
 	string temp, output;
 
-	if(read_fits_list(output ,fname, fits_dummy, index_dummy, framegiven))
+
+	if(read_fits_list(output ,fname, samples_str_dummy))
 		return 1;
 
 

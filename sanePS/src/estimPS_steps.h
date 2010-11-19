@@ -8,19 +8,19 @@
 #include <fftw3.h>
 
 
-int common_mode_computation(std::vector<std::string> det, long ndet, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int common_mode_computation(std::vector<std::string> det,  struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, std::string fits_filename);
 
-int estimate_noise_PS(std::vector<std::string> det, long ndet, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int estimate_noise_PS(std::vector<std::string> det,  struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, std::string fits_filename);
 
 
-int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long ndet, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, std::string fits_filename, int rank);
 
 int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
@@ -31,7 +31,7 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins);
 
-int write_to_disk(std::string outdirSpN, std::string fits_filename, std::vector<std::string> det, long ndet, long nbins, double *ell, double **mixmat,
-		double **Rellth, double **Rellexp, long ncomp,double **N, double *SPref, double **P);
+int write_to_disk(std::string outdirSpN, std::string fits_filename, struct param_sanePS structPS, std::vector<std::string> det, long nbins, double *ell, double **mixmat,
+		double **Rellth, double **Rellexp, double **N, double *SPref, double **P);
 
 #endif /* ESTIMPS_STEPS_H_ */

@@ -35,7 +35,7 @@ using namespace std;
 //}
 
 int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
-		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param, std::vector<double> &fcut,
+		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)
 {
 
@@ -48,7 +48,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 	ofstream file;
 
 
-	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param, fcut,
+	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param,
 			structPS, saneInv_struct, sanePic_struct, size))
 		return -1;
 
@@ -81,9 +81,9 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "input_directory = " + dir.input_dir + " ; input directory with all the configurations files\n";
 		text += "output_dir = " + dir.output_dir + " ; output directory\n";
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";
-		text += "fits_filelist = " + samples_struct.filename + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
+		text += "fits_filelist = " + dir.fits_filelist + " ; file containing fits file names, [corresponding noise file, [processors indexes]]\n";
 		text += "bolo_global_file = " + bolo_gain_file + " ; every scans have the same detector list which name is filled in this field\n";
-		text += "bolo_suffix = " + dir.suffix + " ; bolometers filelist suffix : can be void\n";
+		text += "bolo_suffix = " + dir.bolo_suffix + " ; bolometers filelist suffix : can be void\n";
 
 
 		text += "\n\n";
@@ -122,7 +122,6 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "MixingMatrix_suffix = " + structPS.mix_suffix + " ; Mixing matrix files suffix : the mixmat files are not the same : each scan has a mixmat file named : basename(scan_filename) + MixingMatrix_suffix\n";
 		text += "MixingMatrix_global_file = " + structPS.mix_global_file + " ;  the MixingMatrix file  (fill this field if the MixingMatrix file is the same for all the scans !)\n";
 		text += "ncomp = " + StringOf(structPS.ncomp) + " ; number of component(s) to estimate\n";
-		text += "fcut = " + StringOf(structPS.fcutPS) + " ; freq above which value of the noise will not be estimated\n";
 		text += "map_file = " + structPS.signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n";
 		text += "ell_global_file = " + structPS.ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
 		text += "ell_suffix = " + structPS.ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";

@@ -45,16 +45,23 @@ int parse_saneFix_ini_file(char * ini_name, string &output, struct param_common 
 		return -1 ;
 	}
 
-	// get directories path
-	if(read_common(output, ini, dir)==1)
-		return -1;
+	default_param_common(dir);
+	read_common(output, ini, dir);
 
-	// get fits file that have to be fixed
-	if(read_fits_file_list(output, ini, dir,samples_struct)==1)
-		return -1;
-
-	// store number of scans
+	string filename;
+	filename = dir.input_dir+dir.fits_filelist;
+	if(read_fits_list(output, filename, samples_struct)!=0)
+		return 1;
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+
+	// TODO: Fundamental reason for that here ? Why not keep it simple ?
+	for(int iframe=0;iframe<(int)((samples_struct.fitsvect).size());iframe++){
+		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
+	}
+
+	// TODO: Why is that needed in sample_struct, why not just for saneFrameOrder ?
+	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+
 
 	// free iniparser dictionnary
 	iniparser_freedict(ini);

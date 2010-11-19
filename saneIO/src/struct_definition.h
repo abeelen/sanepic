@@ -13,10 +13,9 @@ struct param_common
 	std::string noise_dir;
 	std::string input_dir;
 
-//	std::string channel;
 	std::string fits_filelist;
 	std::string bolo_global_filename;
-	std::string suffix;
+	std::string bolo_suffix;
 };
 
 struct param_sanePos
@@ -55,25 +54,28 @@ struct param_saneInv
 struct param_sanePS
 /*! A structure that contains user options about sanePS procedure */
 {
-	double fcutPS;
 	std::string ell_suffix;
 	std::string mix_suffix;
 	std::string ell_global_file;
 	std::string mix_global_file;
-	std::vector<std::string> ell_names;
-	std::vector<std::string> mix_names;
+
+	//TODO: Ugly turnaround until sanePS is released;
+	std::string cov_matrix_file;
+	std::string cov_matrix_suffix;
+
+
 	std::string signame;
-	long ncomp;
+	int ncomp;
 };
 
 struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-	//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
+//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
 	int save_data;
 	int restore;
-	//	double thresholds; // determine thresholds
+//	double thresholds; // determine thresholds
 };
 
 struct samples
@@ -81,17 +83,24 @@ struct samples
 {
 	std::vector<std::string> fitsvect;
 	std::vector<std::string> noisevect;
-	std::vector<int> scans_index;
 	std::vector<std::string> bolovect;
+
+
+	std::vector<double> fcut;
+
+	std::vector<std::string> ell_names;
+	std::vector<std::string> mix_names;
+
+	std::vector<int> scans_index;
 
 	bool framegiven;
 //	std::string *fits_table;
 //	std::string *noise_table;
 //	int *index_table;
 
+	//TODO: Switch nsample to vector too...
 	long *nsamples;
 	long ntotscan;
-	std::string filename; // name of the fits_filelist.txt file read in ini file !
 };
 
 

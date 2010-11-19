@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 	string parser_output = "";
 
 	/* Parser inputs */
-	std::vector<double> fcut; /* noise cutting frequency */
+//	std::vector<double> fcut; /* noise cutting frequency */
 
 	// Processing time estimation
 	time_t t2, t3;
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 		parsed=1;
 	else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, struct_sanePic, size);
 
 	}
@@ -272,16 +272,15 @@ int main(int argc, char *argv[])
 
 #endif
 
-	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 
-
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size) || !compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, rank)){
-#ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
+//
+//	if(!compute_dirfile_format_fdata(dir.tmp_dir, samples_struct, rank)){
+//#ifdef USE_MPI
+//		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Finalize();
+//#endif
+//		return(EX_IOERR);
+//	}
 
 	if(rank==0)
 		// parser print screen function
@@ -384,20 +383,20 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		printf("\nPre-processing of the data\n");
 
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
 	prefixe = "fdata_"; // Fourier transform of the data file prefixe
 
 	// loop over the scans
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-#ifdef LARGE_MEMORY
-		fftw_complex  *fdata_buffer; // fdata are saved in buffers instead of written to disk
-		//if(rank==0)
-		fftw_complex *fdata_buffer_tot=NULL;
-#endif
-
 		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+		f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+
+//		cout << "[ " << rank << "] iframe :" << iframe << " ns : " << ns << " f_lppix : " << f_lppix <<  " f_lppix_Nk : " << f_lppix_Nk << endl;
 
 		string output_read = "";
 		std::vector<string> det_vect;
@@ -428,26 +427,7 @@ int main(int argc, char *argv[])
 			// ns = number of sample for this scan
 			// iframe = scan number : 0=> ntotscan if non-MPI
 
-#ifdef LARGE_MEMORY
-			// A fdata buffer will be used to avoid binary writing
-			fdata_buffer = new fftw_complex[det.ndet*(ns/2+1)];
 
-
-			if (rank==0){ // allocate buffer + fill with 0.0
-				fdata_buffer_tot = new fftw_complex[det.ndet*(ns/2+1)];
-				for (long ii=0;ii<det.ndet*(ns/2+1);ii++){
-					fdata_buffer_tot[ii][0] = 0.0;
-					fdata_buffer_tot[ii][1] = 0.0;
-				}
-
-
-			}
-
-			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size,name_rank,fdata_buffer);
-			// fillgaps + butterworth filter + fourier transform
-			// "fdata_" files generation (fourier transform of the data)
-#else
 
 #ifdef PARA_FRAME
 			pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
@@ -459,7 +439,6 @@ int main(int argc, char *argv[])
 					npixsrc,addnpix,f_lppix,ns,	iframe,rank,size, name_rank);
 			// fillgaps + butterworth filter + fourier transform
 			// "fdata_" files generation (fourier transform of the data)
-#endif
 #endif
 
 			if(pb>0){
@@ -481,11 +460,6 @@ int main(int argc, char *argv[])
 #ifdef PARA_BOLO
 			MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#ifdef LARGE_MEMORY
-			// Rank 0 collects the fourier transform buffer...
-			MPI_Reduce(fdata_buffer,fdata_buffer_tot,(ns/2+1)*2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-			MPI_Bcast(fdata_buffer,(ns/2+1)*2,MPI_DOUBLE,0,MPI_COMM_WORLD); // ...and broadcast it to the other procs
-#endif
 
 			/* do_PtNd parameters : */
 			// PNd => npix (dimension), initialised to 0.0 : (At N-1 d)
@@ -502,11 +476,6 @@ int main(int argc, char *argv[])
 			// iframe = scan indice
 			// *Mp = Null :
 			// *Hits = Null (map hits)
-#ifdef LARGE_MEMORY
-			pb+=do_PtNd(PNd, samples_struct.noisevect,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
-					proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fitsvect[iframe],Mp,hits, name_rank,fdata_buffer);
-			// Returns Pnd = (At N-1 d), Mp and hits
-#else
 
 #ifdef PARA_FRAME
 			pb+=do_PtNd(PNd, samples_struct.noisevect,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
@@ -522,8 +491,6 @@ int main(int argc, char *argv[])
 			pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
-#endif
-
 
 			if(pb>0){
 				cout << "Problem after do_PtNd. Exiting...\n";
@@ -534,11 +501,7 @@ int main(int argc, char *argv[])
 				return -1;
 			}
 
-#ifdef LARGE_MEMORY
-			delete [] fdata_buffer;
-			if(rank==0)
-				delete [] fdata_buffer_tot;
-#endif
+
 		} else { // No correlation case
 
 
@@ -703,7 +666,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , fcut, samples_struct)) // write sanePre parameters in naive Map fits file header
+		if(write_fits_hitory(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , samples_struct.fcut, samples_struct)) // write sanePre parameters in naive Map fits file header
 			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
 		if (pos_param.maskfile != "")
 			if(write_fits_mask(fnaivname, pos_param.maskfile)) // copy mask in naive map file

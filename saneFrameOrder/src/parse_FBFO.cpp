@@ -14,6 +14,7 @@
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
 #include "struct_definition.h"
+#include "inputFileIO.h"
 
 extern "C"{
 #include "iniparser.h"
@@ -40,11 +41,11 @@ int parse_FBFO(char * ini_name, string &parser_output, struct samples &samples_s
 
 	samples_struct.ntotscan=0; /*! total number of scans*/
 
-	if(read_common(parser_output, ini, dir)==-1)
-		return -1;
+	read_common(parser_output, ini, dir);
 
-	if(read_fits_file_list(parser_output, ini, dir,samples_struct)==-1)
-		return -1;
+	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
+	if(read_fits_list(parser_output, dir.input_dir+dir.fits_filelist, samples_struct)!=0)
+		return 1;
 
 	cout << "You have specified the following options : \n\n";
 

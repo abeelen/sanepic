@@ -296,7 +296,11 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 	fill(Nk,Nk+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
+
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+
+
+
 #ifdef DEBUG
 		cout << "[ " << para_bolo_indice << " ] progression do_ptNd : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)ndet)) << " %" << endl;
 		ostringstream oss;
@@ -310,12 +314,12 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 
 		field1 = det[idet1];
 
-
 #ifdef DEBUG
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
 		file << "before read samptopix : at " << asctime (timeinfo) << endl;
 #endif
+
 		//Read pointing data
 		if(read_samptopix(ns, samptopix, dir, filename, field1))
 			return 1;
@@ -340,6 +344,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 
 		if(read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all))
 			return 1;
+
 #ifdef DEBUG
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
@@ -372,7 +377,6 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 				//read Fourier transform of the data
 				if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
 					return 1;
-
 
 
 			//****************** Cross power spectrum of the noise  ***************//

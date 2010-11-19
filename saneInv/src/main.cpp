@@ -72,12 +72,10 @@ int main(int argc, char *argv[]) {
 	//	string noiseSp_dir_output;/*! output directory */
 	string base_name="";/*! output noise file suffix */
 	string fname; /*! covariance matrix fits filename */
-	string fname2;
 	string boloname;/*! channels list file */
 	string noise_suffix = "_InvNoisePS";
 	string output = "";
 
-	std::vector<double> fcut;
 	struct param_sanePos pos_param;
 	struct param_sanePre proc_param;
 	struct param_sanePS structPS;
@@ -95,7 +93,7 @@ int main(int argc, char *argv[]) {
 		printf("Please run %s using a *.ini file\n",argv[0]);
 		parsed=-1;
 	} else {
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, struct_sanePic, size);
 
 		if(rank==0)
@@ -125,25 +123,12 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
-
-	// read all bolo lists
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
-
 	if(rank==0)
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 	// START OF saneInv
-
-	// read all cov matrix files : one for all or one for each scan !
-	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
 
 	std::vector<string>::iterator it;
 	long size_tmp;
@@ -174,20 +159,20 @@ int main(int argc, char *argv[]) {
 	for(int ii=0; ii<n_iter; ii++){
 		// select which proc number compute this loop
 		if(rank==who_do_it(size,rank,ii)){
-			fname="";
-			fname+=(string)samples_struct.noisevect[ii];
-			base_name=FitsBasename(fname);
+//			fname="";
+//			fname+=(string)samples_struct.noisevect[ii];
+			base_name=FitsBasename(samples_struct.noisevect[ii]);
 			cout << "Inversion of : " << base_name << endl;
 
 			// get input covariance matrix file name
-			fname2=dir.noise_dir + (string)samples_struct.noisevect[ii];
+			fname=dir.noise_dir + (string)samples_struct.noisevect[ii];
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
 			// -the input channel list => channelIn
 			// -The number of bins (size of Ell) => nbins
 			// -The original NoiseNoise covariance matrix => RellthOrig
-			read_CovMatrix(fname2, channelIn, nbins, ell, RellthOrig);
+			read_CovMatrix(fname, channelIn, nbins, ell, RellthOrig);
 
 			// total number of detectors in the covmatrix fits file
 			ndetOrig = channelIn.size();

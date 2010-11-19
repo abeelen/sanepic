@@ -73,7 +73,6 @@ int main(int argc, char *argv[]) {
 	struct param_sanePic sanePic_struct;
 	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
-	std::vector<double> fcut;
 	struct saneCheck check_struct;
 	string outname; /*! Ouput log files name */
 	string output = "";
@@ -85,7 +84,7 @@ int main(int argc, char *argv[]) {
 	if (argc<2) /* not enough argument */
 		parsed=-1;
 	else {
-		parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param, fcut,
+		parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, sanePic_struct, check_struct, rank, size);
 
 		if(rank==0)
@@ -103,14 +102,6 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
-
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return(EX_IOERR);
-	}
 
 	if(rank==0){
 		// parser print screen function
