@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
 
 		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+		f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
 		string output_read = "";
 		std::vector<string> det_vect;
