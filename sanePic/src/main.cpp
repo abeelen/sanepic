@@ -204,59 +204,18 @@ int main(int argc, char *argv[]) {
 
 #ifdef PARA_FRAME
 
-	ofstream file;
-
-	if(samples_struct.scans_index.size()==0) {
-
-		int test=0;
-		fname = dir.output_dir + parallel_scheme_filename;
-		if(rank==0)
-			cout << "Getting configuration and frame order from file : " << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.input_dir, dir.dirfile, samples_struct,size, iframe_min, iframe_max);
-
-		if(test==-1) {
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_SOFTWARE;
-		}
-
-	}else{
-
-		int test=0;
-		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
-
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		if(test>0) {
-			MPI_Finalize();
-			return EX_SOFTWARE;
-
-		}
-
+		MPI_Finalize();
+		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min) {
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
 	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
 #else
-#if !defined(PARA_BOLO)
-	fname = dir.output_dir + parallel_scheme_filename;
-	int test = 0;
-	std::vector<int> index_dummy;
-	test = check_ParallelizationScheme(fname, dir.input_dir, samples_struct,index_dummy,
-			size, rank);
-	if (test == -1) {
-		if (rank == 0)
-			cerr << "Error in check_parallelizationScheme non-MPI " << endl;
-		return EX_CONFIG;
-	}
-#endif
 
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
@@ -1129,7 +1088,7 @@ int main(int argc, char *argv[]) {
 	// clean up
 	delete[] S;
 
-	delete[] samples_struct.nsamples;
+//	delete[] samples_struct.nsamples;
 
 	delete[] indpsrc;
 	delete[] indpix;

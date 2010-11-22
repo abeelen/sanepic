@@ -94,22 +94,11 @@ struct samples
 	std::vector<int> scans_index;
 
 	bool framegiven;
-//	std::string *fits_table;
-//	std::string *noise_table;
-//	int *index_table;
 
 	//TODO: Switch nsample to vector too...
-	long *nsamples;
+	std::vector<long> nsamples;
 	long ntotscan;
 };
-
-
-//struct detectors
-///*! A structure that contains the name of the detectors + number of det */
-//{
-//	long ndet;
-//	std::vector<std::string> boloname;
-//};
 
 struct checksum
 /*! A structure that contains sanePic input checksum values for crash recovery procedure */

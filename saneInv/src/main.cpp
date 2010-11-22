@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// clean up
-	delete [] samples_struct.nsamples;
+//	delete [] samples_struct.nsamples;
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);

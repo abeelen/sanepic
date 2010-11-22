@@ -996,7 +996,6 @@
       <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
       <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
     </cconfiguration>
-    <<<<<<< .mine
 	    <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842">
 	      <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" moduleId="org.eclipse.cdt.core.settings" name="Release_debug_log">
 		<externalSettings>
@@ -1492,8 +1491,6 @@
 	      <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 	      <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	    </cconfiguration>
-	    =======
-	    >>>>>>> .r716
     </storageModule>
     <storageModule moduleId="cdtBuildSystem" version="4.0.0">
       <project id="libSane.cdt.managedbuild.target.gnu.exe.19524736" name="Executable" projectType="cdt.managedbuild.target.gnu.exe"/>

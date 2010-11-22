@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 	struct param_saneInv saneInv_struct;
 	string parser_output = "";
 
+	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 
 	// parser variables
 	int parsed = 0;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed = parser_function(argv[1], parser_output, dir,
-				samples_struct, pos_param, proc_param, fcut, structPS, saneInv_struct,
+				samples_struct, pos_param, proc_param, structPS, saneInv_struct,
 				struct_sanePic, size);
 
 		if(rank==0)
@@ -122,74 +123,26 @@ int main(int argc, char *argv[])
 
 #ifdef USE_MPI
 
-	ofstream file;
-	long iframe_min, iframe_max;
 
-	// User has not given a processor order
-	if(samples_struct.scans_index.size()==0){
-
-		int test=0;
-		string fname = dir.output_dir + parallel_scheme_filename;
-		if(rank==0)
-			cout << "Getting configuration and frame order from file : " << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
-
-		if(test==-1){
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
-		}
-
-	}else{ // user has given a processor order
-		int test=0;
-		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
-
-
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		if(test>0){
-			MPI_Finalize();
-			return EX_CONFIG;
-
-		}
-
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	if (iframe_max==iframe_min){
-		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#else
-
-	//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
-	//	vector2array(samples_struct.scans_index,  samples_struct.index_table);
-
-
-#endif
-
-
-
-
-
-	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
-#ifdef USE_MPI
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
-#endif
-		return(EX_IOERR);
+		return EX_IOERR;
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
 
-	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut);
-	//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+	}
+#else
+	iframe_min = 0;
+	iframe_max = samples_struct.ntotscan;
 
-	fill_sanePS_struct(structPS, samples_struct);
+#endif
+
+
+	fill_sanePS_struct(structPS, samples_struct, dir);
 
 	if(rank==0)
 		// parser print screen function
@@ -254,7 +207,6 @@ void print_struct(struct param_sanePre proc_param, struct samples samples_struct
 	cout << "iterW = " << struct_sanePic.iterw << endl;
 
 	cout << "\nstructPS : struct param_sanePS\n";
-	cout << "fcutPS = " << structPS.fcutPS << endl;
 	cout << "ell_suffix = " << structPS.ell_suffix << endl;
 	cout << "mix_suffix = " << structPS.mix_suffix << endl;
 	cout << "ell_global_file = " << structPS.ell_global_file << endl;
@@ -263,7 +215,6 @@ void print_struct(struct param_sanePre proc_param, struct samples samples_struct
 	cout << "ncomp = " << structPS.ncomp << endl;
 
 	cout << "\nsamples_struct : struct samples\n";
-	cout << "filename = " << samples_struct.filename << endl;
 	cout << "ntotscan = " << samples_struct.ntotscan << endl;
 	cout << "fitsvect = " << endl;
 	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++)

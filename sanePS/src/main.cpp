@@ -117,10 +117,6 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-//	samples_struct.fits_table = new string[samples_struct.ntotscan];
-//	samples_struct.index_table = new int[samples_struct.ntotscan];
-//	samples_struct.noise_table = new string[samples_struct.ntotscan];
-
 	fill_sanePS_struct(structPS, samples_struct, dir);
 
 	//First time run S=0, after sanepic, S = Pure signal
@@ -225,45 +221,17 @@ int main(int argc, char *argv[])
 
 #ifdef PARA_FRAME
 
-	ofstream file;
-	if(samples_struct.scans_index.size()==0) {
-
-		int test=0;
-		string fname = dir.output_dir + parallel_scheme_filename;
-		if(rank==0)
-			cout << "Getting configuration and frame order from file : " << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.input_dir, dir.dirfile, samples_struct,size, iframe_min, iframe_max);
-
-		if(test==-1) {
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_SOFTWARE;
-		}
-
-	}else{
-		int test=0;
-		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
-
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		if(test>0){
-			MPI_Finalize();
-			return EX_SOFTWARE;
-
-		}
-
+		MPI_Finalize();
+		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min) {
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-
 	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
@@ -304,10 +272,7 @@ int main(int argc, char *argv[])
 #endif
 
 	//clean up
-	delete[] samples_struct.nsamples;
-//	delete[] samples_struct.fits_table;
-//	delete[] samples_struct.index_table;
-//	delete[] samples_struct.noise_table;
+//	delete[] samples_struct.nsamples;
 
 	fftw_cleanup();
 

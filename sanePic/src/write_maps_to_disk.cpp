@@ -154,7 +154,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 
 	if (maskfile != "")
-		if(write_fits_mask(fname, maskfile))
+		if(write_fits_mask(fname, dir.input_dir + maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
 
 	if(write_fits_hitory(fname , NAXIS1, NAXIS2, outdir, proc_param, pos_param , fcut, samples_struct))

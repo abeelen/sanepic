@@ -88,7 +88,7 @@ int compare_array_double (const void *array_1, const void *array_2)
 }
 
 
-void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size){
+void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, long ntotscan, int size){
 
 	long count, a, b;
 	double maxproctmp, valmin, stdmin, stdtmp, valtmp;
@@ -325,286 +325,195 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 
 	delete [] fitsvect_temp;
 
-return 0;
-}
-
-int check_ParallelizationScheme(string fname, string dirfile,struct samples &samples_struct, std::vector<int> &index_dummy, int size, int rank)
-// read and check that the saved Parallelization Scheme corresponds to the actual data
-{
-
-
-	//TODO: Ugly fix... change function to use samples structure
-	struct samples samples_str_dummy;
-
-	std::vector<string> &fits_dummy = samples_str_dummy.fitsvect;
-	index_dummy = samples_str_dummy.scans_index;
-	bool &framegiven = samples_str_dummy.framegiven;
-
-	long ntotscan_dummy;
-	long size_tmp;
-
-	long *nsamples_dummy;
-	string temp, output;
-
-
-	if(read_fits_list(output ,fname, samples_str_dummy))
-		return 1;
-
-
-#ifdef DEBUG_PRINT
-	if(rank==0){
-		cout <<" readed list : " << endl;
-		for(int ii = 0; ii< (int)fits_dummy.size();ii++)
-			cout << fits_dummy[ii] << " " << index_dummy[ii] << endl;
-	}
-#endif
-
-#ifdef DEBUG_PRINT
-	if(rank==0)
-		cout << "framegiven : " << framegiven << endl;
-#endif
-
-	if((framegiven==0)||((int)fits_dummy.size()==0)){
-		cerr << "The file " << fname <<  " is empty\n.Exiting\n";
-		return -1;
-	}
-
-	ntotscan_dummy=(long)fits_dummy.size();
-	if(samples_struct.ntotscan!=ntotscan_dummy){
-		cerr << "number of scans are different between your fits file list and the mpi scheme" << endl;
-		return -1;
-	}
-
-
-	for(int ii=0;ii<(int)fits_dummy.size();ii++){
-		fits_dummy[ii] = dirfile + fits_dummy[ii];
-	}
-	std::vector<string> fits_copy(fits_dummy);
-
-	readFrames(fits_dummy, nsamples_dummy);
-
-#ifdef DEBUG_PRINT
-	if(rank==0){
-		cout << "ntotscan" << endl;
-		cout << samples_struct.ntotscan << " vs " << ntotscan_dummy << endl;
-	}
-#endif
-
-	struct sortclass_string sortobject;
-	sort(fits_dummy.begin(), fits_dummy.end(), sortobject);
-	sort((samples_struct.fitsvect).begin(), (samples_struct.fitsvect).end(), sortobject);
-
-	for(int ii=0;ii<samples_struct.ntotscan;ii++)
-		if(fits_dummy[ii]!=samples_struct.fitsvect[ii]){
-#ifdef DEBUG_PRINT
-			if(rank==0){
-				cout << "comparaison triée : " << endl;
-				cout << fits_dummy[ii] << endl;
-				cout << samples_struct.fitsvect[ii] << endl;
-			}
-#endif
-			cerr << "Your fits_filelist file and " << fname << " do not have the same sample files. Exiting\n";
-			return -1;
-		}
-
-	if(index_dummy.size()>0){
-		size_tmp = *max_element(index_dummy.begin(), index_dummy.end());
-
-#ifdef DEBUG_PRINT
-		if(rank==0)
-			cout << size << " vs size : " <<  size_tmp+1 << endl;
-#endif
-
-		if((size_tmp+1)!=size){
-			cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
-			return -1;
-		}
-	}
-
-	for(int ii=0;ii<samples_struct.ntotscan;ii++)
-		samples_struct.nsamples[ii]=nsamples_dummy[ii];
-
-	samples_struct.fitsvect.clear();
-	samples_struct.fitsvect = fits_copy;
-
-	delete [] nsamples_dummy;
 	return 0;
 }
 
+int verify_parallelization_scheme(int rank, struct samples &samples_struct, int size){
 
 
-int define_parallelization_scheme(int rank,string fname, string dirfile, string data_dir, struct samples &samples_struct,int size, long &iframe_min, long &iframe_max){
-
-	int test=0;
-	std::vector<int> index_dummy;
-
-
-	test=check_ParallelizationScheme(fname,dirfile,samples_struct, index_dummy, size, rank);
-	if (test==-1)
-		return test;
-
-	iframe_min = -1;
-
-	for(long ii=0;ii<samples_struct.ntotscan;ii++){
-		if((index_dummy[ii]==rank)&&(iframe_min == -1)){
-			iframe_min=ii;
-			break;
-		}
-	}
-
-	iframe_max=iframe_min;
-	for(iframe_max=iframe_min;iframe_max<samples_struct.ntotscan-1;iframe_max++)
-		if(index_dummy[iframe_max]!=rank){
-			iframe_max--;
-			break;
-		}
-
-	iframe_max++;
-
-#ifdef DEBUG_PRINT
-	cout << rank << " iframe_min : " << iframe_min << endl;
-	cout << rank << " iframe_max : " << iframe_max << endl;
-#endif
-
-	//	for(long ii=0;ii<samples_struct.ntotscan;ii++)
-	//		samples_struct.fitsvect[ii] = data_dir + samples_struct.fitsvect[ii]; // should no more be needed
-
-
-	return 0;
-
-}
-
-
-int verify_parallelization_scheme(int rank, string outdir,struct samples &samples_struct, int size, long &iframe_min, long &iframe_max){
-
-
-	ofstream file;
-
+	string origin_file;
+	if(samples_struct.framegiven)
+		origin_file = "fits_filelist";
+	else
+		origin_file = "parallel_scheme";
 
 	long size_tmp = 0;
 	int num_frame = 0;
 	char c;
-	int *index_copy;
-	index_copy= new int[samples_struct.ntotscan];
-	vector2array(samples_struct.scans_index,  index_copy);
+	std::vector<int> index_copy(samples_struct.scans_index);
 
 	struct sortclass_int sortobject;
-	sort(samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
+	sort(index_copy.begin(), index_copy.end(), sortobject);
 
 	std::vector<int>::iterator it;
 
 	// using default comparison:
-	it = unique(samples_struct.scans_index.begin(), samples_struct.scans_index.end());
-	size_tmp = it - samples_struct.scans_index.begin();
+	it = unique(index_copy.begin(), index_copy.end());
+	size_tmp = it - index_copy.begin();
 
 #ifdef DEBUG_PRINT
-	if(rank==0){
-		cout << "size unique : " << size_tmp << endl;
-		cout << size << " vs size : " <<  size_tmp << endl;
-	}
+	//	if(rank==0){
+	cout << "size unique : " << size_tmp << endl;
+	cout << size << " vs size : " <<  size_tmp << endl;
+	//	}
 #endif
 
 	if((size_tmp)>size){
-		cerr << "Number of processors are different between MPI and parallel scheme. Exiting\n";
+		cerr << "Number of processors are different between MPI and " << origin_file <<  ". Exiting\n";
 		return 1;
 	}else{
 
-		samples_struct.scans_index.resize( size_tmp );
-
 		if((size_tmp)<size){
+			index_copy.resize( size_tmp );
 			if(rank==0){
-				cout << "Warning. The number of processors used in fits_filelist is < to the number of processor used by MPI !\n";
+				cout << "Warning. The number of processors used in " << origin_file << " is < to the number of processor used by MPI !\n";
 				cout << "Do you wish to continue ? (y/n)\n";
 				c=getchar();
 				switch (c){
 				case('y') :
-											cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+																																																													cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
 				break;
 				default:
-					cout << "Exiting ! Please modify fits filelist to use the correct number of processors\n";
+					cout << "Exiting ! Please modify " << origin_file << " to use the correct number of processors\n";
 					return 1;
 					break;
 				}
 			}
 			for(long ii=0;ii<size_tmp;ii++)
-				if(samples_struct.scans_index[ii]==0)
+				if(index_copy[ii]==0)
 					num_frame++;
 
 			if(num_frame==0){
-				cout << "Exiting ! Please modify fits filelist to use at least processor 0 \n";
+				cout << "Exiting ! Please modify " << origin_file << " to use at least processor 0 \n";
 				return 1;
 			}
 
 
 		}else{
-
-
-			for(long ii=0;ii<size_tmp;ii++)
-				if(samples_struct.scans_index[ii]!=ii){
-					cerr << "There is a problem in the fits filelist : you have forgot a processor to use or the processor numbers are not continuous. Exiting" << endl;
+			for(int ii=0;ii<size_tmp;ii++)
+				if(index_copy[ii]!=ii){
+					cerr << "There is a problem in " << origin_file << " : you have forgot a processor to use or the processor numbers are not continuous. Exiting" << endl;
 					return 1;
 				}
 		}
 	}
 
+	return 0;
+
+}
 
 
-	if(rank==0){
+int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max){
 
-		string outfile = outdir + parallel_scheme_filename;
 
-		file.open(outfile.c_str(), ios::out);
-		if(!file.is_open()){
-			cerr << "File [" << outfile << "] Invalid : Unable to create it !" << endl;
+	struct samples samples_str_para;
+	if(!samples_struct.framegiven){
+
+		// get scans order from parallel_scheme
+		string para_file = outdir + parallel_scheme_filename;
+		string output="";
+
+		// read parallel scheme file
+		if(read_fits_list(output , para_file, samples_str_para)){
+			cout << output << endl;
 			return 1;
 		}
+
+		samples_str_para.ntotscan = samples_str_para.fitsvect.size();
+
+		if(!samples_str_para.framegiven){
+			cout << "ERROR in " << para_file << ". You must run saneFrameorder because indexes are absent ! Exiting ...\n";
+			return 1;
+		}
+
+		// check validity between para_scheme and fits_filelist file
+		if(check_filelist_validity(samples_struct, samples_str_para))
+			return 1;
+
+		// IF validity was ok : copy the index in samples_struct.scans_index
+		samples_struct.scans_index.insert(samples_struct.scans_index.begin(),samples_str_para.scans_index.begin(),samples_str_para.scans_index.end());
+		//		for(int ii=0;ii<samples_struct.ntotscan;ii++)
+		//			samples_struct.scans_index.push_back(samples_str_para.scans_index[ii]);
 	}
 
-	string temp;
-	size_t found;
+	// check validity between indexes and mpi #
+	verify_parallelization_scheme(rank, samples_struct, size);
 
-	num_frame=0;
+	// reorder samples_struct
+	reorder_samples_struct(rank, samples_struct, size, iframe_min, iframe_max);
+
+	return 0;
+}
+
+
+int check_filelist_validity(struct samples samples_str, struct samples samples_str_para){
+
+
+
+#ifdef DEBUG_PRINT
+	cout << "ntotscan" << endl;
+	cout << samples_str.ntotscan << " vs " << samples_str_para.ntotscan << endl;
+#endif
+
+	if(samples_str.ntotscan!=samples_str_para.ntotscan){
+		cerr << "number of scans are different between your fits file_list and the parallel_scheme" << endl;
+		return 1;
+	}
+
+
+	struct sortclass_string sortobject;
+	sort((samples_str_para.fitsvect).begin(), (samples_str_para.fitsvect).end(), sortobject);
+	sort((samples_str.fitsvect).begin(), (samples_str.fitsvect).end(), sortobject);
+
+	cout << FitsBasename(samples_str.fitsvect[0]) << endl;
+
+	for(int ii=0;ii<samples_str.ntotscan;ii++)
+		if(samples_str_para.fitsvect[ii]!=(FitsBasename(samples_str.fitsvect[ii])+ ".fits")){
+
+#ifdef DEBUG_PRINT
+			cout << "comparaison triée : " << endl;
+			cout << samples_str_para.fitsvect[ii] << " vs " << FitsBasename(samples_str.fitsvect[ii]) + ".fits" << endl;
+#endif
+
+			cerr << "Your fits_filelist file and parallel_scheme do not have the same sample files. Exiting\n";
+			return 1;
+		}
+
+	return 0;
+
+}
+
+void reorder_samples_struct(int rank, struct samples &samples_struct,  int size, long &iframe_min, long &iframe_max){
+
+	long num_frame=0;
 	iframe_min=0;
 	iframe_max=0;
 
+	// copy the whole vectors
 	std::vector<string> fits_copy(samples_struct.fitsvect);
-
-	long * nsamples_temp;
-	nsamples_temp = new long[samples_struct.ntotscan];
-
-	for(long jj = 0; jj<samples_struct.ntotscan; jj++)
-		nsamples_temp[jj]= samples_struct.nsamples[jj];
+	std::vector<long> nsamples_copy(samples_struct.nsamples);
+	std::vector<std::string> bolovect_copy(samples_struct.bolovect);
+	std::vector<double> fcut_copy(samples_struct.fcut);
 
 
+	// reorganize them and define each processor iframe_min and _max !
 	for(long ii = 0; ii<size; ii++){
 		if(rank==ii)
 			iframe_min=num_frame;
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++){
-			if(index_copy[jj]==ii){
 
-				samples_struct.fitsvect[num_frame]=fits_copy[jj]; // TEST IT
-				samples_struct.nsamples[num_frame]=nsamples_temp[jj];
-				if(rank==0){
-					temp = samples_struct.fitsvect[num_frame];
-					found=temp.find_last_of('/');
-					file << temp.substr(found+1) << " " << ii << endl;
+			if(samples_struct.scans_index[jj]==ii){
+				samples_struct.fitsvect[num_frame]=fits_copy[jj];
+				samples_struct.nsamples[num_frame]=nsamples_copy[jj];
+				samples_struct.bolovect[num_frame]=bolovect_copy[jj];
+				samples_struct.fcut[num_frame]=fcut_copy[jj];
 
-				}
 				num_frame++;
 			}
 		}
 		if(rank==ii)
 			iframe_max=num_frame;
 	}
-
-	delete [] nsamples_temp;
-	delete [] index_copy;
-
-	if(rank==0)
-		file.close();
-
-	return 0;
-
 }
 
 int who_do_it(int size, int rank, int ii)

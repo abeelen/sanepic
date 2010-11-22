@@ -101,7 +101,7 @@ std::string FitsBasename(std::string path)
 	int i;
 
 
-//	cout << path << " deb fonction" << endl;
+	//	cout << path << " deb fonction" << endl;
 
 	path=remplace_all(path, "\\", "/");
 
@@ -110,14 +110,14 @@ std::string FitsBasename(std::string path)
 	//	found = path.find_last_of("/\\");
 	i=path.rfind("/");
 
-//	cout << " i : " << i << endl;
+	//	cout << " i : " << i << endl;
 
 	if((i<0) || (i>(int)path.size()))
 		filename = path;
 	else
 		filename.assign(path.begin()+i+1,path.end());
 
-//	cout << filename << " apres path" << endl;
+	//	cout << filename << " apres path" << endl;
 
 	//	if (found != string::npos)
 	//		filename = 	path.substr(found+1);
@@ -136,7 +136,7 @@ std::string FitsBasename(std::string path)
 	if((i>0) && (i<(int)path.size()))
 		filename.erase(filename.begin()+i,filename.end());
 
-//	cout << filename << " fin fonction" << endl;
+	//	cout << filename << " fin fonction" << endl;
 
 	return filename;
 }
@@ -171,12 +171,12 @@ long readFitsLength(string filename){
 	return ns;
 }
 
-void readFrames(std::vector<string> &inputList, long *& nsamples){
+void readFrames(std::vector<string> &inputList, std::vector<long> &nsamples){
 
 	long nScan  = inputList.size();
-	nsamples = new long[nScan];
+	//	nsamples = new long[nScan];
 	for (long i=0; i<nScan; i++){
-		nsamples[i] = readFitsLength(inputList[i]);
+		nsamples.push_back(readFitsLength(inputList[i]));
 	}
 
 }
@@ -226,6 +226,10 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 	// set pointer back to the beginning of file in order to parse the first line too
 	file.seekg (0, ios::beg);
 
+#ifdef DEBUG_PRINT
+	cout << "case :  " << nb_elem << endl;
+#endif
+
 	switch(nb_elem) {
 	case 2:
 		framegiven=1;
@@ -235,7 +239,9 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 
 			if (found == 0) continue;
-
+#ifdef DEBUG_PRINT
+			cout << "frame_read : " << s << " " << d << endl;
+#endif
 			fitsfiles.push_back(s);
 			frameorder.push_back(d);
 		}
@@ -248,6 +254,9 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
+#ifdef DEBUG_PRINT
+			cout << "frame_read : " << s << endl;
+#endif
 			fitsfiles.push_back(s);
 		}
 		break;
@@ -268,10 +277,6 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 		return 1;
 	}
 
-
-#ifdef DEBUG_PRINT
-	cout << "read fits list ok !!!\n";
-#endif
 
 	file.close();
 

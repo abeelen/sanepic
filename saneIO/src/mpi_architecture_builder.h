@@ -36,7 +36,7 @@ template<class T> void vector2array(std::vector<T> vect, T* a)
 }
 
 // scans are distributed over processors
-void find_best_order_frames(long *position, long *frnum, long *ns, long ntotscan, int size);
+void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, long ntotscan, int size);
 
 int compare_array_double (const void *array_1, const void *array_2);
 double randg_archi(long nombre, int seedpass);
@@ -44,10 +44,11 @@ double* randg(long nombre, int seedpass);
 
 int write_ParallelizationScheme(std::string fname, long *position, long *frnum, int size, struct samples samples_struct);
 
-int check_ParallelizationScheme(std::string fname, std::string dirfile,struct samples &samples_struct, std::vector<int> &index_dummy, int size, int rank);
-int define_parallelization_scheme(int rank,std::string fname, std::string dirfile, std::string data_dir, struct samples &samples_struct,int size, long &iframe_min, long &iframe_max);
-int verify_parallelization_scheme(int rank, std::string outdir,struct samples &samples_struct, int size, long &iframe_min, long &iframe_max);
-
+// Mpi samples_struct reorganisation functions
+int verify_parallelization_scheme(int rank, struct samples &samples_struct, int size);
+int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max);
+int check_filelist_validity(struct samples samples_str, struct samples samples_str_para);
+void reorder_samples_struct(int rank, struct samples &samples_struct, int size, long &iframe_min, long &iframe_max);
 /*! this function determines which processor has to treat the given fits file referenced by his number in the input list */
 int who_do_it(int size, int rank, int ii);
 

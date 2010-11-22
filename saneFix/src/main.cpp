@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//clean up
-	delete [] samples_struct.nsamples;
+//	delete [] samples_struct.nsamples;
 
 	if(rank==0)
 		cout << "\nEnd of saneFix\n";

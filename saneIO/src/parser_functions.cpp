@@ -470,8 +470,8 @@ void default_param_sanePre(struct param_sanePre &proc_param){
 	proc_param.remove_polynomia = true;
 	proc_param.napod            = 100;
 	proc_param.poly_order       = 1;
-	proc_param.fsamp            = 0;
-	proc_param.f_lp             = 0;
+	proc_param.fsamp            = 0.0;
+	proc_param.f_lp             = 0.0;
 	proc_param.fcut_file        = "";
 
 }

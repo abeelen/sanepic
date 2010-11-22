@@ -15,7 +15,7 @@ int read_double(std::string fname, double *& array, long & size);
 std::string remplace_all(std::string str, std::string tobe_replace, std::string with_this);
 std::string FitsBasename(std::string path);
 
-void readFrames(std::vector<std::string> &inputFiles, long *&nsamples);
+void readFrames(std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
 
 long readFitsLength(std::string filename);
 int read_channel_list(std::string &output, std::string fname, std::vector<std::string> &bolonames);

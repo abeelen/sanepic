@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//clean up
-	delete [] samples_struct.nsamples;
+//	delete [] samples_struct.nsamples;
 	delete [] bolo_bad_tot;
 	delete [] bolo_bad_80_tot;
 

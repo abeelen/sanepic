@@ -178,83 +178,43 @@ int main(int argc, char *argv[])
 
 #ifdef PARA_FRAME
 
-	ofstream file;
-
-
-	// User has not given a processor order
-	if(samples_struct.scans_index.size()==0){
-
-		int test=0;
-		fname = dir.output_dir + parallel_scheme_filename;
-		if(rank==0)
-			cout << "Getting configuration and frame order from file : " << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.input_dir, dir.dirfile, samples_struct,size, iframe_min, iframe_max);
-
-		if(test==-1){
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
-		}
-
-	}else{ // user has given a processor order
-		int test=0;
-		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
-
-
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		if(test>0){
-			MPI_Finalize();
-			return EX_CONFIG;
-
-		}
-
+		MPI_Finalize();
+		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-
 	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
-	ofstream file; // write down the configuration used by sanePos
-	string outfile = dir.output_dir + parallel_scheme_filename;
-	file.open(outfile.c_str(), ios::out);
-	if(!file.is_open()){
-		cerr << "File [" << outfile << "] Invalid." << endl;
-		return EX_CANTCREAT;
-	}
-
-	string temp;
-	size_t found;
-
-	for(long jj = 0; jj<samples_struct.ntotscan; jj++){
-
-		temp = samples_struct.fitsvect[jj];
-		found=temp.find_last_of('/');
-		file << temp.substr(found+1) << " " << " 0" << endl;
-
-	}
-
-	file.close();
+	//	ofstream file; // write down the configuration used by sanePos
+	//	string outfile = dir.output_dir + parallel_scheme_filename;
+	//	file.open(outfile.c_str(), ios::out);
+	//	if(!file.is_open()){
+	//		cerr << "File [" << outfile << "] Invalid." << endl;
+	//		return EX_CANTCREAT;
+	//	}
+	//
+	//	string temp;
+	//	size_t found;
+	//
+	//	for(long jj = 0; jj<samples_struct.ntotscan; jj++){
+	//
+	//		temp = samples_struct.fitsvect[jj];
+	//		found=temp.find_last_of('/');
+	//		file << temp.substr(found+1) << " " << " 0" << endl;
+	//
+	//	}
+	//
+	//	file.close();
 
 #endif
-
-
-//	if(!compute_dirfile_format_file(dir.tmp_dir, samples_struct, rank)){
-//#ifdef PARA_FRAME
-//		MPI_Finalize();
-//#endif
-//		return(EX_IOERR);
-//	}
 
 	if(rank==0)
 		// parser print screen function
@@ -353,7 +313,7 @@ int main(int argc, char *argv[])
 		if(rank==0)
 			cout << "Reading Mask map : " << pos_param.maskfile << endl;
 
-		if (read_mask_wcs(pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
+		if (read_mask_wcs(dir.input_dir + pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
 #ifdef PARA_FRAME
 			MPI_Finalize();
@@ -512,7 +472,7 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] mask;
 	delete [] coordscorner;
-	delete [] samples_struct.nsamples;
+	//	delete [] samples_struct.nsamples;
 
 	delete [] pixon;
 

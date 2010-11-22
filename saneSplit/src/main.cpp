@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] time;
-	delete [] samples_struct.nsamples;
+//	delete [] samples_struct.nsamples;
 
 	cout << "End of saneSplit\n";
 

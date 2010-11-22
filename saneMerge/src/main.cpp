@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
 		fits_report_error(stderr, status);
 
 	//clean up
-	delete [] samples_struct.nsamples;
+//	delete [] samples_struct.nsamples;
 
 	cout << "End of saneMerge\n";
 

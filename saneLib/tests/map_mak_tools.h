@@ -19,12 +19,12 @@
 #include <vector>
 #include <cstdlib>
 
-#include "Corr_preprocess.h"
+#include "../src/Corr_preprocess.h"
 #include "dataIO.h"
 #include "temporary_IO.h"
 #include "inputFileIO.h"
-#include "todprocess.h"
-#include "map_making.h"
+#include "../src/todprocess.h"
+#include "../src/map_making.h"
 #include "struct_definition.h"
 #include "covMatrix_IO.h"
 
