@@ -255,7 +255,7 @@ int computeMapMinima_HIPE(struct samples samples_struct,
 
 			if (test_ns != ns) {
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 
 			if(read_flag_from_fits(fits_file, field, flag, test_ns))

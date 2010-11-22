@@ -16,7 +16,7 @@ int read_InvNoisePowerSpectra(std::string prefix, std::string boloName, std::str
 int write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbins, double *ell, double **Rellth);
 
 /*! Writes the reduced mixing matrix from a binary file */
-void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, std::string dir);
+//void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, std::string dir);
 
 /*! This function reads the NoiseNoise Matrices in a fits file (also reads the mixing matrices) */
 int read_CovMatrix(std::string fname, std::vector<std::string> &bolos, long &nbins, double *&ell, double **&Rellth);

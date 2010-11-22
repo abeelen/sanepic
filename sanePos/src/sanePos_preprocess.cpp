@@ -364,7 +364,7 @@ int computePixelIndex_HIPE(string outdir,
 
 			if (test_ns != ns) {
 				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
-				exit(-1);
+				return 1;
 			}
 
 

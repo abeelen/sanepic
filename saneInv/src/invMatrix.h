@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-void reorderMatrix(long nbins, std::vector<std::string> listIn, double **MatrixIn, std::vector<std::string> listOut, double ***MatrixOut);
+int reorderMatrix(long nbins, std::vector<std::string> listIn, double **MatrixIn, std::vector<std::string> listOut, double ***MatrixOut);
 void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn, double ***MatrixOut);
 
 

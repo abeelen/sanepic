@@ -546,7 +546,7 @@ int read_time_from_fits(string filename, double *& time, long ns){
 
 	if(ns!=ns_test){
 		cout << "time image has a wrong size : " << ns_test << " != " << ns << endl;
-		exit(0);
+		return 1;
 	}
 
 	// ---------------------------------------------

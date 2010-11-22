@@ -311,7 +311,7 @@ int check_path(string &output, string strPath, string path_type){
 		output += "Warning : Path " + path_type + " : " + strPath + " doesn't exist.\n";
 		string make_it = "mkdir " + strPath;
 		if(system((char*)make_it.c_str())==0)
-			output += "Path : " + strPath + " created\n";
+			output += "Path : " + strPath + " created\n"; // TODO : if para_frame : only rank 0 should create folders !
 		else
 			return 1;
 	}

@@ -30,7 +30,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk);
 
 
-void readNSpectrum(std::string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
+int readNSpectrum(std::string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk);
 
 
 void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2,

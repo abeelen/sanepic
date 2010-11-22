@@ -12,7 +12,7 @@ extern "C" {
 
 using namespace std;
 
-void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
+int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		std::vector<string> listOut, double ***MatrixOut)
 /*!\brief Resizes the covariance matrix with only needed detectors
  * \param nbins Number of power spectrum bins
@@ -29,7 +29,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 	// output number of detector cannot be larger than input number
 	if(ndetOut>ndetIn){
 		cerr << "Input Noise Power Spectra must include all requested channels"	<< endl;
-		exit(1);
+		return 1;
 	}
 
 	// find indexes of input bolo file corresponding to the output bolo file
@@ -46,7 +46,7 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 	for (int idetOut = 0; idetOut < ndetOut; idetOut++) {
 		if (indexIn[idetOut] == -1) {
 			cerr << "Input Noise Power Spectra must include all requested channels (" << listOut[idetOut] << ")" << endl;
-			exit(1);
+			return 1;
 		}
 	}
 
@@ -65,6 +65,8 @@ void reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 			}
 		}
 	}
+
+	return 0;
 }
 
 

@@ -167,7 +167,7 @@ int write_samptopix(long ns, long long *&samptopix, string outdir, string filena
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << outfile << endl;
-		exit(0);
+		return 1;
 	}
 #endif
 
@@ -192,7 +192,7 @@ int read_samptopix(long ns, long long *&samptopix, string outdir, string filenam
 		else{
 			fclose(fp);
 			cerr << "ERROR : samptopix size is not correct " << ns << " != " << ns2 << endl;
-			exit(0);
+			return 1;
 		}
 		fclose(fp);
 	}else{
@@ -276,7 +276,7 @@ int write_indpix(long long ind_size, long long npix, long long *indpix, string o
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
 
 #endif
@@ -334,7 +334,7 @@ int write_PNd(double *PNd, long long npix,  string outdir)
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not find " << testfile2 << endl;
-		exit(0);
+		return 1;
 	}
 
 #endif
@@ -396,7 +396,7 @@ int write_fdata(long ns, fftw_complex *fdata, string prefixe, string outdir, lon
 		fclose(fp);
 	}else{
 		cerr << "ERROR : Could not open " << outfile << endl;
-		exit(0);
+		return 1;
 	}
 #endif
 

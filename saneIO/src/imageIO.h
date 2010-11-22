@@ -22,7 +22,7 @@ int read_mask_wcs(string fname, string extname, /*char dtype,*/ struct wcsprm *&
 int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, long NAXIS2, struct wcsprm * wcs);
 int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
 void read_keyrec(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
-void print_MapHeader(struct wcsprm * wcs);
+int print_MapHeader(struct wcsprm * wcs);
 int compare_wcs(std::string fname, struct wcsprm *wcs, struct wcsprm *wcs_fits, long NAXIS1, long NAXIS2, long imNAXIS1, long imNAXIS2);
 
 

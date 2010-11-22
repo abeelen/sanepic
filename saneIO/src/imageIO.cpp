@@ -70,7 +70,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 			break;
 		default:
 			printf("write_fits: data type %c not supported. Exiting.\n",dtype);
-			exit(1);
+			return 1;
 		}
 
 		// Transform wcsprm struture to header
@@ -589,7 +589,7 @@ int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 
 	if ((status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header))) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
-		exit(0);
+		return 1;
 	}
 
 
@@ -610,13 +610,13 @@ int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 	return 0;
 }
 
-void print_MapHeader(struct wcsprm *wcs){
+int print_MapHeader(struct wcsprm *wcs){
 
 	int nkeyrec;
 	char * header, *hptr ;
 	if (int status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
-		exit(0);
+		return 1;
 	}
 	hptr = header;
 	printf("\n\n Map Header :\n");
@@ -625,6 +625,7 @@ void print_MapHeader(struct wcsprm *wcs){
 	}
 	free(header);
 
+	return 0;
 }
 
 void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){

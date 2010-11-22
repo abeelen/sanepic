@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
 			}
 
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return EX_CONFIG;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[]) {
 	long long test_size;
 	if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -289,7 +289,7 @@ int main(int argc, char *argv[]) {
 			<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 			<< endl;
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -308,7 +308,7 @@ int main(int argc, char *argv[]) {
 	// read indpix
 	if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map index
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -320,7 +320,7 @@ int main(int argc, char *argv[]) {
 			<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 			<< endl;
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -329,7 +329,7 @@ int main(int argc, char *argv[]) {
 	// read (At N-1 d) from file
 	if (read_PNd(PNdtot, npix2, dir.tmp_dir)) {
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -341,7 +341,7 @@ int main(int argc, char *argv[]) {
 			<< "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2"
 			<< endl;
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -353,7 +353,7 @@ int main(int argc, char *argv[]) {
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
 				<< endl;
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_SOFTWARE);
@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
 			if (rank == 0)
 				cout << "Checksums are different !!! Exiting..." << endl;
 #ifdef USE_MPI
-			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return EX_CONFIG;
@@ -385,7 +385,7 @@ int main(int argc, char *argv[]) {
 					indpix, indpsrc, test_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t)){ // write down on disk the checksum values
 #ifdef USE_MPI
-				MPI_Barrier(MPI_COMM_WORLD);
+//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return EX_CANTCREAT;
@@ -460,7 +460,7 @@ int main(int argc, char *argv[]) {
 			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 				cout << output_read << endl;
 #ifdef USE_MPI
-				MPI_Barrier(MPI_COMM_WORLD);
+//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return EX_CONFIG;
@@ -608,7 +608,7 @@ int main(int argc, char *argv[]) {
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
 #ifdef USE_MPI
-					MPI_Barrier(MPI_COMM_WORLD);
+//					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return EX_CONFIG;
@@ -698,7 +698,7 @@ int main(int argc, char *argv[]) {
 					if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 						cout << output_read << endl;
 #ifdef USE_MPI
-						MPI_Barrier(MPI_COMM_WORLD);
+//						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
 						return EX_CONFIG;
@@ -817,7 +817,7 @@ int main(int argc, char *argv[]) {
 							(void *) map1d, (char *) "Image", 0)) {
 						cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-						MPI_Barrier(MPI_COMM_WORLD);
+//						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
 						return EX_CANTCREAT;
@@ -843,7 +843,7 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, (char *) "Flagged Data", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-							MPI_Barrier(MPI_COMM_WORLD);
+//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
@@ -892,7 +892,7 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, "CCR Image", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-							MPI_Barrier(MPI_COMM_WORLD);
+//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
@@ -919,7 +919,7 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, (char *) "CCR Error", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-							MPI_Barrier(MPI_COMM_WORLD);
+//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
@@ -992,7 +992,7 @@ int main(int argc, char *argv[]) {
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
 #ifdef USE_MPI
-					MPI_Barrier(MPI_COMM_WORLD);
+//					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return EX_CONFIG;

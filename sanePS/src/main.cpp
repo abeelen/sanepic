@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 			}
 
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return EX_CONFIG;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
 			if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef PARA_FRAME
-				MPI_Barrier(MPI_COMM_WORLD);
+//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return (EX_IOERR);
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 					<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 					<< endl;
 #ifdef PARA_FRAME
-				MPI_Barrier(MPI_COMM_WORLD);
+//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return (EX_IOERR);
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
 		if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map indexes
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return (EX_IOERR);
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 				<< endl;
 #ifdef PARA_FRAME
-			MPI_Barrier(MPI_COMM_WORLD);
+//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return (EX_IOERR);
@@ -267,8 +267,22 @@ int main(int argc, char *argv[])
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
+
+	//convert vector to standard C array to speed up memory accesses
+//	vector2array(samples_struct.fitsvect, samples_struct.fits_table);
+//	vector2array(samples_struct.scans_index, samples_struct.index_table);
 #endif
 
+	fill_noisevect_fcut(dir, samples_struct, saneInv_struct, fcut_vector);
+//	vector2array(samples_struct.noisevect,  samples_struct.noise_table);
+
+	if(read_bolo_for_all_scans(dir, samples_struct, rank, size)){
+#ifdef PARA_FRAME
+//		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return(EX_IOERR);
+	}
 
 	if(rank==0)
 		// parser print screen function
@@ -284,8 +298,10 @@ int main(int argc, char *argv[])
 			cout << output_read << endl;
 			return 1;
 		}
+		long ndet = (long)det.size();
 
-		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
+
+		if(EstimPowerSpectra(det, ndet, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
 			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";
 			break;

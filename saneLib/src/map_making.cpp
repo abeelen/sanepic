@@ -507,7 +507,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 }
 
-void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
+int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
 
 	FILE *fp;
 
@@ -522,7 +522,7 @@ void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, do
 
 	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
 		cerr << "ERROR: Can't find noise power spectra file, check -k or -K in command line. Exiting. \n";
-		exit(1);
+		return 1;
 	}
 	result = fscanf(fp,"%d",&nbins);
 
@@ -548,7 +548,7 @@ void readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, do
 	delete[] SpN;
 	delete[] ell;
 
-
+return 0;
 
 }
 

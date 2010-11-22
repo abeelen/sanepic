@@ -14,7 +14,7 @@
 
 using namespace std;
 
-void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, std::vector<std::string> det, long ndet, double f_lppix, double f_lppix_Nk,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
 		long long npixsrc, long iframe, double *S, int para_bolo_indice, int para_bolo_size)
@@ -57,13 +57,13 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 		read_signal_from_fits(fits_filename, field, data, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 
@@ -123,6 +123,7 @@ void do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param,
 	delete[] Ps;
 
 
+	return 0;
 }
 
 

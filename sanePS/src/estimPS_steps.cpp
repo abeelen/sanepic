@@ -89,14 +89,14 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 			return EX_NOINPUT;
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			exit(EXIT_FAILURE);
+			return 1;
 		}
 
 		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
 			return EX_NOINPUT;
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(EXIT_FAILURE);
+			return 1;
 		}
 
 
@@ -118,7 +118,6 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
 		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
-
 
 
 		// TODO: should apodisation be part of MapMakePreProcess ?
@@ -282,14 +281,14 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 		read_signal_from_fits(fits_filename, field, data, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 
 		read_flag_from_fits(fits_filename , field, flag, test_ns);
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 
@@ -361,7 +360,7 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 			fclose(fp);
 		}else{
 			cerr << "Error. Can't open " << testfile << ".Exiting.\n";
-			exit(0);
+			return 1;
 		}
 
 	}
@@ -446,7 +445,7 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 	for (long ii=0;ii<nbins;ii++)
 		if ( isnan(SPref[ii]) || isinf(SPref[ii])){
 			cout << " Problem in the first detector power spectrum\n";
-			exit(-1);
+			return 1;
 		}
 	for (long idet1=0;idet1<ndet;idet1++)
 		for (long idet2=0;idet2<ndet;idet2++)

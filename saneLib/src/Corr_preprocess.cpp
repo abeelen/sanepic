@@ -21,8 +21,8 @@
 using namespace std;
 
 #ifdef DEBUG
-	#include <ostream>
-	#include <sstream>
+#include <ostream>
+#include <sstream>
 #endif
 
 int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
@@ -67,14 +67,14 @@ int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *ind
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-//		if(fPs_buffer!=(fftw_complex*)NULL)
-//			for(long ii=0;ii<(ns/2+1);ii++){
-//				fPs_buffer[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-//				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-//			}
-//		else
-			if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det))
-				return 1;
+		//		if(fPs_buffer!=(fftw_complex*)NULL)
+		//			for(long ii=0;ii<(ns/2+1);ii++){
+		//				fPs_buffer[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
+		//				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
+		//			}
+		//		else
+		if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det))
+			return 1;
 
 	}
 
@@ -92,7 +92,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 
 
 
-	double *data, *data_lp, *Ps;
+	double *data, *data_lp, *Ps=NULL;
 	int *flag=NULL;
 	long long *samptopix;
 
@@ -106,25 +106,22 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	file.open(fname.c_str(), ios::out | ios::app);
 	if(!file.is_open()){
 		cerr << "File [" << file << "] Invalid." << endl;
-		exit(0);
+		return 1;
 	}
 #endif
 
 	data_lp = new double[ns];
-
 	samptopix = new long long[ns];
-	Ps = new double[ns];
+
 	fdata = new fftw_complex[ns/2+1];
 
 	fill(data_lp,data_lp+ns,0.0);
-	fill(Ps,Ps+ns,0.0);
 	fill(samptopix,samptopix+ns,0);
 
-	for (long ii=0;ii<ns/2+1;ii++){
-		fdata[ii][0] = 0.0;
-		fdata[ii][1] = 0.0;
-	}
-
+	//	for (long ii=0;ii<ns/2+1;ii++){
+	//		fdata[ii][0] = 0.0;
+	//		fdata[ii][1] = 0.0;
+	//	}
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
@@ -161,14 +158,14 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 			return 1;
 		if (test_ns != ns) {
 			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 		if(read_flag_from_fits(fits_filename , field1, flag, test_ns))
 			return 1;
 		if (test_ns != ns) {
 			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			exit(-1);
+			return 1;
 		}
 
 
@@ -185,6 +182,8 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 			if(read_samptopix(ns, samptopix, tmp_dir, fits_filename, field1))
 				return 1;
 
+			Ps = new double[ns];
+			fill(Ps,Ps+ns,0.0);
 
 			//TODO : Fix that... same number of argument... not the same calling as in sanePS
 			if (addnpix){
@@ -192,13 +191,11 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 			} else {
 				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 			}
-//		}
 
 
-		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
-		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
+			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
+			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 
-//		if (S != NULL){
 			//********************  pre-processing of data ********************//
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
 		}
@@ -214,15 +211,15 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-//		if(fdatas!=NULL)
-//			for(long ii=0;ii<(ns/2+1);ii++){
-//				fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-//				fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-//			}
-//		else
-			//write fourier transform to disk
-			if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det))
-				return 1;
+		//		if(fdatas!=NULL)
+		//			for(long ii=0;ii<(ns/2+1);ii++){
+		//				fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
+		//				fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
+		//			}
+		//		else
+		//write fourier transform to disk
+		if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det))
+			return 1;
 
 
 		delete [] flag;
@@ -232,7 +229,8 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 
 	delete[] data_lp;
 	delete[] samptopix;
-	delete[] Ps;
+	if (S != NULL)
+		delete[] Ps;
 	delete[] fdata;
 
 
@@ -268,7 +266,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 	file.open(fname.c_str(), ios::out | ios::app);
 	if(!file.is_open()){
 		cerr << "File [" << file << "] Invalid." << endl;
-		exit(0);
+		return 1;
 	}
 #endif
 
@@ -368,15 +366,15 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
 
-//			if(fdatas!=(fftw_complex*)NULL)
-//				for(long ii=0;ii<(ns/2+1);ii++){
-//					fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
-//					fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
-//				}
-//			else
-				//read Fourier transform of the data
-				if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
-					return 1;
+			//			if(fdatas!=(fftw_complex*)NULL)
+			//				for(long ii=0;ii<(ns/2+1);ii++){
+			//					fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
+			//					fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
+			//				}
+			//			else
+			//read Fourier transform of the data
+			if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
+				return 1;
 
 
 			//****************** Cross power spectrum of the noise  ***************//
@@ -404,7 +402,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			for (long jj=0;jj<ns/2+1;jj++){
 				if (isnan(Nk[jj])) {
 					printf("A NaN has been found in Nk : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
-					exit(1);
+					return 1;
 				}
 			}
 

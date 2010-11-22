@@ -332,37 +332,37 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 }
 
 // sanePS
-void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir){
-
-	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
-	FILE *fp;
-
-	size_t result;
-
-	// open file
-	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
-	if((fp=fopen(filename.c_str(),"r"))== NULL){
-		cerr << "ERROR: Can't find Reduced MixingMatrix file" << filename << endl;
-		exit(1);
-	}
-
-	//Read sizes
-	result = fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
-	result = fread(&ncomp,sizeof(int),1,fp); // number of noise component
-
-	//allocate memory considering readed sizes
-	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
-
-
-	for (long idet=0;idet<ndet;idet++)
-		for (int icomp=0;icomp<ncomp;icomp++)
-			result = fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
-
-
-	//close file
-	fclose(fp);
-
-}
+//void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir){
+//
+//	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
+//	FILE *fp;
+//
+//	size_t result;
+//
+//	// open file
+//	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
+//	if((fp=fopen(filename.c_str(),"r"))== NULL){
+//		cerr << "ERROR: Can't find Reduced MixingMatrix file" << filename << endl;
+//		return 1;
+//	}
+//
+//	//Read sizes
+//	result = fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
+//	result = fread(&ncomp,sizeof(int),1,fp); // number of noise component
+//
+//	//allocate memory considering readed sizes
+//	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
+//
+//
+//	for (long idet=0;idet<ndet;idet++)
+//		for (int icomp=0;icomp<ncomp;icomp++)
+//			result = fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
+//
+//
+//	//close file
+//	fclose(fp);
+//
+//}
 
 
 int write_psd_tofits(string fname, long nx, long ny,
@@ -407,7 +407,7 @@ int write_psd_tofits(string fname, long nx, long ny,
 		break;
 	default:
 		cerr << "write_fits: data type '" << dtype << "' not supported. Exiting.\n";
-		exit(1);
+		return 1;
 	}
 
 	// close file
