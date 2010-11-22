@@ -437,7 +437,8 @@ int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_s
 	}
 
 	// check validity between indexes and mpi #
-	verify_parallelization_scheme(rank, samples_struct, size);
+	if(verify_parallelization_scheme(rank, samples_struct, size))
+		return 1;
 
 	// reorder samples_struct
 	reorder_samples_struct(rank, samples_struct, size, iframe_min, iframe_max);
