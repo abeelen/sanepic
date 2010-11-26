@@ -36,50 +36,50 @@ void read_common(string &output, dictionary	*ini, struct param_common &common){
 	char *s;
 
 	s = iniparser_getstring(ini,"commons:data_directory", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:data_directory : default value [" + StringOf(common.dirfile) +"]\n";
 	else
 		common.dirfile = checkTrailingDir(StringOf(s));
 
 	s = iniparser_getstring(ini,"commons:input_directory", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:input_directory : default value [" + StringOf(common.input_dir) +"]\n";
 	else
 		common.input_dir = checkTrailingDir(StringOf(s));
 
 	s = iniparser_getstring(ini,"commons:output_dir", (char *) NULL);
-	if( s == (char *) NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:output_dir : default value [" + StringOf(common.output_dir) +"]\n";
 	else
 		common.output_dir = checkTrailingDir(StringOf(s));
 
 	s = iniparser_getstring(ini,"commons:temp_dir", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:temp_dir : default value [" + StringOf(common.tmp_dir) +"]\n";
 	else
 		common.tmp_dir = checkTrailingDir(StringOf(s));
 
 	//TODO: move noise_dir to [common] or struct_saneInv ?
 	s = iniparser_getstring(ini,"saneInv:noise_dir", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "saneInv:noise_dir : default value [" + StringOf(common.noise_dir) +"]\n";
 	else
 		common.noise_dir = checkTrailingDir(StringOf(s));
 
 	s = iniparser_getstring(ini,"commons:fits_filelist", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 	  output += "commons:fits_filelist : default value [" + StringOf(common.fits_filelist) +"]\n";
 	else
 	  common.fits_filelist = StringOf(s);
 
-	s = iniparser_getstring(ini,"commons:bolo_suffix", (char *)'\0');
-	if( s == (char *)NULL)
+	s = iniparser_getstring(ini,"commons:bolo_suffix", (char *) NULL);
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:bolos_suffix : default value [" + StringOf(common.bolo_suffix) +"]\n";
 	else
 		common.bolo_suffix = StringOf(s);
 
-	s = iniparser_getstring(ini,"commons:bolo_global_file", (char *)'\0');
-	if( s == (char *)NULL)
+	s = iniparser_getstring(ini,"commons:bolo_global_file", (char *) NULL);
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "commons:bolos_global_file : default value [" + StringOf(common.bolo_global_filename) +"]\n";
 	else
 		common.bolo_global_filename = StringOf(s);
@@ -92,15 +92,27 @@ void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &p
 	double d;
 	int i;
 
+	d = iniparser_getdouble(ini,(char*)"sanePos:ra_nom", -1.0);
+	if (d == -1.0)
+		output += "sanePos:pixsize : default value [" + StringOf(pos_param.ra_nom) +"]\n";
+	else
+		pos_param.ra_nom = d;
+
+	d = iniparser_getdouble(ini,(char*)"sanePos:dec_nom", -1.0);
+	if (d == -1.0)
+		output += "sanePos:pixsize : default value [" + StringOf(pos_param.dec_nom) +"]\n";
+	else
+		pos_param.dec_nom = d;
+
+
 	d = iniparser_getdouble(ini,(char*)"sanePos:pixsize", -1.0);
 	if (d == -1.0)
 		output += "sanePos:pixsize : default value [" + StringOf(pos_param.pixdeg) +"]\n";
 	else
 		pos_param.pixdeg = d;
 
-		//TODO: Handle dir somewhere else
-	s = iniparser_getstring(ini,"sanePos:mask_file", (char *)'\0');
-	if (s == (char *)NULL)
+	s = iniparser_getstring(ini,"sanePos:mask_file", (char *) NULL);
+	if (s == (char *) NULL || strlen(s) == 0)
 		output += "sanePos:mask_file : default value [" + string(pos_param.maskfile) +"]\n";
 	else
 		pos_param.maskfile=StringOf(s);
@@ -180,7 +192,7 @@ void read_param_sanePre(string &output, dictionary *ini, struct param_sanePre &p
 		proc_param.remove_polynomia=0;
 
 	s = iniparser_getstring(ini,"sanePre:fcut_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePre:fcut_file : default value [" + StringOf(proc_param.fcut_file) +"]\n";
 	else
 		proc_param.fcut_file = StringOf(s);
@@ -192,13 +204,13 @@ void read_param_saneInv(std::string &output, dictionary *ini, struct param_saneI
 	char *s;
 
 	s = iniparser_getstring(ini,"saneInv:cov_matrix_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "saneInv:cov_matrix_file : default value [" + StringOf(saneInv_struct.cov_matrix_file) +"]\n";
 	else
 		saneInv_struct.cov_matrix_file = StringOf(s);
 
 	s = iniparser_getstring(ini,"saneInv:cov_matrix_suffix", (char *) NULL);
-	if(s == (char *)NULL)
+	if(s == (char *) NULL || strlen(s) == 0)
 		output += "saneInv:cov_matrix_suffix : default value [" + StringOf(saneInv_struct.cov_matrix_suffix) +"]\n";
 	else
 		saneInv_struct.cov_matrix_suffix = StringOf(s);
@@ -217,32 +229,32 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 		sanePS_struct.ncomp = i;
 
 	s = iniparser_getstring(ini,"sanePS:map_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePS:map_file : default value [" + StringOf(sanePS_struct.signame) +"]\n";
 	else
 		sanePS_struct.signame = StringOf(s);
 
 
 	s = iniparser_getstring(ini,"sanePS:MixingMatrix_Suffix", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePS:MixingMatrix_Suffix : default value [" + StringOf(sanePS_struct.mix_suffix) +"]\n";
 	else
 		sanePS_struct.mix_suffix = StringOf(s);
 
 	s = iniparser_getstring(ini,"sanePS:ell_suffix", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePS:ell_suffix : default value [" + StringOf(sanePS_struct.ell_suffix) +"]\n";
 	else
 		sanePS_struct.ell_suffix = StringOf(s);
 
 	s = iniparser_getstring(ini,"sanePS:ell_global_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePS:ell_global_file : default value [" + StringOf(sanePS_struct.ell_global_file) +"]\n";
 	else
 		sanePS_struct.ell_global_file = StringOf(s);
 
 	s = iniparser_getstring(ini,"sanePS:MixingMatrix_global_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "sanePS:MixingMatrix_global_file : default value [" + StringOf(sanePS_struct.mix_global_file) +"]\n";
 	else
 		sanePS_struct.mix_global_file = StringOf(s);
@@ -250,13 +262,13 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 
 	//TODO: Ugly turnaround until sanePS is released;
 	s = iniparser_getstring(ini,"saneInv:cov_matrix_file", (char *) NULL);
-	if( s == (char *)NULL)
+	if( s == (char *) NULL || strlen(s) == 0)
 		output += "saneInv:cov_matrix_file : default value [" + StringOf(sanePS_struct.cov_matrix_file) +"]\n";
 	else
 		sanePS_struct.cov_matrix_file = StringOf(s);
 
 	s = iniparser_getstring(ini,"saneInv:cov_matrix_suffix", (char *) NULL);
-	if(s == (char *)NULL)
+	if(s == (char *) NULL || strlen(s) == 0)
 		output += "saneInv:cov_matrix_suffix : default value [" + StringOf(sanePS_struct.cov_matrix_suffix) +"]\n";
 	else
 		sanePS_struct.cov_matrix_suffix = StringOf(s);
@@ -444,7 +456,11 @@ void default_param_sanePos(struct param_sanePos &pos_param){
 	//	pos_param.maskfile = "";
 	// param_sanePos
 		pos_param.maskfile   = "" ;
+
 		pos_param.pixdeg     = 0.0 ;
+		pos_param.ra_nom     = 0.0 ;
+		pos_param.dec_nom    = 0.0 ;
+
 		pos_param.flgdupl    = false ; // What to do with flagged data : (default : False -- map in a single pixel)
 		pos_param.projgaps   = false ; // What to do with gaps : (default : 0 -- no projection)
 		pos_param.fileFormat = 0 ;     // Default sanepic File Format

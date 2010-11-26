@@ -22,7 +22,11 @@ struct param_sanePos
 /*! A structure that contains user options about map projection and properties */
 {
 	std::string maskfile;
+
 	double pixdeg;
+	double ra_nom;
+	double dec_nom;
+
 	bool flgdupl;
 	bool projgaps;
 	int fileFormat;

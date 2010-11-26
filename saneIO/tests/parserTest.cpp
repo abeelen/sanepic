@@ -27,6 +27,10 @@ extern "C" {
 #include "nrutil.h"
 }
 
+#if defined(PARA_BOLO) || defined(PARA_FRAME)
+#define USE_MPI
+#endif
+
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
@@ -39,6 +43,7 @@ void print_struct(struct param_sanePre proc_param, struct samples samples_struct
 
 int main(int argc, char *argv[])
 {
+
 
 	int size;
 	int rank;
@@ -61,6 +66,8 @@ int main(int argc, char *argv[])
 
 	string field; /*! actual boloname in the bolo loop */
 	struct param_sanePic struct_sanePic;
+
+	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
@@ -116,60 +123,30 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
+	cout << "parser done." << endl;
 
 	// REORDER WITH MPI_ARCHI
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
-	ofstream file;
-	long iframe_min, iframe_max;
-
-	// User has not given a processor order
-	if(samples_struct.scans_index.size()==0){
-
-		int test=0;
-		string fname = dir.output_dir + parallel_scheme_filename;
-		if(rank==0)
-			cout << "Getting configuration and frame order from file : " << fname << endl;
-		test = define_parallelization_scheme(rank,fname,dir.input_dir,samples_struct,size, iframe_min, iframe_max);
-
-		if(test==-1){
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
-		}
-
-	}else{ // user has given a processor order
-		int test=0;
-		test = verify_parallelization_scheme(rank,dir.output_dir,samples_struct, size, iframe_min, iframe_max);
-
-
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&test,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		if(test>0){
-			MPI_Finalize();
-			return EX_CONFIG;
-
-		}
-
+		MPI_Finalize();
+		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
 		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-
 	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
 #else
 
+	iframe_min = 0;
+	iframe_max = samples_struct.ntotscan;
+
 #endif
-
-
 
 
 
