@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <sysexits.h>
+#include <cmath>
 
 #include "imageIO.h"
 #include "temporary_IO.h"
@@ -120,7 +121,7 @@ int main(int argc, char *argv[])
 	fill_sanePS_struct(structPS, samples_struct, dir);
 
 	//First time run S=0, after sanepic, S = Pure signal
-	if (structPS.signame != "NOSIGFILE") {
+	if (structPS.signame != "") {
 
 		//		long NAXIS1_read=0, NAXIS2_read=0;
 		long long addnpix = 0;
@@ -196,6 +197,18 @@ int main(int argc, char *argv[])
 #endif
 				return (EX_IOERR);
 			}
+
+			// 	Check for unobserved Pixels
+			int badPix = 0;
+			for (long ii=0; ii<npix; ii++) {
+				if ( isnan(S[ii]) || isinf(S[ii]) ){
+					badPix++;
+					S[ii] = 0;
+				}
+			}
+			if (badPix > 0)
+				cout << "WW - Some observed pixels fall outside the given map... set to 0" << endl;
+
 
 
 #ifdef DEBUG

@@ -161,9 +161,10 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
-			if ( isnan(commonm[jj][ii]) || isinf(commonm[jj][ii]) )
-				cout << "Something went wrong in the computation of the common mode " << ncomp << endl;
-
+			if ( isnan(commonm[jj][ii]) || isinf(commonm[jj][ii]) ){
+				cout << fits_filename << " something went wrong in the computation of the common mode " << ncomp << endl;
+				exit(EXIT_FAILURE);
+			}
 
 	//***************************************************************************
 
