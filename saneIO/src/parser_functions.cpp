@@ -94,22 +94,27 @@ void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &p
 
 	d = iniparser_getdouble(ini,(char*)"sanePos:ra_nom", -1.0);
 	if (d == -1.0)
-		output += "sanePos:pixsize : default value [" + StringOf(pos_param.ra_nom) +"]\n";
+		output += "sanePos:ra_nom : default value [" + StringOf(pos_param.ra_nom) +"]\n";
 	else
 		pos_param.ra_nom = d;
 
 	d = iniparser_getdouble(ini,(char*)"sanePos:dec_nom", -1.0);
 	if (d == -1.0)
-		output += "sanePos:pixsize : default value [" + StringOf(pos_param.dec_nom) +"]\n";
+		output += "sanePos:dec_nom : default value [" + StringOf(pos_param.dec_nom) +"]\n";
 	else
 		pos_param.dec_nom = d;
-
 
 	d = iniparser_getdouble(ini,(char*)"sanePos:pixsize", -1.0);
 	if (d == -1.0)
 		output += "sanePos:pixsize : default value [" + StringOf(pos_param.pixdeg) +"]\n";
 	else
 		pos_param.pixdeg = d;
+
+	s = iniparser_getstring(ini,(char*)"sanePos:proj_type", (char *) NULL);
+	if (s == (char *) NULL || strlen(s) == 0)
+		output += "sanePos:proj_type : default value [" + StringOf(pos_param.projtype) +"]\n";
+	else
+		pos_param.projtype = StringOf(s);
 
 	s = iniparser_getstring(ini,"sanePos:mask_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
@@ -460,6 +465,7 @@ void default_param_sanePos(struct param_sanePos &pos_param){
 		pos_param.pixdeg     = 0.0 ;
 		pos_param.ra_nom     = 0.0 ;
 		pos_param.dec_nom    = 0.0 ;
+		pos_param.projtype   = "EQ";
 
 		pos_param.flgdupl    = false ; // What to do with flagged data : (default : False -- map in a single pixel)
 		pos_param.projgaps   = false ; // What to do with gaps : (default : 0 -- no projection)
@@ -493,13 +499,12 @@ void default_param_sanePre(struct param_sanePre &proc_param){
 }
 
 void default_param_sanePS(struct param_sanePS &ps_param){
-	//	structPS.ncomp=1;
 
 	ps_param.ell_suffix      = ".ell";
 	ps_param.mix_suffix      = ".mix";
 	ps_param.ell_global_file = "";
 	ps_param.mix_global_file = "";
-	ps_param.signame         = "NOSIGFILE";
+	ps_param.signame         = "";
 	ps_param.ncomp           = 1;
 
 	//TODO: Ugly turnaround until sanePS is released;
@@ -512,7 +517,7 @@ void default_param_sanePS(struct param_sanePS &ps_param){
 void default_param_saneInv(struct param_saneInv &inv_param){
 
 	inv_param.cov_matrix_file   = "";
-	inv_param.cov_matrix_suffix = "_ps.fits";
+	inv_param.cov_matrix_suffix = "_psd.fits";
 }
 
 void default_param_sanePic(struct param_sanePic &pic_param){
@@ -613,6 +618,9 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	// default values :
 	default_param( dir, samples_struct, pos_param, proc_param, saneInv_struct, sanePic_struct);
+
+	//TODO sanePS should be out of here
+	default_param_sanePS(structPS);
 
 	read_common(output, ini, dir);
 	read_param_saneInv(output, ini, saneInv_struct);
@@ -729,7 +737,7 @@ void print_param_sanePic(struct param_sanePic sanepic_struct)
 void print_param_sanePS(struct param_sanePS structPS)
 {
 
-	if(structPS.signame!="NOSIGFILE")
+	if(structPS.signame!="")
 		cout << "A map will be removed from the data signal before estimation of the noise : " << structPS.signame << endl;
 
 	cout << "Number of noise component to estimate : " << structPS.ncomp << endl;

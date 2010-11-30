@@ -26,6 +26,7 @@ struct param_sanePos
 	double pixdeg;
 	double ra_nom;
 	double dec_nom;
+	std::string projtype;
 
 	bool flgdupl;
 	bool projgaps;
