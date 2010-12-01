@@ -137,4 +137,14 @@ struct saneCheck
 
 };
 
+struct dirfile_fragment
+{
+	int fragment_index;
+	int fragment_fdata;
+	int fragment_noise;
+	int fragment_ell;
+	int fragment_flag;
+	int fragment_data;
+};
+
 #endif /* STRUCT_DEFINITION_H_ */

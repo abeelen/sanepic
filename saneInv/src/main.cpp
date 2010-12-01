@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	} else {
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size);
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
 				return EX_CANTCREAT;
 			}
 			// MAJ format file
-			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + noise_suffix);
+//			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + noise_suffix);
 
 			// number of detector in the input channel list
 			nbolos = (int) channelIn.size();

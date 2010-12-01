@@ -15,6 +15,7 @@
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
+#include "getdata.h"
 }
 
 template <typename T>
@@ -41,7 +42,9 @@ void read_param_sanePS(std::string &output,  dictionary *ini, struct param_saneI
 void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneInv &sanePic_struct);
 
 int check_path(std::string &output, std::string strPath, std::string path_type);
-int check_dirfile_paths(std::string &output, std::string strPath);
+int compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf);
+
+//int check_dirfile_paths(std::string &output, std::string strPath);
 
 int check_common(std::string &output, struct param_common dir);
 int check_param_positions(std::string &output, struct param_sanePos pos_param);
@@ -56,7 +59,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct,
-		int size);
+		int size, int rank);
 
 void print_common(struct param_common dir);
 void print_param_positions(struct param_sanePos pos_param);

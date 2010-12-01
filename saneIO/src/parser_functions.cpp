@@ -68,9 +68,9 @@ void read_common(string &output, dictionary	*ini, struct param_common &common){
 
 	s = iniparser_getstring(ini,"commons:fits_filelist", (char *) NULL);
 	if( s == (char *) NULL || strlen(s) == 0)
-	  output += "commons:fits_filelist : default value [" + StringOf(common.fits_filelist) +"]\n";
+		output += "commons:fits_filelist : default value [" + StringOf(common.fits_filelist) +"]\n";
 	else
-	  common.fits_filelist = StringOf(s);
+		common.fits_filelist = StringOf(s);
 
 	s = iniparser_getstring(ini,"commons:bolo_suffix", (char *) NULL);
 	if( s == (char *) NULL || strlen(s) == 0)
@@ -335,14 +335,14 @@ int check_path(string &output, string strPath, string path_type){
 	return 0;
 }
 
-int check_dirfile_paths(string &output,string strPath){
+/*int check_dirfile_paths(string &output,string strPath){
 
 	//TODO: This will NOT work with MPI, anyway we will switch to libgetdata
 	return check_path(output, strPath + "Fourier_data/","Fourier data binaries") || \
 			check_path(output, strPath + "Noise_data/","Noise data binaries") || \
 			check_path(output, strPath + "Indexes/","Indexes");
 
-}
+}*/
 
 int check_common(string &output, struct param_common dir){
 
@@ -360,10 +360,67 @@ int check_common(string &output, struct param_common dir){
 		return 1;
 	if(check_path(output, dir.tmp_dir, "Temporary directory"))
 		return 1;
-	if(check_dirfile_paths(output, dir.tmp_dir))
-		return 1;
+	//	if(check_dirfile_paths(output, dir.tmp_dir))
+	//		return 1;
 
 	return 0;
+}
+
+int compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf){
+
+	string filedir = tmp_dir + "dirfile";
+	string fdata = tmp_dir + "dirfile/Fourier_transform";
+	string index_path = tmp_dir + "dirfile/Indexes";
+	string noise_path = tmp_dir + "dirfile/Noise_data";
+	string ell_path = tmp_dir + "dirfile/Noise_data/ell";
+	string data = tmp_dir + "dirfile/data";
+	string flag_dir = tmp_dir + "dirfile/flag";
+
+	// create folders
+	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* H = gd_open((char *)index_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* F = gd_open((char *)fdata.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+	// close subdirfiles
+	gd_close(H);
+	gd_close(F);
+	gd_close(I);
+	gd_close(I2);
+	gd_close(J);
+	gd_close(K);
+
+	// include subdir and create format files
+	dirf.fragment_index = gd_include(D, "Indexes/format", 0, GD_CREAT | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
+	dirf.fragment_fdata = gd_include(D, "Fourier_transform/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	dirf.fragment_noise = gd_include(D, "Noise_data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	dirf.fragment_ell = gd_include(D, "Noise_data/ell/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	dirf.fragment_flag = gd_include(D, "flag/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	dirf.fragment_data = gd_include(D, "data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_fdata);
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_noise);
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_flag);
+	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_data);
+
+
+	// print fragment index
+	cout << "fragment_index : " << dirf.fragment_index << endl;
+	cout << "fragment_fdata : " << dirf.fragment_fdata << endl;
+	cout << "fragment_noise : " << dirf.fragment_noise << endl;
+	cout << "fragment_ell : " << dirf.fragment_ell << endl;
+	cout << "fragment_flag : " << dirf.fragment_flag << endl;
+	cout << "fragment_data : " << dirf.fragment_data << endl;
+
+	// close dirfile
+	gd_close(D);
+
+	return 1;
 }
 
 int check_param_positions(string &output, struct param_sanePos pos_param){
@@ -460,19 +517,19 @@ void default_param_sanePos(struct param_sanePos &pos_param){
 	//	pos_param.flgdupl = 0; // map duplication factor
 	//	pos_param.maskfile = "";
 	// param_sanePos
-		pos_param.maskfile   = "" ;
+	pos_param.maskfile   = "" ;
 
-		pos_param.pixdeg     = 0.0 ;
-		pos_param.ra_nom     = 0.0 ;
-		pos_param.dec_nom    = 0.0 ;
-		pos_param.projtype   = "EQ";
+	pos_param.pixdeg     = 0.0 ;
+	pos_param.ra_nom     = 0.0 ;
+	pos_param.dec_nom    = 0.0 ;
+	pos_param.projtype   = "EQ";
 
-		pos_param.flgdupl    = false ; // What to do with flagged data : (default : False -- map in a single pixel)
-		pos_param.projgaps   = false ; // What to do with gaps : (default : 0 -- no projection)
-		pos_param.fileFormat = 0 ;     // Default sanepic File Format
+	pos_param.flgdupl    = false ; // What to do with flagged data : (default : False -- map in a single pixel)
+	pos_param.projgaps   = false ; // What to do with gaps : (default : 0 -- no projection)
+	pos_param.fileFormat = 0 ;     // Default sanepic File Format
 
-		// 0: sanepic format with reference position & offsets
-		// 1: 'hipe' like format with RA/DEC for each time/bolo
+	// 0: sanepic format with reference position & offsets
+	// 1: 'hipe' like format with RA/DEC for each time/bolo
 
 }
 
@@ -602,7 +659,7 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 int parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size){
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size, int rank){
 
 	dictionary	*	ini ;
 	string filename;
@@ -650,7 +707,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	// TODO: Why is that needed in sample_struct, why not just for saneFrameOrder ?
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
-	if(check_common(output, dir))
+	if(check_common(output, dir) && (rank==0)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
 		return 1;
 	if(check_param_positions(output, pos_param))
 		return 1;

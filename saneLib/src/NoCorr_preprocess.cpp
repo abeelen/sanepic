@@ -52,19 +52,21 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 		field = det[idet];
 
 
-
-		long test_ns;
-		read_signal_from_fits(fits_filename, field, data, test_ns);
-		if (test_ns != ns) {
-			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		if(read_data_flag_from_dirfile(tmp_dir, fits_filename, field, data, flag))
 			return 1;
-		}
 
-		read_flag_from_fits(fits_filename , field, flag, test_ns);
-		if (test_ns != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
+		//		long test_ns;
+		//		read_signal_from_fits(fits_filename, field, data, test_ns);
+		//		if (test_ns != ns) {
+		//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
+		//
+		//		read_flag_from_fits(fits_filename , field, flag, test_ns);
+		//		if (test_ns != ns) {
+		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
 
 
 		//// Read pointing

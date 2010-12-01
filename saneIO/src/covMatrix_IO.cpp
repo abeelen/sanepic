@@ -5,12 +5,14 @@
 #include <sstream>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
 
 #include "covMatrix_IO.h"
 
 extern "C" {
 #include <nrutil.h>
 #include <fitsio.h>
+#include "getdata.h"
 }
 
 
@@ -73,12 +75,12 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
 		return 1;
 
-		// since Rellth is a NR matrix, one has to write it line by line :
-		for (long i = 0; i < nBolos * nBolos; i++) {
-			fpixel[1] = i + 1;
-			if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
-				return 1;
-		}
+	// since Rellth is a NR matrix, one has to write it line by line :
+	for (long i = 0; i < nBolos * nBolos; i++) {
+		fpixel[1] = i + 1;
+		if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
+			return 1;
+	}
 	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
 			(char *) "Covariance Matrices",
 			(char *) "name of this binary table extension", &status))
@@ -258,31 +260,129 @@ int write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * e
  * This function writes the Inverse Covariance Matrices in binary format
  */
 {
+	// dirfile name
+	string filedir = outputDir + "dirfile/Noise_data/";
 
-	string filename;
-	FILE *fpw;
+	// open dirfile
+	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+	// dirfile name
+	filedir = outputDir + "dirfile/Noise_data/ell/";
+
+	// open dirfile
+	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
 	long ndet = bolos.size();
 
 	for (int idet = 0; idet < ndet; idet++) {
 
-		// open file
-		filename = outputDir + "Noise_data/" + bolos[idet] + "_" + suffix;
-		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
-			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
+		// ell binary filename
+		string outfile = bolos[idet] + "_" + suffix + "_ell";
+
+		// configure dirfile field for ell
+		gd_entry_t E;
+		E.field = (char*)outfile.c_str();
+		E.field_type = GD_RAW_ENTRY;
+		E.fragment_index = 0;
+		E.spf = 1; //nbins +1
+		E.data_type = GD_DOUBLE;
+		E.scalar[0] = NULL;
+
+		// get number of fields in format
+		unsigned int nfields =  gd_nfields(H);
+
+		const char** field_list = gd_field_list(H); // get all format entry
+
+		// fill a vector with entry values
+		std::vector<std::string> fields((char**)field_list, (char**)(field_list+nfields));
+
+		// check whether outfile already exists in format
+		int mycount = (int) count(fields.begin(), fields.end(), outfile);
+
+		if(mycount==1){ // delete it in case it exists (and also delete bin file)
+			gd_delete(H, (char*)outfile.c_str(), GD_DEL_DATA);
+			if(gd_error(H)){
+				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
+				return 1;
+			}
+		}
+
+		// add to the dirfile
+		gd_add(H, &E);
+
+		// write binary file on disk
+		int n_write = gd_putdata(H, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
+		//		cout << "n_write : " << n_write << endl;
+		if(gd_error(H)!=0){
+			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins+1 << endl;
 			return 1;
 		}
 
-		// write sizes
-		fwrite(&nbins, sizeof(long), 1, fpw);
-		fwrite(&ndet, sizeof(long), 1, fpw);
+		// spectra filename
+		outfile = bolos[idet] + "_" + suffix;
 
-		// write arrays
-		fwrite(ell, sizeof(double), nbins + 1, fpw);
-		fwrite(Rellth[idet], sizeof(double), ndet * nbins, fpw);
+		// check whether field is already present in format
+		mycount = (int) count(fields.begin(), fields.end(), outfile);
+		if(mycount==1){ // delete field if already exists in dirfile
+			gd_delete(D, (char*)outfile.c_str(), GD_DEL_DATA);
+			if(gd_error(D)){
+				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
+				return 1;
+			}
+		}
 
-		// close file
-		fclose(fpw);
+		// set field information for spectra
+		E.field = (char*)outfile.c_str();
+		//		E.spf = ndet*nbins;
+
+		// add to the dirfile
+		gd_add(D, &E);
+
+		// write binary file on disk
+		n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, ndet*nbins, GD_DOUBLE, Rellth[idet]);
+		if(gd_error(D)!=0){
+			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins * ndet << endl;
+			return 1;
+		}
+
 	}
+
+	// close dirfile
+	if(gd_close(D)){
+		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
+		return 1;
+	}
+
+	// close dirfile
+	if(gd_close(H)){
+		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
+		return 1;
+	}
+
+	//	string filename;
+	//	FILE *fpw;
+	//	long ndet = bolos.size();
+	//
+	//	for (int idet = 0; idet < ndet; idet++) {
+	//
+	//		// open file
+	//		filename = outputDir + "Noise_data/" + bolos[idet] + "_" + suffix;
+	//		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
+	//			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
+	//			return 1;
+	//		}
+	//
+	//		// write sizes
+	//		fwrite(&nbins, sizeof(long), 1, fpw);
+	//		fwrite(&ndet, sizeof(long), 1, fpw);
+	//
+	//		// write arrays
+	//		fwrite(ell, sizeof(double), nbins + 1, fpw);
+	//		fwrite(Rellth[idet], sizeof(double), ndet * nbins, fpw);
+	//
+	//		// close file
+	//		fclose(fpw);
+	//	}
 
 	return 0;
 
@@ -294,38 +394,120 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
  * This function reads the Inverse Covariance Matrices in binary format
  */
 {
+	// dirfile path
+	string filedir = outputDir + "dirfile/Noise_data/";
 
-	string filename;
-	FILE *fp;
-	size_t result;
+	//binary name
+	string outfile = boloName + "_" + suffix + "_ell";
 
-	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
-	//	cout << filename << endl;
-	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-		cerr << "ERROR: Can't read noise power spectra file" << filename << endl;
+	// temp 1D array
+	double *Rellth_full;
+
+	// open dirfile
+	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+	// dirfile path
+	filedir = outputDir + "dirfile/Noise_data/ell/";
+	// open dirfile
+	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+
+	// get entry infos
+	//	gd_entry_t e;
+	//	gd_entry(D, (char*)outfile.c_str(), &e);
+
+	unsigned int nframe = gd_nframes(H);
+	// get nbins value
+	//	*nbins = e.spf - 1;
+	*nbins = nframe-1;
+
+	// alloc ell
+	*ell=new double[*nbins+1];
+
+	// fill ell with binary
+	int nget = gd_getdata(H, (char*)outfile.c_str(), 0, 0, 0, *nbins+1, GD_DOUBLE, *ell);
+	if(gd_error(H)!=0){
+		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
-	// Read sizes
-	result = fread(nbins, sizeof(long), 1, fp);
-	result = fread(ndet, sizeof(long), 1, fp);
 
+	// Power spectra binary file name
+	outfile = boloName + "_" + suffix;
 
-	// Allocate memory
-	*ell = new double[(*nbins) + 1];
+	// get entry infos
+	//	gd_entry(D, (char*)outfile.c_str(), &e);
+
+	nframe = gd_nframes(D);
+
+	// compute ndet considering entry size and nbins
+	*ndet = nframe / (*nbins);
+
+	//alloc temp 1D array
+	Rellth_full = new double[*nbins*(*ndet)];
+
+	// read whole 1 D array
+	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, *nbins*(*ndet), GD_DOUBLE, Rellth_full);
+	if(gd_error(D)!=0){
+		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
+		return 1;
+	}
+
+	// close dirfile
+	if(gd_close(D)){
+		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+		return 1;
+	}
+
+	// close dirfile
+	if(gd_close(H)){
+		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+		return 1;
+	}
+
+	// alloc spectra 2D array
 	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
 
-	// Read arrays
-	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
+	// reorganize as a 2D array
 	for (long i=0; i<(*ndet); i++)
-		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
-	//
-	//	for (int i=0; i< *nbins; i++)
-	//		cout << (*SpN_all)[0][i] << " ";
-	//	cout << endl;
-	//
-	//	cout << "here final" << endl;
+		for (long ibin=0; ibin<(*nbins); ibin++)
+			(*SpN_all)[i][ibin] = Rellth_full[i*(*nbins) + ibin];
 
-	fclose(fp);
+	// clear temp 1D array
+	delete [] Rellth_full;
+
+
+
+	//	string filename;
+	//	FILE *fp;
+	//	size_t result;
+	//
+	//	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
+	//	//	cout << filename << endl;
+	//	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
+	//		cerr << "ERROR: Can't read noise power spectra file" << filename << endl;
+	//		return 1;
+	//	}
+	//	// Read sizes
+	//	result = fread(nbins, sizeof(long), 1, fp);
+	//	result = fread(ndet, sizeof(long), 1, fp);
+	//
+	//
+	//	// Allocate memory
+	//	*ell = new double[(*nbins) + 1];
+	//	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
+	//
+	//	// Read arrays
+	//	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
+	//	for (long i=0; i<(*ndet); i++)
+	//		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
+	//	//
+	//	//	for (int i=0; i< *nbins; i++)
+	//	//		cout << (*SpN_all)[0][i] << " ";
+	//	//	cout << endl;
+	//	//
+	//	//	cout << "here final" << endl;
+	//
+	//	fclose(fp);
 
 	return 0;
 

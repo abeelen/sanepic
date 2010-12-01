@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
-	//	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and their number */
 
 	// map making parameters
 	int flagon; /*!  if one sample is rejected, flagon=1 */
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size);
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -193,9 +192,13 @@ int main(int argc, char *argv[])
 			// read pure signal
 			if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
 #ifdef PARA_FRAME
+//				MPI_Sendrecv_replace(data_adr,count,datatype, // TODO : dire aux autres rank qu'il faut sortir sinon ils attendent a MPI_BARRIER ...
+//				destproc,sendtag,srcproc,recvtag,
+//				comm,status_adr)
+				cout << "RANK 0 goes out !\n";
 				MPI_Finalize();
 #endif
-				return (EX_IOERR);
+				exit (EX_IOERR);
 			}
 
 			// 	Check for unobserved Pixels

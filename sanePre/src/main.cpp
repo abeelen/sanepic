@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! contains user options about map projection and properties */
 	struct param_common dir; /*! contains output input temp directories */
-	//	std::vector<detectors> detector_tab; /*! everything about the detectors names and their number */
+	//	struct dirfile_fragment dirfile;
 
 	// default parameters
 	int nwcs=1; /// number of wcs that will be used
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	else {
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size);
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
 	}
 
@@ -218,12 +218,22 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(rank==0)
+	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
+		if(write_data_flag_to_dirfile(dir, samples_struct)){
+			cout << "error write data !! Exiting ...\n";
+#ifdef USE_MPI
+			//		MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			exit(EXIT_FAILURE);
+		}
+	}
 
+	cout << "worked !!!!\n";
 
 	if (pos_param.flgdupl) factdupl = 2;// default 0 : if flagged data are put in a duplicated map
 
@@ -653,10 +663,6 @@ int main(int argc, char *argv[])
 	delete [] Mp;
 	delete [] hits;
 	delete [] hitsNaiv;
-
-
-
-	//	delete [] samples_struct.nsamples;
 	delete [] indpix;
 	delete [] indpsrc;
 

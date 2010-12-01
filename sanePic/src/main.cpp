@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
-	//	std::vector<detectors> detector_tab; /*! A structure that contains everything about the detectors names and number */
+	struct dirfile_fragment dirfile;
 
 	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 			/* parse ini file and fill structures */
 			parsed = parser_function(argv[indice_argv], parser_output, dir,
 					samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-					struct_sanePic, size);
+					struct_sanePic, size, rank);
 
 			if(rank==0)
 				// print parser warning and/or errors

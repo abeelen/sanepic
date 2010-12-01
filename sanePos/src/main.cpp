@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 	struct param_sanePre proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /*! structure that contains output input temp directories */
+	struct dirfile_fragment dirfile;
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
 	} else {
 
 		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size);
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
 #ifdef PARA_FRAME
 
 	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
-		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 		return EX_IOERR;
 	}
@@ -216,10 +217,13 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(rank==0)
+	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
+
+		compute_dirfile_format_file(dir.tmp_dir, dirfile);
+	}
 
 
 	/************************ Look for distriBoxution failure *******************************/
@@ -472,7 +476,6 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] mask;
 	delete [] coordscorner;
-	//	delete [] samples_struct.nsamples;
 
 	delete [] pixon;
 

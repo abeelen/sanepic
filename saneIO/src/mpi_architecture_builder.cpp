@@ -370,9 +370,9 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 				cout << "Do you wish to continue ? (y/n)\n";
 				c=getchar();
 				switch (c){
-				case('y') :
-																																																													cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
-				break;
+				case 'y':
+					cout << "Let's continue with only " << (size_tmp) << " processor(s) !\n";
+					break;
 				default:
 					cout << "Exiting ! Please modify " << origin_file << " to use the correct number of processors\n";
 					return 1;

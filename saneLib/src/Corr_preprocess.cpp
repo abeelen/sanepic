@@ -152,21 +152,23 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		}
 
 
+		if(read_data_flag_from_dirfile(tmp_dir, fits_filename, field1, data, flag))
+			return 1;
 
-		long test_ns;
-		if(read_signal_from_fits(fits_filename, field1, data, test_ns))
-			return 1;
-		if (test_ns != ns) {
-			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
-
-		if(read_flag_from_fits(fits_filename , field1, flag, test_ns))
-			return 1;
-		if (test_ns != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
+//		long test_ns;
+//		if(read_signal_from_fits(fits_filename, field1, data, test_ns))
+//			return 1;
+//		if (test_ns != ns) {
+//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+//			return 1;
+//		}
+//
+//		if(read_flag_from_fits(fits_filename , field1, flag, test_ns))
+//			return 1;
+//		if (test_ns != ns) {
+//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+//			return 1;
+//		}
 
 
 
@@ -491,7 +493,7 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, st
 
 
 	string field1;
-	long ns_test=0;
+//	long ns_test=0;
 	double *data, *data_lp, *data_out, *bfilter;
 	long long *samptopix;
 	double aa, bb;
@@ -512,19 +514,22 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, st
 		if(read_samptopix(ns, samptopix, dir, file[iframe], field1))
 			return 1;
 
-		if(read_signal_from_fits(file[iframe], field1, data, ns_test))
+		if(read_data_flag_from_dirfile(dir, file[iframe], field1, data, flag))
 			return 1;
-		if(ns!=ns_test){
-			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
-			return 1;
-		}
 
-		if(read_flag_from_fits(file[iframe], field1, flag, ns_test))
-			return 1;
-		if (ns_test != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
+//		if(read_signal_from_fits(file[iframe], field1, data, ns_test))
+//			return 1;
+//		if(ns!=ns_test){
+//			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
+//			return 1;
+//		}
+//
+//		if(read_flag_from_fits(file[iframe], field1, flag, ns_test))
+//			return 1;
+//		if (ns_test != ns) {
+//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+//			return 1;
+//		}
 
 
 		fill(data_out,data_out+ns,0.0);

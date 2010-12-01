@@ -84,20 +84,23 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 		field = det[idet];
 
-		long test_ns;
-		if(read_signal_from_fits(fits_filename, field, data, test_ns))
-			return EX_NOINPUT;
-		if (test_ns != ns) {
-			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		if(read_data_flag_from_dirfile(dir.tmp_dir, fits_filename, field, data, flag))
 			return 1;
-		}
 
-		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
-			return EX_NOINPUT;
-		if (test_ns != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
+		//		long test_ns;
+		//		if(read_signal_from_fits(fits_filename, field, data, test_ns))
+		//			return EX_NOINPUT;
+		//		if (test_ns != ns) {
+		//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
+		//
+		//		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
+		//			return EX_NOINPUT;
+		//		if (test_ns != ns) {
+		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
 
 
 		//TODO: subtract the signal only if needed
@@ -277,20 +280,22 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 
 		field = det[idet];
 
-		//		cout << "before read_signal\n";
-		long test_ns;
-		read_signal_from_fits(fits_filename, field, data, test_ns);
-		if (test_ns != ns) {
-			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		if(read_data_flag_from_dirfile(dir.tmp_dir, fits_filename, field, data, flag))
 			return 1;
-		}
 
-
-		read_flag_from_fits(fits_filename , field, flag, test_ns);
-		if (test_ns != ns) {
-			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-			return 1;
-		}
+		//		long test_ns;
+		//		read_signal_from_fits(fits_filename, field, data, test_ns);
+		//		if (test_ns != ns) {
+		//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
+		//
+		//
+		//		read_flag_from_fits(fits_filename , field, flag, test_ns);
+		//		if (test_ns != ns) {
+		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
+		//			return 1;
+		//		}
 
 
 		//TODO : This computation is already done when computing the common mode
