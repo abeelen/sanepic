@@ -109,7 +109,7 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 
 	cout << "result ! \n";
 	for(long ii=0; ii < (long)add_sample.size(); ii++){
-		cout << indice_valid[ii] << " " << add_sample[ii] << endl;
+		cout << indice_valid[ii] << " " << add_sample[ii] << " " << suppress_time_sample[ii] << endl;
 	}
 
 	indice=indice_valid;
@@ -192,27 +192,66 @@ void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vecto
 /*! Fill a mask row vector with ones for each gap generated values */
 {
 
-	long pointer=0;
-	long jj=0, kk=0, uu=0;
+	long ind = 0;
+	long p_copy = 0;
+	long ii=0;
 
-	for(long ii=0; ii < (long)indice.size(); ii++){ // for each gap
-		for(jj=pointer; jj<=indice[ii]; jj++){ // copy mask vector untill gap
-			mask_fixed[jj]=mask[uu];
-			uu++;
+	while(ii<nsamples_total){
+		if(ind>=(long)indice.size()){
+			mask_fixed[ii]=mask[p_copy];
+			p_copy ++;
+		}else{
+			mask_fixed[ii]=mask[p_copy];
+			p_copy ++;
+
+			if(ii==indice[ind]){
+//				cout << "ii : " << ii << " addsample : " << add_sample[ind] << " ind : " << ind << endl;
+//				getchar();
+				for(long jj=1; jj<= add_sample[ind]; jj++)
+					mask_fixed[ii+jj]=1;
+
+				ii=ii+add_sample[ind];
+				ind++;
+				//			}else{
+				//				mask_fixed[ii]=mask[p_copy];
+				//								p_copy ++;
+				//			}
+			}
 		}
-		pointer=jj;
-		for(kk=pointer; kk < pointer + add_sample[ii]; kk++) // fill gaps values with ones
-			mask_fixed[kk]=1;
-		pointer=kk;
-		uu+=suppress_time_sample[ii];
-
+//		cout << "ii : " << ii << endl;
+//		cout << "p_copy : " << p_copy << endl;
+		ii++;
 	}
 
-	if((nsamples_total-pointer)>0) // copy vector untill its end
-		for(kk=pointer; kk <nsamples_total; kk++){
-			mask_fixed[kk]=mask[uu];
-			uu++;
-		}
+//	cout << "p_copy : " << p_copy << endl;
+//	getchar();
+	//	long pointer=0;
+	//	long jj=0, kk=0, uu=0;
+	//
+	//	for(long ii=0; ii < (long)indice.size(); ii++){ // for each gap
+	//		jj=pointer;
+	//		while(uu<=indice[ii]){ // copy row untill a gap is found
+	//			mask_fixed[jj]=mask[uu];
+	//			uu++;
+	//			jj++;
+	//		}
+	//		//		for(jj=pointer; jj<=indice[ii]; jj++){ // copy mask vector untill gap
+	//		//			mask_fixed[jj]=mask[uu];
+	//		//			uu++;
+	//		//		}
+	//		pointer=jj;
+	//		for(kk=pointer; kk < pointer + add_sample[ii]; kk++) // fill gaps values with ones
+	//			mask_fixed[kk]=1;
+	//		pointer=kk;
+	//		uu+=suppress_time_sample[ii];
+	//
+	//	}
+	//
+	//	if((nsamples_total-pointer)>0) // copy vector untill its end
+	//		for(kk=pointer; kk <nsamples_total; kk++){
+	//			mask_fixed[kk]=mask[uu];
+	//			uu++;
+	//		}
 
 }
 void insert_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final)
@@ -354,6 +393,8 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output mask header
 
 	mask_fixed = new int [ns_total];
+	for(long ii=0;ii<ns_total;ii++)
+		mask_fixed[ii]=-1.0;
 
 	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
 		read_flag_from_fits(name, det[jj], mask, ns_temp); // read input mask row

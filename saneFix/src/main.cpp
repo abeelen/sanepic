@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 			// total number of samples in the fixed fits file
 			long ns_total = samples_struct.nsamples[ii] + samples_to_add;
 
-			string fname2 = dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
+			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
 			string fname=samples_struct.fitsvect[ii]; // input fits filename
 
 			int status=0; // fits error status
