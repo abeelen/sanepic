@@ -224,10 +224,11 @@ void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vecto
 				mask_fixed[ii]=mask[p_copy];
 				p_copy ++;
 				ii++;
-				for(long jj=0; jj< add_sample[ind]-suppress_time_sample[ind]; jj++)
+				for(long jj=0; jj< add_sample[ind]; jj++)
 					mask_fixed[ii+jj]=1;
 
 				ii=ii+add_sample[ind];
+				p_copy+=suppress_time_sample[ind];
 				ind++;
 
 			}
