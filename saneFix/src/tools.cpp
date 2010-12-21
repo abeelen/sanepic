@@ -64,6 +64,13 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 
 	read_time_from_fits(fname, time, ns); // read time table from input fits
 
+
+
+
+
+
+
+
 	for(long ii=0; ii < (long)indice.size(); ii++){ // for each gap
 		if(continue_neg>0){
 			continue_neg--;
@@ -112,6 +119,7 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 		cout << indice_valid[ii] << " " << add_sample[ii] << " " << suppress_time_sample[ii] << endl;
 	}
 
+	indice.clear();
 	indice=indice_valid;
 
 	total=(long)sum; // total number of samples that must be added
@@ -193,6 +201,9 @@ void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vecto
 {
 
 
+	for(long s=0; s<(long)add_sample.size(); s++)
+		if(add_sample[s]==-1)
+			add_sample[s]=1;
 
 	long ind = 0;
 	long p_copy = 0;
@@ -204,8 +215,8 @@ void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vecto
 			p_copy ++;
 			ii++;
 		}else{
-			// TODO : if ii != 0
-			mask_fixed[ii]=mask[p_copy];
+
+			mask_fixed[ii]=mask[p_copy]; // p_copy = 0 cannot be a wrong data ! (convention), it has been removed before if time was bad
 			p_copy ++;
 			ii++;
 
@@ -213,7 +224,7 @@ void fix_mask(int *mask, int *&mask_fixed, std::vector <long> indice, std::vecto
 				mask_fixed[ii]=mask[p_copy];
 				p_copy ++;
 				ii++;
-				for(long jj=0; jj< add_sample[ind]; jj++)
+				for(long jj=0; jj< add_sample[ind]-suppress_time_sample[ind]; jj++)
 					mask_fixed[ii+jj]=1;
 
 				ii=ii+add_sample[ind];

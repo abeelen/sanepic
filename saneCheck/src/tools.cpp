@@ -657,7 +657,7 @@ int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir,
 
 
 	for(long jj=0;jj<ns-1;jj++){ // locate time gaps
-		if((abs(diff[jj])>1.9/Populated_freq)){ //||(abs(diff[jj])<1/Populated_freq/1.95)
+		if((abs(diff[jj])>1.9/Populated_freq) || (diff[jj]<0)){ //||(abs(diff[jj])<1/Populated_freq/1.95)
 			cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
 			indice.push_back(jj); // store sample indice : where the time gap is
 		}
