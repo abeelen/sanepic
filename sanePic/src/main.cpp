@@ -27,6 +27,8 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
+//#define GD_NO_C99_API 1
+
 #if defined(PARA_BOLO) || defined(PARA_FRAME)
 #define USE_MPI
 #endif
@@ -76,7 +78,6 @@ int main(int argc, char *argv[]) {
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
-	struct dirfile_fragment dirfile;
 
 	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
@@ -87,18 +88,23 @@ int main(int argc, char *argv[]) {
 	long long npixsrc = 0; /*! number of pix in box constraint */
 
 	// map making parameters
-	long long npix2; /*! used to check PNd reading was correct */
+	//	long long npix2; /*! used to check PNd reading was correct */
 	long long ind_size; /*! indpix read size */
 	long NAXIS1, NAXIS2; // map dimensions
 	long long npix; /*! nn = side of the map, npix = number of filled pixels */
 
-	double *PNdtot; /*! to deal with mpi parallelization : Projected noised data */
+	double *PNdtot = NULL; /*! to deal with mpi parallelization : Projected noised data */
+	double *PNd = NULL; // (At N-1 d)
 	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
+
+
+	double f_lppix_Nk, f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
+	long ns; // number of samples for the considered scan
 
 	string field; /*! actual boloname in the bolo loop */
 	string prefixe; /*! prefix used for temporary name file creation */
 	struct param_sanePic struct_sanePic;
-//	std::vector<double> fcut; /*! noise cutting frequency vector */
+	//	std::vector<double> fcut; /*! noise cutting frequency vector */
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
@@ -171,7 +177,7 @@ int main(int argc, char *argv[]) {
 			}
 
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return EX_CONFIG;
@@ -222,10 +228,14 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-	if(rank==0)
+	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
+
+		cleanup_dirfile_sanePic(dir.tmp_dir, samples_struct);
+	}
+
 
 	//	read pointing informations
 	struct wcsprm * wcs;
@@ -237,7 +247,7 @@ int main(int argc, char *argv[]) {
 	long long test_size;
 	if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -248,7 +258,7 @@ int main(int argc, char *argv[]) {
 			<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 			<< endl;
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -267,7 +277,7 @@ int main(int argc, char *argv[]) {
 	// read indpix
 	if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map index
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -279,28 +289,7 @@ int main(int argc, char *argv[]) {
 			<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 			<< endl;
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return (EX_IOERR);
-	}
-
-	// read (At N-1 d) from file
-	if (read_PNd(PNdtot, npix2, dir.tmp_dir)) {
-#ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return (EX_IOERR);
-	}
-
-	if (npix != npix2) { // check size compatibility
-		if (rank == 0)
-			cout
-			<< "Warning ! Indpix_for_conj_grad.bi and PNdCorr_*.bi are not compatible, npix!=npix2"
-			<< endl;
-#ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
@@ -312,39 +301,190 @@ int main(int argc, char *argv[]) {
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
 				<< endl;
 #ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return (EX_SOFTWARE);
 	}
 
+
 	if (struct_sanePic.restore > 0) { // restore incomplete work with previous saved data
 		if (rank == 0)
 			cout << "Checking previous session\n";
 		struct checksum chk_t, chk_t2;
-		compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix, indpix,
+		compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
 				indpsrc, test_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
 		read_checksum(dir.tmp_dir, chk_t2); // read previous checksum
 		if (compare_checksum(chk_t, chk_t2)) { // compare them
 			if (rank == 0)
 				cout << "Checksums are different !!! Exiting..." << endl;
 #ifdef USE_MPI
-//			MPI_Barrier(MPI_COMM_WORLD);
+			//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return EX_CONFIG;
 		}
-	}
+		read_PNd(PNdtot, npix, dir.tmp_dir);
+
+	}else {
+
+		//************************************************************************//
+		//************************************************************************//
+		//Pre-processing of the data : compute PNdtot !
+		//************************************************************************//
+		//************************************************************************//
+
+		if(rank==0)
+			printf("\nPre-processing of the data\n");
+
+
+#ifdef USE_MPI
+		if(rank==0)	// global (At N-1 D) malloc for mpi
+			PNdtot = new double[npix];
+#endif
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+		PNd = new double[npix];
+
+		prefixe = "fdata_"; // Fourier transform of the data file prefixe
+
+		// loop over the scans
+		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+			ns = samples_struct.nsamples[iframe]; // number of samples for this scan
+			f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
+			f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+
+			string output_read = "";
+			std::vector<string> det_vect;
+			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+				cout << output_read << endl;
+#ifdef USE_MPI
+				//			MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Finalize();
+#endif
+				return EX_CONFIG;
+			}
+			long ndet = (long)det_vect.size();
+
+			// if there is correlation between detectors
+			if (proc_param.CORRon){
+				int pb=0;
+				/* write_ftrProcesdata parameters : */
+				// var double *S =  NULL
+				// indpix = seen pixel indice
+				// indpsrc = box crossing constraint removal pixel indices
+				// NAXIS1, NAXIS2 = sizes of map (pixels)
+				// npix = number of pixels that are seen
+				// npixsrc = number of pixels in the mask
+				// addnpix = number of added pixels in the map
+				// tmp_dir = temporary directory
+				// det = bolo names array + number of bolo
+				// f_lppix = filter freq in term of sample
+				// ns = number of sample for this scan
+				// iframe = scan number : 0=> ntotscan if non-MPI
+
+#ifdef PARA_FRAME
+				pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+						npixsrc,addnpix,f_lppix,ns,	iframe,0,1, name_rank);
+				// fillgaps + butterworth filter + fourier transform
+				// "fdata_" files generation (fourier transform of the data)
+#else
+				pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+						npixsrc,addnpix,f_lppix,ns,	iframe,rank,size, name_rank);
+				// fillgaps + butterworth filter + fourier transform
+				// "fdata_" files generation (fourier transform of the data)
+#endif
+				if(pb>0){
+					cout << "Problem in write_ftrProcesdata. Exiting ...\n";
+#ifdef USE_MPI
+					//				MPI_Barrier(MPI_COMM_WORLD);
+					MPI_Finalize();
+#endif
+					return EX_SOFTWARE;
+				}
+
+#ifdef DEBUG
+				time ( &rawtime ); // print processing time for each proc in the log file
+				timeinfo = localtime ( &rawtime );
+				file_rank.open(name_rank.c_str(), ios::out | ios::app);
+				file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
+				file_rank.close();
+#endif
+#ifdef PARA_BOLO
+				MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+				/* do_PtNd parameters : */
+				// PNd => npix (dimension), initialised to 0.0 : (At N-1 d)
+				// prefixe = "fdata"; => write/read fdata files prefix
+				// det = bolo names array + bolo number
+				// f_lppix_Nk = freq threshold noise (in term of samples)
+				// fsamp = sampling frequency
+				// ns = number of samples in the scan
+				// size. cf mpi
+				// rank. cf mpi
+				// indpix = pixel indice double[NAXIS1*NAXIS2]
+				// NAXIS1, NAXIS = taille de la carte (1 coté)
+				// npix = total number of filled pixels
+				// iframe = scan indice
+				// *Mp = Null :
+				// *Hits = Null (map hits)
+
+#ifdef PARA_FRAME
+				pb+=do_PtNd(PNd, samples_struct.noisevect,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
+						proc_param.fsamp,ns,0,1,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fitsvect[iframe], NULL, NULL, name_rank);
+
+#else
+				pb+=do_PtNd(PNd, samples_struct.noisevect,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
+						proc_param.fsamp,ns,rank,size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fitsvect[iframe], NULL, NULL, name_rank);
+				// Returns Pnd = (At N-1 d), Mp and hits
+
+#endif
+				if(pb>0){
+					cout << "Problem after do_PtNd. Exiting...\n";
+#ifdef USE_MPI
+					MPI_Finalize();
+#endif
+					return -1;
+				}
+
+
+			} else { // No correlation case
+
+
+				do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param,samples_struct,
+						det_vect,ndet,f_lppix,f_lppix_Nk,addnpix,
+						ns,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
+				// fillgaps + butterworth filter + fourier transform and PNd generation
+
+			}
+
+
+		} // end of iframe loop
+
+
+
+#ifdef USE_MPI
+		MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+#else
+		PNdtot=PNd;
+#endif
+	} // end of else (restore = 0)
+
 
 	if (struct_sanePic.save_data > 0) {
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			compute_checksum(argv[indice_argv], dir.tmp_dir, PNdtot, npix,
+			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
 					indpix, indpsrc, test_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t)){ // write down on disk the checksum values
 #ifdef USE_MPI
-//				MPI_Barrier(MPI_COMM_WORLD);
+				//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return EX_CANTCREAT;
@@ -360,9 +500,7 @@ int main(int argc, char *argv[]) {
 	if (rank == 0)
 		printf("\nMain Conjugate gradient loop\n");
 
-	//MALLOC
-	S = new double[npix];
-	fill(S, S + npix, 0.0);
+
 
 	//////////////////////////////////// Computing of sanePic starts here
 	string testfile; // log file to follow evolution of both criteria
@@ -370,10 +508,10 @@ int main(int argc, char *argv[]) {
 
 	// inititialisation of the Conjugate gradient with preconditioner
 	// see (for a complete description of the following variables) : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
-	double *PtNPmatS, *PtNPmatStot = NULL, *r, *q, *qtot = NULL, *d, *Mp,
-			*Mptot = NULL, *s; // =NULL to avoid warnings
+	double *PtNPmatS, *PtNPmatStot = NULL, *r, *q, *qtot = NULL, *d, *s; // =NULL to avoid warnings
+	double *Mp,	*Mptot = NULL; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
-	double *PNd = NULL; // (At N-1 d)
+
 
 	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0; // conjugate gradient convergence criteria
 	double delta_o, rtq, beta; // conjugate gradient needed parameters (see paper for a complete description)
@@ -382,11 +520,12 @@ int main(int argc, char *argv[]) {
 	double *map1d = NULL; // buffer used to store maps before exporting to fits
 
 	int iter; // conjugate gradient loop counter
-	double f_lppix_Nk, f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
-	long ns; // number of samples for the considered scan
 	long long npixeff; // number of filled pixels
 
 	// memory allocs
+	S = new double[npix];
+	fill(S, S + npix, 0.0);
+
 	r = new double[npix];
 	q = new double[npix];
 	d = new double[npix];
@@ -419,7 +558,7 @@ int main(int argc, char *argv[]) {
 			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 				cout << output_read << endl;
 #ifdef USE_MPI
-//				MPI_Barrier(MPI_COMM_WORLD);
+				//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return EX_CONFIG;
@@ -477,7 +616,6 @@ int main(int argc, char *argv[]) {
 
 		if(rank==0) { // malloc only for first processor that reduces the data
 			PtNPmatStot = new double[npix];
-			//			hitstot=new long[npix];
 			Mptot = new double[npix];
 
 			qtot = new double[npix];
@@ -493,7 +631,6 @@ int main(int argc, char *argv[]) {
 
 		PtNPmatStot = PtNPmatS; // in case non-MPI : pointer equality
 		Mptot = Mp;
-
 #endif
 
 		// inititialisation of the Conjugate gradient with preconditioner
@@ -567,7 +704,7 @@ int main(int argc, char *argv[]) {
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
 #ifdef USE_MPI
-//					MPI_Barrier(MPI_COMM_WORLD);
+					//					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return EX_CONFIG;
@@ -657,7 +794,7 @@ int main(int argc, char *argv[]) {
 					if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 						cout << output_read << endl;
 #ifdef USE_MPI
-//						MPI_Barrier(MPI_COMM_WORLD);
+						//						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
 						return EX_CONFIG;
@@ -752,8 +889,12 @@ int main(int argc, char *argv[]) {
 				// saving iterated maps
 				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0) {
 
-					if ((struct_sanePic.save_data > 0) && (iter != 0))
+					if ((struct_sanePic.save_data > 0) && (iter != 0)){
 						write_disk(dir.tmp_dir, d, r, npixeff, var_n, delta_n, iter);
+						// write (At N-1 d) in a file
+						write_PNd(PNdtot,npix,dir.tmp_dir);
+					}
+
 
 					// Every iterw iteration compute the map and save it
 					map1d = new double[NAXIS1 * NAXIS2];
@@ -776,7 +917,7 @@ int main(int argc, char *argv[]) {
 							(void *) map1d, (char *) "Image", 0)) {
 						cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-//						MPI_Barrier(MPI_COMM_WORLD);
+						//						MPI_Barrier(MPI_COMM_WORLD);
 						MPI_Finalize();
 #endif
 						return EX_CANTCREAT;
@@ -802,7 +943,7 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, (char *) "Flagged Data", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-//							MPI_Barrier(MPI_COMM_WORLD);
+							//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
@@ -851,7 +992,7 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, "CCR Image", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-//							MPI_Barrier(MPI_COMM_WORLD);
+							//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
@@ -878,17 +1019,15 @@ int main(int argc, char *argv[]) {
 								(void *) map1d, (char *) "CCR Error", 1)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
-//							MPI_Barrier(MPI_COMM_WORLD);
+							//							MPI_Barrier(MPI_COMM_WORLD);
 							MPI_Finalize();
 #endif
 							return EX_CANTCREAT;
 						}
 					}
-					if (write_fits_hitory(fname, NAXIS1, NAXIS2, dir.dirfile,
-							proc_param, pos_param, samples_struct.fcut, samples_struct))
-						cerr
-						<< "WARNING ! No history will be included in the file : "
-						<< fname << endl;
+					if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param,
+							samples_struct.fcut, samples_struct, structPS.ncomp)) // write sanePre parameters in naive Map fits file header
+						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 					delete[] map1d;
 				} // end of saving iterated maps
@@ -904,8 +1043,8 @@ int main(int argc, char *argv[]) {
 				temp_stream << "iter = "      << setw(4) << iter;
 				temp_stream << ", crit = "    << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
 				temp_stream << ", crit2 = "   << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
-//				temp_stream << ", var_n = "   << setiosflags(ios::scientific) << setprecision (2) << var_n;
-//				temp_stream << ", delta_n = " << setiosflags(ios::scientific) << setprecision (2) << delta_n;
+				//				temp_stream << ", var_n = "   << setiosflags(ios::scientific) << setprecision (2) << var_n;
+				//				temp_stream << ", delta_n = " << setiosflags(ios::scientific) << setprecision (2) << delta_n;
 
 				// Output to screen ...
 				cout << temp_stream.str() << "\r" << flush;
@@ -937,7 +1076,8 @@ int main(int argc, char *argv[]) {
 		// which will now replace the flagged data by data from the signal map
 
 		if ((pos_param.projgaps || (pos_param.flgdupl)) && !idupl) {
-			PNd = new double[npix];
+			if(struct_sanePic.restore > 0)
+				PNd = new double[npix];
 			fill(PNd, PNd + npix, 0.0);
 
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
@@ -951,7 +1091,7 @@ int main(int argc, char *argv[]) {
 				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
 					cout << output_read << endl;
 #ifdef USE_MPI
-//					MPI_Barrier(MPI_COMM_WORLD);
+					//					MPI_Barrier(MPI_COMM_WORLD);
 					MPI_Finalize();
 #endif
 					return EX_CONFIG;
@@ -1022,14 +1162,7 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	// clean up of conjugate gradient variables
-	delete[] r;
-	delete[] q;
-	delete[] d;
-	delete[] Mp;
-	delete[] s;
-	delete[] PtNPmatS;
-	delete[] PNd;
+
 
 	//******************************  write final map in file ********************************
 
@@ -1047,11 +1180,20 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile))
+				pos_param.maskfile, structPS.ncomp))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0
 
+
+	// clean up of conjugate gradient variables
+	delete[] r;
+	delete[] q;
+	delete[] d;
+	delete[] Mp;
+	delete[] s;
+	delete[] PtNPmatS;
+	delete[] PNd;
 
 #ifdef USE_MPI
 	delete [] qtot;
@@ -1088,7 +1230,7 @@ int main(int argc, char *argv[]) {
 	// clean up
 	delete[] S;
 
-//	delete[] samples_struct.nsamples;
+	//	delete[] samples_struct.nsamples;
 
 	delete[] indpsrc;
 	delete[] indpix;

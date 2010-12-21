@@ -159,13 +159,10 @@ int computePixelIndex(string outdir,
 
 			int *bolo_flag=NULL;
 
-			long test_ns;
-			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+			//				return 1;
+			if(read_flag_from_dirfile(outdir, fits_file, field, bolo_flag))
 				return 1;
-			if (test_ns != ns) {
-				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
-				return 1;
-			}
 
 
 
@@ -312,12 +309,10 @@ int computePixelIndex_HIPE(string outdir,
 				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
 				return 1;
 			}
-			if(read_flag_from_fits(fits_file, field, flag, test_ns))
+			//			if(read_flag_from_fits(fits_file, field, flag, test_ns))
+			//				return 1;
+			if(read_flag_from_dirfile(outdir, fits_file, field, flag))
 				return 1;
-			if (test_ns != ns) {
-				cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-				return 1;
-			}
 			for (long ii=0; ii <ns; ii++){
 				world[2*ii]   = ra[ii];
 				world[2*ii+1] = dec[ii];
@@ -359,14 +354,10 @@ int computePixelIndex_HIPE(string outdir,
 
 			int *bolo_flag=NULL;
 
-			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
-				return 1;
-
-			if (test_ns != ns) {
-				cerr << "Read flags does not correspond to frame size : Check !!" << endl;
-				return 1;
-			}
-
+//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+//				return 1;
+			if(read_flag_from_dirfile(outdir, fits_file, field, bolo_flag))
+							return 1;
 
 			for (long ii=0; ii<ns; ii++){
 

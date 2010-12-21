@@ -21,6 +21,7 @@
 #include "imageIO.h"
 #include "temporary_IO.h"
 #include "inputFileIO.h"
+#include "Corr_preprocess.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -86,7 +87,6 @@ int main(int argc, char *argv[])
 	struct param_sanePre proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /*! structure that contains output input temp directories */
-	struct dirfile_fragment dirfile;
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
 	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
@@ -111,12 +111,17 @@ int main(int argc, char *argv[])
 
 	string fname; /*! parallel scheme file name */
 
+	// positions variables
 	short *mask;
 	long long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
-
 	long long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
-
 	long long *pixon_tot=NULL;
+
+	//naiv map data params
+	long ns; /*! number of samples for this scan, first frame number of this scan*/
+	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
+	double *PNdNaiv, *PNdtotNaiv=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
+	long *hitsNaiv, *hitstotNaiv=NULL; /*! naivmap parameters : hits count */
 
 	// struct used in the parser
 	struct param_sanePS structPS;
@@ -125,8 +130,6 @@ int main(int argc, char *argv[])
 	string parser_output="";
 
 	string field; /*! actual boloname in the bolo loop */
-	string bolofield; /*! bolofield = boloname + bextension */
-	string flagfield; /*! flagfield = field+fextension;*/
 
 #ifdef DEBUG_PRINT
 	time_t t2, t3;
@@ -176,7 +179,6 @@ int main(int argc, char *argv[])
 #endif
 
 
-
 #ifdef PARA_FRAME
 
 	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
@@ -194,27 +196,6 @@ int main(int argc, char *argv[])
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 
-	//	ofstream file; // write down the configuration used by sanePos
-	//	string outfile = dir.output_dir + parallel_scheme_filename;
-	//	file.open(outfile.c_str(), ios::out);
-	//	if(!file.is_open()){
-	//		cerr << "File [" << outfile << "] Invalid." << endl;
-	//		return EX_CANTCREAT;
-	//	}
-	//
-	//	string temp;
-	//	size_t found;
-	//
-	//	for(long jj = 0; jj<samples_struct.ntotscan; jj++){
-	//
-	//		temp = samples_struct.fitsvect[jj];
-	//		found=temp.find_last_of('/');
-	//		file << temp.substr(found+1) << " " << " 0" << endl;
-	//
-	//	}
-	//
-	//	file.close();
-
 #endif
 
 	if(rank==0){
@@ -222,9 +203,8 @@ int main(int argc, char *argv[])
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
-		compute_dirfile_format_file(dir.tmp_dir, dirfile);
+		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
 	}
-
 
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
@@ -256,7 +236,7 @@ int main(int argc, char *argv[])
 				}
 				break;
 			case 1:
-				if(computeMapMinima_HIPE(samples_struct,
+				if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef PARA_FRAME
@@ -352,7 +332,6 @@ int main(int argc, char *argv[])
 	}
 
 
-
 	// each frame contains npixsrc pixels with index indsprc[] for which
 	// crossing constraint are removed
 	// thus
@@ -411,26 +390,25 @@ int main(int argc, char *argv[])
 
 
 #ifdef PARA_FRAME
-	if(rank==0){
+	if(rank==0)
 		pixon_tot = new long long[sky_size];
-	}
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 	pixon_tot=pixon;
 #endif
 
+	indpix = new long long[sky_size];
 
-	npix = 0;
 	if(rank==0){
 
-		indpix = new long long[sky_size];
+		npix = 0;
 		for(long long ii=0; ii< sky_size; ii++)
 			if (pixon_tot[ii] != 0)
 				indpix[ii] = npix++;
 			else
 				indpix[ii] = -1;
-		/*!
-		 * Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
+
+		/* Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
@@ -447,9 +425,6 @@ int main(int argc, char *argv[])
 			return(EX_CANTCREAT);
 		}
 
-
-		delete [] indpsrc;
-		delete [] indpix;
 	}
 
 
@@ -461,22 +436,190 @@ int main(int argc, char *argv[])
 		printf("Total Number of filled pixels : %lld\n", npix);
 	}
 
-#ifdef DEBUG_PRINT
-	t3=time(NULL);
+
+	// TODO : indpix broadcast
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(indpix,sky_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+#endif
+
+	//--------------------------------------- NAIVE MAP COMPUTATION ------------------------------------------//
+
+
+	// (At N-1 D) memory allocation
+	PNdNaiv= new double[npix];
+	hitsNaiv=new long[npix];
+
+	fill(PNdNaiv,PNdNaiv+npix,0.0);
+	fill(hitsNaiv,hitsNaiv+npix,0);
+
+
+#ifdef USE_MPI
+
+	if(rank==0){	// global (At N-1 D) malloc for mpi
+		PNdtotNaiv = new double[npix];
+		hitstotNaiv=new long[npix];
+	}
+
 #endif
 
 
+	if(rank==0)
+		printf("\nComputing Naïve map\n");
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+
+	// loop over the scans
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
+		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
+		f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+
+		string output_read = "";
+		std::vector<string> det_vect;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+#ifdef USE_MPI
+			//			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return EX_CONFIG;
+		}
+
+		long ndet = (long)det_vect.size();
+
+		int pb=0;
+
+#ifdef PARA_FRAME
+		pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
+		// Returns Pnd = (At N-1 d), Mp and hits
+#else
+
+		pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
+
+#endif
+
+		if(pb>0){
+			cout << "Problem after do_PtNd_Naiv. Exiting...\n";
+#ifdef USE_MPI
+			//				MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Finalize();
+#endif
+			return -1;
+		}
+
+	} // end of iframe loop
+
+
+#ifdef USE_MPI
+	MPI_Reduce(PNdNaiv,PNdtotNaiv,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(hitsNaiv,hitstotNaiv,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+
+#else
+	PNdtotNaiv=PNdNaiv;
+	hitstotNaiv=hitsNaiv;
+
+#endif
+
+	if(rank==0)
+		printf("\nEnd of Pre-Processing\n");
+
+	if (rank == 0){
+
+		string fnaivname = dir.output_dir + "naivMap.fits";
+
+		cout << "Output file : " << fnaivname << endl;
+
+		double *map1d;
+		long long mi;
+		map1d = new double[NAXIS1*NAXIS2];
+
+		// TODO: Save the map of flag data if needed
+
+		for (long jj=0; jj<NAXIS2; jj++) {
+			for (long ii=0; ii<NAXIS1; ii++) {
+				mi = jj*NAXIS1 + ii;
+				if (indpix[mi] >= 0){
+					//					if(hitsNaiv[indpix[mi]]>0)
+					map1d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitstotNaiv[indpix[mi]];
+				} else {
+					map1d[mi] = NAN;
+				}
+			}
+		}
+
+		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0)){ // open naive Map fits file and fill ultra naive map image
+			cerr << "Error Writing Ultra Naiv map ... \n";
+		}
+
+		for (long jj=0; jj<NAXIS2; jj++) {
+			for (long ii=0; ii<NAXIS1; ii++) {
+				mi = jj*NAXIS1 + ii;
+				if (indpix[mi] >= 0){
+					map1d[mi] = hitstotNaiv[indpix[mi]];
+				} else {
+					map1d[mi] = 0;
+				}
+			}
+		}
+
+		if (addnpix){
+			for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+				for (long jj=0; jj<NAXIS2; jj++) {
+					for (long ii=0; ii<NAXIS1; ii++) {
+						mi = jj*NAXIS1 + ii;
+						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
+						if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
+							map1d[mi] += hitstotNaiv[indpix[ll]];
+					}
+				}
+			}
+		}
+
+		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1)){ // open naive Map fits file and fill hit (or coverage) image
+			cerr << "Error Writing coverage map  ... \n";
+		}
+
+		if(write_fits_hitory2(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS.ncomp)) // write sanePre parameters in naive Map fits file header
+			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
+		if (pos_param.maskfile != "")
+			if(write_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
+				cerr << "Warning ! The mask will not be included in naive map fits file ...\n";
+
+		delete [] map1d;
+
+	}
+	/* ---------------------------------------------------------------------------------------------*/
+
+#ifdef USE_MPI
+	if(rank==0){
+		// clean up
+		delete [] PNdtotNaiv;
+		delete [] hitstotNaiv;
+	}
+#endif
+
 	if(rank==0){
 #ifdef DEBUG_PRINT
+		//Get processing time
+		t3=time(NULL);
 		printf("\nProcessing time : %d sec\n",(int)(t3-t2));
 #endif
 		printf("\nCleaning up\n");
 	}
 
 	// clean up
+	delete [] PNdNaiv;
+	delete [] hitsNaiv;
+	delete [] indpix;
+	delete [] indpsrc;
 	delete [] mask;
 	delete [] coordscorner;
-
 	delete [] pixon;
 
 	int nwcs=1;
@@ -484,7 +627,6 @@ int main(int argc, char *argv[])
 
 	if(rank==0)
 		printf("End of sanePos\n");
-
 
 #ifdef PARA_FRAME
 	if(rank==0)

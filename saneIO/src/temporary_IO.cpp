@@ -6,10 +6,13 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "struct_definition.h"
 #include "inputFileIO.h"
-#include <iostream>
-
 #include "temporary_IO.h"
 #include "dataIO.h"
 
@@ -20,43 +23,25 @@ extern "C" {
 
 using namespace std;
 
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct) {
-
-	string datadir = dir.tmp_dir + "dirfile/data/";
-	string flagdir = dir.tmp_dir + "dirfile/flag/";
-
-	DIRFILE* D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_CREAT
-			| GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_CREAT
-			| GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max)
+{
 
 	double *d;
 	int *flag;
 	long ns;
+	DIRFILE* D, *H;
 
-	//	// get format number of fields
-	//	unsigned int nfields =  gd_nfields(D);
-	//
-	//	// get list of fields
-	//	const char** field_list = gd_field_list(D);
-	//
-	//	// fill a vector with fields names
-	//	std::vector<std::string> fields((char**)field_list, (char**)(field_list+nfields));
-	//
-	//	// seek whether field already exists
-	//	int mycount = (int) count(fields.begin(), fields.end(), outfile);
-	//
-	//	if(mycount==1){ // delete field + bin in case it already exists
-	//		gd_delete(D, (char*)outfile.c_str(), GD_DEL_DATA);
-	//		if(gd_error(D)){
-	//			cout << "error putdata in write_fdata : gd_delete " << outfile << " failed" << endl;
-	//			return 1;
-	//		}
-	//	}
-
-	for(long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
-
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
+		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
+
+		D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+		H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+
+
 		string output_read = "";
 		std::vector<string> bolonames;
 		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
@@ -119,46 +104,39 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			delete [] flag;
 			delete [] d;
 		}
-	}
 
+		// close dirfile
+		if (gd_close(D)) {
+			cout << "Dirfile gd_close error in write_data_flag for : " << datadir
+					<< endl;
+			return 1;
+		}
 
-	// close dirfile
-	if (gd_close(D)) {
-		cout << "Dirfile gd_close error in write_data_flag for : " << datadir
-				<< endl;
-		return 1;
-	}
-
-	// close dirfile
-	if (gd_close(H)) {
-		cout << "Dirfile gd_close error in write_data_flag for : " << flagdir
-				<< endl;
-		return 1;
+		// close dirfile
+		if (gd_close(H)) {
+			cout << "Dirfile gd_close error in write_data_flag for : " << flagdir
+					<< endl;
+			return 1;
+		}
 	}
 
 	return 0;
 }
 
-
-int read_data_flag_from_dirfile(string tmp_dir, string filename, string field, double *&data, int *&mask){ // TODO :  add ns for size verification ??
+int read_data_from_dirfile(string tmp_dir, string filename, string field, double *&data){ // TODO :  add ns for size verification ??
 
 	// set dirfile name and binary name
-	string datadir = tmp_dir + "dirfile/data/";
-	string flagdir = tmp_dir + "dirfile/flag/";
-	string data_outfile = "data_" + FitsBasename(filename) + "_" + field;
-	string flag_outfile = "flag_" + FitsBasename(filename) + "_" + field;
+	string base_name = FitsBasename(filename);
+	string datadir = tmp_dir + "dirfile/" + base_name + "/data";
+	string data_outfile = "data_" + base_name + "_" + field;
 
 
 	// open dirfile
 	DIRFILE* D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_VERBOSE
 			| GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED | GD_BIG_ENDIAN);
 
 	// get ns from format
 	unsigned int nframe = gd_nframes(D);
-	//	cout << " nframesD : " << nframe << endl;
-	//	cout << " nframesH : " << nframe << endl;
 
 	data = new double[nframe];
 
@@ -170,23 +148,37 @@ int read_data_flag_from_dirfile(string tmp_dir, string filename, string field, d
 		return 1;
 	}
 
-
-	nframe = gd_nframes(H);
-
-	mask = new int[nframe];
-
-	// fill mask array
-	nget = gd_getdata(H, (char*) flag_outfile.c_str(), 0, 0, 0, nframe, GD_INT32,
-			mask);
-	if (gd_error(H) != 0) {
-		cout << "error getdata in read_data_flag_from_dirfile : read " << nget << endl;
-		return 1;
-	}
-
 	// close dirfile
 	if (gd_close(D)) {
 		cout << "Dirfile gd_close error in read_data_flag_from_dirfile for : " << datadir
 				<< endl;
+		return 1;
+	}
+
+	return 0;
+}
+
+int read_flag_from_dirfile(string tmp_dir, string filename, string field, int *&mask){ // TODO :  add ns for size verification ??
+
+	// set dirfile name and binary name
+	string base_name = FitsBasename(filename);
+	string flagdir = tmp_dir + "dirfile/" + base_name + "/flag";
+	string flag_outfile = "flag_" + base_name + "_" + field;
+
+
+	// open dirfile
+	DIRFILE* H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_VERBOSE
+			| GD_UNENCODED | GD_BIG_ENDIAN);
+
+	unsigned int nframe = gd_nframes(H);
+
+	mask = new int[nframe];
+
+	// fill mask array
+	int nget = gd_getdata(H, (char*) flag_outfile.c_str(), 0, 0, 0, nframe, GD_INT32,
+			mask);
+	if (gd_error(H) != 0) {
+		cout << "error getdata in read_data_flag_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
@@ -204,10 +196,11 @@ int write_samptopix(long ns, long long *&samptopix, string tmpdir,
 		string filename, std::string boloname)
 /*!  write a sample to pixel vector to disk  */
 {
+	string base_name = FitsBasename(filename);
 	// set dirfile path name
-	string filedir = tmpdir + "dirfile/Indexes/";
+	string filedir = tmpdir + "dirfile/" + base_name + "/Indexes/";
 	// set binary file name
-	string outfile = FitsBasename(filename) + "_" + boloname;
+	string outfile = base_name + "_" + boloname;
 
 	// open dirfile
 	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_CREAT
@@ -269,9 +262,11 @@ int read_samptopix(long ns, long long *&samptopix, string tmpdir,
 		string filename, std::string boloname)
 /*!  read a sample to pixel vector from disk  */
 {
-	// set dirfile name and binary name
-	string filedir = tmpdir + "dirfile/Indexes/";
-	string outfile = FitsBasename(filename) + "_" + boloname;
+	string base_name = FitsBasename(filename);
+	// set dirfile path name
+	string filedir = tmpdir + "dirfile/" + base_name + "/Indexes/";
+	// set binary file name
+	string outfile = base_name + "_" + boloname;
 
 	// open dirfile
 	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
@@ -464,50 +459,63 @@ int write_fdata(long ns, fftw_complex *fdata, string prefixe, string tmpdir,
 		long idet, string filename, std::vector<std::string> bolonames)
 /*! write Fourier data file to disk */
 {
+
+	string base_name = FitsBasename(filename);
+
 	// set dirfile and binary names
-	string filedir = tmpdir + "dirfile/Fourier_transform/";
+	string filedir = tmpdir + "dirfile/" + base_name + "/Fourier_transform/";
 	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
+
+	//	cout << "writing : " << outfile << endl;
 
 	//open dirfile
 	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
 			| GD_UNENCODED | GD_BIG_ENDIAN);
 
-	// get format number of fields
-	unsigned int nfields = gd_nfields(D);
+//	// get format number of fields
+//	unsigned int nfields = gd_nfields(D);
+//
+//	// get list of fields
+//	const char** field_list = gd_field_list(D);
+//
+//	// fill a vector with fields names
+//	std::vector<std::string> fields((char**) field_list, (char**) (field_list
+//			+ nfields));
+//
+//	// seek whether field already exists
+//	int mycount = (int) count(fields.begin(), fields.end(), outfile);
+//
+//	if (mycount == 1) { // delete field + bin in case it already exists
+//		gd_delete(D, (char*) outfile.c_str(), GD_DEL_DATA);
+//		if (gd_error(D)) {
+//			cout << "error putdata in write_fdata : gd_delete " << outfile
+//					<< " failed" << endl;
+//			return 1;
+//		}
+//	}
+//
+//	//configure dirfile field
+//	gd_entry_t E;
+//	E.field = (char*) outfile.c_str();
+//	E.field_type = GD_RAW_ENTRY;
+//	E.fragment_index = 0;
+//	E.spf = 1;
+//	E.data_type = GD_COMPLEX128;
+//	E.scalar[0] = NULL;
+//
+//	//	gd_add_polynom(D, (char*) outfile.c_str(), ns-1, (char*) outfile.c_str(), fdata, 0);
+//	// add to the dirfile
+//	gd_add(D, &E);
 
-	// get list of fields
-	const char** field_list = gd_field_list(D);
+	//	 data_data[fd] = (float complex)(1.5 * (1 + _Complex_I) * fd);
 
-	// fill a vector with fields names
-	std::vector<std::string> fields((char**) field_list, (char**) (field_list
-			+ nfields));
-
-	// seek whether field already exists
-	int mycount = (int) count(fields.begin(), fields.end(), outfile);
-
-	if (mycount == 1) { // delete field + bin in case it already exists
-		gd_delete(D, (char*) outfile.c_str(), GD_DEL_DATA);
-		if (gd_error(D)) {
-			cout << "error putdata in write_fdata : gd_delete " << outfile
-					<< " failed" << endl;
-			return 1;
-		}
-	}
-
-	//configure dirfile field
-	gd_entry_t E;
-	E.field = (char*) outfile.c_str();
-	E.field_type = GD_RAW_ENTRY;
-	E.fragment_index = 0;
-	E.spf = 1;
-	E.data_type = GD_DOUBLE;
-	E.scalar[0] = NULL;
-
-	// add to the dirfile
-	gd_add(D, &E);
+	//	if(idet==0)
+	//		//	for (long ii=0;ii<ns/2+1;ii++)
+	//		//		if((fdata[ii][0]!=0.0) || (fdata[ii][1]!=0.0))
+	//		cout << (double)fdata[10][0] << " " << (double)fdata[10][1] << endl;
 
 	// write binary file on disk
-	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns/2+1, GD_COMPLEX128,
 			fdata);
 	if (gd_error(D) != 0) {
 		cout << "error putdata in write_fdata : wrote " << n_write
@@ -547,17 +555,27 @@ int read_fdata(long ns, fftw_complex *&fdata, string prefixe, string tmpdir,
 {
 
 	// set dirfile and bin names
-	string filedir = tmpdir + "dirfile/Fourier_transform/";
+	string base_name = FitsBasename(filename);
+	string filedir = tmpdir + "dirfile/" + base_name + "/Fourier_transform/";
 	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
+
+	//		cout << "reading : " << outfile << endl;
 
 	// open dirfile
 	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
 			| GD_UNENCODED | GD_BIG_ENDIAN);
 
-	unsigned int nframe = gd_nframes(D);
+		unsigned int nframe = gd_nframes(D);
+
+	//	cout << "nframe : " << nframe << " vs ns : " << ns << endl;
+
+	//	double *fdata2;
+	//	fdata2=new double[ns+2];
+	//	fdata2[0] = new double[ns/2+1];
+	//	fdata2[1] = new double[ns/2+1];
 
 	// fill fdata with binary
-	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, nframe, GD_DOUBLE,
+	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, nframe, GD_COMPLEX128,
 			fdata);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_fdata : read " << nget << endl;
@@ -571,6 +589,23 @@ int read_fdata(long ns, fftw_complex *&fdata, string prefixe, string tmpdir,
 		return 1;
 	}
 
+	//	if(idet==0)
+	//		cout << (double)fdata[10][0] << " " << (double)fdata[10][1] << endl;
+
+	//	if(nframe!=(unsigned int)ns){
+	//		cout << "error !!!! ns != nframe in read_fdata... Exiting ... \n";
+	//		cout << "ns = " << ns << " and nframe = " << nframe << endl;
+	//		return 1;
+	//	}
+
+	//	for (long ii=0;ii<ns/2+1;ii++){
+	//		fdata[ii][0] = fdata2[ii*2];
+	//		fdata[ii][1] = fdata2[2*ii+1];
+	//	}
+
+	//	delete []fdata2;
+
+	//	cout << "read\n";
 	return 0;
 }
 

@@ -11,9 +11,9 @@ extern "C" {
 }
 
 // dirfile functions
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct);
-int read_data_flag_from_dirfile(std::string tmp_dir, std::string filename, std::string field, double *&data, int *&mask);
-
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
+int read_data_from_dirfile(std::string tmp_dir, std::string filename, std::string field, double *&data);
+int read_flag_from_dirfile(std::string tmp_dir, std::string filename, std::string field, int *&mask);
 // dirfile functions
 //bool compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf);
 //bool compute_dirfile_format_noisePS(std::string outdir, std::vector<std::string> det, std::string suffix);

@@ -264,13 +264,13 @@ int write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * e
 	string filedir = outputDir + "dirfile/Noise_data/";
 
 	// open dirfile
-	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
 
 	// dirfile name
 	filedir = outputDir + "dirfile/Noise_data/ell/";
 
 	// open dirfile
-	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
 
 	long ndet = bolos.size();
 

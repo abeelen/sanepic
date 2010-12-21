@@ -14,6 +14,7 @@
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
+#include "getdata.h"
 }
 
 #include "inputFileIO.h"
@@ -366,41 +367,59 @@ int check_common(string &output, struct param_common dir){
 	return 0;
 }
 
-int compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf){
+int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct){
 
 	string filedir = tmp_dir + "dirfile";
-	string fdata = tmp_dir + "dirfile/Fourier_transform";
-	string index_path = tmp_dir + "dirfile/Indexes";
 	string noise_path = tmp_dir + "dirfile/Noise_data";
 	string ell_path = tmp_dir + "dirfile/Noise_data/ell";
-	string data = tmp_dir + "dirfile/data";
-	string flag_dir = tmp_dir + "dirfile/flag";
+	DIRFILE *D, *H, *F, *I, *I2, *J, *K, *S;
 
 	// create folders
-	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* H = gd_open((char *)index_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* F = gd_open((char *)fdata.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	DIRFILE* K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
-	// close subdirfiles
-	gd_close(H);
-	gd_close(F);
 	gd_close(I);
 	gd_close(I2);
-	gd_close(J);
-	gd_close(K);
 
-	// include subdir and create format files
-	dirf.fragment_index = gd_include(D, "Indexes/format", 0, GD_CREAT | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
-	dirf.fragment_fdata = gd_include(D, "Fourier_transform/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-	dirf.fragment_noise = gd_include(D, "Noise_data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-	dirf.fragment_ell = gd_include(D, "Noise_data/ell/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-	dirf.fragment_flag = gd_include(D, "flag/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-	dirf.fragment_data = gd_include(D, "data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	gd_include(D, "Noise_data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+	gd_include(D, "Noise_data/ell/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 
+	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
+
+		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string scan_folder = filedir + "/" + scan_name + "/";
+		string fdata = filedir + "/" + scan_name + "/Fourier_transform";
+		string index_path = filedir + "/" + scan_name + "/Indexes";
+		string data = filedir + "/" + scan_name + "/data";
+		string flag_dir = filedir + "/" + scan_name + "/flag";
+
+		// create folders and
+		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		H = gd_open((char *)index_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		F = gd_open((char *)fdata.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT  | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		// close subdirfiles
+		gd_close(H);
+		gd_close(F);
+		gd_close(J);
+		gd_close(K);
+		gd_close(S);
+
+		// include subdir and create format files
+		gd_include(D, (char *)(scan_name + "/format").c_str(), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		gd_include(S, (char *)("/Indexes/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("/Fourier_transform/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("/flag/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("/data/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		gd_close(S);
+	}
 	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
 	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
 	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_fdata);
@@ -408,19 +427,89 @@ int compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &di
 	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_flag);
 	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_data);
 
-
-	// print fragment index
-	cout << "fragment_index : " << dirf.fragment_index << endl;
-	cout << "fragment_fdata : " << dirf.fragment_fdata << endl;
-	cout << "fragment_noise : " << dirf.fragment_noise << endl;
-	cout << "fragment_ell : " << dirf.fragment_ell << endl;
-	cout << "fragment_flag : " << dirf.fragment_flag << endl;
-	cout << "fragment_data : " << dirf.fragment_data << endl;
-
 	// close dirfile
 	gd_close(D);
 
-	return 1;
+	return 0;
+}
+
+int cleanup_dirfile_sanePos(string tmp_dir, struct samples samples_struct)
+{
+
+	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
+		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
+
+		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_close(S);
+
+	}
+	return 0;
+}
+
+int cleanup_dirfile_saneInv(string tmp_dir, struct samples samples_struct)
+{
+
+	string noise_path = tmp_dir + "dirfile/" + "/Noise_data";
+	string ell_path =  noise_path + "/ell";
+
+	DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	gd_close(S);
+	DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	gd_close(D);
+
+	return 0;
+}
+
+int cleanup_dirfile_sanePic(std::string tmp_dir, struct samples samples_struct){
+
+	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
+
+		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/Fourier_transform";
+
+		// clean up the dirfiles
+		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+//		long ns= samples_struct.nsamples[iframe];
+//		fftw_complex *fdata;
+//		fdata = new fftw_complex[ns/2+1];
+//
+//		for(long ii =0; ii<ns/2+1;ii++){
+//			fdata[ii][0]=0.0;
+//			fdata[ii][1]=0.0;
+//		}
+
+		string output_read = "";
+		std::vector<string> det_vect;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+
+		string prefixe[2] = {"fdata_","fPs_"};
+		for(long ip=0;ip<2;ip++)
+			for(long idet=0; idet<(long)det_vect.size(); idet ++){
+				string outfile = prefixe[ip] + scan_name + "_" + det_vect[idet];
+				//configure dirfile field
+				gd_entry_t E;
+				E.field = (char*) outfile.c_str();
+				E.field_type = GD_RAW_ENTRY;
+				E.fragment_index = 0;
+				E.spf = 1;
+				E.data_type = GD_COMPLEX128;
+				E.scalar[0] = NULL;
+
+				// add to the dirfile
+				gd_add(S, &E);
+
+			}
+
+		gd_close(S);
+//		delete [] fdata;
+	}
+
+	return 0;
 }
 
 int check_param_positions(string &output, struct param_sanePos pos_param){

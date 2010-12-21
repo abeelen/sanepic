@@ -18,7 +18,7 @@ using namespace std;
 int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_sanePre proc_param, struct param_sanePos pos_param,
-		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile){
+		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, int ncomp){
 
 
 
@@ -61,7 +61,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 	fill(map1d,map1d+NAXIS1*NAXIS2,0.0);
 
-
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
@@ -83,7 +82,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 			}
 		}
 	}
-
 
 	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1)){
 		cerr << "Error Writing map : EXITING ... \n";
@@ -157,7 +155,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		if(write_fits_mask(fname, dir.input_dir + maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
 
-	if(write_fits_hitory(fname , NAXIS1, NAXIS2, outdir, proc_param, pos_param , fcut, samples_struct))
+	if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , samples_struct.fcut, samples_struct, ncomp)) // write sanePre parameters in naive Map fits file header
 		cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 	// clean

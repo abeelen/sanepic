@@ -51,8 +51,9 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
 		field = det[idet];
 
-
-		if(read_data_flag_from_dirfile(tmp_dir, fits_filename, field, data, flag))
+		if(read_data_from_dirfile(tmp_dir, fits_filename, field, data))
+			return 1;
+		if(read_flag_from_dirfile(tmp_dir, fits_filename, field, flag))
 			return 1;
 
 		//		long test_ns;

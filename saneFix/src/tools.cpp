@@ -174,7 +174,7 @@ void fix_row(double *row, double *&row_fixed, std::vector <long> indice, std::ve
 		}
 		pointer=jj;
 		for(kk=pointer; kk < pointer + add_sample[ii]; kk++) // fill with average values
-			row_fixed[kk] = row[uu]+(row[uu+1+suppress_time_sample[ii]] - row[uu])/add_sample[ii]*(kk+1-pointer);
+			row_fixed[kk] = row[uu-1]+(row[uu+1+suppress_time_sample[ii]] - row[uu-1])/add_sample[ii]*(kk+1-pointer);
 		pointer=kk;
 		uu+=suppress_time_sample[ii];
 

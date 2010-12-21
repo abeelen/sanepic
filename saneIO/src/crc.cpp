@@ -26,7 +26,7 @@ unsigned checksum(void *buffer, size_t len, unsigned int seed)
 }
 
 
-void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk)
+void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk)
 {
 
 	FILE *fp;
@@ -61,7 +61,7 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, lo
 	chk.chk_wcs_file=checksum(buf, len, 0);
 //	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
 
-	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
+//	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
 //	printf("The checksum of PNd is %u\n", chk.chk_pnd);
 
 	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
@@ -87,7 +87,7 @@ int write_checksum(std::string tmp_dir, struct checksum chk)
 	}
 	len+=fwrite(&chk.chk_ini_file,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_wcs_file,sizeof(unsigned int),1,fp);
-	len+=fwrite(&chk.chk_pnd,sizeof(unsigned int),1,fp);
+//	len+=fwrite(&chk.chk_pnd,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_indpix,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
@@ -111,7 +111,7 @@ void read_checksum(std::string tmp_dir, struct checksum &chk)
 	}
 	len+=fread(&chk.chk_ini_file,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_wcs_file,sizeof(unsigned int),1,fp);
-	len+=fread(&chk.chk_pnd,sizeof(unsigned int),1,fp);
+//	len+=fread(&chk.chk_pnd,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpix,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
@@ -123,7 +123,7 @@ bool compare_checksum(struct checksum chk_t, struct checksum chk_t2){
 
 	if((chk_t.chk_ini_file != chk_t2.chk_ini_file) ||
 			(chk_t.chk_wcs_file!=chk_t2.chk_wcs_file) ||
-			(chk_t.chk_pnd!=chk_t2.chk_pnd) ||
+//			(chk_t.chk_pnd!=chk_t2.chk_pnd) ||
 			(chk_t.chk_indpix!=chk_t2.chk_indpix) ||
 			(chk_t.chk_indpsrc!=chk_t2.chk_indpsrc))
 		return 1;

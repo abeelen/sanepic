@@ -84,7 +84,9 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 		field = det[idet];
 
-		if(read_data_flag_from_dirfile(dir.tmp_dir, fits_filename, field, data, flag))
+		if(read_data_from_dirfile(dir.tmp_dir, fits_filename, field, data))
+			return 1;
+		if(read_flag_from_dirfile(dir.tmp_dir, fits_filename, field, flag))
 			return 1;
 
 		//		long test_ns;
@@ -280,7 +282,9 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 
 		field = det[idet];
 
-		if(read_data_flag_from_dirfile(dir.tmp_dir, fits_filename, field, data, flag))
+		if(read_data_from_dirfile(dir.tmp_dir, fits_filename, field, data))
+			return 1;
+		if(read_flag_from_dirfile(dir.tmp_dir, fits_filename, field, flag))
 			return 1;
 
 		//		long test_ns;

@@ -5,7 +5,7 @@
 #include "struct_definition.h"
 
 unsigned checksum(void *buffer, size_t len, unsigned int seed);
-void compute_checksum(std::string ini_file, std::string tmp_dir, double* Pnd, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk);
+void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk);
 int write_checksum(std::string tmp_dir, struct checksum chk);
 void read_checksum(std::string tmp_dir, struct checksum &chk);
 bool compare_checksum(struct checksum chk_t, struct checksum chk_t2);

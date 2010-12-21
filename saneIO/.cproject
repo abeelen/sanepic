@@ -37,7 +37,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1820326974" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.704688572" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.preprocessor.def.1348998067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.1348998067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1114274031" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 <listOptionValue builtIn="false" value="DEBUG_PRINT"/>
@@ -555,6 +555,7 @@
 <option id="gnu.cpp.compiler.so.release.option.debugging.level.1997846831" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1954408859" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/include"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/src}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.other.other.1381138984" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
@@ -579,6 +580,7 @@
 <option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.181419795" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
 <option id="gnu.cpp.link.option.libs.1356347508" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="getdata"/>
 <listOptionValue builtIn="false" value="iniparser"/>
 <listOptionValue builtIn="false" value="wcs"/>
 <listOptionValue builtIn="false" value="fftw3"/>
@@ -586,6 +588,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.125951770" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/lib/"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.245427411" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">

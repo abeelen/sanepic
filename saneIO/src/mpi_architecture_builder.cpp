@@ -466,7 +466,6 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 	sort((samples_str_para.fitsvect).begin(), (samples_str_para.fitsvect).end(), sortobject);
 	sort((samples_str.fitsvect).begin(), (samples_str.fitsvect).end(), sortobject);
 
-	cout << FitsBasename(samples_str.fitsvect[0]) << endl;
 
 	for(int ii=0;ii<samples_str.ntotscan;ii++)
 		if(samples_str_para.fitsvect[ii]!=(FitsBasename(samples_str.fitsvect[ii])+ ".fits")){

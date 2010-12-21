@@ -67,12 +67,6 @@ int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *ind
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-		//		if(fPs_buffer!=(fftw_complex*)NULL)
-		//			for(long ii=0;ii<(ns/2+1);ii++){
-		//				fPs_buffer[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-		//				fPs_buffer[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-		//			}
-		//		else
 		if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det))
 			return 1;
 
@@ -118,11 +112,6 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	fill(data_lp,data_lp+ns,0.0);
 	fill(samptopix,samptopix+ns,0);
 
-	//	for (long ii=0;ii<ns/2+1;ii++){
-	//		fdata[ii][0] = 0.0;
-	//		fdata[ii][1] = 0.0;
-	//	}
-
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
@@ -152,28 +141,10 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		}
 
 
-		if(read_data_flag_from_dirfile(tmp_dir, fits_filename, field1, data, flag))
+		if(read_data_from_dirfile(tmp_dir, fits_filename, field1, data))
 			return 1;
-
-//		long test_ns;
-//		if(read_signal_from_fits(fits_filename, field1, data, test_ns))
-//			return 1;
-//		if (test_ns != ns) {
-//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-//			return 1;
-//		}
-//
-//		if(read_flag_from_fits(fits_filename , field1, flag, test_ns))
-//			return 1;
-//		if (test_ns != ns) {
-//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-//			return 1;
-//		}
-
-
-
-
-
+		if(read_flag_from_dirfile(tmp_dir, fits_filename, field1, flag))
+			return 1;
 
 		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
@@ -213,12 +184,6 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-		//		if(fdatas!=NULL)
-		//			for(long ii=0;ii<(ns/2+1);ii++){
-		//				fdatas[((ns/2+1)*idet1)+ii][0]=fdata[ii][0];
-		//				fdatas[((ns/2+1)*idet1)+ii][1]=fdata[ii][1];
-		//			}
-		//		else
 		//write fourier transform to disk
 		if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det))
 			return 1;
@@ -368,12 +333,6 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
 
-			//			if(fdatas!=(fftw_complex*)NULL)
-			//				for(long ii=0;ii<(ns/2+1);ii++){
-			//					fdata[ii][0]=fdatas[((ns/2+1)*idet2)+ii][0];
-			//					fdata[ii][1]=fdatas[((ns/2+1)*idet2)+ii][1];
-			//				}
-			//			else
 			//read Fourier transform of the data
 			if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
 				return 1;
@@ -493,7 +452,6 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, st
 
 
 	string field1;
-//	long ns_test=0;
 	double *data, *data_lp, *data_out, *bfilter;
 	long long *samptopix;
 	double aa, bb;
@@ -506,31 +464,17 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, st
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+
 		field1 = det[idet1];
-
-
 
 		//Read pointing data
 		if(read_samptopix(ns, samptopix, dir, file[iframe], field1))
 			return 1;
 
-		if(read_data_flag_from_dirfile(dir, file[iframe], field1, data, flag))
+		if(read_data_from_dirfile(dir, file[iframe], field1, data))
 			return 1;
-
-//		if(read_signal_from_fits(file[iframe], field1, data, ns_test))
-//			return 1;
-//		if(ns!=ns_test){
-//			cout << "signal image has a wrong size : " << ns_test << " != " << ns << endl;
-//			return 1;
-//		}
-//
-//		if(read_flag_from_fits(file[iframe], field1, flag, ns_test))
-//			return 1;
-//		if (ns_test != ns) {
-//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-//			return 1;
-//		}
-
+		if(read_flag_from_dirfile(dir, file[iframe], field1, flag))
+			return 1;
 
 		fill(data_out,data_out+ns,0.0);
 
@@ -563,9 +507,6 @@ int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, st
 		fill(data,data+ns,0.0);
 		//******************* process gaps
 		fillgaps2(data_out,ns,data,flag,40);
-
-
-
 
 
 		for (long ii=0;ii<ns;ii++){

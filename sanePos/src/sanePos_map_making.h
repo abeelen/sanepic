@@ -17,7 +17,7 @@ int computeMapMinima(struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
-int computeMapMinima_HIPE(struct samples samples_struct,
+int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 

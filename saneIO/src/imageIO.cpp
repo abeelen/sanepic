@@ -4,6 +4,8 @@
 #include "imageIO.h"
 #include "struct_definition.h"
 #include "inputFileIO.h"
+#include "parser_functions.h"  // TODO : fix that later
+#include "covMatrix_IO.h" // TODO : fix that later
 
 #include <sstream>
 
@@ -126,7 +128,6 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 
 	return 0;
 }
-
 
 
 int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, long ncomp){
@@ -355,6 +356,120 @@ int write_fits_hitory(string fname,long NAXIS1, long NAXIS2, string path, struct
 	return 0;
 }
 
+int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, long ncomp)
+{
+
+	fitsfile *fptr;
+	int fits_status = 0;
+	//	long naxes[2] = { 1, 1 };
+	std::vector<string> key_vect;
+	std::vector<string> comm_vect;
+	std::vector<string> value_vect;
+
+	//fill the key_vect
+	key_vect.push_back("EXTNAME"); key_vect.push_back("PATHNAME");
+	for(long iframe=0;iframe < samples_struct.ntotscan; iframe ++)
+		key_vect.push_back("SOURCES");
+	key_vect.push_back("NAPOD"); key_vect.push_back("POLY ORDER"); key_vect.push_back("SAMPLING FREQ");
+	key_vect.push_back("FILTER FREQ"); key_vect.push_back("FILLGAPS"); key_vect.push_back("NORMLIN");
+	key_vect.push_back("CORRELATION"); key_vect.push_back("POLY SUBTRACTION"); key_vect.push_back("PIXSIZE");
+	key_vect.push_back("MAP DUPLICATION"); key_vect.push_back("GAPS PROJECTED"); key_vect.push_back("FILE FORMAT");
+	key_vect.push_back("MASK FILE");
+	if(ncomp>0)
+		key_vect.push_back("NOISE COMPONENT");
+
+
+	comm_vect.push_back("file name");
+	comm_vect.push_back("Source data path");
+	for(long iframe=0;iframe < samples_struct.ntotscan; iframe ++)
+		comm_vect.push_back("Data Source Fits File");
+	comm_vect.push_back("Number of samples to apodize");
+	comm_vect.push_back("polynomia order");
+	comm_vect.push_back("sampling frequency (Hz)");
+	comm_vect.push_back("Butterworth filter frequency (Hz)");
+	comm_vect.push_back("Do we fill the gaps in the timeline with White noise + baseline ?");
+	comm_vect.push_back("Do we remove a baseline from the data ?");
+	comm_vect.push_back("Correlations between detectors are not included in the analysis ?");
+	comm_vect.push_back("Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment ?");
+	comm_vect.push_back("SIZE OF THE PIXEL (deg)");
+	comm_vect.push_back("flagged data are put in a separate map");
+	comm_vect.push_back("gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively");
+	comm_vect.push_back("Sources files format");
+	comm_vect.push_back("name of the fits file that was used to mask radiant sources");
+	if(ncomp>0)
+		comm_vect.push_back("number of noise component estimated in sanePS");
+
+	value_vect.push_back(fname);
+	value_vect.push_back(path);
+	for(int num=0;num<(int)samples_struct.ntotscan;num++){
+		value_vect.push_back(FitsBasename(samples_struct.fitsvect[num]) + ".fits");
+	}
+	value_vect.push_back(StringOf(proc_param.napod));
+	value_vect.push_back(StringOf(proc_param.poly_order));
+	value_vect.push_back(StringOf(proc_param.fsamp));
+	value_vect.push_back(StringOf(proc_param.f_lp));
+	value_vect.push_back(StringOf(proc_param.NOFILLGAP ? "False" : "True"));
+	value_vect.push_back(StringOf(proc_param.NORMLIN ? "False" : "True"));
+	value_vect.push_back(StringOf(proc_param.CORRon ? "True" : "False"));
+	value_vect.push_back(StringOf(proc_param.remove_polynomia ? "True" : "False"));
+	value_vect.push_back(StringOf(pos_param.pixdeg));
+	value_vect.push_back(StringOf(pos_param.flgdupl ? "True" : "False"));
+	value_vect.push_back(StringOf(pos_param.projgaps ? "True" : "False"));
+	value_vect.push_back(StringOf(pos_param.fileFormat ? "HIPE" : "SANEPIC"));
+	value_vect.push_back(pos_param.maskfile);
+	if(ncomp>0)
+		value_vect.push_back(StringOf(ncomp));
+
+
+
+	if (fits_open_file(&fptr, fname.c_str(), READWRITE, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+	// ---------------------------------------------
+	// write the Channel List
+
+	char *ttype[] = { (char*) "KEY", (char*) "values", (char*) "comments" };
+	char *tform[] = { tableFormat(key_vect), tableFormat(value_vect), tableFormat(comm_vect) };
+	char *tunit[] = { (char*) "None", (char*) "None", (char*) "None" };
+	char **data, **data2, **data_value;
+
+	data = vString2carray(key_vect);
+	data2 = vString2carray(comm_vect);
+	data_value = vString2carray(value_vect);
+
+	if (fits_create_tbl(fptr, BINARY_TBL, key_vect.size(), 3, ttype, tform, tunit,
+			(char*)"History", &fits_status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 1, 1, 1, key_vect.size(), data, &fits_status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 2, 1, 1, value_vect.size(), data_value, &fits_status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 3, 1, 1, comm_vect.size(), data2, &fits_status))
+		return 1;
+	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
+			(char *) "physical unit of the field", &fits_status))
+		return 1;
+
+	// close file
+	if(fits_close_file(fptr, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	for(long ii=0;ii<(long)key_vect.size();ii++){
+		delete [] data[ii];
+		delete [] data2[ii];
+		delete [] data_value[ii];
+	}
+	delete [] data2;
+	delete [] data_value;
+	delete [] data;
+	delete [] *tform;
+
+	return 0;
+}
 
 int write_fits_mask(std::string fnaivname, std::string maskfile)
 {

@@ -123,10 +123,13 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
-	if(rank==0)
+	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
+
+		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct);
+	}
 
 	// START OF saneInv
 
@@ -159,8 +162,8 @@ int main(int argc, char *argv[]) {
 	for(int ii=0; ii<n_iter; ii++){
 		// select which proc number compute this loop
 		if(rank==who_do_it(size,rank,ii)){
-//			fname="";
-//			fname+=(string)samples_struct.noisevect[ii];
+			//			fname="";
+			//			fname+=(string)samples_struct.noisevect[ii];
 			base_name=FitsBasename(samples_struct.noisevect[ii]);
 			cout << "Inversion of : " << base_name << endl;
 
@@ -210,8 +213,6 @@ int main(int argc, char *argv[]) {
 #endif
 				return EX_CANTCREAT;
 			}
-			// MAJ format file
-//			compute_dirfile_format_noisePS(dir.tmp_dir, channelOut, base_name + noise_suffix);
 
 			// number of detector in the input channel list
 			nbolos = (int) channelIn.size();
@@ -224,8 +225,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	// clean up
-//	delete [] samples_struct.nsamples;
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
