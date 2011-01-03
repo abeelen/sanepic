@@ -4,6 +4,7 @@
 #include <cstring>
 #include <sstream>
 #include <cstdlib>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -480,6 +481,7 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	//	string filename;
 	//	FILE *fp;
 	//	size_t result;
+
 	//
 	//	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
 	//	//	cout << filename << endl;

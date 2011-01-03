@@ -60,8 +60,7 @@ int fill_samples_struct(std::string &output, struct samples &samples_struct, str
 int parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct,
-		int size, int rank);
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct);
 
 void print_common(struct param_common dir);
 void print_param_positions(struct param_sanePos pos_param);

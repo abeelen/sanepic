@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	else {
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+				structPS, saneInv_struct, struct_sanePic);
 
 	}
 
@@ -151,6 +151,30 @@ int main(int argc, char *argv[])
 #endif
 		return EX_CONFIG;
 	}
+
+#ifdef DEBUG
+	std::ostringstream oss;
+	string name_rank;
+	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt"; // generate a log file
+	name_rank = oss.str();
+#else
+	string name_rank = dir.output_dir + "debug_sanePre.txt";
+
+#endif
+
+	ofstream file_rank;
+	time_t rawtime;
+	struct tm * timeinfo;
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime ); // allocate a time structure to print in the log file
+
+	file_rank.open(name_rank.c_str(), ios::out | ios::trunc); // creating log file for debug mode
+	if(!file_rank.is_open()){
+		cerr << "File [" << file_rank << "] Invalid." << endl;
+		return -1;
+	}
+	file_rank << "Opening file for writing debug at " << asctime (timeinfo);
+	file_rank.close();
 
 	// processing begins here
 	t2=time(NULL);

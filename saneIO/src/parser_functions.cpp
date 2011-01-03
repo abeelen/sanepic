@@ -305,7 +305,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 }
 
 
-
+//TODO : Add somewhere some check on fsamp/nsample/fcut to check stupid entries...
 int check_path(string &output, string strPath, string path_type){
 
 	if ( access( strPath.c_str(), 0 ) == 0 )
@@ -725,7 +725,8 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 	if(read_strings(fcut_file,dummy2))
 		return 1;
 
-	if(((int)dummy2.size())==0 || ((int) dummy2.size() != 1 && ((int) dummy2.size() != samples_struct.ntotscan) ) ){
+	if(((int)dummy2.size())==0 || \
+			( (int) dummy2.size() != 1 && ((int) dummy2.size() != samples_struct.ntotscan) ) ){
 		output += "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
 		return 1;
 	}
@@ -748,7 +749,7 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 int parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size, int rank){
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct){
 
 	dictionary	*	ini ;
 	string filename;
@@ -796,7 +797,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	// TODO: Why is that needed in sample_struct, why not just for saneFrameOrder ?
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
-	if(check_common(output, dir) && (rank==0)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
+	if(check_common(output, dir)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
 		return 1;
 	if(check_param_positions(output, pos_param))
 		return 1;
@@ -822,7 +823,7 @@ void print_common(struct param_common dir){
 
 void print_param_positions(struct param_sanePos pos_param) {
 
-	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
+//	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
 
 	if(pos_param.flgdupl)
 		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";

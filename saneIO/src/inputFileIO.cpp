@@ -22,7 +22,7 @@ using namespace std;
  * Reads a detector list in a .txt file
  * Returns a vector of string containing the name of the considered channels
  */
-int read_strings(string fname, std::vector<string> &bolos) {
+int read_strings(string fname, std::vector<string> &vec_strings) {
 	string line;
 	size_t found;
 
@@ -40,7 +40,7 @@ int read_strings(string fname, std::vector<string> &bolos) {
 		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
 
 		line = line.substr(0, line.find_first_of(" \t")); // pick out first word
-		bolos.push_back(line);
+		vec_strings.push_back(line);
 	}
 
 	inputFile.close();
@@ -214,6 +214,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 	char *pch;
 	int nb_elem = 0;
 
+	//TODO: Dont use the first line, but the first line without comment character
 	// count number of elements on the first line !
 	getline(file, line);
 	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
@@ -236,7 +237,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 		while(file >> s >> d){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			found = s.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
 
 			if (found == 0) continue;
 #ifdef DEBUG_PRINT
@@ -251,7 +252,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 		while(file >> s){
 			size_t found;
 			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+			found = s.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
 #ifdef DEBUG_PRINT

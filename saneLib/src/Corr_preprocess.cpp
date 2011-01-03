@@ -168,7 +168,6 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 
 			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
-
 			//********************  pre-processing of data ********************//
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
 		}
@@ -317,6 +316,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 #endif
 		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
+
 		SpN = new double[nbins];
 		fill(SpN,SpN+nbins,0.0);
 
@@ -337,11 +337,9 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
 				return 1;
 
-
 			//****************** Cross power spectrum of the noise  ***************//
-			for (int ii=0;ii<nbins;ii++){
+			for (int ii=0;ii<nbins;ii++)
 				SpN[ii] = SpN_all[idet2][ii];
-			}
 
 
 #ifdef DEBUG
@@ -351,7 +349,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 #endif
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
-			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
+			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk, NULL);
 			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
 #ifdef DEBUG
 			time ( &rawtime );
@@ -371,6 +369,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			for (long ii=0;ii<ns/2+1;ii++){
 				Ndf[ii][0] += (fdata[ii][0]*Nk[ii]);
 				Ndf[ii][1] += (fdata[ii][1]*Nk[ii]);
+
 			}
 
 

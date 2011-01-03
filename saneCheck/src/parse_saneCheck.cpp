@@ -49,8 +49,9 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 
 
 	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param,
-			structPS, saneInv_struct, sanePic_struct, size, rank))
+			   structPS, saneInv_struct, sanePic_struct))
 		return -1;
+
 
 	// load dictionnary
 	ini = iniparser_load(ini_name);

@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
+#include <cmath>   // for isnan and isinf
 #include <algorithm>
 #include <sysexits.h>
 
@@ -36,14 +37,14 @@ int main(int argc, char *argv[]) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	if(rank==0)
-		printf("Begin of saneInv\n\n");
+
 #else
 	size = 1;
 	rank = 0;
-	printf("Begin of saneInv\n\n");
 #endif
 
+	if(rank==0)
+		printf("Begin of saneInv\n\n");
 
 	// data parameters
 	/*!
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
 		parsed=-1;
 	} else {
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+				structPS, saneInv_struct, struct_sanePic);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -139,6 +140,7 @@ int main(int argc, char *argv[]) {
 	it = unique(samples_struct.noisevect.begin(), samples_struct.noisevect.end());
 	size_tmp = it - samples_struct.noisevect.begin();
 
+	// TODO: These test should not be done here..... but rather in the parser
 	if(size_tmp==1){
 		n_iter=1;
 		if(rank==0)
@@ -204,6 +206,16 @@ int main(int argc, char *argv[]) {
 
 			// Inverse reduced covariance Matrix : Returns iRellth
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
+
+			// Check for Bad values...
+			long badValues = 0;
+			for (int ii = 0; ii < ndet; ii++)
+				for (int jj = 0; jj < ndet*nbins; jj++)
+					if ( isnan(iRellth[ii][jj]) || isinf(iRellth[ii][jj]) )
+							badValues++;
+			if (badValues > 0)
+					cout << base_name << " has nan after the inversion" << endl;
+
 
 			// write inversed noisePS in a binary file for each detector
 			if(write_InvNoisePowerSpectra(channelOut, nbins, ell, iRellth, dir.tmp_dir, base_name + noise_suffix)){
