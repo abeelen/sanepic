@@ -574,8 +574,8 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 				sum++;
 
 
-		if(sum==ns){ // fully flagged detector found
-			cout << "Warning ! " << det[jj] << " is totally flagged" << endl;
+		if(sum>99*ns/100){ // fully flagged detector found
+			cout << "Warning ! " << det[jj] << " is (almost) totally flagged" << endl;
 			bolos_global[jj]=1;
 		}else{
 			if(sum>80*ns/100){ // valid worst detector found
@@ -808,7 +808,7 @@ void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long nd
 		}
 
 	if(tot>0)
-		cout << "There are " << tot << " bolometers in this file !\n";
+		cout << "There is/are " << tot << " bolometer(s) in this file !\n\n";
 
 	fclose(fp);
 

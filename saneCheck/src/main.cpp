@@ -270,12 +270,12 @@ int main(int argc, char *argv[]) {
 
 		// generating log files :
 		outname = dir.output_dir + "bolo_totally_flagged.txt";
-		cout << "Writing informations in :\n" << outname << endl << endl;
+		cout << "\nWriting informations in :\n" << outname << endl;
 		log_gen(bolo_bad_tot,outname, bolo_fits_0, ndet0); // generate bad detectors log file
 
 
 		outname = dir.output_dir + "bolo_80_percent_flagged.txt";
-		cout << "Writing informations in :\n" << outname << endl;
+		cout << "\nWriting informations in :\n" << outname << endl;
 		log_gen(bolo_bad_80_tot, outname, bolo_fits_0, ndet0); // generate valid worst detectors log file
 
 
