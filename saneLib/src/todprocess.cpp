@@ -566,7 +566,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	buf_0.push_back(0);
 	buf_1.push_back(0);
 
-	if(flag[0]==1){
+	if(flag[0]>0){
 		buf_0.push_back(0);
 		indic=1;
 	}
@@ -665,8 +665,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 			long indice=0;
 			for(long gg=p_beg;gg<=p_end;gg++){
-				if(flag[gg]==1){
-					continue;
+				if(flag[gg]>0){					continue;
 				}
 				sx[indice]=gg-p_beg;
 				sy[indice]=data[gg];
@@ -710,14 +709,14 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 			fitpoly(1, taille, sx, sy, a);
 			for (long j=p_beg;j<=ns-1;j++){
-				if(flag[j]==1)
+				if(flag[j]>0)
 					yout[j] = a[0]+a[1]*(j-p_beg);
 			}
 
 		}else{
 			p_end=ns-1;
 			for (int j=p_beg;j<=p_end;j++){
-				if(flag[j]==1)
+				if(flag[j]>0)
 					yout[j] = a[0]+a[1]*(j-p_beg);
 			}
 			// use last poly and fit with it
