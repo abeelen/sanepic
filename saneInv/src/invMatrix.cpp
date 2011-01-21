@@ -142,7 +142,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	}
 
 	// just to get a 100% value printed on screen
-	//cout << "Progress : 100.00% \r" << flush;
+	cout << "Progress : 100.00% \r" << flush;
 
 	// clean up
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);

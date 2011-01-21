@@ -161,7 +161,7 @@ int computePixelIndex(string outdir,
 
 			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 			//				return 1;
-			if(read_flag_from_dirfile(outdir, fits_file, field, bolo_flag))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
 				return 1;
 
 
@@ -225,7 +225,7 @@ int computePixelIndex(string outdir,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;
@@ -258,7 +258,7 @@ int computePixelIndex_HIPE(string outdir,
 	 * One binary file per bolometer and per scan
 	 */
 
-	// TODO : samptopix unsigned long
+	// TODO : samptopix unsigned long ?
 	long long  *samptopix;
 
 	string field;
@@ -311,7 +311,7 @@ int computePixelIndex_HIPE(string outdir,
 			}
 			//			if(read_flag_from_fits(fits_file, field, flag, test_ns))
 			//				return 1;
-			if(read_flag_from_dirfile(outdir, fits_file, field, flag))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, flag, ns))
 				return 1;
 			for (long ii=0; ii <ns; ii++){
 				world[2*ii]   = ra[ii];
@@ -356,7 +356,7 @@ int computePixelIndex_HIPE(string outdir,
 
 //			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 //				return 1;
-			if(read_flag_from_dirfile(outdir, fits_file, field, bolo_flag))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
 							return 1;
 
 			for (long ii=0; ii<ns; ii++){
@@ -418,7 +418,7 @@ int computePixelIndex_HIPE(string outdir,
 
 			}
 
-			if(write_samptopix(ns, samptopix,  outdir, fits_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;

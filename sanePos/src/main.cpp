@@ -21,12 +21,12 @@
 #include "imageIO.h"
 #include "temporary_IO.h"
 #include "inputFileIO.h"
-#include "Corr_preprocess.h"
 
 extern "C" {
 #include "nrutil.h"
 #include "wcslib/wcs.h"
 #include "wcslib/wcshdr.h"
+#include "getdata.h"
 }
 
 
@@ -198,12 +198,28 @@ int main(int argc, char *argv[])
 
 #endif
 
+	time_t t2=time(NULL);
+
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
 
 		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
+	}
+
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+#endif
+
+	// Open the dirfile to read temporary files
+	string filedir = dir.tmp_dir + "dirfile";
+	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
+			| GD_UNENCODED | GD_BIG_ENDIAN);
+
+	if (gd_error(samples_struct.dirfile_pointer) != 0) {
+		cout << "error opening dirfile : " << filedir << endl;
+		return 1;
 	}
 
 	/************************ Look for distriBoxution failure *******************************/
@@ -437,7 +453,6 @@ int main(int argc, char *argv[])
 	}
 
 
-	// TODO : indpix broadcast
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
@@ -496,11 +511,11 @@ int main(int argc, char *argv[])
 		int pb=0;
 
 #ifdef PARA_FRAME
-		pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
+		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
 		// Returns Pnd = (At N-1 d), Mp and hits
 #else
 
-		pb+=do_PtNd_Naiv(PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
+		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
 
 #endif
 
@@ -624,6 +639,12 @@ int main(int argc, char *argv[])
 
 	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);
+
+	if (gd_close(samples_struct.dirfile_pointer))
+		cout << "error closing dirfile : " << filedir << endl;
+
+	time_t t3=time(NULL);
+	cout << "Total Time : " << t3-t2 << " sec\n";
 
 	if(rank==0)
 		printf("End of sanePos\n");

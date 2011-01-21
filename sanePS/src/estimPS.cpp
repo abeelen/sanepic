@@ -85,7 +85,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 #ifdef DEBUG
 	cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
 #endif
-	if(common_mode_computation(det, proc_param, pos_param, dir, apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix,
+	if(common_mode_computation(samples_struct, det, proc_param, pos_param, dir, apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix,
 			mixmat, structPS.ncomp, commonm2, factapod, samples_struct.fitsvect[iframe])) // return commonm2
 		return 1;
 
@@ -93,7 +93,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 #ifdef DEBUG
 	cout << "[ " << rank << " ] 3/6 - Estimation of Noise Power Spectrum" << endl;
 #endif
-	if(estimate_noise_PS(det, proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], NAXIS1,
+	if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], NAXIS1,
 			NAXIS2, npix, ell, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2,
 			factapod,Rellth, N, P, samples_struct.fitsvect[iframe]))
 		return 1;
@@ -102,7 +102,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 #ifdef DEBUG
 	cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 #endif
-	if(estimate_CovMat_of_Rexp(dir, det, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, proc_param.fsamp,
+	if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, proc_param.fsamp,
 			factapod, Rellexp, N, P, SPref, samples_struct.fitsvect[iframe], rank))
 		return 1;
 

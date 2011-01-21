@@ -25,7 +25,7 @@ using namespace std;
 #include <sstream>
 #endif
 
-int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string> det, long ndet,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		bool flgdupl, string dir, long ns, string filename, int para_bolo_indice, int para_bolo_size)
 {
 
@@ -56,7 +56,7 @@ int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *ind
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 		//Read pointing data
-		if(read_samptopix(ns, samptopix, dir, filename, det[idet1]))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, det[idet1]))
 			return 1;
 
 		//TODO :  temporary down
@@ -67,7 +67,7 @@ int write_tfAS(double *S, std::vector<std::string> det, long ndet,long long *ind
 		fftw_execute(fftplan);
 		fftw_destroy_plan(fftplan);
 
-		if(write_fdata(ns, fdata, "fPs_", dir, idet1, filename, det))
+		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fPs_", idet1, filename, det))
 			return 1;
 
 	}
@@ -141,9 +141,9 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		}
 
 
-		if(read_data_from_dirfile(tmp_dir, fits_filename, field1, data))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field1, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(tmp_dir, fits_filename, field1, flag))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field1, flag, ns))
 			return 1;
 
 		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
@@ -152,7 +152,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 
 		if (S != NULL){
 			//// Read pointing
-			if(read_samptopix(ns, samptopix, tmp_dir, fits_filename, field1))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field1))
 				return 1;
 
 			Ps = new double[ns];
@@ -184,7 +184,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		fftw_destroy_plan(fftplan);
 
 		//write fourier transform to disk
-		if(write_fdata(ns, fdata, "fdata_", tmp_dir, idet1, fits_filename, det))
+		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fdata_", idet1, fits_filename, det))
 			return 1;
 
 
@@ -207,13 +207,13 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	return 0;
 }
 
-int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string prefixe,
+int do_PtNd(struct samples samples_struct, double *PNd, std::vector<std::string> noisevect, string dir, string prefixe,
 		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe, string filename,
-		double *Mp, long *hits,std::string fname)
+		double *Mp, long *hits,std::string fname) // TODO : no need noisevect anymore
 {
 
-	long  nbins;
+//	long  nbins;
 	string field1, field2;
 	string extentNoiseSp;
 
@@ -285,7 +285,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 #endif
 
 		//Read pointing data
-		if(read_samptopix(ns, samptopix, dir, filename, field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, field1))
 			return 1;
 #ifdef DEBUG
 		time ( &rawtime );
@@ -295,10 +295,11 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 
 		//**************************************** Noise power spectrum
 		string extname = "_InvNoisePS";
-		string suffix = FitsBasename(noisevect[iframe]) + extname;
+		string suffix = FitsBasename(samples_struct.fitsvect[iframe]) + extname;
 
 		//read noise PS file for idet1
-		long ndet2;
+		long ndet2 = samples_struct.ndet[iframe];
+		long nbins = samples_struct.nbins[iframe];
 
 #ifdef DEBUG
 		time ( &rawtime );
@@ -306,7 +307,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 		file << "before read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
 
-		if(read_InvNoisePowerSpectra(dir, field1,  suffix, &nbins, &ndet2, &ell, &SpN_all))
+		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointer, dir, field1,  suffix, nbins, ndet2, &ell, &SpN_all))
 			return 1;
 
 #ifdef DEBUG
@@ -314,7 +315,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 		timeinfo = localtime ( &rawtime );
 		file << "after read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
-		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+//		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 
 		SpN = new double[nbins];
@@ -334,7 +335,7 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 			fill(Nk,Nk+(ns/2+1),0.0);
 
 			//read Fourier transform of the data
-			if(read_fdata(ns, fdata, prefixe, dir, idet2, filename, det))
+			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata, prefixe, idet2, filename, det))
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//
@@ -443,93 +444,93 @@ int do_PtNd(double *PNd, std::vector<std::string> noisevect, string dir, string 
 
 	return 0;
 }
-
-
-int do_PtNd_Naiv(double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
-		long long *indpix, long iframe, long *hits)
-{
-
-
-	string field1;
-	double *data, *data_lp, *data_out, *bfilter;
-	long long *samptopix;
-	double aa, bb;
-	int *flag;
-
-	data_lp =  new double[ns];
-	data_out = new double[ns];
-	samptopix = new long long[ns];
-	bfilter = new double[ns/2+1];
-
-
-	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
-
-		field1 = det[idet1];
-
-		//Read pointing data
-		if(read_samptopix(ns, samptopix, dir, file[iframe], field1))
-			return 1;
-
-		if(read_data_from_dirfile(dir, file[iframe], field1, data))
-			return 1;
-		if(read_flag_from_dirfile(dir, file[iframe], field1, flag))
-			return 1;
-
-		fill(data_out,data_out+ns,0.0);
-
-		//fill gaps with straight line
-		fillgaps2(data,ns,data_out,flag,40);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
-
-		//remove polynomia to correct from time varying calibration
-		remove_poly(data,ns,orderpoly,data_out,flag);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
-
-		//linear prediction
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data[ii];
-
-
-		/// remove a baseline
-		aa = (data_lp[ns-1]-data[0])/double(ns);
-		bb = data_lp[0];
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] -= aa*(double)ii+bb;
-
-
-		if (f_lppix > 0.0)
-			butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
-
-
-		fill(data,data+ns,0.0);
-		//******************* process gaps
-		fillgaps2(data_out,ns,data,flag,40);
-
-
-		for (long ii=0;ii<ns;ii++){
-			PNd[indpix[samptopix[ii]]] += data[ii];
-		}
-
-		//compute hit counts
-		for (long ii=0;ii<ns;ii++){
-			hits[indpix[samptopix[ii]]] += 1;
-		}
-
-		delete[] data;
-		delete[] flag;
-
-	}// end of idet1 loop
-
-
-	delete[] samptopix;
-	delete[] data_out;
-	delete[] data_lp;
-	delete[] bfilter;
-
-
-	return 0;
-}
-
+//
+//
+//int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
+//		long long *indpix, long iframe, long *hits)
+//{
+//
+//
+//	string field1;
+//	double *data, *data_lp, *data_out, *bfilter;
+//	long long *samptopix;
+//	double aa, bb;
+//	int *flag;
+//
+//	data_lp =  new double[ns];
+//	data_out = new double[ns];
+//	samptopix = new long long[ns];
+//	bfilter = new double[ns/2+1];
+//
+//
+//	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+//
+//		field1 = det[idet1];
+//
+//		//Read pointing data
+//		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, file[iframe], field1))
+//			return 1;
+//
+//		if(read_data_from_dirfile(samples_struct.dirfile_pointer, file[iframe], field1, data, ns))
+//			return 1;
+//		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, file[iframe], field1, flag, ns))
+//			return 1;
+//
+//		fill(data_out,data_out+ns,0.0);
+//
+//		//fill gaps with straight line
+//		fillgaps2(data,ns,data_out,flag,40);
+//		for (long ii=0;ii<ns;ii++)
+//			data[ii] = data_out[ii];
+//
+//		//remove polynomia to correct from time varying calibration
+//		remove_poly(data,ns,orderpoly,data_out,flag);
+//		for (long ii=0;ii<ns;ii++)
+//			data[ii] = data_out[ii];
+//
+//		//linear prediction
+//		for (long ii=0;ii<ns;ii++)
+//			data_lp[ii] = data[ii];
+//
+//
+//		/// remove a baseline
+//		aa = (data_lp[ns-1]-data[0])/double(ns);
+//		bb = data_lp[0];
+//		for (long ii=0;ii<ns;ii++)
+//			data_lp[ii] -= aa*(double)ii+bb;
+//
+//
+//		if (f_lppix > 0.0)
+//			butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
+//
+//
+//		fill(data,data+ns,0.0);
+//		//******************* process gaps
+//		fillgaps2(data_out,ns,data,flag,40);
+//
+//
+//		for (long ii=0;ii<ns;ii++){
+//			PNd[indpix[samptopix[ii]]] += data[ii];
+//		}
+//
+//		//compute hit counts
+//		for (long ii=0;ii<ns;ii++){
+//			hits[indpix[samptopix[ii]]] += 1;
+//		}
+//
+//		delete[] data;
+//		delete[] flag;
+//
+//	}// end of idet1 loop
+//
+//
+//	delete[] samptopix;
+//	delete[] data_out;
+//	delete[] data_lp;
+//	delete[] bfilter;
+//
+//
+//	return 0;
+//}
+//
 

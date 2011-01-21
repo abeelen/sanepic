@@ -4,7 +4,6 @@
 #include <cstring>
 #include <sstream>
 #include <cstdlib>
-#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -255,110 +254,110 @@ long maxStringLength(std::vector<string> strings) {
 
 
 //saneInv
-int write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * ell,
-		double **Rellth, string outputDir, string suffix)
+int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins, double * ell,
+		double **Rellth, string suffix)
 /*
  * This function writes the Inverse Covariance Matrices in binary format
  */
 {
 	// dirfile name
-	string filedir = outputDir + "dirfile/Noise_data/";
+	//	string filedir = outputDir + "dirfile"; // /Noise_data/
 
 	// open dirfile
-	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
+	//	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
 
 	// dirfile name
-	filedir = outputDir + "dirfile/Noise_data/ell/";
+	//	filedir = outputDir + "dirfile/Noise_data/ell/";
 
 	// open dirfile
-	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
+	//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
 
 	long ndet = bolos.size();
 
 	for (int idet = 0; idet < ndet; idet++) {
 
 		// ell binary filename
-		string outfile = bolos[idet] + "_" + suffix + "_ell";
+		string outfile = bolos[idet] + "_" + suffix + "_ell"; // TODO : ajouter basename du fits pour ne pas confondre les 2 dirfiles
 
-		// configure dirfile field for ell
-		gd_entry_t E;
-		E.field = (char*)outfile.c_str();
-		E.field_type = GD_RAW_ENTRY;
-		E.fragment_index = 0;
-		E.spf = 1; //nbins +1
-		E.data_type = GD_DOUBLE;
-		E.scalar[0] = NULL;
-
-		// get number of fields in format
-		unsigned int nfields =  gd_nfields(H);
-
-		const char** field_list = gd_field_list(H); // get all format entry
-
-		// fill a vector with entry values
-		std::vector<std::string> fields((char**)field_list, (char**)(field_list+nfields));
-
-		// check whether outfile already exists in format
-		int mycount = (int) count(fields.begin(), fields.end(), outfile);
-
-		if(mycount==1){ // delete it in case it exists (and also delete bin file)
-			gd_delete(H, (char*)outfile.c_str(), GD_DEL_DATA);
-			if(gd_error(H)){
-				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
-				return 1;
-			}
-		}
-
-		// add to the dirfile
-		gd_add(H, &E);
+		//		// configure dirfile field for ell
+		//		gd_entry_t E;
+		//		E.field = (char*)outfile.c_str();
+		//		E.field_type = GD_RAW_ENTRY;
+		//		E.fragment_index = 0;
+		//		E.spf = 1; //nbins +1
+		//		E.data_type = GD_DOUBLE;
+		//		E.scalar[0] = NULL;
+		//
+		//		// get number of fields in format
+		//		unsigned int nfields =  gd_nfields(H);
+		//
+		//		const char** field_list = gd_field_list(H); // get all format entry
+		//
+		//		// fill a vector with entry values
+		//		std::vector<std::string> fields((char**)field_list, (char**)(field_list+nfields));
+		//
+		//		// check whether outfile already exists in format
+		//		int mycount = (int) count(fields.begin(), fields.end(), outfile);
+		//
+		//		if(mycount==1){ // delete it in case it exists (and also delete bin file)
+		//			gd_delete(H, (char*)outfile.c_str(), GD_DEL_DATA);
+		//			if(gd_error(H)){
+		//				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
+		//				return 1;
+		//			}
+		//		}
+		//
+		//		// add to the dirfile
+		//		gd_add(H, &E);
 
 		// write binary file on disk
-		int n_write = gd_putdata(H, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
+		int n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
 		//		cout << "n_write : " << n_write << endl;
-		if(gd_error(H)!=0){
-			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins+1 << endl;
+		if(gd_error(D)!=0){
+			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins+1 << " for " << outfile <<  endl;
 			return 1;
 		}
 
 		// spectra filename
 		outfile = bolos[idet] + "_" + suffix;
 
-		// check whether field is already present in format
-		mycount = (int) count(fields.begin(), fields.end(), outfile);
-		if(mycount==1){ // delete field if already exists in dirfile
-			gd_delete(D, (char*)outfile.c_str(), GD_DEL_DATA);
-			if(gd_error(D)){
-				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
-				return 1;
-			}
-		}
-
-		// set field information for spectra
-		E.field = (char*)outfile.c_str();
-		//		E.spf = ndet*nbins;
-
-		// add to the dirfile
-		gd_add(D, &E);
+		//		// check whether field is already present in format
+		//		mycount = (int) count(fields.begin(), fields.end(), outfile);
+		//		if(mycount==1){ // delete field if already exists in dirfile
+		//			gd_delete(D, (char*)outfile.c_str(), GD_DEL_DATA);
+		//			if(gd_error(D)){
+		//				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
+		//				return 1;
+		//			}
+		//		}
+		//
+		//		// set field information for spectra
+		//		E.field = (char*)outfile.c_str();
+		//		//		E.spf = ndet*nbins;
+		//
+		//		// add to the dirfile
+		//		gd_add(D, &E);
 
 		// write binary file on disk
 		n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, ndet*nbins, GD_DOUBLE, Rellth[idet]);
 		if(gd_error(D)!=0){
-			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins * ndet << endl;
+			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins * ndet << " for " << outfile << endl;
 			return 1;
 		}
 
 	}
 
-	// close dirfile
-	if(gd_close(D)){
-		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
-		return 1;
-	}
+	//	// close dirfile
+	//	if(gd_close(D)){
+	//		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
 
-	// close dirfile
-	if(gd_close(H)){
-		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
-		return 1;
-	}
+	//	// close dirfile
+	//	if(gd_close(H)){
+	//		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
 
 	//	string filename;
 	//	FILE *fpw;
@@ -385,18 +384,21 @@ int write_InvNoisePowerSpectra(std::vector<string> bolos, long nbins, double * e
 	//		fclose(fpw);
 	//	}
 
+	// flush dirfile
+	gd_flush(D,NULL);
+
 	return 0;
 
 }
 
-int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
-		long * nbins, long * ndet, double ** ell, double *** SpN_all)
+int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, string suffix,
+		long nbins, long ndet, double ** ell, double *** SpN_all)
 /*
  * This function reads the Inverse Covariance Matrices in binary format
  */
 {
 	// dirfile path
-	string filedir = outputDir + "dirfile/Noise_data/";
+//	string filedir = outputDir + "dirfile"; // /Noise_data/
 
 	//binary name
 	string outfile = boloName + "_" + suffix + "_ell";
@@ -405,29 +407,34 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	double *Rellth_full;
 
 	// open dirfile
-	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-
-	// dirfile path
-	filedir = outputDir + "dirfile/Noise_data/ell/";
-	// open dirfile
-	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	//	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
 
-	// get entry infos
-	//	gd_entry_t e;
-	//	gd_entry(D, (char*)outfile.c_str(), &e);
 
-	unsigned int nframe = gd_nframes(H);
-	// get nbins value
-	//	*nbins = e.spf - 1;
-	*nbins = nframe-1;
+
+	//	// dirfile path
+//	filedir = outputDir + "dirfile/Noise_data/ell/";
+//
+//	//	// open dirfile
+//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+//	unsigned int nframe = gd_nframes(H);
+//
+//	// close dirfile
+//	if(gd_close(H)){
+//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+//		return 1;
+//	}
+//
+//	// get nbins value
+//	//	*nbins = e.spf - 1;
+//	*nbins = nframe-1;
 
 	// alloc ell
-	*ell=new double[*nbins+1];
+	*ell=new double[nbins+1];
 
 	// fill ell with binary
-	int nget = gd_getdata(H, (char*)outfile.c_str(), 0, 0, 0, *nbins+1, GD_DOUBLE, *ell);
-	if(gd_error(H)!=0){
+	int nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, *ell);
+	if(gd_error(D)!=0){
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
@@ -437,41 +444,52 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 
 	// get entry infos
 	//	gd_entry(D, (char*)outfile.c_str(), &e);
-
-	nframe = gd_nframes(D);
+//	filedir = outputDir + "dirfile/Noise_data/";
+//	H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+//	nframe = gd_nframes(H);
+//
+//	// close dirfile
+//	if(gd_close(H)){
+//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+//		return 1;
+//	}
 
 	// compute ndet considering entry size and nbins
-	*ndet = nframe / (*nbins);
+//	*ndet = nframe / (*nbins);
 
 	//alloc temp 1D array
-	Rellth_full = new double[*nbins*(*ndet)];
+	Rellth_full = new double[nbins*ndet];
 
 	// read whole 1 D array
-	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, *nbins*(*ndet), GD_DOUBLE, Rellth_full);
+	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins*ndet, GD_DOUBLE, Rellth_full);
 	if(gd_error(D)!=0){
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
 
-	// close dirfile
-	if(gd_close(D)){
-		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-		return 1;
-	}
 
-	// close dirfile
-	if(gd_close(H)){
-		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-		return 1;
-	}
+	// flush dirfile
+	gd_flush(D,NULL);
+
+	//	// close dirfile
+	//	if(gd_close(D)){
+	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
+
+	//	// close dirfile
+	//	if(gd_close(H)){
+	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
 
 	// alloc spectra 2D array
-	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
+	*SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);
 
 	// reorganize as a 2D array
-	for (long i=0; i<(*ndet); i++)
-		for (long ibin=0; ibin<(*nbins); ibin++)
-			(*SpN_all)[i][ibin] = Rellth_full[i*(*nbins) + ibin];
+	for (long i=0; i<(ndet); i++)
+		for (long ibin=0; ibin<(nbins); ibin++)
+			(*SpN_all)[i][ibin] = Rellth_full[i*(nbins) + ibin];
 
 	// clear temp 1D array
 	delete [] Rellth_full;
@@ -481,7 +499,6 @@ int read_InvNoisePowerSpectra(string outputDir, string boloName, string suffix,
 	//	string filename;
 	//	FILE *fp;
 	//	size_t result;
-
 	//
 	//	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
 	//	//	cout << filename << endl;

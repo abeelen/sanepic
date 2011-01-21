@@ -43,8 +43,8 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneI
 int check_path(std::string &output, std::string strPath, std::string path_type);
 int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct);
 int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct);
-int cleanup_dirfile_sanePic(std::string tmp_dir, struct samples samples_struct);
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long n_iter, std::string noise_suffix);
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
 
 //int check_dirfile_paths(std::string &output, std::string strPath);
 
@@ -55,12 +55,14 @@ int check_param_sanePS(std::string &output, struct param_sanePS structPS);
 
 void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_struct, struct param_common &dir);
 int fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct);
 
 // this function calls read_* and check_* routines
 int parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct);
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct,
+		int size, int rank);
 
 void print_common(struct param_common dir);
 void print_param_positions(struct param_sanePos pos_param);

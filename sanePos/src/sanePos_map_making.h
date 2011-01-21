@@ -26,4 +26,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coordscorner,
 		struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2);
 
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
+		long long *indpix, long iframe, long *hits);
+
 #endif /* MAP_MAKING_H_ */

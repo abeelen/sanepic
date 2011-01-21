@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	struct param_sanePS structPS;
 	struct param_saneInv saneInv_struct;
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-//	std::vector<double> fcut_vector;
+	//	std::vector<double> fcut_vector;
 	struct param_sanePic struct_sanePic;
 	string output = "";
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic);
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -111,13 +111,24 @@ int main(int argc, char *argv[])
 			}
 
 #ifdef PARA_FRAME
-//		MPI_Barrier(MPI_COMM_WORLD);
+		//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
 		return EX_CONFIG;
 	}
 
 	fill_sanePS_struct(structPS, samples_struct, dir);
+
+	// Open the dirfile to read temporary files
+	string filedir = dir.tmp_dir + "dirfile";
+	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
+			| GD_UNENCODED | GD_BIG_ENDIAN);
+
+	if (gd_error(samples_struct.dirfile_pointer) != 0) {
+		cout << "error opening dirfile : " << filedir << endl;
+		return 1;
+	}
+
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if (structPS.signame != "") {
@@ -141,7 +152,7 @@ int main(int argc, char *argv[])
 
 			if (read_indpsrc(test_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef PARA_FRAME
-//				MPI_Barrier(MPI_COMM_WORLD);
+				//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return (EX_IOERR);
@@ -153,7 +164,7 @@ int main(int argc, char *argv[])
 					<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 					<< endl;
 #ifdef PARA_FRAME
-//				MPI_Barrier(MPI_COMM_WORLD);
+				//				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Finalize();
 #endif
 				return (EX_IOERR);
@@ -165,7 +176,7 @@ int main(int argc, char *argv[])
 
 		if (read_indpix(ind_size, npix, indpix, dir.tmp_dir, flagon)) { // read map indexes
 #ifdef PARA_FRAME
-//			MPI_Barrier(MPI_COMM_WORLD);
+			//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return (EX_IOERR);
@@ -177,14 +188,14 @@ int main(int argc, char *argv[])
 				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
 				<< endl;
 #ifdef PARA_FRAME
-//			MPI_Barrier(MPI_COMM_WORLD);
+			//			MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Finalize();
 #endif
 			return (EX_IOERR);
 		}
 
 		S = new double[npix]; // pure signal
-		fill(S,S+npix,0.0); // TODO : maybe not needed !
+		fill(S,S+npix,0.0);
 		// if map argument build S from map
 		if (rank == 0){
 			cout << "Reading model map : " << structPS.signame << endl;
@@ -192,9 +203,9 @@ int main(int argc, char *argv[])
 			// read pure signal
 			if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
 #ifdef PARA_FRAME
-//				MPI_Sendrecv_replace(data_adr,count,datatype, // TODO : dire aux autres rank qu'il faut sortir sinon ils attendent a MPI_BARRIER ...
-//				destproc,sendtag,srcproc,recvtag,
-//				comm,status_adr)
+				//				MPI_Sendrecv_replace(data_adr,count,datatype, // TODO : dire aux autres rank qu'il faut sortir sinon ils attendent a MPI_BARRIER ...
+				//				destproc,sendtag,srcproc,recvtag,
+				//				comm,status_adr)
 				cout << "RANK 0 goes out !\n";
 				MPI_Finalize();
 #endif
@@ -206,7 +217,7 @@ int main(int argc, char *argv[])
 			for (long ii=0; ii<npix; ii++) {
 				if ( isnan(S[ii]) || isinf(S[ii]) ){
 					badPix++;
-					S[ii] = 0;
+					S[ii] = 0.0;
 				}
 			}
 			if (badPix > 0)
@@ -215,11 +226,11 @@ int main(int argc, char *argv[])
 
 
 #ifdef DEBUG
-		FILE * fp;
-		fp = fopen("reconstructed_1dsignal.txt","w");
-		for (int i =0;i<npix;i++)
-			fprintf(fp,"%lf\n",S[i]);
-		fclose(fp);
+			FILE * fp;
+			fp = fopen("reconstructed_1dsignal.txt","w");
+			for (int i =0;i<npix;i++)
+				fprintf(fp,"%lf\n",S[i]);
+			fclose(fp);
 #endif
 
 		}
@@ -254,10 +265,17 @@ int main(int argc, char *argv[])
 #endif
 
 
-	if(rank==0)
+	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic);
+
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
+	}
+
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 
@@ -287,15 +305,16 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	//clean up
-//	delete[] samples_struct.nsamples;
 
 	fftw_cleanup();
 
-	if (structPS.signame != "NOSIGFILE") {
+	if (structPS.signame != "") {
 		delete[] S;
 		delete[] indpix;
 	}
+
+	if (gd_close(samples_struct.dirfile_pointer))
+		cout << "error closing dirfile : " << filedir << endl;
 
 	if (rank == 0)
 		cout << endl << "done." << endl;

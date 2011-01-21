@@ -47,7 +47,7 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix,
 	fclose(fp);
 
 	chk.chk_ini_file=checksum(buf2, len-116, 0);
-//	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
+	//	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
 
 	file= tmp_dir + "mapHeader.keyrec";
 	if (NULL == (fp = fopen(file.c_str(), "r")))
@@ -59,16 +59,16 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix,
 	fclose(fp);
 
 	chk.chk_wcs_file=checksum(buf, len, 0);
-//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
+	//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
 
-//	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
-//	printf("The checksum of PNd is %u\n", chk.chk_pnd);
+	//	chk.chk_pnd=checksum(Pnd, (size_t) npix, 0);
+	//	printf("The checksum of PNd is %u\n", chk.chk_pnd);
 
 	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
-//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
+	//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
 
 	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
-//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
+	//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
 
 }
 
@@ -87,7 +87,7 @@ int write_checksum(std::string tmp_dir, struct checksum chk)
 	}
 	len+=fwrite(&chk.chk_ini_file,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_wcs_file,sizeof(unsigned int),1,fp);
-//	len+=fwrite(&chk.chk_pnd,sizeof(unsigned int),1,fp);
+	//	len+=fwrite(&chk.chk_pnd,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_indpix,sizeof(unsigned int),1,fp);
 	len+=fwrite(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
@@ -111,7 +111,7 @@ void read_checksum(std::string tmp_dir, struct checksum &chk)
 	}
 	len+=fread(&chk.chk_ini_file,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_wcs_file,sizeof(unsigned int),1,fp);
-//	len+=fread(&chk.chk_pnd,sizeof(unsigned int),1,fp);
+	//	len+=fread(&chk.chk_pnd,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpix,sizeof(unsigned int),1,fp);
 	len+=fread(&chk.chk_indpsrc,sizeof(unsigned int),1,fp);
 
@@ -123,7 +123,7 @@ bool compare_checksum(struct checksum chk_t, struct checksum chk_t2){
 
 	if((chk_t.chk_ini_file != chk_t2.chk_ini_file) ||
 			(chk_t.chk_wcs_file!=chk_t2.chk_wcs_file) ||
-//			(chk_t.chk_pnd!=chk_t2.chk_pnd) ||
+			//			(chk_t.chk_pnd!=chk_t2.chk_pnd) ||
 			(chk_t.chk_indpix!=chk_t2.chk_indpix) ||
 			(chk_t.chk_indpsrc!=chk_t2.chk_indpsrc))
 		return 1;
@@ -131,43 +131,53 @@ bool compare_checksum(struct checksum chk_t, struct checksum chk_t2){
 	return 0;
 }
 
-void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double *r, long long *indpix, long long npixeff, double &var_n, double &delta_n, int &iter){
-
+void load_idupl(string tmp_dir, string out_dir, int &idupl){
 	FILE* fp;
 	string file = tmp_dir + "data_sanePic.bin";
 	size_t len=0;
-	string fits_temp;
-	std::ostringstream oss;
-	long NAXIS1, NAXIS2;
-	struct wcsprm * wcs;
-	int nwcs = 1;
 
 	if (NULL == (fp = fopen(file.c_str(), "rb")))
 	{
 		cout << "Unable to open " << file << " for reading\n";
 		return;
 	}
+	len+=fread(&idupl,sizeof(int),1,fp);
 
+	fclose(fp);
+}
+
+void load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double *r, long long npixeff, double & var_0, double &var_n, double &delta_0, double &delta_n, int &iter, double *Mptot, double *PtNPmatStot){
+
+	FILE* fp;
+	string file = tmp_dir + "data_sanePic.bin";
+	size_t len=0;
+	int idupl;
+
+	if (NULL == (fp = fopen(file.c_str(), "rb")))
+	{
+		cout << "Unable to open " << file << " for reading\n";
+		return;
+	}
+	len+=fread(&idupl,sizeof(int),1,fp);
+	len+=fread(&var_0,sizeof(double),1,fp);
 	len+=fread(&var_n,sizeof(double),1,fp);
+	len+=fread(&delta_0,sizeof(double),1,fp);
 	len+=fread(&delta_n,sizeof(double),1,fp);
 	len+=fread(&iter,sizeof(int),1,fp);
 	len+=fread(d,sizeof(double),npixeff,fp);
 	len+=fread(r,sizeof(double),npixeff,fp);
-
-	oss << out_dir + "optimMap_" << iter << "b.fits";
-	fits_temp=oss.str();
-	read_keyrec(tmp_dir,wcs,&NAXIS1, &NAXIS2);
-	read_fits_signal(fits_temp, S, indpix, NAXIS1, NAXIS2, wcs);
+	len+=fread(S,sizeof(double),npixeff,fp);
+	len+=fread(Mptot,sizeof(double),npixeff,fp);
+	len+=fread(PtNPmatStot,sizeof(double),npixeff,fp);
 
 	iter++;
 
 	fclose(fp);
 
-	wcsvfree(&nwcs, &wcs);
 }
 
 
-void write_disk(string tmp_dir, double *d, double *r, long long npixeff, double var_n, double delta_n, int iter){
+void write_disk(string tmp_dir, double *d, double *r, double *S, long long npixeff, double var_0, double var_n, double delta_0, double delta_n, int iter, int idupl, double *Mptot, double *PtNPmatStot){
 
 	FILE *fp;
 	string file = tmp_dir + "data_sanePic.bin";
@@ -178,11 +188,17 @@ void write_disk(string tmp_dir, double *d, double *r, long long npixeff, double 
 		cout << "Unable to open " << file << " for writing\n";
 		return;
 	}
+	len+=fwrite(&idupl,sizeof(int),1,fp);
+	len+=fwrite(&var_0,sizeof(double),1,fp);
 	len+=fwrite(&var_n,sizeof(double),1,fp);
+	len+=fwrite(&delta_0,sizeof(double),1,fp);
 	len+=fwrite(&delta_n,sizeof(double),1,fp);
 	len+=fwrite(&iter,sizeof(int),1,fp);
 	len+=fwrite(d,sizeof(double),npixeff,fp);
 	len+=fwrite(r,sizeof(double),npixeff,fp);
+	len+=fwrite(S,sizeof(double),npixeff,fp);
+	len+=fwrite(Mptot,sizeof(double),npixeff,fp);
+	len+=fwrite(PtNPmatStot,sizeof(double),npixeff,fp);
 
 	fclose(fp);
 

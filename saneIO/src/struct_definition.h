@@ -4,6 +4,11 @@
 #include <vector>
 #include <string>
 
+
+extern "C"{
+#include "getdata.h"
+}
+
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {
@@ -77,10 +82,10 @@ struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
+	//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
 	int save_data;
 	int restore;
-//	double thresholds; // determine thresholds
+	//	double thresholds; // determine thresholds
 };
 
 struct samples
@@ -90,17 +95,21 @@ struct samples
 	std::vector<std::string> noisevect;
 	std::vector<std::string> bolovect;
 
+	DIRFILE *dirfile_pointer;
 
 	std::vector<double> fcut;
 
 	std::vector<std::string> ell_names;
 	std::vector<std::string> mix_names;
 
+	//noise binary sizes
+	std::vector<long> nbins;
+	std::vector<long> ndet;
+
 	std::vector<int> scans_index;
 
 	bool framegiven;
 
-	//TODO: Switch nsample to vector too...
 	std::vector<long> nsamples;
 	long ntotscan;
 };

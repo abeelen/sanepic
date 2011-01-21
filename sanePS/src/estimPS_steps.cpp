@@ -23,7 +23,7 @@ extern "C" {
 
 using namespace std;
 
-int common_mode_computation(std::vector<std::string> det, struct param_sanePre proc_param, struct param_sanePos pos_param,
+int common_mode_computation(struct samples samples_struct, std::vector<std::string> det, struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, string fits_filename)
@@ -84,9 +84,9 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 		field = det[idet];
 
-		if(read_data_from_dirfile(dir.tmp_dir, fits_filename, field, data))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(dir.tmp_dir, fits_filename, field, flag))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
 
 		//		long test_ns;
@@ -108,7 +108,7 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 		//TODO: subtract the signal only if needed
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field))
 				return EX_NOINPUT;
 
 			//TODO : Check this function on what it does/should do
@@ -140,7 +140,7 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 		fftw_destroy_plan(fftplan);
 
 
-		if(write_fdata(ns, fdata1,  "fdata_", dir.tmp_dir, idet, fits_filename, det))
+		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata1,  "fdata_", idet, fits_filename, det))
 			return EX_DATAERR;
 
 		/// compute sigma of the noise
@@ -229,7 +229,7 @@ int common_mode_computation(std::vector<std::string> det, struct param_sanePre p
 
 
 
-int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_param,struct param_sanePos pos_param,
+int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det, struct param_sanePre proc_param,struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
@@ -282,9 +282,9 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 
 		field = det[idet];
 
-		if(read_data_from_dirfile(dir.tmp_dir, fits_filename, field, data))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(dir.tmp_dir, fits_filename, field, flag))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
 
 		//		long test_ns;
@@ -308,7 +308,7 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(ns, samptopix,  dir.tmp_dir, fits_filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field))
 				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -397,7 +397,7 @@ int estimate_noise_PS(std::vector<std::string> det, struct param_sanePre proc_pa
 }
 
 
-int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 
@@ -425,13 +425,13 @@ int estimate_CovMat_of_Rexp(struct param_common dir, std::vector<std::string> de
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		if(read_fdata(ns, fdata1, "fdata_",  dir.tmp_dir, idet1, fits_filename, det))
+		if(read_fdata(samples_struct.dirfile_pointer, ns, fdata1, "fdata_", idet1, fits_filename, det))
 			return EX_NOINPUT;
 
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			if(read_fdata(ns, fdata2, "fdata_",  dir.tmp_dir, idet2, fits_filename, det))
+			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata2, "fdata_", idet2, fits_filename, det))
 				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);

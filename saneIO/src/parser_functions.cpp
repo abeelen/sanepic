@@ -305,7 +305,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 }
 
 
-//TODO : Add somewhere some check on fsamp/nsample/fcut to check stupid entries...
+
 int check_path(string &output, string strPath, string path_type){
 
 	if ( access( strPath.c_str(), 0 ) == 0 )
@@ -336,15 +336,6 @@ int check_path(string &output, string strPath, string path_type){
 	return 0;
 }
 
-/*int check_dirfile_paths(string &output,string strPath){
-
-	//TODO: This will NOT work with MPI, anyway we will switch to libgetdata
-	return check_path(output, strPath + "Fourier_data/","Fourier data binaries") || \
-			check_path(output, strPath + "Noise_data/","Noise data binaries") || \
-			check_path(output, strPath + "Indexes/","Indexes");
-
-}*/
-
 int check_common(string &output, struct param_common dir){
 
 	if((dir.bolo_global_filename=="") && (dir.bolo_suffix=="")){
@@ -370,29 +361,23 @@ int check_common(string &output, struct param_common dir){
 int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct){
 
 	string filedir = tmp_dir + "dirfile";
-	string noise_path = tmp_dir + "dirfile/Noise_data";
-	string ell_path = tmp_dir + "dirfile/Noise_data/ell";
+
 	DIRFILE *D, *H, *F, *I, *I2, *J, *K, *S;
 
 	// create folders
 	D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
-	gd_close(I);
-	gd_close(I2);
-
-	gd_include(D, "Noise_data/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-	gd_include(D, "Noise_data/ell/format", 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 
 	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
 
 		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
-		string scan_folder = filedir + "/" + scan_name + "/";
+		string scan_folder = filedir + "/" + scan_name;
 		string fdata = filedir + "/" + scan_name + "/Fourier_transform";
 		string index_path = filedir + "/" + scan_name + "/Indexes";
 		string data = filedir + "/" + scan_name + "/data";
 		string flag_dir = filedir + "/" + scan_name + "/flag";
+		string noise_path = filedir + "/" + scan_name + "/Noise_data";
+		string ell_path = filedir + "/" + scan_name + "/Noise_data/ell";
 
 		// create folders and
 		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
@@ -401,22 +386,32 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 		J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT  | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 		K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
+		I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+
+
+
 		// close subdirfiles
 		gd_close(H);
 		gd_close(F);
 		gd_close(J);
 		gd_close(K);
 		gd_close(S);
+		gd_close(I);
+		gd_close(I2);
 
 		// include subdir and create format files
-		gd_include(D, (char *)(scan_name + "/format").c_str(), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(D, (char *)(scan_name + "/format").c_str(), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 
 		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
-		gd_include(S, (char *)("/Indexes/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("/Fourier_transform/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("/flag/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("/data/format"), 0, GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("Indexes/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("Fourier_transform/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("flag/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("Noise_data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("Noise_data/ell/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 
 		gd_close(S);
 	}
@@ -441,44 +436,6 @@ int cleanup_dirfile_sanePos(string tmp_dir, struct samples samples_struct)
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
 		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_close(S);
-
-	}
-	return 0;
-}
-
-int cleanup_dirfile_saneInv(string tmp_dir, struct samples samples_struct)
-{
-
-	string noise_path = tmp_dir + "dirfile/" + "/Noise_data";
-	string ell_path =  noise_path + "/ell";
-
-	DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	gd_close(S);
-	DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	gd_close(D);
-
-	return 0;
-}
-
-int cleanup_dirfile_sanePic(std::string tmp_dir, struct samples samples_struct){
-
-	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
-
-		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
-		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/Fourier_transform";
-
-		// clean up the dirfiles
-		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-
-//		long ns= samples_struct.nsamples[iframe];
-//		fftw_complex *fdata;
-//		fdata = new fftw_complex[ns/2+1];
-//
-//		for(long ii =0; ii<ns/2+1;ii++){
-//			fdata[ii][0]=0.0;
-//			fdata[ii][1]=0.0;
-//		}
 
 		string output_read = "";
 		std::vector<string> det_vect;
@@ -487,6 +444,107 @@ int cleanup_dirfile_sanePic(std::string tmp_dir, struct samples samples_struct){
 			return 1;
 		}
 
+		// then generate binaries and fill format file
+		for(long idet=0; idet<(long)det_vect.size(); idet ++){
+			string outfile = scan_name + "_" + det_vect[idet];
+			//configure dirfile field
+			gd_entry_t E;
+			E.field = (char*) outfile.c_str();
+			E.field_type = GD_RAW_ENTRY;
+			E.fragment_index = 0;
+			E.spf = 1;
+			E.data_type = GD_INT64;
+			E.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(S, &E);
+
+		}
+
+		gd_close(S);
+
+	}
+	return 0;
+}
+
+int cleanup_dirfile_saneInv(string tmp_dir, struct samples samples_struct, long n_iter, string noise_suffix)
+{
+
+	for (long ii=0; ii< n_iter; ii++){
+
+		string base_name = FitsBasename(samples_struct.fitsvect[ii]);
+		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
+		string ell_path =  noise_path + "/ell";
+
+		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii] FitsBasename
+		std::vector<string> bolos;
+
+		string output_read = "";
+		if(read_channel_list(output_read, samples_struct.bolovect[ii], bolos)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)bolos.size();
+
+		for (int idet = 0; idet < ndet; idet++) {
+
+			// ell binary filename
+			string outfile = bolos[idet] + "_" + suffix + "_ell";
+
+			// configure dirfile field for ell
+			gd_entry_t E;
+			E.field = (char*)outfile.c_str();
+			E.field_type = GD_RAW_ENTRY;
+			E.fragment_index = 0;
+			E.spf = 1;
+			E.data_type = GD_DOUBLE;
+			E.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(D, &E);
+
+
+			// spectra filename
+			outfile = bolos[idet] + "_" + suffix;
+
+			// set field information for spectra
+			E.field = (char*)outfile.c_str();
+
+			// add to the dirfile
+			gd_add(S, &E);
+
+		}
+
+		gd_close(S);
+		gd_close(D);
+
+	}
+
+	return 0;
+}
+
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct){
+
+	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
+
+		//get fourier transform dirfile names !
+		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/Fourier_transform";
+
+		// clean up the dirfiles with TRUNC option
+		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		string output_read = "";
+		std::vector<string> det_vect;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+			cout << output_read << endl;
+			return 1;
+		}
+
+		// then generate binaries and fill format file
 		string prefixe[2] = {"fdata_","fPs_"};
 		for(long ip=0;ip<2;ip++)
 			for(long idet=0; idet<(long)det_vect.size(); idet ++){
@@ -506,8 +564,29 @@ int cleanup_dirfile_sanePic(std::string tmp_dir, struct samples samples_struct){
 			}
 
 		gd_close(S);
-//		delete [] fdata;
+
+		// check sizes in Indexes, data and flag format
+		string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
+		string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
+		DIRFILE *I = gd_open((char *)indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *D = gd_open((char *)data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		long nframeI = gd_nframes(I);
+		long nframeD = gd_nframes(I);
+
+		long ns = samples_struct.nsamples[iframe];
+		gd_close(I);
+		gd_close(D);
+
+		if((nframeI != ns) ||  (nframeD != ns)){
+			cout << "Error... Dirfile data or Indexes has incorrect size !!\n";
+			return 1;
+		}else{
+			cout << "Checked and size ok : " << iframe << endl; // TODO : remove after final changes
+		}
+
 	}
+
 
 	return 0;
 }
@@ -674,7 +753,7 @@ void default_param_sanePic(struct param_sanePic &pic_param){
 	pic_param.save_data = 0;
 }
 
-//TODO move mix_names and ell_names to samples_struct
+
 void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_struct, struct param_common &dir){
 
 
@@ -725,8 +804,7 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 	if(read_strings(fcut_file,dummy2))
 		return 1;
 
-	if(((int)dummy2.size())==0 || \
-			( (int) dummy2.size() != 1 && ((int) dummy2.size() != samples_struct.ntotscan) ) ){
+	if(((int)dummy2.size())==0 || ((int) dummy2.size() != 1 && ((int) dummy2.size() != samples_struct.ntotscan) ) ){
 		output += "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
 		return 1;
 	}
@@ -745,11 +823,54 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 
 }
 
+
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct)
+{
+
+	for(long ii=0; ii< samples_struct.ntotscan; ii++){
+
+		string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
+		// dirfile path
+		string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/ell/";
+
+		// open dirfile
+		DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		unsigned int nframe = gd_nframes(H);
+
+		// close dirfile
+		if(gd_close(H)){
+			cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
+			return 1;
+		}
+
+		// get nbins value
+		samples_struct.nbins.push_back((long)(nframe-1));
+
+		// get ndet value
+		filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
+		H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		nframe = gd_nframes(H);
+
+		// close dirfile
+		if(gd_close(H)){
+			cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
+			return 1;
+		}
+
+		// compute ndet considering entry size and nbins
+		samples_struct.ndet.push_back(nframe / samples_struct.nbins[ii]);
+
+	}
+
+	return 0;
+}
+
+
 //TODO: sanePS is not in the default distribution, so should not be in the master parser_function....
 int parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct){
+		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size, int rank){
 
 	dictionary	*	ini ;
 	string filename;
@@ -797,7 +918,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	// TODO: Why is that needed in sample_struct, why not just for saneFrameOrder ?
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
-	if(check_common(output, dir)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
+	if(check_common(output, dir) && (rank==0)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
 		return 1;
 	if(check_param_positions(output, pos_param))
 		return 1;
@@ -823,7 +944,7 @@ void print_common(struct param_common dir){
 
 void print_param_positions(struct param_sanePos pos_param) {
 
-//	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
+	cout << "Pixel size : " << setprecision(14) << pos_param.pixdeg << " deg\n";
 
 	if(pos_param.flgdupl)
 		cout << "Separate map : " << setw(10) << "map_flagged_data = True\n";

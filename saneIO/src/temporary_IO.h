@@ -8,12 +8,13 @@
 
 extern "C" {
 #include "nrutil.h"
+#include "getdata.h"
 }
 
 // dirfile functions
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
-int read_data_from_dirfile(std::string tmp_dir, std::string filename, std::string field, double *&data);
-int read_flag_from_dirfile(std::string tmp_dir, std::string filename, std::string field, int *&mask);
+int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&data, long ns);
+int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *&mask, long ns);
 // dirfile functions
 //bool compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf);
 //bool compute_dirfile_format_noisePS(std::string outdir, std::vector<std::string> det, std::string suffix);
@@ -64,7 +65,7 @@ int read_PNd(double *&PNdtot, long long &npix, std::string outdir);
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-int write_samptopix(long ns, long long *&samptopix,  std::string tmpdir, std::string filename, std::string boloname);
+int write_samptopix(DIRFILE *D, long ns, long long *&samptopix, std::string filename, std::string boloname);
 
 /*!
  * Reads samptopix from a binary file \n
@@ -73,7 +74,7 @@ int write_samptopix(long ns, long long *&samptopix,  std::string tmpdir, std::st
  * -idet is the detector number \n
  * -samptopix is sample to pixel projection matrix
  */
-int read_samptopix(long ns, long long *&samptopix, std::string tmpdir, std::string filename, std::string boloname);
+int read_samptopix(DIRFILE* D, long ns, long long *&samptopix, std::string filename, std::string boloname);
 
 /*!
  * Writes fourier transform of the data in a binary file \n
@@ -82,7 +83,7 @@ int read_samptopix(long ns, long long *&samptopix, std::string tmpdir, std::stri
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-int write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string tmpdir, long idet, std::string filename, std::vector<std::string> bolonames);
+int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
 
 /*!
  * Reads PS for one bolo in a binary file \n
@@ -101,7 +102,7 @@ int write_fdata(long ns, fftw_complex *fdata, std::string prefixe, std::string t
  * -idet is the detector number \n
  * -fdata is the fourier transform of the iframe data, for detector idet
  */
-int read_fdata(long ns, fftw_complex *&fdata, std::string prefixe, std::string tmpdir, long idet, std::string filename, std::vector<std::string> bolonames);
+int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
 
 /*!
  * Reads mixing matrix in a .txt file \n

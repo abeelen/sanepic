@@ -51,9 +51,9 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
 		field = det[idet];
 
-		if(read_data_from_dirfile(tmp_dir, fits_filename, field, data))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(tmp_dir, fits_filename, field, flag))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
 
 		//		long test_ns;
@@ -71,7 +71,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 
 
 		//// Read pointing
-		read_samptopix(ns, samptopix, tmp_dir, fits_filename,field);
+		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename,field);
 
 
 		if (S != NULL){
@@ -134,7 +134,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 
 
 
-void do_PtNPS_nocorr(double *S, std::vector<std::string> noisevect, struct param_common dir,
+void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::string> noisevect, struct param_common dir,
 		std::vector<std::string> det, long ndet, double f_lppix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
@@ -163,7 +163,7 @@ void do_PtNPS_nocorr(double *S, std::vector<std::string> noisevect, struct param
 
 		field = det[idet];
 
-		read_samptopix(ns, samptopix, dir.tmp_dir, fname,field);
+		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fname,field);
 
 
 		// AS
