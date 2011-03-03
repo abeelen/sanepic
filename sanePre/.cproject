@@ -1221,17 +1221,16 @@
 </option>
 <option id="gnu.cpp.compiler.option.debugging.prof.677164867" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.392287666" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.preprocessor.undef.1394017273" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
-</option>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.1394017273" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.804107783" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1497867999" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1963081655" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
-<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1597149671" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
+<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1597149671" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" value="gnu.c.optimization.level.most" valueType="enumerated"/>
 <option id="gnu.c.compiler.exe.debug.option.debugging.level.2103817685" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.include.paths.725973195" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths"/>
 <option id="gnu.c.compiler.option.debugging.gprof.198621244" name="Generate gprof information (-pg)" superClass="gnu.c.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
@@ -1252,7 +1251,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug_MPI}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.debugging.gprof.513215951" name="Generate gprof information (-pg)" superClass="gnu.cpp.link.option.debugging.gprof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.link.option.debugging.prof.1724078132" name="Generate prof information (-p)" superClass="gnu.cpp.link.option.debugging.prof" value="false" valueType="boolean"/>
@@ -1819,6 +1818,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.2122591246" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.188126135" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
@@ -1845,7 +1845,7 @@
 <option id="gnu.cpp.link.option.paths.1757533719" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2025950831" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
