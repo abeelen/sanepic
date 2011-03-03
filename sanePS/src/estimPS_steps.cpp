@@ -30,9 +30,6 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 {
 	//*************************** Read data and compute components
 
-	//TODO : The beginning of this function look a lot like write_ftrProcesdata
-	//       Check and replace/reuse if possible...
-
 	string field; // detector name in the loop
 
 	double *sign;
@@ -89,22 +86,6 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
 
-		//		long test_ns;
-		//		if(read_signal_from_fits(fits_filename, field, data, test_ns))
-		//			return EX_NOINPUT;
-		//		if (test_ns != ns) {
-		//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-		//			return 1;
-		//		}
-		//
-		//		if(read_flag_from_fits(fits_filename , field, flag, test_ns))
-		//			return EX_NOINPUT;
-		//		if (test_ns != ns) {
-		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-		//			return 1;
-		//		}
-
-
 		//TODO: subtract the signal only if needed
 		if (S != NULL){
 			//Read pointing data
@@ -125,7 +106,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
 
 
-		// TODO: should apodisation be part of MapMakePreProcess ?
+		// TODO: should apodisation be part of MapMakePreProcess ? : not in Corr_preprocess !
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
 
@@ -302,7 +283,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		//		}
 
 
-		//TODO : This computation is already done when computing the common mode
+		//TODO : This computation is already done when computing the common mode ->
 		//       reuse the fdata if possible?
 		//******************************* subtract signal
 
@@ -346,7 +327,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		delete [] flag;
 	}
 
-
+	cout << "N values estimate_noise_PS ! " << N[0][0] << " " << N[0][50] << " " << N[5][30] << endl;
 
 	////*********************** Component power spectra
 
@@ -1146,7 +1127,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct param_sanePS st
 
 
 #ifdef DEBUG
-	//TODO: do we need that ?
+
 	temp_stream << outdirSpN << basename << "_exp.psd";
 	nameSpfile= temp_stream.str();
 	temp_stream.str("");
