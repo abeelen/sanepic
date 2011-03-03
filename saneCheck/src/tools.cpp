@@ -554,24 +554,45 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, struct checkHDU check_it)
+int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it)
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
 	int *flag; // mask table
 	long sum=0; // used to compute the percentage of flagged data
+	long start=0;
+	long revert_start=ns-1;
+
+	init_flag_num=ns;
+	end_flag_num=ns;
 
 	cout << "ns : " << ns << endl;
 
 	for(int jj=0;jj<ndet;jj++){
 
 		sum=0;
+		start=0;
+		revert_start=ns;
+
 		if(read_flag_from_fits(fname, det[jj], flag, ns))
 			return 1;
 
-		for(long ii = 0; ii<ns-1; ii++)
+		while((flag[start]!=0) && (start<ns)){
+			start++;
+			sum++;
+		}
+
+		while((flag[revert_start-1]!=0) && (revert_start>0)){
+			revert_start++;
+		}
+
+
+		for(long ii = start; ii<ns; ii++) // TODO ns au lieu de ns-1, non ????
 			if(flag[ii]!=0)
 				sum++;
+
+		init_flag_num = ((init_flag_num < start) ? init_flag_num : start); // which is the lower between previous detectors flag table and actual table
+		end_flag_num = ((end_flag_num < revert_start) ? end_flag_num : revert_start);
 
 
 		if(sum>99*ns/100){ // fully flagged detector found
@@ -597,14 +618,11 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 }
 
 
-int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir, struct checkHDU check_it)
+int check_time_gaps(string fname,long ns, double fsamp, std::vector<long> &indice, double &Populated_freq, struct checkHDU check_it)
 /*! check for time gaps in time table */
 {
 
 
-	std::vector<long> indice;
-
-	string fname2 = dir.tmp_dir + FitsBasename(fname) + "_saneFix_indices.bin"; // output saneFix logfile filename
 
 	double *time,*diff;
 	double sum=0.0;
@@ -628,8 +646,6 @@ int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir,
 	it = unique(freq.begin(),freq.end()); // get only unique values of frequencies
 
 
-
-
 	long size_tmp = it - freq.begin(); // last unique frequency index
 
 	long *counter;
@@ -647,7 +663,7 @@ int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir,
 		if(counter[tt]==maxi)
 			ind=tt;
 
-	double Populated_freq = freq[ind]; // the most populated frequency only is kept
+	Populated_freq = freq[ind]; // the most populated frequency only is kept
 
 	double zero_cinq_pourcent=0.5*Populated_freq/100; // compare to the user frequency given in ini file
 	if(abs(Populated_freq-fsamp)/fsamp>zero_cinq_pourcent){
@@ -673,22 +689,6 @@ int check_time_gaps(string fname,long ns, double fsamp, struct param_common dir,
 
 	// print to std
 	cout << "ini file fsamp : " << fsamp << " Most Populated freq : " << Populated_freq << " Recomputed real freq : " << real_freq << endl;
-
-	std::ofstream file; // saneFix indice log file
-	file.open(fname2.c_str(), ios::out | ios::trunc);
-	if(!file.is_open()){
-		cerr << "File [" << fname2 << "] Invalid." << endl;
-		return 1;
-	}else{
-		// store real_freq for saneFix
-		file << Populated_freq << " ";
-
-		for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
-			file << indice[ii] << " ";
-	}
-
-	file.close();
-
 	cout << endl;
 
 	// clean up
@@ -786,6 +786,34 @@ double median(std::vector<double> vec){
 	return size % 2 == 0 ? (vec[mid] + vec[mid-1]) / 2.0 : vec[mid];
 }
 
+int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, std::vector<long> indice){
+
+	string fname2 = tmp_dir + FitsBasename(filename) + "_saneFix_indices.bin"; // output saneFix logfile filename
+
+	std::ofstream file; // saneFix indice log file
+	file.open(fname2.c_str(), ios::out | ios::trunc);
+	if(!file.is_open()){
+		cerr << "File [" << fname2 << "] Invalid." << endl;
+		return 1;
+	}else{
+		// store init num of flag to remove for saneFix
+		file << init_flag << " ";
+
+		// store last num of flag to remove for saneFix
+		file << end_flag << " ";
+
+		// store real_freq for saneFix
+		file << Populated_freq << " ";
+
+		for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
+			file << indice[ii] << " ";
+	}
+
+	file.close();
+
+	return 0;
+}
+
 
 void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long ndet, double *percent_tab)
 /*! generating log files for user information */
@@ -815,7 +843,6 @@ void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long nd
 }
 
 int read_sample_signal_from_fits(string filename, int sample, double *& signal_samp, std::vector<std::string> det, long ndet){
-	//TODO : Handle unit to transform to a common internal known unit
 
 	// HIPE like format
 

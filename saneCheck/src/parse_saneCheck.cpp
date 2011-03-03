@@ -14,6 +14,7 @@
 #include "struct_definition.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
+#include "utilities.h"
 #include "tools.h"
 
 extern "C"{
@@ -49,7 +50,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 
 
 	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param,
-			   structPS, saneInv_struct, sanePic_struct))
+			   structPS, saneInv_struct, sanePic_struct, size, rank))
 		return -1;
 
 
@@ -92,7 +93,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "[sanePos]\n\n";
 		text += "pixsize = " + StringOf(pos_param.pixdeg) + " ; size of pixels (degrees)\n";
 		text += "map_flagged_data = " + StringOf( pos_param.flgdupl ? "True" : "False" ) + " ; flagged data put in a separated map (default is False)\n";
-		text += "file_format = " + StringOf(pos_param.fileFormat) + " ; HIPE = 1, SANEPIC = 2\n";
+		text += "file_format = " + StringOf(pos_param.fileFormat) + " ; SANEPIC = 0, HIPE = 1 \n";
 		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
 		text += "mask_file = " + pos_param.maskfile + "; mask (fits file) : use to remove cross constraint due to strong sources\n";
 
@@ -113,7 +114,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "\n\n";
 
 		text += "[saneInv]\n\n";
-		text += "noise_dir = " + dir.noise_dir + " ; cov matrix directory\n";
+		text += "noise_dir = " + saneInv_struct.noise_dir + " ; cov matrix directory\n";
 		text += "cov_matrix_file = " + saneInv_struct.cov_matrix_file + " ; this file contains the matrix you want to invert\n";
 		text += "cov_matrix_suffix = " + saneInv_struct.cov_matrix_suffix + " ; this file contains the matrix you want to invert\n";
 
@@ -133,6 +134,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 		text += "[sanePic]\n\n";
 
 		text += "iterW = " + StringOf(sanePic_struct.iterw) + " ; Write temporary map files on disk every iterW number of loop\n";
+		text += "iterMAX = " + StringOf(sanePic_struct.itermax) + " ; Maximum number of conjugate gradient loops \n";
 
 		text += "\n\n";
 

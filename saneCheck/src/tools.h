@@ -28,16 +28,18 @@ bool check_bolos(std::vector<std::string> bolo_fits_vect, std::vector<std::strin
 
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 int check_flag(std::string fname, std::vector<std::string> det, long ndet, long ns, std::string outname, long *&bolos_global,
-		long *&bolos_global_80, double *percent_tab, struct checkHDU check_it);
+		long *&bolos_global_80, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it);
 
 /*! check for time gaps in time table */
-int check_time_gaps(std::string fname,long ns, double fsamp, struct param_common dir, struct checkHDU check_it);
+int check_time_gaps(std::string fname,long ns, double fsamp, std::vector<long> &indice, double &Populated_freq, struct checkHDU check_it);
 
 /*! check whether the detector gain is correct or not and estimates the gain for each detector */
 int check_bolo_gain(std::string fname,long ns, std::string bolo_gain_filename, std::vector<std::string> det, long ndet, struct checkHDU check_it);
 
 /*! compute the median of a double vector */
 double median(std::vector<double> vec);
+
+int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, std::vector<long> indice);
 
 /*! generating log files for user information */
 void log_gen(long *bolo_, std::string outname, std::vector<std::string> det, long ndet, double *percent_tab=NULL);
