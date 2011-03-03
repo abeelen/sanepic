@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;
+		int error_code = 0;
 
 		string fname, parser_output = "";
 
@@ -68,20 +69,14 @@ int main(int argc, char *argv[])
 		cout << endl << parser_output << endl;
 
 		if (parsed==-1){
-			if(rank==0)
-				cerr << "Problem in the parse function. Exiting\n";
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
+			cerr << "Problem in the parse function. Exiting\n";
 		}
 
 
 		if(samples_struct.ntotscan<size){
 			cerr << "You must use at least " << size << " scans or reduce the number of processor to be used.\n";
 			cerr << "This number must be at least equal to the number of scans you are using : ie. " << samples_struct.ntotscan << endl;
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
+			error_code=1;
 		}
 
 
@@ -89,54 +84,55 @@ int main(int argc, char *argv[])
 			cerr << "You have already given processors order in the fits filelist. Exiting\n";
 			sort (samples_struct.scans_index.begin(), samples_struct.scans_index.end(), sortobject);
 
-			if (size!=(samples_struct.scans_index[samples_struct.scans_index.size()-1]+1))
+			if (size!=(samples_struct.scans_index[samples_struct.scans_index.size()-1]+1)){
 				cout << "Warning, you have to run MPI with " << samples_struct.scans_index[samples_struct.scans_index.size()-1]+1 << " processors and you are currently running MPI with " << size << " processors\n";
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CONFIG;
-
-		}
-
-
-		ruleorder     = new long[samples_struct.ntotscan];
-		frnum         = new long[samples_struct.ntotscan+1];
-
-
-		fname = dir.output_dir + parallel_scheme_filename;
-
-		if(samples_struct.ntotscan==size){
-
-			for(long hh=0; hh<samples_struct.ntotscan;hh++){
-				ruleorder[hh]=hh;
-				frnum[hh]=hh;
+				error_code=1;
+				//			MPI_Barrier(MPI_COMM_WORLD);
+				//			MPI_Finalize();
+				//			return EX_CONFIG;
 			}
-			frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
 
-			//write parallel schema in a file
-			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
-		}else{
-
-
-			/********************* Define parallelization scheme   *******/
-			find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
-
-			//write parallel schema in a file
-			parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
 		}
 
-		if(parsed==-1){
-			if(rank==0)
+		if(error_code==0){
+
+			ruleorder     = new long[samples_struct.ntotscan];
+			frnum         = new long[samples_struct.ntotscan+1];
+
+
+			fname = dir.output_dir + parallel_scheme_filename;
+
+			if(samples_struct.ntotscan==size){
+
+				for(long hh=0; hh<samples_struct.ntotscan;hh++){
+					ruleorder[hh]=hh;
+					frnum[hh]=hh;
+				}
+				frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
+
+				//write parallel schema in a file
+				parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+
+
+			}else{
+
+
+				/********************* Define parallelization scheme   *******/
+				find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
+
+				//write parallel schema in a file
+				parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+			}
+
+
+			if(parsed==-1)
 				cerr << "Write parallelization Error !" << endl;
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
-			return EX_CANTCREAT;
-		}
 
-		delete [] frnum;
-		delete [] ruleorder;
+			delete [] frnum;
+			delete [] ruleorder;
+		} // if error = 0
 
-
-	}
+	} // rank==0
 
 
 #else

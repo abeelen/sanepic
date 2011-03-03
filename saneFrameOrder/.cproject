@@ -31,6 +31,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.2005417001" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.658299449" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
@@ -50,7 +51,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.1036576994" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2088004137" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -512,6 +513,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.648260729" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.273631968" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -530,7 +532,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.1752277741" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1289912359" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
