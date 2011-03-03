@@ -54,12 +54,11 @@ int parse_saneFix_ini_file(char * ini_name, string &output, struct param_common 
 		return 1;
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
-	// TODO: Fundamental reason for that here ? Why not keep it simple ?
+	// No fundamental reason but we need to take fitsbasename anyway ! So we can add path here !
 	for(int iframe=0;iframe<(int)((samples_struct.fitsvect).size());iframe++){
 		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
 	}
 
-	// TODO: Why is that needed in sample_struct, why not just for saneFrameOrder ?
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
 

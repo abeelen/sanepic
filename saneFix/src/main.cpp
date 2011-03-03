@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
 			std::vector <long> suppress_time_sample;
+			long init_num_delete =0;
+			long end_num_delete =0;
 
 			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[ii] << endl;
 
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]) {
 			fitsfile *outfptr;
 
 			// lookfor saneCheck log files
-			if((read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp))){
+			if((read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp, init_num_delete, end_num_delete))){
 				cout << "[ " << rank << " ] " << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run saneCheck on this file before\n";
 				continue; // log file were not found for the 'ii'th fits file
 			}
@@ -99,13 +101,20 @@ int main(int argc, char *argv[]) {
 			}
 
 
+//			cout << "readed : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice[0] << " " << indice[1] << endl;
+
+			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[ii]);
+
+//			cout << "refresh : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice.size() << endl;
+
 			// compute the number of sample that must be added to fill the gaps and have a continous timeline
 			long samples_to_add=how_many(samples_struct.fitsvect[ii], samples_struct.nsamples[ii] ,indice, fsamp, add_sample,suppress_time_sample);
 			cout << "[ " << rank << " ] " << "samptoadd : " << samples_to_add << endl;
-			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[ii] + samples_to_add << endl;
+			cout << "[ " << rank << " ] " << "samples to delete (begin/end) : (" << init_num_delete << "/" <<  end_num_delete << ")" << endl;
+			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete << endl;
 
 			// total number of samples in the fixed fits file
-			long ns_total = samples_struct.nsamples[ii] + samples_to_add;
+			long ns_total = samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete;
 
 			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
 			string fname=samples_struct.fitsvect[ii]; // input fits filename
@@ -132,22 +141,22 @@ int main(int argc, char *argv[]) {
 				cout << "[ " << rank << " ] " << "HIPE format found\n";
 
 				// 1 signal
-				fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample);
+				fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 2 RA 3 DEC
-				fix_RA_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample);
+				fix_RA_DEC(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 4 mask
-				fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample);
+				fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 5 time
-				fix_time_table(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp,suppress_time_sample);
+				fix_time_table(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp,suppress_time_sample, init_num_delete);
 
 				// 6 channels
 				copy_channels(fptr, outfptr);
 
 				// 7 reference positions
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample);
+				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 8 offsets
 				copy_offsets(fptr, outfptr);
@@ -156,7 +165,7 @@ int main(int argc, char *argv[]) {
 				cout << "[ " << rank << " ] " << "SANEPIC format found\n";
 
 				// 1 ref pos
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample);
+				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 2 offsets
 				copy_offsets(fptr, outfptr);
@@ -165,13 +174,13 @@ int main(int argc, char *argv[]) {
 				copy_channels(fptr, outfptr);
 
 				// 4 time
-				fix_time_table(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp,suppress_time_sample);
+				fix_time_table(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp, suppress_time_sample, init_num_delete);
 
 				// 5 signal
-				fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample);
+				fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 6 mask
-				fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample);
+				fix_mask(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 			}
 
@@ -190,7 +199,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//clean up
-//	delete [] samples_struct.nsamples;
+	//	delete [] samples_struct.nsamples;
 
 	if(rank==0)
 		cout << "\nEnd of saneFix\n";
