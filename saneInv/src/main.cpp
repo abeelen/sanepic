@@ -123,10 +123,44 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
+
+#ifdef USE_MPI
+
+	MPI_Datatype message_type;
+	struct ini_var_strings ini_v;
+	int ntotscan;
+
+	if(rank==0){
+		fill_var_sizes_struct(dir, pos_param, proc_param,
+				saneInv_struct, structPS, samples_struct, ini_v);
+
+		ntotscan = ini_v.ntotscan;
+	}
+
+	MPI_Bcast(&ntotscan, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(rank!=0){
+		ini_v.fitsvect=new int[ntotscan];
+		ini_v.noisevect=new int[ntotscan];
+		ini_v.bolovect=new int[ntotscan];
+	}
+
+	ini_v.ntotscan=ntotscan;
+
+	Build_derived_type_ini_var (&ini_v,	&message_type);
+
+	MPI_Bcast(&ini_v, 1, message_type, 0, MPI_COMM_WORLD);
+
+	commit_struct_from_root(dir, pos_param, proc_param, saneInv_struct, struct_sanePic, structPS, samples_struct, ini_v, rank);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
+
 	if(rank==0)
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic);
+				structPS, struct_sanePic, saneInv_struct);
 
 
 	// START OF saneInv
@@ -145,7 +179,7 @@ int main(int argc, char *argv[]) {
 	n_iter = (long)samples_struct.noisevect.size();
 	if(n_iter==0){
 		if(rank==0)
-			cerr << "WARNING. You have forgotten to mention covariance matrix in ini file or fits_filelist\n";
+			cerr << "WARNING. You have forgotten to mention covariance matrix in ini file\n";
 #ifdef PARA_FRAME
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
@@ -182,7 +216,7 @@ int main(int argc, char *argv[]) {
 			cout << "Inversion of : " << base_name << endl;
 
 			// get input covariance matrix file name
-			fname=dir.noise_dir + (string)samples_struct.noisevect[ii];
+			fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[ii];
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
@@ -202,8 +236,7 @@ int main(int argc, char *argv[]) {
 			if(read_channel_list(output_read, samples_struct.bolovect[ii], channelOut)){
 				cout << output_read << endl;
 #ifdef PARA_FRAME
-				MPI_Barrier(MPI_COMM_WORLD);
-				MPI_Finalize();
+				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 				return EX_CONFIG;
 			}
@@ -223,8 +256,7 @@ int main(int argc, char *argv[]) {
 			// write inversed noisePS in a binary file for each detector
 			if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, FitsBasename(samples_struct.fitsvect[ii]) + noise_suffix)){
 #ifdef PARA_FRAME
-				MPI_Barrier(MPI_COMM_WORLD);
-				MPI_Finalize();
+				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 				return EX_CANTCREAT;
 			}
@@ -249,11 +281,16 @@ int main(int argc, char *argv[]) {
 		cout << "error closing dirfile : " << filedir << endl;
 
 #ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD);
+	delete [] ini_v.fitsvect;
+	delete [] ini_v.noisevect;
+	delete [] ini_v.bolovect;
+
 	MPI_Finalize();
 #endif
 
-	printf("\nEND OF SANEINV \n");
+	if(rank==0)
+		printf("\nEND OF SANEINV \n");
+
 	return EXIT_SUCCESS;
 }
 
