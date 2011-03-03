@@ -328,10 +328,10 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 	//Butterworth filter (if necessary)
 	if (f_lppix > 0.0){
 		butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,proc_param.napod,0);
-	} else{
+	} /*else{
 		for (long ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = 1.0;
-	}
+	}*/
 
 
 

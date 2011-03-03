@@ -156,8 +156,7 @@ int main(int argc, char *argv[])
 		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
 			cout << output_read << endl;
 #ifdef USE_MPI
-			//			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return EX_CONFIG;
 		}

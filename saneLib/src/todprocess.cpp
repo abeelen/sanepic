@@ -10,6 +10,7 @@
 #include <fftw3.h>
 #include <vector>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_poly.h>
 
 #include "todprocess.h"
 #include "cholesky.h"
@@ -52,11 +53,17 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 
 	fitpoly(norder, ndint, sx, sy, a);
 
+
+	double value =0.0;
 	//remove best fit poly
-	for (long i=0;i<ndata;i++) yout[i] = y[i];
-	for (long i=0;i<ndata;i++)
-		for (int pp=0;pp<=norder;pp++)
-			yout[i] -= a[pp]*gsl_pow_int((double)i,pp); // TODO : generate a vector for poly instead of computing it each loop
+	//	for (long i=0;i<ndata;i++) yout[i] = y[i];
+	for (long i=0;i<ndata;i++){
+		value = gsl_poly_eval (a, norder+1, (double)i);
+		yout[i] = y[i] - value ;
+		//	for (int pp=0;pp<=norder;pp++)
+		//		yout[i] -= a[pp]*gsl_pow_int((double)i,pp);
+	}
+
 
 
 	delete [] sx;
@@ -124,13 +131,13 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-{
+																																{
 
 	double *apodis;
 
 	apodis = new double[ns];
 
-	for (int ii=0;ii<ns;ii++){
+	for (int ii=0;ii<ns;ii++){ //TODO :  nn => ns-nn ...
 		apodis[ii] = 1.0;
 	}
 
@@ -145,7 +152,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-}
+																																}
 
 
 
