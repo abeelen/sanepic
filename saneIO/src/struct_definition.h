@@ -9,18 +9,68 @@ extern "C"{
 #include "getdata.h"
 }
 
+
+#ifdef USE_MPI
+
+struct ini_var_strings
+/*! A structure that contains strings sizes about project structures filled with ini file variables */
+{
+	// common
+	int dirfile;
+	int output_dir;
+	int input_dir;
+	int tmp_dir;
+
+	int fits_filelist;
+	int bolo_global_filename;
+	int bolo_suffix;
+
+	// sanePos
+	int maskfile;
+
+	// sanePre
+	int fcut_file;
+
+	// saneInv
+	int noise_dir;
+	int cov_matrix_file;
+	int cov_matrix_suffix;
+
+	// sanePS
+	int ell_suffix;
+	int ell_global_file;
+	int signame;
+	int mix_global_file;
+	int mix_suffix;
+
+	// samples
+	int ntotscan;
+	int *fitsvect;
+	int *noisevect;
+	int *bolovect;
+
+
+	// all projects
+	int sizemax;
+
+};
+
+#endif
+
+
+
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {
 	std::string dirfile;
 	std::string output_dir;
 	std::string tmp_dir;
-	std::string noise_dir;
 	std::string input_dir;
 
 	std::string fits_filelist;
 	std::string bolo_global_filename;
 	std::string bolo_suffix;
+
 };
 
 struct param_sanePos
@@ -57,6 +107,8 @@ struct param_sanePre
 struct param_saneInv
 /*! A structure that contains informations about covariance matrices filenames */
 {
+	std::string noise_dir;
+
 	std::string cov_matrix_file;
 	std::string cov_matrix_suffix;
 };
@@ -76,13 +128,15 @@ struct param_sanePS
 
 	std::string signame;
 	int ncomp;
+	bool restore;
+	bool save_data;
 };
 
 struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-	//	int itermax; // TODO : add itermax + thresholds in sanepic_ini
+	int itermax; // TODO : add thresholds in sanepic_ini ???
 	int save_data;
 	int restore;
 	//	double thresholds; // determine thresholds
@@ -146,14 +200,15 @@ struct saneCheck
 
 };
 
-//struct dirfile_fragment
+
+//struct sanePS_saved_data
 //{
-//	int fragment_index;
-//	int fragment_fdata;
-//	int fragment_noise;
-//	int fragment_ell;
-//	int fragment_flag;
-//	int fragment_data;
+//	bool step2_completed;
+//	bool step3_completed;
+//	bool step4_completed;
+//	bool step5_completed;
+//	bool step6_completed;
+//
 //};
 
 #endif /* STRUCT_DEFINITION_H_ */

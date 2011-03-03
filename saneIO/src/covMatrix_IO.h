@@ -24,14 +24,14 @@ int write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbin
 /*! This function reads the NoiseNoise Matrices in a fits file (also reads the mixing matrices) */
 int read_CovMatrix(std::string fname, std::vector<std::string> &bolos, long &nbins, double *&ell, double **&Rellth);
 
-/*! Returns the table Format for the given vector of string*/
-char* tableFormat(std::vector<std::string> strings);
-
-/*! Return the longest string length of a string vector */
-long maxStringLength(std::vector<std::string> strings);
-
-/*! Transform a vector of string into a array of char*/
-char** vString2carray(std::vector<std::string> strings);
+///*! Returns the table Format for the given vector of string*/
+//char* tableFormat(std::vector<std::string> strings);
+//
+///*! Return the longest string length of a string vector */
+//long maxStringLength(std::vector<std::string> strings);
+//
+///*! Transform a vector of string into a array of char*/
+//char** vString2carray(std::vector<std::string> strings);
 
 int write_psd_tofits(std::string fname, long nx, long ny,char dtype, void * psd1d);
 

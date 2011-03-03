@@ -16,10 +16,6 @@
 #include "temporary_IO.h"
 #include "dataIO.h"
 
-//extern "C" {
-//#include "nrutil.h"
-//#include "getdata.h"
-//}
 
 using namespace std;
 
@@ -37,9 +33,9 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
 
 		D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 		H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
 
 		string output_read = "";
@@ -126,17 +122,115 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 	return 0;
 }
 
+int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max)
+{
+
+	double *ra;
+	double *dec;
+	long ns;
+	DIRFILE* D, *H;
+
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string RAdir = dir.tmp_dir + "dirfile/" + base_name + "/RA";
+		string DECdir = dir.tmp_dir + "dirfile/" + base_name + "/DEC";
+
+		D = gd_open((char *) RAdir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+		H = gd_open((char *) DECdir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+
+
+		string output_read = "";
+		std::vector<string> bolonames;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)bolonames.size();
+
+		for(long idet=0; idet < ndet; idet ++){
+
+			string field = bolonames[idet];
+			string ra_outfile = "RA_" + base_name + "_" + field;
+			string dec_outfile = "DEC_" + base_name + "_" + field;
+
+			read_ra_dec_from_fits(samples_struct.fitsvect[iframe], field, ra, dec, ns);
+
+			//configure dirfile field
+			gd_entry_t E;
+			E.field = (char*) ra_outfile.c_str();
+			E.field_type = GD_RAW_ENTRY;
+			E.fragment_index = 0;
+			E.spf = 1;
+			E.data_type = GD_DOUBLE;
+			E.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(D, &E);
+
+			// write binary file on disk
+			int n_write = gd_putdata(D, (char*) ra_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+					ra);
+			if (gd_error(D) != 0) {
+				cout << "error putdata in write_ra : wrote " << n_write
+						<< " and expected " << ns << endl;
+				return 1;
+			}
+
+			//configure dirfile field
+			gd_entry_t F;
+			F.field = (char*) dec_outfile.c_str();
+			F.field_type = GD_RAW_ENTRY;
+			F.fragment_index = 0;
+			F.spf = 1;
+			F.data_type = GD_DOUBLE;
+			F.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(H, &F);
+
+			// write binary file on disk
+			n_write = gd_putdata(H, (char*) dec_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+					dec);
+			if (gd_error(H) != 0) {
+				cout << "error putdata in write_dec : wrote " << n_write
+						<< " and expected " << ns << endl;
+				return 1;
+			}
+
+			delete [] ra;
+			delete [] dec;
+
+			gd_flush(D,NULL);
+			gd_flush(H,NULL);
+		}
+
+		// close dirfile
+		if (gd_close(D)) {
+			cout << "Dirfile gd_close error in write_ra for : " << RAdir
+					<< endl;
+			return 1;
+		}
+
+		// close dirfile
+		if (gd_close(H)) {
+			cout << "Dirfile gd_close error in write_dec for : " << DECdir
+					<< endl;
+			return 1;
+		}
+	}
+
+
+	return 0;
+}
+
+
 int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&data, long ns){
 
 	// set dirfile name and binary name
 	string base_name = FitsBasename(filename);
-	//	string datadir = tmp_dir + "dirfile/" + base_name + "/data";
 	string data_outfile = "data_" + base_name + "_" + field;
-
-
-	// open dirfile
-	//	DIRFILE* D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_VERBOSE
-	//			| GD_UNENCODED | GD_BIG_ENDIAN);
 
 	data = new double[ns];
 
@@ -150,27 +244,14 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&d
 
 	gd_flush(D,NULL);
 
-	// close dirfile
-	//	if (gd_close(D)) {
-	//		cout << "Dirfile gd_close error in read_data_flag_from_dirfile for : " << datadir
-	//				<< endl;
-	//		return 1;
-	//	}
-
 	return 0;
 }
 
-int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask, long ns){ // TODO :  add ns for size verification ??
+int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask, long ns){
 
 	// set dirfile name and binary name
 	string base_name = FitsBasename(filename);
-	//	string flagdir = tmp_dir + "dirfile/" + base_name + "/flag";
 	string flag_outfile = "flag_" + base_name + "_" + field;
-
-
-	//	// open dirfile
-	//	DIRFILE* H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_VERBOSE
-	//			| GD_UNENCODED | GD_BIG_ENDIAN);
 
 	mask = new int[ns];
 
@@ -184,47 +265,59 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 
 	gd_flush(H,NULL);
 
-	//	// close dirfile
-	//	if (gd_close(H)) {
-	//		cout << "Dirfile gd_close error in read_data_flag_from_dirfile for : " << flagdir
-	//				<< endl;
-	//		return 1;
-	//	}
+	return 0;
+}
+
+
+int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra, long ns){
+
+	// set dirfile name and binary name
+	string base_name = FitsBasename(filename);
+	string ra_outfile = "RA_" + base_name + "_" + field;
+
+	ra = new double[ns];
+
+	// fill ra array
+	int nget = gd_getdata(D, (char*) ra_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+			ra);
+	if (gd_error(D) != 0) {
+		cout << "error getdata in read_RA_from_dirfile : read " << nget << endl;
+		return 1;
+	}
+
+	gd_flush(D,NULL);
 
 	return 0;
 }
+
+int read_DEC_from_dirfile(DIRFILE* D, string filename, string field, double *&dec, long ns){
+
+	// set dirfile name and binary name
+	string base_name = FitsBasename(filename);
+	string dec_outfile = "DEC_" + base_name + "_" + field;
+
+	dec = new double[ns];
+
+	// fill dec array
+	int nget = gd_getdata(D, (char*) dec_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+			dec);
+	if (gd_error(D) != 0) {
+		cout << "error getdata in read_DEC_from_dirfile : read " << nget << endl;
+		return 1;
+	}
+
+	gd_flush(D,NULL);
+
+	return 0;
+}
+
 
 int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 		string filename, std::string boloname)
 /*!  write a sample to pixel vector to disk  */
 {
 	string base_name = FitsBasename(filename);
-	// set dirfile path name
-	//	string filedir = tmpdir + "dirfile/" + base_name + "/Indexes/";
-	// set binary file name
-	//	cout << base_name << endl;
 	string outfile = base_name + "_" + boloname;
-
-	// open dirfile
-	//	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_CREAT
-	//			| GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	//
-	//	//configure dirfile field
-	//	gd_entry_t E;
-	//	E.field = (char*) outfile.c_str();
-	//	E.field_type = GD_RAW_ENTRY;
-	//	E.fragment_index = 0;
-	//	E.spf = 1;
-	//	E.data_type = GD_INT64;
-	//	E.scalar[0] = NULL;
-	//
-	//	// add to the dirfile
-	//	gd_add(D, &E);
-	//	if (gd_error(D) != 0) {
-	//		cout << "gd_add error in write_samptopix for file : " << filedir
-	//				+ outfile << endl;
-	//		return 1;
-	//	}
 
 	// write binary file on disk
 	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
@@ -237,29 +330,6 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 
 	gd_flush(D,NULL);
 
-	//	// close dirfile
-	//	if (gd_close(D)) {
-	//		cout << "Dirfile gd_close error in write_samptopix for : " << filedir
-	//				<< endl;
-	//		return 1;
-	//	}
-
-#ifdef DEBUG_PRINT
-
-	outfile=tmpdir + "/Indexes/samptopix_" + FitsBasename(filename) + "_" + boloname + ".txt";
-	FILE *fp;
-
-	if((fp = fopen(outfile.c_str(),"w"))) {
-		fprintf(fp,"%ld ",ns);
-		for(long ii = 0; ii< ns; ii++)
-			fprintf(fp,"%lld ",samptopix[ii]);
-		fclose(fp);
-	} else {
-		cerr << "ERROR : Could not find " << outfile << endl;
-		return 1;
-	}
-#endif
-
 	return 0;
 }
 
@@ -268,14 +338,8 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 /*!  read a sample to pixel vector from disk  */
 {
 	string base_name = FitsBasename(filename);
-	// set dirfile path name
-	//	string filedir = tmpdir + "dirfile/" + base_name + "/Indexes/";
 	// set binary file name
 	string outfile = base_name + "_" + boloname;
-
-	//	// open dirfile
-	//	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-	//			| GD_UNENCODED | GD_BIG_ENDIAN);
 
 	// fill samptopix array
 	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
@@ -286,13 +350,6 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 	}
 
 	gd_flush(D,NULL);
-
-	//	// close dirfile
-	//	if (gd_close(D)) {
-	//		cout << "Dirfile gd_close error in read_samptopix for : " << filedir
-	//				<< endl;
-	//		return 1;
-	//	}
 
 	return 0;
 }
@@ -403,13 +460,13 @@ int read_indpix(long long &ind_size, long long &npix, long long *&indpix,
 	return 0;
 }
 
-int write_PNd(double *PNd, long long npix, string outdir)
+int write_PNd(double *PNd, long long npix, string outdir, std::string filename)
 /*!  write the map preconditioner to disk  */
 {
 	FILE *fp;
 	string testfile2;
 
-	testfile2 = outdir + "PNdCorr.bi";
+	testfile2 = outdir + filename;
 
 	if ((fp = fopen(testfile2.c_str(), "w")) != NULL) {
 		fwrite(&npix, sizeof(long long), 1, fp);
@@ -438,14 +495,14 @@ int write_PNd(double *PNd, long long npix, string outdir)
 }
 
 // correlation between npix here and npix in Indpix file is done in sanePic (main.cpp)
-int read_PNd(double *&PNdtot, long long &npix, string outdir)
+int read_PNd(double *&PNdtot, long long &npix, string outdir, std::string filename)
 /*!  read the map preconditioner from disk  */
 {
 	FILE *fp;
 	string testfile2;
 	size_t result;
 
-	testfile2 = outdir + "PNdCorr.bi";
+	testfile2 = outdir + filename;
 
 	if ((fp = fopen(testfile2.c_str(), "r")) != NULL) {
 		result = fread(&npix, sizeof(long long), 1, fp);
@@ -468,15 +525,10 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 	string base_name = FitsBasename(filename);
 
 	// set dirfile and binary names
-	//	string filedir = tmpdir + "dirfile/" + base_name + "/Fourier_transform/";
 	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
 
-	//	//open dirfile
-	//	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-	//			| GD_UNENCODED | GD_BIG_ENDIAN);
-
 	// write binary file on disk
-	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns/2+1, GD_COMPLEX128, // TODO ns/2+1 ou ns ??
+	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns/2+1, GD_COMPLEX128,
 			fdata);
 	if (gd_error(D) != 0) {
 		cout << "error putdata in write_fdata : wrote " << n_write
@@ -485,29 +537,6 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 	}
 
 	gd_flush(D,NULL);
-
-	//	// close dirfile
-	//	if (gd_close(D)) {
-	//		cout << "Dirfile gd_close error in write_fdata for : " << filedir
-	//				<< endl;
-	//		return 1;
-	//	}
-
-#ifdef DEBUG_PRINT
-	FILE *fp;
-	outfile=tmpdir + "/Fourier_data/" + prefixe + FitsBasename(filename) + "_" + bolonames[idet] + ".txt";
-	if((fp = fopen(outfile.c_str(),"w"))) {
-		data_size = (ns/2+1)*2;
-		fprintf(fp,"%ld ",(long)data_size);
-		for(int ii=0;ii<(ns/2+1);ii++) {
-			fprintf(fp,"%lf ",fdata[ii][0]);
-			fprintf(fp,"%lf \n",fdata[ii][1]);}
-		fclose(fp);
-	} else {
-		cerr << "ERROR : Could not open " << outfile << endl;
-		return 1;
-	}
-#endif
 
 	return 0;
 }
@@ -519,13 +548,7 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 
 	// set dirfile and bin names
 	string base_name = FitsBasename(filename);
-	//	string filedir = tmpdir + "dirfile/" + base_name + "/Fourier_transform/";
 	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
-
-
-	//	// open dirfile
-	//	DIRFILE* D = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-	//			| GD_UNENCODED | GD_BIG_ENDIAN);
 
 	// fill fdata with binary
 	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_COMPLEX128,
@@ -536,13 +559,6 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 	}
 
 	gd_flush(D,NULL);
-
-	//	// close dirfile
-	//	if (gd_close(D)) {
-	//		cout << "Dirfile gd_close error in read_fdata for : " << filedir
-	//				<< endl;
-	//		return 1;
-	//	}
 
 	return 0;
 }

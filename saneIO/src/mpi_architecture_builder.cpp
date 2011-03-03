@@ -353,6 +353,7 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 
 #ifdef DEBUG_PRINT
 	//	if(rank==0){
+	cout << " my rank : " << rank << endl;
 	cout << "size unique : " << size_tmp << endl;
 	cout << size << " vs size : " <<  size_tmp << endl;
 	//	}

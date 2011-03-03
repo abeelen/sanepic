@@ -13,13 +13,11 @@ extern "C" {
 
 // dirfile functions
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
+int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
 int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&data, long ns);
 int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *&mask, long ns);
-// dirfile functions
-//bool compute_dirfile_format_file(std::string tmp_dir, struct dirfile_fragment &dirf);
-//bool compute_dirfile_format_noisePS(std::string outdir, std::vector<std::string> det, std::string suffix);
-//bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, int rank);
-//bool compute_dirfile_format_fdata(std::string outdir, struct samples samples_struct, int rank);
+int read_RA_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&ra, long ns);
+int read_DEC_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&dec, long ns);
 
 /*!
  * Writes indpix in a binary file \n
@@ -49,14 +47,14 @@ int  read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc, 
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-int write_PNd(double *PNd, long long npix, std::string outdir);
+int write_PNd(double *PNd, long long npix, std::string outdir, std::string filename);
 
 /*!
  * Reads PNd from a binary file \n
  * -PNd is the Projected Noised Data \n
  * -npix the number of filled pixels \n
  */
-int read_PNd(double *&PNdtot, long long &npix, std::string outdir);
+int read_PNd(double *&PNdtot, long long &npix, std::string outdir, std::string filename);
 
 /*!
  * Writes samptopix in a binary file \n
