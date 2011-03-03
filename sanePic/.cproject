@@ -2055,6 +2055,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.768386584" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.268597859" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -2078,7 +2079,7 @@
 <listOptionValue builtIn="false" value="saneIO"/>
 </option>
 <option id="gnu.cpp.link.option.paths.2003875900" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
@@ -3064,6 +3065,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.977511379" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.806631387" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
@@ -3087,7 +3089,7 @@
 <listOptionValue builtIn="false" value="saneIO"/>
 </option>
 <option id="gnu.cpp.link.option.paths.1647033925" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
@@ -4078,6 +4080,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.471021482" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_BOLO"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2012222695" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -4101,7 +4104,7 @@
 <listOptionValue builtIn="false" value="saneIO"/>
 </option>
 <option id="gnu.cpp.link.option.paths.525939038" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Debug_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Debug}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
@@ -5087,6 +5090,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.583453747" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_BOLO"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1141673398" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
@@ -5110,7 +5114,7 @@
 <listOptionValue builtIn="false" value="saneIO"/>
 </option>
 <option id="gnu.cpp.link.option.paths.474436371" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release_MPI}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneLib/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
