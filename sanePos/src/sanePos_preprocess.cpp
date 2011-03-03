@@ -9,10 +9,75 @@
 #include "temporary_IO.h"
 #include "inputFileIO.h"
 
+extern "C" {
+#include "getdata.h"
+}
 
 
 
 using namespace std;
+
+
+
+int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, long long *indpsrc,
+		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max){
+
+
+	long long * samptopix;
+	int *mask;
+
+	for(long iframe=iframe_min; iframe< iframe_max; iframe++){
+		// set dirfile name and binary name
+		string filename = samples_struct.fitsvect[iframe];
+		string base_name = FitsBasename(filename);
+		long ns = samples_struct.nsamples[iframe];
+
+
+
+
+		string output_read = "";
+		std::vector<string> bolonames;
+		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
+			cout << output_read << endl;
+			return 1;
+		}
+		long ndet = (long)bolonames.size();
+
+		for(long idet=0; idet < ndet; idet ++){
+
+
+			string field = bolonames[idet];
+			string flag_outfile = "flag_" + base_name + "_" + field;
+
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, filename, field, mask, ns))
+				return 1;
+
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, field))
+				return 1;
+
+			// modify if in indpsrc !
+			for(long ii=0; ii< ns ; ii++)
+				if(indpsrc[samptopix[ii]]!=-1)
+					mask[ii]=-1;
+
+			//put back in dirfile
+			int n_write = gd_putdata(samples_struct.dirfile_pointer, (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32,
+					mask);
+			if (gd_error(samples_struct.dirfile_pointer) != 0) {
+				cout << "error putdata in modify_mask_flag_in_dirfile : wrote " << n_write
+						<< " and expected " << ns << endl;
+				return 1;
+			}
+
+			delete [] mask;
+			gd_flush(samples_struct.dirfile_pointer, NULL);
+		}
+
+	}
+
+	return 0;
+}
+
 
 int computePixelIndex(string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
@@ -264,7 +329,7 @@ int computePixelIndex_HIPE(string outdir,
 	string field;
 
 	string fits_file;
-	long ns, test_ns;
+	long ns;
 	int status;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -302,15 +367,15 @@ int computePixelIndex_HIPE(string outdir,
 			yy     = new long long[ns];
 			wcsstatus = new int[ns];
 
-			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
+
+			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, ra, ns))
+				return 1;
+			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, dec, ns))
 				return 1;
 
-			if (test_ns != ns) {
-				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
-				return 1;
-			}
-			//			if(read_flag_from_fits(fits_file, field, flag, test_ns))
+			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
 			//				return 1;
+
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, flag, ns))
 				return 1;
 			for (long ii=0; ii <ns; ii++){
@@ -354,10 +419,10 @@ int computePixelIndex_HIPE(string outdir,
 
 			int *bolo_flag=NULL;
 
-//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
-//				return 1;
+			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
+			//				return 1;
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
-							return 1;
+				return 1;
 
 			for (long ii=0; ii<ns; ii++){
 

@@ -136,21 +136,22 @@ int main(int argc, char *argv[])
 #endif
 
 	// -----------------------------------------------------------------------------//
-	int parsed=0;
-	// Parse ini file
-	if (argc<2) {
-		printf("Please run %s using a *.ini file\n",argv[0]);
-		parsed=-1;
-	} else {
 
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
-		if(rank==0)
+		int parsed=0;
+		// Parse ini file
+		if (argc<2) {
+			printf("Please run %s using a *.ini file\n",argv[0]);
+			parsed=-1;
+		} else {
+
+			parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
+					structPS, saneInv_struct, struct_sanePic, size, rank);
+
 			// print parser warning and/or errors
 			cout << endl << parser_output << endl;
-	}
-	if (rank==0)
+		}
 		switch (parsed){/* error during parsing phase */
 
 		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
@@ -165,13 +166,15 @@ int main(int argc, char *argv[])
 		default :;
 		}
 
-	if (parsed>0){
+		if (parsed>0){
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
+			MPI_Finalize();
 #endif
-		return EX_CONFIG;
+			return EX_CONFIG;
+		}
 	}
+
 
 	// -----------------------------------------------------------------------------//
 #ifdef DEBUG_PRINT
@@ -181,9 +184,37 @@ int main(int argc, char *argv[])
 
 #ifdef PARA_FRAME
 
+	MPI_Datatype message_type;
+	struct ini_var_strings ini_v;
+	int ntotscan;
+
+	if(rank==0){
+		fill_var_sizes_struct(dir, pos_param, proc_param,
+				saneInv_struct, structPS, samples_struct, ini_v);
+
+		ntotscan = ini_v.ntotscan;
+	}
+
+	MPI_Bcast(&ntotscan, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(rank!=0){
+		ini_v.fitsvect=new int[ntotscan];
+		ini_v.noisevect=new int[ntotscan];
+		ini_v.bolovect=new int[ntotscan];
+	}
+
+	ini_v.ntotscan=ntotscan;
+
+	Build_derived_type_ini_var (&ini_v,	&message_type);
+
+	MPI_Bcast(&ini_v, 1, message_type, 0, MPI_COMM_WORLD);
+
+	commit_struct_from_root(dir, pos_param, proc_param, saneInv_struct, struct_sanePic, structPS, samples_struct, ini_v, rank);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
 	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
-		//		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, 1);
 		return EX_IOERR;
 	}
 
@@ -203,7 +234,7 @@ int main(int argc, char *argv[])
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic);
+				structPS, struct_sanePic, saneInv_struct);
 
 		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
 	}
@@ -246,7 +277,7 @@ int main(int argc, char *argv[])
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef PARA_FRAME
-					MPI_Finalize();
+					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 					return(EX_OSERR);
 				}
@@ -256,7 +287,7 @@ int main(int argc, char *argv[])
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max)){
 #ifdef PARA_FRAME
-					MPI_Finalize();
+					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 					return(EX_OSERR);
 				}
@@ -316,7 +347,7 @@ int main(int argc, char *argv[])
 		if (read_mask_wcs(dir.input_dir + pos_param.maskfile, "mask", wcs, NAXIS1, NAXIS2, mask )){
 			cerr << "Error Reading Mask file" << endl;
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_IOERR);
 		}
@@ -336,12 +367,21 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	// TODO : test it !!!
+	//	if(modify_mask_flag_in_dirfile(dir.tmp_dir, samples_struct, indpsrc,
+	//			NAXIS1, NAXIS2, iframe_min, iframe_max)){
+	//		cout << "ERROR in  modify_mask_flag_in_dirfile... Exiting...\n";
+	//#ifdef PARA_FRAME
+	//		MPI_Abort(MPI_COMM_WORLD, 1);
+	//#endif
+	//		return(EX_CANTCREAT);
+	//	}
 
 	if (rank == 0) {
 		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_CANTCREAT);
 		}
@@ -384,7 +424,7 @@ int main(int argc, char *argv[])
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_OSERR);
 		}
@@ -397,7 +437,7 @@ int main(int argc, char *argv[])
 				addnpix, pixon, rank,
 				indpsrc, npixsrc, flagon, pixout)){
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_OSERR);
 		}
@@ -424,19 +464,20 @@ int main(int argc, char *argv[])
 			else
 				indpix[ii] = -1;
 
+
 		/* Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */
 		if(write_indpix(sky_size, npix, indpix, dir.tmp_dir, flagon)){
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_CANTCREAT);
 		}
 		if(write_indpsrc((long long) NAXIS1*NAXIS2, npixsrc, indpsrc,  dir.tmp_dir)){
 #ifdef PARA_FRAME
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_CANTCREAT);
 		}
@@ -500,8 +541,7 @@ int main(int argc, char *argv[])
 		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
 			cout << output_read << endl;
 #ifdef USE_MPI
-			//			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return EX_CONFIG;
 		}
@@ -522,8 +562,7 @@ int main(int argc, char *argv[])
 		if(pb>0){
 			cout << "Problem after do_PtNd_Naiv. Exiting...\n";
 #ifdef USE_MPI
-			//				MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return -1;
 		}
@@ -617,6 +656,10 @@ int main(int argc, char *argv[])
 		delete [] PNdtotNaiv;
 		delete [] hitstotNaiv;
 	}
+
+	delete [] ini_v.fitsvect;
+	delete [] ini_v.noisevect;
+	delete [] ini_v.bolovect;
 #endif
 
 	if(rank==0){
@@ -652,7 +695,6 @@ int main(int argc, char *argv[])
 #ifdef PARA_FRAME
 	if(rank==0)
 		delete [] pixon_tot;
-	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif
 

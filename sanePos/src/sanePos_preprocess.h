@@ -11,6 +11,9 @@ extern "C" {
 }
 
 
+int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, long long *indpsrc,
+		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max);
+
 int computePixelIndex(std::string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,

@@ -208,7 +208,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 	return EXIT_SUCCESS;
 }
 
-int computeMapMinima_HIPE(string tmp_dir, struct samples samples_struct,
+int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
 
@@ -250,22 +250,15 @@ int computeMapMinima_HIPE(string tmp_dir, struct samples samples_struct,
 
 			double *ra, *dec;
 			int *flag=NULL;
-			long test_ns;
 
-			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
+			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
+			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, ra, ns))
+				return 1;
+			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, dec, ns))
 				return 1;
 
-			if (test_ns != ns) {
-				cerr << "Read ra does not correspond to frame size : Check !!" << endl;
-				return 1;
-			}
-
-			//			if(read_flag_from_fits(fits_file, field, flag, test_ns))
-			//				return 1;
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, flag, ns))
 				return 1;
-
-
 
 			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
 					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
