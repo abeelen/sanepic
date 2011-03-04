@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 	 */
 
 
-	int parsed=0; /* parser error status */
+	//	int parsed=0; /* parser error status */
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_common dir;  /*! structure that contains output input temp directories */
@@ -81,27 +81,80 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		printf("\nBeginning of saneCheck:\n\n");
 
-	if (argc<2) /* not enough argument */
-		parsed=-1;
-	else {
-		parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, sanePic_struct, check_struct, rank, size);
 
-		if(rank==0)
-			// print parser warning and/or errors
-			cout << endl << output << endl;
-	}
 
-	if(parsed==-1){ /* error during parsing phase */
-		if(rank==0)
-			cout << "Error during parsing step. Exiting ...\n";
+	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+
+		int parsed=0; // parser error status
+
+
+		if (argc<2)/* not enough argument */
+			parsed=1;
+		else {
+			/* parse ini file and fill structures */
+			parsed=parse_saneCheck_ini_file(argv[1], output, dir, samples_struct, pos_param, proc_param,
+					structPS, saneInv_struct, sanePic_struct, check_struct, rank, size);
+
+		}
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
+		switch (parsed){/* error during parsing phase */
+
+		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+		break;
+
+		case 2 : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+		case 3 : printf("Exiting...\n");
+		break;
+
+		default :;
+		}
+
+
+		// in case there is a parsing error or the dirfile format file was not created correctly
+		if (parsed>0){
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-		return EX_CONFIG;
+			return EX_CONFIG;
+		}
 	}
 
+#ifdef PARA_FRAME
+
+	MPI_Datatype message_type;
+	struct ini_var_strings ini_v;
+	int ntotscan;
+
+	if(rank==0){
+		fill_var_sizes_struct(dir, pos_param, proc_param,
+				saneInv_struct, structPS, samples_struct, ini_v);
+
+		ntotscan = ini_v.ntotscan;
+	}
+
+	MPI_Bcast(&ntotscan, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(rank!=0){
+		ini_v.fitsvect=new int[ntotscan];
+		ini_v.noisevect=new int[ntotscan];
+		ini_v.bolovect=new int[ntotscan];
+	}
+
+	ini_v.ntotscan=ntotscan;
+
+	Build_derived_type_ini_var (&ini_v,	&message_type);
+
+	MPI_Bcast(&ini_v, 1, message_type, 0, MPI_COMM_WORLD);
+
+	commit_struct_from_root(dir, pos_param, proc_param, saneInv_struct, sanePic_struct, structPS, samples_struct, ini_v, rank);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
 
 	if(rank==0){
 		// parser print screen function
