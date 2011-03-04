@@ -1,7 +1,7 @@
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "dataIO.h"
-#include "parse_saneFix.h"
+#include "parser_functions.h"
 #include "tools.h"
 #include "struct_definition.h"
 
@@ -25,9 +25,7 @@ using namespace std;
 #endif
 
 
-
 int main(int argc, char *argv[]) {
-
 
 	int rank, size; /* MPI processor rank and MPI total number of used processors */
 
@@ -44,10 +42,14 @@ int main(int argc, char *argv[]) {
 	cout << "Mpi is not used for this step" << endl;
 #endif
 
-	int parsed=1;
-
 	struct samples samples_struct; /* fits file list + number of scans */
 	struct param_common dir; /* directories : temporary input and output */
+	struct param_sanePos pos_param;
+	struct param_sanePre proc_param;
+	struct param_sanePic sanePic_struct;
+	struct param_saneInv saneInv_struct;
+	struct param_sanePS structPS;
+	struct saneCheck check_struct;
 	std::vector<long> indice; /*! gap indexes (sample index) */
 	std::vector <long> add_sample; /*! number of samples to add per gap */
 	double fsamp; /*! sampling frequency */
@@ -56,19 +58,90 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		printf("\nBeginning of saneFix:\n\n");
 
-	// get directories and fits file list
-	parsed=parse_saneFix_ini_file(argv[1], output, dir,
-			samples_struct, rank);
 
-	// print parser warning and/or errors
-	cout << endl << output << endl;
 
-	if(parsed==-1){ /* error during parsing phase */
+	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+
+		int parsed=0; // parser error status
+
+
+		if (argc<2)/* not enough argument */
+			parsed=1;
+		else {
+			/* parse ini file and fill structures */
+			parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
+					structPS, saneInv_struct, sanePic_struct, size, rank);
+
+			//	// get directories and fits file list
+			//	parsed=parse_saneFix_ini_file(argv[1], output, dir,
+			//			samples_struct, rank);
+
+		}
+
+		// print parser warning and/or errors
+		cout << endl << output << endl;
+		switch (parsed){/* error during parsing phase */
+
+		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
+		break;
+
+		case 2 : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+		case 3 : printf("Exiting...\n");
+		break;
+
+		default :;
+		}
+
+
+		// in case there is a parsing error or the dirfile format file was not created correctly
+		if (parsed>0){
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-		return EX_CONFIG;
+			return EX_CONFIG;
+		}
+	}
+
+
+#ifdef PARA_FRAME
+
+	MPI_Datatype message_type;
+	struct ini_var_strings ini_v;
+	int ntotscan;
+
+	if(rank==0){
+		fill_var_sizes_struct(dir, pos_param, proc_param,
+				saneInv_struct, structPS, samples_struct, ini_v);
+
+		ntotscan = ini_v.ntotscan;
+	}
+
+	MPI_Bcast(&ntotscan, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(rank!=0){
+		ini_v.fitsvect=new int[ntotscan];
+		ini_v.noisevect=new int[ntotscan];
+		ini_v.bolovect=new int[ntotscan];
+	}
+
+	ini_v.ntotscan=ntotscan;
+
+	Build_derived_type_ini_var (&ini_v,	&message_type);
+
+	MPI_Bcast(&ini_v, 1, message_type, 0, MPI_COMM_WORLD);
+
+	commit_struct_from_root(dir, pos_param, proc_param, saneInv_struct, sanePic_struct, structPS, samples_struct, ini_v, rank);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
+
+	if(rank==0){
+		// parser print screen function
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
+				structPS, sanePic_struct, saneInv_struct);
 	}
 
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan
@@ -101,11 +174,11 @@ int main(int argc, char *argv[]) {
 			}
 
 
-//			cout << "readed : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice[0] << " " << indice[1] << endl;
+			//			cout << "readed : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice[0] << " " << indice[1] << endl;
 
 			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[ii]);
 
-//			cout << "refresh : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice.size() << endl;
+			//			cout << "refresh : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice.size() << endl;
 
 			// compute the number of sample that must be added to fill the gaps and have a continous timeline
 			long samples_to_add=how_many(samples_struct.fitsvect[ii], samples_struct.nsamples[ii] ,indice, fsamp, add_sample,suppress_time_sample);
@@ -115,6 +188,11 @@ int main(int argc, char *argv[]) {
 
 			// total number of samples in the fixed fits file
 			long ns_total = samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete;
+
+			if(samples_to_add+init_num_delete+end_num_delete==0){
+				cout << "[ " << rank << " ] " << "Nothing to do for : " << samples_struct.fitsvect[ii] << " . Skipping file...\n";
+				continue;
+			}
 
 			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
 			string fname=samples_struct.fitsvect[ii]; // input fits filename
