@@ -120,6 +120,14 @@ int main(int argc, char *argv[]) {
 	// parallel scheme file
 	string fname; /*! parallel scheme filename */
 
+	uint16_t mask_sanePic = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_WRONG_VALUE |
+			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc39f
+
+	std::vector<string> key;
+	std::vector<int> datatype;
+	std::vector<string> val;
+	std::vector<string> com;
 
 	int para_bolo_indice = 0;
 	int para_bolo_size = 1;
@@ -133,7 +141,8 @@ int main(int argc, char *argv[]) {
 
 	// parser variables
 	int indice_argv = 1;
-	int parsed = 0;
+	uint16_t parsed=0x0000; // parser error status
+	uint16_t compare_to_mask; // parser error status
 
 	//	int retval;
 	//	while ( (retval = getopt(argc, argv, "r")) != -1) {
@@ -150,7 +159,7 @@ int main(int argc, char *argv[]) {
 
 	//TODO: getopt or not ??
 	if ((argc < 2) || (argc > 3)) // no enough arguments
-		parsed = 1;
+		compare_to_mask = 0x0001;
 	else {
 		struct_sanePic.restore = 0; //default
 
@@ -212,44 +221,41 @@ int main(int argc, char *argv[]) {
 						samples_struct, pos_param, proc_param, structPS, saneInv_struct,
 						struct_sanePic, size, rank);
 
-					// print parser warning and/or errors
-					cout << endl << parser_output << endl;
+				compare_to_mask = parsed & mask_sanePic;
+
+				// print parser warning and/or errors
+				cout << endl << parser_output << endl;
 
 			}else
-				parsed = 1;
+				compare_to_mask = 0x0001;
 
+
+			if(compare_to_mask>0x0000){
+
+				switch (compare_to_mask){/* error during parsing phase */
+
+				case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+				break;
+
+				default : printf("Wrong program options or argument. Exiting !\n");
+				break;
+
+
+				}
+
+#ifdef PARA_FRAME
+				MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+				return EX_CONFIG;
+			}
 		}
+
+
 	}
 
-	if (rank==0)
-		if (parsed > 0) { // error during parser phase
-			switch (parsed) {
-
-			case 1:
-				printf(
-						"Please run %s using the following options : sanepic_ini.ini (--restore) \n",
-						argv[0]);
-				break;
-
-			case 2:
-				printf("Wrong program options or argument. Exiting !\n");
-				break;
-
-			case 3:
-				printf("Exiting...\n");
-				break;
-
-			default:
-				;
-			}
-
-#ifdef USE_MPI
-			MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-			return EX_CONFIG;
-		}
 
 	string name_rank = dir.output_dir + "debug_sanePic.txt"; // log file name
+
 #ifdef DEBUG
 
 	std::ostringstream oss;
@@ -355,6 +361,11 @@ int main(int argc, char *argv[]) {
 		cout << "error opening dirfile : " << filedir << endl;
 		return 1;
 	}
+
+	// get input fits META DATA
+	if(rank==0)
+		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
+			cout << "pb getting fits META\n";
 
 	//	read pointing informations
 	struct wcsprm * wcs;
@@ -1104,7 +1115,7 @@ int main(int argc, char *argv[]) {
 					fname = temp_stream.str();
 					temp_stream.str("");
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
-							(void *) map1d, (char *) "Image", 0)) {
+							(void *) map1d, (char *) "Image", 0,key,datatype,val,com)) {
 						cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 						MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1129,7 +1140,7 @@ int main(int argc, char *argv[]) {
 						}
 
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "Flagged Data", 1)) {
+								(void *) map1d, (char *) "Flagged Data", 1,key,datatype,val,com)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1175,7 +1186,7 @@ int main(int argc, char *argv[]) {
 							}
 						}
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, "CCR Image", 1)) {
+								(void *) map1d, "CCR Image", 1,key,datatype,val,com)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1201,7 +1212,7 @@ int main(int argc, char *argv[]) {
 							}
 						}
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "CCR Error", 1)) {
+								(void *) map1d, (char *) "CCR Error", 1,key,datatype,val,com)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1349,7 +1360,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile, structPS.ncomp))
+				pos_param.maskfile, structPS.ncomp, key, datatype, val, com))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0
