@@ -590,16 +590,16 @@ uint16_t check_common(string &output, struct param_common dir){
 
 	if((dir.bolo_global_filename=="") && (dir.bolo_suffix=="")){
 		output += "You must mention one of those parameters :\nparam_common:suffix or param_common:suffix\n";
-		return 0x0010;
+		return BOLOFILE_NOT_FOUND;
 	}
 	if(check_path(output, dir.dirfile, "Data directory"))
-		return 0x0002;
+		return DATA_INPUT_PATHS_PROBLEM;
 	if(check_path(output, dir.input_dir, "Input directory"))
-		return 0x0002;
+		return DATA_INPUT_PATHS_PROBLEM;
 	if(check_path(output, dir.output_dir, "Output directory"))
-		return 0x0004;
+		return OUPUT_PATH_PROBLEM;
 	if(check_path(output, dir.tmp_dir, "Temporary directory"))
-		return 0x0008;
+		return TMP_PATH_PROBLEM;
 
 	return 0;
 }
@@ -608,11 +608,11 @@ uint16_t check_param_positions(string &output, struct param_sanePos pos_param){
 
 	if(pos_param.pixdeg < 0){
 		output += "Pixsize cannot be negative ! \n";
-		return  0x0020;
+		return  PIXDEG_WRONG_VALUE;
 	}
 	if((pos_param.fileFormat!=0) && (pos_param.fileFormat!=1)){
 		output += "Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
-		return 0x0040;
+		return FILEFORMAT_NOT_FOUND;
 	}
 
 	return 0;
@@ -622,15 +622,15 @@ uint16_t check_param_process(string &output, struct param_sanePre proc_param){
 
 	if(proc_param.napod<0){
 		output += "You must choose a positive number of samples to apodize\n";
-		return 0x0080;
+		return NAPOD_WRONG_VALUE;
 	}
 	if (proc_param.fsamp<=0.0){
 		output += "sampling_frequency cannot be negative or 0 ! \n";
-		return 0x0100;
+		return FSAMP_WRONG_VALUE;
 	}
 	if (proc_param.f_lp<0.0){
 		output += "filter_frequency cannot be negative ! \n";
-		return 0x0200;
+		return F_LP_WRONG_VALUE;
 	}
 
 	return 0;
@@ -640,15 +640,15 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS structPS){
 
 	if (structPS.ncomp<=0){
 		output += "number of component ncomp cannot be negative or zero ! \n";
-		return 0x0400;
+		return NCOMP_WRONG_VALUE;
 	}
 	if((structPS.ell_global_file=="") && (structPS.ell_suffix=="")){
 		output += "You must mention one of those parameters :\nsanePS:ell_global_file or sanePS:ell_suffix\n";
-		return 0x0800;
+		return ELL_FILE_NOT_FOUND;
 	}
 	if((structPS.mix_global_file=="") && (structPS.mix_suffix=="")){
 		output += "You must mention one of those parameters :\nsanePS:mix_global_file or sanePS:mix_suffix\n";
-		return 0x1000;
+		return MIX_FILE_NOT_FOUND;
 	}
 
 	return 0;
@@ -657,11 +657,11 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS structPS){
 uint16_t check_param_saneInv(string &output, struct param_saneInv saneInv_struct){
 
 	if(check_path(output, saneInv_struct.noise_dir, "Covariance Matrix directory"))
-		return 0x2000;
+		return SANEINV_INPUT_ERROR;
 
 	if((saneInv_struct.cov_matrix_file=="") && (saneInv_struct.cov_matrix_suffix=="")){
 		output += "You must mention one of those parameters :\nsaneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
-		return 0x2000;
+		return SANEINV_INPUT_ERROR;
 	}
 
 	return 0;
@@ -1670,7 +1670,7 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 
 	if (ini==NULL) {
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
-		return 0x0001;
+		return INI_NOT_FOUND;
 	}
 
 	// default values :
