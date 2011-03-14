@@ -21,7 +21,86 @@ extern "C" {
 using namespace std;
 
 
-int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist)
+int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &datatype, std::vector<string> &val, std::vector<string> &com){
+
+	fitsfile *fp;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+	char *keylist[12]={(char *)"EQUINOX", (char *)"TIMESYS",(char *)"TYPE",(char *)"CREATOR", (char *)"INSTRUME",
+			(char *)"DATE-OBS",(char *)"DATE-END", (char *)"OBJECT",
+			(char *)"RADESYS", (char *)"TELESCOP", (char *)"OBSERVER", (char *)"DATE"};
+	int keynum=12;
+
+
+	for(long kk=0; kk< keynum-1; kk++){
+		key.push_back(keylist[kk]);
+		datatype.push_back(TSTRING);
+	}
+
+	key.push_back((char *)"DATADATE");
+	datatype.push_back(TSTRING);
+	datatype[0] = TINT; // TINT
+
+	if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	char comment[80];
+	char value[80];
+
+	for(long ii=0;ii<keynum;ii++){
+		fits_read_keyword(fp, keylist[ii], value, comment, &fits_status);
+
+		if(fits_status==0){
+			val.push_back(value);
+			com.push_back(comment);
+		}else{
+			// reset status
+			fits_status=0;
+			key.erase(key.begin()+ii);
+			datatype.erase(datatype.begin()+ii);
+		}
+	}
+
+	// Change string in due form
+	for(long kk=0; kk<(long)key.size(); kk++){
+		string tmp =  val[kk];
+		string tmp2;
+		if((int)tmp[0]==39){
+			tmp.erase(tmp.begin());
+			int marker=0;
+			for(int ii=0; ii<(int)tmp.size(); ii++)
+				if((int)tmp[ii]==32 || (int)tmp[ii]==39){
+					marker = ii;
+					break;
+				}
+
+			if(marker>0)
+				tmp2.insert(tmp2.begin(), tmp.begin(), tmp.begin()+marker);
+			else
+				tmp2=tmp;
+
+			val[kk] = tmp2;
+		}
+
+
+	}
+
+	// close file
+	if(fits_close_file(fp, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	return 0;
+
+}
+
+
+
+
+
+int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com)
 {
 	// all angles in degrees
 
@@ -74,6 +153,30 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 			return 1;
 		}
 
+		// add META DATA
+		// add equinox as an integer
+		char* value_char = (char*)(val[0].c_str());
+		char * pEnd;
+		int value_int = strtol(value_char,&pEnd,10);
+		string comment_equi = com[0];
+
+		if(fits_write_key(fp, datatype[0], (char*)key[0].c_str(), &value_int, (char*)comment_equi.c_str(), &fits_status)){
+			fits_report_error(stderr, fits_status);
+			fits_status=0;
+		}
+
+		// add the other META DATA as STRING
+		for(long kk=1; kk<(long)key.size(); kk++){
+			string value = val[kk];
+			string comment = com[kk];
+
+			if(fits_write_key(fp, datatype[kk], (char*)key[kk].c_str(), (char*)value.c_str(), (char*)comment.c_str(), &fits_status)){
+				fits_report_error(stderr, fits_status);
+				fits_status=0;
+			}
+		}
+
+
 		// Transform wcsprm struture to header
 		if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
 			printf("wcshdo ERROR %d: %s.\n", fits_status, wcs_errmsg[fits_status]);
@@ -96,6 +199,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 		}
 		free(header);
 	}
+
 
 	if(fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
 			(char *) "table name", &fits_status))
@@ -242,6 +346,236 @@ int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, string path, 
 
 	return 0;
 }
+
+
+int write_fits_META(string fname, long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, long ncomp){
+
+	fitsfile *fp;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+	std::ostringstream oss;
+
+	if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status))
+		fits_report_error(stderr, fits_status);
+
+	fits_create_img(fp, 8, 0, 0, &fits_status);
+
+	fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)"History",
+			(char *) "table name", &fits_status);
+
+	string keyname = "PATHNAME";
+	string value = path;
+	string comm = "Source data path";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	for(int num=0;num<(int)samples_struct.ntotscan;num++){
+		oss << "Source" << num;
+		string keyname = oss.str();
+		oss.str("");
+		string value = FitsBasename(samples_struct.fitsvect[num]) + ".fits";
+		string comm = "Data Source Fits File";
+		if (fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+
+	}
+
+
+	oss << proc_param.napod;
+	keyname = "NAPOD";
+	value = oss.str();
+	comm = "Number of samples to apodize";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	oss << proc_param.poly_order;
+	keyname = "POLYORDR";
+	value = oss.str();
+	comm = "Fitted"; // polynomia order";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	// use only 8 characters for keyname to avoid HIERARCH keyword addition by cfitsio...
+	oss << proc_param.fsamp;
+	keyname = "SAMPFREQ";
+	value = oss.str();
+	comm = "sampling frequency (Hz)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	oss << proc_param.f_lp;
+	keyname = "FILTFREQ";
+	value = oss.str();
+	comm = "Butterworth filter frequency (Hz)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	keyname = "FILLGAPS";
+	if(proc_param.NOFILLGAP)
+		value = "no";
+	else
+		value = "yes";
+	comm = "Do we fill the gaps in the timeline with White noise + baseline ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "NORMLIN";
+	if(proc_param.NORMLIN)
+		value = "no";
+	else
+		value = "yes";
+	comm = "Do we remove a baseline from the data ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "CORREL";
+	if(proc_param.CORRon)
+		value = "yes";
+	else
+		value = "no";
+	comm = "Correlations between detectors are not included in the analysis ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "POLYNSUB";
+	if(proc_param.remove_polynomia)
+		value = "yes";
+	else
+		value = "no";
+	comm = "Remove a polynomia fitted to the data to reduce fluctuations on timescales larger than the length of the considered segment ?";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	oss << pos_param.pixdeg;
+	keyname = "PIXSIZE";
+	value = oss.str();
+	comm = "SIZE OF THE PIXEL (deg)";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "DUPLMAP";
+	if(pos_param.flgdupl)
+		value = "yes";
+	else
+		value = "no";
+	comm = "flagged data are put in a separate map";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "GAPSPROJ";
+	if(pos_param.projgaps)
+		value = "yes";
+	else
+		value = "no";
+	comm = "gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "FORMAT";
+	if(pos_param.fileFormat)
+		value = "HIPE";
+	else
+		value = "SANEPIC";
+	comm = "Sources file format";
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	keyname = "MASKFILE";
+	oss << pos_param.maskfile;
+	value = oss.str();
+	comm = "name of the fits file that was used to mask radiant sources";
+	oss.str("");
+
+	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	//	oss << det.ndet;
+	//	keyname = "NUMDET";
+	//	value = oss.str();
+	//	comm = "Number of detectors that were used for the analysis";
+	//	oss.str("");
+	//
+	//	if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+	//		fits_report_error(stderr, fits_status);
+	//		return 1;
+	//	}
+
+	if(ncomp>0){
+		oss << ncomp;
+		keyname = "COMPONEN";
+		value = oss.str();
+		comm = "number of noise component to estimate in sanePS";
+		oss.str("");
+
+		if ( fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+	}
+
+
+	// close file
+	if(fits_close_file(fp, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	return 0;
+}
+
+
+
 
 int write_fits_mask(std::string fnaivname, std::string maskfile)
 {

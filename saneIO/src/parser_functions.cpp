@@ -347,26 +347,6 @@ int check_path(string &output, string strPath, string path_type){
 	return 0;
 }
 
-int check_common(string &output, struct param_common dir){
-
-	if((dir.bolo_global_filename=="") && (dir.bolo_suffix=="")){
-		output += "You must mention one of those parameters :\nparam_common:suffix or param_common:suffix\n";
-		return 1;
-	}
-	if(check_path(output, dir.dirfile, "Data directory"))
-		return 1;
-	if(check_path(output, dir.input_dir, "Input directory"))
-		return 1;
-	if(check_path(output, dir.output_dir, "Output directory"))
-		return 1;
-	if(check_path(output, dir.tmp_dir, "Temporary directory"))
-		return 1;
-	//	if(check_dirfile_paths(output, dir.tmp_dir))
-	//		return 1;
-
-	return 0;
-}
-
 int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct, int format){
 
 	string filedir = tmp_dir + "dirfile";
@@ -408,8 +388,6 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 			gd_close(R2);
 		}
 
-
-
 		// close subdirfiles
 		gd_close(H);
 		gd_close(F);
@@ -438,12 +416,6 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 
 		gd_close(S);
 	}
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_index);
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_fdata);
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_noise);
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_flag);
-	//	gd_alter_protection(D, GD_PROTECT_NONE, dirf.fragment_data);
 
 	// close dirfile
 	gd_close(D);
@@ -614,64 +586,82 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct){
 	return 0;
 }
 
-int check_param_positions(string &output, struct param_sanePos pos_param){
+uint16_t check_common(string &output, struct param_common dir){
+
+	if((dir.bolo_global_filename=="") && (dir.bolo_suffix=="")){
+		output += "You must mention one of those parameters :\nparam_common:suffix or param_common:suffix\n";
+		return 0x0010;
+	}
+	if(check_path(output, dir.dirfile, "Data directory"))
+		return 0x0002;
+	if(check_path(output, dir.input_dir, "Input directory"))
+		return 0x0002;
+	if(check_path(output, dir.output_dir, "Output directory"))
+		return 0x0004;
+	if(check_path(output, dir.tmp_dir, "Temporary directory"))
+		return 0x0008;
+
+	return 0;
+}
+
+uint16_t check_param_positions(string &output, struct param_sanePos pos_param){
 
 	if(pos_param.pixdeg < 0){
 		output += "Pixsize cannot be negative ! \n";
-		return 1 ;
+		return  0x0020;
 	}
 	if((pos_param.fileFormat!=0) && (pos_param.fileFormat!=1)){
 		output += "Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
-		return 1;
+		return 0x0040;
 	}
 
 	return 0;
 }
 
-int check_param_process(string &output, struct param_sanePre proc_param){
+uint16_t check_param_process(string &output, struct param_sanePre proc_param){
 
 	if(proc_param.napod<0){
 		output += "You must choose a positive number of samples to apodize\n";
-		return 1 ;
+		return 0x0080;
 	}
 	if (proc_param.fsamp<=0.0){
 		output += "sampling_frequency cannot be negative or 0 ! \n";
-		return 1;
+		return 0x0100;
 	}
 	if (proc_param.f_lp<0.0){
 		output += "filter_frequency cannot be negative ! \n";
-		return 1;
+		return 0x0200;
 	}
 
 	return 0;
 }
 
-int check_param_sanePS(string &output, struct param_sanePS structPS){
+uint16_t check_param_sanePS(string &output, struct param_sanePS structPS){
 
 	if (structPS.ncomp<=0){
 		output += "number of component ncomp cannot be negative or zero ! \n";
-		return 1;
+		return 0x0400;
 	}
 	if((structPS.ell_global_file=="") && (structPS.ell_suffix=="")){
 		output += "You must mention one of those parameters :\nsanePS:ell_global_file or sanePS:ell_suffix\n";
-		return 1;
+		return 0x0800;
 	}
 	if((structPS.mix_global_file=="") && (structPS.mix_suffix=="")){
 		output += "You must mention one of those parameters :\nsanePS:mix_global_file or sanePS:mix_suffix\n";
-		return 1;
+		return 0x1000;
 	}
 
 	return 0;
 }
 
-int check_param_saneInv(string &output, struct param_saneInv saneInv_struct){
+uint16_t check_param_saneInv(string &output, struct param_saneInv saneInv_struct){
 
 	if(check_path(output, saneInv_struct.noise_dir, "Covariance Matrix directory"))
-		return 1;
+		return 0x2000;
 
 	if((saneInv_struct.cov_matrix_file=="") && (saneInv_struct.cov_matrix_suffix=="")){
 		output += "You must mention one of those parameters :\nsaneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
-		return 1;
+		return 0x2000;
 	}
 
 	return 0;
@@ -797,12 +787,12 @@ void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_s
 
 }
 
-int fill_samples_struct(string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, string fcut_file){
+uint16_t fill_samples_struct(string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, string fcut_file){
 
 	string filename;
 	filename = dir.input_dir+dir.fits_filelist;
 	if(read_fits_list(output, filename, samples_struct)!=0)
-		return 1;
+		return 0x4000;
 
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
@@ -825,14 +815,19 @@ int fill_samples_struct(string &output, struct samples &samples_struct, struct p
 	}
 
 
+	if(FitsBasename(fcut_file).size()==0){
+		output += "Warning ! fcut_file filename is missing in the ini file ...\n";
+		return 0x8000;
+	}
+
 	// Read the fcut file
 	std::vector<string> dummy2;
 	if(read_strings(fcut_file,dummy2))
-		return 1;
+		return 0x8000;
 
 	if(((int)dummy2.size())==0 || ((int) dummy2.size() != 1 && ((int) dummy2.size() != samples_struct.ntotscan) ) ){
 		output += "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
-		return 1;
+		return 0x8000;
 	}
 
 	for(int iframe_dummy=0; iframe_dummy<(int)dummy2.size(); iframe_dummy++)
@@ -888,7 +883,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct)
 
 	}
 
-	return 0;
+	return 0x0000;
 }
 
 
@@ -1660,13 +1655,14 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 
 
 //TODO: sanePS is not in the default distribution, so should not be in the master parser_function....
-int parser_function(char * ini_name, std::string &output, struct param_common &dir,
+uint16_t parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size, int rank){
 
 	dictionary	*	ini ;
 	string filename;
+	uint16_t parsed=0x0000;
 
 
 	// load dictionnary
@@ -1674,7 +1670,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	if (ini==NULL) {
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
-		return 2;
+		return 0x0001;
 	}
 
 	// default values :
@@ -1697,8 +1693,7 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 
 	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
 	filename=dir.input_dir+proc_param.fcut_file;
-	if (fill_samples_struct(output, samples_struct, dir, saneInv_struct, filename) !=0 )
-		return 1;
+	parsed+=fill_samples_struct(output, samples_struct, dir, saneInv_struct, filename);
 
 
 	// TODO: Fundamental reason for that here ? Why not keep it simple ?
@@ -1711,18 +1706,18 @@ int parser_function(char * ini_name, std::string &output, struct param_common &d
 	// Store scan sizes so that we dont need to read it again and again in the loops !
 	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
 
-	if(check_common(output, dir) && (rank==0)) // TODO : indiquer aux autres rank qu'il y a eu erreur et qu'ils doivent sortir !
-		return 1;
-	if(check_param_positions(output, pos_param))
-		return 1;
-	if(check_param_process(output, proc_param))
-		return 1;
-	if(check_param_saneInv(output, saneInv_struct))
-		return 1;
-	if(check_param_sanePS(output, structPS))
-		return 1;
+	if(rank==0)
+		parsed+=check_common(output, dir);
 
-	return 0;
+	parsed+=check_param_positions(output, pos_param);
+
+	parsed+=check_param_process(output, proc_param);
+
+	parsed+=check_param_saneInv(output, saneInv_struct);
+
+	parsed+=check_param_sanePS(output, structPS);
+
+	return parsed;
 }
 
 void print_common(struct param_common dir){

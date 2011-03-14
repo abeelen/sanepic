@@ -22,6 +22,33 @@ extern "C"{
 #include "dictionary.h"
 }
 
+
+#define INI_NOT_FOUND 0x0001
+#define DATA_INPUT_PATHS_PROBLEM 0x0002
+#define OUPUT_PATH_PROBLEM 0x0004
+#define TMP_PATH_PROBLEM 0x0008
+#define BOLOFILE_NOT_FOUND 0x0010
+#define PIXDEG_WRONG_VALUE 0x0020
+#define FILEFORMAT_NOT_FOUND 0x0040
+#define NAPOD_WRONG_VALUE 0x0080
+#define FSAMP_WRONG_VALUE 0x0100
+#define F_LP_WRONG_VALUE 0x0200
+#define NCOMP_WRONG_VALUE 0x0400
+#define ELL_FILE_NOT_FOUND 0x0800
+#define MIX_FILE_NOT_FOUND 0x1000
+// noise dir or cov matrix not found
+#define SANEINV_INPUT_ERROR 0x2000
+#define FITS_FILELIST_NOT_FOUND 0x4000
+// file not found or fcut values error
+#define FCUT_FILE_PROBLEM 0x8000
+
+
+
+//ini_not_found + data_input_path_problem + output_path_problem + tmp_path_problem +  bolofile_not_found +
+//pixdeg_wrong_value + fileformat_not_found + napod_wrong_value + fsamp_wrong_value + f_lp_wrong_value +
+//ncomp_wrong_value + ell_file_not_found + mix_file_not_found + saneInv_input_error + fits_filelist_not_found+
+//fcut_file_problem;
+
 std::string checkTrailingDir(std::string str);
 
 void default_param_common(struct param_common &dir);
@@ -44,13 +71,13 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
 int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long n_iter, std::string noise_suffix);
 int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
 
-int check_common(std::string &output, struct param_common dir);
-int check_param_positions(std::string &output, struct param_sanePos pos_param);
-int check_param_process(std::string &output, struct param_sanePre proc_param);
-int check_param_sanePS(std::string &output, struct param_sanePS structPS);
+uint16_t check_common(std::string &output, struct param_common dir);
+uint16_t check_param_positions(std::string &output, struct param_sanePos pos_param);
+uint16_t check_param_process(std::string &output, struct param_sanePre proc_param);
+uint16_t check_param_sanePS(std::string &output, struct param_sanePS structPS);
 
 void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_struct, struct param_common &dir);
-int fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
+uint16_t fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
 int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct);
 
 #ifdef USE_MPI
@@ -76,7 +103,7 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 #endif
 
 // this function calls read_* and check_* routines
-int parser_function(char * ini_name, std::string &output, struct param_common &dir,
+uint16_t parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct,
