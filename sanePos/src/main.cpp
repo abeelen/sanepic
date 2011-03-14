@@ -42,8 +42,6 @@ extern "C" {
 using namespace std;
 
 
-
-
 //**********************************************************************************//
 //**********************************************************************************//
 //*************************** Beginning of main program ****************************//
@@ -129,6 +127,15 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string parser_output="";
 
+	std::vector<string> key;
+	std::vector<int> datatype;
+	std::vector<string> val;
+	std::vector<string> com;
+
+	uint16_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
+			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc2ff
+
 	string field; /*! actual boloname in the bolo loop */
 
 #ifdef DEBUG_PRINT
@@ -139,41 +146,43 @@ int main(int argc, char *argv[])
 
 	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
-		int parsed=0;
+		uint16_t parsed=0x0000; // parser error status
+		uint16_t compare_to_mask; // parser error status
+
 		// Parse ini file
 		if (argc<2) {
-			printf("Please run %s using a *.ini file\n",argv[0]);
-			parsed=-1;
+			compare_to_mask=0x001;
 		} else {
 
 			parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
 					structPS, saneInv_struct, struct_sanePic, size, rank);
 
+			compare_to_mask = parsed & mask_sanePos;
+
 			// print parser warning and/or errors
 			cout << endl << parser_output << endl;
 		}
-		switch (parsed){/* error during parsing phase */
 
-		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
-		break;
+		if(compare_to_mask>0x0000){
 
-		case 2 : printf("Wrong program options or argument. Exiting !\n");
-		break;
+			switch (compare_to_mask){/* error during parsing phase */
 
-		case 3 : printf("Exiting...\n");
-		break;
+			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+			break;
 
-		default :;
-		}
+			default : printf("Wrong program options or argument. Exiting !\n");
+			break;
 
-		if (parsed>0){
+
+			}
+
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
-			MPI_Finalize();
 #endif
 			return EX_CONFIG;
 		}
 	}
+
 
 
 	// -----------------------------------------------------------------------------//
@@ -258,6 +267,12 @@ int main(int argc, char *argv[])
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
 		return  EX_OSERR;
 	}
+
+	//	string ppp = "/home/matthieu/Sanepic_folders/OD162_0x500022F9L_SpirePacsParallel_polaris_notdf_part0_sanepic.fits";
+	//	cout << samples_struct.fitsvect[0] << endl;
+	if(rank==0)
+		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
+			cout << "pb get fits META\n";
 
 	if (pos_param.maskfile == ""){
 
@@ -607,7 +622,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0)){ // open naive Map fits file and fill ultra naive map image
+		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0,key,datatype,val,com)){ // open naive Map fits file and fill ultra naive map image
 			cerr << "Error Writing Ultra Naiv map ... \n";
 		}
 
@@ -635,7 +650,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1)){ // open naive Map fits file and fill hit (or coverage) image
+		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1,key,datatype,val,com)){ // open naive Map fits file and fill hit (or coverage) image
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
