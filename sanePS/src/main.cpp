@@ -195,6 +195,9 @@ int main(int argc, char *argv[])
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 		return 1;
 	}
 
@@ -206,7 +209,12 @@ int main(int argc, char *argv[])
 	long long npixsrc = 0;
 	long long *indpsrc;
 	struct wcsprm * wcs;
-	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank); // read keyrec file
+	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank)){ // read keyrec file
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+		return (EX_IOERR);
+	}
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
