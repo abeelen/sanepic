@@ -345,7 +345,7 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
 
-	if(get_noise_bin_sizes(dir.tmp_dir, samples_struct)){ // TODO : rank 0 fait, puis, Bcast
+	if(get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank)){ // TODO : rank 0 fait, puis, Bcast
 #ifdef USE_MPI
 		MPI_Finalize();
 #endif
@@ -359,6 +359,9 @@ int main(int argc, char *argv[]) {
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 		return 1;
 	}
 
@@ -369,7 +372,12 @@ int main(int argc, char *argv[]) {
 
 	//	read pointing informations
 	struct wcsprm * wcs;
-	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank); // read keyrec file
+	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank)){ // read keyrec file
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+		return (EX_IOERR);
+	}
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
@@ -684,8 +692,6 @@ int main(int argc, char *argv[]) {
 	d = new double[npix];
 	Mp = new double[npix];
 	s = new double[npix];
-	//	PtNPmatS = new double[npix];
-
 
 	if (pos_param.projgaps || !flagon) {
 		npixeff = npix;
@@ -893,7 +899,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 		//start loop
-		//		iter = 0; // max iter = 2000 (default), but ~100 iterations are required to achieve convergence
+		//max iter = 2000 (default), but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while ((iter < struct_sanePic.itermax) && (((var_n / var0 > 1e-10) && (idupl
@@ -1089,9 +1095,6 @@ int main(int argc, char *argv[]) {
 
 					if ((struct_sanePic.save_data > 0) && ((iter > 0) || (idupl > 0))){
 						write_disk(dir.tmp_dir, d, r, S, npixeff, var0, var_n, delta0, delta_n, iter, idupl, Mptot);
-						//						cout << "written for iter : " << iter << " and idupl : " << idupl << endl;
-						//						cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
-						//								<< delta_n << endl;
 					}
 
 					// Every iterw iteration compute the map and save it
