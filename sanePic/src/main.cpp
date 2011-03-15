@@ -369,16 +369,13 @@ int main(int argc, char *argv[]) {
 
 	//	read pointing informations
 	struct wcsprm * wcs;
-	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2); // read keyrec file
-
+	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank); // read keyrec file
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
-
 	if (rank == 0){
 		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
-
 
 		if (read_indpsrc(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
