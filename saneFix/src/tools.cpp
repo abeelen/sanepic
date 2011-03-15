@@ -67,13 +67,13 @@ void refresh_indice(double &fsamp, long init_num_delete, long end_num_delete, st
 	if(ni>0){
 		it=indice.begin();
 
-			for(long ii=0; ii<=ni; ii++){
-				if(indice[ii]<=init_num_delete){
-//					cout << "erasing : ii = " << ii << " it = " << *(it) << endl;
-					indice.erase(it);
-				}else
-					continue;
-			}
+		for(long ii=0; ii<ni; ii++){
+			if(indice[ii]<=init_num_delete){
+				//				cout << "erasing : ii = " << ii << " it = " << *(it) << endl;
+				indice.erase(it);
+			}else
+				continue;
+		}
 	}
 
 	ni = (long)indice.size();
@@ -81,12 +81,12 @@ void refresh_indice(double &fsamp, long init_num_delete, long end_num_delete, st
 		it=indice.end();
 		it--;
 
-			while(*(it)>=ns-end_num_delete){
-				indice.pop_back();
-				if((int)indice.size()==0)
-					return;
-				it--;
-			}
+		while(*(it)>=ns-end_num_delete){
+			indice.pop_back();
+			if((int)indice.size()==0)
+				return;
+			it--;
+		}
 	}
 }
 
