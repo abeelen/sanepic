@@ -87,40 +87,45 @@ int main(int argc, char *argv[]) {
 
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
-	int parsed=0;
-	// Parse ini file
-	if (argc<2) {
-		printf("Please run %s using a *.ini file\n",argv[0]);
-		parsed=-1;
-	} else {
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+	uint16_t mask_saneInv = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM |
+			BOLOFILE_NOT_FOUND | SANEINV_INPUT_ERROR | FITS_FILELIST_NOT_FOUND; // 0x601b
 
-		if(rank==0)
+	uint16_t parsed=0x0000; // parser error status
+	uint16_t compare_to_mask; // parser error status
+
+	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+
+		// Parse ini file
+		if (argc<2) {
+			compare_to_mask=0x001;
+		} else {
+			parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
+					structPS, saneInv_struct, struct_sanePic, size, rank);
+
+			compare_to_mask = parsed & mask_saneInv;
+
 			// print parser warning and/or errors
 			cout << endl << output << endl;
-	}
-	if (rank==0)
-		switch (parsed){/* error during parsing phase */
-
-		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
-		break;
-
-		case 2 : printf("Wrong program options or argument. Exiting !\n");
-		break;
-
-		case 3 : printf("Exiting...\n");
-		break;
-
-		default :;
 		}
 
-	if (parsed>0){
+		if(compare_to_mask>0x0000){
+
+			switch (compare_to_mask){/* error during parsing phase */
+
+			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+			break;
+
+			default : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+
+			}
+
 #ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-		return EX_CONFIG;
+			return EX_CONFIG;
+		}
 	}
 
 
@@ -204,6 +209,9 @@ int main(int argc, char *argv[]) {
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 		return 1;
 	}
 
