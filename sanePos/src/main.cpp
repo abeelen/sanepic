@@ -259,20 +259,25 @@ int main(int argc, char *argv[])
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 		return 1;
 	}
 
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
+#ifdef USE_MPI
+		MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 		return  EX_OSERR;
 	}
 
-	//	string ppp = "/home/matthieu/Sanepic_folders/OD162_0x500022F9L_SpirePacsParallel_polaris_notdf_part0_sanepic.fits";
-	//	cout << samples_struct.fitsvect[0] << endl;
+	// get input fits META DATA
 	if(rank==0)
 		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
-			cout << "pb get fits META\n";
+			cout << "pb getting fits META\n";
 
 	if (pos_param.maskfile == ""){
 
