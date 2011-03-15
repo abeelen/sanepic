@@ -13,6 +13,11 @@ extern "C" {
 #include "wcslib/wcs.h"
 }
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
+
 using namespace std;
 
 int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &datatype, std::vector<string> &val, std::vector<string> &com);
@@ -22,7 +27,7 @@ int write_fits_mask(std::string fnaivname, std::string maskfile);
 int read_mask_wcs(string fname, string extname, /*char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data);
 int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, long NAXIS2, struct wcsprm * wcs);
 int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
-void read_keyrec(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2);
+void read_keyrec(string outdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2, int rank);
 int print_MapHeader(struct wcsprm * wcs);
 int compare_wcs(std::string fname, struct wcsprm *wcs, struct wcsprm *wcs_fits, long NAXIS1, long NAXIS2, long imNAXIS1, long imNAXIS2);
 

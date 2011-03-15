@@ -849,37 +849,56 @@ int print_MapHeader(struct wcsprm *wcs){
 	return 0;
 }
 
-void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2){
+void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2, int rank){
 
-	outdir = outdir + "mapHeader.keyrec";
-
-	FILE *fin;
 	char *memblock;
-	int size, nkeyrec, nreject, nwcs, status;
-	size_t result;
+	int nkeyrec, nreject, nwcs, status;
 
-	fin = fopen(outdir.c_str(),"r");
-	if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); exit (1);}
+	if(rank==0){
+		outdir = outdir + "mapHeader.keyrec";
 
-	fseek(fin, 0L, SEEK_END);     /* Position to end of file */
-	size = ftell(fin);            /* Get file length */
-	rewind(fin);                  /* Back to start of file */
+		FILE *fin;
+		size_t result;
+		int size;
+
+		fin = fopen(outdir.c_str(),"r");
+		if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); exit (1);}
+
+		fseek(fin, 0L, SEEK_END);     /* Position to end of file */
+		size = ftell(fin);            /* Get file length */
+		rewind(fin);                  /* Back to start of file */
 
 
-	nkeyrec = size/81;
+		nkeyrec = size/81;
 
-	char comment[47];
+		char comment[47];
 
-	// Read the two first lines, NAXIS1/NAXIS2
-	result = fscanf(fin,"NAXIS1  = %20ld / %47c\n",NAXIS1,(char *) &comment);
-	result = fscanf(fin,"NAXIS2  = %20ld / %47c\n",NAXIS2,(char *) &comment);
+		// Read the two first lines, NAXIS1/NAXIS2
+		result = fscanf(fin,"NAXIS1  = %20ld / %47c\n",NAXIS1,(char *) &comment);
+		result = fscanf(fin,"NAXIS2  = %20ld / %47c\n",NAXIS2,(char *) &comment);
 
-	memblock = new char [(nkeyrec-2)*80];
-	for (int ii = 0; ii < nkeyrec; ii++) {
-		result = fread(&memblock[ii*80], 80, sizeof(char), fin);
-		fseek(fin, 1, SEEK_CUR); // skip newline char
+
+		memblock = new char [(nkeyrec-2)*80];
+
+		for (int ii = 0; ii < nkeyrec; ii++) {
+			result = fread(&memblock[ii*80], 80, sizeof(char), fin);
+			fseek(fin, 1, SEEK_CUR); // skip newline char
+		}
+		fclose (fin);
 	}
-	fclose (fin);
+
+#ifdef USE_MPI
+	//	int position=0;
+	MPI_Bcast(NAXIS1,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(NAXIS2,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(&nkeyrec,1,MPI_INT,0,MPI_COMM_WORLD);
+
+	if(rank!=0)
+		memblock = new char [(nkeyrec-2)*80];
+
+	MPI_Bcast(memblock, (nkeyrec-2)*80, MPI_CHAR, 0, MPI_COMM_WORLD);
+#endif
+
 	/* Parse the primary header of the FITS file. */
 	/* -2 to handle the firts two NAXIS? keyword */
 	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
@@ -889,7 +908,6 @@ void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAX
 	//	free(comment);
 
 }
-
 
 int compare_wcs(std::string fname, struct wcsprm *wcs, struct wcsprm *wcs_fits, long NAXIS1, long NAXIS2, long imNAXIS1, long imNAXIS2){
 
