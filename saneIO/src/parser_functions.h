@@ -78,7 +78,7 @@ uint16_t check_param_sanePS(std::string &output, struct param_sanePS structPS);
 
 void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_struct, struct param_common &dir);
 uint16_t fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
-int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct);
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank);
 
 #ifdef USE_MPI
 

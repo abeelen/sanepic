@@ -849,7 +849,7 @@ int print_MapHeader(struct wcsprm *wcs){
 	return 0;
 }
 
-void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2, int rank){
+int read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2, int rank){
 
 	char *memblock;
 	int nkeyrec, nreject, nwcs, status;
@@ -862,7 +862,7 @@ void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAX
 		int size;
 
 		fin = fopen(outdir.c_str(),"r");
-		if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); exit (1);}
+		if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); return 1;}
 
 		fseek(fin, 0L, SEEK_END);     /* Position to end of file */
 		size = ftell(fin);            /* Get file length */
@@ -903,10 +903,12 @@ void read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAX
 	/* -2 to handle the firts two NAXIS? keyword */
 	if ((status = wcspih(memblock, nkeyrec-2, WCSHDR_all, 2, &nreject, &nwcs, &wcs))) {
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status,wcshdr_errmsg[status]);
+		return 1;
 	}
 	delete[] memblock;
 	//	free(comment);
 
+	return 0;
 }
 
 int compare_wcs(std::string fname, struct wcsprm *wcs, struct wcsprm *wcs_fits, long NAXIS1, long NAXIS2, long imNAXIS1, long imNAXIS2){

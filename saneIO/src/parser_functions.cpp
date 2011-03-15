@@ -845,45 +845,66 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct, str
 }
 
 
-int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct)
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank)
 {
+
+	long nframe_long;
+
 
 	for(long ii=0; ii< samples_struct.ntotscan; ii++){
 
-		string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
-		// dirfile path
-		string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/ell/";
+		if(rank==0){
+			string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
+			// dirfile path
+			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/ell/";
 
-		// open dirfile
-		DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		unsigned int nframe = gd_nframes(H);
+			// open dirfile
+			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+			unsigned int nframe = gd_nframes(H);
 
-		// close dirfile
-		if(gd_close(H)){
-			cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
-			return 1;
+			// close dirfile
+			if(gd_close(H)){
+				cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
+				return 1;
+			}
+
+			nframe_long=(long)(nframe-1);
 		}
+
+#ifdef USE_MPI
+		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+#endif
 
 		// get nbins value
-		samples_struct.nbins.push_back((long)(nframe-1));
+		samples_struct.nbins.push_back(nframe_long);
 
-		// get ndet value
-		filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
-		H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		nframe = gd_nframes(H);
+		if(rank==0){
 
-		// close dirfile
-		if(gd_close(H)){
-			cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
-			return 1;
+			string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
+
+			// get ndet value
+			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
+			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+			unsigned int nframe = gd_nframes(H);
+
+			// close dirfile
+			if(gd_close(H)){
+				cout << "Dirfile gd_close error in get_noise_bin_sizes for : " << filedir << endl;
+				return 1;
+			}
+			nframe_long = (long)nframe;
 		}
 
+#ifdef USE_MPI
+		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+#endif
+
 		// compute ndet considering entry size and nbins
-		samples_struct.ndet.push_back(nframe / samples_struct.nbins[ii]);
+		samples_struct.ndet.push_back(nframe_long / samples_struct.nbins[ii]);
 
 	}
 
-	return 0x0000;
+	return 0;
 }
 
 
