@@ -7,7 +7,7 @@ extern "C"{
 
 #ifndef PARSE_SANECHECK_H_
 
-int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
+uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size);
 

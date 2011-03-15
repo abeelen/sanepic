@@ -35,7 +35,7 @@ using namespace std;
 //	return os.str();
 //}
 
-int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
+uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)
 {
@@ -47,11 +47,10 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 	string text;
 	string filename;
 	ofstream file;
+	uint16_t parsed = 0x0000;
 
-
-	if(parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param,
-			   structPS, saneInv_struct, sanePic_struct, size, rank))
-		return -1;
+	parsed+=parser_function(ini_name, output, dir, samples_struct, pos_param, proc_param,
+			structPS, saneInv_struct, sanePic_struct, size, rank);
 
 
 	// load dictionnary
@@ -59,7 +58,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 
 	if (ini==NULL) {
 		fprintf(stderr, "cannot parse file: %s\n", ini_name);
-		return -1 ;
+		return parsed;
 	}
 
 	read_saneCheck_ini(ini , check_struct);
@@ -163,7 +162,7 @@ int parse_saneCheck_ini_file(char * ini_name, string &output, struct param_commo
 	}
 
 
-	return EXIT_SUCCESS;
+	return parsed;
 }
 
 
