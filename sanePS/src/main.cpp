@@ -73,15 +73,20 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string output = "";
 
+	uint16_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+			BOLOFILE_NOT_FOUND | FSAMP_WRONG_VALUE | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
+			FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xdd1f
+
 	//	ncomp = number of noise component to estimate
 	//	fcut = cut-off freq : dont focus on freq larger than fcut for the estimation !
 
 	// parser variables
 	int indice_argv = 1;
-	int parsed = 0;
+	uint16_t parsed=0x0000; // parser error status
+	uint16_t compare_to_mask; // parser error status
 
 	if ((argc < 2) || (argc > 3)) // no enough or too many arguments
-		parsed = 1;
+		compare_to_mask = 0x0001;
 	else {
 		structPS.restore = 0; //default
 
@@ -105,31 +110,25 @@ int main(int argc, char *argv[])
 						structPS, saneInv_struct, struct_sanePic, size, rank);
 
 
+				compare_to_mask = parsed & mask_sanePS;
+
 				// print parser warning and/or errors
 				cout << endl << output << endl;
 			}else
-				parsed = 1;
+				compare_to_mask = 0x0001;
 		}
-	}
 
-	if (rank == 0)
-		if (parsed > 0) { // error during parser phase
-			switch (parsed) {
+		if(compare_to_mask>0x0000){
 
-			case 1:
-				printf("Please run %s using a *.ini file\n", argv[0]);
-				break;
+			switch (compare_to_mask){/* error during parsing phase */
 
-			case 2:
-				printf("Wrong program options or argument. Exiting !\n");
-				break;
+			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+			break;
 
-			case 3:
-				printf("Exiting...\n");
-				break;
+			default : printf("Wrong program options or argument. Exiting !\n");
+			break;
 
-			default:
-				break;
+
 			}
 
 #ifdef PARA_FRAME
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 #endif
 			return EX_CONFIG;
 		}
-
+	}
 
 #ifdef PARA_FRAME
 
@@ -207,7 +206,7 @@ int main(int argc, char *argv[])
 	long long npixsrc = 0;
 	long long *indpsrc;
 	struct wcsprm * wcs;
-	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2); // read keyrec file
+	read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank); // read keyrec file
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
