@@ -85,45 +85,50 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string parser_output = "";
 
+
+	//	uint16_t mask_sanePre = 0x405f;
+	uint16_t mask_sanePre = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+			BOLOFILE_NOT_FOUND | FILEFORMAT_NOT_FOUND | FITS_FILELIST_NOT_FOUND; // 0x405f
+
 	// Processing time estimation
 	time_t t2, t3;
 
 
 	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
-		int parsed=0; // parser error status
+		uint16_t parsed=0x0000; // parser error status
+		uint16_t compare_to_mask; // parser error status
 
 
 		if (argc<2)/* not enough argument */
-			parsed=1;
+			compare_to_mask=0x001;
 		else {
 			/* parse ini file and fill structures */
 			parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
 					structPS, saneInv_struct, struct_sanePic, size, rank);
 
-		}
+			compare_to_mask = parsed & mask_sanePre;
 
+		}
 
 		// print parser warning and/or errors
 		cout << endl << parser_output << endl;
-		switch (parsed){/* error during parsing phase */
-
-		case 1: printf("Please run %s using a *.ini file\n",argv[0]);
-		break;
-
-		case 2 : printf("Wrong program options or argument. Exiting !\n");
-		break;
-
-		case 3 : printf("Exiting...\n");
-		break;
-
-		default :;
-		}
 
 
-		// in case there is a parsing error or the dirfile format file was not created correctly
-		if (parsed>0){
-#ifdef USE_MPI
+		if(compare_to_mask>0x0000){
+
+			switch (compare_to_mask){/* error during parsing phase */
+
+			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+			break;
+
+			default : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+
+			}
+
+#ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return EX_CONFIG;
