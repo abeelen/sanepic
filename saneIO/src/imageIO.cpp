@@ -48,6 +48,7 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 	char comment[80];
 	char value[80];
 
+	int erased=0;
 	for(long ii=0;ii<keynum;ii++){
 		fits_read_keyword(fp, keylist[ii], value, comment, &fits_status);
 
@@ -57,10 +58,14 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 		}else{
 			// reset status
 			fits_status=0;
-			key.erase(key.begin()+ii);
-			datatype.erase(datatype.begin()+ii);
+			key.erase(key.begin()+ii-erased);
+			datatype.erase(datatype.begin()+ii-erased);
+			erased++;
 		}
 	}
+
+	if(erased==12)
+		return 0;
 
 	// Change string in due form
 	for(long kk=0; kk<(long)key.size(); kk++){
@@ -82,9 +87,8 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 
 			val[kk] = tmp2;
 		}
-
-
 	}
+
 
 	// close file
 	if(fits_close_file(fp, &fits_status)){
@@ -153,29 +157,34 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 			return 1;
 		}
 
-		// add META DATA
-		// add equinox as an integer
-		char* value_char = (char*)(val[0].c_str());
-		char * pEnd;
-		int value_int = strtol(value_char,&pEnd,10);
-		string comment_equi = com[0];
+		if((int)val.size()>0){
+			long begin =0;
+			// add META DATA
+			// add equinox as an integer if equinox was found in META DATA
+			if(key[0].c_str()==(char*)"EQUINOX"){
+				char* value_char = (char*)(val[0].c_str());
+				char * pEnd;
+				int value_int = strtol(value_char,&pEnd,10);
+				string comment_equi = com[0];
 
-		if(fits_write_key(fp, datatype[0], (char*)key[0].c_str(), &value_int, (char*)comment_equi.c_str(), &fits_status)){
-			fits_report_error(stderr, fits_status);
-			fits_status=0;
-		}
+				if(fits_write_key(fp, datatype[0], (char*)key[0].c_str(), &value_int, (char*)comment_equi.c_str(), &fits_status)){
+					fits_report_error(stderr, fits_status);
+					fits_status=0;
+				}
+				begin=1;
+			}
 
-		// add the other META DATA as STRING
-		for(long kk=1; kk<(long)key.size(); kk++){
-			string value = val[kk];
-			string comment = com[kk];
+			// add the other META DATA as STRING
+			for(long kk=begin; kk<(long)key.size(); kk++){
+				string value = val[kk];
+				string comment = com[kk];
 
-			if(fits_write_key(fp, datatype[kk], (char*)key[kk].c_str(), (char*)value.c_str(), (char*)comment.c_str(), &fits_status)){
-				fits_report_error(stderr, fits_status);
-				fits_status=0;
+				if(fits_write_key(fp, datatype[kk], (char*)key[kk].c_str(), (char*)value.c_str(), (char*)comment.c_str(), &fits_status)){
+					fits_report_error(stderr, fits_status);
+					fits_status=0;
+				}
 			}
 		}
-
 
 		// Transform wcsprm struture to header
 		if ( (fits_status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header)) ){
