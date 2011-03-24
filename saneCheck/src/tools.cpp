@@ -587,7 +587,7 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 		}
 
 
-		for(long ii = start; ii<ns; ii++) // TODO ns au lieu de ns-1, non ????
+		for(long ii = start; ii<ns; ii++)
 			if(flag[ii]!=0)
 				sum++;
 

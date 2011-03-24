@@ -95,7 +95,9 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "file_format = " + StringOf(pos_param.fileFormat) + " ; SANEPIC = 0, HIPE = 1 \n";
 		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
 		text += "mask_file = " + pos_param.maskfile + "; mask (fits file) : use to remove cross constraint due to strong sources\n";
-
+		text += "ra_nom = " + StringOf(pos_param.ra_nom) + "; RA nominal of the input scan data\n";
+		text += "dec_nom = " + StringOf(pos_param.dec_nom) + "; DEC nominal of the input scan data\n";
+		text += "proj_type = " + StringOf(pos_param.projtype) + "; projection type, see wcslib projection names for the projection you wish to use\n";
 
 		text += "\n\n";
 
@@ -126,7 +128,7 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "map_file = " + structPS.signame + " ; fits file containing the map that should be substracted to the data for a second noise estimation step\n";
 		text += "ell_global_file = " + structPS.ell_global_file + "; the ell file  (fill this field if the ell file is the same for all the scans !)\n";
 		text += "ell_suffix = " + structPS.ell_suffix + " ; ell files suffix : the ell files are not the same : each scan has an ell file named : basename(scan_filename) + ell_suffix\n";
-
+		text += "save_data = " + StringOf(structPS.save_data) + " ; Set save_data to 1 if you wish to save the processing session after each sanePS step \n";
 
 		text += "\n\n";
 
