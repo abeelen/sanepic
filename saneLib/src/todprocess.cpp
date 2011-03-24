@@ -131,13 +131,13 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-																																{
+																																																{
 
 	double *apodis;
 
 	apodis = new double[ns];
 
-	for (int ii=0;ii<ns;ii++){ //TODO :  nn => ns-nn ...
+	for (int ii=0;ii<ns;ii++){
 		apodis[ii] = 1.0;
 	}
 
@@ -152,7 +152,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-																																}
+																																																}
 
 
 
@@ -206,7 +206,7 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 					b = 0;
 				}
 			}
-			if ((SpN[counttemp] > 0) || (SpN[counttemp] > 0))
+			if (SpN[counttemp] > 0)
 				Nk[k] = exp(a*(log((double)k)-log(kmin))+b)/double(ns);
 			else {
 				Nk[k] = 0.0;
@@ -296,28 +296,28 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
 
-	//TODO : Comment all variable, understand what this is really doing, test & optimize
 	/////////////////
 	//
 	// ell is an array of double, units are Hz
 	//
 	////////////////
 
-
 	int counttemp, f_lp;
-	double ellmin, ellmax, kmin, kmax, lkmin, lkmax, a, b;
-	double *ellm, *logSpN;
-	double N_flp;
+	double ellmin, ellmax, kmin, kmax, a, b;
+	//	double lkmin, lkmax;
+	double *ellm;
+	//	double *logSpN;
+	//	double N_flp;
 
 	a = 0.0;
 	b = 0.0;
 
 
 	ellm = new double[nbins];
-	logSpN = new double[nbins];
+	//	logSpN = new double[nbins];
 
 	fill(ellm,ellm+nbins,0.0);
-	fill(logSpN,logSpN+nbins,0.0);
+	//	fill(logSpN,logSpN+nbins,0.0);
 
 
 	for (int ii=0;ii<nbins;ii++)
@@ -329,165 +329,12 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	ellmax = ellm[1];
 	kmin = ellmin*ns/fsamp;
 	kmax = ellmax*ns/fsamp;
-	lkmin = log(kmin);
-	lkmax = log(kmax);
+	//	lkmin = log(kmin);
+	//	lkmax = log(kmax);
 
 
-	if (mode == NULL){
+	//	if (mode == NULL){
 
-
-
-		for (long k=1;k<=(long)kmin;k++){
-
-			Nk[k] = SpN[0]/double(ns);
-
-		}
-
-
-
-		/////////////  linear interpolation
-		// because, by convention, some spectrum can be negatives !!!
-		for (int ibin=0;ibin<nbins-1;ibin++){
-			ellmin = ellm[ibin];
-			ellmax = ellm[ibin+1];
-			kmin = ellmin*ns/fsamp;
-			kmax = ellmax*ns/fsamp;
-			if (abs(SpN[ibin]) > 0){
-				a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
-				b = SpN[ibin]/double(ns);
-			} else {
-				a = 0.0;
-				b = 0.0;
-			}
-			for (long k=long(kmin+1);k<=long(kmax);k++){
-				Nk[k] = (a*((double)k-kmin)+b);
-
-				//apply filter
-				Nk[k] *= gsl_pow_2(bfilter[k]);
-
-			}
-		}
-
-
-
-		for (long k=long(kmax);k<ns/2+1;k++){
-
-			Nk[k] = SpN[nbins-1]*gsl_pow_2(bfilter[k])/double(ns);
-
-		}
-
-
-		Nk[0] = Nk[1];
-
-
-
-		f_lp = 0;
-		while (bfilter[f_lp] > 2.0) f_lp++;
-		f_lp++;
-
-
-
-		//give a lower limit to the spectrum
-		for (int k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
-
-		// suppress effect of aafilter on the Noise Sp
-		for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
-
-
-
-
-	} else {////// compute noise power spectrum for a given mode
-		while (*mode > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
-			counttemp++;
-		}
-		if (counttemp > 0){
-			ellmin = ellm[counttemp-1];
-			ellmax = ellm[counttemp];
-			kmin = ellmin*ns/fsamp;
-			kmax = ellmax*ns/fsamp;
-			a = (log(SpN[counttemp]) -
-					log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
-			b = log(SpN[counttemp-1]);
-		}
-		*Nk = exp(a*(log(*mode)-log(kmin))+b)/double(ns);
-		*Nk *= gsl_pow_2(bfilter[int(*mode)]);
-
-
-		f_lp = 0;
-		while (bfilter[f_lp] > 2.0) f_lp++;
-		f_lp++;
-
-
-		if (*mode < f_lp){
-
-			counttemp = 0;
-			while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
-				counttemp++;
-			}
-			if (counttemp > 0){
-				ellmin = ellm[counttemp-1];
-				ellmax = ellm[counttemp];
-				kmin = ellmin*ns/fsamp;
-				kmax = ellmax*ns/fsamp;
-				a = (log(SpN[counttemp]) -
-						log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
-				b = log(SpN[counttemp-1]);
-			}
-			N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
-			N_flp *= gsl_pow_2(bfilter[f_lp]);
-
-
-
-			//give a lower limit to the spectrum
-			if (*Nk < N_flp) *Nk = N_flp;
-
-		}
-	}
-
-
-
-
-
-	delete [] ellm;
-	delete [] logSpN;
-
-}
-
-
-
-void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
-{
-
-	/////////////////
-	//
-	// ell is an array of double, units are Hz
-	//
-	////////////////
-
-
-	int counttemp, f_lp;
-	double ellmin, ellmax, kmin, kmax = 0, a, b;
-	double *ellm, *logSpN;
-	double SpN_max;
-
-	a = 0.0;
-	b = 0.0;
-
-
-	ellm = new double[nbins];
-	logSpN = new double[nbins];
-
-
-
-	for (int ii=0;ii<nbins;ii++){
-		ellm[ii] = sqrt(ell[ii+1])*sqrt(ell[ii]);
-	}
-
-
-	counttemp = 0;
-	ellmin = ellm[0];
-	ellmax = ellm[1];
-	kmin = ellmin*ns/fsamp;
 
 
 	for (long k=1;k<=(long)kmin;k++){
@@ -496,21 +343,15 @@ void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins,
 
 	}
 
-	f_lp = 0;
-	while (bfilter[f_lp] > 2.0) f_lp++;
-	f_lp++;
+
 
 	/////////////  linear interpolation
+	// because, by convention, some spectrum can be negatives !!!
 	for (int ibin=0;ibin<nbins-1;ibin++){
 		ellmin = ellm[ibin];
 		ellmax = ellm[ibin+1];
 		kmin = ellmin*ns/fsamp;
 		kmax = ellmax*ns/fsamp;
-		if((long)kmax<f_lp)
-			continue;
-		if((long)kmin>(ns/20))
-			break;
-
 		if (abs(SpN[ibin]) > 0){
 			a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
 			b = SpN[ibin]/double(ns);
@@ -528,26 +369,87 @@ void InvbinnedSpectrum2bis(double* ell, double* SpN, double* bfilter, int nbins,
 	}
 
 
-	SpN_max=SpN[nbins-1];
-	for (long k=long(kmax);k<ns/20+1;k++){
 
-		Nk[k] = SpN_max*gsl_pow_2(bfilter[k])/double(ns);
+	for (long k=long(kmax);k<ns/2+1;k++){
+
+		Nk[k] = SpN[nbins-1]*gsl_pow_2(bfilter[k])/double(ns);
 
 	}
+
 
 	Nk[0] = Nk[1];
 
 
 
+	f_lp = 0;
+	while (bfilter[f_lp] > 2.0) f_lp++;
+	f_lp++;
+
+
+
 	//give a lower limit to the spectrum
-	for (int k=0;k<f_lp;k++) if (Nk[k] < Nk[f_lp]) Nk[k] = Nk[f_lp];
+	for (int k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
 
 	// suppress effect of aafilter on the Noise Sp
-	for (long k=ns/20+1;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
+	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
+
+
+
+
+	//	} else {////// compute noise power spectrum for a given mode
+	//		while (*mode > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+	//			counttemp++;
+	//		}
+	//		if (counttemp > 0){
+	//			ellmin = ellm[counttemp-1];
+	//			ellmax = ellm[counttemp];
+	//			kmin = ellmin*ns/fsamp;
+	//			kmax = ellmax*ns/fsamp;
+	//			a = (log(SpN[counttemp]) -
+	//					log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
+	//			b = log(SpN[counttemp-1]);
+	//		}
+	//		*Nk = exp(a*(log(*mode)-log(kmin))+b)/double(ns);
+	//		*Nk *= gsl_pow_2(bfilter[int(*mode)]);
+	//
+	//
+	//		f_lp = 0;
+	//		while (bfilter[f_lp] > 2.0) f_lp++;
+	//		f_lp++;
+	//
+	//
+	//		if (*mode < f_lp){
+	//
+	//			counttemp = 0;
+	//			while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+	//				counttemp++;
+	//			}
+	//			if (counttemp > 0){
+	//				ellmin = ellm[counttemp-1];
+	//				ellmax = ellm[counttemp];
+	//				kmin = ellmin*ns/fsamp;
+	//				kmax = ellmax*ns/fsamp;
+	//				a = (log(SpN[counttemp]) -
+	//						log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
+	//				b = log(SpN[counttemp-1]);
+	//			}
+	//			N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
+	//			N_flp *= gsl_pow_2(bfilter[f_lp]);
+	//
+	//
+	//
+	//			//give a lower limit to the spectrum
+	//			if (*Nk < N_flp) *Nk = N_flp;
+	//
+	//		}
+	//	}
+
+
+
 
 
 	delete [] ellm;
-	delete [] logSpN;
+	//	delete [] logSpN;
 
 }
 
@@ -736,53 +638,3 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 
 }
-
-
-//double* randg(long nombre, int seedpass) {
-//
-//	double* nombre_hasard;
-//	time_t temps;
-//	temps = time(NULL);
-//
-//	unsigned int seed = 0;
-//
-//	if (seedpass == 0) seed = (unsigned int) temps;
-//	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
-//	if (seedpass != -1) srandom(seed);
-//
-//	nombre_hasard= new double[nombre];
-//
-//	for (long i=0;i<nombre/2;i++) {
-//		double t1 = (double(rand())/RAND_MAX);
-//		double t2 = (double(rand())/RAND_MAX);
-//		nombre_hasard[2*i]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-//		nombre_hasard[2*i+1]=sqrt(-2*log(t1))*sin(2*M_PI*t2);
-//	}
-//
-//	if (nombre/2!=nombre/2.) {
-//		double t1 = (double(rand())/RAND_MAX);
-//		double t2 = (double(rand())/RAND_MAX);
-//		nombre_hasard[nombre-1]=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-//	}//
-//
-//
-//	return nombre_hasard;
-//}
-
-
-//double* rand(long nombre, int seed) {
-//
-//	double* nombre_hasard;
-//	time_t temps;
-//	temps = time(NULL);
-//	if (seed == 0) seed = (unsigned int) temps;
-//	if (seed != -1) srandom(seed);
-//
-//	nombre_hasard= new double[nombre];
-//
-//	for (long i=0;i<nombre;i++) nombre_hasard[i]=(double(rand())/RAND_MAX);
-//
-//	return nombre_hasard;
-//}
-
-

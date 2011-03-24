@@ -59,7 +59,6 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, det[idet1]))
 			return 1;
 
-		//TODO :  temporary down
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
@@ -146,10 +145,6 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field1, flag, ns))
 			return 1;
 
-		//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
-		//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
-
-
 		if (S != NULL){
 			//// Read pointing
 			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field1))
@@ -158,13 +153,7 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 			Ps = new double[ns];
 			fill(Ps,Ps+ns,0.0);
 
-			//TODO : Fix that... same number of argument... not the same calling as in sanePS
-			if (addnpix){
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
-			} else {
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
-			}
-
+			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 
 			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
@@ -207,13 +196,13 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 	return 0;
 }
 
-int do_PtNd(struct samples samples_struct, double *PNd, std::vector<std::string> noisevect, string dir, string prefixe,
+int do_PtNd(struct samples samples_struct, double *PNd, string dir, string prefixe,
 		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe, string filename,
-		double *Mp, long *hits,std::string fname) // TODO : no need noisevect anymore
+		double *Mp, long *hits,std::string fname)
 {
 
-//	long  nbins;
+	//	long  nbins;
 	string field1, field2;
 	string extentNoiseSp;
 
@@ -315,7 +304,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, std::vector<std::string>
 		timeinfo = localtime ( &rawtime );
 		file << "after read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
-//		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+		//		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 
 		SpN = new double[nbins];
@@ -351,7 +340,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, std::vector<std::string>
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
 			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk, NULL);
-			//InvbinnedSpectrum2bis(ell,SpN,bfilter_,nbins,ns,fsamp,Nk);
+
 #ifdef DEBUG
 			time ( &rawtime );
 			timeinfo = localtime ( &rawtime );

@@ -76,14 +76,11 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 
 		if (S != NULL){
 
-			if (addnpix){
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
-			} else {
-				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
-			}
+			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 
 			//********************  pre-processing of data ********************//
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp,  Ps);
+
 		} else {
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
 		}
@@ -168,9 +165,6 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 
 		// AS
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
-
-
-
 
 		for (long ii=0;ii<(ns)/2+1;ii++){
 			powered=pow(double(ii)/f_lppix, 16);

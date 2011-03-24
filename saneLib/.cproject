@@ -34,7 +34,7 @@
 <listOptionValue builtIn="false" value="/usr/local/include/"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 </option>
-<option id="gnu.cpp.compiler.option.debugging.gprof.2076110517" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.debugging.gprof.2076110517" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.other.other.1986804425" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.2109994673" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1203898662" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
@@ -518,63 +518,63 @@
 </extensions>
 </storageModule>
       <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-	<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048" name="Release" parent="cdt.managedbuild.config.gnu.exe.release">
-	  <folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048." name="/" resourcePath="">
-	    <toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.1150125870" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
-	      <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.532408085" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
-	      <builder buildPath="${workspace_loc:/libSane/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.1573631713" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
-	      <tool id="cdt.managedbuild.tool.gnu.archiver.base.733686627" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-	      <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1220541958" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
-		<option id="gnu.cpp.compiler.exe.release.option.optimization.level.2000079910" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-		<option id="gnu.cpp.compiler.exe.release.option.debugging.level.6535135" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
-		<option id="gnu.cpp.compiler.option.include.paths.886634239" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-		  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
-		  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-		</option>
-		<option id="gnu.cpp.compiler.option.other.other.2048147325" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
-		<option id="gnu.cpp.compiler.option.preprocessor.undef.896403128" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
-		  <listOptionValue builtIn="false" value="PARA_BOLO"/>
-		  <listOptionValue builtIn="false" value="USE_MPI"/>
-		</option>
-		<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2009316383" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
-	      </tool>
-	      <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1116678526" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
-		<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1039148243" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
-		<option id="gnu.c.compiler.exe.release.option.debugging.level.1227377233" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-		<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.456542880" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-	      </tool>
-	      <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.894180585" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
-		<option defaultValue="true" id="gnu.c.link.option.shared.1733490885" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
-	      </tool>
-	      <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1317480067" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
-		<option id="gnu.cpp.link.option.libs.1618568920" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-		  <listOptionValue builtIn="false" value="nr"/>
-		  <listOptionValue builtIn="false" value="gslcblas"/>
-		  <listOptionValue builtIn="false" value="gsl"/>
-		  <listOptionValue builtIn="false" value="saneIO"/>
-		  <listOptionValue builtIn="false" value="fftw3"/>
-		</option>
-		<option id="gnu.cpp.link.option.paths.1406368995" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-		  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
-		  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
-		</option>
-		<option defaultValue="true" id="gnu.cpp.link.option.shared.302001239" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
-		<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1069486151" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
-		  <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-		  <additionalInput kind="additionalinput" paths="$(LIBS)"/>
-		</inputType>
-		<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.546448316" outputPrefix="lib" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output"/>
-	      </tool>
-	      <tool id="cdt.managedbuild.tool.gnu.assembler.exe.release.969672200" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release">
-		<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1737536852" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
-	      </tool>
-	    </toolChain>
-	  </folderInfo>
-	  <sourceEntries>
-	    <entry excluding="tests|src/Corr_preprocess2.h|src/Corr_preprocess2.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-	  </sourceEntries>
-	</configuration>
-      </storageModule>
+<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.1233043048" name="Release" parent="cdt.managedbuild.config.gnu.exe.release">
+<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048." name="/" resourcePath="">
+<toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.1150125870" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
+<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.532408085" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
+<builder buildPath="${workspace_loc:/libSane/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.1573631713" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
+<tool id="cdt.managedbuild.tool.gnu.archiver.base.733686627" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1220541958" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+<option id="gnu.cpp.compiler.exe.release.option.optimization.level.2000079910" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.exe.release.option.debugging.level.6535135" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.886634239" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+</option>
+<option id="gnu.cpp.compiler.option.other.other.2048147325" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
+<option id="gnu.cpp.compiler.option.preprocessor.undef.896403128" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+<listOptionValue builtIn="false" value="PARA_BOLO"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
+</option>
+<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2009316383" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1116678526" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
+<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1039148243" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
+<option id="gnu.c.compiler.exe.release.option.debugging.level.1227377233" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.456542880" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.894180585" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
+<option defaultValue="true" id="gnu.c.link.option.shared.1733490885" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1317480067" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
+<option id="gnu.cpp.link.option.libs.1618568920" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="gslcblas"/>
+<listOptionValue builtIn="false" value="gsl"/>
+<listOptionValue builtIn="false" value="saneIO"/>
+<listOptionValue builtIn="false" value="fftw3"/>
+</option>
+<option id="gnu.cpp.link.option.paths.1406368995" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+</option>
+<option defaultValue="true" id="gnu.cpp.link.option.shared.302001239" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1069486151" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+</inputType>
+<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.546448316" outputPrefix="lib" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.assembler.exe.release.969672200" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release">
+<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1737536852" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+</tool>
+</toolChain>
+</folderInfo>
+<sourceEntries>
+<entry excluding="tests|src/Corr_preprocess2.h|src/Corr_preprocess2.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
+</configuration>
+</storageModule>
       <storageModule moduleId="scannerConfiguration">
 	<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 	<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -1014,62 +1014,62 @@
 </extensions>
 </storageModule>
 	      <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" name="Release_debug_log" parent="cdt.managedbuild.config.gnu.exe.release" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
-		  <folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842." name="/" resourcePath="">
-		    <toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.exe.release.1793934531" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
-		      <targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.exe.release.780424654" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
-		      <builder buildPath="${workspace_loc:/libSane/Release}" errorParsers="org.eclipse.cdt.core.MakeErrorParser" id="cdt.managedbuild.target.gnu.builder.exe.release.417055681" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
-		      <tool id="cdt.managedbuild.tool.gnu.archiver.base.213858916" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-		      <tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1614721674" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
-			<option id="gnu.cpp.compiler.exe.release.option.optimization.level.1194126211" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-			<option id="gnu.cpp.compiler.exe.release.option.debugging.level.875574444" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
-			<option id="gnu.cpp.compiler.option.include.paths.1221726592" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-			  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
-			  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
-			</option>
-			<option id="gnu.cpp.compiler.option.other.other.1582423822" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
-			<option id="gnu.cpp.compiler.option.preprocessor.def.1256441746" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-			  <listOptionValue builtIn="false" value="DEBUG"/>
-			</option>
-			<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.951237558" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
-		      </tool>
-		      <tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1517805845" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
-			<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1863268829" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
-			<option id="gnu.c.compiler.exe.release.option.debugging.level.1451523830" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-			<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.855520000" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
-		      </tool>
-		      <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1145217631" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
-			<option defaultValue="true" id="gnu.c.link.option.shared.1738838762" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
-		      </tool>
-		      <tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.681614866" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
-			<option id="gnu.cpp.link.option.libs.1284024558" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-			  <listOptionValue builtIn="false" value="nr"/>
-			  <listOptionValue builtIn="false" value="gslcblas"/>
-			  <listOptionValue builtIn="false" value="gsl"/>
-			  <listOptionValue builtIn="false" value="saneIO"/>
-			  <listOptionValue builtIn="false" value="fftw3"/>
-			</option>
-			<option id="gnu.cpp.link.option.paths.1330305153" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-			  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
-			  <listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
-			</option>
-			<option defaultValue="true" id="gnu.cpp.link.option.shared.2125616102" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
-			<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1975319601" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
-			  <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-			  <additionalInput kind="additionalinput" paths="$(LIBS)"/>
-			</inputType>
-			<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.852166137" outputPrefix="lib" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output"/>
-		      </tool>
-		      <tool command="as" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser" id="cdt.managedbuild.tool.gnu.assembler.exe.release.192656272" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release">
-			<inputType id="cdt.managedbuild.tool.gnu.assembler.input.979512450" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
-		      </tool>
-		    </toolChain>
-		  </folderInfo>
-		  <sourceEntries>
-		    <entry excluding="tests|src/Corr_preprocess2.h|src/Corr_preprocess2.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-		  </sourceEntries>
-		</configuration>
-	      </storageModule>
+<configuration artifactExtension="so" artifactName="saneLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842" name="Release_debug_log" parent="cdt.managedbuild.config.gnu.exe.release" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
+<folderInfo id="cdt.managedbuild.config.gnu.exe.release.1233043048.189197116.869003842." name="/" resourcePath="">
+<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.exe.release.1793934531" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
+<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.exe.release.780424654" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
+<builder buildPath="${workspace_loc:/libSane/Release}" errorParsers="org.eclipse.cdt.core.MakeErrorParser" id="cdt.managedbuild.target.gnu.builder.exe.release.417055681" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
+<tool id="cdt.managedbuild.tool.gnu.archiver.base.213858916" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1614721674" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+<option id="gnu.cpp.compiler.exe.release.option.optimization.level.1194126211" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.exe.release.option.debugging.level.875574444" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.1221726592" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
+</option>
+<option id="gnu.cpp.compiler.option.other.other.1582423822" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fPIC" valueType="string"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.1256441746" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<listOptionValue builtIn="false" value="DEBUG"/>
+</option>
+<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.951237558" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+</tool>
+<tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1517805845" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
+<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1863268829" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
+<option id="gnu.c.compiler.exe.release.option.debugging.level.1451523830" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.855520000" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1145217631" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
+<option defaultValue="true" id="gnu.c.link.option.shared.1738838762" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+</tool>
+<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.681614866" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
+<option id="gnu.cpp.link.option.libs.1284024558" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="nr"/>
+<listOptionValue builtIn="false" value="gslcblas"/>
+<listOptionValue builtIn="false" value="gsl"/>
+<listOptionValue builtIn="false" value="saneIO"/>
+<listOptionValue builtIn="false" value="fftw3"/>
+</option>
+<option id="gnu.cpp.link.option.paths.1330305153" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/Release}&quot;"/>
+</option>
+<option defaultValue="true" id="gnu.cpp.link.option.shared.2125616102" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1975319601" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+</inputType>
+<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.852166137" outputPrefix="lib" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output"/>
+</tool>
+<tool command="as" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser" id="cdt.managedbuild.tool.gnu.assembler.exe.release.192656272" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release">
+<inputType id="cdt.managedbuild.tool.gnu.assembler.input.979512450" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+</tool>
+</toolChain>
+</folderInfo>
+<sourceEntries>
+<entry excluding="tests|src/Corr_preprocess2.h|src/Corr_preprocess2.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
+</configuration>
+</storageModule>
 	      <storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">

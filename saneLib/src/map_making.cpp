@@ -84,7 +84,6 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 
 }
 
-//TODO : Check compute_diagPtNP and compute_diagPtNPCorr
 void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		long  NAXIS1, long NAXIS2, long long *indpix,
 		long npix, double f_lppix, double *dPtNP){
@@ -295,8 +294,8 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 
 	//TODO : TEST : Change the removal of the map here => means ??
-	// Optimize the memory management here....
-	// This routine CHANGES *data : is this really wanted ? => YES
+	// Optimized the memory management here....
+	// This routine CHANGES *data : this is really wanted ! => YES
 
 	if (Ps != NULL)
 		for (long ii=0;ii<ns;ii++)
@@ -588,71 +587,3 @@ void deproject(double *S, long long *indpix, long long *samptopix, long long nda
 	}
 
 }
-
-
-
-
-/*
-void deproject_msk(double *S, unsigned char *mask, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long marge, long nn, long npix, long iframe, double *Ps){
-
-  long ii, ll;
-
-  for (ii=-marge;ii<ndata-marge;ii++){
-    if ((ii < 0) || (ii >= ndata-2*marge)){
-      Ps[ii+marge] = S[npix-2];
-    } else {
-      if (rejectsamp[ii] == 0){
-	if (binsamp[ii] == 1){
-	  Ps[ii+marge] = S[npix-2];
-	} else {
-	  if (mask[yy[ii]*nn + xx[ii]] == 1){
-	    ll = indpix[yy[ii]*nn + xx[ii]];
-	    Ps[ii+marge] = S[ll];
-	  } else {
-	    ll = indpix[(iframe + 1) * NAXIS1*NAXIS2 + (yy[ii]*nn + xx[ii])];
-	    Ps[ii+marge] = S[ll];
-	  }
-	}
-      } else {
-	Ps[ii+marge] = 0.0;
-      }
-    }
-  }
-
-}
-
-
- */
-
-
-/*
-
-void deproject_new(double *S, long *indpix, int *xx, int *yy, unsigned char *rejectsamp, unsigned char *binsamp, long ndata, long  , long nn, long npix, long npixmap, double *Ps, long *countreject){
-
-  long ii, ll;
-
-  for (ii=-marge;ii<ndata-marge;ii++){
-    if ((ii < 0) || (ii >= ndata-2*marge)){
-      Ps[ii+marge] = S[npix-1];
-    } else {
-      if (rejectsamp[ii] == 0){
-	if (binsamp[ii] == 1){
-	  Ps[ii+marge] = S[npix-1];
-	} else {
-	  ll = indpix[yy[ii]*nn + xx[ii]];
-	  Ps[ii+marge] = S[ll];
-	}
-      } else {
-	Ps[ii+marge] = S[npixmap-1+*countreject];
- *countreject = *countreject + 1;
-      }
-    }
-  }
-
-}
-
-
-
- */
-
-
