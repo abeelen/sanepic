@@ -330,8 +330,10 @@ int main(int argc, char *argv[])
 		if (rank == 0){
 			cout << "Checking previous session\n";
 			struct checksum chk_t, chk_t2;
-			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
-					indpsrc, NAXIS1 * NAXIS2, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
+			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
+			//					indpsrc, NAXIS1 * NAXIS2, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
+			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
+					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
 			read_checksum(dir.tmp_dir, chk_t2, "sanePS"); // read previous checksum
 			if (compare_checksum(chk_t, chk_t2)) { // compare them
 				cout << "Checksums are different !!! Exiting..." << endl;
@@ -355,7 +357,9 @@ int main(int argc, char *argv[])
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
+			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
+			//					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
+			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
 					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t, "sanePS")){ // write down on disk the checksum values
 #ifdef USE_MPI

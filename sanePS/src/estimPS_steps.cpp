@@ -86,21 +86,16 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
 
-		//TODO: subtract the signal only if needed
 		if (S != NULL){
 			//Read pointing data
 			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field))
 				return EX_NOINPUT;
 
-			//TODO : Check this function on what it does/should do
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
 		}
-
-
-
 
 		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
 		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
@@ -110,8 +105,6 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
 
-
-		// TODO: Do we need to compute and save ffts here ???
 		//       fdata are used in cross power spectrum estimation...
 		//       BUT it is done differently than power spectrum estimation WHY ?
 
@@ -267,21 +260,6 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 			return 1;
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
 			return 1;
-
-		//		long test_ns;
-		//		read_signal_from_fits(fits_filename, field, data, test_ns);
-		//		if (test_ns != ns) {
-		//			cerr << "Read signal does not correspond to frame size : Check !!" << endl;
-		//			return 1;
-		//		}
-		//
-		//
-		//		read_flag_from_fits(fits_filename , field, flag, test_ns);
-		//		if (test_ns != ns) {
-		//			cerr << "Read flag does not correspond to frame size : Check !!" << endl;
-		//			return 1;
-		//		}
-
 
 		//TODO : This computation is already done when computing the common mode ->
 		//       reuse the fdata if possible?
