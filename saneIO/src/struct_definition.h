@@ -9,6 +9,7 @@ extern "C"{
 #include "getdata.h"
 }
 
+#define sanepic_version "0.0.4"
 
 #ifdef USE_MPI
 
@@ -136,9 +137,10 @@ struct param_sanePic
 /*! A structure that contains user options about sanePic procedure */
 {
 	int iterw;
-	int itermax; // TODO : add thresholds in sanepic_ini ???
+	int itermax;
 	int save_data;
 	int restore;
+	std::string map_prefix;
 	//	double thresholds; // determine thresholds
 };
 

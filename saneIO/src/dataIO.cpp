@@ -24,6 +24,7 @@ using namespace std;
 int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonames, double **& offsets){
 
 	//TODO : Handle angle unit to transform to a common internal known unit
+
 	fitsfile *fptr;
 	int status = 0;
 	int colnum;
@@ -93,6 +94,7 @@ int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonam
 
 int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
+	// if ra is in deg transform to hour. if alreay in hour dont * 15
 
 	fitsfile *fptr;
 	int status = 0;
@@ -124,7 +126,6 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
-	//TODO: Remove this step : check si il y a un * 15.0 qlq part ailleurs dans le code pour travailler avec des degree et non des heures !
 	// transform RA in hours
 	for(long ii = 0; ii<ns; ii++)
 		RA[ii]=RA[ii]/15.0;

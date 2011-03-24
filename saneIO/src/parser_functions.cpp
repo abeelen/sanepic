@@ -289,6 +289,7 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 void read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &sanePic_struct){
 
 	int i;
+	char *s;
 
 	i = iniparser_getint(ini, "sanePic:iterW", -1);
 	if ( i == -1)
@@ -312,6 +313,12 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 		output += "sanePic:iterMAX : default value [" + StringOf(sanePic_struct.itermax) +"]\n";
 	else
 		sanePic_struct.itermax = i;
+
+	s = iniparser_getstring(ini,"sanePic:map_prefix", (char *) NULL);
+	if(s == (char *) NULL || strlen(s) == 0)
+		output += "sanePic:map_prefix : default value [" + StringOf(sanePic_struct.map_prefix) +"]\n";
+	else
+		sanePic_struct.map_prefix = StringOf(s);
 
 }
 
@@ -340,7 +347,7 @@ int check_path(string &output, string strPath, string path_type){
 		output += "Warning : Path " + path_type + " : " + strPath + " doesn't exist.\n";
 		string make_it = "mkdir " + strPath;
 		if(system((char*)make_it.c_str())==0)
-			output += "Path : " + strPath + " created\n"; // TODO : if para_frame : only rank 0 should create folders !
+			output += "Path : " + strPath + " created\n";
 		else
 			return 1;
 	}
@@ -413,6 +420,7 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 			gd_include(S, (char *)("DEC/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 		}
 
+		gd_flush(S,NULL);
 
 		gd_close(S);
 	}
@@ -431,6 +439,10 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct)
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
 		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+
+		//		int i =gd_error(S);
+		//		if(i>0)
+		//			cout << "dirfile opening error : " << i << endl;
 
 		string output_read = "";
 		std::vector<string> det_vect;
@@ -453,10 +465,14 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct)
 
 			// add to the dirfile
 			gd_add(S, &E);
-
+			gd_flush(S,NULL);
 		}
 
-		gd_close(S);
+		//		if(gd_discard(S))
+		//			cout << "discard fails " << index_path << "-> memory leaks ..." << endl;
+
+		if(gd_close(S))
+			cout << "error closing " << index_path << "-> memory leaks ..." << endl;
 
 	}
 	return 0;
@@ -471,8 +487,8 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
 		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
 		string ell_path =  noise_path + "/ell";
 
-		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
 
 		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii] FitsBasename
 		std::vector<string> bolos;
@@ -513,8 +529,19 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
 
 		}
 
-		gd_close(S);
-		gd_close(D);
+
+		//		gd_metaflush(S);
+		//		gd_metaflush(D);
+		//		gd_flush(S, NULL);
+		//		gd_flush(D, NULL);
+		//if(gd_discard(S))
+			//cout << "discard fails " << noise_path << "-> memory leaks ..." << endl;
+		//if(gd_discard(D))
+			//cout << "discard fails " << ell_path << "-> memory leaks ..." << endl;
+		if(gd_close(S))
+			cout << "error closing " << noise_path << "-> memory leaks ..." << endl;
+		if(gd_close(D))
+			cout << "error closing " << ell_path << "-> memory leaks ..." << endl;
 
 	}
 
@@ -764,9 +791,10 @@ void default_param_saneInv(struct param_saneInv &inv_param){
 
 void default_param_sanePic(struct param_sanePic &pic_param){
 
-	pic_param.iterw     = 0;
-	pic_param.itermax   = 2000;
-	pic_param.save_data = 0;
+	pic_param.iterw      = 0;
+	pic_param.itermax    = 2000;
+	pic_param.save_data  = 0;
+	pic_param.map_prefix = "optimMap";
 }
 
 
@@ -907,8 +935,8 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 	return 0;
 }
 
-
 #ifdef USE_MPI
+
 
 void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct samples samples_struct, struct ini_var_strings &ini_v)
@@ -988,7 +1016,6 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 	}
 
 }
-
 
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 		MPI_Datatype* message_type_ptr){
@@ -1717,7 +1744,6 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 	parsed+=fill_samples_struct(output, samples_struct, dir, saneInv_struct, filename);
 
 
-	// TODO: Fundamental reason for that here ? Why not keep it simple ?
 	for(int iframe=0;iframe<(int)((samples_struct.fitsvect).size());iframe++){
 		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
 		samples_struct.bolovect[iframe] = dir.input_dir + samples_struct.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
@@ -1809,6 +1835,7 @@ void print_param_sanePic(struct param_sanePic sanepic_struct)
 
 	cout << "Limited number of gradient iterations : " << sanepic_struct.itermax << " iterations\n";
 
+	cout << "Using map_suffix for temporary and final maps filenames : " << sanepic_struct.map_prefix << endl;
 
 }
 

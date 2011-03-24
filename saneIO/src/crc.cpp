@@ -8,6 +8,7 @@
 #include "imageIO.h"
 
 #include "crc.h"
+#include "utilities.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -26,6 +27,63 @@ unsigned checksum(void *buffer, size_t len, unsigned int seed)
 }
 
 
+void compute_checksum(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
+		struct param_saneInv inv_param, struct param_sanePS ps_param, struct param_sanePic pic_param, struct samples samples_struct, long long npix,
+		long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk)
+{
+
+	FILE *fp;
+	size_t len;
+	string file;
+	char *buf_ini;
+
+	/*------------------------------------------------------------------*/
+
+	// fill a buffer with all the struct values !
+	string buffer_crc = dir.input_dir + dir.output_dir + dir.tmp_dir + dir.dirfile + dir.fits_filelist + dir.bolo_suffix +
+			dir.bolo_global_filename +
+			StringOf(pos_param.pixdeg) + StringOf(pos_param.flgdupl) + pos_param.maskfile + StringOf(pos_param.projgaps) +
+			pos_param.projtype + StringOf(pos_param.ra_nom) + StringOf(pos_param.dec_nom) +
+			StringOf(proc_param.CORRon) + StringOf(proc_param.NOFILLGAP) + StringOf(proc_param.NORMLIN) + StringOf(proc_param.f_lp) +
+			proc_param.fcut_file + StringOf(proc_param.fsamp) + StringOf(proc_param.napod) + StringOf(proc_param.poly_order) +
+			StringOf(proc_param.remove_polynomia) +
+			inv_param.cov_matrix_file + inv_param.cov_matrix_suffix + inv_param.noise_dir +
+			ps_param.cov_matrix_file + ps_param.cov_matrix_suffix + ps_param.ell_global_file + ps_param.ell_suffix + ps_param.mix_global_file +
+			ps_param.mix_suffix + StringOf(ps_param.ncomp) + ps_param.signame +
+			StringOf(pic_param.itermax) + StringOf(pic_param.iterw) + pic_param.map_prefix;
+
+	buf_ini = (char*)buffer_crc.c_str();
+
+	chk.chk_ini_file=checksum(buf_ini, (long)buffer_crc.size(), 0);
+//	cout << "ini chk : " << chk.chk_ini_file<< endl;
+	/*------------------------------------------------------------------*/
+
+	char buf[19 * (34 + 48)];
+	// 19 lines * ( 34 char for key and value (and spaces) + 48 for the longest comment, but you can extend to 80 )
+
+	file= dir.tmp_dir + "mapHeader.keyrec";
+	if (NULL == (fp = fopen(file.c_str(), "r")))
+	{
+		cout << "Unable to open " << file << " for reading\n";
+		return;
+	}
+	len = fread(buf, sizeof(char), sizeof(buf), fp);
+	fclose(fp);
+
+	chk.chk_wcs_file=checksum(buf, len, 0);
+	//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
+
+	/*------------------------------------------------------------------*/
+
+	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
+	//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
+
+	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
+	//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
+
+}
+
+// TODO : to be removed !
 void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk)
 {
 
@@ -34,13 +92,14 @@ void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix,
 	string file;
 	char buf[6144];
 
+	// TODO ameliorer ca  : prendre les structures et faire un chksum avec au lieu de prendre le ini file !!!
 
 	if (NULL == (fp = fopen(ini_file.c_str(), "r")))
 	{
 		cout << "Unable to open " << ini_file << " for reading\n";
 		return;
 	}
-	len = fread(buf, sizeof(char), sizeof(buf), fp); // TODO ameliorer ca !
+	len = fread(buf, sizeof(char), sizeof(buf), fp);
 	char buf2[len-116];
 	for(long hh=0;hh<(long)(len-116);hh++)
 		buf2[hh]=buf[hh];
@@ -285,7 +344,7 @@ int save_session(string tmp_dir, string filename, int completed_step, double **c
 		double **P, double **Rellth, double **Rellexp, double *SPref, long ndet, int ncomp, long nbins, long ns){
 
 	FILE* fp;
-	string file = tmp_dir + "data_saved_sanePS_" + filename + ".bi"; // TODO : changer en .bin
+	string file = tmp_dir + "data_saved_sanePS_" + filename + ".bi";
 	size_t len=0;
 
 	cout << "opening " << file << " for writing\n";

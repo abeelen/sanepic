@@ -22,7 +22,7 @@ using namespace std;
 
 int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &datatype, std::vector<string> &val, std::vector<string> &com);
 int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com);
-int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, string path, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, long ncomp=-1);
+int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, struct param_common dir, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, struct param_sanePS PS_param, struct param_sanePic Pic_param, struct param_saneInv Inv_param);
 int write_fits_mask(std::string fnaivname, std::string maskfile);
 int read_mask_wcs(string fname, string extname, /*char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data);
 int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, long NAXIS2, struct wcsprm * wcs);
