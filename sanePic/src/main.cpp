@@ -345,7 +345,7 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
 
-	if(get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank)){ // TODO : rank 0 fait, puis, Bcast
+	if(get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank)){
 #ifdef USE_MPI
 		MPI_Finalize();
 #endif
@@ -475,8 +475,10 @@ int main(int argc, char *argv[]) {
 		if (rank == 0){
 			cout << "Checking previous session\n";
 			struct checksum chk_t, chk_t2;
-			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
-					indpsrc, indpsrc_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
+			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
+			//					indpsrc, indpsrc_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
+			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
+					indpix, indpsrc, indpsrc_size, chk_t); // TODO : test it
 			read_checksum(dir.tmp_dir, chk_t2, "sanePic"); // read previous checksum
 			if (compare_checksum(chk_t, chk_t2)) { // compare them
 				cout << "Checksums are different !!! Exiting..." << endl;
@@ -596,7 +598,7 @@ int main(int argc, char *argv[]) {
 				// *Mp = Null :
 				// *Hits = Null (map hits)
 
-				pb+=do_PtNd(samples_struct, PNd, samples_struct.noisevect,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
+				pb+=do_PtNd(samples_struct, PNd,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
 						proc_param.fsamp,ns,para_bolo_indice,para_bolo_size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fitsvect[iframe], NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
 
@@ -640,7 +642,9 @@ int main(int argc, char *argv[]) {
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
+			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
+			//					indpix, indpsrc, indpsrc_size, chk_t);
+			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
 					indpix, indpsrc, indpsrc_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t, "sanePic")){ // write down on disk the checksum values
 #ifdef USE_MPI
@@ -793,7 +797,7 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PtNPmatS, samples_struct.noisevect, dir.tmp_dir,
+					do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir,
 							"fPs_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice,
 							para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], Mp, NULL, name_rank);
@@ -874,13 +878,11 @@ int main(int argc, char *argv[]) {
 
 			//copy Mp to Mptot and PtNPmatS to PtNPmatStot
 			if(rank==0)
-				for(long ii = 0; ii< npix; ii++){ //TODO npix ou npixeff ??
+				for(long ii = 0; ii< npix; ii++){
 					Mptot[ii] = Mp[ii];
-					//					PtNPmatStot[ii] = PtNPmatS[ii];
 				}
 #else
 			Mptot = Mp;
-			//			PtNPmatStot = PtNPmatS;
 #endif
 
 			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
@@ -940,7 +942,7 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, q, samples_struct.noisevect, dir.tmp_dir, "fPs_",
+					do_PtNd(samples_struct, q, dir.tmp_dir, "fPs_",
 							det, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice, para_bolo_size,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], NULL, NULL,
@@ -1025,8 +1027,7 @@ int main(int argc, char *argv[]) {
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-						do_PtNd(samples_struct, PtNPmatS, samples_struct.noisevect,
-								dir.tmp_dir, "fPs_", det, ndet, f_lppix_Nk,
+						do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir, "fPs_", det, ndet, f_lppix_Nk,
 								proc_param.fsamp, ns, para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe,
 								samples_struct.fitsvect[iframe], NULL, NULL,
@@ -1111,7 +1112,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					temp_stream << dir.output_dir + "optimMap_" << iter	<< "b.fits";
+					temp_stream << dir.output_dir + struct_sanePic.map_prefix + "_" << iter	<< (idupl>0 ? (std::string)"b" : (std::string)"a") + ".fits";
 					fname = temp_stream.str();
 					temp_stream.str("");
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
@@ -1220,8 +1221,8 @@ int main(int argc, char *argv[]) {
 							return EX_CANTCREAT;
 						}
 					}
-					if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param,
-							samples_struct.fcut, samples_struct, structPS.ncomp)) // write sanePre parameters in naive Map fits file header
+					if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param,
+							samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 					delete[] map1d;
@@ -1307,7 +1308,7 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PNd, samples_struct.noisevect, dir.tmp_dir,
+					do_PtNd(samples_struct, PNd, dir.tmp_dir,
 							"fdata_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], NULL, NULL,
@@ -1360,7 +1361,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile, structPS.ncomp, key, datatype, val, com))
+				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, key, datatype, val, com))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0

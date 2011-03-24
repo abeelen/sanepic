@@ -18,7 +18,7 @@ using namespace std;
 int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_sanePre proc_param, struct param_sanePos pos_param,
-		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, int ncomp, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com){
+		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS, struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com){
 
 
 
@@ -53,7 +53,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		}
 	}
 
-	fname = outdir + "optimMap_sanePic.fits";
+	fname = outdir + sanePic_struct.map_prefix + "_sanePic.fits";
 	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Image", 0,key,datatype,val,com)){
 		cerr << "Error Writing map : EXITING ... \n";
 		return 1;
@@ -155,7 +155,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		if(write_fits_mask(fname, dir.input_dir + maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
 
-	if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , samples_struct.fcut, samples_struct, ncomp)) // write sanePre parameters in naive Map fits file header
+	if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, sanePic_struct, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 		cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 	// clean
