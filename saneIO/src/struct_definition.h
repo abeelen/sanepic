@@ -59,7 +59,6 @@ struct ini_var_strings
 #endif
 
 
-
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {
@@ -198,19 +197,21 @@ struct saneCheck
 	bool checktime;
 	bool checkGain;
 	bool checkflag;
-
-
 };
 
+struct bolo_chaine
+{
+	char **fields;
+	int nbolo;
+	struct bolo_chaine *next;
+};
 
-//struct sanePS_saved_data
+//struct bolo_chaine
 //{
-//	bool step2_completed;
-//	bool step3_completed;
-//	bool step4_completed;
-//	bool step5_completed;
-//	bool step6_completed;
-//
+//	std::vector<std::string> fields;
+//	int nbolo;
+//	struct bolo_chaine *next;
 //};
+
 
 #endif /* STRUCT_DEFINITION_H_ */

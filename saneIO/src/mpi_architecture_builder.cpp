@@ -196,7 +196,7 @@ void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, l
 
 	valtmp = 2.0*valmin;
 	stdtmp = 2.0*stdmin;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	printf("max range min = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 #endif
 
@@ -249,7 +249,7 @@ void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, l
 		for(long kk=0;kk<ntotscan;kk++)
 			if (sizeperproc[kk] > 0.5)
 				stdtmp += (sizeperproc[kk]-double(ntot)/size)*(sizeperproc[kk]-double(ntot)/size)/size;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 		printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 #endif
 	}
@@ -260,7 +260,7 @@ void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, l
 	delete [] sizeperproc;
 	delete [] dat_compare;
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	printf("max range = %lf, std range = %lf\n",valtmp,sqrt(stdtmp));
 #endif
 
@@ -307,7 +307,7 @@ int write_ParallelizationScheme(string fname, long *position, long *frnum, int s
 			scans_index_temp[jj]=val_proc;
 		val_proc++;
 	}
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	cout << "nb proc : " << val_proc << endl;
 #endif
 
@@ -351,7 +351,7 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 	it = unique(index_copy.begin(), index_copy.end());
 	size_tmp = it - index_copy.begin();
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	//	if(rank==0){
 	cout << " my rank : " << rank << endl;
 	cout << "size unique : " << size_tmp << endl;
@@ -452,7 +452,7 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 
 
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	cout << "ntotscan" << endl;
 	cout << samples_str.ntotscan << " vs " << samples_str_para.ntotscan << endl;
 #endif
@@ -471,7 +471,7 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 	for(int ii=0;ii<samples_str.ntotscan;ii++)
 		if(samples_str_para.fitsvect[ii]!=(FitsBasename(samples_str.fitsvect[ii])+ ".fits")){
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 			cout << "comparaison triée : " << endl;
 			cout << samples_str_para.fitsvect[ii] << " vs " << FitsBasename(samples_str.fitsvect[ii]) + ".fits" << endl;
 #endif
@@ -481,7 +481,6 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 		}
 
 	return 0;
-
 }
 
 void reorder_samples_struct(int rank, struct samples &samples_struct,  int size, long &iframe_min, long &iframe_max){

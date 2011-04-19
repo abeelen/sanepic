@@ -241,13 +241,17 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 			}
 		}
 		free(header);
+
+		if (fits_write_chksum(fp, &fits_status)){ // TODO : test
+			cout << "error checksum !\n";
+			return 1;
+		}
 	}
 
 
 	if(fits_update_key(fp, TSTRING, (char *)"EXTNAME", (void*)(table_name.c_str()),
 			(char *) "table name", &fits_status))
 		return 1;
-
 
 	// write map data
 	switch (dtype) {
@@ -467,6 +471,11 @@ int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, struct param_
 	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
 			(char *) "physical unit of the field", &fits_status))
 		return 1;
+
+	if (fits_write_chksum(fptr, &fits_status)){ // TODO : test
+		cout << "error checksum !\n";
+		return 1;
+	}
 
 	// close file
 	if(fits_close_file(fptr, &fits_status)){
@@ -749,6 +758,10 @@ int write_fits_mask(std::string fnaivname, std::string maskfile)
 		return 1;
 	}
 
+	if (fits_write_chksum(fptr, &fits_status)){ // TODO : test
+		cout << "error checksum !\n";
+		return 1;
+	}
 
 	// Retrieve the image size
 	if (fits_get_img_size(fptr, 2, naxes, &fits_status)){
@@ -760,11 +773,6 @@ int write_fits_mask(std::string fnaivname, std::string maskfile)
 	//	long NAXIS1 = naxes[0];
 
 	if(fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
-
-
-		//	for(long col=1;col<NAXIS1;col++)
-		//		if(fits_copy_col(fptr, outfptr,  col, col,	0, &fits_status))
-		//			fits_report_error(stderr, fits_status);
 		if (fits_copy_data(fptr, outfptr, &fits_status)){
 			fits_report_error(stderr, fits_status);
 			return 1;

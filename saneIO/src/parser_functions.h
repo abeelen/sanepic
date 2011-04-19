@@ -12,16 +12,15 @@
 #include "utilities.h"
 #include "struct_definition.h"
 
-#ifdef USE_MPI
-#include "mpi.h"
-#endif
-
 
 extern "C"{
 #include "iniparser.h"
 #include "dictionary.h"
 }
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
 
 #define INI_NOT_FOUND 0x0001
 #define DATA_INPUT_PATHS_PROBLEM 0x0002
@@ -67,9 +66,9 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneI
 
 int check_path(std::string &output, std::string strPath, std::string path_type);
 int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct, int format);
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long n_iter, std::string noise_suffix);
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect);
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long n_iter, std::string noise_suffix, std::vector<std::vector<std::string> > bolo_vect);
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect);
 
 uint16_t check_common(std::string &output, struct param_common dir);
 uint16_t check_param_positions(std::string &output, struct param_sanePos pos_param);
@@ -80,6 +79,10 @@ void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_s
 uint16_t fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
 int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank);
 
+//int channel_list_to_chain_list(struct samples samples_struct, struct bolo_chaine *ptr, int rank);
+int channel_list_to_vect_list(struct samples samples_struct, std::vector<std::vector<std::string> > &bolo_vect, int rank);
+long compute_bololist_size(std::vector<std::string> str_vect, long &size_max);
+
 #ifdef USE_MPI
 
 void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
@@ -87,6 +90,13 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 		MPI_Datatype* message_type_ptr);
+
+//long compute_bololist_size(std::string **bololist, long iframe, long &size_max, long *size_tab, long *ndet_tab);
+//int commit_bololist(std::string **bololist, long iframe, long size_buff, long size_max, long ndet, long *size_tab, int rank);
+//int commit_bololist(std::string **bololist, long ntotscan, long *ndet_tab, int rank);
+//long compute_bololist_size(std::vector<std::string> str_vect, long &size_max);
+
+//int commit_bololist(std::vector<std::string> &str_vect, long ntotscan, long nbolo, int rank);
 
 int commit_struct_from_root(struct param_common &dir, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_saneInv &inv_param, struct param_sanePic &pic_param, struct param_sanePS &ps_param, struct samples &samples_struct, struct ini_var_strings ini_v, int rank);

@@ -266,6 +266,7 @@ int restore_session(string tmp_dir, string filename, int &completed_step, double
 		double **P, double **Rellth, double **Rellexp, double *SPref, long ndet, int ncomp, long nbins, long ns)
 {
 
+	cout << "Restoring : " << filename << endl;
 	FILE* fp;
 	string file = tmp_dir + "data_saved_sanePS_" + filename + ".bi";
 	size_t len=0;
@@ -325,7 +326,9 @@ int restore_session(string tmp_dir, string filename, int &completed_step, double
 		break;
 
 	case 6:
+#ifdef DEBUG
 		cout << "completed_step is equal to 6, sanePS has already computed : " << file << ". Continue ...\n" << endl;
+#endif
 		return 0;
 
 	default :
@@ -347,8 +350,6 @@ int save_session(string tmp_dir, string filename, int completed_step, double **c
 	string file = tmp_dir + "data_saved_sanePS_" + filename + ".bi";
 	size_t len=0;
 
-	cout << "opening " << file << " for writing\n";
-
 	if (NULL == (fp = fopen(file.c_str(), "w+")))
 	{
 		cout << "Unable to open " << file << " for writing\n";
@@ -356,8 +357,6 @@ int save_session(string tmp_dir, string filename, int completed_step, double **c
 	}
 
 	len+=fwrite(&completed_step,sizeof(int),1,fp);
-
-	cout << "completed_step : " << completed_step << endl;
 
 	switch(completed_step)
 	{

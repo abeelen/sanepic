@@ -70,6 +70,11 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 			(char *) "name of this binary table extension", &status))
 		return 1;
 
+	if (fits_write_chksum(fptr, &status)){ // TODO : test
+		cout << "error checksum !\n";
+		return 1;
+	}
+
 	// ---------------------------------------------
 	// write the spectras
 	naxes[0] = nbins;
@@ -398,7 +403,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
  */
 {
 	// dirfile path
-//	string filedir = outputDir + "dirfile"; // /Noise_data/
+	//	string filedir = outputDir + "dirfile"; // /Noise_data/
 
 	//binary name
 	string outfile = boloName + "_" + suffix + "_ell";
@@ -413,21 +418,21 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 
 
 	//	// dirfile path
-//	filedir = outputDir + "dirfile/Noise_data/ell/";
-//
-//	//	// open dirfile
-//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-//	unsigned int nframe = gd_nframes(H);
-//
-//	// close dirfile
-//	if(gd_close(H)){
-//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-//		return 1;
-//	}
-//
-//	// get nbins value
-//	//	*nbins = e.spf - 1;
-//	*nbins = nframe-1;
+	//	filedir = outputDir + "dirfile/Noise_data/ell/";
+	//
+	//	//	// open dirfile
+	//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	//	unsigned int nframe = gd_nframes(H);
+	//
+	//	// close dirfile
+	//	if(gd_close(H)){
+	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
+	//
+	//	// get nbins value
+	//	//	*nbins = e.spf - 1;
+	//	*nbins = nframe-1;
 
 	// alloc ell
 	*ell=new double[nbins+1];
@@ -444,18 +449,18 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 
 	// get entry infos
 	//	gd_entry(D, (char*)outfile.c_str(), &e);
-//	filedir = outputDir + "dirfile/Noise_data/";
-//	H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-//	nframe = gd_nframes(H);
-//
-//	// close dirfile
-//	if(gd_close(H)){
-//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-//		return 1;
-//	}
+	//	filedir = outputDir + "dirfile/Noise_data/";
+	//	H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	//	nframe = gd_nframes(H);
+	//
+	//	// close dirfile
+	//	if(gd_close(H)){
+	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
+	//		return 1;
+	//	}
 
 	// compute ndet considering entry size and nbins
-//	*ndet = nframe / (*nbins);
+	//	*ndet = nframe / (*nbins);
 
 	//alloc temp 1D array
 	Rellth_full = new double[nbins*ndet];

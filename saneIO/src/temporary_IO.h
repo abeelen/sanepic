@@ -12,8 +12,8 @@ extern "C" {
 }
 
 // dirfile functions
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
-int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max);
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
+int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
 int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&data, long ns);
 int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *&mask, long ns);
 int read_RA_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&ra, long ns);

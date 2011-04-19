@@ -19,15 +19,19 @@
 
 using namespace std;
 
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max)
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	double *d;
 	int *flag;
 	long ns;
 	DIRFILE* D, *H;
+	std::vector<string> det_vect;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+		det_vect=bolo_vect[iframe];
+
 		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
 		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
@@ -38,17 +42,9 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
 
-		string output_read = "";
-		std::vector<string> bolonames;
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
-			cout << output_read << endl;
-			return 1;
-		}
-		long ndet = (long)bolonames.size();
+		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
-		for(long idet=0; idet < ndet; idet ++){
-
-			string field = bolonames[idet];
+			string field = det_vect[idet];
 			string data_outfile = "data_" + base_name + "_" + field;
 			string flag_outfile = "flag_" + base_name + "_" + field;
 
@@ -117,12 +113,13 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 					<< endl;
 			return 1;
 		}
+
 	}
 
 	return 0;
 }
 
-int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max)
+int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	double *ra;
@@ -130,7 +127,12 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 	long ns;
 	DIRFILE* D, *H;
 
+	std::vector<string> det_vect;
+
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+		det_vect=bolo_vect[iframe];
+
 		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
 		string RAdir = dir.tmp_dir + "dirfile/" + base_name + "/RA";
 		string DECdir = dir.tmp_dir + "dirfile/" + base_name + "/DEC";
@@ -141,17 +143,9 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
 
 
-		string output_read = "";
-		std::vector<string> bolonames;
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
-			cout << output_read << endl;
-			return 1;
-		}
-		long ndet = (long)bolonames.size();
+		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
-		for(long idet=0; idet < ndet; idet ++){
-
-			string field = bolonames[idet];
+			string field = det_vect[idet];
 			string ra_outfile = "RA_" + base_name + "_" + field;
 			string dec_outfile = "DEC_" + base_name + "_" + field;
 
@@ -219,6 +213,7 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 					<< endl;
 			return 1;
 		}
+
 	}
 
 
@@ -417,7 +412,7 @@ int write_indpix(long long ind_size, long long npix, long long *indpix,
 		return 1;
 	}
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	testfile2 = outdir + "Indpix_for_conj_grad.txt";
 	if((fp = fopen(testfile2.c_str(),"w"))) {
 		fprintf(fp,"%d\n",flagon);
@@ -477,7 +472,7 @@ int write_PNd(double *PNd, long long npix, string outdir, std::string filename)
 		return 1;
 	}
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	testfile2 = outdir + "PNdCorr.txt";
 
 	if((fp = fopen(testfile2.c_str(),"w"))) {

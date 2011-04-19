@@ -226,7 +226,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 	// set pointer back to the beginning of file in order to parse the first line too
 	file.seekg (0, ios::beg);
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 	cout << "case :  " << nb_elem << endl;
 #endif
 
@@ -239,7 +239,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 
 			if (found == 0) continue;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 			cout << "frame_read : " << s << " " << d << endl;
 #endif
 			fitsfiles.push_back(s);
@@ -254,7 +254,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
 			if (found == 0) continue;
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 			cout << "frame_read : " << s << endl;
 #endif
 			fitsfiles.push_back(s);
