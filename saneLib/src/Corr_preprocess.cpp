@@ -159,10 +159,11 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 			//********************  pre-processing of data ********************//
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
-		}
-		else {
+
+			delete[] Ps;
+		}else
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
-		}
+
 
 
 
@@ -184,8 +185,6 @@ int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct sampl
 
 	delete[] data_lp;
 	delete[] samptopix;
-	if (S != NULL)
-		delete[] Ps;
 	delete[] fdata;
 
 

@@ -1,12 +1,14 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 #include "todprocess.h"
 #include "map_making.h"
 
 #include <fftw3.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_sort_double.h>
 
 #define NR_END 1
 #define FREE_ARG char*
@@ -18,24 +20,22 @@ long long *data_compare;
 
 
 
-int compare_long_long (const void *a, const void *b)
-{
-	const long long *da = (const long long *) a;
-	const long long *db = (const long long *) b;
+//int compare_long_long (const void *a, const void *b)
+//{
+//	const long long *da = (const long long *) a;
+//	const long long *db = (const long long *) b;
+//
+//	return (*da > *db) - (*da < *db);
+//}
 
-	return (*da > *db) - (*da < *db);
-}
-
-
-int compare_global_array_long_long (const void *array_1, const void *array_2)
-{
-
-	const long long *long_array_1 = (const long long *) array_1;
-	const long long *long_array_2 = (const long long *) array_2;
-
-	return (data_compare[*long_array_1] > data_compare[*long_array_2]) - (data_compare[*long_array_1] < data_compare[*long_array_2]);
-}
-
+//int compare_global_array_long_long (const void *array_1, const void *array_2)
+//{
+//
+//	const long long *long_array_1 = (const long long *) array_1;
+//	const long long *long_array_2 = (const long long *) array_2;
+//
+//	return (data_compare[*long_array_1] > data_compare[*long_array_2]) - (data_compare[*long_array_1] < data_compare[*long_array_2]);
+//}
 
 void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS2,
 		long long *indpix, long long *samptopix, long long npix, double *PNd){
@@ -92,8 +92,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	long long kk2, ii2, ndataf;
 	long long *pixpos;
 	long long count, count_;
-	long long *pixtosamp;
-
+	size_t *pixtosamp;
 
 	//fft stuff
 	fftw_complex  *Nk_;
@@ -103,6 +102,8 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
 	pixpos = new long long[ndata];
+	data_compare = new long long[ndata];
+	pixtosamp = new size_t[ndata];
 
 
 	// N^-1
@@ -121,18 +122,10 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		}
 	}
 
+	gsl_sort_index ((size_t*)pixtosamp, (double*)pixpos, 1, ndata); // replace qsort with compare_global_array_long_long
 
-	data_compare = new long long[ndata];
-	pixtosamp = new long long[ndata];
-
-	for (long ii=0;ii<ndata;ii++)
-		pixtosamp[ii] = ii;
-
-	for (long ii=0;ii<ndata;ii++)
-		data_compare[ii] = pixpos[ii];
-
-	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
-	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
+	for(long ii=0; ii< ndata; ii++)
+		data_compare[ii]=pixpos[pixtosamp[ii]];
 
 	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
@@ -184,8 +177,8 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	long long kk2, ii2, ndataf;
 	long long *pixpos;
 	long long count, count_;
-	long long *pixtosamp;
-
+	//	long long *pixtosamp;
+	size_t *pixtosamp;
 
 	//fft stuff
 	fftw_complex  *Nk_;
@@ -201,9 +194,11 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
 	pixpos = new long long [ndata];
+	data_compare = new long long[ndata];
+	pixtosamp = new size_t[ndata];
 
-	fill(N_,N_+ndata,0.0);
-	fill(pixpos,pixpos+ndata,0);
+	//	fill(N_,N_+ndata,0.0); // TODO are the fills here really needed or not ??
+	//	fill(pixpos,pixpos+ndata,0);
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){
@@ -217,25 +212,23 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	for (long ii=0;ii<ndata;ii++)
 		pixpos[ii] = indpix[samptopix[ii]];
 
+	//	pixtosamp = new long long[ndata];
 
 
-	data_compare = new long long[ndata];
-	pixtosamp = new long long[ndata];
+	//	for (long ii=0;ii<ndata;ii++)
+	//		pixtosamp[ii] = ii;
 
+	//	for (long ii=0;ii<ndata;ii++){
+	//		data_compare[ii] = pixpos[ii];
+	//	}
 
+	//	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
+	//	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
 
-	for (long ii=0;ii<ndata;ii++)
-		pixtosamp[ii] = ii;
+	gsl_sort_index ((size_t*)pixtosamp, (double*)pixpos, 1, ndata); // replace qsort with compare_global_array_long_long
 
-	for (long ii=0;ii<ndata;ii++)
-		data_compare[ii] = pixpos[ii];
-
-
-
-	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
-	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
-
-
+	for(long ii=0; ii< ndata; ii++)
+		data_compare[ii]=pixpos[pixtosamp[ii]];
 
 	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
@@ -547,7 +540,7 @@ int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, dou
 	delete[] SpN;
 	delete[] ell;
 
-return 0;
+	return 0;
 
 }
 
