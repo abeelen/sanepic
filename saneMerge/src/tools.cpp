@@ -218,6 +218,10 @@ void copy_time(fitsfile *outfptr, struct samples samples_struct, long ns_final)
 
 		// clean up
 		delete [] time;
+
+		if (fits_close_file(fptr, &status))
+			fits_report_error(stderr, status);
+
 	}
 	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, time_bis, &status); // write time table in output file
 

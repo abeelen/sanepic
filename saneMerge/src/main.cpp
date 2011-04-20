@@ -85,18 +85,21 @@ int main(int argc, char *argv[]) {
 		outname += FitsBasename(samples_struct.fitsvect[ii]) + "_merged_with_"; // generate output filename !
 	}
 
+
 	format_fits+=test_format(samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
 	outname += FitsBasename(samples_struct.fitsvect[samples_struct.ntotscan-1]) + ".fits";
 	outname = "!" + outdir + outname; // complete output path + file name
-	cout << outname << endl;
+#ifdef DEBUG
+	cout << "Creating : \n" << outname << endl << endl;
+#endif
 
 	switch(format_fits/samples_struct.ntotscan){ // check compatibility between each input files (same format)
 
-	case 1: cout << "HIPE format found\n";
+	case 1: cout << "HIPE format found\n\n";
 	format_fits=1;
 	break;
 
-	case 2: cout << "SANEPIC format found\n";
+	case 2: cout << "SANEPIC format found\n\n";
 	format_fits=2;
 	break;
 
@@ -115,6 +118,8 @@ int main(int argc, char *argv[]) {
 
 	// read the first file detector list (which is the same in every scans)
 	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
+
+	cout << "Merging files..." << endl;
 
 	// open final fits file
 	if (fits_create_file(&outfptr, outname.c_str(), &status))
@@ -188,10 +193,10 @@ int main(int argc, char *argv[]) {
 	if (fits_close_file(outfptr, &status)) // close output file
 		fits_report_error(stderr, status);
 
-	//clean up
-//	delete [] samples_struct.nsamples;
+	cout << "done.\n";
 
-	cout << "End of saneMerge\n";
+
+	cout << "END OF SANEMERGE\n";
 
 	return EXIT_SUCCESS;
 
