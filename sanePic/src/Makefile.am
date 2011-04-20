@@ -6,12 +6,12 @@ sanePic_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS)  \
 	$(SANEIO_LIB) $(SANELIB_LIB)
 
 if PARAFRAME
-   sanePic_CPPFLAGS += -DPARA_FRAME
+   sanePic_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
 if PARABOLO
-   sanePic_CPPFLAGS += -DPARA_BOLO
+   sanePic_CPPFLAGS += -DPARA_BOLO -DUSE_MPI
    ext=_PARA_BOLO
 endif
 
