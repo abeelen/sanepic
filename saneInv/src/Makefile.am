@@ -6,12 +6,12 @@ saneInv_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 	$(SANEIO_LIB) $(SANELIB_LIB)
 
 if PARAFRAME
-   saneInv_CPPFLAGS += -DPARA_FRAME
+   saneInv_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
 if PARABOLO
-   saneInv_CPPFLAGS += -DPARA_FRAME
+   saneInv_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
