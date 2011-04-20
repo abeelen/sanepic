@@ -5,13 +5,17 @@ saneCheck_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 saneCheck_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 	$(SANEIO_LIB)
 
+if GPROF
+  saneCheck_CPPFLAGS += -pg
+endif	
+
 if PARAFRAME
-   saneCheck_CPPFLAGS += -DPARA_FRAME
+   saneCheck_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
 if PARABOLO
-   saneCheck_CPPFLAGS += -DPARA_FRAME
+   saneCheck_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
