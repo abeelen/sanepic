@@ -15,7 +15,6 @@ extern "C" {
 #include "nrutil.h"
 }
 
-
 using namespace std;
 
 int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_param, struct param_common dir, struct param_sanePos pos_param, struct param_sanePS structPS, struct samples samples_struct,
@@ -92,7 +91,9 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 		return 1;
 
 	if(gotostep>=2){
+#ifdef DEBUG
 		cout << "skipping step 2\n";
+#endif
 	}else{
 		//----------------------------------- COMMON MODE -------------------------------//
 #ifdef DEBUG
@@ -104,16 +105,16 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 
 		completed_step=2;
 		if(structPS.save_data){
-			cout << "before writing for step 2 !" << endl;
 			save_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), completed_step, commonm2, N, P, Rellexp, Rellth, SPref, ndet, structPS.ncomp, nbins, samples_struct.nsamples[iframe]);
-			cout << "after writing for step 2 !" << endl;
 		}
 	}
 
 
 
 	if(gotostep>=3){
+#ifdef DEBUG
 		cout << "skipping step 3\n";
+#endif
 	}else{
 		//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 #ifdef DEBUG
@@ -130,7 +131,9 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 	}
 
 	if(gotostep>=4){
+#ifdef DEBUG
 		cout << "skipping step 4\n";
+#endif
 	}else{
 		//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 #ifdef DEBUG
@@ -146,7 +149,9 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 	}
 
 	if(gotostep>=5){
+#ifdef DEBUG
 		cout << "skipping step 5\n";
+#endif
 	}else{
 		//----------------------------------- FIT COMPONENT, PS and MIXMAT -------------------------------//
 		//TODO: dummy fcut for the moment...
@@ -163,7 +168,9 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_sanePre proc_pa
 	}
 
 	if(gotostep>=6){
+#ifdef DEBUG
 		cout << "skipping step 6\n";
+#endif
 	}else{
 		//----------------------------------- WRITE TO DISK -------------------------------//
 #ifdef DEBUG

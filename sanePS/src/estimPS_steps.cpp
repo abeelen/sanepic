@@ -305,8 +305,6 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		delete [] flag;
 	}
 
-	cout << "N values estimate_noise_PS ! " << N[0][0] << " " << N[0][50] << " " << N[5][30] << endl;
-
 	////*********************** Component power spectra
 
 	for (long ii=0;ii<ncomp;ii++){
@@ -556,7 +554,7 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
 
-	printf("\nnbins2 = %ld                \n",nbins2);
+//	printf("\nnbins2 = %ld                \n",nbins2);
 
 
 
@@ -859,9 +857,9 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 	//****************************** Compute covariance matrix from the fitted model
 
-
-	printf("\nEM step completed\n");
-
+#ifdef DEBUG
+	cout << "\n[ " << rank << " ] EM step completed\n";
+#endif
 
 	for (long jj=0;jj<nbins;jj++)
 		for (long ii=0;ii<ndet*ndet;ii++)

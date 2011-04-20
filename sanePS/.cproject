@@ -34,12 +34,10 @@
 <option id="gnu.cpp.compiler.option.debugging.prof.867737333" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1774017187" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
-<listOptionValue builtIn="false" value="USE_MPI"/>
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
-</option>
-<option id="gnu.cpp.compiler.option.preprocessor.def.356575180" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="DEBUG"/>
+<listOptionValue builtIn="false" value="USE_MPI"/>
 </option>
+<option id="gnu.cpp.compiler.option.preprocessor.def.356575180" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1955962404" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.2035480280" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -1525,12 +1523,11 @@
 <option id="gnu.cpp.compiler.option.debugging.gprof.185985565" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="false" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.preprocessor.def.373614104" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="PARA_FRAME"/>
-<listOptionValue builtIn="false" value="DEBUG"/>
 <listOptionValue builtIn="false" value="USE_MPI"/>
 <listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.undef.1017751721" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
-<listOptionValue builtIn="false" value="PARA_BOLO"/>
+<listOptionValue builtIn="false" value="DEBUG"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1702208072" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>

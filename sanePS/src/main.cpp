@@ -31,8 +31,10 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+
 	int size;
 	int rank;
+
 #ifdef PARA_FRAME
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -43,8 +45,8 @@ int main(int argc, char *argv[])
 	rank = 0;
 #endif
 
-	if (rank == 0)
-		cout << endl << "sanePS :  Noise Power Spectra Estimation" << endl;
+	if(rank==0)
+		cout << endl << "Beginning of sanePS :  Noise Power Spectra Estimation" << endl;
 
 	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
@@ -73,6 +75,8 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string output = "";
 
+	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
+
 	uint16_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FSAMP_WRONG_VALUE | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
 			FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xdd1f
@@ -85,25 +89,25 @@ int main(int argc, char *argv[])
 	uint16_t parsed=0x0000; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
-	if ((argc < 2) || (argc > 3)) // no enough or too many arguments
-		compare_to_mask = 0x0001;
-	else {
-		structPS.restore = 0; //default
+	if(rank==0){
 
-		if (argc == 3) {
+		if ((argc < 2) || (argc > 3)) // no enough or too many arguments
+			compare_to_mask = 0x0001;
+		else {
+			structPS.restore = 0; //default
+			if (argc == 3) {
 
-			structPS.restore = 1;
-			if (strcmp(argv[1], (char*) "--restore") != 0) {
-				if (strcmp(argv[2], (char*) "--restore") != 0)
-					indice_argv = -1;
-				else
-					indice_argv = 1;
-			} else {
-				indice_argv = 2;
+				structPS.restore = 1;
+				if (strcmp(argv[1], (char*) "--restore") != 0) {
+					if (strcmp(argv[2], (char*) "--restore") != 0)
+						indice_argv = -1;
+					else
+						indice_argv = 1;
+				} else {
+					indice_argv = 2;
+				}
 			}
-		}
 
-		if(rank==0){
 			if (indice_argv > 0){
 				/* parse ini file and fill structures */
 				parsed=parser_function(argv[indice_argv], output, dir, samples_struct, pos_param, proc_param,
@@ -116,6 +120,7 @@ int main(int argc, char *argv[])
 				cout << endl << output << endl;
 			}else
 				compare_to_mask = 0x0001;
+
 		}
 
 		if(compare_to_mask>0x0000){
@@ -135,6 +140,7 @@ int main(int argc, char *argv[])
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return EX_CONFIG;
+
 		}
 	}
 
@@ -185,7 +191,22 @@ int main(int argc, char *argv[])
 	iframe_max = samples_struct.ntotscan;
 #endif
 
-	fill_sanePS_struct(structPS, samples_struct, dir); // all ranks do it !
+	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
+		cout << "error in channel_list_to_vect_list" << endl;
+		return EX_CONFIG;
+	}
+
+	if(rank==0){
+		// parser print screen function
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
+				structPS, struct_sanePic, saneInv_struct);
+
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, bolo_list);
+	}
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+#endif
 
 
 	// Open the dirfile to read temporary files
@@ -201,7 +222,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	//	getchar();
+	fill_sanePS_struct(structPS, samples_struct, dir); // all ranks do it !
 
 	long long addnpix = 0;
 	int factdupl = 1;
@@ -220,7 +241,7 @@ int main(int argc, char *argv[])
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	if (rank == 0){
-		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
+		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels\n" << endl; // print map size
 
 		//		if(pos_param.maskfile!=""){ // in case a mask have been used
 		long long test_size;
@@ -242,7 +263,6 @@ int main(int argc, char *argv[])
 #endif
 			return (EX_IOERR);
 		}
-		//		}
 
 		addnpix = samples_struct.ntotscan * npixsrc;
 
@@ -273,15 +293,13 @@ int main(int argc, char *argv[])
 		fill(S,S+npix,0.0);
 		// if map argument build S from map
 		if (rank == 0){
-			cout << "Reading model map : " << structPS.signame << endl;
+#ifdef DEBUG
+			cout << "Reading map.     : " << structPS.signame << endl;
+#endif
 
 			// read pure signal
 			if (read_fits_signal(structPS.signame, S, indpix, NAXIS1, NAXIS2, wcs)) {
 #ifdef PARA_FRAME
-				//				MPI_Sendrecv_replace(data_adr,count,datatype,
-				//				destproc,sendtag,srcproc,recvtag,
-				//				comm,status_adr)
-
 				MPI_Abort(MPI_COMM_WORLD, 1);
 #else
 				return (EX_IOERR);
@@ -303,26 +321,25 @@ int main(int argc, char *argv[])
 		} //rank ==0
 
 #ifdef PARA_FRAME
+
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
 		MPI_Bcast(&npixsrc,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-#endif
-
-		addnpix = samples_struct.ntotscan * npixsrc;
-		indpix_size = factdupl * NAXIS1 * NAXIS2 + 2 + addnpix;
-
-
-#ifdef PARA_FRAME
 
 		if(rank!=0){
+			addnpix = samples_struct.ntotscan * npixsrc;
+			indpix_size = factdupl * NAXIS1 * NAXIS2 + 2 + addnpix;
 			indpix = new long long[indpix_size];
-			//			indpsrc = new long long[indpsrc_size];
+			S = new double[npix];
+//			fill(S,S+npix,0.0);
 		}
+
 		MPI_Bcast(indpix,indpix_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
 		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
+
 #endif
 
 		wcsvfree(&nwcs, &wcs);
-
 
 	} // structPS.signame != ""
 
@@ -330,8 +347,6 @@ int main(int argc, char *argv[])
 		if (rank == 0){
 			cout << "Checking previous session\n";
 			struct checksum chk_t, chk_t2;
-			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
-			//					indpsrc, NAXIS1 * NAXIS2, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
 			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
 					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
 			read_checksum(dir.tmp_dir, chk_t2, "sanePS"); // read previous checksum
@@ -343,14 +358,6 @@ int main(int argc, char *argv[])
 				return EX_CONFIG;
 			}
 		}
-	}
-
-	if(rank==0){
-		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic, saneInv_struct);
-
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
 	}
 
 	if (structPS.save_data) {
@@ -376,14 +383,14 @@ int main(int argc, char *argv[])
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 
-		std::vector<string> det;
+		std::vector<string> det=bolo_list[iframe];
 
-		string output_read = "";
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-			cout << output_read << endl;
-			cerr << "input channel list could not be read for : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
-			continue; // skip the file if channel list (was not found) / (is incorrect) !
-		}
+		//		string output_read = "";
+		//		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
+		//			cout << output_read << endl;
+		//			cerr << "input channel list could not be read for : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
+		//			continue; // skip the file if channel list (was not found) / (is incorrect) !
+		//		}
 
 		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
@@ -398,30 +405,40 @@ int main(int argc, char *argv[])
 		// and the value of alpha, the amplitude factor which depends on detectors but not on time (see formulae (3) in "Sanepic:[...], Patanchon et al.")
 	}
 
-
-#ifdef PARA_FRAME
-
-	delete [] ini_v.fitsvect;
-	delete [] ini_v.noisevect;
-	delete [] ini_v.bolovect;
-
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Finalize();
-#endif
-
+	if (rank == 0)
+		cout << endl << "done." << endl;
 
 	fftw_cleanup();
 
 	if (structPS.signame != "") {
 		delete[] S;
 		delete[] indpix;
-	}
+	}else
+		if(rank==0)
+			delete[] indpix;
+
+
+	if(rank==0)
+		delete[] indpsrc;
 
 	if (gd_close(samples_struct.dirfile_pointer))
 		cout << "error closing dirfile : " << filedir << endl;
 
-	if (rank == 0)
-		cout << endl << "done." << endl;
+#ifdef PARA_FRAME
+
+	//	if(rank!=0)
+	//		delete [] indpix;
+
+	delete[] ini_v.fitsvect;
+	delete[] ini_v.noisevect;
+	delete[] ini_v.bolovect;
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+#endif
+
+	if(rank==0)
+		cout << endl << "END OF SANEPS" << endl;
 
 	return EXIT_SUCCESS;
 }
