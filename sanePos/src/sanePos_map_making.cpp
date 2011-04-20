@@ -29,7 +29,7 @@ using namespace std;
 
 int computeMapMinima(struct samples samples_struct,
 		long iframe_min, long iframe_max,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max)
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
@@ -48,13 +48,9 @@ int computeMapMinima(struct samples samples_struct,
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
-		std::vector<string> det_vect;
 
-		string output_read = "";
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-			cout << output_read << endl;
-			return 1;
-		}
+		std::vector<string> det_vect = bolo_vect[iframe];
+
 		long ndet = (long)det_vect.size();
 
 		double *ra, *dec, *phi, **offsets;
@@ -158,7 +154,7 @@ int computeMapMinima(struct samples samples_struct,
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
-	//TODO : The interval has to be increased or some pixels will be outside the map... NOT UNDERSTOOD WHY...
+	// The interval has to be increased or some pixels will be outside the map...
 	// add a small interval of 1 arcmin
 	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
 	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
@@ -210,7 +206,7 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 
 int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 		long iframe_min, long iframe_max,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max){
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect){
 
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
 	// output (ra|dec)_(min|max)
@@ -233,13 +229,9 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
-		std::vector<string> det_vect;
 
-		string output_read = "";
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-			cout << output_read << endl;
-			return 1;
-		}
+		std::vector<string> det_vect = bolo_vect[iframe];
+
 		long ndet = (long)det_vect.size();
 
 		long ns = samples_struct.nsamples[iframe];
@@ -423,7 +415,7 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 
 
 
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns, int para_bolo_indice, int para_bolo_size,
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
 		long long *indpix, long iframe, long *hits)
 {
 
@@ -440,7 +432,7 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, st
 	bfilter = new double[ns/2+1];
 
 
-	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+	for (long idet1=0;idet1<ndet;idet1++){
 
 		field1 = det[idet1];
 

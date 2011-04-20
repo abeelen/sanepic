@@ -83,7 +83,7 @@ int computePixelIndex(string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	/*!
@@ -104,13 +104,9 @@ int computePixelIndex(string outdir,
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
 		ns = samples_struct.nsamples[iframe];
-		std::vector<string> det_vect;
 
-		string output_read = "";
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-			cout << output_read << endl;
-			return 1;
-		}
+		std::vector<string> det_vect = bolo_vect[iframe];
+
 		long ndet = (long)det_vect.size();
 
 
@@ -217,15 +213,8 @@ int computePixelIndex(string outdir,
 			delete [] phi;
 			delete [] wcsstatus;
 
-
-
-			// Combine position and bolo flags
-			// and check
-
 			int *bolo_flag=NULL;
 
-			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
-			//				return 1;
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
 				return 1;
 
@@ -233,8 +222,6 @@ int computePixelIndex(string outdir,
 
 			for (long ii=0; ii<ns; ii++){
 
-				// TODO : Update this to read the flag corresponding to the channel...
-				//				if (flpoint[ii] == 1) bolo_flag[ii] = 1;
 				if (bolo_flag[ii] != 0) bolo_flag[ii] = 1;
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
@@ -314,7 +301,7 @@ int computePixelIndex_HIPE(string outdir,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	/*!
@@ -337,15 +324,9 @@ int computePixelIndex_HIPE(string outdir,
 		fits_file=samples_struct.fitsvect[iframe];
 		ns = samples_struct.nsamples[iframe];
 
-		std::vector<string> det_vect;
+		std::vector<string> det_vect = bolo_vect[iframe];
 
-		string output_read = "";
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-			cout << output_read << endl;
-			return 1;
-		}
 		long ndet = (long)det_vect.size();
-
 
 		double *ra, *dec;
 		int *flag=NULL;
@@ -466,11 +447,14 @@ int computePixelIndex_HIPE(string outdir,
 					break;
 
 				case 2:												// sample is rejected
+
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
 					pixout = 1; 									// pixel is out of map
 					printf("[%2.2i] %s PIXEL OUT, ii = %ld, xx = %lld, yy = %lld\n",rank, field.c_str(), ii,xx[ii],yy[ii]);
 					break;
+
 				case 3:												// apodized data -> flag
+
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
 					flagon = 1;
 					break;

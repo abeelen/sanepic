@@ -61,8 +61,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-
-
 	int size; /*! size = number of processor used for this step*/
 	int rank; /*! rank = processor MPI rank*/
 
@@ -71,15 +69,13 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size); // get mpi number of processors
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank); // each processor is given a number
-	if(rank==0)
-		printf("sanePos:\n");
 #else
 	size = 1; // non-MPI usage : 1 processor with number 0
 	rank = 0;
-	printf("sanePos:\n");
-	cout << "Mpi is not used for this step" << endl;
 #endif
 
+	if(rank==0)
+		printf("\nBeginning of sanePos:\n\n");
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePre proc_param;
@@ -132,15 +128,13 @@ int main(int argc, char *argv[])
 	std::vector<string> val;
 	std::vector<string> com;
 
+	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
+
 	uint16_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
 			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc2ff
 
 	string field; /*! actual boloname in the bolo loop */
-
-#ifdef DEBUG_PRINT
-	time_t t2, t3;
-#endif
 
 	// -----------------------------------------------------------------------------//
 
@@ -184,10 +178,9 @@ int main(int argc, char *argv[])
 	}
 
 
-
 	// -----------------------------------------------------------------------------//
-#ifdef DEBUG_PRINT
-	t2=time(NULL);
+#ifdef DEBUG
+	time_t t2=time(NULL);
 #endif
 
 
@@ -238,19 +231,33 @@ int main(int argc, char *argv[])
 
 #endif
 
-	time_t t2=time(NULL);
+	//	struct bolo_chaine bolo_0;
+	//	struct bolo_chaine *ptr;
+	//
+	//	ptr=&bolo_0;
+	//
+	//	if(channel_list_to_chain_list(samples_struct, ptr, rank))
+	//		cout << "error in channel_list_to_chain_list" << endl;
+	//
+	//	ptr=&bolo_0;
+
+	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
+		cout << "error in channel_list_to_vect_list" << endl;
+		return EX_CONFIG;
+	}
 
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
+		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct, bolo_list);
 	}
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
+
 
 	// Open the dirfile to read temporary files
 	string filedir = dir.tmp_dir + "dirfile";
@@ -259,7 +266,7 @@ int main(int argc, char *argv[])
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 		return 1;
@@ -268,7 +275,7 @@ int main(int argc, char *argv[])
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 		return  EX_OSERR;
@@ -282,7 +289,7 @@ int main(int argc, char *argv[])
 	if (pos_param.maskfile == ""){
 
 		if(rank==0)
-			printf("\n\nDetermining the size of the map\n");
+			printf("\n\nDetermining Map Parameters...\n");
 
 		// TODO: Different ways of computing the map parameters :
 		// 1 - find minmax of the pointings on the sky -> define map parameters from that
@@ -295,7 +302,7 @@ int main(int argc, char *argv[])
 			case 0:
 				if(computeMapMinima(samples_struct,
 						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max)){
+						ra_min,ra_max,dec_min,dec_max, bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -305,7 +312,7 @@ int main(int argc, char *argv[])
 			case 1:
 				if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
 						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max)){
+						ra_min,ra_max,dec_min,dec_max, bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -341,10 +348,12 @@ int main(int argc, char *argv[])
 		coordscorner[2] = gdec_min;
 		coordscorner[3] = gdec_max;
 
+#ifdef DEBUG
 		if (rank == 0) {
 			printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max);
 			printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
 		}
+#endif
 
 		computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
@@ -387,7 +396,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// TODO : test it !!!
+	// TODO : test and run with real data !!!
 	//	if(modify_mask_flag_in_dirfile(dir.tmp_dir, samples_struct, indpsrc,
 	//			NAXIS1, NAXIS2, iframe_min, iframe_max)){
 	//		cout << "ERROR in  modify_mask_flag_in_dirfile... Exiting...\n";
@@ -398,7 +407,7 @@ int main(int argc, char *argv[])
 	//	}
 
 	if (rank == 0) {
-		printf("  Map Size : %ld x %ld pixels\n", NAXIS1, NAXIS2);
+		printf("Map Size         : %ld x %ld pixels\n", NAXIS1, NAXIS2);
 		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -432,8 +441,8 @@ int main(int argc, char *argv[])
 	// Compute pixels indices
 	//**********************************************************************************
 
-	if(rank==0)
-		printf("\n\nCompute Pixels Indices\n");
+	//	if(rank==0)
+	//		printf("\n\nCompute Pixels Indices\n");
 
 	switch (pos_param.fileFormat) {
 	case 0:
@@ -442,7 +451,7 @@ int main(int argc, char *argv[])
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout)){
+				indpsrc, npixsrc, flagon, pixout, bolo_list)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -455,7 +464,7 @@ int main(int argc, char *argv[])
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout)){
+				indpsrc, npixsrc, flagon, pixout, bolo_list)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -465,15 +474,19 @@ int main(int argc, char *argv[])
 	}
 
 
+
 #ifdef PARA_FRAME
-	if(rank==0)
+	if(rank==0){
 		pixon_tot = new long long[sky_size];
+		fill(pixon_tot,pixon_tot+sky_size,0);
+	}
 	MPI_Reduce(pixon,pixon_tot,sky_size,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 	pixon_tot=pixon;
 #endif
 
 	indpix = new long long[sky_size];
+	fill(indpix,indpix+sky_size,0);
 
 	if(rank==0){
 
@@ -502,15 +515,11 @@ int main(int argc, char *argv[])
 			return(EX_CANTCREAT);
 		}
 
-	}
-
-
-	if (pixout)
-		printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
-	if(rank==0){
-		printf("Total number of Scans : %d \n", (int) samples_struct.ntotscan);
-		printf("Size of the map : %ld x %ld (using %lld pixels)\n", NAXIS1, NAXIS2, sky_size);
-		printf("Total Number of filled pixels : %lld\n", npix);
+		//		printf("Total number of Scans : %d \n", (int) samples_struct.ntotscan);
+		printf("Pixels Indices   : %lld\n", sky_size);
+		printf("Filled Pixels    : %lld\n", npix);
+		if (pixout)
+			printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	}
 
 
@@ -522,7 +531,6 @@ int main(int argc, char *argv[])
 
 	//--------------------------------------- NAIVE MAP COMPUTATION ------------------------------------------//
 
-
 	// (At N-1 D) memory allocation
 	PNdNaiv= new double[npix];
 	hitsNaiv=new long[npix];
@@ -531,7 +539,7 @@ int main(int argc, char *argv[])
 	fill(hitsNaiv,hitsNaiv+npix,0);
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	if(rank==0){	// global (At N-1 D) malloc for mpi
 		PNdtotNaiv = new double[npix];
@@ -542,9 +550,9 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0)
-		printf("\nComputing Naïve map\n");
+		printf("\nComputing Naïve map...\n");
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -556,32 +564,16 @@ int main(int argc, char *argv[])
 		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 		f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
-		string output_read = "";
-		std::vector<string> det_vect;
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-			cout << output_read << endl;
-#ifdef USE_MPI
-			MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-			return EX_CONFIG;
-		}
-
+		std::vector<string> det_vect = bolo_list[iframe];
 		long ndet = (long)det_vect.size();
 
 		int pb=0;
 
-#ifdef PARA_FRAME
-		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet,proc_param.poly_order, proc_param.napod, f_lppix, ns, 0, 1, indpix, iframe, hitsNaiv);
-		// Returns Pnd = (At N-1 d), Mp and hits
-#else
-
-		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, rank, size, indpix, iframe, hitsNaiv);
-
-#endif
+		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, indpix, iframe, hitsNaiv);
 
 		if(pb>0){
 			cout << "Problem after do_PtNd_Naiv. Exiting...\n";
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return -1;
@@ -590,7 +582,7 @@ int main(int argc, char *argv[])
 	} // end of iframe loop
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	MPI_Reduce(PNdNaiv,PNdtotNaiv,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(hitsNaiv,hitstotNaiv,npix,MPI_LONG,MPI_SUM,0,MPI_COMM_WORLD);
 
@@ -600,14 +592,11 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(rank==0)
-		printf("\nEnd of Pre-Processing\n");
-
 	if (rank == 0){
 
 		string fnaivname = dir.output_dir + "naivMap.fits";
 
-		cout << "Output file : " << fnaivname << endl;
+		cout << "Output file      : naivMap.fits" << endl;
 
 		double *map1d;
 		long long mi;
@@ -619,7 +608,6 @@ int main(int argc, char *argv[])
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					//					if(hitsNaiv[indpix[mi]]>0)
 					map1d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitstotNaiv[indpix[mi]];
 				} else {
 					map1d[mi] = NAN;
@@ -659,7 +647,7 @@ int main(int argc, char *argv[])
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
-		if(write_fits_hitory2(fnaivname, NAXIS1, NAXIS2, dir.dirfile, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS.ncomp)) // write sanePre parameters in naive Map fits file header
+		if(write_fits_hitory2(fnaivname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
 		if (pos_param.maskfile != "")
 			if(write_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
@@ -670,7 +658,7 @@ int main(int argc, char *argv[])
 	}
 	/* ---------------------------------------------------------------------------------------------*/
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 	if(rank==0){
 		// clean up
 		delete [] PNdtotNaiv;
@@ -683,12 +671,11 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0){
-#ifdef DEBUG_PRINT
+#ifdef DEBUG
 		//Get processing time
 		t3=time(NULL);
 		printf("\nProcessing time : %d sec\n",(int)(t3-t2));
 #endif
-		printf("\nCleaning up\n");
 	}
 
 	// clean up
@@ -706,11 +693,14 @@ int main(int argc, char *argv[])
 	if (gd_close(samples_struct.dirfile_pointer))
 		cout << "error closing dirfile : " << filedir << endl;
 
+
+#ifdef DEBUG
 	time_t t3=time(NULL);
 	cout << "Total Time : " << t3-t2 << " sec\n";
+#endif
 
 	if(rank==0)
-		printf("End of sanePos\n");
+		printf("\nEND OF SANEPOS\n");
 
 #ifdef PARA_FRAME
 	if(rank==0)
