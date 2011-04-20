@@ -15,20 +15,20 @@ int check_commonHDU(std::string fname,long ns, long ndet, struct checkHDU &check
 int check_altpositionHDU(std::string fname,long ns, long ndet, struct checkHDU &check_it);
 
 /*! Check presence of non-flagged NANs in position tables */
-int check_NAN_positionHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
+long check_NAN_positionHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
 
 /*! check presence of non-flagged NANs in time, signal and mask tables */
-int check_NAN_commonHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
+long check_NAN_commonHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
 
 /*! check non-flagged NANs in RA/DEC HIPE format */
-int check_NAN_altpositionHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
+long check_NAN_altpositionHDU(std::string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
 
 /*! Check that a given fits file bolometer list is exactly the same as the first input fits file one */
 bool check_bolos(std::vector<std::string> bolo_fits_vect, std::vector<std::string> bolo_fits_0_vect);
 
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
-int check_flag(std::string fname, std::vector<std::string> det, long ndet, long ns, std::string outname, long *&bolos_global,
-		long *&bolos_global_80, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it);
+int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global, long &n_hund,
+		long *&bolos_global_80, long &n_heig, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it);
 
 /*! check for time gaps in time table */
 int check_time_gaps(std::string fname,long ns, double fsamp, std::vector<long> &indice, double &Populated_freq, struct checkHDU check_it);

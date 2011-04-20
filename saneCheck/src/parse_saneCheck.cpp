@@ -188,33 +188,34 @@ int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct){
 void print_saneCheck_ini(struct saneCheck check_struct){
 
 
-	cout << endl;
+	cout << endl << "Checks : ..." << endl;
 
 	//	if(check_struct.bolo_gain_check!="")
 	//	check_struct.bolo_gain_check=""; // to be printed
-	cout <<  "Check NaNs in fits' tables : ";
+	cout <<  "NaNs in data     : ";
 	if(!check_struct.checkNAN)
-		cout <<  "NO" << endl;
+		cout <<  "no" << endl;
 	else
-		cout <<  "YES" << endl;
+		cout <<  "yes" << endl;
 
-	cout << "Check time gaps in time fits fable : ";
+	cout << "time gaps        : ";
 	if(!check_struct.checktime)
-		cout <<  "NO" << endl;
+		cout <<  "no" << endl;
 	else
-		cout <<  "YES" << endl;
+		cout <<  "yes" << endl;
 
-	cout << "Check bolometer gains : ";
+	cout << "Gains            : ";
 	if(!check_struct.checkGain)
-		cout <<  "NO" << endl;
+		cout <<  "no" << endl;
 	else
-		cout <<  "YES" << endl;
+		cout <<  "yes" << endl;
 
-	cout << "Check timelines flag %age : ";
+	cout << "flags            : ";
 	if(!check_struct.checkflag)
-		cout <<  "NO" << endl;
+		cout <<  "no" << endl;
 	else
-		cout <<  "YES" << endl;
+		cout <<  "yes" << endl;
 
+	cout << endl;
 
 }

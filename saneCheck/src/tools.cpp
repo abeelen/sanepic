@@ -391,7 +391,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 	return 0;
 }
 
-int check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
+long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! Check presence of non-flagged NANs in position tables */
 {
 
@@ -399,6 +399,7 @@ int check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, lo
 	double *ra; // ra, dec, phi and offsets table are used to read the fits tables
 	double *dec,*phi;
 	double **offsets;
+	long nan_found=0;
 
 	int *flag; // to read mask table
 	if(check_it.checkREFERENCEPOSITION){
@@ -412,12 +413,15 @@ int check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, lo
 			for(long jj=0;jj<ns_test;jj++){ // check NANs
 				if(isnan(ra[jj])&&(flag[jj]==0)){
 					cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+					nan_found++;
 				}
 				if(isnan(dec[jj])&&(flag[jj]==0)){
 					cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+					nan_found++;
 				}
 				if(isnan(phi[jj])&&(flag[jj]==0)){
 					cout << "Warning <! a NAN has been found in \"phi\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+					nan_found++;
 				}
 			}
 
@@ -437,17 +441,18 @@ int check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, lo
 			if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){ // check NANs
 				cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
 				cout << "You should not take this detector for the computation of Sanepic\n";
+				nan_found++;
 			}
 
 		// clean up
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 
-	return 0;
+	return nan_found;
 
 }
 
-int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
+long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! check presence of non-flagged NANs in time, signal and mask tables */
 {
 
@@ -455,7 +460,7 @@ int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long
 	double *signal;
 	int *flag;
 	double *time;
-
+	long nan_found=0;
 
 	// check nans in mask image
 	for(long jj=0;jj<ndet;jj++){
@@ -464,6 +469,7 @@ int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long
 		for(int kk=0;kk<ns;kk++){
 			if(isnan(flag[kk])){
 				cout << "Warning <! there is a NaN in the \"flag\" field of bolometer n° " << jj << " sample n° " << kk << endl;
+				nan_found++;
 			}
 		}
 		delete [] flag;
@@ -475,6 +481,7 @@ int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long
 	for(long jj=0;jj<ns;jj++){
 		if(isnan(time[jj])&&(flag[jj]==0)){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
+			nan_found++;
 		}
 	}
 
@@ -488,15 +495,16 @@ int check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(signal[jj])&&(flag[jj]==0)){
 				cout << "Warning <! a NAN has been found in \"signal\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				nan_found++;
 			}
 		}
 		delete [] signal;
 	}
 
-	return 0;
+	return nan_found;
 }
 
-int check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
+long check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /*! check non-flagged NANs in RA/DEC HIPE format */
 {
 
@@ -505,6 +513,7 @@ int check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det,
 	double *ra;
 	double *dec;
 	int *flag;
+	long nan_found=0;
 
 
 	for(int ii=0;ii<ndet;ii++){
@@ -517,9 +526,11 @@ int check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det,
 		for(long jj=0;jj<ns_test;jj++){
 			if(isnan(ra[jj])&&(flag[jj]==0)){ // check for NANs in RA
 				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				nan_found++;
 			}
 			if(isnan(dec[jj])&&(flag[jj]==0)){ // check for NANs in DEC
 				cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				nan_found++;
 			}
 		}
 		delete [] ra;
@@ -528,7 +539,7 @@ int check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det,
 
 	}
 
-	return 0;
+	return nan_found;
 }
 
 bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fits_0_vect)
@@ -554,7 +565,7 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global,long *&bolos_global_80,double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it)
+int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global, long &n_hund, long *&bolos_global_80, long &n_heig, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it)
 /*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
@@ -563,10 +574,8 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 	long start=0;
 	long revert_start=ns-1;
 
-	init_flag_num=ns;
-	end_flag_num=ns;
-
-	cout << "ns : " << ns << endl;
+	std::vector<long> init_tab;
+	std::vector<long> end_tab;
 
 	for(int jj=0;jj<ndet;jj++){
 
@@ -583,7 +592,7 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 		}
 
 		while((flag[revert_start-1]!=0) && (revert_start>0)){
-			revert_start++;
+			revert_start--;
 		}
 
 
@@ -591,27 +600,46 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 			if(flag[ii]!=0)
 				sum++;
 
-		init_flag_num = ((init_flag_num < start) ? init_flag_num : start); // which is the lower between previous detectors flag table and actual table
-		end_flag_num = ((end_flag_num < revert_start) ? end_flag_num : revert_start);
-
+		init_tab.push_back(start);
+		end_tab.push_back((ns-revert_start));
 
 		if(sum>99*ns/100){ // fully flagged detector found
+#ifdef DEBUG
 			cout << "Warning ! " << det[jj] << " is (almost) totally flagged" << endl;
+#endif
 			bolos_global[jj]=1;
+			n_hund++;
 		}else{
 			if(sum>80*ns/100){ // valid worst detector found
 				double percent = sum/(double)ns*100;
+#ifdef DEBUG
 				cout << "Warning ! " << det[jj] << " is more than 80% flagged : " << percent << endl;
+#endif
 				bolos_global_80[jj]=1;
+				n_heig++;
 				percent_tab[jj]=percent;
-			}else if(sum>50*ns/100){
+			}
+#ifdef DEBUG
+			else if(sum>50*ns/100){
+
 				double percent = sum/(double)ns*100;
 				cout << "Warning ! " << det[jj] << " is more than 50% flagged : " << percent << endl;
+
 			}
+#endif
 		}
 
 		delete [] flag;
 	}
+
+	std::vector<long>::iterator it;
+
+	it=min_element(init_tab.begin(),init_tab.end());
+	init_flag_num = (*it);
+
+	it=min_element(end_tab.begin(),end_tab.end());
+	end_flag_num = (*it);
+
 
 	return 0;
 
@@ -666,15 +694,17 @@ int check_time_gaps(string fname,long ns, double fsamp, std::vector<long> &indic
 	Populated_freq = freq[ind]; // the most populated frequency only is kept
 
 	double zero_cinq_pourcent=0.5*Populated_freq/100; // compare to the user frequency given in ini file
+
 	if(abs(Populated_freq-fsamp)/fsamp>zero_cinq_pourcent){
-		cout << "Warning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
+		cout << "\nWarning, the sampling frequency you have mentioned in the ini file seems to be wrong : \n";
 		cout << "ini file : " << fsamp << " != " << Populated_freq << endl;
 	}
 
-
 	for(long jj=0;jj<ns-1;jj++){ // locate time gaps
 		if((abs(diff[jj])>1.9/Populated_freq) || (diff[jj]<0)){ //||(abs(diff[jj])<1/Populated_freq/1.95)
+#ifdef DEBUG
 			cout << "WARNING ! Time gap at " << jj << " (" << time[jj] <<") : " << fixed <<  setprecision(8) << diff[jj] << endl;
+#endif
 			indice.push_back(jj); // store sample indice : where the time gap is
 		}
 	}
@@ -685,15 +715,21 @@ int check_time_gaps(string fname,long ns, double fsamp, std::vector<long> &indic
 		if(((int) count (indice.begin(), indice.end(), jj))==0)
 			sum+=diff[jj];
 	}
+
+
+#ifdef DEBUG
+
 	double real_freq= (double)(ns-1-(long)indice.size())/sum; // dont take the gaps into account
 
 	// print to std
 	cout << "ini file fsamp : " << fsamp << " Most Populated freq : " << Populated_freq << " Recomputed real freq : " << real_freq << endl;
 	cout << endl;
+#endif
 
 	// clean up
 	delete [] time;
 	delete [] diff;
+	delete [] counter;
 
 	return 0;
 
@@ -835,8 +871,10 @@ void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long nd
 			tot++;
 		}
 
+#ifdef DEBUG
 	if(tot>0)
 		cout << "There is/are " << tot << " bolometer(s) in this file !\n\n";
+#endif
 
 	fclose(fp);
 
