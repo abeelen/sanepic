@@ -109,8 +109,9 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 				continue_neg--;
 				continue;
 			}
+#ifdef DEBUG
 			cout << indice[ii] << " " << time[indice[ii]+1]-time[indice[ii]] << " " << round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1 << endl;
-
+#endif
 			// calculate the gap size
 			gap=round((time[indice[ii]+1]-time[indice[ii]])*fsamp)-1;
 			if(gap>0){
@@ -125,13 +126,13 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 					indice_valid.push_back(indice[ii]);
 					suppress_time_sample.push_back(0);
 				}else{
-					cout << "negativ gap : " << gap << endl;
+//					cout << "negativ gap : " << gap << endl;
 					continue_neg++;
 					long jj=1;
 					while((time[indice[ii]+jj]-time[indice[ii]])<0.0)
 						jj++;
 					gap2=round((time[indice[ii]+jj]-time[indice[ii]])*fsamp)-1;
-					cout << "gap2 : " << gap2 << endl;
+//					cout << "gap2 : " << gap2 << endl;
 					if(gap==0){
 						sum++;
 						add_sample.push_back(-1); // store -1 means 1 sample must be added => it's a convention
@@ -147,11 +148,12 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 			}
 		}
 
+#ifdef DEBUG
 		cout << "result ! \n";
 		for(long ii=0; ii < (long)add_sample.size(); ii++){
 			cout << indice_valid[ii] << " " << add_sample[ii] << " " << suppress_time_sample[ii] << endl;
 		}
-
+#endif
 		indice.clear();
 		indice=indice_valid;
 

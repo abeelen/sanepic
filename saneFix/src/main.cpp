@@ -39,8 +39,10 @@ int main(int argc, char *argv[]) {
 #else
 	size = 1;
 	rank = 0;
-	cout << "Mpi is not used for this step" << endl;
 #endif
+
+	if(rank==0)
+		printf("\nBeginning of saneFix:\n\n");
 
 	struct samples samples_struct; /* fits file list + number of scans */
 	struct param_common dir; /* directories : temporary input and output */
@@ -56,13 +58,7 @@ int main(int argc, char *argv[]) {
 	string output ="";
 
 	uint16_t mask_sanefix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
-				FSAMP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND; // 0x410f
-
-
-	if(rank==0)
-		printf("\nBeginning of saneFix:\n\n");
-
-
+			FSAMP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND; // 0x410f
 
 	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
@@ -150,6 +146,8 @@ int main(int argc, char *argv[]) {
 				structPS, sanePic_struct, saneInv_struct);
 	}
 
+	cout << "\nFixing Files..." << endl << endl;
+
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan
 
 		int do_it=who_do_it(size, rank, ii); /* which rank do the job ? */
@@ -161,8 +159,9 @@ int main(int argc, char *argv[]) {
 			long init_num_delete =0;
 			long end_num_delete =0;
 
+#ifdef DEBUG
 			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[ii] << endl;
-
+#endif
 			// fits files pointer
 			fitsfile * fptr;
 			fitsfile *outfptr;
@@ -180,18 +179,15 @@ int main(int argc, char *argv[]) {
 			}
 
 
-			//			cout << "readed : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice[0] << " " << indice[1] << endl;
-
 			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[ii]);
-
-			//			cout << "refresh : " << fsamp << " " << init_num_delete  << " " << end_num_delete << " " << indice.size() << endl;
 
 			// compute the number of sample that must be added to fill the gaps and have a continous timeline
 			long samples_to_add=how_many(samples_struct.fitsvect[ii], samples_struct.nsamples[ii] ,indice, fsamp, add_sample,suppress_time_sample);
+#ifdef DEBUG
 			cout << "[ " << rank << " ] " << "samptoadd : " << samples_to_add << endl;
 			cout << "[ " << rank << " ] " << "samples to delete (begin/end) : (" << init_num_delete << "/" <<  end_num_delete << ")" << endl;
 			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete << endl;
-
+#endif
 			// total number of samples in the fixed fits file
 			long ns_total = samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete;
 
@@ -222,7 +218,9 @@ int main(int argc, char *argv[]) {
 			fits_copy_header(fptr, outfptr, &status);
 
 			if(format_fits==1){ // HIPE format
+#ifdef DEBUG
 				cout << "[ " << rank << " ] " << "HIPE format found\n";
+#endif
 
 				// 1 signal
 				fix_signal(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
@@ -246,7 +244,9 @@ int main(int argc, char *argv[]) {
 				copy_offsets(fptr, outfptr);
 
 			}else{ // format =2
+#ifdef DEBUG
 				cout << "[ " << rank << " ] " << "SANEPIC format found\n";
+#endif
 
 				// 1 ref pos
 				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
@@ -282,17 +282,17 @@ int main(int argc, char *argv[]) {
 
 	}
 
-	//clean up
-	//	delete [] samples_struct.nsamples;
-
 	if(rank==0)
-		cout << "\nEnd of saneFix\n";
+		cout << "done." << endl << endl;
+
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
 #endif
 
+	if(rank==0)
+		cout << "END OF SANEFIX\n";
 
 	return EXIT_SUCCESS;
 
