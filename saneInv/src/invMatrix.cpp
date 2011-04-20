@@ -101,7 +101,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
-		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
+//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
 
 		// Matrix preparation
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
@@ -142,7 +142,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	}
 
 	// just to get a 100% value printed on screen
-	cout << "Progress : 100.00% \r" << flush;
+//	cout << "Progress : 100.00% \r" << flush;
 
 	// clean up
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);

@@ -4,6 +4,7 @@
 #include "inputFileIO.h"
 #include "mpi_architecture_builder.h"
 #include "parser_functions.h"
+#include "struct_definition.h"
 
 #include <iostream>
 #include <string>
@@ -36,14 +37,13 @@ int main(int argc, char *argv[]) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	if(rank==0)
-		printf("Begin of saneInv\n\n");
 #else
 	size = 1;
 	rank = 0;
-	printf("Begin of saneInv\n\n");
 #endif
 
+	if(rank==0)
+		printf("\nBeginning of saneInv\n\n");
 
 	// data parameters
 	/*!
@@ -82,8 +82,7 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 
-	std::vector<string> channelIn; /*! Covariance matrix channel vector*/
-	std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
+	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
 
@@ -129,7 +128,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 
 	MPI_Datatype message_type;
 	struct ini_var_strings ini_v;
@@ -161,6 +160,16 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD);
 
 #endif
+
+
+	/* ------------------------------------- READ bolo list ----------------------------*/
+
+	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
+		cout << "error in channel_list_to_vect_list" << endl;
+		return EX_CONFIG;
+	}
+
+	/* ------------------------------------------------------------------------------------*/
 
 	if(rank==0)
 		// parser print screen function
@@ -196,7 +205,7 @@ int main(int argc, char *argv[]) {
 	//	}
 
 	if(rank==0)
-		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix);
+		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix, bolo_list);
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
@@ -209,11 +218,14 @@ int main(int argc, char *argv[]) {
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
-#ifdef USE_MPI
+#ifdef PARA_FRAME
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 		return 1;
 	}
+
+	if(rank==0)
+		cout << "Inverting Covariance Matrices..." << endl;
 
 	for(int ii=0; ii<n_iter; ii++){
 		// select which proc number compute this loop
@@ -221,10 +233,12 @@ int main(int argc, char *argv[]) {
 			//			fname="";
 			//			fname+=(string)samples_struct.noisevect[ii];
 			base_name=FitsBasename(samples_struct.noisevect[ii]);
-			cout << "Inversion of : " << base_name << endl;
+			//			cout << "Inversion of : " << base_name << endl;
 
 			// get input covariance matrix file name
 			fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[ii];
+
+			std::vector<string> channelIn; /*! Covariance matrix channel vector*/
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
@@ -236,24 +250,15 @@ int main(int argc, char *argv[]) {
 			// total number of detectors in the covmatrix fits file
 			ndetOrig = channelIn.size();
 
-			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
+			//			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
+			std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
 
-			string output_read = "";
-			//			channelOut=detector_tab[ii].boloname;
-			if(read_channel_list(output_read, samples_struct.bolovect[ii], channelOut)){
-				cout << output_read << endl;
-#ifdef PARA_FRAME
-				MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-				return EX_CONFIG;
-			}
-
-
+			channelOut = bolo_list[ii];
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 			ndet = channelOut.size();
 
-			printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
+			//			printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
 			//Deal with bolometer reduction and fill Rellth and mixmat
 			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
@@ -278,8 +283,11 @@ int main(int argc, char *argv[]) {
 			free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
 			delete [] ell;
 		}
-	}
 
+	} // n_iter
+
+	if(rank==0)
+		printf("done. \n");
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
