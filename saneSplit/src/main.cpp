@@ -94,8 +94,10 @@ int main(int argc, char *argv[])
 		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
 			readFrames(samples_struct.fitsvect, samples_struct.nsamples);
-			cout << "Scan      : " << samples_struct.fitsvect[0] << endl;
-			cout << "Containing      : " << samples_struct.nsamples[0] << " samples. " << endl;
+#ifdef DEBUG
+			cout << "Scan.            : " << samples_struct.fitsvect[0] << endl;
+			cout << "Containing.      : " << samples_struct.nsamples[0] << " samples. " << endl;
+#endif
 			f_count++;
 			break;
 		case 'm': /* bottom limit for a new fits file extracted from the -f fitsfile */
@@ -140,8 +142,10 @@ int main(int argc, char *argv[])
 
 	/*********************************************/
 
+#ifdef DEBUG
+	cout << setprecision(20) << "bot time limit.  : " << min_time[0] << "\ntop time limit.  : " << max_time[0] << endl;
+#endif
 
-	cout << setprecision(20) << "bottom time limit : " << min_time[0] << " top time limit : " << max_time[0] << endl;
 	read_time_from_fits(samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
 	time_min=time[0];
 	time_max=time[samples_struct.nsamples[0]-1];
@@ -191,7 +195,7 @@ int main(int argc, char *argv[])
 	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
 
 
-	int status; /* fits error status number */
+	int status=0; /* fits error status number */
 	fitsfile *fptr; /* input fits file pointer */
 	fitsfile *outfptr; /* output fits file pointer */
 
@@ -204,7 +208,10 @@ int main(int argc, char *argv[])
 		// generate a name for the output fits files
 		oss << dir.output_dir << fname2 << setprecision(14) << min_time[ii] << "_" << max_time[ii] << ".fits";
 		std::string temp = oss.str();
+
+#ifdef DEBUG
 		cout << "\nCreating output file :\n" << temp << endl;
+#endif
 
 		long min_sample=0; /* bottom and top samples index according to given time limits */
 		long max_sample=0;
@@ -238,9 +245,12 @@ int main(int argc, char *argv[])
 
 		long ns_final= max_sample - min_sample+1; // total number of samples in output file
 
+#ifdef DEBUG
 		// print to std
 		cout << "min sample -> max sample : " << min_sample << " -> " << max_sample << endl;
 		cout << "Total number of samples : " << ns_final << endl;
+#endif
+
 		temp = "!" + temp;
 
 		// open input fits and create output fits
@@ -252,8 +262,6 @@ int main(int argc, char *argv[])
 
 		// Copy primary Header
 		fits_copy_header(fptr, outfptr, &status);
-
-
 
 
 
@@ -324,7 +332,7 @@ int main(int argc, char *argv[])
 	delete [] time;
 //	delete [] samples_struct.nsamples;
 
-	cout << "End of saneSplit\n";
+	cout << "END OF SANESPLIT\n";
 
 	return EXIT_SUCCESS;
 

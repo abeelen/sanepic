@@ -125,10 +125,11 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
 		long fpixel[2]={1,rowIndex}; // write a row which row number is roxIndex
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, signal_bis, &status);
+
+		delete [] signal;
 	}
 
 	delete [] signal_bis;
-	delete [] signal;
 
 }
 
@@ -157,10 +158,11 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the row index for the channel named boloname[jj]
 		long fpixel[2]={1,rowIndex}; // write the mask which row number is rowIndex
 		fits_write_pix(outfptr, TINT, fpixel, ns_final, mask_bis, &status);
+
+		delete [] mask;
 	}
 
 	delete [] mask_bis;
-	delete [] mask;
 }
 
 
@@ -200,10 +202,11 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // Write RA row
 		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move to DEC table
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // Write DEC row
+
+		delete [] RA;
+		delete [] DEC;
 	}
 
 	delete [] RA_bis;
-	delete [] RA;
 	delete [] DEC_bis;
-	delete [] DEC;
 }

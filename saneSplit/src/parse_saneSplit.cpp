@@ -35,6 +35,8 @@ int parse_saneSplit_ini_file(char * ini_name, string &output, struct param_commo
 
 	print_common(dir); /* print dir locations on console */
 
+	iniparser_freedict(ini);
+
 	return 0;
 }
 
