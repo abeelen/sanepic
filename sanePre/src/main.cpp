@@ -85,14 +85,16 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string parser_output = "";
 
+	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	//	uint16_t mask_sanePre = 0x405f;
 	uint16_t mask_sanePre = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FILEFORMAT_NOT_FOUND | FITS_FILELIST_NOT_FOUND; // 0x405f
 
+#ifdef DEBUG
 	// Processing time estimation
 	time_t t2, t3;
-
+#endif
 
 	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
@@ -128,16 +130,18 @@ int main(int argc, char *argv[])
 
 			}
 
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return EX_CONFIG;
 		}
 	}
 
-
+#ifdef DEBUG
 	// processing begins here
 	t2=time(NULL);
+#endif
+
 
 #ifdef USE_MPI
 
@@ -187,6 +191,15 @@ int main(int argc, char *argv[])
 
 #endif
 
+	/* ------------------------------------- READ bolo list ----------------------------*/
+
+	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
+		cout << "error in channel_list_to_vect_list" << endl;
+		return EX_CONFIG;
+	}
+
+	/* ------------------------------------------------------------------------------------*/
+
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
@@ -199,7 +212,7 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	if(write_data_flag_to_dirfile(dir, samples_struct, iframe_min, iframe_max)){
+	if(write_data_flag_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
 		cout << "error write_data_flag_to_dirfile !! Exiting ...\n";
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -212,7 +225,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(pos_param.fileFormat==1)
-		if(write_RA_DEC_to_dirfile(dir, samples_struct, iframe_min, iframe_max)){
+		if(write_RA_DEC_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
 			cout << "error write_RA_DEC_to_dirfile !! Exiting ...\n";
 #ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -220,11 +233,14 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
+#ifdef DEBUG
 	//Get processing time
 	t3=time(NULL);
 
 	if(rank==0)
-		cout << "Total Time : " << t3-t2 << " sec\n";
+		cout << "Total Time : " << t3-t2 << " sec\n\n";
+
+#endif
 
 #ifdef USE_MPI
 
@@ -235,8 +251,8 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 #endif
 
-	if (rank == 0)
-		cout << endl << "done." << endl;
+	if(rank==0)
+		cout << endl << "END OF SANEPRE" << endl;
 
 	return EXIT_SUCCESS;
 
