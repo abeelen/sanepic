@@ -18,7 +18,9 @@ using namespace std;
 int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_sanePre proc_param, struct param_sanePos pos_param,
-		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS, struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com){
+		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS,
+		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, std::vector<string> key, std::vector<int> datatype,
+		std::vector<string> val, std::vector<string> com, std::vector<std::vector<std::string> > bolo_vect){
 
 
 
@@ -99,17 +101,12 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		long ns = samples_struct.nsamples[iframe];
 		samptopix=new long long [ns];
 
-		string output_read = "";
-		std::vector<string> det;
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-			cout << output_read << endl;
-			return 1;
-		}
-		long ndet = (long)det.size();
+		std::vector<string> det_vect = bolo_vect[iframe];
+		long ndet = (long)det_vect.size();
 
 		for (long idet1=0;idet1<ndet;idet1++){
 
-			string field1 = det[idet1];
+			string field1 = det_vect[idet1];
 
 			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.fitsvect[iframe], field1))
 				return 1;

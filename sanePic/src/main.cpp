@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
 
 	int size;
 	int rank;
+
 #ifdef USE_MPI
 	// setup MPI
 	MPI_Init(&argc, &argv);
@@ -66,9 +67,11 @@ int main(int argc, char *argv[]) {
 #else
 	size = 1;
 	rank = 0;
-	printf("\nsanepic_conjugate_gradient:\n\n");
-	cout << "Mpi will not be used for the main loop" << endl;
+
 #endif
+
+	if(rank==0)
+		printf("\nBeginning of sanePic:\n\n");
 
 	//************************************************************************//
 	//************************************************************************//
@@ -128,6 +131,8 @@ int main(int argc, char *argv[]) {
 	std::vector<int> datatype;
 	std::vector<string> val;
 	std::vector<string> com;
+
+	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	int para_bolo_indice = 0;
 	int para_bolo_size = 1;
@@ -259,7 +264,7 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
 
 	std::ostringstream oss;
-	oss << dir.output_dir + "debug_sanePre_" << rank << ".txt";
+	oss << dir.output_dir + "debug_sanePic_" << rank << ".txt";
 	name_rank = oss.str();
 
 	ofstream file_rank;
@@ -333,12 +338,22 @@ int main(int argc, char *argv[]) {
 
 #endif
 
+
+	/* ------------------------------------- READ bolo list ----------------------------*/
+
+	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
+		cout << "error in channel_list_to_vect_list" << endl;
+		return EX_CONFIG;
+	}
+
+	/* ------------------------------------------------------------------------------------*/
+
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, bolo_list);
 	}
 
 #ifdef USE_MPI
@@ -368,7 +383,7 @@ int main(int argc, char *argv[]) {
 	// get input fits META DATA
 	if(rank==0)
 		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
-			cout << "pb getting fits META\n";
+			cout << "\nProblem while getting fits META... Continue but the map header will not be full...\n\n";
 
 	//	read pointing informations
 	struct wcsprm * wcs;
@@ -383,7 +398,7 @@ int main(int argc, char *argv[]) {
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	if (rank == 0){
-		cout << "Map size :" << NAXIS1 << "x" << NAXIS2 << endl << endl; // print map size
+		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels\n" << endl; // print map size
 
 		if (read_indpsrc(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
@@ -504,9 +519,6 @@ int main(int argc, char *argv[]) {
 		//************************************************************************//
 		//************************************************************************//
 
-		if(rank==0)
-			printf("\nPre-processing of the data\n");
-
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -523,19 +535,14 @@ int main(int argc, char *argv[]) {
 			f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
 			f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
-			string output_read = "";
-			std::vector<string> det_vect;
-			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
-				cout << output_read << endl;
-#ifdef USE_MPI
-				MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-				return EX_CONFIG;
-			}
+			std::vector<string> det_vect = bolo_list[iframe];
 			long ndet = (long)det_vect.size();
+
 			if(ndet!=samples_struct.ndet[iframe]){ // check here to avoid problems between saneInv and sanePic
-				if(rank==0)
+				if(rank==0){
 					cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
+					cout << "Did you forgot to run saneInv ??? Exiting..." << endl;
+				}
 #ifdef USE_MPI
 				MPI_Barrier(MPI_COMM_WORLD);
 				MPI_Abort(MPI_COMM_WORLD, 1);
@@ -664,7 +671,7 @@ int main(int argc, char *argv[]) {
 	/* END PARAMETER PROCESSING */
 
 	if (rank == 0)
-		printf("\nMain Conjugate gradient loop\n");
+		printf("\nStarting Conjugate Gradient Descent... \n\n");
 
 	//////////////////////////////////// Computing of sanePic starts here
 	string testfile; // log file to follow evolution of both criteria
@@ -767,22 +774,14 @@ int main(int argc, char *argv[]) {
 				ns = samples_struct.nsamples[iframe];
 				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
-				string output_read = "";
-				std::vector<string> det;
-				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-					cout << output_read << endl;
-#ifdef USE_MPI
-					MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-					return EX_CONFIG;
-				}
-				long ndet = (long)det.size();
+				std::vector<string> det_vect = bolo_list[iframe];
+				long ndet = (long)det_vect.size();
 
 				// preconditioner computation : Mp
 				if (proc_param.CORRon) {
 
 
-					write_tfAS(samples_struct, S, det, ndet, indpix, NAXIS1, NAXIS2, npix,
+					write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
 							pos_param.flgdupl, dir.tmp_dir, ns,
 							samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
 
@@ -798,13 +797,13 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir,
-							"fPs_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice,
+							"fPs_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice,
 							para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], Mp, NULL, name_rank);
 
 				} else {
 
-					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det, ndet,
+					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det_vect, ndet,
 							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl, ns,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], PtNPmatS, Mp, NULL,
@@ -914,20 +913,12 @@ int main(int argc, char *argv[]) {
 				ns = samples_struct.nsamples[iframe];
 				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
-				string output_read = "";
-				std::vector<string> det;
-				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-					cout << output_read << endl;
-#ifdef USE_MPI
-					MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-					return EX_CONFIG;
-				}
-				long ndet = (long)det.size();
+				std::vector<string> det_vect = bolo_list[iframe];
+				long ndet = (long)det_vect.size();
 
 				if (proc_param.CORRon) {
 
-					write_tfAS(samples_struct, d, det, ndet, indpix, NAXIS1, NAXIS2, npix,
+					write_tfAS(samples_struct, d, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
 							pos_param.flgdupl, dir.tmp_dir, ns,
 							samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
 
@@ -943,14 +934,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, q, dir.tmp_dir, "fPs_",
-							det, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice, para_bolo_size,
+							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice, para_bolo_size,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], NULL, NULL,
 							name_rank);
 
 				} else {
 
-					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det, ndet,
+					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det_vect, ndet,
 							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl,
 							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], q, NULL, NULL,
@@ -999,20 +990,12 @@ int main(int argc, char *argv[]) {
 					ns = samples_struct.nsamples[iframe];
 					f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
-					string output_read = "";
-					std::vector<string> det; // TODO : quand meme super moche la lecture à chaque loop ...
-					if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-						cout << output_read << endl;
-#ifdef USE_MPI
-						MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-						return EX_CONFIG;
-					}
-					long ndet = (long)det.size();
+					std::vector<string> det_vect = bolo_list[iframe];
+					long ndet = (long)det_vect.size();
 
 					if (proc_param.CORRon) {
 
-						write_tfAS(samples_struct, S, det, ndet, indpix, NAXIS1, NAXIS2, npix,
+						write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
 								pos_param.flgdupl, dir.tmp_dir, ns,
 								samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
 
@@ -1027,7 +1010,7 @@ int main(int argc, char *argv[]) {
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-						do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir, "fPs_", det, ndet, f_lppix_Nk,
+						do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir, "fPs_", det_vect, ndet, f_lppix_Nk,
 								proc_param.fsamp, ns, para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe,
 								samples_struct.fitsvect[iframe], NULL, NULL,
@@ -1036,7 +1019,7 @@ int main(int argc, char *argv[]) {
 					} else {
 
 						do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir,
-								det, ndet, f_lppix_Nk, proc_param.fsamp,
+								det_vect, ndet, f_lppix_Nk, proc_param.fsamp,
 								pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
 								npix, iframe,
 								samples_struct.fitsvect[iframe], PtNPmatS,
@@ -1279,21 +1262,13 @@ int main(int argc, char *argv[]) {
 				f_lppix = proc_param.f_lp * double(ns) / proc_param.fsamp;
 				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
 
-				string output_read = "";
-				std::vector<string> det;
-				if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-					cout << output_read << endl;
-#ifdef USE_MPI
-					MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-					return EX_CONFIG;
-				}
-				long ndet = (long)det.size();
+				std::vector<string> det_vect = bolo_list[iframe];
+				long ndet = (long)det_vect.size();
 
 				if (proc_param.CORRon) {
 
 					write_ftrProcesdata(S, proc_param, samples_struct,
-							pos_param, dir.tmp_dir, det, ndet, indpix, indpsrc,
+							pos_param, dir.tmp_dir, det_vect, ndet, indpix, indpsrc,
 							NAXIS1, NAXIS2, npix, npixsrc, addnpix, f_lppix,
 							ns, iframe, para_bolo_indice, para_bolo_size, name_rank);
 
@@ -1309,7 +1284,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PNd, dir.tmp_dir,
-							"fdata_", det, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							"fdata_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.fitsvect[iframe], NULL, NULL,
 							name_rank);
@@ -1317,7 +1292,7 @@ int main(int argc, char *argv[]) {
 				} else {
 
 					do_PtNd_nocorr(PNd, dir.tmp_dir, proc_param, pos_param,
-							samples_struct, det, ndet, f_lppix, f_lppix_Nk, addnpix,
+							samples_struct, det_vect, ndet, f_lppix, f_lppix_Nk, addnpix,
 							ns, indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc,
 							iframe, S, rank, size);
 				}
@@ -1348,7 +1323,8 @@ int main(int argc, char *argv[]) {
 	//******************************  write final map in file ********************************
 
 	if (rank == 0) {
-		printf(" after CC INVERSION %lld\n", npix * (npix + 1) / 2);
+		cout << "\ndone.\n";
+		//		printf(" after CC INVERSION %lld\n", npix * (npix + 1) / 2);
 
 #ifdef DEBUG
 		FILE * fp;
@@ -1361,7 +1337,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, key, datatype, val, com))
+				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, key, datatype, val, com, bolo_list))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0
@@ -1423,7 +1399,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		cout << "\nEnd of sanePic" << endl;
+		cout << "\nEND OF SANEPIC" << endl;
 
 	return EXIT_SUCCESS;
 }
