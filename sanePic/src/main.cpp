@@ -61,8 +61,6 @@ int main(int argc, char *argv[]) {
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	if(rank==0)
-		printf("\nsanepic_conjugate_gradient:\n\n");
 
 #else
 	size = 1;
@@ -490,10 +488,8 @@ int main(int argc, char *argv[]) {
 		if (rank == 0){
 			cout << "Checking previous session\n";
 			struct checksum chk_t, chk_t2;
-			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix, indpix,
-			//					indpsrc, indpsrc_size, chk_t); // compute input data checksum to ensure they haven't changed since the previous run
 			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
-					indpix, indpsrc, indpsrc_size, chk_t); // TODO : test it
+					indpix, indpsrc, indpsrc_size, chk_t);
 			read_checksum(dir.tmp_dir, chk_t2, "sanePic"); // read previous checksum
 			if (compare_checksum(chk_t, chk_t2)) { // compare them
 				cout << "Checksums are different !!! Exiting..." << endl;
@@ -522,6 +518,9 @@ int main(int argc, char *argv[]) {
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
+		// flush dirfile
+		gd_flush(samples_struct.dirfile_pointer,NULL);
 
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
@@ -585,6 +584,10 @@ int main(int argc, char *argv[]) {
 				file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
 				file_rank.close();
 #endif
+
+				// flush dirfile
+				gd_flush(samples_struct.dirfile_pointer,NULL);
+
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -649,8 +652,6 @@ int main(int argc, char *argv[]) {
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
-			//					indpix, indpsrc, indpsrc_size, chk_t);
 			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
 					indpix, indpsrc, indpsrc_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t, "sanePic")){ // write down on disk the checksum values
@@ -792,6 +793,10 @@ int main(int argc, char *argv[]) {
 					file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
 					file_rank.close();
 #endif
+
+					// flush dirfile
+					gd_flush(samples_struct.dirfile_pointer,NULL);
+
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -929,6 +934,10 @@ int main(int argc, char *argv[]) {
 					file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
 					file_rank.close();
 #endif
+
+					// flush dirfile
+					gd_flush(samples_struct.dirfile_pointer,NULL);
+
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -1006,6 +1015,10 @@ int main(int argc, char *argv[]) {
 						file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
 						file_rank.close();
 #endif
+
+						// flush dirfile
+						gd_flush(samples_struct.dirfile_pointer,NULL);
+
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -1279,6 +1292,10 @@ int main(int argc, char *argv[]) {
 					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
 					file_rank.close();
 #endif
+
+					// flush dirfile
+					gd_flush(samples_struct.dirfile_pointer,NULL);
+
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif

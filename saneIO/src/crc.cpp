@@ -83,52 +83,6 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 
 }
 
-// TODO : to be removed !
-void compute_checksum(std::string ini_file, std::string tmp_dir, long long npix, long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk)
-{
-
-	FILE *fp;
-	size_t len;
-	string file;
-	char buf[6144];
-
-	// TODO ameliorer ca  : prendre les structures et faire un chksum avec au lieu de prendre le ini file !!!
-
-	if (NULL == (fp = fopen(ini_file.c_str(), "r")))
-	{
-		cout << "Unable to open " << ini_file << " for reading\n";
-		return;
-	}
-	len = fread(buf, sizeof(char), sizeof(buf), fp);
-	char buf2[len-116];
-	for(long hh=0;hh<(long)(len-116);hh++)
-		buf2[hh]=buf[hh];
-	fclose(fp);
-
-	chk.chk_ini_file=checksum(buf2, len-116, 0);
-	//	printf("The checksum of %s is %u\n", ini_file.c_str(), chk.chk_ini_file);
-
-	file= tmp_dir + "mapHeader.keyrec";
-	if (NULL == (fp = fopen(file.c_str(), "r")))
-	{
-		cout << "Unable to open " << file << " for reading\n";
-		return;
-	}
-	len = fread(buf, sizeof(char), sizeof(buf), fp);
-	fclose(fp);
-
-	chk.chk_wcs_file=checksum(buf, len, 0);
-	//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
-
-	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
-	//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
-
-	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
-	//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
-
-}
-
-
 int write_checksum(std::string tmp_dir, struct checksum chk, std::string projectname)
 {
 

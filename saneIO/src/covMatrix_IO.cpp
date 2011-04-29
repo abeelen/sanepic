@@ -70,7 +70,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 			(char *) "name of this binary table extension", &status))
 		return 1;
 
-	if (fits_write_chksum(fptr, &status)){ // TODO : test
+	if (fits_write_chksum(fptr, &status)){
 		cout << "error checksum !\n";
 		return 1;
 	}
@@ -474,7 +474,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 
 
 	// flush dirfile
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	//	// close dirfile
 	//	if(gd_close(D)){

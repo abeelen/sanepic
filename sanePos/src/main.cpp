@@ -48,21 +48,12 @@ using namespace std;
 //**********************************************************************************//
 //**********************************************************************************//
 
-
-/*! \mainpage Sanepic
- *
- * \section intro_sec Matthieu HUSSON & Alexandre Beelen
- *
- * Sanepic USER Manual
- */
-
-
-
 int main(int argc, char *argv[])
+/* Main sanePos function */
 {
 
-	int size; /*! size = number of processor used for this step*/
-	int rank; /*! rank = processor MPI rank*/
+	int size; /* size = number of processor used for this step*/
+	int rank; /* rank = processor MPI rank*/
 
 #ifdef PARA_FRAME
 	// setup MPI
@@ -134,7 +125,7 @@ int main(int argc, char *argv[])
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
 			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc2ff
 
-	string field; /*! actual boloname in the bolo loop */
+	string field; /*! field = actual boloname in the bolo loop */
 
 	// -----------------------------------------------------------------------------//
 

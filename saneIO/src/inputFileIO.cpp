@@ -97,7 +97,7 @@ std::string FitsBasename(std::string path)
 {
 
 	//	size_t found;
-	string filename;
+	string filename="";
 	int i;
 
 

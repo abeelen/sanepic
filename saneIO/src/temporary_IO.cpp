@@ -237,7 +237,7 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&d
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -258,7 +258,7 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 		return 1;
 	}
 
-	gd_flush(H,NULL);
+//	gd_flush(H,NULL);
 
 	return 0;
 }
@@ -280,7 +280,7 @@ int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra,
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -301,7 +301,7 @@ int read_DEC_from_dirfile(DIRFILE* D, string filename, string field, double *&de
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -344,7 +344,7 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -531,7 +531,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+//	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -553,7 +553,7 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 		return 1;
 	}
 
-	gd_flush(D,NULL);
+	//	gd_flush(D,NULL);
 
 	return 0;
 }

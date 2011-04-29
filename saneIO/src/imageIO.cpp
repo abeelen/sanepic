@@ -242,7 +242,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 		}
 		free(header);
 
-		if (fits_write_chksum(fp, &fits_status)){ // TODO : test
+		if (fits_write_chksum(fp, &fits_status)){
 			cout << "error checksum !\n";
 			return 1;
 		}
@@ -472,7 +472,7 @@ int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, struct param_
 			(char *) "physical unit of the field", &fits_status))
 		return 1;
 
-	if (fits_write_chksum(fptr, &fits_status)){ // TODO : test
+	if (fits_write_chksum(fptr, &fits_status)){
 		cout << "error checksum !\n";
 		return 1;
 	}
@@ -758,7 +758,7 @@ int write_fits_mask(std::string fnaivname, std::string maskfile)
 		return 1;
 	}
 
-	if (fits_write_chksum(fptr, &fits_status)){ // TODO : test
+	if (fits_write_chksum(fptr, &fits_status)){
 		cout << "error checksum !\n";
 		return 1;
 	}

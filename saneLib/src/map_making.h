@@ -38,8 +38,8 @@ void deproject(double *S, long long *indpix, long long *samptopix, long long nda
 		long long *indpsrc = NULL, long long npixsrc = 0);
 
 
-//int compare_global_array_long_long (const void *array_1, const void *array_2);
-//int compare_long_long (const void *a, const void *b);
+int compare_global_array_long_long (const void *array_1, const void *array_2);
+int compare_long_long (const void *a, const void *b);
 
 
 #endif

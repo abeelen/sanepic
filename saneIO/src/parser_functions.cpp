@@ -937,61 +937,6 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 	return 0;
 }
 
-
-//int channel_list_to_chain_list(struct samples samples_struct, struct bolo_chaine *ptr, int rank)
-//{
-//	long size_buff;
-//	long size_max;
-//	std::vector<string> vect_det;
-//
-//
-//	for (long iframe=0;iframe<samples_struct.ntotscan;iframe++){
-//
-//		if(rank==0){
-//
-//			string output_read = "";
-//			if(read_channel_list(output_read, samples_struct.bolovect[iframe], vect_det)){ //TODO : change this to read a string*
-//				cout << output_read << endl; // TODO : instead of a vect<string>
-//#ifdef USE_MPI
-//				MPI_Abort(MPI_COMM_WORLD, 1);
-//#endif
-//				return 1;
-//			}
-//#ifdef USE_MPI
-//			size_buff=compute_bololist_size(vect_det, size_max);
-//#endif
-//			ptr->nbolo = (long)vect_det.size();
-//		}
-//#ifdef USE_MPI
-//		MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
-//		MPI_Bcast(&(ptr->nbolo), 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-//		MPI_Bcast(&size_max, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-//#endif
-//
-//		ptr->fields=new char*[ptr->nbolo];
-//
-//		for(long ii=0; ii< ptr->nbolo; ii++){
-//			ptr->fields[ii]=new char[size_max];
-//			if(rank==0)
-//				strcpy (ptr->fields[ii],vect_det[ii].c_str());
-//#ifdef USE_MPI
-//			MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
-//			MPI_Bcast((ptr->fields[ii]), size_max, MPI_CHAR, 0, MPI_COMM_WORLD);
-//#endif
-//		}
-//
-//		if(rank==0)
-//			vect_det.clear();
-//
-//		ptr->next= new bolo_chaine;
-//
-//		ptr = ptr->next;
-//
-//	}
-//
-//	return 0;
-//}
-
 int channel_list_to_vect_list(struct samples samples_struct, std::vector<std::vector<std::string> > &bolo_vect, int rank)
 {
 
@@ -1007,8 +952,8 @@ int channel_list_to_vect_list(struct samples samples_struct, std::vector<std::ve
 		if(rank==0){
 
 			string output_read = "";
-			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){ //TODO : change this to read a string*
-				cout << output_read << endl; // TODO : instead of a vect<string>
+			if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
+				cout << output_read << endl;
 #ifdef USE_MPI
 				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -1099,6 +1044,9 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 	ini_v.maskfile = (int)pos_param.maskfile.size();
 	ini_v.sizemax = ini_v.sizemax > ini_v.maskfile ? ini_v.sizemax : ini_v.maskfile;
 
+	ini_v.projtype = (int)pos_param.projtype.size();
+	ini_v.sizemax = ini_v.sizemax > ini_v.projtype ? ini_v.sizemax : ini_v.projtype;
+
 	// sanePre
 	ini_v.fcut_file = (int)proc_param.fcut_file.size();
 	ini_v.sizemax = ini_v.sizemax > ini_v.fcut_file ? ini_v.sizemax : ini_v.fcut_file;
@@ -1151,21 +1099,21 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 		MPI_Datatype* message_type_ptr){
 
-	int block_lengths[22];
-	MPI_Aint displacements[22];
-	MPI_Aint addresses[23];
-	MPI_Datatype typelist[22];
+	int block_lengths[23];
+	MPI_Aint displacements[23];
+	MPI_Aint addresses[24];
+	MPI_Datatype typelist[23];
 	/* Specification des types*/
-	for(int ii=0;ii<22;ii++)
+	for(int ii=0;ii<23;ii++)
 		typelist[ii] = MPI_INT;
 
 	/* Specification du nombre d’elements de chaque type */
-	for(int ii=0;ii<19;ii++)
+	for(int ii=0;ii<20;ii++)
 		block_lengths[ii] = 1;
 
-	block_lengths[19] = ini_v->ntotscan;
 	block_lengths[20] = ini_v->ntotscan;
 	block_lengths[21] = ini_v->ntotscan;
+	block_lengths[22] = ini_v->ntotscan;
 
 
 	/* Calcul du deplacement de chacun des membres
@@ -1183,36 +1131,37 @@ void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 
 	// sanePos
 	MPI_Address(&(ini_v->maskfile), &addresses[8]);
+	MPI_Address(&(ini_v->projtype), &addresses[9]);
 
 	// sanePre
-	MPI_Address(&(ini_v->fcut_file), &addresses[9]);
+	MPI_Address(&(ini_v->fcut_file), &addresses[10]);
 
 	// saneInv
-	MPI_Address(&(ini_v->noise_dir), &addresses[10]);
-	MPI_Address(&(ini_v->cov_matrix_file), &addresses[11]);
-	MPI_Address(&(ini_v->cov_matrix_suffix), &addresses[12]);
+	MPI_Address(&(ini_v->noise_dir), &addresses[11]);
+	MPI_Address(&(ini_v->cov_matrix_file), &addresses[12]);
+	MPI_Address(&(ini_v->cov_matrix_suffix), &addresses[13]);
 
 	// sanePS
-	MPI_Address(&(ini_v->ell_suffix), &addresses[13]);
-	MPI_Address(&(ini_v->ell_global_file), &addresses[14]);
-	MPI_Address(&(ini_v->signame), &addresses[15]);
-	MPI_Address(&(ini_v->mix_global_file), &addresses[16]);
-	MPI_Address(&(ini_v->mix_suffix), &addresses[17]);
+	MPI_Address(&(ini_v->ell_suffix), &addresses[14]);
+	MPI_Address(&(ini_v->ell_global_file), &addresses[15]);
+	MPI_Address(&(ini_v->signame), &addresses[16]);
+	MPI_Address(&(ini_v->mix_global_file), &addresses[17]);
+	MPI_Address(&(ini_v->mix_suffix), &addresses[18]);
 
 	// all projects
-	MPI_Address(&(ini_v->sizemax), &addresses[18]);
+	MPI_Address(&(ini_v->sizemax), &addresses[19]);
 
 	// samples
-	MPI_Address(&(ini_v->ntotscan), &addresses[19]);
-	MPI_Address(&(ini_v->fitsvect[0]), &addresses[20]);
-	MPI_Address(&(ini_v->noisevect[0]), &addresses[21]);
-	MPI_Address(&(ini_v->bolovect[0]), &addresses[22]);
+	MPI_Address(&(ini_v->ntotscan), &addresses[20]);
+	MPI_Address(&(ini_v->fitsvect[0]), &addresses[21]);
+	MPI_Address(&(ini_v->noisevect[0]), &addresses[22]);
+	MPI_Address(&(ini_v->bolovect[0]), &addresses[23]);
 
-	for(int ii=0;ii<22;ii++)
+	for(int ii=0;ii<23;ii++)
 		displacements[ii] = addresses[ii+1] - addresses[0];
 
 	/* Creation du type derive */
-	MPI_Type_struct(22, block_lengths, displacements, typelist,
+	MPI_Type_struct(23, block_lengths, displacements, typelist,
 			message_type_ptr);
 	/* Remise du type pour qu’il puisse etre utilise */
 	MPI_Type_commit(message_type_ptr);
@@ -1244,8 +1193,6 @@ int commit_param_common(struct param_common &dir, struct ini_var_strings ini_v, 
 			ini_v.bolo_global_filename + ini_v.bolo_suffix;
 
 	char buffer[size_buff];
-	//	cout << rank << " size_buff : " << size_buff << endl;
-	//	cout << rank << " size max : " << ini_v.sizemax << endl;
 
 	if (rank == 0){
 
@@ -1334,7 +1281,7 @@ int commit_param_sanePos(struct param_sanePos &pos_param, struct ini_var_strings
 {
 
 	int position=0 ;
-	int size_buff = sizeof(double)+ 2*sizeof(bool)+sizeof(int) + ini_v.maskfile; // + 2*sizeof(double)
+	int size_buff = sizeof(double)+ 2*sizeof(bool)+sizeof(int) + ini_v.maskfile + ini_v.projtype + 2*sizeof(double);
 
 	char buffer[size_buff];
 
@@ -1342,11 +1289,13 @@ int commit_param_sanePos(struct param_sanePos &pos_param, struct ini_var_strings
 
 		MPI_Pack(&(pos_param.pixdeg), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
 
-		//	MPI_Pack(&(pos_param.ra_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
+		MPI_Pack(&(pos_param.ra_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
 
-		//	MPI_Pack(&(pos_param.dec_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
+		MPI_Pack(&(pos_param.dec_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
 
 		MPI_Pack((char*)pos_param.maskfile.c_str(), ini_v.maskfile, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
+
+		MPI_Pack((char*)pos_param.projtype.c_str(), ini_v.projtype, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
 
 		MPI_Pack(&(pos_param.flgdupl), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
 
@@ -1372,16 +1321,23 @@ int commit_param_sanePos(struct param_sanePos &pos_param, struct ini_var_strings
 		MPI_Unpack(buffer, size_buff, &position, &(pos_param.pixdeg), 1,
 				MPI_DOUBLE, MPI_COMM_WORLD);
 
-//		MPI_Unpack(buffer, size_buff, &position, &(pos_param.ra_nom), 1, //TODO test !
-//						MPI_DOUBLE, MPI_COMM_WORLD);
+		MPI_Unpack(buffer, size_buff, &position, &(pos_param.ra_nom), 1,
+				MPI_DOUBLE, MPI_COMM_WORLD);
 
-//		MPI_Unpack(buffer, size_buff, &position, &(pos_param.dec_nom), 1,
-//						MPI_DOUBLE, MPI_COMM_WORLD);
+		MPI_Unpack(buffer, size_buff, &position, &(pos_param.dec_nom), 1,
+				MPI_DOUBLE, MPI_COMM_WORLD);
 
 		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.maskfile,
 				MPI_CHAR, MPI_COMM_WORLD);
 
 		pos_param.maskfile = (string)temp_char;
+
+		fill(temp_char, temp_char+ini_v.sizemax,'\0');
+
+		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.projtype,
+				MPI_CHAR, MPI_COMM_WORLD);
+
+		pos_param.projtype = (string)temp_char;
 
 		MPI_Unpack(buffer, size_buff, &position, &(pos_param.flgdupl), 1,
 				MPI_C_BOOL, MPI_COMM_WORLD);
@@ -1669,7 +1625,7 @@ int commit_param_sanePS(struct param_sanePS &ps_param, struct ini_var_strings in
 				MPI_C_BOOL, MPI_COMM_WORLD);
 
 		MPI_Unpack(buffer, size_buff, &position, &(ps_param.restore), 1,
-						MPI_C_BOOL, MPI_COMM_WORLD);
+				MPI_C_BOOL, MPI_COMM_WORLD);
 
 		delete [] temp_char;
 	}

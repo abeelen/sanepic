@@ -51,11 +51,11 @@ using namespace std;
 
 
 int main(int argc, char *argv[])
-/*! Sanepic preprocess main function */
+/* Sanepic preprocess main function */
 {
 
-	int size;/*!< number of processors */
-	int rank;
+	int size; /* number of processors */
+	int rank; /* rank = processor MPI rank*/
 
 #ifdef USE_MPI
 
@@ -71,13 +71,13 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
-	struct param_sanePre proc_param; /*! contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
-	struct param_sanePos pos_param; /*! contains user options about map projection and properties */
-	struct param_common dir; /*! contains output input temp directories */
+	struct param_sanePos pos_param; /* contains user options about map projection and properties */
+	struct param_common dir; /* contains output input temp directories */
 
 	// default parameters
-	long iframe_min=0, iframe_max=0; /*!  min and max number of frame (used with mpi) */
+	long iframe_min=0, iframe_max=0; /* min and max number of frame (used with mpi) */
 
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
