@@ -198,8 +198,8 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	pixtosamp = new long long[ndata];
 	//	pixtosamp = new size_t[ndata];
 
-	fill(N_,N_+ndata,0.0); // TODO are the fills here really needed or not ??
-	fill(pixpos,pixpos+ndata,0);
+	//fill(N_,N_+ndata,0.0);
+	//fill(pixpos,pixpos+ndata,0);
 
 	// N^-1
 	for (long k=0;k<ndata/2+1;k++){
@@ -212,9 +212,6 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	for (long ii=0;ii<ndata;ii++)
 		pixpos[ii] = indpix[samptopix[ii]];
-
-	pixtosamp = new long long[ndata];
-
 
 	for (long ii=0;ii<ndata;ii++)
 		pixtosamp[ii] = ii;
