@@ -909,7 +909,7 @@ int main(int argc, char *argv[]) {
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while ((iter < struct_sanePic.itermax) && (((var_n / var0 > 1e-10) && (idupl
-				|| !pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-6)))) {
+										       || !pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
 
 			fill(q, q + npixeff, 0.0); // q <= A*d
 
@@ -1224,21 +1224,21 @@ int main(int argc, char *argv[]) {
 					delete[] map1d;
 				} // end of saving iterated maps
 
-				char mytime[25];
 
 				time_t rawtime;
 				time ( &rawtime );
-				strncpy(mytime, ctime(&rawtime),24); // remove the newline character
-				mytime[24] = '\0';
-				temp_stream.str("");
-				temp_stream << "[" << mytime << "] ";
-				temp_stream << "iter = "      << setw(4) << iter;
-				temp_stream << ", crit = "    << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
-				temp_stream << ", crit2 = "   << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
 
+				// Now in ISO Standard
+				char mytime[20];
+				strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
+
+				temp_stream <<  mytime << " -- " << "iter = "     << setw(4) << iter;
+				temp_stream << ", crit = "      << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
+				temp_stream << ", crit2 = "     << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
+ 
 				// Output to screen ...
 				cout << temp_stream.str() << "\r" << flush;
-				cout << endl; // temp : to test for dirfiles !
+				//cout << endl; // temp : to test for dirfiles !
 
 				// ... and to a logfile
 				ofstream logfile;
