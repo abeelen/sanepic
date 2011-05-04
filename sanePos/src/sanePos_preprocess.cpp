@@ -141,7 +141,7 @@ int computePixelIndex(string outdir,
 		// as we need to process an entire frame to save data per frame, we cannot parallelize by detector,
 		// since we would then need to save a 2*ndet*ns matrix
 
-		// First compute the sin and cos of the phi (will be reused ns times..)
+		// First compute the sin and cos of the phi (will be reused ndet times..)
 		double *cosphi, *sinphi;
 		cosphi = new double[ns];
 		sinphi = new double[ns];
@@ -195,10 +195,15 @@ int computePixelIndex(string outdir,
 				world[2*ii+1] = dec_deg;
 			}
 
+
 			// ... and reproject it back onto the map
 			if ((status = wcss2p(wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
-				printf("   wcss2p(1) ERROR %2d \n", status);
-				continue;
+				printf("   wcss2p ERROR %2d \n", status);
+				for (long ii = 0; ii < ns ; ii++){
+cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << " " << theta[ii] << " : " << pixcrd[2*ii] << " " << pixcrd[2*ii+1] << " : " << wcsstatus[ii] << endl;
+
+				}
+				exit(1);
 			}
 			// Transform pixel coordinates to pixel index
 			for (long ii = 0; ii < ns; ii++){

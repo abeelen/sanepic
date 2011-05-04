@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
 	size = 1; // non-MPI usage : 1 processor with number 0
 	rank = 0;
 #endif
+	if(rank==0)
+		printf("sanePos:\n");
 
 	if(rank==0)
 		printf("\nBeginning of sanePos:\n\n");
@@ -219,7 +221,6 @@ int main(int argc, char *argv[])
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
-
 #endif
 
 	//	struct bolo_chaine bolo_0;
@@ -279,8 +280,14 @@ int main(int argc, char *argv[])
 
 	if (pos_param.maskfile == ""){
 
+
 		if(rank==0)
 			printf("\n\nDetermining Map Parameters...\n");
+
+		//TODO if ra/dec nom not defined, rank 0 read the first frame/first bolo / and pick ra/dec/nom
+		//TODO define a default wcs with the ra/dec nom
+
+
 
 		// TODO: Different ways of computing the map parameters :
 		// 1 - find minmax of the pointings on the sky -> define map parameters from that

@@ -368,6 +368,9 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	lon = new double[nStep];
 	lat = new double[nStep];
 
+	//TODO: This scheme will fail over the Pole,
+	//one should use/define a reference RA/DEC, project the data, and compute sizes on the projected intermediate coordinates.
+
 	for (int ii=0; ii<nStep; ii++) {
 		lon[ii] = (ra_max-ra_min)*ii/(nStep-1)+ra_min;
 		lat[ii] = (dec_max-dec_min)*ii/(nStep-1)+dec_min;
