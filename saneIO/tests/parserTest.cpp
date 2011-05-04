@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 		/* parse ini file and fill structures */
 		parsed = parser_function(argv[1], parser_output, dir,
 				samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-				struct_sanePic, size);
+				struct_sanePic);
 
 		if(rank==0)
 			// print parser warning and/or errors
