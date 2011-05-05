@@ -295,7 +295,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string dir, string prefi
 		file << "before read Invnoise : at " << asctime (timeinfo) << endl;
 #endif
 
-		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointer, dir, field1,  suffix, nbins, ndet2, &ell, &SpN_all))
+		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointer, field1,  suffix, nbins, ndet2, &ell, &SpN_all))
 			return 1;
 
 #ifdef DEBUG
