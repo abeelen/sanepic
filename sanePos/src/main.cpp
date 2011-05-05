@@ -64,8 +64,6 @@ int main(int argc, char *argv[])
 	size = 1; // non-MPI usage : 1 processor with number 0
 	rank = 0;
 #endif
-	if(rank==0)
-		printf("sanePos:\n");
 
 	if(rank==0)
 		printf("\nBeginning of sanePos:\n\n");
@@ -222,16 +220,6 @@ int main(int argc, char *argv[])
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
 #endif
-
-	//	struct bolo_chaine bolo_0;
-	//	struct bolo_chaine *ptr;
-	//
-	//	ptr=&bolo_0;
-	//
-	//	if(channel_list_to_chain_list(samples_struct, ptr, rank))
-	//		cout << "error in channel_list_to_chain_list" << endl;
-	//
-	//	ptr=&bolo_0;
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
 		cout << "error in channel_list_to_vect_list" << endl;
@@ -645,7 +633,7 @@ int main(int argc, char *argv[])
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
-		if(write_fits_hitory2(fnaivname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
+		if(write_fits_history2(fnaivname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
 		if (pos_param.maskfile != "")
 			if(write_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
@@ -668,13 +656,15 @@ int main(int argc, char *argv[])
 	delete [] ini_v.bolovect;
 #endif
 
-	if(rank==0){
+
 #ifdef DEBUG
+	if(rank==0){
 		//Get processing time
 		t3=time(NULL);
 		printf("\nProcessing time : %d sec\n",(int)(t3-t2));
-#endif
 	}
+#endif
+
 
 	// clean up
 	delete [] PNdNaiv;

@@ -208,62 +208,6 @@ int read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	return 0;
 }
-//
-//int read_image_2D_from_fits(string filename, double*&image, string hdu_name, long & ns, long & ndet){
-//
-//	fitsfile *fptr;
-//	int status = 0, anynul;
-//	int naxis = 0;
-//	long naxes[2] = { 1, 1 };
-//	long fpixel[2]= { 1, 1 };
-//	int nulval=0;
-//	long inc=1;
-//
-//	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//
-//	// Move ptr to desired hdu
-//	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)hdu_name.c_str(), NULL, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//
-//	// Retrieve the size of the signal
-//	if (fits_get_img_dim(fptr, &naxis, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if(naxis != 2){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//	if (fits_get_img_size(fptr, 2, naxes, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//
-//	ns = naxes[0];
-//	ndet = naxes[1];
-//
-//	long lpixel[2]= { ns, ndet };
-//	image = new double[ndet*ns];
-//
-//	fits_read_subset(fptr, TDOUBLE, fpixel, lpixel, &inc,
-//			&nulval, image, &anynul, &status);
-//
-//
-//	// ---------------------------------------------
-//	// close file
-//	if(fits_close_file(fptr, &status)){
-//		fits_report_error(stderr, status);
-//		return 1;
-//	}
-//
-//	return 0;
-//}
-
 
 int read_signal_from_fits(string filename, string field, double *& signal, long & ns){
 	//TODO : Handle unit to transform to a common internal known unit

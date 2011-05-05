@@ -52,7 +52,7 @@ char** vString2carray(std::vector<string> strings) {
 	data = new char*[nBolos];
 
 	for (int i = 0; i < nBolos; i++) {
-		data[i] = new char[stringLength];
+		data[i] = new char[stringLength+1]; // TODO : +\0 ?
 		strcpy(data[i], strings[i].c_str());
 	}
 

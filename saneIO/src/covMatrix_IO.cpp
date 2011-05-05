@@ -207,56 +207,6 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	return 0;
 }
-//
-//char** vString2carray(std::vector<string> strings) {
-//	// Transform a vector of string into a array of char
-//
-//	int stringLength = maxStringLength(strings);
-//	int nBolos = strings.size();
-//
-//	char **data;
-//
-//	data = new char*[nBolos];
-//
-//	for (int i = 0; i < nBolos; i++) {
-//		data[i] = new char[stringLength];
-//		strcpy(data[i], strings[i].c_str());
-//	}
-//
-//	return data;
-//
-//}
-//
-//char* tableFormat(std::vector<string> strings) {
-//	// Return the table Format for the given vector of string
-//	stringstream stream_tform;
-//	string string_tform;
-//	char* p_tform;
-//
-//	stream_tform << maxStringLength(strings) << "A";
-//	string_tform = stream_tform.str();
-//
-//	p_tform = new char[string_tform.size() + 1];
-//	strcpy(p_tform, string_tform.c_str());
-//	return p_tform;
-//}
-//
-//
-//// here
-//long maxStringLength(std::vector<string> strings) {
-//	// Return the longest string length of a string vector
-//	unsigned long maxSize = 0;
-//	std::vector<string>::iterator itString;
-//
-//	for (itString = strings.begin(); itString != strings.end(); itString++) {
-//		string iString = *(itString);
-//		if (iString.size() > maxSize)
-//			maxSize = iString.size();
-//
-//	}
-//	return maxSize;
-//}
-
 
 //saneInv
 int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins, double * ell,
@@ -265,55 +215,12 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
  * This function writes the Inverse Covariance Matrices in binary format
  */
 {
-	// dirfile name
-	//	string filedir = outputDir + "dirfile"; // /Noise_data/
-
-	// open dirfile
-	//	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
-
-	// dirfile name
-	//	filedir = outputDir + "dirfile/Noise_data/ell/";
-
-	// open dirfile
-	//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_UNENCODED | GD_BIG_ENDIAN);
-
 	long ndet = bolos.size();
 
 	for (int idet = 0; idet < ndet; idet++) {
 
 		// ell binary filename
 		string outfile = bolos[idet] + "_" + suffix + "_ell"; // suffix is now made with fitsbasename of the scan file + noise suffix from inifile !
-
-		//		// configure dirfile field for ell
-		//		gd_entry_t E;
-		//		E.field = (char*)outfile.c_str();
-		//		E.field_type = GD_RAW_ENTRY;
-		//		E.fragment_index = 0;
-		//		E.spf = 1; //nbins +1
-		//		E.data_type = GD_DOUBLE;
-		//		E.scalar[0] = NULL;
-		//
-		//		// get number of fields in format
-		//		unsigned int nfields =  gd_nfields(H);
-		//
-		//		const char** field_list = gd_field_list(H); // get all format entry
-		//
-		//		// fill a vector with entry values
-		//		std::vector<std::string> fields((char**)field_list, (char**)(field_list+nfields));
-		//
-		//		// check whether outfile already exists in format
-		//		int mycount = (int) count(fields.begin(), fields.end(), outfile);
-		//
-		//		if(mycount==1){ // delete it in case it exists (and also delete bin file)
-		//			gd_delete(H, (char*)outfile.c_str(), GD_DEL_DATA);
-		//			if(gd_error(H)){
-		//				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
-		//				return 1;
-		//			}
-		//		}
-		//
-		//		// add to the dirfile
-		//		gd_add(H, &E);
 
 		// write binary file on disk
 		int n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
@@ -326,23 +233,6 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 		// spectra filename
 		outfile = bolos[idet] + "_" + suffix;
 
-		//		// check whether field is already present in format
-		//		mycount = (int) count(fields.begin(), fields.end(), outfile);
-		//		if(mycount==1){ // delete field if already exists in dirfile
-		//			gd_delete(D, (char*)outfile.c_str(), GD_DEL_DATA);
-		//			if(gd_error(D)){
-		//				cout << "error write_InvNoisePowerSpectra : gd_delete " << outfile << " failed" << endl;
-		//				return 1;
-		//			}
-		//		}
-		//
-		//		// set field information for spectra
-		//		E.field = (char*)outfile.c_str();
-		//		//		E.spf = ndet*nbins;
-		//
-		//		// add to the dirfile
-		//		gd_add(D, &E);
-
 		// write binary file on disk
 		n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, ndet*nbins, GD_DOUBLE, Rellth[idet]);
 		if(gd_error(D)!=0){
@@ -352,48 +242,10 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 
 	}
 
-	//	// close dirfile
-	//	if(gd_close(D)){
-	//		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
-
-	//	// close dirfile
-	//	if(gd_close(H)){
-	//		cout << "Dirfile gd_close error in write_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
-
-	//	string filename;
-	//	FILE *fpw;
-	//	long ndet = bolos.size();
-	//
-	//	for (int idet = 0; idet < ndet; idet++) {
-	//
-	//		// open file
-	//		filename = outputDir + "Noise_data/" + bolos[idet] + "_" + suffix;
-	//		if ((fpw = fopen(filename.c_str(),"w")) == NULL){
-	//			cerr << "ERROR: Can't write noise power spectra file" << filename << endl;
-	//			return 1;
-	//		}
-	//
-	//		// write sizes
-	//		fwrite(&nbins, sizeof(long), 1, fpw);
-	//		fwrite(&ndet, sizeof(long), 1, fpw);
-	//
-	//		// write arrays
-	//		fwrite(ell, sizeof(double), nbins + 1, fpw);
-	//		fwrite(Rellth[idet], sizeof(double), ndet * nbins, fpw);
-	//
-	//		// close file
-	//		fclose(fpw);
-	//	}
-
 	// flush dirfile
 	gd_flush(D,NULL);
 
 	return 0;
-
 }
 
 int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, string suffix,
@@ -402,37 +254,11 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
  * This function reads the Inverse Covariance Matrices in binary format
  */
 {
-	// dirfile path
-	//	string filedir = outputDir + "dirfile"; // /Noise_data/
-
 	//binary name
 	string outfile = boloName + "_" + suffix + "_ell";
 
 	// temp 1D array
 	double *Rellth_full;
-
-	// open dirfile
-	//	DIRFILE* D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-
-
-
-
-	//	// dirfile path
-	//	filedir = outputDir + "dirfile/Noise_data/ell/";
-	//
-	//	//	// open dirfile
-	//	DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	//	unsigned int nframe = gd_nframes(H);
-	//
-	//	// close dirfile
-	//	if(gd_close(H)){
-	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
-	//
-	//	// get nbins value
-	//	//	*nbins = e.spf - 1;
-	//	*nbins = nframe-1;
 
 	// alloc ell
 	*ell=new double[nbins+1];
@@ -447,21 +273,6 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 	// Power spectra binary file name
 	outfile = boloName + "_" + suffix;
 
-	// get entry infos
-	//	gd_entry(D, (char*)outfile.c_str(), &e);
-	//	filedir = outputDir + "dirfile/Noise_data/";
-	//	H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-	//	nframe = gd_nframes(H);
-	//
-	//	// close dirfile
-	//	if(gd_close(H)){
-	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
-
-	// compute ndet considering entry size and nbins
-	//	*ndet = nframe / (*nbins);
-
 	//alloc temp 1D array
 	Rellth_full = new double[nbins*ndet];
 
@@ -471,22 +282,6 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
-
-
-	// flush dirfile
-//	gd_flush(D,NULL);
-
-	//	// close dirfile
-	//	if(gd_close(D)){
-	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
-
-	//	// close dirfile
-	//	if(gd_close(H)){
-	//		cout << "Dirfile gd_close error in read_InvNoisePowerSpectra for : " << filedir << endl;
-	//		return 1;
-	//	}
 
 	// alloc spectra 2D array
 	*SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);
@@ -499,77 +294,9 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, str
 	// clear temp 1D array
 	delete [] Rellth_full;
 
-
-
-	//	string filename;
-	//	FILE *fp;
-	//	size_t result;
-	//
-	//	filename = outputDir + "Noise_data/" + boloName + "_" + suffix;
-	//	//	cout << filename << endl;
-	//	if ((fp = fopen(filename.c_str(), "r")) == NULL) {
-	//		cerr << "ERROR: Can't read noise power spectra file" << filename << endl;
-	//		return 1;
-	//	}
-	//	// Read sizes
-	//	result = fread(nbins, sizeof(long), 1, fp);
-	//	result = fread(ndet, sizeof(long), 1, fp);
-	//
-	//
-	//	// Allocate memory
-	//	*ell = new double[(*nbins) + 1];
-	//	*SpN_all = dmatrix(0, (*ndet) - 1, 0, (*nbins) - 1);
-	//
-	//	// Read arrays
-	//	result = fread(*ell,     sizeof(double), (*nbins) + 1, fp);
-	//	for (long i=0; i<(*ndet); i++)
-	//		result = fread((*SpN_all)[i], sizeof(double), (*nbins), fp);
-	//	//
-	//	//	for (int i=0; i< *nbins; i++)
-	//	//		cout << (*SpN_all)[0][i] << " ";
-	//	//	cout << endl;
-	//	//
-	//	//	cout << "here final" << endl;
-	//
-	//	fclose(fp);
-
 	return 0;
 
 }
-
-// sanePS
-//void read_ReducedMixingMatrix(double **&mixmat,long &ndet,int &ncomp, string dir){
-//
-//	string filename; /*! Reduced mixing matrix internal filename (fixed by us, not modifiable by users)*/
-//	FILE *fp;
-//
-//	size_t result;
-//
-//	// open file
-//	filename = dir + "Reduced_MixingMatrix_internal_data.bin"; //Reduced mixing matrix binary file
-//	if((fp=fopen(filename.c_str(),"r"))== NULL){
-//		cerr << "ERROR: Can't find Reduced MixingMatrix file" << filename << endl;
-//		return 1;
-//	}
-//
-//	//Read sizes
-//	result = fread(&ndet,sizeof(long),1,fp); // number of detector in the mixmat
-//	result = fread(&ncomp,sizeof(int),1,fp); // number of noise component
-//
-//	//allocate memory considering readed sizes
-//	mixmat=dmatrix(0, ndet - 1, 0, ncomp - 1);
-//
-//
-//	for (long idet=0;idet<ndet;idet++)
-//		for (int icomp=0;icomp<ncomp;icomp++)
-//			result = fread(&mixmat[idet][icomp],sizeof(double),1,fp); // reads mixmat element by element
-//
-//
-//	//close file
-//	fclose(fp);
-//
-//}
-
 
 int write_psd_tofits(string fname, long nx, long ny,
 		char dtype, void * psd1d) {

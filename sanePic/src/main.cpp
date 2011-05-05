@@ -501,7 +501,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if(rank==0)
-			read_PNd(PNd, npix, dir.tmp_dir, "PNdCorr.bi");
+			read_PNd(PNd, npix, dir.tmp_dir, "PNd.bi");
 		else{
 			PNd = new double[npix];
 			fill(PNd, PNd+npix, 0.0);
@@ -679,7 +679,8 @@ int main(int argc, char *argv[]) {
 	ostringstream temp_stream; // fits files filename string stream
 
 	// inititialisation of the Conjugate gradient with preconditioner
-	// see (for a complete description of the following variables) : http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
+	// see (for a complete description of the following variables, go to section B3 for algorithm) :
+	// http://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 	double *PtNPmatS= NULL, *PtNPmatStot = NULL, *r, *q, *qtot = NULL, *d, *s; // =NULL to avoid warnings
 	double *Mp,	*Mptot = NULL; // =NULL to avoid warnings
 	// Mp = M in the paper = preconditioner
@@ -715,7 +716,7 @@ int main(int argc, char *argv[]) {
 	if ((struct_sanePic.restore > 0)) {
 		if (rank == 0){
 			cout << "loading idupl\n";
-			load_idupl(dir.tmp_dir, dir.output_dir, idupl);
+			load_idupl(dir.tmp_dir, idupl);
 
 			// idupl compatibility
 			if((idupl>0) && !pos_param.flgdupl){
@@ -749,7 +750,7 @@ int main(int argc, char *argv[]) {
 
 		if (struct_sanePic.save_data > 0)
 			if(rank==0)
-				write_PNd(PNdtot,npix,dir.tmp_dir, "PNdCorr.bi");
+				write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
 
 
 		if((struct_sanePic.restore == 0)){
@@ -873,7 +874,7 @@ int main(int argc, char *argv[]) {
 				cout << "loading session\n";
 
 				// fill S, d, r, indpix, npixeff, var_n, delta_n and iter with previously saved on disk values
-				load_from_disk(dir.tmp_dir, dir.output_dir, S, d, r, npixeff, var0, var_n, delta0,
+				load_from_disk(dir.tmp_dir, S, d, r, npixeff, var0, var_n, delta0,
 						delta_n, iter, Mp);
 			}
 #ifdef USE_MPI
@@ -1073,7 +1074,7 @@ int main(int argc, char *argv[]) {
 					s[ii] = Mptot[ii] * r[ii]; // s = M-1 * r
 
 
-				delta_o = delta_n; // delta_0 <= delta_new
+				delta_o = delta_n; // delta_old <= delta_new
 
 				delta_n = 0.0;
 				for (long ii = 0; ii < npixeff; ii++)
@@ -1083,7 +1084,7 @@ int main(int argc, char *argv[]) {
 				for (long ii = 0; ii < npixeff; ii++)
 					var_n += r[ii] * r[ii];
 
-				beta = delta_n / delta_o; // beta = delta_new / delta_0
+				beta = delta_n / delta_o; // beta = delta_new / delta_old
 				for (long ii = 0; ii < npixeff; ii++)
 					d[ii] = s[ii] + beta * d[ii]; // d = s + beta * d
 
@@ -1217,7 +1218,7 @@ int main(int argc, char *argv[]) {
 							return EX_CANTCREAT;
 						}
 					}
-					if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param,
+					if(write_fits_history2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param,
 							samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 

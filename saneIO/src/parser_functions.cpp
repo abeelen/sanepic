@@ -502,12 +502,12 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
 	return 0;
 }
 
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long n_iter, string noise_suffix, std::vector<std::vector<std::string> > bolo_vect)
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, string noise_suffix, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	std::vector<string> det_vect;
 
-	for (long ii=0; ii< n_iter; ii++){
+	for (long ii=0; ii< nframe; ii++){
 
 		det_vect=bolo_vect[ii];
 
@@ -995,6 +995,8 @@ int channel_list_to_vect_list(struct samples samples_struct, std::vector<std::ve
 	return 0;
 }
 
+#ifdef USE_MPI
+
 long compute_bololist_size(std::vector<std::string> str_vect, long &size_max)
 {
 	long size_buff=0;
@@ -1010,9 +1012,6 @@ long compute_bololist_size(std::vector<std::string> str_vect, long &size_max)
 
 	return size_buff;
 }
-
-#ifdef USE_MPI
-
 
 void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct samples samples_struct, struct ini_var_strings &ini_v)

@@ -87,9 +87,6 @@ int main(int argc, char *argv[])
 			if (size!=(samples_struct.scans_index[samples_struct.scans_index.size()-1]+1)){
 				cout << "Warning, you have to run MPI with " << samples_struct.scans_index[samples_struct.scans_index.size()-1]+1 << " processors and you are currently running MPI with " << size << " processors\n";
 				error_code=1;
-				//			MPI_Barrier(MPI_COMM_WORLD);
-				//			MPI_Finalize();
-				//			return EX_CONFIG;
 			}
 
 		}
@@ -102,9 +99,9 @@ int main(int argc, char *argv[])
 
 			fname = dir.output_dir + parallel_scheme_filename;
 
-			if(samples_struct.ntotscan==size){
+			if(samples_struct.ntotscan==size){ // special case : number of proc = number of scan
 
-				for(long hh=0; hh<samples_struct.ntotscan;hh++){
+				for(long hh=0; hh<samples_struct.ntotscan;hh++){ // one scan per proc ...
 					ruleorder[hh]=hh;
 					frnum[hh]=hh;
 				}
@@ -114,7 +111,7 @@ int main(int argc, char *argv[])
 				parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
 
 
-			}else{
+			}else{ // less procs than number of scans
 
 
 				/********************* Define parallelization scheme   *******/

@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 	struct saneCheck check_struct;
 	string outname; /*! Ouput log files name */
 	string output = "";
-	string bolo_gain_filename=""; // TODO change this IF WE KEEP bolo gain computation !!
+	string bolo_gain_filename="";
 
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
@@ -349,7 +349,7 @@ int main(int argc, char *argv[]) {
 
 			if(check_struct.checkGain){
 				//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
-				//				check_bolo_gain(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : quelle bolo list on prend ?? selon les differents cas !!
+				//				check_bolo_gain(samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
 				//				getchar();
 			}
 

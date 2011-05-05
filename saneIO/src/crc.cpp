@@ -138,7 +138,7 @@ bool compare_checksum(struct checksum chk_t, struct checksum chk_t2){
 	return 0;
 }
 
-int load_idupl(string tmp_dir, string out_dir, int &idupl){
+int load_idupl(string tmp_dir, int &idupl){
 	FILE* fp;
 	string file = tmp_dir + "data_sanePic.bin";
 	size_t len=0;
@@ -155,7 +155,7 @@ int load_idupl(string tmp_dir, string out_dir, int &idupl){
 	return 0;
 }
 
-int load_from_disk(string tmp_dir, string out_dir, double *S, double *d, double *r, long long npixeff, double & var_0, double &var_n, double &delta_0, double &delta_n, int &iter, double *Mptot){
+int load_from_disk(string tmp_dir, double *S, double *d, double *r, long long npixeff, double & var_0, double &var_n, double &delta_0, double &delta_n, int &iter, double *Mptot){
 
 	FILE* fp;
 	string file = tmp_dir + "data_sanePic.bin";

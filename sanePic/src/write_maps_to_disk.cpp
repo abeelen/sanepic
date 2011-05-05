@@ -152,7 +152,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		if(write_fits_mask(fname, dir.input_dir + maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
 
-	if(write_fits_hitory2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, sanePic_struct, saneInv_struct)) // write sanePre parameters in naive Map fits file header
+	if(write_fits_history2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, sanePic_struct, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 		cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 	// clean

@@ -144,9 +144,9 @@ int main(int argc, char *argv[]) {
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, sanePic_struct, saneInv_struct);
-	}
-
+	
 	cout << "\nFixing Files..." << endl << endl;
+	}
 
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan
 

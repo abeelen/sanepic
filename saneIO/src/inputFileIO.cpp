@@ -82,7 +82,7 @@ int read_double(string fname, double *& array, long & size){
 	return 0;
 }
 
-std::string remplace_all(std::string str, std::string tobe_replace, std::string with_this)
+std::string replace_all(std::string str, std::string tobe_replace, std::string with_this)
 {
 	int len = tobe_replace.size(), pos;
 	while((pos=str.find(tobe_replace)) != (int)string::npos)
@@ -103,7 +103,7 @@ std::string FitsBasename(std::string path)
 
 	//	cout << path << " deb fonction" << endl;
 
-	path=remplace_all(path, "\\", "/");
+	path=replace_all(path, "\\", "/");
 
 	// Strip the path and get the filename
 	// Find the last " directory separator

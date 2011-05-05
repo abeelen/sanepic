@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << endl << "Beginning of sanePS :  Noise Power Spectra Estimation" << endl;
+		cout << endl << "Beginning of sanePS : " << endl;
 
 	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 			indpix_size = factdupl * NAXIS1 * NAXIS2 + 2 + addnpix;
 			indpix = new long long[indpix_size];
 			S = new double[npix];
-//			fill(S,S+npix,0.0);
+			//			fill(S,S+npix,0.0);
 		}
 
 		MPI_Bcast(indpix,indpix_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
@@ -364,8 +364,6 @@ int main(int argc, char *argv[])
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			//			compute_checksum(argv[indice_argv], dir.tmp_dir, npix,
-			//					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
 			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
 					indpix, indpsrc, NAXIS1 * NAXIS2, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t, "sanePS")){ // write down on disk the checksum values
@@ -380,6 +378,9 @@ int main(int argc, char *argv[])
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
+	if(rank==0)
+		cout << "Noise Power Spectra Estimation started : " << endl;
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
 

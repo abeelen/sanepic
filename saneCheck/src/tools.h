@@ -2,6 +2,11 @@
 #define TOOLS_H_
 
 
+//! A structure that is used to sort a doubles vectors with standard routine "sort"
+struct sortclass_double {
+	bool operator() (double i,double j) { return (i<j);}
+};
+
 /*! this function determines whether the user list of detectors is correct or not */
 void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vector<std::string> bolo_fits, std::string filename);
 

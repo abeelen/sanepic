@@ -97,11 +97,11 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 				data[ii] = data[ii] - Ps[ii];
 		}
 
-		//TODO : f_lp_pix is hard fixed to 1.0 ??????????
+		//TODO : f_lp_pix is hard fixed to 1.0 -> avoid errors and wasted time ?
 		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
 
 
-		// TODO: should apodisation be part of MapMakePreProcess ? : not in Corr_preprocess !
+		// should apodisation be part of MapMakePreProcess ? : no, not in Corr_preprocess !
 		for (long ii=0;ii<ns;ii++)
 			data[ii] = data_lp[ii]*apodwind[ii];
 
@@ -1143,7 +1143,6 @@ int write_to_disk(string outdirSpN, string fits_filename, struct param_sanePS st
 
 #ifdef DEBUG
 
-	//TODO : One should define a fits format for that => useless ! The same is done for Nfinal _uncnoise !
 	//**************** Write component power spectra to disk
 	for (long idet1=0;idet1<ndet;idet1++){
 
@@ -1171,9 +1170,6 @@ int write_to_disk(string outdirSpN, string fits_filename, struct param_sanePS st
 	write_psd_tofits(testfile,nbins,ndet,'d',data1d);
 	delete [] data1d;
 
-
-
-	//TODO: One should define a fits format for that
 	for (long jj=0;jj<structPS.ncomp;jj++){
 
 		temp_stream << outdirSpN + "Comp_" << jj << "_uncnoise_" << basename << ".psd";

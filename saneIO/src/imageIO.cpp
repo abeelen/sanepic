@@ -279,7 +279,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
 	return 0;
 }
 
-int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, struct param_common dir, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, struct param_sanePS PS_param, struct param_sanePic Pic_param, struct param_saneInv Inv_param)
+int write_fits_history2(std::string fname,long NAXIS1, long NAXIS2, struct param_common dir, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, struct param_sanePS PS_param, struct param_sanePic Pic_param, struct param_saneInv Inv_param)
 {
 
 	fitsfile *fptr;
@@ -489,6 +489,7 @@ int write_fits_hitory2(std::string fname,long NAXIS1, long NAXIS2, struct param_
 		delete [] data2[ii];
 		delete [] data_value[ii];
 	}
+
 	delete [] data2;
 	delete [] data_value;
 	delete [] data;
@@ -730,7 +731,7 @@ int write_fits_META(string fname, long NAXIS1, long NAXIS2, string path, struct 
 
 
 
-int write_fits_mask(std::string fnaivname, std::string maskfile)
+int write_fits_mask(std::string fname, std::string maskfile)
 {
 
 	fitsfile *fptr, *outfptr;
@@ -742,7 +743,7 @@ int write_fits_mask(std::string fnaivname, std::string maskfile)
 		return 1;
 	}
 
-	if (fits_open_file(&outfptr, fnaivname.c_str(), READWRITE, &fits_status)){
+	if (fits_open_file(&outfptr, fname.c_str(), READWRITE, &fits_status)){
 		fits_report_error(stderr, fits_status);
 		return 1;
 	}
@@ -794,7 +795,7 @@ int write_fits_mask(std::string fnaivname, std::string maskfile)
 
 }
 
-int read_mask_wcs(string fname, string extname, /* char dtype,*/ struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data)
+int read_mask_wcs(string fname, string extname, struct wcsprm *& wcs, long &NAXIS1, long &NAXIS2,  short *& data)
 /*
  * Read the extension 'extname' from the 'fname' fits file, extension must be a 2D image
  * Return a wcs structure, the size of the image, the image data type and image itself cast to int, float or double
@@ -932,7 +933,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, lo
 		return 1;
 	}
 
-	// seems to work correctly
+	// work correctly
 	for (long ii=0; ii<imNAXIS1; ii++) {
 		for (long jj=0; jj<imNAXIS2; jj++) {
 			mi = jj*imNAXIS1 + ii;
@@ -954,7 +955,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, lo
 }
 
 
-int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
+int save_keyrec(string tmpdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 
 	FILE *fout;
 	int nkeyrec, status;
@@ -966,8 +967,8 @@ int save_keyrec(string outdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2){
 	}
 
 
-	outdir=outdir + "mapHeader.keyrec";
-	fout = fopen(outdir.c_str(),"w");
+	tmpdir=tmpdir + "mapHeader.keyrec";
+	fout = fopen(tmpdir.c_str(),"w");
 	if (fout==NULL) {fputs ("Creation error : File error on mapHeader.keyrec\n",stderr); return (1);}
 
 	fprintf(fout,"NAXIS1  = %20ld / %-47s\n",NAXIS1,"length of data axis 1");
@@ -1001,19 +1002,19 @@ int print_MapHeader(struct wcsprm *wcs){
 	return 0;
 }
 
-int read_keyrec(string outdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2, int rank){
+int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1, long * NAXIS2, int rank){
 
 	char *memblock=NULL;
 	int nkeyrec=0, nreject, nwcs, status;
 
 	if(rank==0){
-		outdir = outdir + "mapHeader.keyrec";
+		tmpdir = tmpdir + "mapHeader.keyrec";
 
 		FILE *fin;
 		size_t result;
 		int size;
 
-		fin = fopen(outdir.c_str(),"r");
+		fin = fopen(tmpdir.c_str(),"r");
 		if (fin==NULL) {fputs ("Read error : File error on mapHeader.keyrec",stderr); return 1;}
 
 		fseek(fin, 0L, SEEK_END);     /* Position to end of file */
