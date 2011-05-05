@@ -53,31 +53,6 @@ double* randg(long nombre, int seedpass) {
 	return nombre_hasard;
 }
 
-
-
-double randg_archi(long nombre, int seedpass) {
-
-	double nombre_hasard=0.5;
-	time_t temps;
-	temps = time(NULL);
-
-	unsigned int seed = 0;
-
-	if (seedpass == 0) seed = (unsigned int) temps;
-	if (seedpass != 0 && seedpass != -1) seed = (unsigned int) seedpass;
-	if (seedpass != -1) srandom(seed);
-
-	if (nombre/2!=nombre/2.) {
-		double t1 = (double(rand())/RAND_MAX);
-		double t2 = (double(rand())/RAND_MAX);
-		nombre_hasard=sqrt(-2*log(t1))*cos(2*M_PI*t2);
-	}//
-
-
-	return nombre_hasard;
-}
-
-
 int compare_array_double (const void *array_1, const void *array_2)
 {
 
@@ -517,12 +492,6 @@ void reorder_samples_struct(int rank, struct samples &samples_struct,  int size,
 }
 
 int who_do_it(int size, int rank, int ii)
-/*!\brief This function determines which processor has to treat the given loop referenced by his number
- * \param size Number of Processor used
- * \param rank processor rank number
- * \param ii A scan number
- * \return integer : A processor's rank, the rank determines which processor has to compute the scan
- */
 {
 
 	if(size==1) // if there is only 1 proc, he has to do the job

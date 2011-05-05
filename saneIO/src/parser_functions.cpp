@@ -1093,6 +1093,7 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 
 	}
 
+	ini_v.sizemax = ini_v.sizemax +1;
 }
 
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,

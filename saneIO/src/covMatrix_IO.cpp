@@ -21,11 +21,7 @@ extern "C" {
 using namespace std;
 
 
-////sanePS
 int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
-/*
- * This function write the NoiseNoise Matrices in a fits file.
- */
 {
 	fitsfile *fptr;
 	int status = 0;
@@ -248,7 +244,7 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 	return 0;
 }
 
-int read_InvNoisePowerSpectra(DIRFILE* D, string outputDir, string boloName, string suffix,
+int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string suffix,
 		long nbins, long ndet, double ** ell, double *** SpN_all)
 /*
  * This function reads the Inverse Covariance Matrices in binary format
