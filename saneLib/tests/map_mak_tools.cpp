@@ -98,7 +98,7 @@ int copy_fits(std::string fits_name, std::string outdir, long ns_total){
 
 
 	// copy mask
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status); // move input pointer to mask
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status); // move input pointer to mask
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
 
 	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
@@ -108,7 +108,7 @@ int copy_fits(std::string fits_name, std::string outdir, long ns_total){
 	}
 
 	// initiate signal !
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status); // move input pointer to signal
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status); // move input pointer to signal
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
 
 	fits_write_null_img(outfptr, 1, ns_total*ndet, &status);
@@ -144,7 +144,7 @@ int write_to_fits_data_lp(std::string fits_name, double *data_lp, string outdir,
 	if (fits_open_file(&outfptr, fname2.c_str(),READWRITE, &status))
 		fits_report_error(stderr, status);
 
-	fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "signal", NULL, &status); // move input pointer to signal
+	fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "signal", 0, &status); // move input pointer to signal
 	insert_array_in_image(fptr, outfptr, field, data_lp, ns_total);
 
 	// close both fits files
