@@ -317,7 +317,7 @@ void insert_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final
 
 	int status=0; // fits error status
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status); // move pointer to time HDU
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status); // move pointer to time HDU
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status); // update sample number
 
@@ -376,7 +376,7 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 	double *signal, *signal_fixed;
 
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status); // move input pointer to "signal" image
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status); // move input pointer to "signal" image
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output header
 
@@ -402,13 +402,13 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 	double *RA, *RA_fixed;
 	double *DEC, *DEC_fixed;
 
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)){ // move input pointer to RA
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){ // move input pointer to RA
 		cout << "WARNING : ra table was not found, skipping this table...\n";
 		return;
 	}
 	fits_copy_header(fptr, outfptr, &status); // copy RA header to output file
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output RA header
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){ // move input pointer to DEC
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){ // move input pointer to DEC
 
 		cout << "WARNING : ra table was not found, skipping this table...\n";
 		return;
@@ -422,13 +422,13 @@ void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 
 	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
 		read_ra_dec_from_fits(name, det[jj], RA, DEC, ns_temp); // read input RA and DEC row
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move output pointer to RA table
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", 0, &status); // move output pointer to RA table
 		fix_row(RA, RA_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete); // fill gaps in RA row
 		insert_row_in_image(fptr, outfptr, det[jj], RA_fixed, ns_total); // insert the filled RA row in ouput table
 
 
 		// same process for DEC
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", 0, &status);
 		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
 		insert_row_in_image(fptr, outfptr, det[jj], DEC_fixed, ns_total);
 		delete [] RA;
@@ -448,7 +448,7 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	int status =0; // fits error status
 	int *mask, *mask_fixed;
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status); // move input pointer to mask
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status); // move input pointer to mask
 	fits_copy_header(fptr, outfptr, &status); // copy header to ouput
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output mask header
 
@@ -494,7 +494,7 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	double *DEC, *DEC_fixed;
 	double *PHI, *PHI_fixed;
 
-	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){ // move input pointer to ref pos
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){ // move input pointer to ref pos
 		cout << "WARNING : reference position table was not found, skipping this table...\n";
 		return;
 	}

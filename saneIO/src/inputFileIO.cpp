@@ -153,7 +153,7 @@ long readFitsLength(string filename){
 		fits_report_error(stderr, status);
 
 	// Go to the signal Extension ...
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}

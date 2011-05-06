@@ -748,7 +748,7 @@ int write_fits_mask(std::string fname, std::string maskfile)
 		return 1;
 	}
 
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status)){
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &fits_status)){
 		fits_report_error(stderr, fits_status);
 		return 1;
 	}
@@ -773,7 +773,7 @@ int write_fits_mask(std::string fname, std::string maskfile)
 
 	//	long NAXIS1 = naxes[0];
 
-	if(fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "mask", NULL, &fits_status))
+	if(fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "mask", 0, &fits_status))
 		if (fits_copy_data(fptr, outfptr, &fits_status)){
 			fits_report_error(stderr, fits_status);
 			return 1;
@@ -814,7 +814,7 @@ int read_mask_wcs(string fname, string extname, struct wcsprm *& wcs, long &NAXI
 	}
 
 	// ... and move to the 'extname'
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -888,7 +888,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, lo
 		return 1;
 	}
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Image", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*)"Image", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}

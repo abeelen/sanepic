@@ -50,11 +50,11 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 	}
 
 	// copy header to output
-	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status))
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status))
 		fits_report_error(stderr, status);
 	if(fits_copy_header(fptr, outfptr, &status))
 		fits_report_error(stderr, status);
-	if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", NULL, &status))
+	if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", 0, &status))
 		fits_report_error(stderr, status);
 
 	// insert columns
@@ -83,7 +83,7 @@ void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample
 
 	time_bis = new double [ns_final];
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status);
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status);
 	fits_copy_header(fptr, outfptr, &status);  // copy header
 
 	// copy corresponding data
@@ -107,7 +107,7 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 	long ns_temp; // temporary value of ns, needed only to read input data
 	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status);
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status);
 	fits_copy_header(fptr, outfptr, &status);  // copy header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
@@ -141,7 +141,7 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 	long ns_temp; // temporary value of ns, needed only to read input data
 	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status);
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status);
 	fits_copy_header(fptr, outfptr, &status); // copy header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status); // update output header
 
@@ -175,11 +175,11 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 	long ns_temp; // temporary value of ns, needed only to read input data
 	long ns_final = max_sample - min_sample +1; // total number of samples to copy
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status);
 	fits_copy_header(fptr, outfptr, &status);  // copy RA header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
-	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+	fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status);
 	fits_copy_header(fptr, outfptr, &status); // copy DEC header
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
@@ -198,9 +198,9 @@ void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 		string field= det[jj];
 		long rowIndex = find_channel_index(fptr, field.c_str()); // find the correct row number in output table
 		long fpixel[2]={1,rowIndex};
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move to RA table
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", 0, &status); // move to RA table
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // Write RA row
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move to DEC table
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", 0, &status); // move to DEC table
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // Write DEC row
 
 		delete [] RA;

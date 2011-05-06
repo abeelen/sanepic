@@ -243,10 +243,10 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		long ns_final= max_sample - min_sample+1; // total number of samples in output file
 
 #ifdef DEBUG
 		// print to std
+		long ns_final= max_sample - min_sample+1; // total number of samples in output file
 		cout << "min sample -> max sample : " << min_sample << " -> " << max_sample << endl;
 		cout << "Total number of samples : " << ns_final << endl;
 #endif

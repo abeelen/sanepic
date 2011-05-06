@@ -130,13 +130,13 @@ void copy_ref_pos(fitsfile *outfptr, struct samples samples_struct, long ns_fina
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 			fits_report_error(stderr, status);
 
-		if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)) // move HDU pointer to desired table
+		if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)) // move HDU pointer to desired table
 			fits_report_error(stderr, status);
 
 		if(iframe==0){ // if this is the first file of the list
 			if(fits_copy_header(fptr, outfptr, &status))
 				fits_report_error(stderr, status);
-			if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", NULL, &status)) // move HDU pointer to desired table
+			if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", 0, &status)) // move HDU pointer to desired table
 				fits_report_error(stderr, status);
 			if(fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_final, (char*)"Number of rows", &status)) // update table key
 				fits_report_error(stderr, status);
@@ -200,7 +200,7 @@ void copy_time(fitsfile *outfptr, struct samples samples_struct, long ns_final)
 			fits_report_error(stderr, status);
 
 
-		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status); // move HDU pointer to time table
+		fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status); // move HDU pointer to time table
 
 		if(iframe==0){ // if first scan ...
 			fits_copy_header(fptr, outfptr, &status); // copy talb header
@@ -256,7 +256,7 @@ void copy_signal(fitsfile *outfptr, struct samples samples_struct, std::vector<s
 				fits_report_error(stderr, status);
 
 			// move HDU pointer to signal table
-			fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status);
+			fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status);
 
 			if((jj==0)&&(iframe==0)){ // copy header only once !
 				fits_copy_header(fptr, outfptr, &status); // copy table header
@@ -331,7 +331,7 @@ void copy_mask(fitsfile *outfptr, struct samples samples_struct, std::vector<std
 				fits_report_error(stderr, status);
 
 			// move HDU pointer to mask
-			fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status);
+			fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status);
 
 			if((jj==0)&&(iframe==0)){ // copy header only once
 				fits_copy_header(fptr, outfptr, &status);
@@ -412,11 +412,11 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, std::vector<s
 
 
 			if((jj==0)&&(iframe==0)){ // copy headers once
-				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status);
+				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status);
 				fits_copy_header(fptr, outfptr, &status);
 				fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
-				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status);
+				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status);
 				fits_copy_header(fptr, outfptr, &status);
 				fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 			}
@@ -456,9 +456,9 @@ void copy_RA_DEC(fitsfile *outfptr, struct samples samples_struct, std::vector<s
 		if (fits_close_file(fptr, &status)) // close input file
 			fits_report_error(stderr, status);
 
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", NULL, &status); // move HDU pointer to RA table to write down the row
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", 0, &status); // move HDU pointer to RA table to write down the row
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // write the row
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", NULL, &status); // move HDU pointer to DEC table to write down the row
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", 0, &status); // move HDU pointer to DEC table to write down the row
 		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // write the row
 		indice_debut=0;
 	} // end of bolo loop

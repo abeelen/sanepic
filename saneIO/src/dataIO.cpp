@@ -44,7 +44,7 @@ int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonam
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -108,7 +108,7 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 
 	// ---------------------------------------------
 	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -171,7 +171,7 @@ int read_flag_from_fits(string filename, string field, int *&mask, long & ns){
 
 	// ---------------------------------------------
 	// Move ptr to mask hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -230,7 +230,7 @@ int read_signal_from_fits(string filename, string field, double *& signal, long 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -314,7 +314,7 @@ int read_channels(fitsfile *fptr, char **& data, long &nBolos){
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -381,7 +381,7 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -419,7 +419,7 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -479,7 +479,7 @@ int read_time_from_fits(string filename, double *& time, long ns){
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -526,14 +526,14 @@ int test_format(string fitsname){
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)>0) &&
-			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)>0)) // "ra" and "dec" tables were not found
+	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)>0) &&
+			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)>0)) // "ra" and "dec" tables were not found
 		format=2;
 
 	status = 0;
 
-	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)>0) &&
-			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)>0)){ // both tables were not found
+	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)>0) &&
+			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)>0)){ // both tables were not found
 		if(format==2)
 			format=0;
 		else
@@ -555,7 +555,7 @@ void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
 
 	int status=0; // fits error status
 
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status); // move HDU pointer to offsets table
+	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status); // move HDU pointer to offsets table
 	fits_copy_header(fptr, outfptr, &status); // copy header informations
 
 	for(int col=1;col<4;col++) // copy the 3 columns to output file
@@ -571,7 +571,7 @@ void copy_channels(fitsfile * fptr, fitsfile *outfptr)
 	int status=0; // fits error status
 
 
-	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status); // move HDU pointer to channels table
+	fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", 0, &status); // move HDU pointer to channels table
 	fits_copy_header(fptr, outfptr, &status); // copy header information
 
 

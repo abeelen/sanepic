@@ -135,7 +135,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", NULL, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -168,7 +168,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	// ---------------------------------------------
 	// read the Ell
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Frequency", NULL, &status))
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Frequency", 0, &status))
 		fits_report_error(stderr, status);
 
 	fits_get_img_size(fptr, 1, naxes, &status);
@@ -178,7 +178,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	// ---------------------------------------------
 	// read the spectras
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}

@@ -55,7 +55,7 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits file
 		fits_report_error(stderr, status);
 
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", NULL, &status)){ // go to reference table
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){ // go to reference table
 		fits_report_error(stderr, status); // reference position table was not found ?
 		check_it.checkREFERENCEPOSITION=0;
 		cout << "\"reference position\" was not found, or his Type should be Binary table" << endl;
@@ -96,7 +96,7 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 		}
 	}
 
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", NULL, &status)){ // go to offsets table
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)){ // go to offsets table
 		fits_report_error(stderr, status); // offsets table was not found ?
 		check_it.checkOFFSETS=0;
 		cout << "\"offsets\" was not found, or his Type should be Binary table" << endl;
@@ -175,7 +175,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 		return -1;
 	}
 
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", NULL, &status)){ // go to channels table
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", 0, &status)){ // go to channels table
 		fits_report_error(stderr, status); // is the table present ?
 		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
 		return -1;
@@ -208,7 +208,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 	}
 
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status)){
 		fits_report_error(stderr, status); // time table is present ?
 		cout << "\"time\" was not found, or his Type should be image" << endl;
 		return -1;
@@ -239,7 +239,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 	naxes[1]=1;
 
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
 		fits_report_error(stderr, status); // signal image is present ?dr
 		cout << "\"signal\" was not found, or his Type should be image" << endl;
 		return -1;
@@ -272,7 +272,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 	naxes[1]=1;
 
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status)){
 		fits_report_error(stderr, status); // mask image is present ?
 		cout << "\"mask\" was not found, or his Type should be image" << endl;
 		return -1;
@@ -325,7 +325,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits
 		fits_report_error(stderr, status);
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", NULL, &status)){ // move to ra table
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){ // move to ra table
 		fits_report_error(stderr, status); // Does it exists ?
 		check_it.checkRA=0;
 		cout << "\"ra\" was not found, or his Type should be image" << endl;
@@ -356,7 +356,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 	status = 0;
 
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){
 		fits_report_error(stderr, status); // move to DEC table
 		check_it.checkDEC=0;
 		cout << "\"dec\" was not found, or his Type should be image" << endl;
@@ -897,7 +897,7 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", NULL, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
