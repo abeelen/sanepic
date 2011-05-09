@@ -27,16 +27,8 @@
 using namespace std;
 
 
-
-struct sortclass {
-	bool operator() (int i,int j) { return (i<j);}
-} sortobject;
-
-
-
 int main(int argc, char *argv[])
 {
-
 
 	int size=1;
 	int rank=0;
@@ -56,6 +48,7 @@ int main(int argc, char *argv[])
 		struct samples samples_struct;
 		struct param_common dir;
 
+		sortclass_int sortobject;
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;

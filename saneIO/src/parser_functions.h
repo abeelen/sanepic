@@ -456,7 +456,7 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 
 #endif
 
-//! Fill samples structure with ini, fcut and fitsfilelist files informations
+//! Fill structures with ini, fcut and fitsfilelist files informations
 /*!
  * This function calls default_*, read_* and check_* routines
  \param ini_name the ini file name given by user in the command line (usually argv[1])

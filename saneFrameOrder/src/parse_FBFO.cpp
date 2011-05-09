@@ -45,7 +45,7 @@ int parse_FBFO(char * ini_name, string &parser_output, struct samples &samples_s
 
 	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
 	if(read_fits_list(parser_output, dir.input_dir+dir.fits_filelist, samples_struct)!=0)
-		return 1;
+		return -1;
 
 	cout << "You have specified the following options : \n\n";
 

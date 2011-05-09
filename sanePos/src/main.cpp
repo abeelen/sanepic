@@ -71,42 +71,42 @@ int main(int argc, char *argv[])
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePre proc_param;
 	struct param_sanePos pos_param;
-	struct param_common dir; /*! structure that contains output input temp directories */
+	struct param_common dir; /* structure that contains output input temp directories */
 
 	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
-	int flagon = 0; /*! if rejectsample [ii]==3, flagon=1*/
-	bool pixout = 0; /*! indicates that at least one pixel has been flagged and is out */
+	int flagon = 0; /* if rejectsample [ii]==3, flagon=1*/
+	bool pixout = 0; /* indicates that at least one pixel has been flagged and is out */
 
 
 	//set coordinate system
 	double *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
 	coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
 
-	long long npix; /*! npix = number of filled pixels */
-	long long npixsrc; /*! number of pixels included in Crossing Constraint Removal */
-	long long addnpix=0; /*!add a number 'n' of pixels to the map */
+	long long npix; /* npix = number of filled pixels */
+	long long npixsrc; /* number of pixels included in Crossing Constraint Removal */
+	long long addnpix=0; /* add a number 'n' of pixels to the map */
 
 	struct wcsprm * wcs;    // wcs structure of the image
 	long NAXIS1, NAXIS2;  // size of the image
 
 
 	// System should be IEEE 754 complient (TODO : add in the doc)
-	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /*! ra/dec min/max coordinates of the map*/
-	double gra_min, gra_max, gdec_min, gdec_max; /*! global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
+	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /* ra/dec min/max coordinates of the map*/
+	double gra_min, gra_max, gdec_min, gdec_max; /* global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
 
 	string fname; /*! parallel scheme file name */
 
 	// positions variables
 	short *mask;
-	long long *indpix, *indpsrc; /*! pixels indices, CCR mask pixels indices */
-	long long *pixon; /*! this array is used to store the rules for pixels : they are seen or not */
+	long long *indpix, *indpsrc; /* pixels indices, CCR mask pixels indices */
+	long long *pixon; /* this array is used to store the rules for pixels : they are seen or not */
 	long long *pixon_tot=NULL;
 
 	//naiv map data params
-	long ns; /*! number of samples for this scan, first frame number of this scan*/
-	double f_lppix, f_lppix_Nk; /*! frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
-	double *PNdNaiv, *PNdtotNaiv=NULL; /*!  projected noised data, and global Pnd for mpi utilization */
-	long *hitsNaiv, *hitstotNaiv=NULL; /*! naivmap parameters : hits count */
+	long ns; /* number of samples for this scan, first frame number of this scan*/
+	double f_lppix, f_lppix_Nk; /* frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
+	double *PNdNaiv, *PNdtotNaiv=NULL; /*  projected noised data, and global Pnd for mpi utilization */
+	long *hitsNaiv, *hitstotNaiv=NULL; /* naivmap parameters : hits count */
 
 	// struct used in the parser
 	struct param_sanePS structPS;
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
 			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc2ff
 
-	string field; /*! field = actual boloname in the bolo loop */
+	string field; /* field = actual boloname in the bolo loop */
 
 	// -----------------------------------------------------------------------------//
 

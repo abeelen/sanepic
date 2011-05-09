@@ -27,7 +27,7 @@ extern "C" {
 using namespace std;
 
 void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vector<std::string> bolo_fits, string filename)
-/*! this function determines whether the user list of detectors is correct or not */
+/* this function determines whether the user list of detectors is correct or not */
 {
 
 	int mycount=0; /* used to count the number of wrong detectors name */
@@ -42,7 +42,7 @@ void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vec
 }
 
 int check_positionHDU(string fname,long ns, long ndet, int format, struct checkHDU &check_it)
-/*! this function determines whether reference and offsets HDUs are present and have the correct size */
+/* this function determines whether reference and offsets HDUs are present and have the correct size */
 {
 
 	fitsfile *fptr; // fits file pointer
@@ -159,7 +159,7 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 }
 
 int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
-/*! this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
+/* this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
 {
 
 	fitsfile *fptr;
@@ -314,7 +314,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 
 
 int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
-/*! check RA/DEc table presence : only for HIPE format */
+/* check RA/DEc table presence : only for HIPE format */
 {
 
 	fitsfile *fptr; // fits pointer
@@ -392,7 +392,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 }
 
 long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
-/*! Check presence of non-flagged NANs in position tables */
+/* Check presence of non-flagged NANs in position tables */
 {
 
 	long ns_test=0;
@@ -453,7 +453,7 @@ long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, l
 }
 
 long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
-/*! check presence of non-flagged NANs in time, signal and mask tables */
+/* check presence of non-flagged NANs in time, signal and mask tables */
 {
 
 	long ns_test=0;
@@ -505,7 +505,7 @@ long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, lon
 }
 
 long check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
-/*! check non-flagged NANs in RA/DEC HIPE format */
+/* check non-flagged NANs in RA/DEC HIPE format */
 {
 
 
@@ -543,7 +543,7 @@ long check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det
 }
 
 bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fits_0_vect)
-/*! Check that a given fits file bolometer list is exactly the same as the first input fits file one */
+/* Check that a given fits file bolometer list is exactly the same as the first input fits file one */
 {
 
 
@@ -565,8 +565,8 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, string outname,long *&bolos_global, long &n_hund, long *&bolos_global_80, long &n_heig, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it)
-/*!  Lookfor fully or more than 80% flagged detectors, also flag singletons */
+int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, long *&bolos_global, long &n_hund, long *&bolos_global_80, long &n_heig, double *percent_tab, long &init_flag_num, long &end_flag_num, struct checkHDU check_it)
+/*  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
 	int *flag; // mask table
@@ -647,7 +647,7 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, s
 
 
 int check_time_gaps(string fname,long ns, double fsamp, std::vector<long> &indice, double &Populated_freq, struct checkHDU check_it)
-/*! check for time gaps in time table */
+/* check for time gaps in time table */
 {
 
 
@@ -852,7 +852,7 @@ int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag,
 
 
 void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long ndet, double *percent_tab)
-/*! generating log files for user information */
+/* generating log files for user information */
 {
 
 

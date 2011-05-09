@@ -168,7 +168,7 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 }
 
 
-int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct){
+void read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct){
 
 
 	//	check_struct.bolo_gain_check="";
@@ -181,8 +181,6 @@ int read_saneCheck_ini(dictionary	*ini , struct saneCheck &check_struct){
 
 	check_struct.checkflag = iniparser_getboolean(ini, "saneCheck:check_flag", 1);
 
-
-	return 0;
 }
 
 void print_saneCheck_ini(struct saneCheck check_struct){
