@@ -25,6 +25,24 @@ extern "C" {
 
 using namespace std;
 
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file and verify his validity
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *  - for each file :
+ *      - Generate or clear the dirfile parts that will be filled : Noise and Noise/ell
+ *
+ *  - Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
+ *
+ *	For each Covariance Matrix to invert :
+ *		- Read Covariance Matrix from disk (fits file)
+ *		- Deal with bolometer reduction if needed (ReorderMatrix)
+ *		- Invert Matrix
+ *		- Write Inverted Power Spectra to disk in dirfiles
+ */
 
 int main(int argc, char *argv[]) {
 
@@ -46,7 +64,7 @@ int main(int argc, char *argv[]) {
 		printf("\nBeginning of saneInv\n\n");
 
 	// data parameters
-	/*!
+	/*
 	 * -ndet = number of detectors to output
 	 * -ndetOrig = number of detectors in the NoiseNoise matrix
 	 * -nbins = number of bins (Ell)
@@ -55,12 +73,12 @@ int main(int argc, char *argv[]) {
 	int nbolos;
 	long n_iter;
 
-	double *ell; /*! bins values */
+	double *ell; /* bins values */
 
 	struct param_common dir;
 	struct samples samples_struct;
 
-	/*!
+	/*
 	 * -Rellth : Reduced NoiseNoise matrix
 	 * -RellthOrig : Original NoiseNoise matrix
 	 * -iRellth : Inverted reduced NoiseNoise matrix
@@ -69,10 +87,10 @@ int main(int argc, char *argv[]) {
 	 */
 	double **Rellth, **RellthOrig, **iRellth;
 
-	//	string noiseSp_dir_output;/*! output directory */
-	string base_name="";/*! output noise file suffix */
-	string fname; /*! covariance matrix fits filename */
-	string boloname;/*! channels list file */
+	//	string noiseSp_dir_output;/* output directory */
+	string base_name="";/* output noise file suffix */
+	string fname; /* covariance matrix fits filename */
+	string boloname;/* channels list file */
 	string noise_suffix = "_InvNoisePS";
 	string output = "";
 
@@ -84,7 +102,7 @@ int main(int argc, char *argv[]) {
 
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
-	std::vector<int> indexIn; /*! bolometer index, used to determine which intput detector corresponds to which output detector*/
+	std::vector<int> indexIn; /* bolometer index, used to determine which intput detector corresponds to which output detector*/
 
 	uint16_t mask_saneInv = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | SANEINV_INPUT_ERROR | FITS_FILELIST_NOT_FOUND; // 0x601b
@@ -238,7 +256,7 @@ int main(int argc, char *argv[]) {
 			// get input covariance matrix file name
 			fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[ii];
 
-			std::vector<string> channelIn; /*! Covariance matrix channel vector*/
+			std::vector<string> channelIn; /* Covariance matrix channel vector*/
 
 			// read covariance matrix in a fits file named fname
 			// returns : -the bins => Ell
@@ -252,13 +270,12 @@ int main(int argc, char *argv[]) {
 
 			//			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
-			std::vector<string> channelOut; /*! bolometer reduction : Reduced vector of output channel */
+			std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
 
 			channelOut = bolo_list[ii];
+
 			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 			ndet = channelOut.size();
-
-			//			printf("TOTAL NUMBER OF DETECTORS TO OUTPUT : %d\n", (int) ndet);
 
 			//Deal with bolometer reduction and fill Rellth and mixmat
 			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
@@ -284,7 +301,7 @@ int main(int argc, char *argv[]) {
 			delete [] ell;
 		}
 
-	} // n_iter
+	} // n_iter loop
 
 	if(rank==0)
 		printf("done. \n");

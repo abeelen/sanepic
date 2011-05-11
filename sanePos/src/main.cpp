@@ -41,12 +41,29 @@ extern "C" {
 
 using namespace std;
 
-
-//**********************************************************************************//
-//**********************************************************************************//
-//*************************** Beginning of main program ****************************//
-//**********************************************************************************//
-//**********************************************************************************//
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file and verify his validity
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *	- Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
+ *
+ *  - For each file :
+ *      - Generate or clear the dirfile parts that will be filled : Indexes
+ *
+ *  - Get input fits META DATA
+ *
+ *  - Compute map extremums or read it from binary mask file
+ *  - Compute map Header or read it from binary mask file
+ *  - Compute masked pixels indice table and save it to disk
+ *  - Save mapHeader to disk for the other programs
+ *  - Compute pixels indice table and save it to disk
+ *
+ *  - Compute Naïve map including Image map, Coverage map, history table and METADATA header
+ *
+ */
 
 int main(int argc, char *argv[])
 /* Main sanePos function */
@@ -73,7 +90,7 @@ int main(int argc, char *argv[])
 	struct param_sanePos pos_param;
 	struct param_common dir; /* structure that contains output input temp directories */
 
-	long iframe_min=0, iframe_max=0; /*! frame number min and max each processor has to deal with */
+	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
 	int flagon = 0; /* if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /* indicates that at least one pixel has been flagged and is out */
 
@@ -94,7 +111,7 @@ int main(int argc, char *argv[])
 	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /* ra/dec min/max coordinates of the map*/
 	double gra_min, gra_max, gdec_min, gdec_max; /* global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
 
-	string fname; /*! parallel scheme file name */
+	string fname; /* parallel scheme file name */
 
 	// positions variables
 	short *mask;
@@ -426,9 +443,6 @@ int main(int argc, char *argv[])
 	//**********************************************************************************
 	// Compute pixels indices
 	//**********************************************************************************
-
-	//	if(rank==0)
-	//		printf("\n\nCompute Pixels Indices\n");
 
 	switch (pos_param.fileFormat) {
 	case 0:

@@ -36,24 +36,24 @@ void usage(char *name)
 
 
 int main(int argc, char *argv[])
-/*! This project is able to split a fits file (Sanepic or Hipe format) into multiple fits files */
+/* This project is able to split a fits file (Sanepic or Hipe format) into multiple fits files */
 {
 
 	int parsed = -1;
 
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_common dir; /*! structure that contains output input temp directories */
-	string fname; /*! fits filename variable */
-	std::vector< double > min_time, max_time; /*! vectors to store time limits for the output fits files */
+	struct param_common dir; /* structure that contains output input temp directories */
+	string fname; /* fits filename variable */
+	std::vector< double > min_time, max_time; /* vectors to store time limits for the output fits files */
 	string output = "";
 
-	int m_count = 0, f_count = 0; /*! counter for m, f and M options */
-	int mM_count = 0; /*! counter for m, f and M options */
-	int format_fits=0; /*! 0 = Hipe format, 1 = SanePic format */
-	double *time=NULL; /*! input fits file time vector */
-	double time_min=0, time_max=0; /*! input file min and max time */
-//	struct detectors det; /*! A structure that contains everything about the detectors names and number */
+	int m_count = 0, f_count = 0; /* counter for m, f and M options */
+	int mM_count = 0; /* counter for m, f and M options */
+	int format_fits=0; /* 0 = Hipe format, 1 = SanePic format */
+	double *time=NULL; /* input fits file time vector */
+	double time_min=0, time_max=0; /* input file min and max time */
+//	struct detectors det; /* A structure that contains everything about the detectors names and number */
 	std::vector<string> det;
 	long ndet;
 

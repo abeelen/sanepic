@@ -29,12 +29,10 @@ extern "C" {
 using namespace std;
 
 
-
-
-void system_triang(double **A, long n, long m, double *x, double *b, bool sup_inf){
-	// we solve A.x=b with A : n*m triangular matrix
+void system_triang(double **L, long n, long m, double *y, double *b, bool sup_inf){
+	// we solve L.y=b with L : n*m triangular matrix
 	// we supose that the system has a single solution
-	// sup_inf bool: 0 if the matrix A is upper triangular, 1 for lower triangular
+	// sup_inf bool: 0 if the matrix L is upper triangular, 1 for lower triangular
 	int i, j;
 
 
@@ -48,24 +46,24 @@ void system_triang(double **A, long n, long m, double *x, double *b, bool sup_in
 
 
 		// find first non-null element starting with right-bottom element and raising the lines
-		while (A[i][j]==0 && i>=0){
+		while (L[i][j]==0 && i>=0){
 			i--;
 		}
 
 
 		for(int k=i; k>=0; k--){
-			// solution is unique so if a_kj is null, we don't need to modify the results
-			if(A[k][j]!=0){
+			// solution is unique so if l_kj is null, we don't need to modify the results
+			if(L[k][j]!=0){
 				// each component is computed starting from the botom of the matrix
 				double element= b[j];
 				for(int l=j+1; l<m; l++){
-					element=element-x[l]*A[k][l];
+					element=element-y[l]*L[k][l];
 				}
-				element=element/A[k][j];
-				x[j]=element;
+				element=element/L[k][j];
+				y[j]=element;
 				j--;
 			}else{
-				cerr << "warning a[i][j]=0 in system_triang\n";
+				cerr << "warning l[i][j]=0 in system_triang\n";
 			}
 		}
 	}
@@ -76,22 +74,22 @@ void system_triang(double **A, long n, long m, double *x, double *b, bool sup_in
 		j=0;
 
 		// first non-null element starting from left-top element and running down the lines
-		while (A[i][j]==0 && i<n){
+		while (L[i][j]==0 && i<n){
 			i++;
 		}
 
 		// each component is computing running the matrix from top to bottom
 		for(int k=i; k<n; k++){
-			if(A[k][j]!=0){
+			if(L[k][j]!=0){
 				double element= b[k];
 				for(int l=0; l<j; l++){
-					element=element-x[l]*A[k][l];
+					element=element-y[l]*L[k][l];
 				}
-				element=element/A[k][j];
-				x[j]=element;
+				element=element/L[k][j];
+				y[j]=element;
 				j++;
 			}else{
-				cerr << "warning a[i][j]=0 in system_triang\n";
+				cerr << "warning l[i][j]=0 in system_triang\n";
 			}
 		}
 	}

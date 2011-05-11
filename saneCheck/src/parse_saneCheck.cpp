@@ -27,14 +27,6 @@ extern "C"{
 
 using namespace std;
 
-
-//template <class T>
-//std::string StringOf(const T& object){
-//	std::ostringstream os;
-//	os << object;
-//	return os.str();
-//}
-
 uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct saneCheck &check_struct, int rank, int size)

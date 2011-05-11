@@ -48,7 +48,22 @@ using namespace std;
  * Sanepic for SPIRE Manual
  */
 
-
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file and verify his validity
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *  - Generate, or clear dirfile tree (folders and format files)
+ *  - for each file :
+ *  	- Generate or clear the dirfile parts that will be filled : data, flag, RA, DEC
+ *
+ *  - Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
+ *
+ *  - Copy from scans (fits) to disk (getdata binaries in a dirfile tree) : data, flag, RA, DEC
+ *
+ */
 
 int main(int argc, char *argv[])
 /* Sanepic preprocess main function */

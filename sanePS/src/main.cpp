@@ -29,6 +29,22 @@ extern "C" {
 
 using namespace std;
 
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file and verify his validity
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *  - for each file :
+ *      - Generate or clear the dirfile parts that will be filled : Fourier_transform
+ *
+ *  - Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
+ *
+ *	For each scan :
+ *
+ *
+ */
 int main(int argc, char *argv[])
 {
 

@@ -25,6 +25,24 @@ extern "C" {
 
 using namespace std;
 
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *  - for each file, check for:
+ *      - presence of the different hdus (only the position change between the two format)
+ *      - consistent sizes of the different hdu
+ *
+ *      - presence of non flagged NaN values
+ *      - bad channels [latter, noisier channels]
+ *      - check the fsamp from the ini file, should be the most frequent one
+ *      - check for time gaps > 1.9 * the most frequent time gap
+ *
+ *      - generate bad detectors list and temporary files for saneFix
+ */
 
 int main(int argc, char *argv[]) {
 
@@ -46,28 +64,10 @@ int main(int argc, char *argv[]) {
 	rank = 0;
 #endif
 
-	/*
-	 *  This is organized as :
-	 *
-	 *  - parse the input ini file
-	 *  - check for existence of directory/files pointed from the ini file
-	 *  - for each file, check for:
-	 *      - presence of the different hdus (only the position change between the two format)
-	 *      - consistent sizes of the different hdu
-	 *      - presence of non flagged NaN values
-	 *
-	 *      - bad channels [latter, noisier channels]
-	 *
-	 *      - check the fsamp from the ini file, should be the most frequent one
-	 *      - check for time gaps > 1.9 * the most frequent time gap
-	 *      - generate bad detectors list and temporary files for saneFix
-	 */
-
-
 	//	int parsed=0; /* parser error status */
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_common dir;  /* structure that contains output input temp directories */
+	struct param_common dir;  // structure that contains output input temp directories
 	//	std::vector<double> bolometer_gain;
 
 	struct param_sanePos pos_param;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
 	struct saneCheck check_struct;
-	string outname; /* Ouput log files name */
+	string outname; // Ouput log files name
 	string output = "";
 	string bolo_gain_filename="";
 
@@ -185,12 +185,12 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	std::vector<string> bolo_fits_0; /* bolometers list of the first fits file given as input */
+	std::vector<string> bolo_fits_0; // bolometers list of the first fits file given as input
 	long ndet0;
-	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0,ndet0); /* Read the first fits file bolo table */
+	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0,ndet0); // Read the first fits file bolo table
 
-	long *bolo_bad_tot = NULL; /* bad detectors full list => fully flag detectors */
-	long *bolo_bad_80_tot = NULL; /* valid worst detectors full list => more than 80% flag detectors */
+	long *bolo_bad_tot = NULL; // bad detectors full list => fully flag detectors
+	long *bolo_bad_80_tot = NULL; // valid worst detectors full list => more than 80% flag detectors
 
 
 	// for user report at the end of the program

@@ -37,11 +37,11 @@ int main(int argc, char *argv[]) {
 	int parsed=1;  /* parser error status */
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-//	struct detectors det;  /*! A structure that contains everything about the detectors names and number */
+//	struct detectors det;  /* A structure that contains everything about the detectors names and number */
 	std::vector<string> det;
 	long ndet;
-	string outdir; /*! output directory */
-	string outname =""; /*! output filename */
+	string outdir; /* output directory */
+	string outname =""; /* output filename */
 	string output = "";
 
 	printf("\nBeginning of saneMerge:\n\n");
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
 
 
 	int status=0; /* fits error status */
-	fitsfile *fptr; /*! input fits file pointer */
-	fitsfile *outfptr; /*! output fits file pointer */
+	fitsfile *fptr; /* input fits file pointer */
+	fitsfile *outfptr; /* output fits file pointer */
 
 
 	int format_fits=0; // 1= HIPE, 2 = SANEPIC

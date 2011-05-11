@@ -31,10 +31,6 @@ extern "C" {
 
 //#define GD_NO_C99_API 1
 
-//#if defined(PARA_BOLO) || defined(PARA_FRAME)
-//#define USE_MPI
-//#endif
-
 #ifdef USE_MPI
 #include "mpi.h"
 #include <algorithm>
@@ -43,13 +39,36 @@ extern "C" {
 
 using namespace std;
 
-//**********************************************************************************//
-//**********************************************************************************//
-//***************** Beginning of conjugate gradient program ************************//
-//**********************************************************************************//
-//**********************************************************************************//
-
-
+/*!
+ *  This is organized as :
+ *
+ *  - parse the input ini file and verify his validity
+ *  - check for existence of directory/files pointed from the ini file
+ *  - Print parser output to screen
+ *
+ *	- Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
+ *
+ *  - For each file :
+ *      - Generate or clear the dirfile parts that will be filled : Fourier_transform
+ *
+ *	- Get input fits META DATA
+ *
+ *  - Read mapHeader, pixel's indice, masked pixel's indice from disk
+ *
+ *  - Restore incomplete work with previous saved session if needed
+ *
+ *	- Compute Projected Noised data (PNd)
+ *
+ *	- Compute Checksum for crash recovery (if save_data is ON)
+ *
+ *	- Compute conjugate gradient until convergence or max iteration is reached
+ *		- Compute and save temporary maps (and data if save_data is ON) every iterW iterations
+ *		- Print convergence criterias to screen every loop
+ *
+ *	- Write final map to disk
+ *
+ *
+ */
 int main(int argc, char *argv[]) {
 
 
@@ -77,38 +96,38 @@ int main(int argc, char *argv[]) {
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /* A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
-	struct param_common dir; /*! structure that contains output input temp directories */
+	struct param_sanePos pos_param; /* A structure that contains user options about map projection and properties */
+	struct param_common dir; /* structure that contains output input temp directories */
 
 	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
-	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
-	int flagon = 0; /*!  if at least one sample is rejected, flagon=1 */
-	int factdupl = 1; /*! map duplication factor */
-	long long addnpix = 0; /*! number of pix to add to compute the final maps in case of duplication + box constraint */
-	long long npixsrc = 0; /*! number of pix in box constraint */
+	long iframe_min, iframe_max; /* For mpi usage : defines min/max number of frame for each processor */
+	int flagon = 0; /*  if at least one sample is rejected, flagon=1 */
+	int factdupl = 1; /* map duplication factor */
+	long long addnpix = 0; /* number of pix to add to compute the final maps in case of duplication + box constraint */
+	long long npixsrc = 0; /* number of pix in box constraint */
 
 	// map making parameters
-	//	long long npix2; /*! used to check PNd reading was correct */
-	long long indpix_size; /*! indpix read size */
-	long long indpsrc_size; /*! indpsrc read size */
+	//	long long npix2; /* used to check PNd reading was correct */
+	long long indpix_size; /* indpix read size */
+	long long indpsrc_size; /* indpsrc read size */
 	long NAXIS1, NAXIS2; // map dimensions
-	long long npix; /*! nn = side of the map, npix = number of filled pixels */
+	long long npix; /* nn = side of the map, npix = number of filled pixels */
 
-	double *PNdtot = NULL; /*! to deal with mpi parallelization : Projected noised data */
+	double *PNdtot = NULL; /* to deal with mpi parallelization : Projected noised data */
 	double *PNd = NULL; // (At N-1 d)
-	long long *indpix, *indpsrc; /*! pixels indices, mask pixels indices */
+	long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
 
 
 	double f_lppix_Nk, f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
 	long ns; // number of samples for the considered scan
 
-	string field; /*! actual boloname in the bolo loop */
-	string prefixe; /*! prefix used for temporary name file creation */
+	string field; /* actual boloname in the bolo loop */
+	string prefixe; /* prefix used for temporary name file creation */
 	struct param_sanePic struct_sanePic;
-	//	std::vector<double> fcut; /*! noise cutting frequency vector */
+	//	std::vector<double> fcut; /* noise cutting frequency vector */
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS structPS;
@@ -116,10 +135,10 @@ int main(int argc, char *argv[]) {
 	string parser_output = "";
 
 	// main loop variables
-	double *S; /*! Pure signal */
+	double *S; /* Pure signal */
 
 	// parallel scheme file
-	string fname; /*! parallel scheme filename */
+	string fname; /* parallel scheme filename */
 
 	uint16_t mask_sanePic = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_WRONG_VALUE |

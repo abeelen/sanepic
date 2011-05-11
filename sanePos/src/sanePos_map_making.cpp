@@ -178,13 +178,13 @@ int computeMapMinima(struct samples samples_struct,
 
 int minmax_flag(double  *& array, int *& flag, long size, double & min_array, double &  max_array){
 
-	// First unflagged data
+	// get First unflagged data indice
 
 	long ii=0;
 	while(flag[ii] != 0 && ii < size)
 		ii++;
 
-	// Everything is flagged
+	// Everything is flagged : Run saneCheck/Fix !
 	if (ii == size)
 		return EXIT_FAILURE;
 
@@ -418,7 +418,7 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 
 
 
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, std::vector<std::string> file, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> files, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
 		long long *indpix, long iframe, long *hits)
 {
 
@@ -440,12 +440,12 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string dir, st
 		field1 = det[idet1];
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, file[iframe], field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, files[iframe], field1))
 			return 1;
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, file[iframe], field1, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, files[iframe], field1, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, file[iframe], field1, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, files[iframe], field1, flag, ns))
 			return 1;
 
 		fill(data_out,data_out+ns,0.0);

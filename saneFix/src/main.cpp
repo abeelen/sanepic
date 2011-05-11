@@ -52,9 +52,9 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
 	struct saneCheck check_struct;
-	std::vector<long> indice; /*! gap indexes (sample index) */
-	std::vector <long> add_sample; /*! number of samples to add per gap */
-	double fsamp; /*! sampling frequency */
+	std::vector<long> indice; /* gap indexes (sample index) */
+	std::vector <long> add_sample; /* number of samples to add per gap */
+	double fsamp; /* sampling frequency */
 	string output ="";
 
 	uint16_t mask_sanefix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |

@@ -14,13 +14,7 @@ using namespace std;
 
 int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		std::vector<string> listOut, double ***MatrixOut)
-/*!\brief Resizes the covariance matrix with only needed detectors
- * \param nbins Number of power spectrum bins
- * \param listIn Input list of detectors
- * \param MatrixIn Input Covariance Matrix
- * \param listOut Output list of desired detectors
- * \param MatrixOut Filled Covariance Matrix with only desired detectors informations
- */
+/* Resizes the covariance matrix with only needed detectors */
 {
 	std::vector<int> indexIn; /* Used to match input and output channels */
 	long ndetIn = listIn.size(); /* Input number of channels*/
@@ -74,12 +68,7 @@ int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 
 void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 		double ***MatrixOut)
-/*!\brief Inverse the Covariance PowerSpectrum by mode
- * \param nbins Number of power spectrum bins
- * \param ndet Number of detectors
- * \param MatrixIn The Matrix that will be inverted
- * \param MatrixOut The Inverted Matrix (all modes)
- */
+/* Inverses the Covariance PowerSpectrum by mode */
 {
 	double **Mat_k, **iMat_k;
 	double *uvec, *ivec;
@@ -101,7 +90,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
-//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
+		//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
 
 		// Matrix preparation
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
@@ -142,7 +131,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
 	}
 
 	// just to get a 100% value printed on screen
-//	cout << "Progress : 100.00% \r" << flush;
+	//	cout << "Progress : 100.00% \r" << flush;
 
 	// clean up
 	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
