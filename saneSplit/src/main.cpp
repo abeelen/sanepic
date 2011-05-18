@@ -26,21 +26,43 @@ extern "C" {
 
 using namespace std;
 
+//! Usage function, print to stdout a standard command line that explains how to run correctly saneMerge
+/*!
+ * \param name A char* containing program name
+ */
 void usage(char *name)
-/*! You must give,  as an input, the inifile, the fits filename, and one or more pairs of -m -M options */
+/* You must give,  as an input, the inifile, the fits filename, and one or more pairs of -m -M options */
 {
-	cerr << "USAGE: " << name << " inifile.ini [-f <path/filename>] [-m <min time>] [-M <max time>]" << endl;
+	cerr << "USAGE: " << name << " inifile.ini [-f <filename>] [-m <min time>] [-M <max time>]" << endl;
 	cerr << "USAGE: You can use multiple -m and -M options, each -m followed by a -M\n";
 
 }
 
 
+/*!
+ *  This is organized as :
+ *
+ *  - parse user command line
+ *  - check for existence of directory/files given in the command line
+ *  - Print parser output to screen
+ *
+ *  - Get time limits (min and max) to determine which part of the fits file samples are kept
+ *  - Read time table in fits file and check whether time limits are correct
+ *
+ *  - Get fits file format (HIPE or SANEPIC) and channel list
+ *  - Determines samples indexes (min and max) corresponding to time limits (min and max)
+ *
+ *  - Create the output fits file
+ *  - Copy input fits file HDU by HDU, creating a new table in the output fits for each, and without copying samples outside of samples indexes
+ *
+ */
+
 int main(int argc, char *argv[])
-/* This project is able to split a fits file (Sanepic or Hipe format) into multiple fits files */
 {
 
-	int parsed = -1;
+	/* This project is able to split a fits file (Sanepic or Hipe format) into multiple fits files */
 
+	int parsed = -1;
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_common dir; /* structure that contains output input temp directories */
@@ -93,7 +115,7 @@ int main(int argc, char *argv[])
 		switch (retval) {
 		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
-			readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+			readFrames(dir.dirfile, samples_struct.fitsvect, samples_struct.nsamples);
 #ifdef DEBUG
 			cout << "Scan.            : " << samples_struct.fitsvect[0] << endl;
 			cout << "Containing.      : " << samples_struct.nsamples[0] << " samples. " << endl;
@@ -146,7 +168,7 @@ int main(int argc, char *argv[])
 	cout << setprecision(20) << "bot time limit.  : " << min_time[0] << "\ntop time limit.  : " << max_time[0] << endl;
 #endif
 
-	read_time_from_fits(samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
+	read_time_from_fits(dir.dirfile + samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
 	time_min=time[0];
 	time_max=time[samples_struct.nsamples[0]-1];
 
@@ -184,15 +206,14 @@ int main(int argc, char *argv[])
 
 
 
-
 	/* get input fits file format : Sanepic or HIPE */
-	format_fits=test_format(samples_struct.fitsvect[0]);
+	format_fits=test_format(dir.dirfile + samples_struct.fitsvect[0]);
 	if(format_fits==0){
-		cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
+		cerr << "input fits file format is undefined : " << dir.dirfile + samples_struct.fitsvect[ii] << " . Exiting...\n";
 	}
 
 	/* read the bolo list in the fits file */
-	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
+	read_bolo_list(dir.dirfile + samples_struct.fitsvect[0], det, ndet);
 
 
 	int status=0; /* fits error status number */
@@ -202,7 +223,7 @@ int main(int argc, char *argv[])
 	std::ostringstream oss; // we need to store the string in a stringstream because of numbers min_time, max_time
 	string fname2 = FitsBasename(samples_struct.fitsvect[0]) + "_split_";
 
-	fname=samples_struct.fitsvect[0];
+	fname=dir.dirfile + samples_struct.fitsvect[0];
 	for(int ii=0; ii < m_count ; ii++){ // for each correct time limits
 
 		// generate a name for the output fits files
@@ -270,13 +291,13 @@ int main(int argc, char *argv[])
 			cout << "HIPE format found\n";
 
 			// 1 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			copy_signal(fptr, outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 2 RA 3 DEC
-			copy_RA_DEC(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			copy_RA_DEC(fptr,outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 4 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			copy_mask(fptr, outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 5 time
 			copy_time(fptr, outfptr, time, min_sample, max_sample);
@@ -285,7 +306,7 @@ int main(int argc, char *argv[])
 			copy_channels(fptr, outfptr);
 
 			// 7 ref pos
-			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
+			copy_ref_pos(fptr, outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample);
 
 			// 8 offsets
 			copy_offsets(fptr, outfptr);
@@ -299,7 +320,7 @@ int main(int argc, char *argv[])
 
 
 			// 1 ref pos
-			copy_ref_pos(fptr,outfptr,samples_struct.fitsvect[0], min_sample, max_sample);
+			copy_ref_pos(fptr,outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample);
 
 			// 2 offsets
 			copy_offsets(fptr, outfptr);
@@ -311,10 +332,10 @@ int main(int argc, char *argv[])
 			copy_time(fptr, outfptr, time, min_sample, max_sample);
 
 			// 5 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			copy_signal(fptr, outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 6 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			copy_mask(fptr, outfptr, dir.dirfile + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 		}
 
 		// close both fits files
@@ -330,7 +351,6 @@ int main(int argc, char *argv[])
 
 	// clean up
 	delete [] time;
-//	delete [] samples_struct.nsamples;
 
 	cout << "END OF SANESPLIT\n";
 

@@ -49,15 +49,13 @@ using namespace std;
  *	- Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
  *
  *  - For each file :
- *      - Generate or clear the dirfile parts that will be filled : Fourier_transform
+ *      - Generate or clear the dirfile parts that will be filled : fData
  *
  *	- Get input fits META DATA
  *
  *  - Read mapHeader, pixel's indice, masked pixel's indice from disk
  *
  *  - Restore incomplete work with previous saved session if needed
- *
- *	- Compute Projected Noised data (PNd)
  *
  *	- Compute Checksum for crash recovery (if save_data is ON)
  *
@@ -399,7 +397,7 @@ int main(int argc, char *argv[]) {
 
 	// get input fits META DATA
 	if(rank==0)
-		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
+		if(get_fits_META(dir.dirfile + samples_struct.fitsvect[0], key, datatype, val, com))
 			cout << "\nProblem while getting fits META... Continue but the map header will not be full...\n\n";
 
 	//	read pointing informations
@@ -539,7 +537,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 		// flush dirfile
-		gd_flush(samples_struct.dirfile_pointer,NULL);
+//		gd_flush(samples_struct.dirfile_pointer,NULL);
 
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
@@ -605,7 +603,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 				// flush dirfile
-				gd_flush(samples_struct.dirfile_pointer,NULL);
+//				gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
@@ -627,8 +625,8 @@ int main(int argc, char *argv[]) {
 				// *Mp = Null :
 				// *Hits = Null (map hits)
 
-				pb+=do_PtNd(samples_struct, PNd,dir.tmp_dir,prefixe,det_vect,ndet,f_lppix_Nk,
-						proc_param.fsamp,ns,para_bolo_indice,para_bolo_size,indpix,NAXIS1, NAXIS2,npix,iframe,samples_struct.fitsvect[iframe], NULL, NULL, name_rank);
+				pb+=do_PtNd(samples_struct, PNd,prefixe,det_vect,ndet,f_lppix_Nk,
+						proc_param.fsamp,ns,para_bolo_indice,para_bolo_size,indpix,NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
 
 				if(pb>0){
@@ -803,8 +801,8 @@ int main(int argc, char *argv[]) {
 
 
 					write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							pos_param.flgdupl, dir.tmp_dir, ns,
-							samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
+							pos_param.flgdupl, ns,
+							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 					time ( &rawtime );
@@ -815,23 +813,23 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-					gd_flush(samples_struct.dirfile_pointer,NULL);
+//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir,
+					do_PtNd(samples_struct, PtNPmatS,
 							"fPs_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice,
 							para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.fitsvect[iframe], Mp, NULL, name_rank);
+							Mp, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det_vect, ndet,
 							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl, ns,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.fitsvect[iframe], PtNPmatS, Mp, NULL,
+							samples_struct.basevect[iframe], PtNPmatS, Mp, NULL,
 							rank, size);
 				}
 
@@ -944,8 +942,8 @@ int main(int argc, char *argv[]) {
 				if (proc_param.CORRon) {
 
 					write_tfAS(samples_struct, d, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							pos_param.flgdupl, dir.tmp_dir, ns,
-							samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
+							pos_param.flgdupl, ns,
+							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 					time ( &rawtime );
@@ -956,24 +954,22 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-					gd_flush(samples_struct.dirfile_pointer,NULL);
+//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, q, dir.tmp_dir, "fPs_",
+					do_PtNd(samples_struct, q, "fPs_",
 							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice, para_bolo_size,
-							indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.fitsvect[iframe], NULL, NULL,
-							name_rank);
+							indpix, NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det_vect, ndet,
 							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl,
 							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.fitsvect[iframe], q, NULL, NULL,
+							samples_struct.basevect[iframe], q, NULL, NULL,
 							rank, size);
 				}
 			} // end of iframe loop
@@ -1025,8 +1021,8 @@ int main(int argc, char *argv[]) {
 					if (proc_param.CORRon) {
 
 						write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-								pos_param.flgdupl, dir.tmp_dir, ns,
-								samples_struct.fitsvect[iframe], para_bolo_indice, para_bolo_size);
+								pos_param.flgdupl, ns,
+								samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 						time ( &rawtime );
@@ -1037,17 +1033,15 @@ int main(int argc, char *argv[]) {
 #endif
 
 						// flush dirfile
-						gd_flush(samples_struct.dirfile_pointer,NULL);
+//						gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-						do_PtNd(samples_struct, PtNPmatS, dir.tmp_dir, "fPs_", det_vect, ndet, f_lppix_Nk,
+						do_PtNd(samples_struct, PtNPmatS, "fPs_", det_vect, ndet, f_lppix_Nk,
 								proc_param.fsamp, ns, para_bolo_indice, para_bolo_size, indpix,
-								NAXIS1, NAXIS2, npix, iframe,
-								samples_struct.fitsvect[iframe], NULL, NULL,
-								name_rank);
+								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 					} else {
 
@@ -1055,7 +1049,7 @@ int main(int argc, char *argv[]) {
 								det_vect, ndet, f_lppix_Nk, proc_param.fsamp,
 								pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
 								npix, iframe,
-								samples_struct.fitsvect[iframe], PtNPmatS,
+								samples_struct.basevect[iframe], PtNPmatS,
 								NULL, NULL, rank, size);
 					}
 
@@ -1314,17 +1308,16 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-					gd_flush(samples_struct.dirfile_pointer,NULL);
+//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PNd, dir.tmp_dir,
+					do_PtNd(samples_struct, PNd,
 							"fdata_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.fitsvect[iframe], NULL, NULL,
-							name_rank);
+							NULL, NULL, name_rank);
 
 				} else {
 

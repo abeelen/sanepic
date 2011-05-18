@@ -398,9 +398,9 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 
 	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
 
-		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string scan_name = samples_struct.basevect[iframe];
 		string scan_folder = filedir + "/" + scan_name;
-		string fdata = filedir + "/" + scan_name + "/Fourier_transform";
+		string fdata = filedir + "/" + scan_name + "/fData";
 		string index_path = filedir + "/" + scan_name + "/Indexes";
 		string data = filedir + "/" + scan_name + "/data";
 		string flag_dir = filedir + "/" + scan_name + "/flag";
@@ -443,7 +443,7 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
 
 		gd_include(S, (char *)("Indexes/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("Fourier_transform/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("fData/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 		gd_include(S, (char *)("flag/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 		gd_include(S, (char *)("data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
 		gd_include(S, (char *)("Noise_data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
@@ -473,7 +473,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
 
 		det_vect=bolo_vect[iframe];
 
-		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string scan_name = samples_struct.basevect[iframe];
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
 		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
@@ -511,14 +511,14 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
 
 		det_vect=bolo_vect[ii];
 
-		string base_name = FitsBasename(samples_struct.fitsvect[ii]);
+		string base_name = samples_struct.basevect[ii];
 		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
 		string ell_path =  noise_path + "/ell";
 
 		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
 		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
 
-		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii] FitsBasename
+		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii]
 
 		for (int idet = 0; idet < (long)det_vect.size(); idet++) {
 
@@ -566,8 +566,8 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, st
 		std::vector<string> det_vect=bolo_vect[iframe];
 
 		//get fourier transform dirfile names !
-		string scan_name = FitsBasename(samples_struct.fitsvect[iframe]);
-		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/Fourier_transform";
+		string scan_name = samples_struct.basevect[iframe];
+		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/fData";
 
 		// clean up the dirfiles with TRUNC option
 		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
@@ -828,6 +828,10 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct, str
 	samples_struct.ntotscan = (samples_struct.fitsvect).size();
 
 
+	// Fill basevect
+	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
+		samples_struct.basevect.push_back(dirfile_Basename(samples_struct.fitsvect[iframe]));
+	}
 	// Fill bolovect
 	for(long iframe=0;iframe<samples_struct.ntotscan;iframe++){
 		if(dir.bolo_global_filename!="")
@@ -884,7 +888,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 	for(long ii=0; ii< samples_struct.ntotscan; ii++){
 
 		if(rank==0){
-			string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
+			string scan_name= samples_struct.basevect[ii];
 			// dirfile path
 			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/ell/";
 
@@ -910,7 +914,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 
 		if(rank==0){
 
-			string scan_name= FitsBasename(samples_struct.fitsvect[ii]);
+			string scan_name= samples_struct.basevect[ii];
 
 			// get ndet value
 			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
@@ -1784,13 +1788,13 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 
 
 	for(int iframe=0;iframe<(int)((samples_struct.fitsvect).size());iframe++){
-		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
+		//		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
 		samples_struct.bolovect[iframe] = dir.input_dir + samples_struct.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
 	}
 
 
 	// Store scan sizes so that we dont need to read it again and again in the loops !
-	readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+	readFrames(dir.dirfile, samples_struct.fitsvect, samples_struct.nsamples);
 
 	if(rank==0)
 		parsed+=check_common(output, dir);

@@ -23,22 +23,42 @@
 using namespace std;
 
 
-int parse_saneMerge_ini_file(char * ini_name[], string &output, int arg, std::string &dir,
+int parse_saneMerge_ini_file(char * opt_name[], string &output, int arg, struct param_common &dir,
 		struct samples &samples_struct)
-/*! Parse user command line */
+/* Parse user command line */
 {
 
-	dir=ini_name[1]; // ini file
-	if(check_path(output, dir, "saneMerge Output Directory")) // get output path from command line, check its validity
+	dictionary	*	ini ;
+
+
+	// load dictionnary
+	ini = iniparser_load(opt_name[1]);
+
+
+	if (ini==NULL) {
+		fprintf(stderr, "cannot parse file: %s\n", opt_name[1]);
+		return 2 ;
+	}
+
+	// get directories path
+	read_common(output, ini, dir);
+
+	if(check_common(output, dir))
 		return 2;
 
 	samples_struct.ntotscan = 0;
 	for(int ii=2;ii<arg;ii++){ // get input file names from command line
-		samples_struct.fitsvect.push_back(ini_name[ii]);
+		samples_struct.fitsvect.push_back(opt_name[ii]);
 		samples_struct.ntotscan++;
 	}
 
-	readFrames(samples_struct.fitsvect, samples_struct.nsamples); // for each file, read and store number of samples in nsamples tab
+	readFrames(dir.dirfile, samples_struct.fitsvect, samples_struct.nsamples); // for each file, read and store number of samples in nsamples tab
+
+	cout << "You have specified the following options : \n\n";
+
+	print_common(dir); /* print dir locations on stdout */
+
+	iniparser_freedict(ini);
 
 	return 0;
 

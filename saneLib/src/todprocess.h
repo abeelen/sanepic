@@ -11,9 +11,19 @@ extern "C" {
 #include "nrutil.h"
 }
 
+//! todprocess.cpp macros for faster simple comparison between 2 variables
+/*! SWAP 2 variables "a" and "b" : a will be equal to old b value and b to old a value */
 #define SWAP(a,b) {swap=(a);(a)=(b);(b)=swap;}
+
+//! todprocess.cpp macros for faster simple comparison between 2 variables
+/*! MIN is equal to the minimum value between the 2 input variables "a" and "b" */
 #define MIN(a,b) (((a)<(b))?(a):(b))
+
+//! todprocess.cpp macros for faster simple comparison between 2 variables
+/*! MAX is equal to the maximum value between the 2 input variables "a" and "b" */
 #define MAX(a,b) (((a)>(b))?(a):(b))
+
+
 
 //! Partially or totally initialize an array of double values with "val"
 /*!
@@ -53,18 +63,51 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille);
  * \param y is the input data array to be filtered
  * \param ndata the number of samples in y
  * \param f_lp frequency of this high pass filter applied to the data
- * \param orderB
- * \param taille is the maximum number of "good" samples that will be used to locally fit the polynomia
+ * \param orderB Butterworth filter order
+ * \param yout The output data : butterworth filter applied to y
+ * \param bfilter Butterworth filter values in Fourier space
+ * \param apodize A boolean specifying if an apodization has to be done before applying the filter
+ * \param napod Number of samples to apodize
+ * \param overwrite A boolean specifying whether y is overwritten (yout is not used), or not (output array is yout)
  */
 void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite);
 
-
+//! Compute an apodization window
+/*!
+ * \param ns Window size (also data size)
+ * \param nn For [0,nn] and [nn,ns], data are apodized, otherwise, window value is set to 1 and data are not modified
+ * \return Apodization window values as an array of double, which size is ns
+ */
 double* apodwindow(int ns, int nn);
 
+//! Interpolate the input binary spectrum to obtain a continous spectrum over ns samples
+/*!
+ * Interpolate logarithmically the noise power spectrum
+ * This routine can compute noise power spectrum for a given mode (not used in Sanepic actually), or for all modes
+ \param ell The spectra bins
+ \param SpN binned Spectrum
+ \param bfilter Butterworth filter values in Fourier space
+ \param nbins Number of spectra bins
+ \param ns Considered scan's number of samples
+ \param fsamp Instrument Sampling frequency
+ \param Nk Interpolated Spectrum binned, computed by this routines
+ \param mode If mode != NULL, Nk is computed for the given mode value
+ */
+void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL);
 
-void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL); // Patanchon
-
-
-void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL); // Patanchon
+//! Interpolate the input binary spectrum to obtain a continous spectrum over ns samples
+/*!
+ * Linear interpolation, because, by convention, some spectrum can be negatives !!!
+ * This routine can compute noise power spectrum for a given mode (not used in Sanepic actually), or for all modes
+ \param ell The spectra bins
+ \param SpN binned Spectrum
+ \param bfilter Butterworth filter values in Fourier space
+ \param nbins Number of spectra bins
+ \param ns Considered scan's number of samples
+ \param fsamp Instrument Sampling frequency
+ \param Nk Interpolated Spectrum binned, computed by this routines
+ \param mode If mode != NULL, Nk is computed for the given mode value
+ */
+void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL);
 
 #endif

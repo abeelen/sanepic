@@ -145,8 +145,8 @@ double median(std::vector<double> vec);
 /*!
  \param tmp_dir A string containing the temporary files pathname
  \param filename The considered scan file name
- \param init_flag_num Number of beginning flagged samples (present in each signal data), that has to be erased from fits tables by saneFix
- \param end_flag_num Number of ending flagged samples (present in each signal data), that has to be erased from fits tables by saneFix
+ \param init_flag Number of beginning flagged samples (present in each signal data), that has to be erased from fits tables by saneFix
+ \param end_flag Number of ending flagged samples (present in each signal data), that has to be erased from fits tables by saneFix
  \param Populated_freq The most populated frequency (without time gaps)
  \param indice Time gaps indices : to be found and filled by saneFix
  \return An integer specifying if there were an error (>0) or not (=0)

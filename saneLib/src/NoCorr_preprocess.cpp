@@ -44,16 +44,17 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 	if (pos_param.flgdupl) factdupl=2;
 
 
-	string fits_filename;
+	string fits_filename, dirfile_filename;
 
 	fits_filename = samples_struct.fitsvect[iframe];
+	dirfile_filename = samples_struct.basevect[iframe];
 
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
 		field = det[idet];
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field, flag, ns))
 			return 1;
 
 		//		long test_ns;
@@ -71,7 +72,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_sanePre proc_param, 
 
 
 		//// Read pointing
-		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename,field);
+		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename,field);
 
 
 		if (S != NULL){

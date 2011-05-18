@@ -33,7 +33,7 @@ int parse_saneSplit_ini_file(char * ini_name, string &output, struct param_commo
 
 	cout << "You have specified the following options : \n\n";
 
-	print_common(dir); /* print dir locations on console */
+	print_common(dir); /* print dir locations on stdout */
 
 	iniparser_freedict(ini);
 

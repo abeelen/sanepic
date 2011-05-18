@@ -105,6 +105,7 @@ void reorder_samples_struct(int rank, struct samples &samples_struct, int size, 
  * This is just a easy way to run short programs like saneCheck using a fast way to distribute scans over processors
 \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
 \param size The number of processors used
+\param ii The scan index value (in samples_struct.fitsvect)
 \return An integer :  A processor's rank that determines which processor has to compute the scan
 */
 int who_do_it(int size, int rank, int ii);

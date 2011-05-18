@@ -26,6 +26,7 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<std::string> bolos, long 
  \param D A pointer to an opened dirfile
  \param boloName A channel name (to find which data to open in the dirfile tree)
  \param nbins Number of spectra bins
+ \param ndet Number of channels to be used for the considered scan
  \param ell The spectra bins, read from disk
  \param SpN_all Inversed Theorical Covariance matrix, read from disk
  \param suffix A file suffix to add to fits file name (_InvNoisePS : arbitrary chosen by us)
@@ -55,16 +56,16 @@ int write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbin
  */
 int read_CovMatrix(std::string fname, std::vector<std::string> &bolos, long &nbins, double *&ell, double **&Rellth);
 
-//! Used in sanePS tp write DEBUG channels psd
+//! Used in sanePS to write DEBUG channels psd
 /*!
- \param fname Covariance Matrix fits filename
- \param bolos A channel list (filled by read_CovMatrix)
- \param nbins Number of spectra bins (filled by read_CovMatrix)
- \param ell The spectra bins, read in fits file (filled by read_CovMatrix)
- \param Rellth Theorical Covariance matrix, read in fits file (filled by read_CovMatrix)
+ \param fname output fits filename
+ \param nx Number of lines (fits image)
+ \param ny Number of columns (fits image)
+ \param dtype 'd' for double, 'l' for long
+ \param psd1d The array to write in the fits image
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_psd_tofits(std::string fname, long nx, long ny,char dtype, void * psd1d);
+int write_psd_tofits(std::string fname, long nx, long ny, char dtype, void * psd1d);
 
 
 #endif /* COVMATRIX_IO_H_ */

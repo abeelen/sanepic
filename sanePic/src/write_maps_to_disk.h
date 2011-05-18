@@ -16,7 +16,7 @@
  \param dir The param_common structure
  \param indpix The pixels indices table
  \param indpsrc The masked pixels indices table
- \param Mp CG preconditioner : Error map
+ \param Mptot CG preconditioner : Error map
  \param addnpix Number of pix to add to compute the final maps in case of duplication and/or user binary mask
  \param npixsrc Number of filled pixels in the mask
  \param factdupl Map duplication factor

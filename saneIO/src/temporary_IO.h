@@ -49,7 +49,7 @@ int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, 
   \param H A pointer to an opened dirfile
   \param filename An input scan name (to find which data to open in the dirfile tree)
   \param field A channel name (to find which data to open in the dirfile tree)
-  \param flag An array containing the flags from scan "filename" and channel "field"
+  \param mask An array containing the flags from scan "filename" and channel "field"
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
@@ -131,7 +131,7 @@ int write_PNd(double *PNd, long long npix, std::string outdir, std::string filen
 
 //! Reads PNd from disk, in a binary file named "filename"
 /*!
- \param PNd is the Projected Noised data array
+ \param PNdtot is the Projected Noised data array
  \param npix The number of filled pixels
  \param filename The name of the binary file in which PNd will be written
  \param outdir The ouput directory pathname

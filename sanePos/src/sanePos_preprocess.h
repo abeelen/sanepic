@@ -22,14 +22,14 @@ extern "C" {
  \param iframe_max Actual rank last frame indice
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, long long *indpsrc,
+int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
 		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max);
 
 //! Get coordinates of pixels that are seen, computes the position to pixel projetcion matrices : One binary file per bolometer and per scan
 /*!
  * This routine is used why SANEPIC format only !!
  * Each rank treats his scans (indice_min and _max are given has inputs)
- \param tmp_dir A string containing the temporary files pathname
+ \param tmpdir A string containing the temporary files pathname
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_sanePre structure
@@ -50,7 +50,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
  \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int computePixelIndex(std::string tmpdir,
+int computePixelIndex(std::string tmpdir, std::string dirfile,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -60,7 +60,7 @@ int computePixelIndex(std::string tmpdir,
 /*!
  * This routine is used why HIPE format only !!
  * Each rank treats his scans (indice_min and _max are given has inputs)
- \param tmp_dir A string containing the temporary files pathname
+ \param tmpdir A string containing the temporary files pathname
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_sanePre structure

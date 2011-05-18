@@ -141,7 +141,7 @@ double* apodwindow(int ns, int nn)
 		apodis[ii] = 1.0;
 	}
 
-	if (nn){
+	if (nn!=1){
 		for (int ii=0;ii<nn;ii++){
 			apodis[ii] = (sin(double(ii)/(nn-1.0)*M_PI - M_PI/2.0) + 1.0)/2.0;
 		}
@@ -159,12 +159,7 @@ double* apodwindow(int ns, int nn)
 void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
 
-	/////////////////
-	//
 	// ell is an array of double, units are Hz
-	//
-	////////////////
-
 
 	int counttemp, f_lp;
 	double ellmin, ellmax, kmin, kmax, a, b;
@@ -295,12 +290,7 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
-
-	/////////////////
-	//
 	// ell is an array of double, units are Hz
-	//
-	////////////////
 
 	int counttemp, f_lp;
 	double ellmin, ellmax, kmin, kmax, a, b;

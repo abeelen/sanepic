@@ -396,7 +396,7 @@ int write_fits_history2(std::string fname,long NAXIS1, long NAXIS2, struct param
 	value_vect.push_back(dir.dirfile);
 	value_vect.push_back(dir.input_dir);
 	for(int num=0;num<(int)samples_struct.ntotscan;num++)
-		value_vect.push_back(FitsBasename(samples_struct.fitsvect[num]) + ".fits");
+		value_vect.push_back(samples_struct.fitsvect[num]);
 	value_vect.push_back(dir.bolo_global_filename);
 	value_vect.push_back(dir.bolo_suffix);
 	value_vect.push_back(dir.tmp_dir);
@@ -529,7 +529,7 @@ int write_fits_META(string fname, long NAXIS1, long NAXIS2, string path, struct 
 		oss << "Source" << num;
 		string keyname = oss.str();
 		oss.str("");
-		string value = FitsBasename(samples_struct.fitsvect[num]) + ".fits";
+		string value = samples_struct.fitsvect[num];
 		string comm = "Data Source Fits File";
 		if (fits_write_key(fp, TSTRING, (char*) keyname.c_str(), (char*)value.c_str(), (char*)comm.c_str(), &fits_status)){
 			fits_report_error(stderr, fits_status);

@@ -19,7 +19,6 @@ extern "C"{
  \param structPS The param_sanePS structure
  \param sanePic_struct The param_sanePic structure
  \param saneInv_struct The param_saneInv structure
- \param fcut_file A string containing the fcut filename
  \param check_struct The saneCheck structure
  \param size Total number of processors, in case paraframe or parabolo is defined
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined

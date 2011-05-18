@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
 			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
 
 			// write inversed noisePS in a binary file for each detector
-			if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, FitsBasename(samples_struct.fitsvect[ii]) + noise_suffix)){
+			if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, samples_struct.basevect[ii] + noise_suffix)){
 #ifdef PARA_FRAME
 				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

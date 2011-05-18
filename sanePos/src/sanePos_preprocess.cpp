@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, long long *indpsrc,
+int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
 		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max){
 
 
@@ -28,26 +28,26 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 
 	for(long iframe=iframe_min; iframe< iframe_max; iframe++){
 		// set dirfile name and binary name
-		string filename = samples_struct.fitsvect[iframe];
-		string base_name = FitsBasename(filename);
+		string filename = samples_struct.basevect[iframe];
 		long ns = samples_struct.nsamples[iframe];
 
 
 
 
 		string output_read = "";
-		std::vector<string> bolonames;
-		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
-			cout << output_read << endl;
-			return 1;
-		}
+		std::vector<string> bolonames = bolo_list[iframe];
+//		if(read_channel_list(output_read, samples_struct.bolovect[iframe], bolonames)){
+//			cout << output_read << endl;
+//			return 1;
+//		}
+
 		long ndet = (long)bolonames.size();
 
 		for(long idet=0; idet < ndet; idet ++){
 
 
 			string field = bolonames[idet];
-			string flag_outfile = "flag_" + base_name + "_" + field;
+			string flag_outfile = "flag_" + filename + "_" + field;
 
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, filename, field, mask, ns))
 				return 1;
@@ -79,7 +79,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 }
 
 
-int computePixelIndex(string tmpdir,
+int computePixelIndex(string tmpdir, string dirfile,
 		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
@@ -90,13 +90,14 @@ int computePixelIndex(string tmpdir,
 	long long  *samptopix;
 
 	string field;
-	string fits_file;
+	string fits_file, base_file;
 
 	long ns;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fitsvect[iframe];
+		fits_file=dirfile + samples_struct.fitsvect[iframe];
+		base_file = samples_struct.basevect[iframe];
 		ns = samples_struct.nsamples[iframe];
 
 		std::vector<string> det_vect = bolo_vect[iframe];
@@ -214,7 +215,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 
 			int *bolo_flag=NULL;
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, bolo_flag, ns))
 				return 1;
 
 
@@ -276,7 +277,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 
 			}
 
-			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;
@@ -308,13 +309,14 @@ int computePixelIndex_HIPE(string tmpdir,
 
 	string field;
 
-	string fits_file;
+	string fits_file, base_file;
 	long ns;
 	int status;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
+		base_file= samples_struct.basevect[iframe];
 		ns = samples_struct.nsamples[iframe];
 
 		std::vector<string> det_vect = bolo_vect[iframe];
@@ -342,15 +344,15 @@ int computePixelIndex_HIPE(string tmpdir,
 			wcsstatus = new int[ns];
 
 
-			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, ra, ns))
+			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, base_file, field, ra, ns))
 				return 1;
-			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, dec, ns))
+			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, base_file, field, dec, ns))
 				return 1;
 
 			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
 			//				return 1;
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
 				return 1;
 			for (long ii=0; ii <ns; ii++){
 				world[2*ii]   = ra[ii];
@@ -395,7 +397,7 @@ int computePixelIndex_HIPE(string tmpdir,
 
 			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 			//				return 1;
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, bolo_flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, bolo_flag, ns))
 				return 1;
 
 			for (long ii=0; ii<ns; ii++){
@@ -460,7 +462,7 @@ int computePixelIndex_HIPE(string tmpdir,
 
 			}
 
-			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
 				return 1;
 
 			delete [] bolo_flag;

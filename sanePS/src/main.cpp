@@ -37,7 +37,7 @@ using namespace std;
  *  - Print parser output to screen
  *
  *  - for each file :
- *      - Generate or clear the dirfile parts that will be filled : Fourier_transform
+ *      - Generate or clear the dirfile parts that will be filled : fData
  *
  *  - Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
  *

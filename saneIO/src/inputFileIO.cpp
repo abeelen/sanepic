@@ -103,7 +103,7 @@ std::string FitsBasename(std::string path)
 
 	//	cout << path << " deb fonction" << endl;
 
-	path=replace_all(path, "\\", "/");
+	//	path=replace_all(path, "\\", "/");
 
 	// Strip the path and get the filename
 	// Find the last " directory separator
@@ -141,6 +141,22 @@ std::string FitsBasename(std::string path)
 	return filename;
 }
 
+std::string dirfile_Basename(std::string path)
+{
+
+	//	size_t found;
+	string filename="";
+
+	// remove .fits extension
+	filename = FitsBasename(path);
+
+	// change every "." by a "_"
+	filename=replace_all(filename, ".", "_");
+
+	return filename;
+}
+
+
 long readFitsLength(string filename){
 
 	fitsfile *fptr;
@@ -171,12 +187,12 @@ long readFitsLength(string filename){
 	return ns;
 }
 
-void readFrames(std::vector<string> &inputList, std::vector<long> &nsamples){
+void readFrames(std::string inputdir, std::vector<string> &inputList, std::vector<long> &nsamples){
 
 	long nScan  = inputList.size();
 	//	nsamples = new long[nScan];
 	for (long i=0; i<nScan; i++){
-		nsamples.push_back(readFitsLength(inputList[i]));
+		nsamples.push_back(readFitsLength(inputdir + inputList[i]));
 	}
 
 }

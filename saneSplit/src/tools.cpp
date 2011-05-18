@@ -26,7 +26,7 @@ extern "C" {
 using namespace std;
 
 void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample)
-/*! Copy RA DEC and PHI (reference detector) tables from input fits to output */
+/* Copy RA, DEC and PHI (reference detector) tables from input fits to output */
 {
 
 	long ns_temp; // temporary value of ns, needed only to read input data
@@ -74,7 +74,7 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 }
 
 void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample, long max_sample)
-/*! Copy resized time table from input fits to output */
+/* Copy resized time table from input fits to output */
 {
 
 	int status=0; // fits error status
@@ -100,7 +100,7 @@ void copy_time(fitsfile * fptr, fitsfile *outfptr, double *time, long min_sample
 }
 
 void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
-/*! Copy resized signal table from input fits to output */
+/* Copy resized signal table from input fits to output */
 {
 
 	int status=0; // fits error status
@@ -134,7 +134,7 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, string name, long min_sampl
 }
 
 void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
-/*! Copy resized mask table from input fits to output */
+/* Copy resized mask table from input fits to output */
 {
 
 	int status=0; // fits error status
@@ -167,7 +167,7 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr,  string name, long min_sample
 
 
 void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample,  std::vector<std::string> det, long ndet)
-/*! Copy resized RA and DEC tables from input fits to output */
+/* Copy resized RA and DEC tables from input fits to output */
 // Only for HIPE format
 {
 

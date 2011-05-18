@@ -32,7 +32,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 		det_vect=bolo_vect[iframe];
 
-		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string base_name = samples_struct.basevect[iframe];
 		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
 
@@ -44,12 +44,14 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
+			base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO  . pas possible dans les dirfile ! basename ??
+
 			string field = det_vect[idet];
 			string data_outfile = "data_" + base_name + "_" + field;
 			string flag_outfile = "flag_" + base_name + "_" + field;
 
-			read_signal_from_fits(samples_struct.fitsvect[iframe], field, d, ns);
-			read_flag_from_fits(samples_struct.fitsvect[iframe], field, flag, ns);
+			read_signal_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, d, ns);
+			read_flag_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, flag, ns);
 
 			//configure dirfile field
 			gd_entry_t E;
@@ -62,6 +64,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 			// add to the dirfile
 			gd_add(D, &E);
+//			gd_flush(D,NULL);
 
 			// write binary file on disk
 			int n_write = gd_putdata(D, (char*) data_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
@@ -133,7 +136,7 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 
 		det_vect=bolo_vect[iframe];
 
-		string base_name = FitsBasename(samples_struct.fitsvect[iframe]);
+		string base_name = samples_struct.basevect[iframe];
 		string RAdir = dir.tmp_dir + "dirfile/" + base_name + "/RA";
 		string DECdir = dir.tmp_dir + "dirfile/" + base_name + "/DEC";
 
@@ -149,7 +152,7 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 			string ra_outfile = "RA_" + base_name + "_" + field;
 			string dec_outfile = "DEC_" + base_name + "_" + field;
 
-			read_ra_dec_from_fits(samples_struct.fitsvect[iframe], field, ra, dec, ns);
+			read_ra_dec_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, ra, dec, ns);
 
 			//configure dirfile field
 			gd_entry_t E;
@@ -224,8 +227,7 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&data, long ns){
 
 	// set dirfile name and binary name
-	string base_name = FitsBasename(filename);
-	string data_outfile = "data_" + base_name + "_" + field;
+	string data_outfile = "data_" + filename + "_" + field;
 
 	data = new double[ns];
 
@@ -245,8 +247,7 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&d
 int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask, long ns){
 
 	// set dirfile name and binary name
-	string base_name = FitsBasename(filename);
-	string flag_outfile = "flag_" + base_name + "_" + field;
+	string flag_outfile = "flag_" + filename + "_" + field;
 
 	mask = new int[ns];
 
@@ -267,8 +268,7 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra, long ns){
 
 	// set dirfile name and binary name
-	string base_name = FitsBasename(filename);
-	string ra_outfile = "RA_" + base_name + "_" + field;
+	string ra_outfile = "RA_" + filename + "_" + field;
 
 	ra = new double[ns];
 
@@ -288,8 +288,7 @@ int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra,
 int read_DEC_from_dirfile(DIRFILE* D, string filename, string field, double *&dec, long ns){
 
 	// set dirfile name and binary name
-	string base_name = FitsBasename(filename);
-	string dec_outfile = "DEC_" + base_name + "_" + field;
+	string dec_outfile = "DEC_" + filename + "_" + field;
 
 	dec = new double[ns];
 
@@ -311,8 +310,7 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 		string filename, std::string boloname)
 /*!  write a sample to pixel vector to disk  */
 {
-	string base_name = FitsBasename(filename);
-	string outfile = base_name + "_" + boloname;
+	string outfile = filename + "_" + boloname;
 
 	// write binary file on disk
 	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
@@ -332,9 +330,8 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 		string filename, std::string boloname)
 /*!  read a sample to pixel vector from disk  */
 {
-	string base_name = FitsBasename(filename);
 	// set binary file name
-	string outfile = base_name + "_" + boloname;
+	string outfile = filename + "_" + boloname;
 
 	// fill samptopix array
 	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
@@ -517,10 +514,8 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 /*! write Fourier data file to disk */
 {
 
-	string base_name = FitsBasename(filename);
-
 	// set dirfile and binary names
-	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
+	string outfile = prefixe + filename + "_" + bolonames[idet];
 
 	// write binary file on disk
 	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns/2+1, GD_COMPLEX128,
@@ -542,8 +537,7 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 {
 
 	// set dirfile and bin names
-	string base_name = FitsBasename(filename);
-	string outfile = prefixe + FitsBasename(filename) + "_" + bolonames[idet];
+	string outfile = prefixe + filename + "_" + bolonames[idet];
 
 	// fill fdata with binary
 	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_COMPLEX128,

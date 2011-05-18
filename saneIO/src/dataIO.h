@@ -75,7 +75,7 @@ int read_bolo_list(string fname, std::vector<string> &boloname, long &ndet);
 /*!
  * \param fptr A pointer to an opened fits file
  * \param data A table containing the name of the channels
- * \param ndet The number of channels contained in data
+ * \param nBolos The number of channels contained in data
  * \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int read_channels(fitsfile *fptr, char **& data, long &nBolos);

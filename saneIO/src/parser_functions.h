@@ -11,7 +11,7 @@
 
 #include "utilities.h"
 #include "struct_definition.h"
-
+#include "inputFileIO.h"
 
 extern "C"{
 #include "iniparser.h"
@@ -225,7 +225,7 @@ int check_path(std::string &output, std::string strPath, std::string path_type);
 
 //! Creates dirfile architecture and format files considering fits file format (SANEPIC or HIPE)
 /*!
- * Each scan has his own branch, with : data / flag / Indexes / Fourier_transform / Noise_data
+ * Each scan has his own branch, with : data / flag / Indexes / fData / Noise_data
  \param format An integer : HIPE (1) or SANEPIC (2)
  \param samples_struct A samples structure
  \param tmp_dir A string containing the temporary files pathname
@@ -255,9 +255,9 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
  */
 int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, std::string noise_suffix, std::vector<std::vector<std::string> > bolo_vect);
 
-//! Clean up Fourier_transform dirfiles and format files or Creates it if needed
+//! Clean up fData dirfiles and format files or Creates it if needed
 /*!
- * Each scan has his own Fourier_transform dirfile
+ * Each scan has his own fData dirfile
  \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
  \param samples_struct A samples structure
  \param tmp_dir A string containing the temporary files pathname
@@ -312,6 +312,7 @@ void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_s
 
 //! Fill samples structure with ini, fcut and fitsfilelist files informations
 /*!
+ \param output The parser error string
  \param dir The param_common structure
  \param samples_struct The samples structure that will be filled
  \param inv_param The param_saneInv struct
@@ -355,12 +356,9 @@ long compute_bololist_size(std::vector<std::string> str_vect, long &size_max);
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_sanePre structure
- \param structPS The param_sanePS structure
- \param sanePic_struct The param_sanePic structure
- \param saneInv_struct The param_saneInv structure
- \param ini_v empty ini_var_strings struct
- \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
- \return filled ini_var_strings structure
+ \param ps_param The param_sanePS structure
+ \param inv_param The param_saneInv structure
+ \param ini_v empty ini_var_strings struct that will be filled by fill_var_sizes_struct
  */
 void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct samples samples_struct, struct ini_var_strings &ini_v);
@@ -368,7 +366,7 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 //! Build MPI_Datatype from derived type ini_var_strings structure
 /*!
   \param ini_v rank 0 ini_var_strings struct
-  \return A pointer to MPI_Datatype generated with ini_var_strings type
+  \param message_type_ptr A pointer to MPI_Datatype generated with ini_var_strings type
  */
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 		MPI_Datatype* message_type_ptr);
@@ -380,9 +378,9 @@ void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_sanePre structure
- \param structPS The param_sanePS structure
- \param sanePic_struct The param_sanePic structure
- \param saneInv_struct The param_saneInv structure
+ \param ps_param The param_sanePS structure
+ \param pic_param The param_sanePic structure
+ \param inv_param The param_saneInv structure
  \param ini_v empty ini_var_strings struct
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return Each empty structure (rank!=0) are now filled
@@ -468,7 +466,6 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
  \param structPS The param_sanePS structure
  \param sanePic_struct The param_sanePic structure
  \param saneInv_struct The param_saneInv structure
- \param fcut_file A string containing the fcut filename
  \param size Total number of processors, in case paraframe or parabolo is defined
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return A flag corresponding to an error code, or 0

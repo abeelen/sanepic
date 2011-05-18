@@ -92,7 +92,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	long long kk2, ii2, ndataf;
 	long long *pixpos;
 	long long count, count_;
-	size_t *pixtosamp;
+	long long *pixtosamp;
 
 	//fft stuff
 	fftw_complex  *Nk_;
@@ -103,7 +103,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	N_ = new double[ndata];
 	pixpos = new long long[ndata];
 	data_compare = new long long[ndata];
-	pixtosamp = new size_t[ndata];
+	pixtosamp = new long long[ndata];
 
 
 	// N^-1
@@ -122,10 +122,13 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		}
 	}
 
-	gsl_sort_index ((size_t*)pixtosamp, (double*)pixpos, 1, ndata); // replace qsort with compare_global_array_long_long
+	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
+	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
 
-	for(long ii=0; ii< ndata; ii++)
-		data_compare[ii]=pixpos[pixtosamp[ii]];
+	//	gsl_sort_index ((size_t*)pixtosamp, (double*)pixpos, 1, ndata); // replace qsort with compare_global_array_long_long
+
+	//	for(long ii=0; ii< ndata; ii++)
+	//		data_compare[ii]=pixpos[pixtosamp[ii]];
 
 	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
 
@@ -175,7 +178,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 
 	long long kk2, ii2, ndataf;
-//	long long *pixpos;
+	//	long long *pixpos;
 	long long count, count_;
 	long long *pixtosamp;
 	//	size_t *pixtosamp;
@@ -193,7 +196,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	Nk_ = new fftw_complex[ndata/2+1];
 	N_ = new double[ndata];
-//	pixpos = new long long [ndata];
+	//	pixpos = new long long [ndata];
 	data_compare = new long long[ndata];
 	pixtosamp = new long long[ndata];
 	//	pixtosamp = new size_t[ndata];
@@ -216,9 +219,9 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	for (long ii=0;ii<ndata;ii++)
 		pixtosamp[ii] = ii;
 
-//	for (long ii=0;ii<ndata;ii++){
-//		data_compare[ii] = pixpos[ii];
-//	}
+	//	for (long ii=0;ii<ndata;ii++){
+	//		data_compare[ii] = pixpos[ii];
+	//	}
 
 	qsort(pixtosamp,ndata,sizeof(long long),compare_global_array_long_long);
 	qsort(data_compare,ndata,sizeof(long long),compare_long_long);
@@ -258,7 +261,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 	delete[] N_;
 	delete[] Nk_;
-//	delete[] pixpos;
+	//	delete[] pixpos;
 	delete[] pixtosamp;
 	delete[] data_compare;
 

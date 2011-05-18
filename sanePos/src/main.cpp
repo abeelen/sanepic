@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 
 	// get input fits META DATA
 	if(rank==0)
-		if(get_fits_META(samples_struct.fitsvect[0], key, datatype, val, com))
+		if(get_fits_META(dir.dirfile + samples_struct.fitsvect[0], key, datatype, val, com))
 			cout << "pb getting fits META\n";
 
 	if (pos_param.maskfile == ""){
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
-				if(computeMapMinima(samples_struct,
+				if(computeMapMinima(samples_struct, dir.dirfile,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max, bolo_list)){
 #ifdef PARA_FRAME
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
 	}
 
 	// TODO : test and run with real data !!!
-	//	if(modify_mask_flag_in_dirfile(dir.tmp_dir, samples_struct, indpsrc,
+	//	if(modify_mask_flag_in_dirfile(dir.tmp_dir, samples_struct, bolo_list, indpsrc,
 	//			NAXIS1, NAXIS2, iframe_min, iframe_max)){
 	//		cout << "ERROR in  modify_mask_flag_in_dirfile... Exiting...\n";
 	//#ifdef PARA_FRAME
@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
 
 	switch (pos_param.fileFormat) {
 	case 0:
-		if(computePixelIndex(dir.tmp_dir, samples_struct,
+		if(computePixelIndex(dir.tmp_dir, dir.dirfile, samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
@@ -569,7 +569,7 @@ int main(int argc, char *argv[])
 
 		int pb=0;
 
-		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, samples_struct.fitsvect, det_vect,ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, indpix, iframe, hitsNaiv);
+		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, det_vect, ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, indpix, iframe, hitsNaiv);
 
 		if(pb>0){
 			cout << "Problem after do_PtNd_Naiv. Exiting...\n";

@@ -26,7 +26,7 @@ extern "C" {
  \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int computeMapMinima(struct samples samples_struct,
+int computeMapMinima(struct samples samples_struct, std::string dirfile,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
 
@@ -34,6 +34,7 @@ int computeMapMinima(struct samples samples_struct,
 /*!
  * outputs or updates (ra|dec)_(min|max) for HIPE format ONLY
  * Each rank treats his scans (indice_min and _max are given has inputs)
+ \param tmp_dir A string containing the temporary files pathname
  \param samples_struct A samples structure
  \param iframe_min Actual rank first frame indice
  \param iframe_max Actual rank last frame indice
@@ -83,7 +84,6 @@ void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coords
  \param samples_struct A samples structure
  \param PNd Projected Noised data
  \param outdir A string containing the output pathname
- \param files A vector containing input fits filenames
  \param det A vector containing the channel list (as a vector of string), for actual scan (referenced by iframe)
  \param ndet The number of channels contained in det
  \param orderpoly Polynomia order to be removed from the timeline
@@ -95,7 +95,7 @@ void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coords
  \param hits This array corresponds to map's coverage. Stored in naïve map has a fits image
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> files, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
 		long long *indpix, long iframe, long *hits);
 
 #endif /* MAP_MAKING_H_ */

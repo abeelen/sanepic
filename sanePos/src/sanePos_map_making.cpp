@@ -27,7 +27,7 @@ extern "C" {
 
 using namespace std;
 
-int computeMapMinima(struct samples samples_struct,
+int computeMapMinima(struct samples samples_struct, string dirfile,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect)
 {
@@ -47,7 +47,7 @@ int computeMapMinima(struct samples samples_struct,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fitsvect[iframe];
+		fits_file=dirfile + samples_struct.fitsvect[iframe];
 
 		std::vector<string> det_vect = bolo_vect[iframe];
 
@@ -211,7 +211,7 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
 	// output (ra|dec)_(min|max)
 
-	string fits_file;
+	string base_file;
 	string field;
 	int drop_sanepos=0;
 
@@ -228,7 +228,7 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=samples_struct.fitsvect[iframe];
+		base_file=samples_struct.basevect[iframe];
 
 		std::vector<string> det_vect = bolo_vect[iframe];
 
@@ -244,18 +244,18 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 			int *flag=NULL;
 
 			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
-			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, ra, ns))
+			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, base_file, field, ra, ns))
 				return 1;
-			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, dec, ns))
+			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, base_file, field, dec, ns))
 				return 1;
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_file, field, flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
 				return 1;
 
 			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
 					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
 
-				cerr << "WARNING - frame : " << fits_file << " : " << field << " has no usable data : Check !!" << endl;
+				cerr << "WARNING - frame : " << base_file << " : " << field << " has no usable data : Check !!" << endl;
 				drop_sanepos++;
 
 			} else {
@@ -418,7 +418,7 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 
 
 
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> files, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
 		long long *indpix, long iframe, long *hits)
 {
 
@@ -440,12 +440,12 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		field1 = det[idet1];
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, files[iframe], field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
 			return 1;
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, files[iframe], field1, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, files[iframe], field1, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, flag, ns))
 			return 1;
 
 		fill(data_out,data_out+ns,0.0);

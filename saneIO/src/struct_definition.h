@@ -150,6 +150,8 @@ struct samples
 	std::vector<std::string> fitsvect;  /*! a vector containing input fits filenames */
 	std::vector<std::string> noisevect; /*! a vector containing input covariance matrices filenames */
 	std::vector<std::string> bolovect; /*! a vector containing input bolometer lists filenames */
+	std::vector<std::string> basevect; /*! a vector containing input fits basenames : "." are replaced by _ and ".fits" is removed */
+
 
 	DIRFILE *dirfile_pointer; /*! a pointer to the dirfile that contains temporary binaries */
 

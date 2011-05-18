@@ -33,17 +33,25 @@ std::string replace_all(std::string str, std::string tobe_replace, std::string w
 
 //! Removes from the input string both path and ".fits" extension
 /*!
- \param path A string containing an input fits file global filename
+ \param path A string containing an input fits file filename
  \return The modified string
  */
 std::string FitsBasename(std::string path);
 
+//! Removes from the input string ".fits" extension and replace all '.' with '_' character
+/*!
+ \param path A string containing an input fits file filename
+ \return The modified string
+ */
+std::string dirfile_Basename(std::string path);
+
 //! Get the number of samples for each scan contained in "inputFiles" vector
 /*!
+ \param inputdir Input directory path
  \param inputFiles A vector of string containing input fits filenames
  \param nsamples An array in which the number of samples for each scan is stored
  */
-void readFrames(std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
+void readFrames(std::string inputdir, std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
 
 //! Given an input fits "filename", get its number of samples (called by readFrames routine)
 /*!

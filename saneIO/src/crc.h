@@ -19,12 +19,14 @@ unsigned checksum(void *buffer, size_t len, unsigned int seed);
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_sanePre structure
- \param structPS The param_sanePS structure
- \param sanePic_struct The param_sanePic structure
- \param saneInv_struct The param_saneInv structure
+ \param ps_param The param_sanePS structure
+ \param pic_param The param_sanePic structure
+ \param inv_param The param_saneInv structure
  \param chk The checksum structure that has to be filled with all the inputs
+ \param npix Number of pixels in the map
  \param indpix The pixels indices table
  \param indpsrc The masked pixels indices table
+ \param indpsrc_size indpsrc Size
  */
 void compute_checksum(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct param_sanePic pic_param, struct samples samples_struct, long long npix,
@@ -66,7 +68,6 @@ int load_idupl(std::string tmp_dir, int &idupl);
 //! Load the informations stored in "data_sanePic.bin" file to restore a lost sanePic session
 /*!
  \param tmp_dir The temporary files directory
- \param idupl An integer : Duplication map iteration marker
  \param S Map signal
  \param d
  \param r
@@ -104,7 +105,7 @@ int write_disk(std::string tmp_dir, double *d, double *r, double *S, long long n
 \param tmp_dir The temporary files directory
 \param filename The Scan that was estimated before the session crashed
 \param completed_step The number of sanePS steps that were completed before the crash
-\param common2 sanePS internal Matrix data
+\param commonm2 sanePS internal Matrix data
 \param N sanePS internal Matrix data
 \param P sanePS internal Matrix data
 \param Rellth sanePS internal Matrix data (Theorical noise)
@@ -124,7 +125,7 @@ int restore_session(std::string tmp_dir, std::string filename, int &completed_st
 \param tmp_dir The temporary files directory
 \param filename The Scan that was estimated before the session crashed
 \param completed_step The number of sanePS steps that were completed before the crash
-\param common2 sanePS internal Matrix data
+\param commonm2 sanePS internal Matrix data
 \param N sanePS internal Matrix data
 \param P sanePS internal Matrix data
 \param Rellth sanePS internal Matrix data (Theorical noise)

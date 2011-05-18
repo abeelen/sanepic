@@ -444,11 +444,11 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 
 
 	for(int ii=0;ii<samples_str.ntotscan;ii++)
-		if(samples_str_para.fitsvect[ii]!=(FitsBasename(samples_str.fitsvect[ii])+ ".fits")){
+		if(samples_str_para.fitsvect[ii]!=(samples_str.fitsvect[ii])){
 
 #ifdef DEBUG
 			cout << "comparaison triée : " << endl;
-			cout << samples_str_para.fitsvect[ii] << " vs " << FitsBasename(samples_str.fitsvect[ii]) + ".fits" << endl;
+			cout << samples_str_para.fitsvect[ii] << " vs " << samples_str.fitsvect[ii] << endl;
 #endif
 
 			cerr << "Your fits_filelist file and parallel_scheme do not have the same sample files. Exiting\n";
