@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([sanepic], [0.3], [sanepic@ias.u-psud.fr])
+define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
+AC_INIT([sanepic], [0.3.svnversion], [sanepic@ias.u-psud.fr])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([-Wall -Werror])
 
