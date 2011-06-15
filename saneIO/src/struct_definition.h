@@ -50,7 +50,7 @@ struct ini_var_strings
 	int *fitsvect; /*! A table containing fitsvect strings sizes */
 	int *noisevect;  /*! A table containing noisevect strings sizes */
 	int *bolovect;  /*! A table containing bolovect strings sizes */
-
+	int *basevect; /*! A table containing basevect strings sizes */
 
 	// all projects
 	int sizemax; /*! considering all those sizes, sizemax is the maximum */

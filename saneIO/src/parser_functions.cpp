@@ -1103,12 +1103,12 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 		MPI_Datatype* message_type_ptr){
 
-	int block_lengths[23];
-	MPI_Aint displacements[23];
-	MPI_Aint addresses[24];
-	MPI_Datatype typelist[23];
+	int block_lengths[24];
+	MPI_Aint displacements[24];
+	MPI_Aint addresses[25];
+	MPI_Datatype typelist[24];
 	/* Specification des types*/
-	for(int ii=0;ii<23;ii++)
+	for(int ii=0;ii<24;ii++)
 		typelist[ii] = MPI_INT;
 
 	/* Specification du nombre d’elements de chaque type */
@@ -1118,7 +1118,7 @@ void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 	block_lengths[20] = ini_v->ntotscan;
 	block_lengths[21] = ini_v->ntotscan;
 	block_lengths[22] = ini_v->ntotscan;
-
+	block_lengths[23] = ini_v->ntotscan;
 
 	/* Calcul du deplacement de chacun des membres
 	 * relativement a indata */
@@ -1160,12 +1160,13 @@ void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
 	MPI_Address(&(ini_v->fitsvect[0]), &addresses[21]);
 	MPI_Address(&(ini_v->noisevect[0]), &addresses[22]);
 	MPI_Address(&(ini_v->bolovect[0]), &addresses[23]);
+	MPI_Address(&(ini_v->basevect[0]), &addresses[24]);
 
-	for(int ii=0;ii<23;ii++)
+	for(int ii=0;ii<24;ii++)
 		displacements[ii] = addresses[ii+1] - addresses[0];
 
 	/* Creation du type derive */
-	MPI_Type_struct(23, block_lengths, displacements, typelist,
+	MPI_Type_struct(24, block_lengths, displacements, typelist,
 			message_type_ptr);
 	/* Remise du type pour qu’il puisse etre utilise */
 	MPI_Type_commit(message_type_ptr);
@@ -1648,7 +1649,7 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 			ini_v.ntotscan*sizeof(int);  // scans_index
 
 	for(long ii=0; ii< ini_v.ntotscan; ii++){
-		size_buff += ini_v.fitsvect[ii] + ini_v.noisevect[ii] + ini_v.bolovect[ii];
+		size_buff += ini_v.fitsvect[ii] + ini_v.noisevect[ii] + ini_v.bolovect[ii] +  ini_v.basevect[ii];
 	}
 
 	char buffer[size_buff];
@@ -1668,6 +1669,8 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 			MPI_Pack((char*)(samples_struct.noisevect[ii]).c_str(), ini_v.noisevect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
 
 			MPI_Pack((char*)(samples_struct.bolovect[ii]).c_str(), ini_v.bolovect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
+
+			MPI_Pack((char*)(samples_struct.basevect[ii]).c_str(), ini_v.basevect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
 
 			if(samples_struct.framegiven)
 				MPI_Pack(&(samples_struct.scans_index[ii]), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
@@ -1724,6 +1727,12 @@ int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings
 					MPI_CHAR, MPI_COMM_WORLD);
 
 			samples_struct.bolovect.push_back(temp_char);
+			fill(temp_char, temp_char+ini_v.sizemax,'\0');
+
+			MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.basevect[ii],
+					MPI_CHAR, MPI_COMM_WORLD);
+
+			samples_struct.basevect.push_back(temp_char);
 			fill(temp_char, temp_char+ini_v.sizemax,'\0');
 
 			if(samples_struct.framegiven){

@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 		ini_v.fitsvect=new int[ntotscan];
 		ini_v.noisevect=new int[ntotscan];
 		ini_v.bolovect=new int[ntotscan];
+		ini_v.basevect=new int[ntotscan];
 	}
 
 	ini_v.ntotscan=ntotscan;
