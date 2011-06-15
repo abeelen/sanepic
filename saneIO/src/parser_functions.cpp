@@ -1085,6 +1085,7 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 	ini_v.fitsvect = new int[samples_struct.ntotscan];
 	ini_v.noisevect = new int[samples_struct.ntotscan];
 	ini_v.bolovect = new int[samples_struct.ntotscan];
+	ini_v.basevect = new int[samples_struct.ntotscan];
 
 
 	for(long ii = 0; ii < samples_struct.ntotscan; ii++){
@@ -1094,6 +1095,8 @@ void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_par
 		ini_v.sizemax = ini_v.sizemax > ini_v.noisevect[ii] ? ini_v.sizemax : ini_v.noisevect[ii];
 		ini_v.bolovect[ii] = (int)(samples_struct.bolovect[ii]).size();
 		ini_v.sizemax = ini_v.sizemax > ini_v.bolovect[ii] ? ini_v.sizemax : ini_v.bolovect[ii];
+		ini_v.basevect[ii] = (int)(samples_struct.basevect[ii]).size();
+		ini_v.sizemax = ini_v.sizemax > ini_v.basevect[ii] ? ini_v.sizemax : ini_v.basevect[ii];
 
 	}
 
