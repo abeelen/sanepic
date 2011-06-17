@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 	// Open the dirfile to read temporary files
 	string filedir = dir.tmp_dir + "dirfile";
 	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED | GD_BIG_ENDIAN);
+			| GD_UNENCODED);
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;

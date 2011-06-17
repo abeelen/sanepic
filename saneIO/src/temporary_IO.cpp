@@ -37,9 +37,9 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
 
 		D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+				GD_VERBOSE | GD_UNENCODED);
 		H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+				GD_VERBOSE | GD_UNENCODED);
 
 
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
@@ -141,9 +141,9 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 		string DECdir = dir.tmp_dir + "dirfile/" + base_name + "/DEC";
 
 		D = gd_open((char *) RAdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 		H = gd_open((char *) DECdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN); // | GD_TRUNC |
+				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 
 
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){

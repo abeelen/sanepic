@@ -393,7 +393,7 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 	DIRFILE *D, *H, *F, *I, *I2, *J, *K, *S, *R, *R2;
 
 	// create folders
-	D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+	D = gd_open((char *)filedir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
 
 	for(long iframe=0; iframe<samples_struct.ntotscan; iframe ++){
@@ -410,18 +410,18 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 		string ell_path = filedir + "/" + scan_name + "/Noise_data/ell";
 
 		// create folders
-		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		H = gd_open((char *)index_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		F = gd_open((char *)fdata.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT  | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		H = gd_open((char *)index_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		F = gd_open((char *)fdata.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		J = gd_open((char *)data.c_str(), GD_RDWR | GD_CREAT  | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		K = gd_open((char *)flag_dir.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		I = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+		I2 = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 		if(format==1){
 
 			// create folders
-			R = gd_open((char *)RA.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-			R2 = gd_open((char *)DEC.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+			R = gd_open((char *)RA.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+			R2 = gd_open((char *)DEC.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
 			// close subdirfiles
 			gd_close(R);
@@ -438,19 +438,19 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
 		gd_close(I2);
 
 		// include subdir and create format files
-		gd_include(D, (char *)(scan_name + "/format").c_str(), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(D, (char *)(scan_name + "/format").c_str(), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
 
-		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		S = gd_open((char *)scan_folder.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 
-		gd_include(S, (char *)("Indexes/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("fData/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("flag/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("Noise_data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-		gd_include(S, (char *)("Noise_data/ell/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+		gd_include(S, (char *)("Indexes/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+		gd_include(S, (char *)("fData/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+		gd_include(S, (char *)("flag/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+		gd_include(S, (char *)("data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+		gd_include(S, (char *)("Noise_data/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+		gd_include(S, (char *)("Noise_data/ell/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
 		if(format==1){
-			gd_include(S, (char *)("RA/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
-			gd_include(S, (char *)("DEC/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED | GD_BIG_ENDIAN);
+			gd_include(S, (char *)("RA/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+			gd_include(S, (char *)("DEC/format"), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
 		}
 
 		gd_flush(S,NULL);
@@ -476,7 +476,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
 		string scan_name = samples_struct.basevect[iframe];
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
-		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *S = gd_open((char *)index_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
 		// then generate binaries and fill format file
 		for(long idet=0; idet<(long)det_vect.size(); idet ++){
@@ -515,8 +515,8 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
 		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
 		string ell_path =  noise_path + "/ell";
 
-		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
-		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *S = gd_open((char *)noise_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED);
+		DIRFILE *D = gd_open((char *)ell_path.c_str(), GD_RDWR | GD_TRUNC | GD_UNENCODED);
 
 		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii]
 
@@ -570,7 +570,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, st
 		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/fData";
 
 		// clean up the dirfiles with TRUNC option
-		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *S = gd_open((char *)fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
 		// then generate binaries and fill format file
 		string prefixe[2] = {"fdata_","fPs_"};
@@ -596,8 +596,8 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, st
 		// check sizes in Indexes, data and flag format
 		string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 		string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
-		DIRFILE *I = gd_open((char *)indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
-		DIRFILE *D = gd_open((char *)data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+		DIRFILE *I = gd_open((char *)indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+		DIRFILE *D = gd_open((char *)data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 
 		long nframeI = gd_nframes(I);
 		long nframeD = gd_nframes(I);
@@ -893,7 +893,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/ell/";
 
 			// open dirfile
-			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 			unsigned int nframe = gd_nframes(H);
 
 			// close dirfile
@@ -918,7 +918,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 
 			// get ndet value
 			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
-			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED | GD_BIG_ENDIAN);
+			DIRFILE* H = gd_open((char *)filedir.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 			unsigned int nframe = gd_nframes(H);
 
 			// close dirfile

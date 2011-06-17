@@ -123,7 +123,6 @@ int main(int argc, char *argv[]) {
 	long ns; // number of samples for the considered scan
 
 	string field; /* actual boloname in the bolo loop */
-	string prefixe; /* prefix used for temporary name file creation */
 	struct param_sanePic struct_sanePic;
 	//	std::vector<double> fcut; /* noise cutting frequency vector */
 
@@ -386,7 +385,8 @@ int main(int argc, char *argv[]) {
 	// Open the dirfile to read temporary files
 	string filedir = dir.tmp_dir + "dirfile";
 	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED | GD_BIG_ENDIAN);
+			| GD_UNENCODED);
+
 
 	if (gd_error(samples_struct.dirfile_pointer) != 0) {
 		cout << "error opening dirfile : " << filedir << endl;
@@ -543,8 +543,6 @@ int main(int argc, char *argv[]) {
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
 
-		prefixe = "fdata_"; // Fourier transform of the data file prefixe
-
 		// loop over the scans
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
@@ -612,7 +610,6 @@ int main(int argc, char *argv[]) {
 
 				/* do_PtNd parameters : */
 				// PNd => npix (dimension), initialised to 0.0 : (At N-1 d)
-				// prefixe = "fdata"; => write/read fdata files prefix
 				// det = bolo names array + bolo number
 				// f_lppix_Nk = freq threshold noise (in term of samples)
 				// fsamp = sampling frequency
@@ -626,8 +623,10 @@ int main(int argc, char *argv[]) {
 				// *Mp = Null :
 				// *Hits = Null (map hits)
 
-				pb+=do_PtNd(samples_struct, PNd,prefixe,det_vect,ndet,f_lppix_Nk,
-						proc_param.fsamp,ns,para_bolo_indice,para_bolo_size,indpix,NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
+				pb+=do_PtNd(samples_struct, PNd, "fdata_",
+						det_vect,ndet,f_lppix_Nk, proc_param.fsamp,ns,
+						para_bolo_indice,para_bolo_size,indpix,
+						NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
 
 				if(pb>0){
@@ -820,10 +819,10 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PtNPmatS,
-							"fPs_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice,
-							para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
-							Mp, NULL, name_rank);
+					do_PtNd(samples_struct, PtNPmatS, "fPs_",
+							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							para_bolo_indice, para_bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, Mp, NULL, name_rank);
 
 				} else {
 
@@ -962,8 +961,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, q, "fPs_",
-							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns, para_bolo_indice, para_bolo_size,
-							indpix, NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
+							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							para_bolo_indice, para_bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
@@ -1040,8 +1040,9 @@ int main(int argc, char *argv[]) {
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-						do_PtNd(samples_struct, PtNPmatS, "fPs_", det_vect, ndet, f_lppix_Nk,
-								proc_param.fsamp, ns, para_bolo_indice, para_bolo_size, indpix,
+						do_PtNd(samples_struct, PtNPmatS, "fPs_",
+								det_vect, ndet, f_lppix_Nk,	proc_param.fsamp, ns,
+								para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 					} else {
@@ -1315,10 +1316,10 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PNd,
-							"fdata_", det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
-							para_bolo_indice, para_bolo_size, indpix, NAXIS1, NAXIS2, npix, iframe,
-							NULL, NULL, name_rank);
+					do_PtNd(samples_struct, PNd, "fdata_",
+							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							para_bolo_indice, para_bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
