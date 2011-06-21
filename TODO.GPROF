@@ -1,0 +1,3 @@
+# In order to compile sanepic for gprof profiling use
+
+LDFLAGS="-pg" CPPFLAGS="-pg" ./configure --disable-shared
