@@ -8,18 +8,18 @@ AC_INIT([sanepic],[0.4.svnversion],[sanepic@ias.u-psud.fr])
 # In order to create a distribution package, one has to commit all
 # pending changes first: 
 
-svn commit -m "commit before packaging"
+ssvn commit -m "commit before packaging"
 
 # create a release tag (matched with the counter release)
 
 svn copy https://inf-cvs.ias.u-psud.fr/sanepic/trunk \
     https://inf-cvs.ias.u-psud.fr/sanepic/tags/release-0.4 \
     -m "Tagging the 0.4 release of the 'sanepic' project"
-svn up
 
 # run autoreconf and configure and make sure that everything run smoothly
 # ( especially nr and iniparser should be present in the current directory )
 
+svn up
 autoreconf -i -f
 ./configure
 
