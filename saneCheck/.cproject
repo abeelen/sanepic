@@ -35,7 +35,7 @@
 </option>
 <option id="gnu.cpp.compiler.option.debugging.prof.1517622710" name="Generate prof information (-p)" superClass="gnu.cpp.compiler.option.debugging.prof" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.debugging.gprof.1722783722" name="Generate gprof information (-pg)" superClass="gnu.cpp.compiler.option.debugging.gprof" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.preprocessor.def.502529007" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.502529007" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1279159959" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.12685566" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">

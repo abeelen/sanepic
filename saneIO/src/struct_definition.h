@@ -11,55 +11,6 @@ extern "C"{
 
 #define sanepic_version "0.5"
 
-#ifdef USE_MPI
-
-struct ini_var_strings
-/*! A structure that contains strings sizes about project structures filled with ini file variables */
-{
-	// common
-	int dirfile; /*! common.dirfile.size() */
-	int output_dir; /*! common.output_dir.size() */
-	int input_dir; /*! common.input_dir.size() */
-	int tmp_dir; /*! common.tmp_dir.size() */
-
-	int fits_filelist; /*! common.fits_filelist.size() */
-	int bolo_global_filename; /*! common.bolo_global_filename.size() */
-	int bolo_suffix; /*! common.bolo_suffix.size() */
-
-	// sanePos
-	int maskfile; /*! param_position.maskfile.size() */
-	int projtype; /*! param_position.projtype.size() */
-
-	// sanePre
-	int fcut_file;  /*! proc_param.fcut_file.size() */
-
-	// saneInv
-	int noise_dir; /*! saneInv_param.noise_dir.size() */
-	int cov_matrix_file; /*! saneInv_param.cov_matrix_file.size() */
-	int cov_matrix_suffix; /*! saneInv_param.cov_matrix_suffix.size() */
-
-	// sanePS
-	int ell_suffix;  /*! sanePS_param.ell_suffix.size() */
-	int ell_global_file;  /*! sanePS_param.ell_global_file.size() */
-	int signame; /*! sanePS_param.signame.size() */
-	int mix_global_file; /*! sanePS_param.mix_global_file.size() */
-	int mix_suffix; /*! sanePS_param.mix_suffix.size() */
-
-	// samples
-	int ntotscan; /*! samples_struct.ntotscan */
-	int *fitsvect; /*! A table containing fitsvect strings sizes */
-	int *noisevect;  /*! A table containing noisevect strings sizes */
-	int *bolovect;  /*! A table containing bolovect strings sizes */
-	int *basevect; /*! A table containing basevect strings sizes */
-
-	// all projects
-	int sizemax; /*! considering all those sizes, sizemax is the maximum */
-
-};
-
-#endif
-
-
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {

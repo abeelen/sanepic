@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 	time_t t2, t3;
 #endif
 
-	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
 		uint16_t parsed=0x0000; // parser error status
 		uint16_t compare_to_mask; // parser error status
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 #endif
 			return EX_CONFIG;
 		}
-	}
+//	}
 
 #ifdef DEBUG
 	// processing begins here
@@ -159,34 +159,6 @@ int main(int argc, char *argv[])
 
 
 #ifdef USE_MPI
-
-	MPI_Datatype message_type;
-	struct ini_var_strings ini_v;
-	int ntotscan;
-
-	if(rank==0){
-		fill_var_sizes_struct(dir, pos_param, proc_param,
-				saneInv_struct, structPS, samples_struct, ini_v);
-
-		ntotscan = ini_v.ntotscan;
-	}
-
-	MPI_Bcast(&ntotscan, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-	if(rank!=0){
-		ini_v.fitsvect=new int[ntotscan];
-		ini_v.noisevect=new int[ntotscan];
-		ini_v.bolovect=new int[ntotscan];
-		ini_v.basevect=new int[ntotscan];
-	}
-
-	ini_v.ntotscan=ntotscan;
-
-	Build_derived_type_ini_var (&ini_v,	&message_type);
-
-	MPI_Bcast(&ini_v, 1, message_type, 0, MPI_COMM_WORLD);
-
-	commit_struct_from_root(dir, pos_param, proc_param, saneInv_struct, struct_sanePic, structPS, samples_struct, ini_v, rank);
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -259,11 +231,6 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef USE_MPI
-
-	delete [] ini_v.fitsvect;
-	delete [] ini_v.noisevect;
-	delete [] ini_v.bolovect;
-
 	MPI_Finalize();
 #endif
 

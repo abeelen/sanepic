@@ -17,10 +17,15 @@ extern "C"{
 #include "getdata.h"
 }
 
+#include "utilities.h"
 #include "inputFileIO.h"
 #include "parser_functions.h"
 #include "mpi_architecture_builder.h"
 #include "crc.h"
+
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
 
 
 using namespace std;
@@ -1017,738 +1022,98 @@ long compute_bololist_size(std::vector<std::string> str_vect, long &size_max)
 	return size_buff;
 }
 
-void fill_var_sizes_struct(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
-		struct param_saneInv inv_param, struct param_sanePS ps_param, struct samples samples_struct, struct ini_var_strings &ini_v)
-{
+int commit_dictionary(int rank, dictionary	*dict){
 
-	// common
-	ini_v.dirfile = (int)dir.dirfile.size();
-	ini_v.sizemax = ini_v.dirfile;
+	int n;
+	int size;
 
-	ini_v.output_dir = (int)dir.output_dir.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.output_dir ? ini_v.sizemax : ini_v.output_dir;
+	char *key_buff=NULL;
+	char *val_buff=NULL;
 
-	ini_v.input_dir = (int)dir.input_dir.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.input_dir ? ini_v.sizemax : ini_v.input_dir;
 
-	ini_v.tmp_dir = (int)dir.tmp_dir.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.tmp_dir ? ini_v.sizemax : ini_v.tmp_dir;
+	if(rank==0){
+		n = dict->n;
+		size = dict->size;
 
-	ini_v.fits_filelist = (int)dir.fits_filelist.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.fits_filelist ? ini_v.sizemax : ini_v.fits_filelist;
+		MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	ini_v.bolo_global_filename = (int)dir.bolo_global_filename.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.bolo_global_filename ? ini_v.sizemax : ini_v.bolo_global_filename;
+		if((n>0)&&(dict!=NULL)){
+			for (int i=0 ; i<n ; i++) {
 
-	ini_v.bolo_suffix = (int)dir.bolo_suffix.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.bolo_suffix ? ini_v.sizemax : ini_v.bolo_suffix;
 
-	// sanePos
-	ini_v.maskfile = (int)pos_param.maskfile.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.maskfile ? ini_v.sizemax : ini_v.maskfile;
+				string key_s = dict->key[i];
+				string val_s = (dict->val[i] ? dict->val[i] : "UNDEF"); // UNDEF
 
-	ini_v.projtype = (int)pos_param.projtype.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.projtype ? ini_v.sizemax : ini_v.projtype;
+				int size_key = key_s.size();
+				int size_val = val_s.size();
 
-	// sanePre
-	ini_v.fcut_file = (int)proc_param.fcut_file.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.fcut_file ? ini_v.sizemax : ini_v.fcut_file;
+				MPI_Bcast(&size_key, 1, MPI_INT, 0, MPI_COMM_WORLD);
+				MPI_Bcast(&size_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	// saneInv
-	ini_v.noise_dir = (int)inv_param.noise_dir.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.noise_dir ? ini_v.sizemax : ini_v.noise_dir;
 
-	ini_v.cov_matrix_file = (int)inv_param.cov_matrix_file.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.cov_matrix_file ? ini_v.sizemax : ini_v.cov_matrix_file;
+				if(size_key>0){
+					key_buff = (char *)key_s.c_str();
+					MPI_Bcast(key_buff, size_key, MPI_CHAR, 0, MPI_COMM_WORLD);
+				}
 
-	ini_v.cov_matrix_suffix = (int)inv_param.cov_matrix_suffix.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.cov_matrix_suffix ? ini_v.sizemax : ini_v.cov_matrix_suffix;
-
-	// sanePS
-	ini_v.ell_suffix = (int)ps_param.ell_suffix.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.ell_suffix ? ini_v.sizemax : ini_v.ell_suffix;
-
-	ini_v.ell_global_file = (int)ps_param.ell_global_file.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.ell_global_file ? ini_v.sizemax : ini_v.ell_global_file;
-
-	ini_v.signame = (int)ps_param.signame.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.signame ? ini_v.sizemax : ini_v.signame;
-
-	ini_v.mix_global_file = (int)ps_param.mix_global_file.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.mix_global_file ? ini_v.sizemax : ini_v.mix_global_file;
-
-	ini_v.mix_suffix = (int)ps_param.mix_suffix.size();
-	ini_v.sizemax = ini_v.sizemax > ini_v.mix_suffix ? ini_v.sizemax : ini_v.mix_suffix;
-
-	ini_v.ntotscan = (int)samples_struct.ntotscan;
-
-	ini_v.fitsvect = new int[samples_struct.ntotscan];
-	ini_v.noisevect = new int[samples_struct.ntotscan];
-	ini_v.bolovect = new int[samples_struct.ntotscan];
-	ini_v.basevect = new int[samples_struct.ntotscan];
-
-
-	for(long ii = 0; ii < samples_struct.ntotscan; ii++){
-		ini_v.fitsvect[ii] = (int)(samples_struct.fitsvect[ii]).size();
-		ini_v.sizemax = ini_v.sizemax > ini_v.fitsvect[ii] ? ini_v.sizemax : ini_v.fitsvect[ii];
-		ini_v.noisevect[ii] = (int)(samples_struct.noisevect[ii]).size();
-		ini_v.sizemax = ini_v.sizemax > ini_v.noisevect[ii] ? ini_v.sizemax : ini_v.noisevect[ii];
-		ini_v.bolovect[ii] = (int)(samples_struct.bolovect[ii]).size();
-		ini_v.sizemax = ini_v.sizemax > ini_v.bolovect[ii] ? ini_v.sizemax : ini_v.bolovect[ii];
-		ini_v.basevect[ii] = (int)(samples_struct.basevect[ii]).size();
-		ini_v.sizemax = ini_v.sizemax > ini_v.basevect[ii] ? ini_v.sizemax : ini_v.basevect[ii];
-
-	}
-
-	ini_v.sizemax = ini_v.sizemax +1;
-}
-
-void Build_derived_type_ini_var (struct ini_var_strings *ini_v,
-		MPI_Datatype* message_type_ptr){
-
-	int block_lengths[24];
-	MPI_Aint displacements[24];
-	MPI_Aint addresses[25];
-	MPI_Datatype typelist[24];
-	/* Specification des types*/
-	for(int ii=0;ii<24;ii++)
-		typelist[ii] = MPI_INT;
-
-	/* Specification du nombre d’elements de chaque type */
-	for(int ii=0;ii<20;ii++)
-		block_lengths[ii] = 1;
-
-	block_lengths[20] = ini_v->ntotscan;
-	block_lengths[21] = ini_v->ntotscan;
-	block_lengths[22] = ini_v->ntotscan;
-	block_lengths[23] = ini_v->ntotscan;
-
-	/* Calcul du deplacement de chacun des membres
-	 * relativement a indata */
-	MPI_Address(ini_v, &addresses[0]);
-
-	// common
-	MPI_Address(&(ini_v->dirfile), &addresses[1]);
-	MPI_Address(&(ini_v->output_dir), &addresses[2]);
-	MPI_Address(&(ini_v->input_dir), &addresses[3]);
-	MPI_Address(&(ini_v->tmp_dir), &addresses[4]);
-	MPI_Address(&(ini_v->fits_filelist), &addresses[5]);
-	MPI_Address(&(ini_v->bolo_global_filename), &addresses[6]);
-	MPI_Address(&(ini_v->bolo_suffix), &addresses[7]);
-
-	// sanePos
-	MPI_Address(&(ini_v->maskfile), &addresses[8]);
-	MPI_Address(&(ini_v->projtype), &addresses[9]);
-
-	// sanePre
-	MPI_Address(&(ini_v->fcut_file), &addresses[10]);
-
-	// saneInv
-	MPI_Address(&(ini_v->noise_dir), &addresses[11]);
-	MPI_Address(&(ini_v->cov_matrix_file), &addresses[12]);
-	MPI_Address(&(ini_v->cov_matrix_suffix), &addresses[13]);
-
-	// sanePS
-	MPI_Address(&(ini_v->ell_suffix), &addresses[14]);
-	MPI_Address(&(ini_v->ell_global_file), &addresses[15]);
-	MPI_Address(&(ini_v->signame), &addresses[16]);
-	MPI_Address(&(ini_v->mix_global_file), &addresses[17]);
-	MPI_Address(&(ini_v->mix_suffix), &addresses[18]);
-
-	// all projects
-	MPI_Address(&(ini_v->sizemax), &addresses[19]);
-
-	// samples
-	MPI_Address(&(ini_v->ntotscan), &addresses[20]);
-	MPI_Address(&(ini_v->fitsvect[0]), &addresses[21]);
-	MPI_Address(&(ini_v->noisevect[0]), &addresses[22]);
-	MPI_Address(&(ini_v->bolovect[0]), &addresses[23]);
-	MPI_Address(&(ini_v->basevect[0]), &addresses[24]);
-
-	for(int ii=0;ii<24;ii++)
-		displacements[ii] = addresses[ii+1] - addresses[0];
-
-	/* Creation du type derive */
-	MPI_Type_struct(24, block_lengths, displacements, typelist,
-			message_type_ptr);
-	/* Remise du type pour qu’il puisse etre utilise */
-	MPI_Type_commit(message_type_ptr);
-
-}
-
-int commit_struct_from_root(struct param_common &dir, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_saneInv &inv_param, struct param_sanePic &pic_param, struct param_sanePS &ps_param, struct samples &samples_struct, struct ini_var_strings ini_v, int rank)
-{
-
-	if(commit_param_common(dir, ini_v,  rank))
-		return 1;
-
-	commit_param_sanePos(pos_param, ini_v, rank);
-	commit_param_sanePre(proc_param, ini_v, rank);
-	commit_param_saneInv(inv_param, ini_v, rank);
-	commit_param_sanePic(pic_param, ini_v, rank);
-	commit_param_sanePS(ps_param, ini_v, rank);
-	commit_samples_struct(samples_struct, ini_v, rank);
-
-	return 0;
-}
-
-
-int commit_param_common(struct param_common &dir, struct ini_var_strings ini_v, int rank)
-{
-	int position=0 ;
-	int size_buff = ini_v.dirfile + ini_v.input_dir + ini_v.output_dir + ini_v.tmp_dir + ini_v.fits_filelist +
-			ini_v.bolo_global_filename + ini_v.bolo_suffix;
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack((char*)dir.dirfile.c_str(), ini_v.dirfile, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.input_dir.c_str(), ini_v.input_dir, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.output_dir.c_str(), ini_v.output_dir, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.tmp_dir.c_str(), ini_v.tmp_dir, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.fits_filelist.c_str(), ini_v.fits_filelist, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.bolo_global_filename.c_str(), ini_v.bolo_global_filename, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)dir.bolo_suffix.c_str(), ini_v.bolo_suffix, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.dirfile,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.dirfile = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.input_dir,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.input_dir = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.output_dir,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.output_dir = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.tmp_dir,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.tmp_dir = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.fits_filelist,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.fits_filelist = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.bolo_global_filename,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.bolo_global_filename = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.bolo_suffix,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		dir.bolo_suffix = (string)temp_char;
-
-		delete [] temp_char;
-
-	}
-
-	return 0;
-}
-
-int commit_param_sanePos(struct param_sanePos &pos_param, struct ini_var_strings ini_v, int rank)
-{
-
-	int position=0 ;
-	int size_buff = sizeof(double)+ 2*sizeof(bool)+sizeof(int) + ini_v.maskfile + ini_v.projtype + 2*sizeof(double);
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack(&(pos_param.pixdeg), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pos_param.ra_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pos_param.dec_nom), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)pos_param.maskfile.c_str(), ini_v.maskfile, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)pos_param.projtype.c_str(), ini_v.projtype, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pos_param.flgdupl), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pos_param.projgaps), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pos_param.fileFormat), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		/* Unpack des donnees depuis le buffer */
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.pixdeg), 1,
-				MPI_DOUBLE, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.ra_nom), 1,
-				MPI_DOUBLE, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.dec_nom), 1,
-				MPI_DOUBLE, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.maskfile,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		pos_param.maskfile = (string)temp_char;
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.projtype,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		pos_param.projtype = (string)temp_char;
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.flgdupl), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.projgaps), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pos_param.fileFormat), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-
-		delete [] temp_char;
-	}
-
-	return 0;
-}
-
-int commit_param_sanePre(struct param_sanePre &proc_param, struct ini_var_strings ini_v, int rank)
-{
-
-	int position=0 ;
-	int size_buff = 2*sizeof(double) + 4*sizeof(bool) + sizeof(int) + sizeof(long) + ini_v.fcut_file;
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack(&(proc_param.NORMLIN), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.NOFILLGAP), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.CORRon), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.remove_polynomia), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.napod), 1, MPI_LONG, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.poly_order), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.fsamp), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(proc_param.f_lp), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)proc_param.fcut_file.c_str(), ini_v.fcut_file, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		/* Unpack des donnees depuis le buffer */
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.NORMLIN), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.NOFILLGAP), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.CORRon), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.remove_polynomia), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.napod), 1,
-				MPI_LONG, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.poly_order), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.fsamp), 1,
-				MPI_DOUBLE, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(proc_param.f_lp), 1,
-				MPI_DOUBLE, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.fcut_file,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		proc_param.fcut_file = (string)temp_char;
-
-		delete [] temp_char;
-	}
-
-	return 0;
-}
-
-int commit_param_saneInv(struct param_saneInv &inv_param, struct ini_var_strings ini_v, int rank)
-{
-
-	int position=0 ;
-	int size_buff = ini_v.noise_dir + ini_v.cov_matrix_file + ini_v.cov_matrix_suffix;
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack((char*)(inv_param.noise_dir).c_str(), ini_v.noise_dir, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(inv_param.cov_matrix_file).c_str(), ini_v.cov_matrix_file, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(inv_param.cov_matrix_suffix).c_str(), ini_v.cov_matrix_suffix, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.noise_dir,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		inv_param.noise_dir = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.cov_matrix_file,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		inv_param.cov_matrix_file = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.cov_matrix_suffix,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		inv_param.cov_matrix_suffix = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		delete [] temp_char;
-	}
-
-	return 0;
-}
-
-int commit_param_sanePic(struct param_sanePic &pic_param, struct ini_var_strings ini_v, int rank)
-{
-
-	int position=0 ;
-	int size_buff = 4*sizeof(int);
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack(&(pic_param.iterw), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pic_param.itermax), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pic_param.save_data), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(pic_param.restore), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pic_param.iterw), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pic_param.itermax), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pic_param.save_data), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(pic_param.restore), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-
-	}
-
-	return 0;
-}
-
-int commit_param_sanePS(struct param_sanePS &ps_param, struct ini_var_strings ini_v, int rank)
-{
-
-	int position=0 ;
-	int size_buff = ini_v.ell_suffix + ini_v.mix_suffix + ini_v.ell_global_file + ini_v.mix_global_file + ini_v.cov_matrix_file
-			+ ini_v.cov_matrix_suffix + ini_v.signame + sizeof(int) + 2*sizeof(bool);
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack((char*)(ps_param.ell_suffix).c_str(), ini_v.ell_suffix, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.mix_suffix).c_str(), ini_v.mix_suffix, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.ell_global_file).c_str(), ini_v.ell_global_file, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.mix_global_file).c_str(), ini_v.mix_global_file, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.cov_matrix_file).c_str(), ini_v.cov_matrix_file, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.cov_matrix_suffix).c_str(), ini_v.cov_matrix_suffix, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack((char*)(ps_param.signame).c_str(), ini_v.signame, MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(ps_param.ncomp), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(ps_param.save_data), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		MPI_Pack(&(ps_param.restore), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		/* Unpack des donnees depuis le buffer */
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.ell_suffix,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.ell_suffix = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.mix_suffix,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.mix_suffix = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.ell_global_file,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.ell_global_file = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.mix_global_file,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.mix_global_file = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.cov_matrix_file,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.cov_matrix_file = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.cov_matrix_suffix,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.cov_matrix_suffix = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.signame,
-				MPI_CHAR, MPI_COMM_WORLD);
-
-		ps_param.signame = (string)temp_char;
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		MPI_Unpack(buffer, size_buff, &position, &(ps_param.ncomp), 1,
-				MPI_INT, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(ps_param.save_data), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		MPI_Unpack(buffer, size_buff, &position, &(ps_param.restore), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		delete [] temp_char;
-	}
-
-	return 0;
-}
-
-
-int commit_samples_struct(struct samples &samples_struct, struct ini_var_strings ini_v, int rank){
-
-
-	int position=0 ;
-	int size_buff = sizeof(bool) + // framegiven
-			ini_v.ntotscan*sizeof(long) + // nsamples
-			ini_v.ntotscan*sizeof(double) + // fcut
-			ini_v.ntotscan*sizeof(int);  // scans_index
-
-	for(long ii=0; ii< ini_v.ntotscan; ii++){
-		size_buff += ini_v.fitsvect[ii] + ini_v.noisevect[ii] + ini_v.bolovect[ii] +  ini_v.basevect[ii];
-	}
-
-	char buffer[size_buff];
-
-	if (rank == 0){
-
-		MPI_Pack(&(samples_struct.framegiven), 1, MPI_C_BOOL, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-		for(long ii=0; ii< ini_v.ntotscan; ii++){
-
-			MPI_Pack(&(samples_struct.nsamples[ii]), 1, MPI_LONG, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			MPI_Pack(&(samples_struct.fcut[ii]), 1, MPI_DOUBLE, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			MPI_Pack((char*)(samples_struct.fitsvect[ii]).c_str(), ini_v.fitsvect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			MPI_Pack((char*)(samples_struct.noisevect[ii]).c_str(), ini_v.noisevect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			MPI_Pack((char*)(samples_struct.bolovect[ii]).c_str(), ini_v.bolovect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			MPI_Pack((char*)(samples_struct.basevect[ii]).c_str(), ini_v.basevect[ii], MPI_CHAR, buffer, size_buff, &position, MPI_COMM_WORLD);
-
-			if(samples_struct.framegiven)
-				MPI_Pack(&(samples_struct.scans_index[ii]), 1, MPI_INT, buffer, size_buff, &position, MPI_COMM_WORLD);
-		}
-
-		/* Diffusion du contenu du buffer */
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-
-	} else {
-
-		MPI_Bcast(buffer, size_buff, MPI_PACKED, 0, MPI_COMM_WORLD);
-
-		samples_struct.ntotscan = (long)ini_v.ntotscan;
-		long nsamp_tmp = 0;
-		double fcut_tmp = 0.0;
-		int scan_index_tmp = 0;
-		char *temp_char;
-		temp_char = new char[ini_v.sizemax];
-		fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-		/* Unpack des donnees depuis le buffer */
-
-		MPI_Unpack(buffer, size_buff, &position, &(samples_struct.framegiven), 1,
-				MPI_C_BOOL, MPI_COMM_WORLD);
-
-		for(long ii=0; ii< samples_struct.ntotscan; ii++){
-
-			MPI_Unpack(buffer, size_buff, &position, &nsamp_tmp, 1,
-					MPI_LONG, MPI_COMM_WORLD);
-
-			samples_struct.nsamples.push_back(nsamp_tmp);
-
-
-			MPI_Unpack(buffer, size_buff, &position, &fcut_tmp, 1,
-					MPI_DOUBLE, MPI_COMM_WORLD);
-
-			samples_struct.fcut.push_back(fcut_tmp);
-
-
-			MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.fitsvect[ii],
-					MPI_CHAR, MPI_COMM_WORLD);
-
-			samples_struct.fitsvect.push_back(temp_char);
-			fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-			MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.noisevect[ii],
-					MPI_CHAR, MPI_COMM_WORLD);
-
-			samples_struct.noisevect.push_back(temp_char);
-			fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-			MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.bolovect[ii],
-					MPI_CHAR, MPI_COMM_WORLD);
-
-			samples_struct.bolovect.push_back(temp_char);
-			fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-			MPI_Unpack(buffer, size_buff, &position, temp_char, ini_v.basevect[ii],
-					MPI_CHAR, MPI_COMM_WORLD);
-
-			samples_struct.basevect.push_back(temp_char);
-			fill(temp_char, temp_char+ini_v.sizemax,'\0');
-
-			if(samples_struct.framegiven){
-				MPI_Unpack(buffer, size_buff, &position, &scan_index_tmp, 1,
-						MPI_INT, MPI_COMM_WORLD);
-				samples_struct.scans_index.push_back(scan_index_tmp);
+				if(size_val>0){
+					val_buff = (char*)val_s.c_str();
+					MPI_Bcast(val_buff, size_val, MPI_CHAR, 0, MPI_COMM_WORLD);
+				}
 			}
+		}else{
+			cout << "n=0 or void !" << endl;
+			return 1;
 		}
+	}else{
+		int size_key=0;
+		int size_val=0;
 
-		delete [] temp_char;
+		MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+		if((n>0)&&(dict!=NULL)){
+			for (int i=0 ; i<n ; i++) {
+
+				bool delete_val = 1;
+
+				MPI_Bcast(&size_key, 1, MPI_INT, 0, MPI_COMM_WORLD);
+				MPI_Bcast(&size_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+				if(size_key>0){
+					key_buff = (char *)calloc(size_key+1, sizeof(char));
+					fill(key_buff, key_buff + size_key+1, '\0');
+					MPI_Bcast(key_buff, size_key, MPI_CHAR, 0, MPI_COMM_WORLD);
+				}
+
+				if(size_val>=0){
+					val_buff = (char *)calloc(size_val+1, sizeof(char));
+					fill(val_buff, val_buff + size_val+1, '\0');
+					MPI_Bcast(val_buff, size_val, MPI_CHAR, 0, MPI_COMM_WORLD);
+				}
+
+				if((size_val<0) || !strcmp(val_buff, (char*)"UNDEF")) {
+					val_buff=NULL;
+					delete_val=0;
+				}
+
+				if(dictionary_set(dict, key_buff, val_buff)){
+					cout << " dictionnary failure" << endl;
+					return 1;
+				}
+
+				if(size_key>0)
+					free(key_buff);
+				if(delete_val)
+					free(val_buff);
+
+			}
+		}else{
+			cout << "dictionnary is NULL !" << endl;
+			return 1;
+		}
 	}
-
-
 
 	return 0;
 }
@@ -1763,18 +1128,33 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, int size, int rank){
 
-	dictionary	*	ini ;
+	dictionary	*	ini=NULL ;
 	string filename;
 	uint16_t parsed=0x0000;
 
+	if(rank==0){
+		// load dictionnary
+		ini = iniparser_load(ini_name);
 
-	// load dictionnary
-	ini = iniparser_load(ini_name);
-
-	if (ini==NULL) {
-		fprintf(stderr, "cannot parse file: %s\n", ini_name);
-		return INI_NOT_FOUND;
+		if (ini==NULL) {
+			fprintf(stderr, "cannot parse file: %s\n", ini_name);
+			return INI_NOT_FOUND;
+		}
 	}
+
+#ifdef USE_MPI
+
+	if(size>1){
+		if(rank!=0)
+			ini = dictionary_new(0);
+
+		if(commit_dictionary(rank, ini)){
+			cout << "ERROR commit dictionary for rank : " << rank << ". EXITING..." << endl;
+			return INI_NOT_FOUND;
+		}
+	}
+
+#endif
 
 	// default values :
 	default_param( dir, samples_struct, pos_param, proc_param, saneInv_struct, sanePic_struct);
