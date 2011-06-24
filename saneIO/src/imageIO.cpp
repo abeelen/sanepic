@@ -21,7 +21,9 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
-#ifndef PACKAGE_VERSION
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#else
 #define PACKAGE_VERSION "Unknown"
 #endif
 
