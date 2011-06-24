@@ -9,8 +9,6 @@ extern "C"{
 #include "getdata.h"
 }
 
-#define sanepic_version "0.5"
-
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {
