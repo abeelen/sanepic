@@ -233,41 +233,42 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-//		if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
-			if (indice_argv > 0){
-				/* parse ini file and fill structures */
-				parsed = parser_function(argv[indice_argv], parser_output, dir,
-						samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-						struct_sanePic, size, rank);
+		//		if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+		if (indice_argv > 0){
+			/* parse ini file and fill structures */
+			parsed = parser_function(argv[indice_argv], parser_output, dir,
+					samples_struct, pos_param, proc_param, structPS, saneInv_struct,
+					struct_sanePic, size, rank);
 
-				compare_to_mask = parsed & mask_sanePic;
+			compare_to_mask = parsed & mask_sanePic;
 
-				// print parser warning and/or errors
-				cout << endl << parser_output << endl;
+			// print parser warning and/or errors
+			if (rank==0)
+				cout << parser_output << endl;
 
-			}else
-				compare_to_mask = 0x0001;
-
-
-			if(compare_to_mask>0x0000){
-
-				switch (compare_to_mask){/* error during parsing phase */
-
-				case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-				break;
-
-				default : printf("Wrong program options or argument. Exiting !\n");
-				break;
+		}else
+			compare_to_mask = 0x0001;
 
 
-				}
+		if(compare_to_mask>0x0000){
+
+			switch (compare_to_mask){/* error during parsing phase */
+
+			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+			break;
+
+			default : printf("Wrong program options or argument. Exiting !\n");
+			break;
+
+
+			}
 
 #ifdef PARA_FRAME
-				MPI_Abort(MPI_COMM_WORLD, 1);
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-				return EX_CONFIG;
-			}
-//		}
+			return EX_CONFIG;
+		}
+		//		}
 
 
 	}
@@ -509,7 +510,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 		// flush dirfile
-//		gd_flush(samples_struct.dirfile_pointer,NULL);
+		//		gd_flush(samples_struct.dirfile_pointer,NULL);
 
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
@@ -573,7 +574,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 				// flush dirfile
-//				gd_flush(samples_struct.dirfile_pointer,NULL);
+				//				gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 				MPI_Barrier(MPI_COMM_WORLD);
@@ -784,7 +785,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-//					gd_flush(samples_struct.dirfile_pointer,NULL);
+					//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
@@ -898,7 +899,7 @@ int main(int argc, char *argv[]) {
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
 		while ((iter < struct_sanePic.itermax) && (((var_n / var0 > 1e-10) && (idupl
-										       || !pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
+				|| !pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
 
 			fill(q, q + npixeff, 0.0); // q <= A*d
 
@@ -925,7 +926,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-//					gd_flush(samples_struct.dirfile_pointer,NULL);
+					//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
@@ -1005,7 +1006,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 						// flush dirfile
-//						gd_flush(samples_struct.dirfile_pointer,NULL);
+						//						gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
@@ -1222,7 +1223,7 @@ int main(int argc, char *argv[]) {
 				temp_stream <<  mytime << " -- " << "iter = "     << setw(4) << iter;
 				temp_stream << ", crit = "      << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
 				temp_stream << ", crit2 = "     << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
- 
+
 				// Output to screen ...
 				cout << temp_stream.str() << "\r" << flush;
 				//cout << endl; // temp : to test for dirfiles !
@@ -1281,7 +1282,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 					// flush dirfile
-//					gd_flush(samples_struct.dirfile_pointer,NULL);
+					//					gd_flush(samples_struct.dirfile_pointer,NULL);
 
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);

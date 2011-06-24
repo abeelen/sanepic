@@ -146,44 +146,45 @@ int main(int argc, char *argv[])
 
 	// -----------------------------------------------------------------------------//
 
-//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+	//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
-		uint16_t parsed=0x0000; // parser error status
-		uint16_t compare_to_mask; // parser error status
+	uint16_t parsed=0x0000; // parser error status
+	uint16_t compare_to_mask; // parser error status
 
-		// Parse ini file
-		if (argc<2) {
-			compare_to_mask=0x001;
-		} else {
+	// Parse ini file
+	if (argc<2) {
+		compare_to_mask=0x001;
+	} else {
 
-			parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-					structPS, saneInv_struct, struct_sanePic, size, rank);
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
+				structPS, saneInv_struct, struct_sanePic, size, rank);
 
-			compare_to_mask = parsed & mask_sanePos;
+		compare_to_mask = parsed & mask_sanePos;
 
-			// print parser warning and/or errors
+		// print parser warning and/or errors
+		if (rank == 0)
 			cout << endl << parser_output << endl;
+	}
+
+	if(compare_to_mask>0x0000){
+
+		switch (compare_to_mask){/* error during parsing phase */
+
+		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+		break;
+
+		default : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+
 		}
-
-		if(compare_to_mask>0x0000){
-
-			switch (compare_to_mask){/* error during parsing phase */
-
-			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-			break;
-
-			default : printf("Wrong program options or argument. Exiting !\n");
-			break;
-
-
-			}
 
 #ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			return EX_CONFIG;
-		}
-//	}
+		return EX_CONFIG;
+	}
+	//	}
 
 
 	// -----------------------------------------------------------------------------//

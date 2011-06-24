@@ -105,60 +105,61 @@ int main(int argc, char *argv[])
 	uint16_t parsed=0x0000; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
-//	if(rank==0){
+	//	if(rank==0){
 
-		if ((argc < 2) || (argc > 3)) // no enough or too many arguments
-			compare_to_mask = 0x0001;
-		else {
-			structPS.restore = 0; //default
-			if (argc == 3) {
+	if ((argc < 2) || (argc > 3)) // no enough or too many arguments
+		compare_to_mask = 0x0001;
+	else {
+		structPS.restore = 0; //default
+		if (argc == 3) {
 
-				structPS.restore = 1;
-				if (strcmp(argv[1], (char*) "--restore") != 0) {
-					if (strcmp(argv[2], (char*) "--restore") != 0)
-						indice_argv = -1;
-					else
-						indice_argv = 1;
-				} else {
-					indice_argv = 2;
-				}
+			structPS.restore = 1;
+			if (strcmp(argv[1], (char*) "--restore") != 0) {
+				if (strcmp(argv[2], (char*) "--restore") != 0)
+					indice_argv = -1;
+				else
+					indice_argv = 1;
+			} else {
+				indice_argv = 2;
 			}
-
-			if (indice_argv > 0){
-				/* parse ini file and fill structures */
-				parsed=parser_function(argv[indice_argv], output, dir, samples_struct, pos_param, proc_param,
-						structPS, saneInv_struct, struct_sanePic, size, rank);
-
-
-				compare_to_mask = parsed & mask_sanePS;
-
-				// print parser warning and/or errors
-				cout << endl << output << endl;
-			}else
-				compare_to_mask = 0x0001;
-
 		}
 
-		if(compare_to_mask>0x0000){
-
-			switch (compare_to_mask){/* error during parsing phase */
-
-			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-			break;
-
-			default : printf("Wrong program options or argument. Exiting !\n");
-			break;
+		if (indice_argv > 0){
+			/* parse ini file and fill structures */
+			parsed=parser_function(argv[indice_argv], output, dir, samples_struct, pos_param, proc_param,
+					structPS, saneInv_struct, struct_sanePic, size, rank);
 
 
-			}
+			compare_to_mask = parsed & mask_sanePS;
+
+			// print parser warning and/or errors
+			if (rank == 0)
+				cout << endl << output << endl;
+		}else
+			compare_to_mask = 0x0001;
+
+	}
+
+	if(compare_to_mask>0x0000){
+
+		switch (compare_to_mask){/* error during parsing phase */
+
+		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+		break;
+
+		default : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+
+		}
 
 #ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			return EX_CONFIG;
+		return EX_CONFIG;
 
-		}
-//	}
+	}
+	//	}
 
 #ifdef PARA_FRAME
 

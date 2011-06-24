@@ -76,45 +76,47 @@ int main(int argc, char *argv[]) {
 	uint16_t mask_sanefix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			FSAMP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND; // 0x410f
 
-//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+	//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
-		uint16_t parsed=0x0000; // parser error status
-		uint16_t compare_to_mask; // parser error status
+	uint16_t parsed=0x0000; // parser error status
+	uint16_t compare_to_mask; // parser error status
 
 
-		if (argc<2)/* not enough argument */
-			compare_to_mask=0x001;
-		else {
-			/* parse ini file and fill structures */
-			parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-					structPS, saneInv_struct, sanePic_struct, size, rank);
+	if (argc<2)/* not enough argument */
+		compare_to_mask=0x001;
+	else {
+		/* parse ini file and fill structures */
+		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
+				structPS, saneInv_struct, sanePic_struct, size, rank);
 
-			compare_to_mask = parsed & mask_sanefix;
-		}
+		compare_to_mask = parsed & mask_sanefix;
 
 		// print parser warning and/or errors
-		cout << endl << output << endl;
-
-		// in case there is a parsing error or the dirfile format file was not created correctly
-		if(compare_to_mask>0x0000){
-
-			switch (compare_to_mask){/* error during parsing phase */
-
-			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-			break;
-
-			default : printf("Wrong program options or argument. Exiting !\n");
-			break;
+		if (rank == 0)
+			cout << endl << output << endl;
+	}
 
 
-			}
+	// in case there is a parsing error or the dirfile format file was not created correctly
+	if(compare_to_mask>0x0000){
+
+		switch (compare_to_mask){/* error during parsing phase */
+
+		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+		break;
+
+		default : printf("Wrong program options or argument. Exiting !\n");
+		break;
+
+
+		}
 
 #ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			return EX_CONFIG;
-		}
-//	}
+		return EX_CONFIG;
+	}
+	//	}
 
 
 #ifdef PARA_FRAME
@@ -127,8 +129,8 @@ int main(int argc, char *argv[]) {
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, sanePic_struct, saneInv_struct);
-	
-	cout << "\nFixing Files..." << endl << endl;
+
+		cout << "\nFixing Files..." << endl << endl;
 	}
 
 	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan

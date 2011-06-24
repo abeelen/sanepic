@@ -1228,9 +1228,9 @@ void print_param_positions(struct param_sanePos pos_param) {
 void print_param_process(struct param_sanePre proc_param){
 
 	if(proc_param.NOFILLGAP)
-		cout << "NOFILLGAPS : the gaps in data timeline WILL NOT be filled\n";
+		cout << "NOFILLGAPS       : True (the gaps in data timeline WILL NOT be filled)\n";
 	else
-		cout << "NOFILLGAPS : the gaps in data timeline WILL be filled\n";
+		cout << "NOFILLGAPS       : False (the gaps in data timeline WILL be filled)\n";
 
 
 	if(proc_param.NORMLIN)
@@ -1270,7 +1270,7 @@ void print_param_sanePic(struct param_sanePic sanepic_struct)
 
 	cout << "Max Iter.        : " << sanepic_struct.itermax << endl;
 
-	cout << "Maps suffix      : " << sanepic_struct.map_prefix << endl;
+	cout << "Maps prefix      : " << sanepic_struct.map_prefix << endl;
 
 	cout << endl;
 }
