@@ -45,6 +45,7 @@ struct param_sanePre
 	bool NOFILLGAP; /*! True if data gaps are filled */
 	bool CORRon; /*! True if correlation between detectors are included in the analysis */
 	bool remove_polynomia; /*! True if a polynomia is removed from the data : poly_order > 0 */
+	bool highpass_filter; /*! True if an high pass filter is perfomed on the data */
 
 	long napod; /*! number of samples to apodize at data begin and end */
 	int poly_order; /*! Polynomia order to be removed from the timeline */
@@ -104,6 +105,7 @@ struct samples
 
 	DIRFILE *dirfile_pointer; /*! a pointer to the dirfile that contains temporary binaries */
 
+	//TODO: Add the same vector for fsamp and f_lp
 	std::vector<double> fcut; /*! a vector containing Noise filter cut-off frequency for each scan */
 
 	std::vector<std::string> ell_names; /*! a vector for the bins (for the noise spectrum) filenames */

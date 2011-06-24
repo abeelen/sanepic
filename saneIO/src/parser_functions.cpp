@@ -209,6 +209,12 @@ void read_param_sanePre(string &output, dictionary *ini, struct param_sanePre &p
 	else
 		proc_param.remove_polynomia=0;
 
+	if(proc_param.f_lp>=0)
+		proc_param.highpass_filter=1;
+	else
+		proc_param.highpass_filter=0;
+
+
 	s = iniparser_getstring(ini,"sanePre:fcut_file", (char *) NULL);
 	if( s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePre:fcut_file : default value [" + StringOf(proc_param.fcut_file) +"]\n";
@@ -663,10 +669,6 @@ uint16_t check_param_process(string &output, struct param_sanePre proc_param){
 		output += "sampling_frequency cannot be negative or 0 ! \n";
 		return FSAMP_WRONG_VALUE;
 	}
-	if (proc_param.f_lp<0.0){
-		output += "filter_frequency cannot be negative ! \n";
-		return F_LP_WRONG_VALUE;
-	}
 
 	return 0;
 }
@@ -765,11 +767,13 @@ void default_param_sanePre(struct param_sanePre &proc_param){
 	proc_param.NOFILLGAP        = false;
 	proc_param.CORRon           = true;
 	proc_param.remove_polynomia = true;
+	proc_param.highpass_filter  = false;
+
+	proc_param.fcut_file        = "";
 	proc_param.napod            = 100;
 	proc_param.poly_order       = 1;
 	proc_param.fsamp            = 0.0;
 	proc_param.f_lp             = 0.0;
-	proc_param.fcut_file        = "";
 
 }
 
@@ -1240,19 +1244,22 @@ void print_param_process(struct param_sanePre proc_param){
 
 
 	if(proc_param.CORRon)
-		cout << "Correlations     : INCLUDED in the analysis\n";
+		cout << "Correlations     : INCLUDED in the analysis" << endl;
 	else
-		cout << "Correlations     : NOT INCLUDED in the analysis\n";
+		cout << "Correlations     : NOT INCLUDED in the analysis" << endl;
 
 	if(proc_param.remove_polynomia)
 		cout << "Poly. Order      : " << proc_param.poly_order << endl;
 	else
-		cout << "Poly. Order      : No polynomia will be used\n";
+		cout << "Poly. Order      : None\n";
 
 	if(proc_param.napod>0)
-		cout << "# for Apodize    : " << proc_param.napod << "\n";
+		cout << "# for Apodize    : " << proc_param.napod << endl;
 
-	cout << "HP Freq.         : " << proc_param.f_lp << " Hz\n";
+	if(proc_param.f_lp>0)
+		cout << "HPF Freq.         : " << proc_param.f_lp << " Hz" << endl;
+	else
+		cout << "HPF Freq.         : None" << endl;
 
 	cout << "Sampling Freq.   : " << proc_param.fsamp << " Hz\n";
 
