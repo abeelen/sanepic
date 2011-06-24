@@ -28,13 +28,13 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
-	char *keylist[12]={(char *)"EQUINOX", (char *)"TIMESYS",(char *)"TYPE",(char *)"CREATOR", (char *)"INSTRUME",
+	char *keylist[11]={(char *)"EQUINOX", (char *)"TIMESYS",(char *)"TYPE",(char *)"CREATOR", (char *)"INSTRUME",
 			(char *)"DATE-OBS",(char *)"DATE-END", (char *)"OBJECT",
-			(char *)"RADESYS", (char *)"TELESCOP", (char *)"OBSERVER", (char *)"DATE"};
-	int keynum=12;
+			(char *)"RADESYS", (char *)"TELESCOP", (char *)"OBSERVER"};
+	int keynum=11;
 
 	// default commentaries values
-	com.push_back("[] Equinox of celestial coordinate system");
+	com.push_back("Equinox of celestial coordinate system");
 	com.push_back("All dates are in UTC time");
 	com.push_back("Product Type Identification");
 	com.push_back("Generator of this product");
@@ -45,7 +45,6 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 	com.push_back("Coordinate reference frame for the RA and DEC");
 	com.push_back("Name of telescope");
 	com.push_back("Observer name");
-	com.push_back("File creation date (map generated with SANEPIC)");
 
 
 	for(long kk=0; kk< keynum-1; kk++){
@@ -53,12 +52,8 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 		datatype.push_back(TSTRING);
 
 		// generating default values
-		val.push_back("NOT FOUND");
+		val.push_back("Unknown");
 	}
-
-	key.push_back("DATADATE");
-	datatype.push_back(TSTRING);
-	val.push_back("UNKNOWN");
 
 	datatype[0] = TINT; // TINT for equinox
 	val[0]="2000"; // equinox set to 2000 by default
