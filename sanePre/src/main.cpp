@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << endl << "END OF SANEPRE" << endl;
+		cout << endl << "end of sanePre" << endl;
 
 	return EXIT_SUCCESS;
 

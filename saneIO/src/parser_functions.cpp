@@ -209,7 +209,7 @@ void read_param_sanePre(string &output, dictionary *ini, struct param_sanePre &p
 	else
 		proc_param.remove_polynomia=0;
 
-	if(proc_param.f_lp>=0)
+	if(proc_param.f_lp>0)
 		proc_param.highpass_filter=1;
 	else
 		proc_param.highpass_filter=0;
@@ -1256,7 +1256,7 @@ void print_param_process(struct param_sanePre proc_param){
 	if(proc_param.napod>0)
 		cout << "# for Apodize    : " << proc_param.napod << endl;
 
-	if(proc_param.f_lp>0)
+	if(proc_param.highpass_filter)
 		cout << "HPF Freq.         : " << proc_param.f_lp << " Hz" << endl;
 	else
 		cout << "HPF Freq.         : None" << endl;
@@ -1329,11 +1329,11 @@ void parser_printOut(char * prog_name, struct param_common dir, struct samples s
 		print_param_sanePS(structPS);
 	}
 
-	i=basename.find("sanePre");
-	if((i>=0) && (i<(int)basename.size())){
-		print_param_positions(pos_param);
-		print_param_process(proc_param);
-	}
+//	i=basename.find("sanePre");
+//	if((i>=0) && (i<(int)basename.size())){
+//		print_param_positions(pos_param);
+//		print_param_process(proc_param);
+//	}
 
 	i=basename.find("sanePic");
 	if((i>=0) && (i<(int)basename.size())){
