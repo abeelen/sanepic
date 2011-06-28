@@ -1257,9 +1257,9 @@ void print_param_process(struct param_sanePre proc_param){
 		cout << "# for Apodize    : " << proc_param.napod << endl;
 
 	if(proc_param.highpass_filter)
-		cout << "HPF Freq.         : " << proc_param.f_lp << " Hz" << endl;
+		cout << "HPF Freq.        : " << proc_param.f_lp << " Hz" << endl;
 	else
-		cout << "HPF Freq.         : None" << endl;
+		cout << "HPF Freq.        : None" << endl;
 
 	cout << "Sampling Freq.   : " << proc_param.fsamp << " Hz\n";
 

@@ -418,6 +418,11 @@ int main(int argc, char *argv[])
 	// Compute pixels indices
 	//**********************************************************************************
 
+
+
+	if(rank==0)
+		cout << "Computing pixel indexes..." << endl;
+
 	switch (pos_param.fileFormat) {
 	case 0:
 		if(computePixelIndex(dir.tmp_dir, dir.dirfile, samples_struct,
@@ -572,9 +577,12 @@ int main(int argc, char *argv[])
 
 		cout << "Output file      : naivMap.fits" << endl;
 
-		double *map1d;
 		long long mi;
-		map1d = new double[NAXIS1*NAXIS2];
+		double *map1d_d;
+		long *map1d_l;
+
+		map1d_d = new double[NAXIS1*NAXIS2];
+		map1d_l = new long[NAXIS1*NAXIS2];
 
 		// TODO: Save the map of flag data if needed
 
@@ -582,24 +590,25 @@ int main(int argc, char *argv[])
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					map1d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitstotNaiv[indpix[mi]];
+					map1d_d[mi] = PNdtotNaiv[indpix[mi]]/(double)hitstotNaiv[indpix[mi]];
 				} else {
-					map1d[mi] = NAN;
+					map1d_d[mi] = NAN;
 				}
 			}
 		}
 
-		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Image",0,key,datatype,val,com)){ // open naive Map fits file and fill ultra naive map image
+		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d,"Image",0,key,datatype,val,com)){ // open naive Map fits file and fill ultra naive map image
 			cerr << "Error Writing Ultra Naiv map ... \n";
 		}
+
 
 		for (long jj=0; jj<NAXIS2; jj++) {
 			for (long ii=0; ii<NAXIS1; ii++) {
 				mi = jj*NAXIS1 + ii;
 				if (indpix[mi] >= 0){
-					map1d[mi] = hitstotNaiv[indpix[mi]];
+					map1d_l[mi] = hitstotNaiv[indpix[mi]];
 				} else {
-					map1d[mi] = 0;
+					map1d_l[mi] = 0;
 				}
 			}
 		}
@@ -611,13 +620,13 @@ int main(int argc, char *argv[])
 						mi = jj*NAXIS1 + ii;
 						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
 						if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
-							map1d[mi] += hitstotNaiv[indpix[ll]];
+							map1d_l[mi] += hitstotNaiv[indpix[ll]];
 					}
 				}
 			}
 		}
 
-		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1,key,datatype,val,com)){ // open naive Map fits file and fill hit (or coverage) image
+		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1,key,datatype,val,com)){ // open naive Map fits file and fill hit (or coverage) image
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
@@ -627,20 +636,11 @@ int main(int argc, char *argv[])
 			if(write_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
 				cerr << "Warning ! The mask will not be included in naive map fits file ...\n";
 
-		delete [] map1d;
+		delete [] map1d_d;
+		delete [] map1d_l;
 
 	}
 	/* ---------------------------------------------------------------------------------------------*/
-
-#ifdef PARA_FRAME
-	if(rank==0){
-		// clean up
-		delete [] PNdtotNaiv;
-		delete [] hitstotNaiv;
-	}
-
-#endif
-
 
 #ifdef DEBUG
 	if(rank==0){
@@ -660,6 +660,7 @@ int main(int argc, char *argv[])
 	delete [] coordscorner;
 	delete [] pixon;
 
+
 	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);
 
@@ -672,14 +673,20 @@ int main(int argc, char *argv[])
 	cout << "Total Time : " << t3-t2 << " sec\n";
 #endif
 
-	if(rank==0)
-		printf("\nEND OF SANEPOS\n");
 
 #ifdef PARA_FRAME
-	if(rank==0)
+	if(rank==0 && size > 1){
+		// clean up
+		delete [] PNdtotNaiv;
+		delete [] hitstotNaiv;
 		delete [] pixon_tot;
+	}
+
 	MPI_Finalize();
 #endif
+
+	if(rank==0)
+		printf("\nEnd of sanePos\n");
 
 	return EXIT_SUCCESS;
 }

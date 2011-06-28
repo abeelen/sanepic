@@ -1356,9 +1356,11 @@ int main(int argc, char *argv[]) {
 	delete[] PNd;
 
 #ifdef USE_MPI
-	delete [] qtot;
-	delete [] Mptot;
-	delete [] PNdtot;
+	if (rank == 0 && size > 1){
+		delete [] qtot;
+		delete [] Mptot;
+		delete [] PNdtot;
+	}
 #endif
 
 	//******************************************************************//
