@@ -41,16 +41,16 @@ struct param_sanePos
 struct param_sanePre
 /*! A structure that contains user options about preprocessing properties */
 {
-	bool NORMLIN; /*! True if a simple baseline removed from the data */
-	bool NOFILLGAP; /*! True if data gaps are filled */
-	bool CORRon; /*! True if correlation between detectors are included in the analysis */
+	bool remove_linear ;   /*! True if a simple baseline removed from the data */
+	bool fill_gap;         /*! True if data gaps are filled */
+	bool CORRon;           /*! True if correlation between detectors are included in the analysis */
 	bool remove_polynomia; /*! True if a polynomia is removed from the data : poly_order > 0 */
-	bool highpass_filter; /*! True if an high pass filter is perfomed on the data */
+	bool highpass_filter;  /*! True if an high pass filter is perfomed on the data */
 
-	long napod; /*! number of samples to apodize at data begin and end */
-	int poly_order; /*! Polynomia order to be removed from the timeline */
-	double fsamp; /*! Detectors sampling frequency (Hz) */
-	double f_lp; /*! frequency of the high pass filter applied to the data */
+	long napod;            /*! number of samples to apodize at data begin and end */
+	int poly_order;        /*! Polynomia order to be removed from the timeline */
+	double fsamp;          /*! Detectors sampling frequency (Hz) */
+	double f_lp;           /*! frequency of the high pass filter applied to the data */
 
 	std::string fcut_file; /*! Noise filter cut-off frequency */
 };

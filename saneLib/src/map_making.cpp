@@ -297,7 +297,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 
 	//*********************************************************************
-	if (proc_param.NOFILLGAP == 0)
+	if (proc_param.fill_gap)
 		fillgaps2(data,ns,data_out,flag,40);
 
 
@@ -310,7 +310,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 		data[ii] = data_lp[ii];
 
 
-	if (proc_param.NORMLIN == 0){
+	if (proc_param.remove_linear){
 		/// remove a baseline
 		aa = (data_lp[ns-1]-data[0])/double(ns);
 		bb = data_lp[0];
@@ -329,7 +329,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 
 	//******************* process gaps
-	if (proc_param.NOFILLGAP == 0)
+	if (proc_param.fill_gap)
 		fillgaps2(data_out,ns,data_lp,flag,40);
 
 	if (Ps != NULL)

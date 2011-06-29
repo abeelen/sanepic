@@ -226,7 +226,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))          bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >= NAXIS2)) bolo_flag[ii] = 2;
-				if (proc_param.NOFILLGAP && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
+				if ( (! proc_param.fill_gap ) && (bolo_flag[ii] == 1 ))        bolo_flag[ii] = 2;
 
 				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod)) bolo_flag[ii] = 3;
 
@@ -408,7 +408,7 @@ int computePixelIndex_HIPE(string tmpdir,
 
 				if ((xx[ii] < 0)   || (yy[ii] < 0  ))            bolo_flag[ii] = 2;
 				if ((xx[ii] >=  NAXIS1) || (yy[ii] >=  NAXIS2))  bolo_flag[ii] = 2;
-				if (proc_param.NOFILLGAP && (bolo_flag[ii] == 1 ))      bolo_flag[ii] = 2;
+				if ( (! proc_param.fill_gap ) && (bolo_flag[ii] == 1 ))      bolo_flag[ii] = 2;
 
 				if ((ii < proc_param.napod) || (ii >= ns-proc_param.napod))    bolo_flag[ii] = 3;
 

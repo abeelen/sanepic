@@ -99,9 +99,9 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "apodize_Nsamples = " + StringOf(proc_param.napod) + " ; number of samples to apodize\n";
 		text += "fcut_file = " + proc_param.fcut_file + " ; noise power spectra are thresholded. Default is the frequency cut of the high pass filter applied to the data\n";
 		text += "poly_order = " + StringOf(proc_param.poly_order) + " ; baseline polynomia order (default = 0; no baseline)\n";
-		text += "no_baseline = " + StringOf(proc_param.NORMLIN ? "True" : "False") + " ; no simple baseline removed from the data (False : default)\n";
+		text += "linear_baseline = " + StringOf(proc_param.remove_linear ? "True" : "False") + " ; simple linear baseline removed from the data (False : default)\n";
 		text += "correlation = " + StringOf(proc_param.CORRon ? "True" : "False") + " ; Set this keyword to False if correlations between detectors are not included in the analysis (default = True)\n";
-		text += "nofill_gap = " + StringOf(proc_param.NOFILLGAP ? "True" : "False") +" ; Do we fill the gaps ? F = fill (default), T = don't fill\n";
+		text += "nofill_gap = " + StringOf(proc_param.fill_gap ? "True" : "False") +" ; Do we fill the gaps ? F = fill (default), T = don't fill\n";
 
 
 		text += "\n\n";

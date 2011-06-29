@@ -25,49 +25,50 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 
 	ostringstream temp_stream;
-	double *map1d;
+	double *map1d_d;
+	long *map1d_l;
 	string fname;
 	long mi;
 
 	string outdir = dir.output_dir;
-	map1d= new double [NAXIS1*NAXIS2];
+	map1d_d= new double [NAXIS1*NAXIS2];
 
 
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
-				map1d[mi] = S[indpix[mi]];
+				map1d_d[mi] = S[indpix[mi]];
 			} else {
 				if (addnpix){
 					double b = 0.;
 					for (long iframe = 0;iframe<samples_struct.ntotscan;iframe++){
 						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
 						if ((indpsrc[mi] != -1) && (indpix[ll] != -1)){
-							map1d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
+							map1d_d[mi] += S[indpix[ll]]/gsl_pow_2(Mptot[indpix[ll]]);
 							b += 1./gsl_pow_2(Mptot[indpix[ll]]);
 						}
 					}
-					if (b >= 1) map1d[mi] /= b; else map1d[mi] = NAN;
+					if (b >= 1) map1d_d[mi] /= b; else map1d_d[mi] = NAN;
 				} else
-					map1d[mi] = NAN;
+					map1d_d[mi] = NAN;
 			}
 		}
 	}
 
 	fname = outdir + sanePic_struct.map_prefix + "_sanePic.fits";
-	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Image", 0,key,datatype,val,com)){
+	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", 0,key,datatype,val,com)){
 		cerr << "Error Writing map : EXITING ... \n";
 		return 1;
 	}
 
-	fill(map1d,map1d+NAXIS1*NAXIS2,0.0);
+	fill(map1d_d,map1d_d+NAXIS1*NAXIS2,0.0);
 
 	for (long ii=0; ii<NAXIS1; ii++) {
 		for (long jj=0; jj<NAXIS2; jj++) {
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
-				map1d[mi] = Mptot[indpix[mi]];
+				map1d_d[mi] = Mptot[indpix[mi]];
 			} else {
 				if (addnpix){
 
@@ -75,21 +76,22 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 						long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
 						if ((indpsrc[mi] != -1)  && (indpix[ll] != -1))
-							map1d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
+							map1d_d[mi] += 1./gsl_pow_2(Mptot[indpix[ll]]) ;
 					}
-					if (map1d[mi] != 0)
-						map1d[mi] = 1./sqrt(map1d[mi]); else map1d[mi] = NAN;
+					if (map1d_d[mi] != 0)
+						map1d_d[mi] = 1./sqrt(map1d_d[mi]); else map1d_d[mi] = NAN;
 				} else
-					map1d[mi] = NAN;
+					map1d_d[mi] = NAN;
 			}
 		}
 	}
 
-	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d, (char *)"Error",1,key,datatype,val,com)){
+	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Error",1,key,datatype,val,com)){
 		cerr << "Error Writing map : EXITING ... \n";
 	}
 
-	fill(map1d,map1d+NAXIS1*NAXIS2,0.0);
+	delete [] map1d_d;
+	map1d_l= new long [NAXIS1*NAXIS2];
 
 	//compute hits map
 	long *hits;
@@ -123,9 +125,9 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		for (long ii=0; ii<NAXIS1; ii++) {
 			mi = jj*NAXIS1 + ii;
 			if (indpix[mi] >= 0){
-				map1d[mi] = hits[indpix[mi]];
+				map1d_l[mi] = hits[indpix[mi]];
 			} else {
-				map1d[mi] = 0;
+				map1d_l[mi] = 0;
 			}
 		}
 	}
@@ -137,15 +139,17 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 					mi = jj*NAXIS1 + ii;
 					long long ll = factdupl*NAXIS1*NAXIS2 + iframe*npixsrc + indpsrc[mi];
 					if ((indpsrc[mi] != -1) && (indpix[ll] != -1))
-						map1d[mi] += hits[indpix[ll]];
+						map1d_l[mi] += hits[indpix[ll]];
 				}
 			}
 		}
 	}
 
-	if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d,"Coverage",1,key,datatype,val,com)){ // open naive Map fits file and fill hit (or coverage) image
+	if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1,key,datatype,val,com)){
 		cerr << "Error Writing coverage map  ... \n";
 	}
+
+	delete [] map1d_l;
 
 
 	if (maskfile != "")
@@ -156,7 +160,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		cerr << "WARNING ! No history will be included in the file : " << fname << endl;
 
 	// clean
-	delete [] map1d;
 	delete [] hits;
 
 

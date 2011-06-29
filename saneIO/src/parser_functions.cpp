@@ -168,11 +168,11 @@ void read_param_sanePre(string &output, dictionary *ini, struct param_sanePre &p
 	else
 		proc_param.napod=i;
 
-	i = iniparser_getboolean(ini, "sanePre:nofill_gap", -1);
+	i = iniparser_getboolean(ini, "sanePre:fill_gap", -1);
 	if ( i == -1)
-		output2 += "sanePre:nofill_gap : default value [" + StringOf(proc_param.NOFILLGAP) +"]\n";
+		output2 += "sanePre:fill_gap : default value [" + StringOf(proc_param.fill_gap) +"]\n";
 	else
-		proc_param.NOFILLGAP = (bool)i;
+		proc_param.fill_gap = (bool)i;
 
 	d = iniparser_getdouble(ini,(char*)"sanePre:sampling_frequency", -1.0);
 	if ( d == -1.0)
@@ -186,11 +186,11 @@ void read_param_sanePre(string &output, dictionary *ini, struct param_sanePre &p
 	else
 		proc_param.f_lp=d;
 
-	i = iniparser_getboolean(ini, "sanePre:no_baseline", -1);
+	i = iniparser_getboolean(ini, "sanePre:linear_baseline", -1);
 	if (i == -1)
-		output2 += "sanePre:no_baseline: default value [" + StringOf(proc_param.NORMLIN)+ "]\n";
+		output2 += "sanePre:no_baseline: default value [" + StringOf(proc_param.remove_linear)+ "]\n";
 	else
-		proc_param.NORMLIN = (bool)i;
+		proc_param.remove_linear = (bool)i;
 
 	i = iniparser_getboolean(ini, "sanePre:correlation", -1);
 	if (i == -1)
@@ -758,13 +758,13 @@ void default_param_sanePre(struct param_sanePre &proc_param){
 	//	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
 	//	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
 	//	proc_param.fsamp = 0.0;// sampling frequency
-	//	proc_param.NORMLIN = 0; /*!  baseline is removed from the data, NORMLIN = 1 else 0 */
+	//	proc_param.remove_linear = 0; /*!  baseline is removed from the data, remove_linear = 1 else 0 */
 	//	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
 	//	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
 	//	proc_param.f_lp = 0.0; // low pass filter frequency
 
-	proc_param.NORMLIN          = false;
-	proc_param.NOFILLGAP        = false;
+	proc_param.remove_linear          = false;
+	proc_param.fill_gap         = true;
 	proc_param.CORRon           = true;
 	proc_param.remove_polynomia = true;
 	proc_param.highpass_filter  = false;
@@ -1231,16 +1231,16 @@ void print_param_positions(struct param_sanePos pos_param) {
 
 void print_param_process(struct param_sanePre proc_param){
 
-	if(proc_param.NOFILLGAP)
-		cout << "NOFILLGAPS       : True (the gaps in data timeline WILL NOT be filled)\n";
+	if(proc_param.fill_gap)
+		cout << "Fill Gaps       : True\n";
 	else
-		cout << "NOFILLGAPS       : False (the gaps in data timeline WILL be filled)\n";
+		cout << "Fill Gaps       : False\n";
 
 
-	if(proc_param.NORMLIN)
-		cout << "Simple Baseline. : NOT removed from the data\n";
+	if(proc_param.remove_linear)
+		cout << "Simple Baseline  : will be removed (default)\n";
 	else
-		cout << "Simple Baseline. : WILL BE removed from the data (default)\n";
+		cout << "Simple Baseline  : will not be removed\n";
 
 
 	if(proc_param.CORRon)

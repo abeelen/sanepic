@@ -1096,7 +1096,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					temp_stream << dir.output_dir + struct_sanePic.map_prefix + "_" << iter	<< (idupl>0 ? (std::string)"b" : (std::string)"a") + ".fits";
+					temp_stream << dir.output_dir << struct_sanePic.map_prefix << "_" << (idupl>0 ? (std::string)"b" : (std::string)"a") << iter << ".fits";
 					fname = temp_stream.str();
 					temp_stream.str("");
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
