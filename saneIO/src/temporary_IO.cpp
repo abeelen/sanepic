@@ -64,7 +64,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 			// add to the dirfile
 			gd_add(D, &E);
-//			gd_flush(D,NULL);
+			//			gd_flush(D,NULL);
 
 			// write binary file on disk
 			int n_write = gd_putdata(D, (char*) data_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
@@ -526,9 +526,11 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 
 	// set dirfile and binary names
 	string outfile = prefixe + filename + "_" + bolonames[idet];
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	// write binary file on disk
-	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns/2+1, GD_COMPLEX128,
+	int n_write = gd_putdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128,
 			fdata);
 	if (gd_error(D) != 0) {
 		cout << "error putdata in write_fdata : wrote " << n_write
@@ -536,7 +538,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 		return 1;
 	}
 
-//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
@@ -548,16 +550,18 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 
 	// set dirfile and bin names
 	string outfile = prefixe + filename + "_" + bolonames[idet];
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	// fill fdata with binary
-	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_COMPLEX128,
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128,
 			fdata);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_fdata : read " << nget << endl;
 		return 1;
 	}
 
-	//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
