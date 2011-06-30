@@ -1220,9 +1220,9 @@ int main(int argc, char *argv[]) {
 				char mytime[20];
 				strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
 
-				temp_stream <<  mytime << " -- " << "iter = "     << setw(4) << iter;
-				temp_stream << ", crit = "      << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
-				temp_stream << ", crit2 = "     << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
+				temp_stream <<  mytime << " -- " << "iter= "     << setw(4) << iter;
+				temp_stream << " crit= "      << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
+				temp_stream << " crit2= "     << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
 
 				// Output to screen ...
 				cout << temp_stream.str() << "\r" << flush;
