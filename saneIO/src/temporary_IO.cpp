@@ -227,19 +227,21 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&data, long ns){
 
 	// set dirfile name and binary name
-	string data_outfile = "data_" + filename + "_" + field;
+	string outfile = "data_" + filename + "_" + field;
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	data = new double[ns];
 
 	// fill data array
-	int nget = gd_getdata(D, (char*) data_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
 			data);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_data_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
-//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
@@ -247,19 +249,21 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&d
 int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask, long ns){
 
 	// set dirfile name and binary name
-	string flag_outfile = "flag_" + filename + "_" + field;
+	string outfile = "flag_" + filename + "_" + field;
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	mask = new int[ns];
 
 	// fill mask array
-	int nget = gd_getdata(H, (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32,
+	int nget = gd_getdata(H, field_code, 0, 0, 0, ns, GD_INT32,
 			mask);
 	if (gd_error(H) != 0) {
 		cout << "error getdata in read_flag_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
-//	gd_flush(H,NULL);
+	gd_flush(H,field_code);
 
 	return 0;
 }
@@ -268,19 +272,21 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra, long ns){
 
 	// set dirfile name and binary name
-	string ra_outfile = "RA_" + filename + "_" + field;
+	string outfile = "RA_" + filename + "_" + field;
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	ra = new double[ns];
 
 	// fill ra array
-	int nget = gd_getdata(D, (char*) ra_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
 			ra);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_RA_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
-//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
@@ -288,19 +294,21 @@ int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra,
 int read_DEC_from_dirfile(DIRFILE* D, string filename, string field, double *&dec, long ns){
 
 	// set dirfile name and binary name
-	string dec_outfile = "DEC_" + filename + "_" + field;
+	string outfile = "DEC_" + filename + "_" + field;
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	dec = new double[ns];
 
 	// fill dec array
-	int nget = gd_getdata(D, (char*) dec_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
 			dec);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_DEC_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
-//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
@@ -332,16 +340,18 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 {
 	// set binary file name
 	string outfile = filename + "_" + boloname;
+	const char * field_code;
+	field_code = outfile.c_str();
 
 	// fill samptopix array
-	int nget = gd_getdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,
 			samptopix);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_samptopix : read " << nget << endl;
 		return 1;
 	}
 
-//	gd_flush(D,NULL);
+	gd_flush(D,field_code);
 
 	return 0;
 }
