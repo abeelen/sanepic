@@ -150,8 +150,17 @@ std::string dirfile_Basename(std::string path)
 	// remove .fits extension
 	filename = FitsBasename(path);
 
-	// change every "." by a "_"
+	// From dirfile standard
+	// http://getdata.sourceforge.net/dirfile.html
+	// change every reserved character by a "_"
+	filename=replace_all(filename, "/", "_");
+	filename=replace_all(filename, "&", "_");
+	filename=replace_all(filename, ";", "_");
+	filename=replace_all(filename, "<", "_");
+	filename=replace_all(filename, ">", "_");
+	filename=replace_all(filename, "|", "_");
 	filename=replace_all(filename, ".", "_");
+
 
 	return filename;
 }
