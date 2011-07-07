@@ -101,9 +101,9 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 		return 1;
 	}
 
+	//TODO: Simplfies this ugly loop
 	// Change string in due form
 	for(long kk=0; kk< (long) key.size(); kk++){
-		cout << kk << " " << val[kk] << endl;
 		string tmp =  val[kk];
 		string tmp2;
 		if((int)tmp[0]==39){
@@ -120,7 +120,6 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 			else
 				tmp2=tmp;
 
-			cout << "   " << tmp2;
 			val[kk] = tmp2;
 		}
 	}
