@@ -34,10 +34,6 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
-	char *keylist[11]={(char *)"EQUINOX", (char *)"TIMESYS",(char *)"TYPE",(char *)"CREATOR", (char *)"INSTRUME",
-			(char *)"DATE-OBS",(char *)"DATE-END", (char *)"OBJECT",
-			(char *)"RADESYS", (char *)"TELESCOP", (char *)"OBSERVER"};
-	int keynum=12;
 
 	char comment[80];
 	char value[80];
@@ -56,28 +52,28 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 	key.push_back("CREATOR");
 	com.push_back("Generator of this product");
 
-	key.push_back("INSTRUME")
+	key.push_back("INSTRUME");
 	com.push_back("Instrument attached to this product");
 
-	key.push_back("DATE-OBS")
+	key.push_back("DATE-OBS");
 	com.push_back("Start date of this product");
 
-	key.push_back("DATE-END")
+	key.push_back("DATE-END");
 	com.push_back("End date of this product");
 
-	key.push_back("OBJECT")
+	key.push_back("OBJECT");
 	com.push_back("Target name");
 
-	key.push_back("RADESYS")
+	key.push_back("RADESYS");
 	com.push_back("Coordinate reference frame for the RA and DEC");
 
-	key.push_back("TELESCOP")
+	key.push_back("TELESCOP");
 	com.push_back("Name of telescope");
 
-	key.push_back("OBSERVER")
+	key.push_back("OBSERVER");
 	com.push_back("Observer name");
 
-	for(long ii=1; ii< key.size(); ii++){
+	for(long ii=1; ii< (long) key.size(); ii++){
 		datatype.push_back(TSTRING);
 		val.push_back("Unknown");
 	}
@@ -87,8 +83,8 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 		return 1;
 	}
 
-	for(long ii=0;ii<key.size();ii++){
-		fits_read_keyword(fp, (char *) key[ii], value, comment, &fits_status);
+	for(long ii=0; ii < (long) key.size();ii++){
+		fits_read_keyword(fp, (char *) key[ii].c_str(), value, comment, &fits_status);
 
 		if(fits_status==0){
 			val[ii]=value;
@@ -106,7 +102,7 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 	}
 
 	// Change string in due form
-	for(long kk=0; kk<(long)key.size(); kk++){
+	for(long kk=0; kk< (long) key.size(); kk++){
 		cout << kk << " " << val[kk] << endl;
 		string tmp =  val[kk];
 		string tmp2;
