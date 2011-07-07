@@ -70,7 +70,7 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "\n\n";
 
 		text += "[commons]\n\n";
-		text += "data_directory = " + dir.dirfile + " ; source data directory (only the data themselves)\n";
+		text += "data_directory = " + dir.data_dir + " ; source data directory (only the data themselves)\n";
 		text += "input_directory = " + dir.input_dir + " ; input directory with all the configurations files\n";
 		text += "output_dir = " + dir.output_dir + " ; output directory\n";
 		text += "temp_dir = " + dir.tmp_dir +" ; temporary directory\n";

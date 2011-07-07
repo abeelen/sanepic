@@ -208,8 +208,14 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 		long iframe_min, long iframe_max,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect){
 
-	// Compute map extrema by projecting the bolometers offsets back into the sky plane
+	// Compute map extrema by projecting the bolometers position
 	// output (ra|dec)_(min|max)
+
+	//TODO: Wrong scheme.... :
+	// - Shall project with the correct projection + fake center
+	// - Find proper center
+	// - Reproject all data
+	// - find map extrema in projected space shall return the WCS keywords
 
 	string base_file;
 	string field;

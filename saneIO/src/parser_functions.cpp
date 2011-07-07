@@ -45,9 +45,9 @@ void read_common(string &output, dictionary	*ini, struct param_common &common){
 
 	s = iniparser_getstring(ini,"commons:data_directory", (char *) NULL);
 	if( s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:data_directory : default value [" + StringOf(common.dirfile) +"]\n";
+		output2 += "commons:data_directory : default value [" + StringOf(common.data_dir) +"]\n";
 	else
-		common.dirfile = checkTrailingDir(StringOf(s));
+		common.data_dir = checkTrailingDir(StringOf(s));
 
 	s = iniparser_getstring(ini,"commons:input_directory", (char *) NULL);
 	if( s == (char *) NULL || strlen(s) == 0)
@@ -503,7 +503,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
 
 			// add to the dirfile
 			gd_add(S, &E);
-			gd_flush(S,NULL);
+			gd_flush(S,E.field);
 		}
 
 		if(gd_close(S))
@@ -633,7 +633,7 @@ uint16_t check_common(string &output, struct param_common dir){
 		output += "You must mention one of those parameters :\nparam_common:suffix or param_common:suffix\n";
 		return BOLOFILE_NOT_FOUND;
 	}
-	if(check_path(output, dir.dirfile, "Data directory"))
+	if(check_path(output, dir.data_dir, "Data directory"))
 		return DATA_INPUT_PATHS_PROBLEM;
 	if(check_path(output, dir.input_dir, "Input directory"))
 		return DATA_INPUT_PATHS_PROBLEM;
@@ -720,7 +720,7 @@ void default_param_common(struct param_common &dir){
 
 	// param_common
 
-	dir.dirfile    = "./";
+	dir.data_dir    = "./";
 	dir.output_dir = "./";
 	dir.tmp_dir    = "./";
 	dir.input_dir  = "./";
@@ -1184,13 +1184,13 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 
 
 	for(int iframe=0;iframe<(int)((samples_struct.fitsvect).size());iframe++){
-		//		samples_struct.fitsvect[iframe] = dir.dirfile + samples_struct.fitsvect[iframe];
+		//		samples_struct.fitsvect[iframe] = dir.data_dir + samples_struct.fitsvect[iframe];
 		samples_struct.bolovect[iframe] = dir.input_dir + samples_struct.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
 	}
 
 
 	// Store scan sizes so that we dont need to read it again and again in the loops !
-	readFrames(dir.dirfile, samples_struct.fitsvect, samples_struct.nsamples);
+	readFrames(dir.data_dir, samples_struct.fitsvect, samples_struct.nsamples);
 
 	if(rank==0)
 		parsed+=check_common(output, dir);
@@ -1208,7 +1208,7 @@ uint16_t parser_function(char * ini_name, std::string &output, struct param_comm
 
 void print_common(struct param_common dir){
 
-	cout << "Data Dir.        : " << dir.dirfile << endl;
+	cout << "Data Dir.        : " << dir.data_dir << endl;
 	cout << "Input Dir.       : " << dir.input_dir << endl;
 	cout << "Temp. Dir.       : " << dir.tmp_dir << endl;
 	cout << "Output Dir.      : " << dir.output_dir << endl;

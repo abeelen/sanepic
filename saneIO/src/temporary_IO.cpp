@@ -50,8 +50,8 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			string data_outfile = "data_" + base_name + "_" + field;
 			string flag_outfile = "flag_" + base_name + "_" + field;
 
-			read_signal_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, d, ns);
-			read_flag_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, flag, ns);
+			read_signal_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, d, ns);
+			read_flag_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, flag, ns);
 
 			//configure dirfile field
 			gd_entry_t E;
@@ -152,7 +152,7 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 			string ra_outfile = "RA_" + base_name + "_" + field;
 			string dec_outfile = "DEC_" + base_name + "_" + field;
 
-			read_ra_dec_from_fits(dir.dirfile + samples_struct.fitsvect[iframe], field, ra, dec, ns);
+			read_ra_dec_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, ra, dec, ns);
 
 			//configure dirfile field
 			gd_entry_t E;

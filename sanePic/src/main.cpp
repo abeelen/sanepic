@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
 
 	// get input fits META DATA
 	if(rank==0)
-		if(get_fits_META(dir.dirfile + samples_struct.fitsvect[0], key, datatype, val, com))
+		if(get_fits_META(dir.data_dir + samples_struct.fitsvect[0], key, datatype, val, com))
 			cout << "\nProblem while getting fits META... Continue but the map header will not be full...\n\n";
 
 	//	read pointing informations

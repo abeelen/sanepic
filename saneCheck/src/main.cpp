@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 
 	std::vector<string> bolo_fits_0; // bolometers list of the first fits file given as input
 	long ndet0;
-	read_bolo_list(dir.dirfile + samples_struct.fitsvect[0],bolo_fits_0,ndet0); // Read the first fits file bolo table
+	read_bolo_list(dir.data_dir + samples_struct.fitsvect[0],bolo_fits_0,ndet0); // Read the first fits file bolo table
 
 	long *bolo_bad_tot = NULL; // bad detectors full list => fully flag detectors
 	long *bolo_bad_80_tot = NULL; // valid worst detectors full list => more than 80% flag detectors
@@ -242,13 +242,13 @@ int main(int argc, char *argv[]) {
 			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[ii] << endl << endl;
 #endif
 
-			format[ii]=test_format(dir.dirfile + samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
+			format[ii]=test_format(dir.data_dir + samples_struct.fitsvect[ii]); // format = 1 => HIPE, else Sanepic
 			if(format[ii]==0){/* fits format indicator : 1 HIPE, 2 Sanepic */
 				cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Skipping...\n";
 				continue;
 			}
 
-			read_bolo_list(dir.dirfile + samples_struct.fitsvect[ii], bolo_fits, ndet_fits); // read fits file detector list
+			read_bolo_list(dir.data_dir + samples_struct.fitsvect[ii], bolo_fits, ndet_fits); // read fits file detector list
 			if(check_bolos(bolo_fits, bolo_fits_0)){ // compare to the first input fits file to ensure compatibility between scans
 				cout << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run only together scans that correspond to the same field\n";
 				continue;
@@ -257,7 +257,7 @@ int main(int argc, char *argv[]) {
 			std::vector<string> det_vect=bolo_list[ii];
 			long ndet_vect = (long)det_vect.size();
 
-			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, dir.dirfile + samples_struct.fitsvect[ii]); // check wether used detector user list is correct
+			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, dir.data_dir + samples_struct.fitsvect[ii]); // check wether used detector user list is correct
 
 			bolo_bad = new long[ndet_fits]; // this scan bad detectors list
 			bolo_bad_80 = new long[ndet_fits]; // this scan valid worst detectors list
@@ -270,47 +270,47 @@ int main(int argc, char *argv[]) {
 			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
 #endif
 
-			return_value+=check_commonHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
-			return_value+=check_positionHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits, format[ii],check_struct.Check_it); // check presence of reference positions and offsets HDUs
+			return_value+=check_commonHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
+			return_value+=check_positionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits, format[ii],check_struct.Check_it); // check presence of reference positions and offsets HDUs
 			if(format[ii]==1){ // check RA/DEC table presence for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
 #endif
-				return_value+=check_altpositionHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it);
+				return_value+=check_altpositionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it);
 			}
 
 
 			if(return_value<0){
-				cerr << "Some Mandatory HDUs are missing in : " << dir.dirfile + samples_struct.fitsvect[ii] << " . Skipping...\n";
+				cerr << "Some Mandatory HDUs are missing in : " << dir.data_dir + samples_struct.fitsvect[ii] << " . Skipping...\n";
 				continue;
 			}
 
 
 			if(((format[ii]==2)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
 					((format[ii]==1)&&((!check_struct.Check_it.checkRA)||(!check_struct.Check_it.checkDEC)))){
-				cout << "NO POSITION TABLES in : " << dir.dirfile + samples_struct.fitsvect[ii] << " ... Skipping...\n";
+				cout << "NO POSITION TABLES in : " << dir.data_dir + samples_struct.fitsvect[ii] << " ... Skipping...\n";
 			}
 
 			if(check_struct.checkNAN){
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
 #endif
-				nb_Nan[ii] += check_NAN_commonHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
-				nb_Nan[ii] += check_NAN_positionHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[ii] += check_NAN_commonHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[ii] += check_NAN_positionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if((format[ii]==1)&&(check_struct.checkNAN)){ // check NANs presence in RA/DEc tables for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
 #endif
-				nb_Nan[ii] += check_NAN_altpositionHDU(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[ii] += check_NAN_altpositionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if(check_struct.checktime){
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
 #endif
-				check_time_gaps(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii], proc_param.fsamp, indice, Populated_freq, check_struct.Check_it);
+				check_time_gaps(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii], proc_param.fsamp, indice, Populated_freq, check_struct.Check_it);
 				t_gaps[ii] = (long)indice.size();
 			}else{
 				Populated_freq=proc_param.fsamp;
@@ -320,7 +320,7 @@ int main(int argc, char *argv[]) {
 
 			if(check_struct.checkGain){
 				//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
-				//				check_bolo_gain(dir.dirfile + samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
+				//				check_bolo_gain(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
 				//				getchar();
 			}
 
@@ -329,18 +329,18 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking flagged detectors\n"; // check for time gaps in time table
 #endif
-				check_flag(dir.dirfile + samples_struct.fitsvect[ii],bolo_fits,ndet_fits, samples_struct.nsamples[ii], bolo_bad, n_hund[ii],bolo_bad_80, n_heig[ii],percent_tab, init_flag_num, end_flag_num, check_struct.Check_it);
+				check_flag(dir.data_dir + samples_struct.fitsvect[ii],bolo_fits,ndet_fits, samples_struct.nsamples[ii], bolo_bad, n_hund[ii],bolo_bad_80, n_heig[ii],percent_tab, init_flag_num, end_flag_num, check_struct.Check_it);
 
 				if((init_flag_num>0) && (init_flag_num<samples_struct.nsamples[ii])){
 #ifdef DEBUG
-					cout << "\nInitial Flagged samples will be removed from " << dir.dirfile + samples_struct.fitsvect[ii] << ".\n Considering " << init_flag_num << " samples...\n\n";
+					cout << "\nInitial Flagged samples will be removed from " << dir.data_dir + samples_struct.fitsvect[ii] << ".\n Considering " << init_flag_num << " samples...\n\n";
 #endif
 				}else
 					init_flag_num=0;
 
 				if((end_flag_num>0) && (end_flag_num<samples_struct.nsamples[ii])){
 #ifdef DEBUG
-					cout << "Final Flagged samples will be removed from " << dir.dirfile + samples_struct.fitsvect[ii] << ".\n Considering " << end_flag_num << " samples...\n\n";
+					cout << "Final Flagged samples will be removed from " << dir.data_dir + samples_struct.fitsvect[ii] << ".\n Considering " << end_flag_num << " samples...\n\n";
 #endif
 				}else
 					end_flag_num=0;

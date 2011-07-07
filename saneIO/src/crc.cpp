@@ -40,7 +40,7 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 	/*------------------------------------------------------------------*/
 
 	// fill a buffer with all the struct values !
-	string buffer_crc = dir.input_dir + dir.output_dir + dir.tmp_dir + dir.dirfile + dir.fits_filelist + dir.bolo_suffix +
+	string buffer_crc = dir.input_dir + dir.output_dir + dir.tmp_dir + dir.data_dir + dir.fits_filelist + dir.bolo_suffix +
 			dir.bolo_global_filename +
 			StringOf(pos_param.pixdeg) + StringOf(pos_param.flgdupl) + pos_param.maskfile + StringOf(pos_param.projgaps) +
 			pos_param.projtype + StringOf(pos_param.ra_nom) + StringOf(pos_param.dec_nom) +

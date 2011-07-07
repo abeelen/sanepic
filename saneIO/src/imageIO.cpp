@@ -37,63 +37,77 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 	char *keylist[11]={(char *)"EQUINOX", (char *)"TIMESYS",(char *)"TYPE",(char *)"CREATOR", (char *)"INSTRUME",
 			(char *)"DATE-OBS",(char *)"DATE-END", (char *)"OBJECT",
 			(char *)"RADESYS", (char *)"TELESCOP", (char *)"OBSERVER"};
-	int keynum=11;
+	int keynum=12;
 
-	// default commentaries values
+	char comment[80];
+	char value[80];
+
+	key.push_back("EQUINOX");
 	com.push_back("Equinox of celestial coordinate system");
+	datatype.push_back(TINT);
+	val.push_back("2000");
+
+	key.push_back("TIMESYS");
 	com.push_back("All dates are in UTC time");
+
+	key.push_back("TYPE");
 	com.push_back("Product Type Identification");
+
+	key.push_back("CREATOR");
 	com.push_back("Generator of this product");
+
+	key.push_back("INSTRUME")
 	com.push_back("Instrument attached to this product");
+
+	key.push_back("DATE-OBS")
 	com.push_back("Start date of this product");
+
+	key.push_back("DATE-END")
 	com.push_back("End date of this product");
+
+	key.push_back("OBJECT")
 	com.push_back("Target name");
+
+	key.push_back("RADESYS")
 	com.push_back("Coordinate reference frame for the RA and DEC");
+
+	key.push_back("TELESCOP")
 	com.push_back("Name of telescope");
+
+	key.push_back("OBSERVER")
 	com.push_back("Observer name");
 
-
-	for(long kk=0; kk< keynum-1; kk++){
-		key.push_back(keylist[kk]);
+	for(long ii=1; ii< key.size(); ii++){
 		datatype.push_back(TSTRING);
-
-		// generating default values
 		val.push_back("Unknown");
 	}
-
-	datatype[0] = TINT; // TINT for equinox
-	val[0]="2000"; // equinox set to 2000 by default
 
 	if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status)){
 		fits_report_error(stderr, fits_status);
 		return 1;
 	}
 
-	char comment[80];
-	char value[80];
-
-	int erased=0;
-	for(long ii=0;ii<keynum;ii++){
-		fits_read_keyword(fp, keylist[ii], value, comment, &fits_status);
+	for(long ii=0;ii<key.size();ii++){
+		fits_read_keyword(fp, (char *) key[ii], value, comment, &fits_status);
 
 		if(fits_status==0){
 			val[ii]=value;
 			com[ii]=comment;
-		}else{
-			// reset status
-			fits_status=0; // keyword not found, keeping default value
-
-			//			key.erase(key.begin()+ii-erased);
-			//			datatype.erase(datatype.begin()+ii-erased);
-			erased++;
+		} else {
+			fits_status = 0 ; // Reinitializing
 		}
 	}
 
-	if(erased==12)
-		return 0;
+
+	// close file
+	if(fits_close_file(fp, &fits_status)){
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
 
 	// Change string in due form
 	for(long kk=0; kk<(long)key.size(); kk++){
+		cout << kk << " " << val[kk] << endl;
 		string tmp =  val[kk];
 		string tmp2;
 		if((int)tmp[0]==39){
@@ -110,15 +124,9 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 			else
 				tmp2=tmp;
 
+			cout << "   " << tmp2;
 			val[kk] = tmp2;
 		}
-	}
-
-
-	// close file
-	if(fits_close_file(fp, &fits_status)){
-		fits_report_error(stderr, fits_status);
-		return 1;
 	}
 
 	return 0;
@@ -396,7 +404,7 @@ int write_fits_history2(std::string fname,long NAXIS1, long NAXIS2, struct param
 
 
 	//  (commons)
-	value_vect.push_back(dir.dirfile);
+	value_vect.push_back(dir.data_dir);
 	value_vect.push_back(dir.input_dir);
 	for(int num=0;num<(int)samples_struct.ntotscan;num++)
 		value_vect.push_back(samples_struct.fitsvect[num]);

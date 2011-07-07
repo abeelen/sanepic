@@ -12,7 +12,7 @@ extern "C"{
 struct param_common
 /*! A structure that contains everything about directories, channel list and frame list */
 {
-	std::string dirfile; /*! data directory (fits files) */
+	std::string data_dir; /*! data directory (fits files) */
 	std::string output_dir; /*! output directory */
 	std::string tmp_dir; /*! temporary directory */
 	std::string input_dir; /*! input directory (config files) */

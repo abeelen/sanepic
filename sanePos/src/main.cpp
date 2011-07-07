@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 
 	// get input fits META DATA
 	if(rank==0)
-		if(get_fits_META(dir.dirfile + samples_struct.fitsvect[0], key, datatype, val, com))
+		if(get_fits_META(dir.data_dir + samples_struct.fitsvect[0], key, datatype, val, com))
 			cout << "pb getting fits META\n";
 
 	if (pos_param.maskfile == ""){
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
-				if(computeMapMinima(samples_struct, dir.dirfile,
+				if(computeMapMinima(samples_struct, dir.data_dir,
 						iframe_min,iframe_max,
 						ra_min,ra_max,dec_min,dec_max, bolo_list)){
 #ifdef PARA_FRAME
@@ -421,11 +421,11 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0)
-		cout << "Computing pixel indexes..." << endl;
+		cout << endl << "Computing pixel indexes..." << endl;
 
 	switch (pos_param.fileFormat) {
 	case 0:
-		if(computePixelIndex(dir.tmp_dir, dir.dirfile, samples_struct,
+		if(computePixelIndex(dir.tmp_dir, dir.data_dir, samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
