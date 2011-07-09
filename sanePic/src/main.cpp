@@ -1391,6 +1391,7 @@ int main(int argc, char *argv[]) {
 
 	wcsvfree(&nwcs, &wcs);
 
+	//TODO: Should it be here ?
 	fftw_cleanup();
 
 	if (gd_close(samples_struct.dirfile_pointer))
