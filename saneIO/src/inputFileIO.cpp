@@ -26,7 +26,7 @@ int read_strings(string fname, std::vector<string> &bolos) {
 	string line;
 	size_t found;
 
-	ifstream inputFile(fname.c_str());
+	ifstream inputFile(fname.c_str(), ios::in);
 	if (!inputFile.is_open()) {
 		cerr << "Error opening file '" << fname << "'. Exiting.\n";
 		return 1;
@@ -39,7 +39,10 @@ int read_strings(string fname, std::vector<string> &bolos) {
 
 		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
 
+		line = line.substr(0, line.find_first_of(EscapeChar)); // pick out line until Escape Character
+
 		line = line.substr(0, line.find_first_of(" \t")); // pick out first word
+
 		bolos.push_back(line);
 	}
 
@@ -65,7 +68,10 @@ int read_double(string fname, double *& array, long & size){
 		getline(inputFile,line);
 		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
 		found = line.find_first_of(EscapeChar);				// Check for comment character at the beginning of the line
+
 		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
+
+		line = line.substr(0, line.find_first_of(EscapeChar)); // pick out line until Escape Character
 
 		temp.push_back(atof(line.c_str()));
 	}
