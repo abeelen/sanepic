@@ -1,0 +1,11 @@
+src/todprocess.d src/todprocess.o: ../src/todprocess.cpp \
+ ../src/todprocess.h /home/abeelen/sanepicDirfile/nr/src/nrutil.h \
+ ../src/cholesky.h ../src/fitpoly.h
+
+../src/todprocess.h:
+
+/home/abeelen/sanepicDirfile/nr/src/nrutil.h:
+
+../src/cholesky.h:
+
+../src/fitpoly.h:

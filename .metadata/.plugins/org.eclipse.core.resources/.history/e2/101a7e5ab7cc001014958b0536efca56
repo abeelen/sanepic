@@ -1,0 +1,30 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CPP_SRCS += \
+../src/estimPS.cpp \
+../src/estimPS_steps.cpp \
+../src/main.cpp 
+
+OBJS += \
+./src/estimPS.o \
+./src/estimPS_steps.o \
+./src/main.o 
+
+CPP_DEPS += \
+./src/estimPS.d \
+./src/estimPS_steps.d \
+./src/main.d 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+src/%.o: ../src/%.cpp
+	@echo 'Building file: $<'
+	@echo 'Invoking: GCC C++ Compiler'
+	mpicxx -DPARA_FRAME -DUSE_MPI -DMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/nr/src" -I"/home/abeelen/sanepicDirfile/saneLib/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+

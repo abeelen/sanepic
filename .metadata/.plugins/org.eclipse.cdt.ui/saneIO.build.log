@@ -1,0 +1,54 @@
+
+**** Build of configuration Release for project saneIO ****
+
+make all 
+Building file: ../src/covMatrix_IO.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/covMatrix_IO.d" -MT"src/covMatrix_IO.d" -o"src/covMatrix_IO.o" "../src/covMatrix_IO.cpp"
+Finished building: ../src/covMatrix_IO.cpp
+ 
+Building file: ../src/crc.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/crc.d" -MT"src/crc.d" -o"src/crc.o" "../src/crc.cpp"
+Finished building: ../src/crc.cpp
+ 
+Building file: ../src/dataIO.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/dataIO.d" -MT"src/dataIO.d" -o"src/dataIO.o" "../src/dataIO.cpp"
+Finished building: ../src/dataIO.cpp
+ 
+Building file: ../src/imageIO.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/imageIO.d" -MT"src/imageIO.d" -o"src/imageIO.o" "../src/imageIO.cpp"
+Finished building: ../src/imageIO.cpp
+ 
+Building file: ../src/inputFileIO.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/inputFileIO.d" -MT"src/inputFileIO.d" -o"src/inputFileIO.o" "../src/inputFileIO.cpp"
+Finished building: ../src/inputFileIO.cpp
+ 
+Building file: ../src/mpi_architecture_builder.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/mpi_architecture_builder.d" -MT"src/mpi_architecture_builder.d" -o"src/mpi_architecture_builder.o" "../src/mpi_architecture_builder.cpp"
+Finished building: ../src/mpi_architecture_builder.cpp
+ 
+Building file: ../src/parser_functions.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/parser_functions.d" -MT"src/parser_functions.d" -o"src/parser_functions.o" "../src/parser_functions.cpp"
+Finished building: ../src/parser_functions.cpp
+ 
+Building file: ../src/temporary_IO.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/temporary_IO.d" -MT"src/temporary_IO.d" -o"src/temporary_IO.o" "../src/temporary_IO.cpp"
+Finished building: ../src/temporary_IO.cpp
+ 
+Building file: ../src/utilities.cpp
+Invoking: GCC C++ Compiler
+g++ -UUSE_MPI -UDEBUG -UMPICH_IGNORE_CXX_SEEK -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/iniparser/src" -O3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/utilities.d" -MT"src/utilities.d" -o"src/utilities.o" "../src/utilities.cpp"
+Finished building: ../src/utilities.cpp
+ 
+Building target: libsaneIO.so
+Invoking: GCC C++ Linker
+g++ -L"/home/abeelen/sanepicDirfile/nr/Release" -L/usr/local/lib/ -L"/home/abeelen/sanepicDirfile/iniparser/Release" -shared -o"libsaneIO.so"  ./src/covMatrix_IO.o ./src/crc.o ./src/dataIO.o ./src/imageIO.o ./src/inputFileIO.o ./src/mpi_architecture_builder.o ./src/parser_functions.o ./src/temporary_IO.o ./src/utilities.o   -lnr -lgetdata -liniparser -lwcs -lfftw3 -lcfitsio
+Finished building target: libsaneIO.so
+ 

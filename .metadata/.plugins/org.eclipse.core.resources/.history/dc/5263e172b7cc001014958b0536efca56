@@ -1,0 +1,12 @@
+src/map_making.d src/map_making.o: ../src/map_making.cpp \
+ ../src/todprocess.h /home/abeelen/sanepicDirfile/nr/src/nrutil.h \
+ ../src/map_making.h \
+ /home/abeelen/sanepicDirfile/saneIO/src/struct_definition.h
+
+../src/todprocess.h:
+
+/home/abeelen/sanepicDirfile/nr/src/nrutil.h:
+
+../src/map_making.h:
+
+/home/abeelen/sanepicDirfile/saneIO/src/struct_definition.h:

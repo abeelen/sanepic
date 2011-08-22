@@ -1,0 +1,30 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CPP_SRCS += \
+../src/main.cpp \
+../src/sanePos_map_making.cpp \
+../src/sanePos_preprocess.cpp 
+
+OBJS += \
+./src/main.o \
+./src/sanePos_map_making.o \
+./src/sanePos_preprocess.o 
+
+CPP_DEPS += \
+./src/main.d \
+./src/sanePos_map_making.d \
+./src/sanePos_preprocess.d 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+src/%.o: ../src/%.cpp
+	@echo 'Building file: $<'
+	@echo 'Invoking: GCC C++ Compiler'
+	g++ -UPARA_BOLO -UDEBUG -UPARA_FRAME -UMPICH_IGNORE_CXX_SEEK -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/saneLib/src" -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+

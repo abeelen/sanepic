@@ -1,0 +1,27 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CPP_SRCS += \
+../src/invMatrix.cpp \
+../src/main.cpp 
+
+OBJS += \
+./src/invMatrix.o \
+./src/main.o 
+
+CPP_DEPS += \
+./src/invMatrix.d \
+./src/main.d 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+src/%.o: ../src/%.cpp
+	@echo 'Building file: $<'
+	@echo 'Invoking: GCC C++ Compiler'
+	g++ -UPARA_FRAME -UPARA_BOLO -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include -I"/home/abeelen/sanepicDirfile/saneLib/src" -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+

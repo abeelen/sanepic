@@ -1,0 +1,24 @@
+
+**** Build of configuration Debug for project saneSplit ****
+
+make all 
+Building file: ../src/main.cpp
+Invoking: GCC C++ Compiler
+g++ -UDEBUG -UUSE_MPI -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/nr/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/main.d" -MT"src/main.d" -o"src/main.o" "../src/main.cpp"
+Finished building: ../src/main.cpp
+ 
+Building file: ../src/parse_saneSplit.cpp
+Invoking: GCC C++ Compiler
+g++ -UDEBUG -UUSE_MPI -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/nr/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/parse_saneSplit.d" -MT"src/parse_saneSplit.d" -o"src/parse_saneSplit.o" "../src/parse_saneSplit.cpp"
+Finished building: ../src/parse_saneSplit.cpp
+ 
+Building file: ../src/tools.cpp
+Invoking: GCC C++ Compiler
+g++ -UDEBUG -UUSE_MPI -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/nr/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/tools.d" -MT"src/tools.d" -o"src/tools.o" "../src/tools.cpp"
+Finished building: ../src/tools.cpp
+ 
+Building target: saneSplit
+Invoking: GCC C++ Linker
+g++ -L"/home/abeelen/sanepicDirfile/iniparser/Debug" -L"/home/abeelen/sanepicDirfile/nr/Debug" -L"/home/abeelen/sanepicDirfile/saneIO/Debug" -o"saneSplit"  ./src/main.o ./src/parse_saneSplit.o ./src/tools.o   -lnr -liniparser -lsaneIO
+Finished building target: saneSplit
+ 

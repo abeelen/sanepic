@@ -1,0 +1,19 @@
+
+**** Build of configuration Release_PARA_FRAME for project saneInv ****
+
+make all 
+Building file: ../src/invMatrix.cpp
+Invoking: GCC C++ Compiler
+mpicxx -DMPICH_IGNORE_CXX_SEEK -DUSE_MPI -DPARA_FRAME -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include/ -I"/home/abeelen/sanepicDirfile/saneLib/src" -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/invMatrix.d" -MT"src/invMatrix.d" -o"src/invMatrix.o" "../src/invMatrix.cpp"
+Finished building: ../src/invMatrix.cpp
+ 
+Building file: ../src/main.cpp
+Invoking: GCC C++ Compiler
+mpicxx -DMPICH_IGNORE_CXX_SEEK -DUSE_MPI -DPARA_FRAME -I"/home/abeelen/sanepicDirfile/nr/src" -I/usr/local/include/ -I"/home/abeelen/sanepicDirfile/saneLib/src" -I"/home/abeelen/sanepicDirfile/iniparser/src" -I"/home/abeelen/sanepicDirfile/saneIO/src" -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/main.d" -MT"src/main.d" -o"src/main.o" "../src/main.cpp"
+Finished building: ../src/main.cpp
+ 
+Building target: saneInv_PARA_FRAME
+Invoking: GCC C++ Linker
+mpicxx -L"/home/abeelen/sanepicDirfile/nr/Release" -L"/home/abeelen/sanepicDirfile/saneLib/Release" -L"/home/abeelen/sanepicDirfile/iniparser/Release" -L"/home/abeelen/sanepicDirfile/saneIO/Release_MPI" -o"saneInv_PARA_FRAME"  ./src/invMatrix.o ./src/main.o   -lnr -lsaneLib -liniparser -lsaneIO
+Finished building target: saneInv_PARA_FRAME
+ 
