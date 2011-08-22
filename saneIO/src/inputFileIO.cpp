@@ -70,8 +70,8 @@ int read_double(string fname, double *& array, long & size){
 		temp.push_back(atof(line.c_str()));
 	}
 	// Last element is an empty line
-	temp.pop_back();
-	inputFile.close();
+//	temp.pop_back();
+//	inputFile.close();
 
 	size = temp.size();
 	// Memory allocation
