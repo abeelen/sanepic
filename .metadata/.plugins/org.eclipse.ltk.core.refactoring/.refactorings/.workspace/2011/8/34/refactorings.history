@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;saneLib/Release_debug_log&apos;" deleteContents="false" description="Delete resource &apos;saneLib/Release_debug_log&apos;" element1="/saneLib/Release_debug_log" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1314014910024"/>
-</session>

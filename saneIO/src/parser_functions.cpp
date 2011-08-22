@@ -599,7 +599,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, st
 
 				// add to the dirfile
 				gd_add(S, &E);
-				gd_flush(S,NULL);
+				gd_flush(S,E.field);
 			}
 
 		gd_close(S);

@@ -1,8 +1,0 @@
-################################################################################
-# Automatically-generated file. Do not edit!
-################################################################################
-
-USER_OBJS :=
-
-LIBS := -lgsl -lfftw3 -lsaneLib -lgslcblas -lnr -liniparser -lsaneIO
-

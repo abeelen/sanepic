@@ -1,3 +1,0 @@
-src/fitpoly.d src/fitpoly.o: ../src/fitpoly.cpp ../src/fitpoly.h
-
-../src/fitpoly.h:
