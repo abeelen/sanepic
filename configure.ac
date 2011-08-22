@@ -18,6 +18,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
+AC_OPENMP
 
 # Configure options
 AC_ARG_ENABLE([debug],
@@ -139,8 +140,8 @@ else
    fi
 fi
 if test -n "$SANELIBLIB"; then
-   AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la"])
-   AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC"])
+   AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la $OPENMP_CXXFLAGS"])
+   AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC $OPENMP_CXXFLAGS"])
 fi
 
 if test -d "$srcdir/saneLib"; then
@@ -153,8 +154,8 @@ else
    fi
 fi
 if test -n "$SANELIBLIB"; then
-   AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la"])
-   AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC"])
+   AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la  $OPENMP_CXXFLAGS"])
+   AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC  $OPENMP_CXXFLAGS"])
 fi
 
 
@@ -228,6 +229,6 @@ echo "
  Debug.............: $debug.
  Para Frame........: $paraframe;
  Para Bolo.........: $parabolo;
- C++ Compiler......: $CXX $CXXFLAGS $CPPFLAGS
+ C++ Compiler......: $CXX $CXXFLAGS $CPPFLAGS $OPENMP_CXXFLAGS
  Linker............: $LD $LDFLAGS $LIBS
 "

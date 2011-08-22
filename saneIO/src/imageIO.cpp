@@ -1,6 +1,6 @@
 #include <iostream>
 #include <stdio.h>
-#include <string.h>
+#include <cstring>
 
 
 
@@ -101,27 +101,13 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
 		return 1;
 	}
 
-	//TODO: Simplfies this ugly loop
-	// Change string in due form
-	for(long kk=0; kk< (long) key.size(); kk++){
-		string tmp =  val[kk];
-		string tmp2;
-		if((int)tmp[0]==39){
-			tmp.erase(tmp.begin());
-			int marker=0;
-			for(int ii=0; ii<(int)tmp.size(); ii++)
-				if((int)tmp[ii]==32 || (int)tmp[ii]==39){ // remove ' character and white spaces
-					marker = ii;
-					break;
-				}
-
-			if(marker>0)
-				tmp2.insert(tmp2.begin(), tmp.begin(), tmp.begin()+marker);
-			else
-				tmp2=tmp;
-
-			val[kk] = tmp2;
-		}
+	//  trim  whitespace and '
+	string toTrim = " '";
+	for (long ii=0; ii < (long) key.size(); ii++) {
+		string tmp = val[ii];
+		int p2 = tmp.find_last_not_of(toTrim);
+		int p1 = tmp.find_first_not_of(toTrim);
+		val[ii] = tmp.substr(p1,(p2-p1)+1);
 	}
 
 	return 0;

@@ -11,9 +11,9 @@ for dir in ${dirs}; do
     echo ${dir};
     (cd ${dir}; rm -Rf ${trash});
     (cd ${dir}/src; rm -Rf ${trash});
-    rm -f ${dir}/Release*
-    rm -f ${dir}/Debug*
-    rm -f ${dir}/src/${dir};
+    rm -Rf ${dir}/Release*
+    rm -Rf ${dir}/Debug*
+    rm -Rf ${dir}/src/${dir};
 done
 
 # autoreconf -i
