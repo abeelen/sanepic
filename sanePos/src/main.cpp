@@ -259,20 +259,19 @@ int main(int argc, char *argv[])
 
 	if (pos_param.maskfile == ""){
 
+		//TODO Find an easy way to provide for a map header (without going through mask...)
 
 		if(rank==0)
 			printf("\n\nDetermining Map Parameters...\n");
 
-		//TODO if ra/dec nom not defined, rank 0 read the first frame/first bolo / and pick ra/dec/nom
-		//TODO define a default wcs with the ra/dec nom
+		//TODO This is fundamentaly wrong... Good way to proceed :
+		// - if (ra|dec)nom not defined, rank 0 read the first frame/first bolo / and pick (ra|dec)nom
+		//  then define a default wcs with the (ra|dec)nom
+		// - compute the size of the projected map
+		// - redefined the (ra|dec)nom as the center of the map, if not defined first
+		//   recompute the size of the projected map
 
-
-
-		// TODO: Different ways of computing the map parameters :
-		// 1 - find minmax of the pointings on the sky -> define map parameters from that
-		// 2 - defined minmax of the map -> define map parameters from that
-		// (3 - define center of the map and radius -> define map parameters from that)
-
+		// This merge the computeMapMinima and computeMapHeader function
 
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
@@ -327,7 +326,7 @@ int main(int argc, char *argv[])
 
 #ifdef DEBUG
 		if (rank == 0) {
-			printf("ra  = [ %7.3f, %7.3f ] \n", gra_min, gra_max);
+			printf("ra  = [ %7.3f, %7.3f ] \n", gra_min/15, gra_max/15);
 			printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
 		}
 #endif

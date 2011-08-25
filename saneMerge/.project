@@ -3,6 +3,9 @@
 	<name>saneMerge</name>
 	<comment></comment>
 	<projects>
+		<project>iniparser</project>
+		<project>saneIO</project>
+		<project>saneLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

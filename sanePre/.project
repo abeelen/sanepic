@@ -3,6 +3,9 @@
 	<name>sanePre</name>
 	<comment></comment>
 	<projects>
+		<project>iniparser</project>
+		<project>nr</project>
+		<project>saneIO</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

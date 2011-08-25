@@ -171,7 +171,7 @@ int computePixelIndex(string tmpdir, string dirfile,
 			// First deproject the bolometer position ....
 			for (long ii=0; ii <ns; ii++){
 
-				celestial.ref[0] =  ra[ii]*15.0;
+				celestial.ref[0] =  ra[ii]; //*15.0;
 				celestial.ref[1] =  dec[ii];
 				celset(&celestial);
 

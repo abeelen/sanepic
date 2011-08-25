@@ -126,9 +126,9 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
 
-	// transform RA in hours
-	for(long ii = 0; ii<ns; ii++)
-		RA[ii]=RA[ii]/15.0;
+//	// transform RA in hours
+//	for(long ii = 0; ii<ns; ii++)
+//		RA[ii]=RA[ii]/15.0;
 
 	// Read DEC
 	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);

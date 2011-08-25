@@ -3,6 +3,7 @@
 	<name>saneLib</name>
 	<comment></comment>
 	<projects>
+		<project>saneIO</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

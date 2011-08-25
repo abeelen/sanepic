@@ -32,6 +32,10 @@ using namespace std;
 
 int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &datatype, std::vector<string> &val, std::vector<string> &com){
 
+	//TODO: A number of field are part of the wcsprm structure
+	// http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/structwcsprm.html
+	// There should be dealt with at the wcsprm creation (equinox, dateobs, radesys, restwav, restfrq)
+
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
 

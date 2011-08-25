@@ -82,7 +82,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 
 		for (long ii=0; ii <ns; ii++){
 
-			celestial.ref[0] =  ra[ii]*15.0;
+			celestial.ref[0] =  ra[ii]; // *15.0;
 			celestial.ref[1] =  dec[ii];
 			if(celset(&celestial))
 				cout << "problem celset\n";
@@ -167,10 +167,10 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 	//	dec_min = dec_min - 2.0/60.0;
 	//	dec_max = dec_max + 2.0/60.0;
 
-	ra_min  = ra_min/15; // in hour
-	ra_max  = ra_max/15;
-	dec_min = dec_min;
-	dec_max = dec_max;
+//	ra_min  = ra_min/15; // in hour
+//	ra_max  = ra_max/15;
+//	dec_min = dec_min;
+//	dec_max = dec_max;
 
 	return 0;
 
@@ -291,11 +291,11 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 	ra_max =  ra_max  + 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
 	dec_min = dec_min - 1.0/60.0;
 	dec_max = dec_max + 1.0/60.0;
-
-	ra_min  = ra_min/15; // in hour
-	ra_max  = ra_max/15;
-	dec_min = dec_min;
-	dec_max = dec_max;
+//
+//	ra_min  = ra_min/15; // in hour
+//	ra_max  = ra_max/15;
+//	dec_min = dec_min;
+//	dec_max = dec_max;
 
 	return 0;
 
@@ -308,8 +308,8 @@ void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coords
 	int NAXIS = 2; // image
 	int wcsstatus;
 
-	double ra_min = coordscorner[0]*15;
-	double ra_max = coordscorner[1]*15;
+	double ra_min = coordscorner[0]; //*15;
+	double ra_max = coordscorner[1]; //*15;
 	double dec_min = coordscorner[2];
 	double dec_max = coordscorner[3];
 
