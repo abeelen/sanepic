@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
 			wcs->crval[1] = lat_mean;
 
 			if (rank == 0)
-				cout << "WW - Nominal Projection Center : "
+				cout << "WW - Nominal Projection Center : " << endl;
 				cout << "     lon : " << lon_mean << endl;
 				cout << "     lat : " << lat_mean << endl << endl;
 
