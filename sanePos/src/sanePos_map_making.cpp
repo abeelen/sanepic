@@ -131,15 +131,15 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 			}
 
 			// find coordinates min and max
-			double llon_max  = *max_element(x, x+ndet);
-			double llon_min  = *min_element(x, x+ndet);
-			double llat_max = *max_element(y, y+ndet);
-			double llat_min = *min_element(y, y+ndet);
+			double l_lon_max  = *max_element(x, x+ndet);
+			double l_lon_min  = *min_element(x, x+ndet);
+			double l_lat_max = *max_element(y, y+ndet);
+			double l_lat_min = *min_element(y, y+ndet);
 
-			if (lon_max < llon_max)    lon_max = llon_max;
-			if (lon_min > llon_min)    lon_min = llon_min;
-			if (lat_max < llat_max) lat_max = llat_max;
-			if (lat_min > llat_min) lat_min = llat_min;
+			if (lon_max < l_lon_max)    lon_max = l_lon_max;
+			if (lon_min > l_lon_min)    lon_min = l_lon_min;
+			if (lat_max < l_lat_max) lat_max = l_lat_max;
+			if (lat_min > l_lat_min) lat_min = l_lat_min;
 
 
 
@@ -207,8 +207,8 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 	string field;
 	int drop_sanepos=0;
 
-	double llon_min, llon_max;
-	double llat_min, llat_max;
+	double l_lon_min, l_lon_max;
+	double l_lat_min, l_lat_max;
 
 	// Define default values
 	lon_min  =  360;
@@ -226,24 +226,25 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 		long ns = samples_struct.nsamples[iframe];
 
-		double *phi, *theta, *x, *y;
-		int *status;
-
-		phi    = new double [ns];
-		theta  = new double [ns];
-		x      = new double [ns];
-		y      = new double [ns];
-		status = new int    [ns];
 
 		for (long idet=0; idet < ndet; idet++){
 
 			field = det_vect[idet];
 
+
+			double *phi, *theta, *x, *y;
+			int *status;
+
 			double *lon, *lat;
 			int *flag=NULL;
 
+			phi    = new double [ns];
+			theta  = new double [ns];
+			x      = new double [ns];
+			y      = new double [ns];
+			status = new int    [ns];
 
-			//			if(read_lon_lat_from_fits(fits_file, field, lon, lat, test_ns))
+
 			if(read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lon, ns))
 				return 1;
 			if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lat, ns))
@@ -257,30 +258,35 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 				printf("ERROR 1: %s\n", prj_errmsg[1]);
 			}
 
-			if( minmax_flag(x,flag,ns,llon_min,llon_max) ||
-					minmax_flag(y,flag,ns,llat_min,llat_max) ){
+
+			if( minmax_flag(x,flag,ns,l_lon_min,l_lon_max) ||
+					minmax_flag(y,flag,ns,l_lat_min,l_lat_max) ){
 
 				cerr << "WARNING - frame : " << base_file << " : " << field << " has no usable data : Check !!" << endl;
 				drop_sanepos++;
 
 			} else {
 
-				if (lon_max < llon_max)    lon_max = llon_max;
-				if (lon_min > llon_min)    lon_min = llon_min;
-				if (lat_max < llat_max) lat_max = llat_max;
-				if (lat_min > llat_min) lat_min = llat_min;
+				if (lon_max < l_lon_max) lon_max = l_lon_max;
+				if (lon_min > l_lon_min) lon_min = l_lon_min;
+				if (lat_max < l_lat_max) lat_max = l_lat_max;
+				if (lat_min > l_lat_min) lat_min = l_lat_min;
 			}
+
 
 			delete [] lon;
 			delete [] lat;
 			delete [] flag;
 
+			delete [] phi;
+			delete [] theta;
+
+			delete [] x;
+			delete [] y;
+
+			delete [] status;
 		}
 
-		delete [] phi;
-		delete [] theta;
-		delete [] x;
-		delete [] y;
 
 	}
 

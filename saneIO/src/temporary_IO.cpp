@@ -149,8 +149,8 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
 			string field = det_vect[idet];
-			string lon_outfile = "LAT_" + base_name + "_" + field;
-			string lat_outfile = "LON_" + base_name + "_" + field;
+			string lon_outfile = "LON_" + base_name + "_" + field;
+			string lat_outfile = "LAT_" + base_name + "_" + field;
 
 			read_LON_LAT_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, lon, lat, ns);
 

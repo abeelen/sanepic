@@ -372,6 +372,7 @@ int main(int argc, char *argv[])
 				double lon_center, lat_center;
 
 				if(rank==0) {
+
 					double *lon, *lat;
 					int *flag=NULL;
 					long ns = samples_struct.nsamples[0];
@@ -477,9 +478,12 @@ int main(int argc, char *argv[])
 			wcs->crval[1] = lat_mean;
 
 			if (rank == 0)
-				cout << "WW - Nominal Projection Center : " << lon_mean << " x " << lat_mean << endl << endl;
+				cout << "WW - Nominal Projection Center : "
+				cout << "     lon : " << lon_mean << endl;
+				cout << "     lat : " << lat_mean << endl << endl;
 
 		}
+
 
 		// We now have a good projection center, so
 		//  ... set the structure to have the celestial projection routines
@@ -541,14 +545,12 @@ int main(int argc, char *argv[])
 		}
 #endif
 
-
 		int margingPixel = 1;  // for cosmetic...
 		NAXIS1 = ceil(glon_max/pos_param.pixdeg)-floor(glon_min/pos_param.pixdeg)+2*margingPixel;
 		NAXIS2 = ceil(glat_max/pos_param.pixdeg)-floor(glat_min/pos_param.pixdeg)+2*margingPixel;
 
-		wcs->crpix[0] = glon_max/pos_param.pixdeg + margingPixel + 1;
+		wcs->crpix[0] =    glon_max/pos_param.pixdeg + margingPixel + 1;
 		wcs->crpix[1] = -1*glat_min/pos_param.pixdeg + margingPixel + 1;
-
 
 		if (int wcsstatus = wcsset(wcs)) {
 			printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
