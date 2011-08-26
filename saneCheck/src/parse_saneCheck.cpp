@@ -87,10 +87,10 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "file_format = " + StringOf(pos_param.fileFormat) + " ; SANEPIC = 0, HIPE = 1 \n";
 		text += "project_gaps = " + StringOf(pos_param.projgaps ? "True" : "False" ) + "; Keyword specifying if gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False\n";
 		text += "mask_file = " + pos_param.maskfile + "; mask (fits file) : use to remove cross constraint due to strong sources\n";
-		text += "ra_nom = " + StringOf(pos_param.ra_nom) + "; RA nominal of the input scan data\n";
-		text += "dec_nom = " + StringOf(pos_param.dec_nom) + "; DEC nominal of the input scan data\n";
-		text += "proj_type = " + StringOf(pos_param.projtype) + "; projection type, see wcslib projection names for the projection you wish to use\n";
-
+		text += "lon = " + StringOf(pos_param.lon) + "; LON nominal of the input scan data\n";
+		text += "lat = " + StringOf(pos_param.lat) + "; LAT nominal of the input scan data\n";
+		text += "proj_code = " + StringOf(pos_param.projcode) + "; projection type, see wcslib projection names for the projection you wish to use\n";
+		text += "axis_type" + StringOf(pos_param.axistype) + "; axis type, EQ/Gal";
 		text += "\n\n";
 
 		text += "[sanePre]\n\n";

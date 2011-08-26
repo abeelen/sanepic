@@ -57,11 +57,11 @@ using namespace std;
  *
  *  - Generate, or clear dirfile tree (folders and format files)
  *  - for each file :
- *  	- Generate or clear the dirfile parts that will be filled : data, flag, RA, DEC
+ *  	- Generate or clear the dirfile parts that will be filled : data, flag, LON, LAT
  *
  *  - Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
  *
- *  - Copy from scans (fits) to disk (getdata binaries in a dirfile tree) : data, flag, RA, DEC
+ *  - Copy from scans (fits) to disk (getdata binaries in a dirfile tree) : data, flag, LON, LAT
  *
  */
 
@@ -215,8 +215,8 @@ int main(int argc, char *argv[])
 #endif
 
 	if(pos_param.fileFormat==1)
-		if(write_RA_DEC_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-			cout << "error write_RA_DEC_to_dirfile !! Exiting ...\n";
+		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+			cout << "error write_LON_LAT_to_dirfile !! Exiting ...\n";
 #ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

@@ -355,14 +355,14 @@ void insert_mask_in_image(fitsfile *fptr, fitsfile *outfptr, string field, int *
 	fits_write_pix(outfptr, TINT, fpixel, ns_total, mask_fixed, &status);
 }
 
-void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, double *DEC,double *PHI, long ns_total)
+void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *LON, double *LAT,double *PHI, long ns_total)
 /*! insert "reference position" table in the output fits file */
 {
 
 	int status = 0; // fits error status
 
-	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_total, RA, &status); // write columns one by one
-	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_total, DEC, &status);
+	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_total, LON, &status); // write columns one by one
+	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_total, LAT, &status);
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_total, PHI, &status);
 }
 
@@ -392,50 +392,50 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, 
 
 }
 
-void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet,
+void fix_LON_LAT(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet,
 		std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete)
-/*! Copy input RA and DEC header to output and fill the gaps in those tables : HIPE format only */
+/*! Copy input LON and LAT header to output and fill the gaps in those tables : HIPE format only */
 {
 
 	long ns_temp = 0;
 	int status =0; // fits error status
-	double *RA, *RA_fixed;
-	double *DEC, *DEC_fixed;
+	double *LON, *LON_fixed;
+	double *LAT, *LAT_fixed;
 
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){ // move input pointer to RA
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)){ // move input pointer to LON
 		cout << "WARNING : ra table was not found, skipping this table...\n";
 		return;
 	}
-	fits_copy_header(fptr, outfptr, &status); // copy RA header to output file
-	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output RA header
-	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){ // move input pointer to DEC
+	fits_copy_header(fptr, outfptr, &status); // copy LON header to output file
+	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output LON header
+	if(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)){ // move input pointer to LAT
 
 		cout << "WARNING : ra table was not found, skipping this table...\n";
 		return;
 	}
 
 	fits_copy_header(fptr, outfptr, &status);
-	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output DEC header
+	fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_total, (char*)"Number of rows", &status); // update output LAT header
 
-	RA_fixed = new double [ns_total];
-	DEC_fixed = new double [ns_total];
+	LON_fixed = new double [ns_total];
+	LAT_fixed = new double [ns_total];
 
 	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
-		read_ra_dec_from_fits(name, det[jj], RA, DEC, ns_temp); // read input RA and DEC row
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", 0, &status); // move output pointer to RA table
-		fix_row(RA, RA_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete); // fill gaps in RA row
-		insert_row_in_image(fptr, outfptr, det[jj], RA_fixed, ns_total); // insert the filled RA row in ouput table
+		read_LON_LAT_from_fits(name, det[jj], LON, LAT, ns_temp); // read input LON and LAT row
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "lon", 0, &status); // move output pointer to LON table
+		fix_row(LON, LON_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete); // fill gaps in LON row
+		insert_row_in_image(fptr, outfptr, det[jj], LON_fixed, ns_total); // insert the filled LON row in ouput table
 
 
-		// same process for DEC
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", 0, &status);
-		fix_row(DEC, DEC_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
-		insert_row_in_image(fptr, outfptr, det[jj], DEC_fixed, ns_total);
-		delete [] RA;
-		delete [] DEC;
+		// same process for LAT
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "lat", 0, &status);
+		fix_row(LAT, LAT_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
+		insert_row_in_image(fptr, outfptr, det[jj], LAT_fixed, ns_total);
+		delete [] LON;
+		delete [] LAT;
 	}
-	delete [] RA_fixed;
-	delete [] DEC_fixed;
+	delete [] LON_fixed;
+	delete [] LAT_fixed;
 
 }
 
@@ -490,8 +490,8 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 
 	long ns_temp = 0;
 	int status =0; // fits error status
-	double *RA, *RA_fixed;
-	double *DEC, *DEC_fixed;
+	double *LON, *LON_fixed;
+	double *LAT, *LAT_fixed;
 	double *PHI, *PHI_fixed;
 
 	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){ // move input pointer to ref pos
@@ -502,28 +502,28 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	fits_copy_header(fptr, outfptr, &status); // copy header to output
 	fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_total, (char*)"Number of rows", &status); // update output header (sample size has changed)
 
-	read_ReferencePosition_from_fits(name, RA, DEC, PHI, ns_temp);
+	read_ReferencePosition_from_fits(name, LON, LAT, PHI, ns_temp);
 
 
 	for(long nn=0; nn<ns_temp;nn++)
-		RA[nn]=RA[nn]*15.0;
+		LON[nn]=LON[nn]*15.0;
 
-	RA_fixed = new double [ns_total];
-	DEC_fixed = new double [ns_total];
+	LON_fixed = new double [ns_total];
+	LAT_fixed = new double [ns_total];
 	PHI_fixed = new double [ns_total];
 
 	// fill gaps in each table
-	fix_row(RA, RA_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
-	fix_row(DEC, DEC_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
+	fix_row(LON, LON_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
+	fix_row(LAT, LAT_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
 	fix_row(PHI, PHI_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete);
 
-	insert_ref_pos_in_fits(fptr, outfptr, RA_fixed, DEC_fixed, PHI_fixed, ns_total); // insert the 3 tables in output file
+	insert_ref_pos_in_fits(fptr, outfptr, LON_fixed, LAT_fixed, PHI_fixed, ns_total); // insert the 3 tables in output file
 
-	delete [] RA;
-	delete [] DEC;
+	delete [] LON;
+	delete [] LAT;
 	delete [] PHI;
-	delete [] RA_fixed ;
-	delete [] DEC_fixed ;
+	delete [] LON_fixed ;
+	delete [] LAT_fixed ;
 	delete [] PHI_fixed ;
 
 }

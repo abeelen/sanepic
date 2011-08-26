@@ -29,9 +29,10 @@ struct param_sanePos
 	std::string maskfile; /*! A fits file in which a binary mask of the map is given */
 
 	double pixdeg; /*! The pixel size */
-	double ra_nom; /*! Ra nominal (optional) */
-	double dec_nom;  /*! Dec nominal (optional) */
-	std::string projtype; /*! Projection type (Default is TAN, optional) */
+	double lon; /*! Ra nominal (optional) */
+	double lat;  /*! Dec nominal (optional) */
+	std::string axistype;     /*! Axis type (EQ/Gal, default is EQ) */
+	std::string projcode; /*! Projection code (Default is TAN, optional) */
 
 	bool flgdupl; /*! True if flagged data are put in a separated map (default is False) */
 	bool projgaps; /*! Gaps are projected in the maps ? */
@@ -140,8 +141,8 @@ struct checkHDU
 {
 	bool checkREFERENCEPOSITION; /*! True if saneCheck has to check reference position table */
 	bool checkOFFSETS; /*! True if saneCheck has to check offsets table */
-	bool checkRA; /*! True if saneCheck has to check RA table */
-	bool checkDEC; /*! True if saneCheck has to check DEC table */
+	bool checkLON; /*! True if saneCheck has to check RA table */
+	bool checkLAT; /*! True if saneCheck has to check DEC table */
 };
 
 struct saneCheck

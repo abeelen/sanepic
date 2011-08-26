@@ -293,8 +293,8 @@ int main(int argc, char *argv[])
 			// 1 signal
 			copy_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
-			// 2 RA 3 DEC
-			copy_RA_DEC(fptr,outfptr, dir.data_dir + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			// 2 LON 3 LAT
+			copy_LON_LAT(fptr,outfptr, dir.data_dir + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
 			// 4 mask
 			copy_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);

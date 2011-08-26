@@ -35,7 +35,7 @@ void insert_ref_pos_in_fits(fitsfile *fptr, fitsfile *outfptr, double *RA, doubl
 void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);
 
 /*! Copy input RA and DEC header to output and fill the gaps in those tables : HIPE format only */
-void fix_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);
+void fix_LON_LAT(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);
 
 /*! Copy input mask header to output and fill the gaps with ones */
 void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);

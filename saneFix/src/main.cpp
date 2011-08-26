@@ -210,8 +210,8 @@ int main(int argc, char *argv[]) {
 				// 1 signal
 				fix_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
-				// 2 RA 3 DEC
-				fix_RA_DEC(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				// 2 LON 3 LAT
+				fix_LON_LAT(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 4 mask
 				fix_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);

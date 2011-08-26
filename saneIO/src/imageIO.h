@@ -23,13 +23,11 @@ using namespace std;
 //! Extract the header METADATA from an input fits file (scan)
 /*!
  \param fname The input fits data filename
- \param key A vector containing input fits METADATA keys
- \param datatype A vector containing input fits METADATA datatypes
- \param val A vector containing input fits METADATA values
- \param com A vector containing input fits METADATA commentaries
+ \param wcs a wcsprm structure with corresponding header values
+ \param subheader, nsubkeys, additionnal header values
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &datatype, std::vector<string> &val, std::vector<string> &com);
+int get_fits_META(string fname, struct wcsprm * &wcs, char **subheader, int * nsubkeys);
 
 //! Create or update an output fits map file
 /*!
@@ -49,7 +47,7 @@ int get_fits_META(string fname, std::vector<string> &key, std::vector<int> &data
  \param com A vector containing input fits METADATA commentaries
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist, std::vector<string> key, std::vector<int> datatype, std::vector<string> val, std::vector<string> com);
+int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,  char dtype, void *data, string table_name ,bool fits_already_exist, char * subheader, int nsubkeys);
 
 //! Add a table in the output map
 /*!
@@ -77,6 +75,16 @@ int write_fits_history2(std::string fname, long NAXIS1, long NAXIS2, struct para
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int write_fits_mask(std::string fname, std::string maskfile);
+
+//! Extract a wcs structure from fits extension named "fname"
+/*!
+ * Reads wcs in the header \n
+ \param fname The input fits image filename
+ \param extname Mask HDU name in the input fits file
+ \param wcs A pointer to a wcsprm struct
+ \return An integer >0 if there were a problem, or 0 if everything went OK
+ */
+int read_wcs(string fname, string extname, struct wcsprm *& wcs);
 
 //! Extract a mask image data from fits image named "fname"
 /*!

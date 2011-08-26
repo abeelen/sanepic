@@ -19,8 +19,8 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_sanePre proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS,
-		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, std::vector<string> key, std::vector<int> datatype,
-		std::vector<string> val, std::vector<string> com, std::vector<std::vector<std::string> > bolo_vect){
+		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys,
+		std::vector<std::vector<std::string> > bolo_vect){
 
 
 
@@ -57,7 +57,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 	}
 
 	fname = outdir + sanePic_struct.map_prefix + "_sanePic.fits";
-	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", 0,key,datatype,val,com)){
+	if(write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", 0, subheader, nsubkeys)){
 		cerr << "Error Writing map : EXITING ... \n";
 		return 1;
 	}
@@ -86,7 +86,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		}
 	}
 
-	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Error",1,key,datatype,val,com)){
+	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Error",1, subheader, nsubkeys)){
 		cerr << "Error Writing map : EXITING ... \n";
 	}
 
@@ -145,7 +145,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		}
 	}
 
-	if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1,key,datatype,val,com)){
+	if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1, subheader, nsubkeys)){
 		cerr << "Error Writing coverage map  ... \n";
 	}
 

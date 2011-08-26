@@ -92,9 +92,8 @@ int read_all_bolo_offsets_from_fits(string filename, std::vector<string> bolonam
 
 }
 
-int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC, double *&PHI, long &ns){
+int read_ReferencePosition_from_fits(string filename, double *&LON, double *&LAT, double *&PHI, long &ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
-	// if ra is in deg transform to hour. if alreay in hour dont * 15
 
 	fitsfile *fptr;
 	int status = 0;
@@ -117,23 +116,19 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
 	fits_get_num_rows(fptr, &ns, &status);
 
 	// ... allocate corresponding memory
-	RA   = new double[ns];
-	DEC  = new double[ns];
+	LON  = new double[ns];
+	LAT  = new double[ns];
 	PHI  = new double[ns];
 
-	// Read RA
-	fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
+	// Read LON
+	fits_get_colnum(fptr, CASEINSEN, (char*) "lon", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, RA, 0, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, LON, 0, &status);
 
-//	// transform RA in hours
-//	for(long ii = 0; ii<ns; ii++)
-//		RA[ii]=RA[ii]/15.0;
-
-	// Read DEC
-	fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
+	// Read LAT
+	fits_get_colnum(fptr, CASEINSEN, (char*) "lat", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
-	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, DEC, 0, &status);
+	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, LAT, 0, &status);
 
 	// Read PHI
 	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
@@ -360,7 +355,7 @@ long find_channel_index(fitsfile *fptr, const char * field){
 }
 
 
-int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns){
+int read_LON_LAT_from_fits(string filename, string field, double *&lon, double *& lat, long & ns){
 	//TODO : Handle angle unit to transform to a common internal known unit
 
 	// HIPE like format
@@ -381,7 +376,7 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -404,13 +399,13 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 	// ---------------------------------------------
 	// Allocate Memory
 	ns = naxes[0];
-	ra = new double[ns];
+	lon = new double[ns];
 
 	// ---------------------------------------------
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, ra, &anynul, &status)){
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, lon, &anynul, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -419,7 +414,7 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 
 	// ---------------------------------------------
 	// Move ptr to signal hdu
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -442,13 +437,13 @@ int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& 
 	// ---------------------------------------------
 	// Allocate Memory
 	ns = naxes[0];
-	dec = new double[ns];
+	lat = new double[ns];
 
 	// ---------------------------------------------
 	// Retrieve the corresponding row
 	fpixel[0] = 1;
 	fpixel[1] = rowIndex;
-	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, dec, &anynul, &status)){
+	if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, lat, &anynul, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -526,8 +521,8 @@ int test_format(string fitsname){
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)>0) &&
-			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)>0)) // "ra" and "dec" tables were not found
+	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)>0) &&
+			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)>0)) // "lon" and "lat" tables were not found
 		format=2;
 
 	status = 0;

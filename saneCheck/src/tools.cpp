@@ -69,21 +69,21 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=3){ // check reference position table's size
-			cout << "\"reference position\" has a wrong number of cols (must be equal to 3 : RA, DEC, PHI )" << endl;
+			cout << "\"reference position\" has a wrong number of cols (must be equal to 3 : LON, LAT, PHI )" << endl;
 			return -1;
 		}else{
 
 
-			fits_get_colnum(fptr, CASEINSEN, (char*) "RA", &colnum, &status);
-			if(colnum!=1){ // check RA table's size
-				cout << "\"RA\" was not found in \"reference position\"" << endl;
+			fits_get_colnum(fptr, CASEINSEN, (char*) "lon", &colnum, &status);
+			if(colnum!=1){
+				cout << "\"lon\" was not found in \"reference position\"" << endl;
 				return -1;
 			}
 
 			colnum=0;
-			fits_get_colnum(fptr, CASEINSEN, (char*) "DEC", &colnum, &status);
-			if(colnum!=2){ // check DEC table's size
-				cout << "\"DEC\" table was not found in \"reference position\"" << endl;
+			fits_get_colnum(fptr, CASEINSEN, (char*) "lat", &colnum, &status);
+			if(colnum!=2){
+				cout << "\"lat\" table was not found in \"reference position\"" << endl;
 				return -1;
 			}
 
@@ -314,7 +314,7 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 
 
 int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
-/* check RA/DEc table presence : only for HIPE format */
+/* check LON/LAT table presence : only for HIPE format */
 {
 
 	fitsfile *fptr; // fits pointer
@@ -327,8 +327,8 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 
 	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){ // move to ra table
 		fits_report_error(stderr, status); // Does it exists ?
-		check_it.checkRA=0;
-		cout << "\"ra\" was not found, or his Type should be image" << endl;
+		check_it.checkLON=0;
+		cout << "\"lon\" was not found, or his Type should be image" << endl;
 	}else{
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // get size
@@ -337,7 +337,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 		}else{
 			if(naxis != 2){
 				fits_report_error(stderr,BAD_NAXIS);
-				cout << "\"ra\" must have 2 dimensions" << endl;
+				cout << "\"lon\" must have 2 dimensions" << endl;
 				return -1;
 			}
 			if (fits_get_img_size(fptr, 2, naxes, &status)){
@@ -346,7 +346,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 			}else{
 
 				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
-					cout << "\"ra\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
+					cout << "\"lon\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -356,10 +356,10 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 	status = 0;
 
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status)){
-		fits_report_error(stderr, status); // move to DEC table
-		check_it.checkDEC=0;
-		cout << "\"dec\" was not found, or his Type should be image" << endl;
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)){
+		fits_report_error(stderr, status);
+		check_it.checkLAT=0;
+		cout << "\"lat\" was not found, or his Type should be image" << endl;
 	}else{
 
 		if (fits_get_img_dim(fptr, &naxis, &status)){ // get table size
@@ -368,7 +368,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 		}else{
 			if(naxis != 2){
 				fits_report_error(stderr,BAD_NAXIS);
-				cout << "\"dec\" must have 2 dimensions" << endl;
+				cout << "\"lat\" must have 2 dimensions" << endl;
 				return -1;
 			}
 			if (fits_get_img_size(fptr, 2, naxes, &status)){
@@ -377,7 +377,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 			}else{
 
 				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
-					cout << "\"dec\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
+					cout << "\"lat\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
 					return -1;
 				}
 			}
@@ -396,27 +396,26 @@ long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, l
 {
 
 	long ns_test=0;
-	double *ra; // ra, dec, phi and offsets table are used to read the fits tables
-	double *dec,*phi;
+	double *lon, *lat, *phi;
 	double **offsets;
 	long nan_found=0;
 
 	int *flag; // to read mask table
 	if(check_it.checkREFERENCEPOSITION){
 		for(int ii=0;ii<ndet;ii++){
-			if(read_ReferencePosition_from_fits(fname, ra, dec, phi, ns_test)) // read ra dec and phi
+			if(read_ReferencePosition_from_fits(fname, lon, lat, phi, ns_test))
 				return 1;
 
 			if(read_flag_from_fits(fname, det[ii], flag, ns)) // read mask image
 				return 1;
 
 			for(long jj=0;jj<ns_test;jj++){ // check NANs
-				if(isnan(ra[jj])&&(flag[jj]==0)){
-					cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				if(isnan(lon[jj])&&(flag[jj]==0)){
+					cout << "Warning <! a NAN has been found in \"lon\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 					nan_found++;
 				}
-				if(isnan(dec[jj])&&(flag[jj]==0)){
-					cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+				if(isnan(lat[jj])&&(flag[jj]==0)){
+					cout << "Warning <! a NAN has been found in \"lat\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 					nan_found++;
 				}
 				if(isnan(phi[jj])&&(flag[jj]==0)){
@@ -425,8 +424,8 @@ long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, l
 				}
 			}
 
-			delete [] ra;
-			delete [] dec;
+			delete [] lon;
+			delete [] lat;
 			delete [] phi;
 			delete [] flag;
 		}
@@ -505,13 +504,13 @@ long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, lon
 }
 
 long check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
-/* check non-flagged NANs in RA/DEC HIPE format */
+/* check non-flagged NANs in LON/LAT HIPE format */
 {
 
 
 	long ns_test=0;
-	double *ra;
-	double *dec;
+	double *lon;
+	double *lat;
 	int *flag;
 	long nan_found=0;
 
@@ -520,21 +519,21 @@ long check_NAN_altpositionHDU(string fname,long ns, std::vector<std::string> det
 		if(read_flag_from_fits(fname, det[ii], flag, ns_test)) // read mask image
 			return 1;
 
-		if(read_ra_dec_from_fits(fname, det[ii], ra, dec, ns_test)) // read RA and DEC tables
+		if(read_LON_LAT_from_fits(fname, det[ii], lon, lat, ns_test))
 			return 1;
 
 		for(long jj=0;jj<ns_test;jj++){
-			if(isnan(ra[jj])&&(flag[jj]==0)){ // check for NANs in RA
-				cout << "Warning <! a NAN has been found in \"ra\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+			if(isnan(lon[jj])&&(flag[jj]==0)){ // check for NANs in LON
+				cout << "Warning <! a NAN has been found in \"lon\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 				nan_found++;
 			}
-			if(isnan(dec[jj])&&(flag[jj]==0)){ // check for NANs in DEC
-				cout << "Warning <! a NAN has been found in \"dec\" table for bolometer n° " << ii << " sample n° " << jj << endl;
+			if(isnan(lat[jj])&&(flag[jj]==0)){ // check for NANs in LAT
+				cout << "Warning <! a NAN has been found in \"lat\" table for bolometer n° " << ii << " sample n° " << jj << endl;
 				nan_found++;
 			}
 		}
-		delete [] ra;
-		delete [] dec;
+		delete [] lon;
+		delete [] lat;
 		delete [] flag;
 
 	}

@@ -22,7 +22,7 @@ extern "C" {
  */
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
 
-//! Reads RA and DEC tables in input scans and write them down to disk using getdata and dirfile format
+//! Reads LON and LAT tables in input scans and write them down to disk using getdata and dirfile format
 /*!
   \param dir The param_common structure
   \param samples_struct The samples structure
@@ -31,7 +31,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
   \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
+int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
 
 //! Reads data table in a dirfile pointed by "D" and stores it to "data" array
 /*!
@@ -55,27 +55,27 @@ int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, 
  */
 int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *&mask, long ns);
 
-//! Reads RA table in a dirfile pointed by "D" and stores it to "ra" array
+//! Reads LON table in a dirfile pointed by "D" and stores it to "ra" array
 /*!
   \param D A pointer to an opened dirfile
   \param filename An input scan name (to find which data to open in the dirfile tree)
   \param field A channel name (to find which data to open in the dirfile tree)
-  \param ra An array containing the RA coordinates from scan "filename" and channel "field"
+  \param lon An array containing the RA coordinates from scan "filename" and channel "field"
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_RA_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&ra, long ns);
+int read_LON_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&lon, long ns);
 
-//! Reads DEC table in a dirfile pointed by "D" and stores it to "dec" array
+//! Reads LAT table in a dirfile pointed by "D" and stores it to "dec" array
 /*!
   \param D A pointer to an opened dirfile
   \param filename An input scan name (to find which data to open in the dirfile tree)
   \param field A channel name (to find which data to open in the dirfile tree)
-  \param dec An array containing the DEC coordinates from scan "filename" and channel "field"
+  \param lat An array containing the DEC coordinates from scan "filename" and channel "field"
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_DEC_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&dec, long ns);
+int read_LAT_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&lat, long ns);
 
 //! Writes indpix to disk, in a binary file named indpix.bi
 /*!

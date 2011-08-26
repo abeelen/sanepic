@@ -99,7 +99,6 @@ int main(int argc, char *argv[]) {
 	struct param_sanePos pos_param; /* A structure that contains user options about map projection and properties */
 	struct param_common dir; /* structure that contains output input temp directories */
 
-	int nwcs = 1; // number of wcs : 1
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /* For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*  if at least one sample is rejected, flagon=1 */
@@ -108,11 +107,17 @@ int main(int argc, char *argv[]) {
 	long long npixsrc = 0; /* number of pix in box constraint */
 
 	// map making parameters
-	//	long long npix2; /* used to check PNd reading was correct */
 	long long indpix_size; /* indpix read size */
 	long long indpsrc_size; /* indpsrc read size */
-	long NAXIS1, NAXIS2; // map dimensions
 	long long npix; /* nn = side of the map, npix = number of filled pixels */
+
+	int nwcs=1;             // We will only deal with one wcs....
+	struct wcsprm * wcs;    // wcs structure of the image
+	long NAXIS = 2, NAXIS1, NAXIS2;  // size of the image
+
+	char * subheader;       // Additionnal header keywords
+	int nsubkeys;           //
+
 
 	double *PNdtot = NULL; /* to deal with mpi parallelization : Projected noised data */
 	double *PNd = NULL; // (At N-1 d)
@@ -368,13 +373,18 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	// get input fits META DATA
-	if(rank==0)
-		if(get_fits_META(dir.data_dir + samples_struct.fitsvect[0], key, datatype, val, com))
-			cout << "\nProblem while getting fits META... Continue but the map header will not be full...\n\n";
+	if(rank==0){
+		// Create a fake WCS image header and populate it with info from the first fits file
+		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
+			cout << "pb getting fits META\n";
+
+		// Pixel size in deg
+		for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pos_param.pixdeg : -1*pos_param.pixdeg ;
+		for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs->cunit[ii], "deg");
+
+	}
 
 	//	read pointing informations
-	struct wcsprm * wcs;
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank)){ // read keyrec file
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1100,7 +1110,7 @@ int main(int argc, char *argv[]) {
 					fname = temp_stream.str();
 					temp_stream.str("");
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
-							(void *) map1d, (char *) "Image", 0,key,datatype,val,com)) {
+							(void *) map1d, (char *) "Image", 0, subheader, nsubkeys)) {
 						cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 						MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1125,7 +1135,7 @@ int main(int argc, char *argv[]) {
 						}
 
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "Flagged Data", 1,key,datatype,val,com)) {
+								(void *) map1d, (char *) "Flagged Data", 1, subheader, nsubkeys)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1171,7 +1181,7 @@ int main(int argc, char *argv[]) {
 							}
 						}
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, "CCR Image", 1,key,datatype,val,com)) {
+								(void *) map1d, "CCR Image", 1, subheader, nsubkeys)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1197,7 +1207,7 @@ int main(int argc, char *argv[]) {
 							}
 						}
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "CCR Error", 1,key,datatype,val,com)) {
+								(void *) map1d, (char *) "CCR Error", 1, subheader, nsubkeys)) {
 							cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 							MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1341,7 +1351,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, key, datatype, val, com, bolo_list))
+				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, subheader, nsubkeys, bolo_list))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0

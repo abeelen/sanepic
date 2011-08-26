@@ -27,7 +27,7 @@ extern "C" {
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computeMapMinima(struct samples samples_struct, std::string dirfile,
-		long iframe_min, long iframe_max,
+		long iframe_min, long iframe_max, struct wcsprm * & wcs,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
 
 //! Computes map extrema by projecting the bolometers offsets back into the sky plane
@@ -46,7 +46,7 @@ int computeMapMinima(struct samples samples_struct, std::string dirfile,
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
-		long iframe_min, long iframe_max,
+		long iframe_min, long iframe_max, struct wcsprm * & wcs,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
 
 

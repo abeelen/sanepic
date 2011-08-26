@@ -105,7 +105,7 @@ int computePixelIndex(string tmpdir, string dirfile,
 		long ndet = (long)det_vect.size();
 
 
-		double *ra, *dec, *phi, **offsets;
+		double *lon, *lat, *phi, **offsets;
 
 
 		// read bolo offsets
@@ -115,9 +115,8 @@ int computePixelIndex(string tmpdir, string dirfile,
 
 		// read reference position
 		long test_ns;
-		if(read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns))
+		if(read_ReferencePosition_from_fits(fits_file, lon, lat, phi, test_ns))
 			return 1;
-		//		cout << ra[100] << " " << dec[100] << " " << phi[100] <<  endl;
 
 		if (test_ns != ns) {
 			cerr << "Read position does not correspond to frame size : Check !" << endl;
@@ -152,7 +151,7 @@ int computePixelIndex(string tmpdir, string dirfile,
 
 			string field = det_vect[idet];
 
-			double offxx, offyy, lon, lat, ra_deg, dec_deg;
+			double offxx, offyy, dummy1, dummy2, lon_deg, lat_deg;
 			int status;
 
 			long long *xx, *yy;
@@ -171,8 +170,8 @@ int computePixelIndex(string tmpdir, string dirfile,
 			// First deproject the bolometer position ....
 			for (long ii=0; ii <ns; ii++){
 
-				celestial.ref[0] =  ra[ii]; //*15.0;
-				celestial.ref[1] =  dec[ii];
+				celestial.ref[0] =  lon[ii];
+				celestial.ref[1] =  lat[ii];
 				celset(&celestial);
 
 				//TODO : check this -1 factor... just a stupid convention...
@@ -181,13 +180,13 @@ int computePixelIndex(string tmpdir, string dirfile,
 				offyy =  sinphi[ii] * offsets[idet][0]
 				                                    + cosphi[ii] * offsets[idet][1];
 
-				if (celx2s(&celestial, 1, 0, 0, 0, &offxx, &offyy, &lon, &lat, &ra_deg, &dec_deg, &status) == 1) {
+				if (celx2s(&celestial, 1, 0, 0, 0, &offxx, &offyy, &dummy1, &dummy2, &lon_deg, &lat_deg, &status) == 1) {
 					printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
 					continue;
 				}
 
-				world[2*ii]   = ra_deg;
-				world[2*ii+1] = dec_deg;
+				world[2*ii]   = lon_deg;
+				world[2*ii+1] = lat_deg;
 			}
 
 
@@ -286,8 +285,8 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 			delete [] yy;
 
 		}//end of idet loop
-		delete [] ra;
-		delete [] dec;
+		delete [] lon;
+		delete [] lat;
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 		delete [] cosphi;
 		delete [] sinphi;
@@ -323,7 +322,7 @@ int computePixelIndex_HIPE(string tmpdir,
 
 		long ndet = (long)det_vect.size();
 
-		double *ra, *dec;
+		double *lon, *lat;
 		int *flag=NULL;
 
 		for (long idet = 0; idet<ndet; idet++){
@@ -344,19 +343,16 @@ int computePixelIndex_HIPE(string tmpdir,
 			wcsstatus = new int[ns];
 
 
-			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, base_file, field, ra, ns))
+			if(read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lon, ns))
 				return 1;
-			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, base_file, field, dec, ns))
+			if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lat, ns))
 				return 1;
-
-			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
-			//				return 1;
 
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
 				return 1;
 			for (long ii=0; ii <ns; ii++){
-				world[2*ii]   = ra[ii];
-				world[2*ii+1] = dec[ii];
+				world[2*ii]   = lon[ii];
+				world[2*ii+1] = lat[ii];
 			}
 
 			if ((status = wcss2p(wcs, ns, 2, world, phi, theta, imgcrd, pixcrd, wcsstatus))) {
@@ -384,8 +380,8 @@ int computePixelIndex_HIPE(string tmpdir,
 			delete [] theta;
 			delete [] phi;
 			delete [] wcsstatus;
-			delete [] ra;
-			delete [] dec;
+			delete [] lon;
+			delete [] lat;
 
 
 

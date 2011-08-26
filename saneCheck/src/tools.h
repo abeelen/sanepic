@@ -40,7 +40,7 @@ int check_positionHDU(std::string fname, long ns, long ndet, int format, struct 
  */
 int check_commonHDU(std::string fname, long ns, long ndet, struct checkHDU &check_it);
 
-//! check RA/DEC table presence : only for HIPE format, and fills checkHDU structure in case of non-attendance
+//! check LON/LAT table presence : only for HIPE format, and fills checkHDU structure in case of non-attendance
 /*!
  * Prints a WARNING message to screen in case a table is missing. Return error code -1 in case tables are present but not conform (wrong number of elements for time table for example)
  \param fname The considered scan file name
@@ -75,7 +75,7 @@ long check_NAN_positionHDU(std::string fname, long ns, std::vector<std::string> 
  */
 long check_NAN_commonHDU(std::string fname, long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it);
 
-//! check persence of non-flagged NANs in RA/DEC HIPE format
+//! check persence of non-flagged NANs in LON/LAT HIPE format
 /*!
  * Prints a WARNING message to screen in case a NAN has been found : Prints table name, and index in this table
  \param fname The considered scan file name

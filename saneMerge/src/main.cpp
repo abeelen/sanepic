@@ -148,8 +148,8 @@ int main(int argc, char *argv[]) {
 		// 1 signal
 		copy_signal(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
 
-		// 2 RA 3 DEC
-		copy_RA_DEC(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy RA and DEC tables from each file to output file
+		// 2 LON 3 LAT
+		copy_LON_LAT(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total);
 
 		// 4 mask
 		copy_mask(outfptr, dir.data_dir, samples_struct, det,  ndet, ns_total); // copy flag tables from each file to output file

@@ -94,22 +94,22 @@ int main(int argc, char *argv[])
 	int flagon = 0; /* if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /* indicates that at least one pixel has been flagged and is out */
 
-
-	//set coordinate system
-	double *coordscorner; /* srccoord = source coordinates, coordscorner = map corners coordinates*/
-	coordscorner = new double[4]; // map min/max RA/DEC coords (-N,-t,-T absents)
-
 	long long npix; /* npix = number of filled pixels */
 	long long npixsrc; /* number of pixels included in Crossing Constraint Removal */
 	long long addnpix=0; /* add a number 'n' of pixels to the map */
 
-	struct wcsprm * wcs;    // wcs structure of the image
-	long NAXIS1, NAXIS2;  // size of the image
+	int nwcs=1;                      // We will only deal with one wcs....
+	struct wcsprm * wcs;             // wcs structure of the image
+	long NAXIS = 2, NAXIS1, NAXIS2;  // size of the image
+
+	char * subheader;               // Additionnal header keywords
+	int nsubkeys;                   //
+
 
 
 	// System should be IEEE 754 complient (TODO : add in the doc)
-	double ra_min=NAN, ra_max=NAN, dec_min=NAN, dec_max=NAN; /* ra/dec min/max coordinates of the map*/
-	double gra_min, gra_max, gdec_min, gdec_max; /* global ra/dec min and max (to get the min and max of all ra/dec min/max computed by different processors) */
+	double lon_min=NAN, lon_max=NAN, lat_min=NAN, lat_max=NAN; /* min/max coordinates of the map*/
+	double glon_min, glon_max, glat_min, glat_max; /* global  min and max (to get the min and max of all min/max computed by different processors) */
 
 	string fname; /* parallel scheme file name */
 
@@ -252,10 +252,73 @@ int main(int argc, char *argv[])
 		return  EX_OSERR;
 	}
 
-	// get input fits META DATA
-	if(rank==0)
-		if(get_fits_META(dir.data_dir + samples_struct.fitsvect[0], key, datatype, val, com))
+
+	if(rank==0){
+		// Construct the wcsprm structure
+
+		wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
+		wcs->flag = -1;
+		wcsini(1, NAXIS, wcs);
+
+		// Create a fake WCS image header and populate it with info from the first fits file
+		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
 			cout << "pb getting fits META\n";
+	}
+
+
+	// Distribute the wcs and subheader
+#ifdef PARA_FRAME
+	char * header ;
+	int nkeys, nreject;
+
+	if (rank ==0){
+		if (int status = wcshdo(WCSHDO_all, wcs, &nkeys, &header)) {
+			printf("%4d: %s.\n", status, wcs_errmsg[status]);
+			MPI_Abort(MPI_COMM_WORLD, 1);
+			return 1;
+		}
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&nkeys,   1,MPI_INT,0,MPI_COMM_WORLD);
+	MPI_Bcast(&nsubkeys,1,MPI_INT,0,MPI_COMM_WORLD);
+
+	if (rank != 0 ){
+		header    = (char *) calloc ( (nkeys    + 1) * 80 + 1, 1);
+		subheader = (char *) calloc ( (nsubkeys + 1) * 80 + 1, 1);
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(   header,(   nkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
+	MPI_Bcast(subheader,(nsubkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
+
+	// Back into wcs structure for rank != 0
+	if (rank != 0) {
+		if ( int status = wcspih(header, nkeys, WCSHDR_all, 2, &nreject, &nwcs, &wcs) ) {
+			fprintf(stderr, "wcspih ERROR %d: %s.\n", status, wcshdr_errmsg[status]);
+			return 1;
+		}
+	}
+
+	free(header);
+
+#endif
+
+	//	if (rank == 1){
+	//		print_MapHeader(wcsFake);
+	//		cout << "nkeys" << nsubkeys << endl;
+	//		char * hptr;
+	//		// .... print it
+	//		hptr = subheader;
+	//		printf("\n\n Sub Header :\n");
+	//		for (int ii = 0; ii < nsubkeys; ii++, hptr += 80) {
+	//			printf("%.80s\n", hptr);
+	//		}
+	//	}
+
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+#endif
 
 	if (pos_param.maskfile == ""){
 
@@ -264,21 +327,172 @@ int main(int argc, char *argv[])
 		if(rank==0)
 			printf("\n\nDetermining Map Parameters...\n");
 
-		//TODO This is fundamentaly wrong... Good way to proceed :
-		// - if (ra|dec)nom not defined, rank 0 read the first frame/first bolo / and pick (ra|dec)nom
-		//  then define a default wcs with the (ra|dec)nom
-		// - compute the size of the projected map
-		// - redefined the (ra|dec)nom as the center of the map, if not defined first
-		//   recompute the size of the projected map
+		// Populate the wcs structure ...
+		// ... add pixel size in deg ...
+		for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pos_param.pixdeg: -1*pos_param.pixdeg ;
+		for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs->cunit[ii], "deg");
 
-		// This merge the computeMapMinima and computeMapHeader function
+		// ... add axis label ...
+		if (pos_param.axistype.compare("EQ") == 0){
+			char TYPE[2][5] = { "RA--", "DEC-"};
+			char NAME[2][16] = {"Right Ascension","Declination"};
+
+			for (int ii = 0; ii < NAXIS; ii++) {
+				strcpy(wcs->ctype[ii], &TYPE[ii][0]);
+				strncat(wcs->ctype[ii],"-",1);
+				strncat(wcs->ctype[ii],pos_param.projcode.c_str(), 3);
+				strcpy(wcs->cname[ii], &NAME[ii][0]);
+			}
+		}
+
+		if (pos_param.axistype.compare("GAL") == 0){
+			char TYPE[2][5] = { "GLON", "GLAT"};
+			char NAME[2][19] = {"Galactic Longitude", "Galactic Latitude"};
+
+			for (int ii = 0; ii < NAXIS; ii++) {
+				strcpy(wcs->ctype[ii], &TYPE[ii][0]);
+				strncat(wcs->ctype[ii],"-",1);
+				strncat(wcs->ctype[ii],pos_param.projcode.c_str(), 3);
+				strcpy(wcs->cname[ii], &NAME[ii][0]);
+			}
+		}
+
+
+		// Define a projection center ...
+		// ... From the ini file ...
+		if ( ! isnan(pos_param.lon) && ! isnan(pos_param.lat) ) {
+			wcs->crval[0] = pos_param.lon;
+			wcs->crval[1] = pos_param.lat ;
+		} else {
+			// ... or from the first file header...
+			if (wcs->crval[0] == 361 || wcs->crval[1] == 361)
+			{
+				// ... or the first data point
+
+				double lon_center, lat_center;
+
+				if(rank==0) {
+					double *lon, *lat;
+					int *flag=NULL;
+					long ns = samples_struct.nsamples[0];
+
+					if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lon, ns))
+						return 1;
+					if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lat, ns))
+						return 1;
+					if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], flag, ns))
+						return 1;
+
+					int ii = 0;
+					while (flag[ii] != 0){ ii++; }
+					lon_center = lon[ii];
+					lat_center = lat[ii];
+
+					delete [] lon;
+					delete [] lat;
+					delete [] flag;
+
+				}
+
+#ifdef PARA_FRAME
+				MPI_Barrier(MPI_COMM_WORLD);
+				MPI_Bcast(&lon_center,   1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+				MPI_Bcast(&lat_center,  1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
+
+				wcs->crval[0] = lon_center;
+				wcs->crval[1] = lat_center;
+
+			}
+
+			// In these two cases, the projection center has not been defined by the user, so we need to find a proper one
+			// so...
+			if (rank == 0)
+				cout << endl << "WW - Projections will have to be made twice, define a projection center..." << endl;
+			// set the structure to have the celestial projection routines
+			if ( int status = wcsset(wcs) ) {
+				printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
+			}
+
+			// Project all data once using the temporary projection center...
+			if(iframe_min!=iframe_max){
+				switch (pos_param.fileFormat) {
+				case 0:
+					if(computeMapMinima(samples_struct, dir.data_dir,
+							iframe_min,iframe_max, wcs,
+							lon_min,lon_max,lat_min,lat_max, bolo_list)){
+#ifdef PARA_FRAME
+						MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+						return(EX_OSERR);
+					}
+					break;
+				case 1:
+					if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
+							iframe_min,iframe_max, wcs,
+							lon_min,lon_max,lat_min,lat_max, bolo_list)){
+#ifdef PARA_FRAME
+						MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+						return(EX_OSERR);
+					}
+					break;
+				}
+			}
+
+#ifdef PARA_FRAME
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Reduce(&lon_min,&glon_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+			MPI_Reduce(&lon_max,&glon_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+			MPI_Reduce(&lat_min,&glat_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+			MPI_Reduce(&lat_max,&glat_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Bcast(&glon_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+			MPI_Bcast(&glon_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+			MPI_Bcast(&glat_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+			MPI_Bcast(&glat_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+#else
+			glon_min=lon_min;
+			glon_max=lon_max;
+			glat_min=lat_min;
+			glat_max=lat_max;
+#endif
+
+
+			double x_mean, y_mean, phi, theta, lon_mean, lat_mean;
+			int status;
+
+			x_mean = (glon_max+glon_min)/2;
+			y_mean = (glat_max+glat_min)/2;
+
+			// We can now define a proper projection center
+			if (celx2s(&(wcs->cel), 1, 0, 0, 0, &x_mean, &y_mean, &phi, &theta, &lon_mean, &lat_mean, &status) == 1) {
+				printf("ERROR 1: %s\n", prj_errmsg[1]);
+			}
+
+			wcs->crval[0] = lon_mean;
+			wcs->crval[1] = lat_mean;
+
+			if (rank == 0)
+				cout << "WW - Nominal Projection Center : " << lon_mean << " x " << lat_mean << endl << endl;
+
+		}
+
+		// We now have a good projection center, so
+		//  ... set the structure to have the celestial projection routines
+		if ( int status = wcsset(wcs) ) {
+			printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
+		}
 
 		if(iframe_min!=iframe_max){
 			switch (pos_param.fileFormat) {
 			case 0:
 				if(computeMapMinima(samples_struct, dir.data_dir,
-						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max, bolo_list)){
+						iframe_min,iframe_max, wcs,
+						lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -287,8 +501,8 @@ int main(int argc, char *argv[])
 				break;
 			case 1:
 				if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
-						iframe_min,iframe_max,
-						ra_min,ra_max,dec_min,dec_max, bolo_list)){
+						iframe_min,iframe_max, wcs,
+						lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -301,38 +515,44 @@ int main(int argc, char *argv[])
 #ifdef PARA_FRAME
 
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Reduce(&ra_min,&gra_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-		MPI_Reduce(&ra_max,&gra_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
-		MPI_Reduce(&dec_min,&gdec_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-		MPI_Reduce(&dec_max,&gdec_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+		MPI_Reduce(&lon_min,&glon_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+		MPI_Reduce(&lon_max,&glon_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+		MPI_Reduce(&lat_min,&glat_min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+		MPI_Reduce(&lat_max,&glat_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&gra_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gra_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gdec_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-		MPI_Bcast(&gdec_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&glon_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&glon_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&glat_min,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+		MPI_Bcast(&glat_max,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 #else
-		gra_min=ra_min;
-		gra_max=ra_max;
-		gdec_min=dec_min;
-		gdec_max=dec_max;
+		glon_min=lon_min;
+		glon_max=lon_max;
+		glat_min=lat_min;
+		glat_max=lat_max;
 #endif
-		//set coordinates
-		coordscorner[0] = gra_min; // store ra/dec min/max of the final map
-		coordscorner[1] = gra_max;
-		coordscorner[2] = gdec_min;
-		coordscorner[3] = gdec_max;
+
 
 #ifdef DEBUG
 		if (rank == 0) {
-			printf("ra  = [ %7.3f, %7.3f ] \n", gra_min/15, gra_max/15);
-			printf("dec = [ %7.3f, %7.3f ] \n", gdec_min, gdec_max);
+			printf("lon  = [ %7.3f, %7.3f ] \n", glon_min/15, glon_max/15);
+			printf("lat = [ %7.3f, %7.3f ] \n", glat_min, glat_max);
 		}
 #endif
 
-		computeMapHeader(pos_param.pixdeg, (char *) "EQ", (char *) "TAN", coordscorner, wcs, NAXIS1, NAXIS2);
 
+		int margingPixel = 1;  // for cosmetic...
+		NAXIS1 = ceil(glon_max/pos_param.pixdeg)-floor(glon_min/pos_param.pixdeg)+2*margingPixel;
+		NAXIS2 = ceil(glat_max/pos_param.pixdeg)-floor(glat_min/pos_param.pixdeg)+2*margingPixel;
+
+		wcs->crpix[0] = glon_max/pos_param.pixdeg + margingPixel + 1;
+		wcs->crpix[1] = -1*glat_min/pos_param.pixdeg + margingPixel + 1;
+
+
+		if (int wcsstatus = wcsset(wcs)) {
+			printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
+		}
 
 		npixsrc = 0;
 		// Initialize the masks
@@ -384,7 +604,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0) {
 		printf("Map Size         : %ld x %ld pixels\n", NAXIS1, NAXIS2);
-		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2)){
+		if(save_keyrec(dir.tmp_dir + "mapHeader.keyrec" ,wcs, NAXIS1, NAXIS2)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -596,7 +816,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d,"Image",0,key,datatype,val,com)){ // open naive Map fits file and fill ultra naive map image
+		if(write_fits_wcs("!" + fnaivname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d,"Image",0, subheader, nsubkeys)){ // open naive Map fits file and fill ultra naive map image
 			cerr << "Error Writing Ultra Naiv map ... \n";
 		}
 
@@ -625,7 +845,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1,key,datatype,val,com)){ // open naive Map fits file and fill hit (or coverage) image
+		if(	write_fits_wcs(fnaivname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",1, subheader, nsubkeys)){ // open naive Map fits file and fill hit (or coverage) image
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
@@ -656,11 +876,9 @@ int main(int argc, char *argv[])
 	delete [] indpix;
 	delete [] indpsrc;
 	delete [] mask;
-	delete [] coordscorner;
 	delete [] pixon;
 
 
-	int nwcs=1;
 	wcsvfree(&nwcs, &wcs);
 
 	if (gd_close(samples_struct.dirfile_pointer))

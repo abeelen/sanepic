@@ -28,22 +28,21 @@ extern "C" {
 using namespace std;
 
 int computeMapMinima(struct samples samples_struct, string dirfile,
-		long iframe_min, long iframe_max,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect)
+		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		double &lon_min,double &lon_max,double &lat_min,double &lat_max, std::vector<std::vector<std::string> > bolo_vect)
 {
-
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
-	// output or update (ra|dec)_(min|max)
+	// output or update (lon|lat) (min|max)
 
 	string fits_file;
 	string field; // test
 
 
 	// Define default values
-	ra_min  =  360;
-	ra_max  = -360;
-	dec_min =  360;
-	dec_max = -360;
+	lon_min  =  360;
+	lon_max  = -360;
+	lat_min =  360;
+	lat_max = -360;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
@@ -53,7 +52,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 
 		long ndet = (long)det_vect.size();
 
-		double *ra, *dec, *phi, **offsets;
+		double *lon, *lat, *phi, **offsets;
 
 		long ns = samples_struct.nsamples[iframe];
 
@@ -64,7 +63,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 
 		// read reference position
 		long test_ns;
-		if(read_ReferencePosition_from_fits(fits_file, ra, dec, phi, test_ns))
+		if(read_ReferencePosition_from_fits(fits_file, lon, lat, phi, test_ns))
 			return 1;
 
 		if (test_ns != ns) {
@@ -74,33 +73,40 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 		}
 
 		// find the pointing solution at each time stamp for each detector
-		struct celprm celestial;
-		celini(&celestial);
+		struct celprm arrayProj;
+		celini(&arrayProj);
 
 		// TODO: use the PRJCODE read from the file...
-		tanset(&celestial.prj);
+		tanset(&arrayProj.prj);
 
 		for (long ii=0; ii <ns; ii++){
 
-			celestial.ref[0] =  ra[ii]; // *15.0;
-			celestial.ref[1] =  dec[ii];
-			if(celset(&celestial))
+			arrayProj.ref[0] =  lon[ii];
+			arrayProj.ref[1] =  lat[ii];
+
+			if(celset(&arrayProj))
 				cout << "problem celset\n";
 
-			double * offxx, *offyy, *lon, *lat, *ra_deg, *dec_deg;
-
+			double * offxx, *offyy, *lon_deg, *lat_deg;
 			int * status;
+
+			double *dummy1, *dummy2, *x, *y;
+
 			offxx   = new double[ndet];
 			offyy   = new double[ndet];
-			lon     = new double[ndet];
-			lat     = new double[ndet];
-			ra_deg  = new double[ndet];
-			dec_deg = new double[ndet];
+			lon_deg = new double[ndet];
+			lat_deg = new double[ndet];
+
+
+			dummy1  = new double [ndet];
+			dummy2  = new double [ndet];
+			x       = new double [ndet];
+			y       = new double [ndet];
+
 
 			status  = new int[ndet];
 
 			for (long idet=0;idet<ndet;idet++){
-
 
 				double sinphi = sin(phi[ii]/180.0*M_PI);
 				double cosphi = cos(phi[ii]/180.0*M_PI);
@@ -113,64 +119,50 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 
 			}
 
-
-			if (celx2s(&celestial, ndet, 0, 1, 1, offxx, offyy, lon, lat, ra_deg, dec_deg, status) == 1) {
+			// Projection away from the detector plane, into the spherical sky...
+			if (celx2s(&arrayProj, ndet, 0, 1, 1, offxx, offyy, dummy1, dummy2, lon_deg, lat_deg, status) == 1) {
 				printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
 				continue;
 			}
 
+			// Projection back into the sky plane ...
+			if (cels2x(&(wcs->cel), ndet, 0, 1, 1, lon_deg, lat_deg, dummy1, dummy2, x, y, status) == 1) {
+				printf("ERROR 1: %s\n", prj_errmsg[1]);
+			}
+
+			// find coordinates min and max
+			double llon_max  = *max_element(x, x+ndet);
+			double llon_min  = *min_element(x, x+ndet);
+			double llat_max = *max_element(y, y+ndet);
+			double llat_min = *min_element(y, y+ndet);
+
+			if (lon_max < llon_max)    lon_max = llon_max;
+			if (lon_min > llon_min)    lon_min = llon_min;
+			if (lat_max < llat_max) lat_max = llat_max;
+			if (lat_min > llat_min) lat_min = llat_min;
+
+
 
 			delete [] offxx;
 			delete [] offyy;
-			delete [] lon;
-			delete [] lat;
-
-
-
-			// find coordinates min and max
-			double lra_max  = *max_element(ra_deg, ra_deg+ndet);
-			double lra_min  = *min_element(ra_deg, ra_deg+ndet);
-			double ldec_max = *max_element(dec_deg, dec_deg+ndet);
-			double ldec_min = *min_element(dec_deg, dec_deg+ndet);
-
-
-			if (ra_max < lra_max)    ra_max = lra_max;
-			if (ra_min > lra_min)    ra_min = lra_min;
-			if (dec_max < ldec_max) dec_max = ldec_max;
-			if (dec_min > ldec_min) dec_min = ldec_min;
-
-			delete [] ra_deg;
-			delete [] dec_deg;
+			delete [] x;
+			delete [] y;
+			delete [] lon_deg;
+			delete [] lat_deg;
+			delete [] dummy1;
+			delete [] dummy2;
 			delete [] status;
 
 		}
 
 
 
-		delete [] ra;
-		delete [] dec;
+		delete [] lon;
+		delete [] lat;
 		delete [] phi;
 
 		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
-
-	// The interval has to be increased or some pixels will be outside the map...
-	// add a small interval of 1 arcmin
-	ra_min =  ra_min  - 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	ra_max =  ra_max  + 6.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	dec_min = dec_min - 6.0/60.0;
-	dec_max = dec_max + 6.0/60.0;
-
-	/// add a small interval of 2 arcmin
-	//	ra_min = ra_min - 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	//	ra_max = ra_max + 2.0/60.0/180.0*12.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	//	dec_min = dec_min - 2.0/60.0;
-	//	dec_max = dec_max + 2.0/60.0;
-
-//	ra_min  = ra_min/15; // in hour
-//	ra_max  = ra_max/15;
-//	dec_min = dec_min;
-//	dec_max = dec_max;
 
 	return 0;
 
@@ -205,32 +197,24 @@ int minmax_flag(double  *& array, int *& flag, long size, double & min_array, do
 }
 
 int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
-		long iframe_min, long iframe_max,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect){
+		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		double &lon_min,double &lon_max,double &lat_min,double &lat_max, std::vector<std::vector<std::string> > bolo_vect){
 
 	// Compute map extrema by projecting the bolometers position
-	// output (ra|dec)_(min|max)
-
-	//TODO: Wrong scheme.... :
-	// - Shall project with the correct projection + fake center
-	// - Find proper center
-	// - Reproject all data
-	// - find map extrema in projected space shall return the WCS keywords
+	// output (lon|lat)_(min|max)
 
 	string base_file;
 	string field;
 	int drop_sanepos=0;
 
-
-
-	double lra_min, lra_max;
-	double ldec_min, ldec_max;
+	double llon_min, llon_max;
+	double llat_min, llat_max;
 
 	// Define default values
-	ra_min  =  360;
-	ra_max  = -360;
-	dec_min =  360;
-	dec_max = -360;
+	lon_min  =  360;
+	lon_max  = -360;
+	lat_min =  360;
+	lat_max = -360;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
@@ -242,185 +226,70 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 		long ns = samples_struct.nsamples[iframe];
 
+		double *phi, *theta, *x, *y;
+		int *status;
+
+		phi    = new double [ns];
+		theta  = new double [ns];
+		x      = new double [ns];
+		y      = new double [ns];
+		status = new int    [ns];
+
 		for (long idet=0; idet < ndet; idet++){
 
 			field = det_vect[idet];
 
-			double *ra, *dec;
+			double *lon, *lat;
 			int *flag=NULL;
 
-			//			if(read_ra_dec_from_fits(fits_file, field, ra, dec, test_ns))
-			if(read_RA_from_dirfile(samples_struct.dirfile_pointer, base_file, field, ra, ns))
+
+			//			if(read_lon_lat_from_fits(fits_file, field, lon, lat, test_ns))
+			if(read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lon, ns))
 				return 1;
-			if(read_DEC_from_dirfile(samples_struct.dirfile_pointer, base_file, field, dec, ns))
+			if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lat, ns))
 				return 1;
 
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
 				return 1;
 
-			if( minmax_flag(ra,flag,ns,lra_min,lra_max) ||
-					minmax_flag(dec,flag,ns,ldec_min,ldec_max) ){
+
+			if (cels2x(&(wcs->cel), ns, 0, 1, 1, lon, lat, phi, theta, x, y, status) == 1) {
+				printf("ERROR 1: %s\n", prj_errmsg[1]);
+			}
+
+			if( minmax_flag(x,flag,ns,llon_min,llon_max) ||
+					minmax_flag(y,flag,ns,llat_min,llat_max) ){
 
 				cerr << "WARNING - frame : " << base_file << " : " << field << " has no usable data : Check !!" << endl;
 				drop_sanepos++;
 
 			} else {
 
-				if (ra_max < lra_max)    ra_max = lra_max;
-				if (ra_min > lra_min)    ra_min = lra_min;
-				if (dec_max < ldec_max) dec_max = ldec_max;
-				if (dec_min > ldec_min) dec_min = ldec_min;
+				if (lon_max < llon_max)    lon_max = llon_max;
+				if (lon_min > llon_min)    lon_min = llon_min;
+				if (lat_max < llat_max) lat_max = llat_max;
+				if (lat_min > llat_min) lat_min = llat_min;
 			}
 
-			delete [] ra;
-			delete [] dec;
+			delete [] lon;
+			delete [] lat;
 			delete [] flag;
 
 		}
 
+		delete [] phi;
+		delete [] theta;
+		delete [] x;
+		delete [] y;
 
 	}
-
 
 	if(drop_sanepos>0)
 		return 1;
 
-
-	/// add a small interval of 10 arcmin
-	ra_min =  ra_min  - 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	ra_max =  ra_max  + 1.0/60.0/cos((dec_max+dec_min)/2.0/180.0*M_PI);
-	dec_min = dec_min - 1.0/60.0;
-	dec_max = dec_max + 1.0/60.0;
-//
-//	ra_min  = ra_min/15; // in hour
-//	ra_max  = ra_max/15;
-//	dec_min = dec_min;
-//	dec_max = dec_max;
-
 	return 0;
 
 }
-
-
-void computeMapHeader(double pixdeg, char *ctype, char *prjcode, double * coordscorner,
-		struct wcsprm * &wcs, long &NAXIS1, long &NAXIS2){
-
-	int NAXIS = 2; // image
-	int wcsstatus;
-
-	double ra_min = coordscorner[0]; //*15;
-	double ra_max = coordscorner[1]; //*15;
-	double dec_min = coordscorner[2];
-	double dec_max = coordscorner[3];
-
-	// Define tangent point
-	double ra_mean  = (ra_max+ra_min)/2.0;      // RA in deg
-	double dec_mean = (dec_max+dec_min)/2.0;
-
-	// Construct the wcsprm structure
-	wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
-	wcs->flag = -1;
-	wcsini(1, NAXIS, wcs);
-
-	// Pixel size in deg
-	for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pixdeg : -1*pixdeg ;
-	for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs->cunit[ii], "deg");
-
-	// This will be the reference center of the map
-	wcs->crval[0] = ra_mean;
-	wcs->crval[1] = dec_mean;
-
-	// Axis label
-	if (strcmp(ctype, "EQ") == 0){
-		char TYPE[2][5] = { "RA--", "DEC-"};
-		char NAME[2][16] = {"Right Ascension","Declination"};
-
-		for (int ii = 0; ii < NAXIS; ii++) {
-			strcpy(wcs->ctype[ii], &TYPE[ii][0]);
-			strncat(wcs->ctype[ii],"-",1);
-			strncat(wcs->ctype[ii],prjcode, 3);
-			strcpy(wcs->cname[ii], &NAME[ii][0]);
-		}
-	}
-
-	if (strcmp(ctype,"GAL") == 0){
-		char TYPE[2][5] = { "GLON", "GLAT"};
-		char NAME[2][19] = {"Galactic Longitude", "Galactic Latitude"};
-
-		for (int ii = 0; ii < NAXIS; ii++) {
-			strcpy(wcs->ctype[ii], &TYPE[ii][0]);
-			strncat(wcs->ctype[ii],"-",1);
-			strncat(wcs->ctype[ii],prjcode, 3);
-			strcpy(wcs->cname[ii], &NAME[ii][0]);
-		}
-	}
-
-	// Set the structure to have the celestial projection routine in order to ....
-	if ((wcsstatus = wcsset(wcs))) {
-		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	}
-
-
-	// .... calculate the size of the map if necessary :
-	// As the map could be distorded, deproject the grid into a plane to get the size of the map
-
-	// TODO : instead of testing a grid of nStep x nStep points
-	//        	just test the edges
-	int nStep = 30;
-
-	double *lon, *lat, *phi, *theta, *x, *y;
-	int *status;
-
-	lon = new double[nStep];
-	lat = new double[nStep];
-
-	//TODO: This scheme will fail over the Pole,
-	//one should use/define a reference RA/DEC, project the data, and compute sizes on the projected intermediate coordinates.
-
-	for (int ii=0; ii<nStep; ii++) {
-		lon[ii] = (ra_max-ra_min)*ii/(nStep-1)+ra_min;
-		lat[ii] = (dec_max-dec_min)*ii/(nStep-1)+dec_min;
-	}
-
-	phi    = new double [nStep*nStep];
-	theta  = new double [nStep*nStep];
-	x      = new double [nStep*nStep];
-	y      = new double [nStep*nStep];
-	status = new int    [nStep*nStep];
-
-	if (cels2x(&(wcs->cel), nStep, nStep, 1, 1, lon, lat, phi, theta, x, y, status) == 1) {
-		printf("ERROR 1: %s\n", prj_errmsg[1]);
-	}
-
-	// find coordinates min and max
-	double x_max  = *max_element(x, x+(nStep*nStep));
-	double x_min  = *min_element(x, x+(nStep*nStep));
-	double y_max  = *max_element(y, y+(nStep*nStep));
-	double y_min  = *min_element(y, y+(nStep*nStep));
-
-	NAXIS1 = ceil((x_max-x_min)/pixdeg);
-	NAXIS2 = ceil((y_max-y_min)/pixdeg);
-
-	// Save it as the center of the image
-
-	wcs->crpix[0] = NAXIS1*1./2;
-	wcs->crpix[1] = NAXIS2*1./2;
-
-	if ((wcsstatus = wcsset(wcs))) {
-		printf("wcsset ERROR %d: %s.\n", wcsstatus, wcs_errmsg[wcsstatus]);
-	}
-
-	//	wcsprt(&wcs);
-	delete [] phi;
-	delete [] theta;
-	delete [] x;
-	delete [] y;
-	delete [] status;
-	delete [] lon;
-	delete [] lat;
-
-}
-
 
 
 

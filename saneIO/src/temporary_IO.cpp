@@ -122,11 +122,11 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 	return 0;
 }
 
-int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
-	double *ra;
-	double *dec;
+	double *lon;
+	double *lat;
 	long ns;
 	DIRFILE* D, *H;
 
@@ -137,26 +137,26 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 		det_vect=bolo_vect[iframe];
 
 		string base_name = samples_struct.basevect[iframe];
-		string RAdir = dir.tmp_dir + "dirfile/" + base_name + "/RA";
-		string DECdir = dir.tmp_dir + "dirfile/" + base_name + "/DEC";
+		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
+		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
 
-		D = gd_open((char *) RAdir.c_str(), GD_RDWR | GD_CREAT |
+		D = gd_open((char *) LONdir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
-		H = gd_open((char *) DECdir.c_str(), GD_RDWR | GD_CREAT |
+		H = gd_open((char *) LATdir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 
 
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
 			string field = det_vect[idet];
-			string ra_outfile = "RA_" + base_name + "_" + field;
-			string dec_outfile = "DEC_" + base_name + "_" + field;
+			string lon_outfile = "LAT_" + base_name + "_" + field;
+			string lat_outfile = "LON_" + base_name + "_" + field;
 
-			read_ra_dec_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, ra, dec, ns);
+			read_LON_LAT_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, lon, lat, ns);
 
 			//configure dirfile field
 			gd_entry_t E;
-			E.field = (char*) ra_outfile.c_str();
+			E.field = (char*) lon_outfile.c_str();
 			E.field_type = GD_RAW_ENTRY;
 			E.fragment_index = 0;
 			E.spf = 1;
@@ -167,17 +167,16 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 			gd_add(D, &E);
 
 			// write binary file on disk
-			int n_write = gd_putdata(D, (char*) ra_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
-					ra);
+			int n_write = gd_putdata(D, (char*) lon_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lon);
 			if (gd_error(D) != 0) {
-				cout << "error putdata in write_ra : wrote " << n_write
+				cout << "error putdata in write_lon : wrote " << n_write
 						<< " and expected " << ns << endl;
 				return 1;
 			}
 
 			//configure dirfile field
 			gd_entry_t F;
-			F.field = (char*) dec_outfile.c_str();
+			F.field = (char*) lat_outfile.c_str();
 			F.field_type = GD_RAW_ENTRY;
 			F.fragment_index = 0;
 			F.spf = 1;
@@ -188,16 +187,15 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 			gd_add(H, &F);
 
 			// write binary file on disk
-			n_write = gd_putdata(H, (char*) dec_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
-					dec);
+			n_write = gd_putdata(H, (char*) lat_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lat);
 			if (gd_error(H) != 0) {
-				cout << "error putdata in write_dec : wrote " << n_write
+				cout << "error putdata in write_lat : wrote " << n_write
 						<< " and expected " << ns << endl;
 				return 1;
 			}
 
-			delete [] ra;
-			delete [] dec;
+			delete [] lon;
+			delete [] lat;
 
 			gd_flush(D,NULL);
 			gd_flush(H,NULL);
@@ -205,14 +203,14 @@ int write_RA_DEC_to_dirfile(struct param_common dir, struct samples samples_stru
 
 		// close dirfile
 		if (gd_close(D)) {
-			cout << "Dirfile gd_close error in write_ra for : " << RAdir
+			cout << "Dirfile gd_close error  " << LONdir
 					<< endl;
 			return 1;
 		}
 
 		// close dirfile
 		if (gd_close(H)) {
-			cout << "Dirfile gd_close error in write_dec for : " << DECdir
+			cout << "Dirfile gd_close error for : " << LATdir
 					<< endl;
 			return 1;
 		}
@@ -269,20 +267,19 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 }
 
 
-int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra, long ns){
+int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *&lon, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "RA_" + filename + "_" + field;
+	string outfile = "LON_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
-	ra = new double[ns];
+	lon = new double[ns];
 
 	// fill ra array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
-			ra);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE, lon);
 	if (gd_error(D) != 0) {
-		cout << "error getdata in read_RA_from_dirfile : read " << nget << endl;
+		cout << "error getdata in read_LON_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 
@@ -291,20 +288,19 @@ int read_RA_from_dirfile(DIRFILE* D, string filename, string field, double *&ra,
 	return 0;
 }
 
-int read_DEC_from_dirfile(DIRFILE* D, string filename, string field, double *&dec, long ns){
+int read_LAT_from_dirfile(DIRFILE* D, string filename, string field, double *&lat, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "DEC_" + filename + "_" + field;
+	string outfile = "LAT_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
-	dec = new double[ns];
+	lat = new double[ns];
 
-	// fill dec array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
-			dec);
+	// fill lat array
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,lat);
 	if (gd_error(D) != 0) {
-		cout << "error getdata in read_DEC_from_dirfile : read " << nget << endl;
+		cout << "error getdata in read_LAT_from_dirfile : read " << nget << endl;
 		return 1;
 	}
 

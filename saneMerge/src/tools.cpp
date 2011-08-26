@@ -109,10 +109,10 @@ void copy_ref_pos(fitsfile *outfptr, string dirfile, struct samples samples_stru
 
 	fitsfile * fptr; // fits file pointer
 	long indice_debut=0; // output last written sample indice
-	double *RA_bis, *DEC_bis, *PHI_bis; // RA DEC and PHI output tables
+	double *LON_bis, *LAT_bis, *PHI_bis; // LON LAT and PHI output tables
 
-	RA_bis = new double [ns_final];
-	DEC_bis = new double [ns_final];
+	LON_bis = new double [ns_final];
+	LAT_bis = new double [ns_final];
 	PHI_bis = new double [ns_final];
 
 	int status=0; // fits error status
@@ -142,13 +142,13 @@ void copy_ref_pos(fitsfile *outfptr, string dirfile, struct samples samples_stru
 				fits_report_error(stderr, status);
 		}
 
-		double *RA, *DEC, *PHI; // input RA DEC PHI tables
+		double *LON, *LAT, *PHI; // input LON LAT PHI tables
 
-		read_ReferencePosition_from_fits(fname, RA, DEC, PHI, ns_temp); // read RA DEC and PHI table from input file
+		read_ReferencePosition_from_fits(fname, LON, LAT, PHI, ns_temp); // read LON LAT and PHI table from input file
 
-		for(long ii = 0; ii< ns_temp; ii++){ // add RA DEC and PHI values to the ouput table
-			RA_bis[indice_debut+ii]=RA[ii]*15.0;
-			DEC_bis[indice_debut+ii]=DEC[ii];
+		for(long ii = 0; ii< ns_temp; ii++){ // add LON LAT and PHI values to the ouput table
+			LON_bis[indice_debut+ii]=LON[ii]*15.0;
+			LAT_bis[indice_debut+ii]=LAT[ii];
 			PHI_bis[indice_debut+ii]=PHI[ii];
 		}
 
@@ -159,20 +159,20 @@ void copy_ref_pos(fitsfile *outfptr, string dirfile, struct samples samples_stru
 			fits_report_error(stderr, status);
 
 		//clean up input tables
-		delete [] RA;
-		delete [] DEC;
+		delete [] LON;
+		delete [] LAT;
 		delete [] PHI;
 
 	} // end of iframe loop : 1 -> ntotscan
 
-	// write output tables RA DEC and PHI in output file
-	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, RA_bis, &status);
-	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_final, DEC_bis, &status);
+	// write output tables LON LAT and PHI in output file
+	fits_write_col(outfptr, TDOUBLE, 1, 1, 1, ns_final, LON_bis, &status);
+	fits_write_col(outfptr, TDOUBLE, 2, 1, 1, ns_final, LAT_bis, &status);
 	fits_write_col(outfptr, TDOUBLE, 3, 1, 1, ns_final, PHI_bis, &status);
 
 	// clean up
-	delete [] RA_bis;
-	delete [] DEC_bis;
+	delete [] LON_bis;
+	delete [] LAT_bis;
 	delete [] PHI_bis;
 
 }
@@ -383,17 +383,17 @@ void copy_mask(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 }
 
 
-void copy_RA_DEC(fitsfile *outfptr, string dirfile, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final)
-/* copy RA and DEC tables (HIPE format only) from each file to output file */
+void copy_LON_LAT(fitsfile *outfptr, string dirfile, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final)
+/* copy LON and LAT tables (HIPE format only) from each file to output file */
 {
 
 	fitsfile * fptr; // fits file pointer
 	long indice_debut=0;
 
-	double *RA_bis; // output RA and DEC tables
-	double *DEC_bis;
-	RA_bis = new double [ns_final];
-	DEC_bis = new double [ns_final];
+	double *LON_bis; // output LON and LAT tables
+	double *LAT_bis;
+	LON_bis = new double [ns_final];
+	LAT_bis = new double [ns_final];
 
 	for(long jj=0;jj<ndet;jj++){ // for each detector
 		int status=0;
@@ -412,21 +412,21 @@ void copy_RA_DEC(fitsfile *outfptr, string dirfile, struct samples samples_struc
 
 
 			if((jj==0)&&(iframe==0)){ // copy headers once
-				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status);
+				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status);
 				fits_copy_header(fptr, outfptr, &status);
 				fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 
-				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "dec", 0, &status);
+				fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status);
 				fits_copy_header(fptr, outfptr, &status);
 				fits_update_key(outfptr, TLONG, (char*)"NAXIS1", &ns_final, (char*)"Number of rows", &status);
 			}
 
-			double *RA, *DEC;
-			read_ra_dec_from_fits(fname, det[jj], RA, DEC, ns_temp); // read RA and DEC tables
+			double *LON, *LAT;
+			read_LON_LAT_from_fits(fname, det[jj], LON, LAT, ns_temp); // read LON and LAT tables
 
-			for(long ii = 0; ii< ns_temp; ii++){ // add RA and DEC values to output tables
-				RA_bis[indice_debut + ii]=RA[ii];
-				DEC_bis[indice_debut + ii]=DEC[ii];
+			for(long ii = 0; ii< ns_temp; ii++){ // add LON and LAT values to output tables
+				LON_bis[indice_debut + ii]=LON[ii];
+				LAT_bis[indice_debut + ii]=LAT[ii];
 			}
 
 
@@ -437,8 +437,8 @@ void copy_RA_DEC(fitsfile *outfptr, string dirfile, struct samples samples_struc
 				fits_report_error(stderr, status);
 
 			//clean up
-			delete [] RA;
-			delete [] DEC;
+			delete [] LON;
+			delete [] LAT;
 		} // end of scan loop
 
 		// for this bolometer, find index in first input detector list
@@ -456,16 +456,16 @@ void copy_RA_DEC(fitsfile *outfptr, string dirfile, struct samples samples_struc
 		if (fits_close_file(fptr, &status)) // close input file
 			fits_report_error(stderr, status);
 
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "ra", 0, &status); // move HDU pointer to RA table to write down the row
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, RA_bis, &status); // write the row
-		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "dec", 0, &status); // move HDU pointer to DEC table to write down the row
-		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, DEC_bis, &status); // write the row
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "lon", 0, &status); // move HDU pointer to LON table to write down the row
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, LON_bis, &status); // write the row
+		fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "lat", 0, &status); // move HDU pointer to LAT table to write down the row
+		fits_write_pix(outfptr, TDOUBLE, fpixel, ns_final, LAT_bis, &status); // write the row
 		indice_debut=0;
 	} // end of bolo loop
 
 	//clean up
-	delete [] RA_bis;
-	delete [] DEC_bis;
+	delete [] LON_bis;
+	delete [] LAT_bis;
 
 
 }

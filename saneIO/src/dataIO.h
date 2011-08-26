@@ -40,7 +40,7 @@ int read_ReferencePosition_from_fits(string filename, double *&RA, double *&DEC,
  * \param ns This scan number of samples
  * \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_ra_dec_from_fits(string filename, string field, double *&ra, double *& dec, long & ns);
+int read_LON_LAT_from_fits(string filename, string field, double *&lon, double *& lat, long & ns);
 
 //! Read the "signal" table of a given channel in a fits file (also return ns value)
 /*!

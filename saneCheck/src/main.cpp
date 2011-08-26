@@ -233,8 +233,8 @@ int main(int argc, char *argv[]) {
 			long end_flag_num=0;
 
 			// initialize default values
-			check_struct.Check_it.checkDEC=1;
-			check_struct.Check_it.checkRA=1;
+			check_struct.Check_it.checkLAT=1;
+			check_struct.Check_it.checkLON=1;
 			check_struct.Check_it.checkREFERENCEPOSITION=1;
 			check_struct.Check_it.checkOFFSETS=1;
 
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
 
 			return_value+=check_commonHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
 			return_value+=check_positionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],ndet_fits, format[ii],check_struct.Check_it); // check presence of reference positions and offsets HDUs
-			if(format[ii]==1){ // check RA/DEC table presence for HIPE format
+			if(format[ii]==1){ // check LON/LAT table presence for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
 #endif
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
 
 
 			if(((format[ii]==2)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
-					((format[ii]==1)&&((!check_struct.Check_it.checkRA)||(!check_struct.Check_it.checkDEC)))){
+					((format[ii]==1)&&((!check_struct.Check_it.checkLON)||(!check_struct.Check_it.checkLAT)))){
 				cout << "NO POSITION TABLES in : " << dir.data_dir + samples_struct.fitsvect[ii] << " ... Skipping...\n";
 			}
 
@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
 				nb_Nan[ii] += check_NAN_positionHDU(dir.data_dir + samples_struct.fitsvect[ii],samples_struct.nsamples[ii],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
-			if((format[ii]==1)&&(check_struct.checkNAN)){ // check NANs presence in RA/DEc tables for HIPE format
+			if((format[ii]==1)&&(check_struct.checkNAN)){ // check NANs presence in LON/LAT tables for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
 #endif

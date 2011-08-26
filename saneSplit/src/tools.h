@@ -53,7 +53,7 @@ void copy_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long min_
  */
 void copy_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long min_sample, long max_sample, std::vector<std::string> det, long ndet);
 
-//! Copy resized RA and DEC tables from input fits to output fits file
+//! Copy resized LON and LAT tables from input fits to output fits file
 /*!
  * Copy only needed samples : contained in [min_sample, max_sample]
  * Copy tables channel by channel
@@ -65,6 +65,6 @@ void copy_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long min_sa
  \param det A channel list, read from input fits file
  \param ndet det number of channels
  */
-void copy_RA_DEC(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, std::vector<std::string> det, long ndet);
+void copy_LON_LAT(fitsfile * fptr, fitsfile *outfptr, string name, long min_sample, long max_sample, std::vector<std::string> det, long ndet);
 
 #endif /* TOOLS_H_ */

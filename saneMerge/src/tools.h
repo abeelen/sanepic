@@ -55,6 +55,6 @@ void copy_mask(fitsfile *outfptr, string dirfile, struct samples samples_struct,
  \param ndet det number of channels
  \param ns_final ouput fits file number of samples (sum of input number of samples)
  */
-void copy_RA_DEC(fitsfile *outfptr, string dirfile, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final);
+void copy_LON_LAT(fitsfile *outfptr, string dirfile, struct samples samples_struct, std::vector<std::string> det, long ndet, long ns_final);
 
 #endif /* TOOLS_H_ */
