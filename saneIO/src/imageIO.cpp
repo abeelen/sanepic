@@ -37,7 +37,7 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
 
 	double dvalue;
-	char value[80], comment[80];
+	char value[80], comment[80], card[81];
 	char *subheadptr;
 
 	if (fits_open_file(&fp, fname.c_str(), READONLY, &fits_status)) {
@@ -105,6 +105,7 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 
 	// Get the rest of the keys, not in the wcs struct....
 
+
 	std::vector<string> keys;
 
 	keys.push_back("TIMESYS");
@@ -120,18 +121,26 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	*nsubkeys = 0 ;
 
 	subheadptr = *subheader;
-	for (unsigned int ii = 0; ii < keys.size(); ii++){
-		if (fits_read_card(fp, (char *) keys[ii].c_str(), value, &fits_status) ){
-			if (fits_status == KEY_NO_EXIST) {
-				// If the key is not found, just drop it...
-				fits_status = 0;
-			} else { fits_report_error(stderr, fits_status); return 1; 	}
-		} else {
-			// If the key is found, then add it
-			strcpy(subheadptr, value);
-			subheadptr += 80;
-			(*nsubkeys)++;
-		}
+
+	for (unsigned int ii = 0; ii < keys.size(); ii++) {
+	  
+	  if ( fits_read_card(fp,  (char *) keys[ii].c_str() , card, &fits_status) ) {
+	    if (fits_status == KEY_NO_EXIST) {
+	      // If the key is not found, just drop it...
+	      fits_status = 0;
+	    } else { 
+	      fits_report_error(stderr, fits_status); 
+	      return 1; 	
+	    }
+	  } else {
+	    /* pad record with blanks so that it is at least 80 chars long */
+	    strcat(card, "                                                                                ");
+	    
+	    // If the key is found, then add it
+	    strcpy(subheadptr, card);
+	    subheadptr += 80;
+	    (*nsubkeys)++;
+	  }
 	}
 
     *subheadptr = '\0';   /* terminate the header string */

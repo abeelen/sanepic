@@ -133,11 +133,11 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 			// find coordinates min and max
 			double l_lon_max  = *max_element(x, x+ndet);
 			double l_lon_min  = *min_element(x, x+ndet);
-			double l_lat_max = *max_element(y, y+ndet);
-			double l_lat_min = *min_element(y, y+ndet);
+			double l_lat_max  = *max_element(y, y+ndet);
+			double l_lat_min  = *min_element(y, y+ndet);
 
-			if (lon_max < l_lon_max)    lon_max = l_lon_max;
-			if (lon_min > l_lon_min)    lon_min = l_lon_min;
+			if (lon_max < l_lon_max) lon_max = l_lon_max;
+			if (lon_min > l_lon_min) lon_min = l_lon_min;
 			if (lat_max < l_lat_max) lat_max = l_lat_max;
 			if (lat_min > l_lat_min) lat_min = l_lat_min;
 
@@ -259,19 +259,29 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 			}
 
 
-			if( minmax_flag(x,flag,ns,l_lon_min,l_lon_max) ||
-					minmax_flag(y,flag,ns,l_lat_min,l_lat_max) ){
+			// As we could be projecting flagged data, we can not find maximum of the map without the flag
+			// So all position data MUST be valid.
 
-				cerr << "WARNING - frame : " << base_file << " : " << field << " has no usable data : Check !!" << endl;
-				drop_sanepos++;
+			// if( minmax_flag(x,flag,ns,l_lon_min,l_lon_max) ||
+			// 		minmax_flag(y,flag,ns,l_lat_min,l_lat_max) ){
 
-			} else {
+			// 	cerr << "WARNING - frame : " << base_file << " : " << field << " has no usable data : Check !!" << endl;
+			// 	drop_sanepos++;
+
+			// } else {
+
+			l_lon_max  = *max_element(x, x+ns);
+			l_lon_min  = *min_element(x, x+ns);
+			l_lat_max  = *max_element(y, y+ns);
+			l_lat_min  = *min_element(y, y+ns);
+
+
 
 				if (lon_max < l_lon_max) lon_max = l_lon_max;
 				if (lon_min > l_lon_min) lon_min = l_lon_min;
 				if (lat_max < l_lat_max) lat_max = l_lat_max;
 				if (lat_min > l_lat_min) lat_min = l_lat_min;
-			}
+			// }
 
 
 			delete [] lon;

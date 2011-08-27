@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
@@ -252,8 +253,7 @@ int main(int argc, char *argv[])
 		return  EX_OSERR;
 	}
 
-
-	if(rank==0){
+	if( rank == 0 ){
 		// Construct the wcsprm structure
 
 		wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
@@ -266,12 +266,14 @@ int main(int argc, char *argv[])
 	}
 
 
+
 	// Distribute the wcs and subheader
 #ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
 	char * header ;
 	int nkeys, nreject;
 
-	if (rank ==0){
+	if (rank == 0) {
 		if (int status = wcshdo(WCSHDO_all, wcs, &nkeys, &header)) {
 			printf("%4d: %s.\n", status, wcs_errmsg[status]);
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -477,10 +479,11 @@ int main(int argc, char *argv[])
 			wcs->crval[0] = lon_mean;
 			wcs->crval[1] = lat_mean;
 
-			if (rank == 0)
+			if (rank == 0){
 				cout << "WW - Nominal Projection Center : " << endl;
 				cout << "     lon : " << lon_mean << endl;
 				cout << "     lat : " << lat_mean << endl << endl;
+			}
 
 		}
 
