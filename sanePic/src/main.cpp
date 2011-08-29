@@ -374,13 +374,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	if(rank==0){
+		// Just here to read subheader...
+		// TODO better to that with read_keyrec or something similar...
+		struct wcsprm * wcsDummy;    // wcs structure of the image
+
+		wcsDummy = (struct wcsprm *) malloc(sizeof(struct wcsprm));
+		wcsDummy->flag = -1;
+		wcsini(1, NAXIS, wcsDummy);
+
 		// Create a fake WCS image header and populate it with info from the first fits file
-		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
+		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcsDummy, &subheader, &nsubkeys))
 			cout << "pb getting fits META\n";
 
-		// Pixel size in deg
-		for (int ii = 0; ii < NAXIS; ii++) wcs->cdelt[ii] = (ii) ? pos_param.pixdeg : -1*pos_param.pixdeg ;
-		for (int ii = 0; ii < NAXIS; ii++) strcpy(wcs->cunit[ii], "deg");
+		wcsvfree(&nwcs, &wcsDummy);
 
 	}
 
