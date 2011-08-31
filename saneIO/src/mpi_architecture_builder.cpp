@@ -366,6 +366,7 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 
 
 		}else{
+			//TODO: Not seen this even in bad cases....
 			for(int ii=0;ii<size_tmp;ii++)
 				if(index_copy[ii]!=ii){
 					cerr << "There is a problem in " << origin_file << " : you have forgot a processor to use or the processor numbers are not continuous. Exiting" << endl;
@@ -459,6 +460,7 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
 }
 
 void reorder_samples_struct(int rank, struct samples &samples_struct,  int size, long &iframe_min, long &iframe_max){
+	// TODO : This routine does not do what it is supposed to do...
 
 	long num_frame=0;
 	iframe_min=0;
@@ -489,22 +491,4 @@ void reorder_samples_struct(int rank, struct samples &samples_struct,  int size,
 		if(rank==ii)
 			iframe_max=num_frame;
 	}
-}
-
-int who_do_it(int size, int rank, int ii)
-{
-
-	if(size==1) // if there is only 1 proc, he has to do the job
-		return 0;
-
-	if(size>=ii) // if the loop number is smaller than the number of MPI processors
-		return ii;
-
-	if(size<ii){ // if the loop number is larger than the number of MPI processors
-		while(ii>size)
-			ii=ii-size; // find the processor that will do the job by substracting iteratively the number of MPI procs
-		return ii;
-	}
-
-	return -1;
 }

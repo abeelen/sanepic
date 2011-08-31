@@ -181,6 +181,14 @@ int main(int argc, char *argv[])
 
 #endif
 
+
+//	if (rank == 0){
+//		cout << rank << " : " << iframe_min << " " << iframe_max << endl;
+//		for (long iframe = iframe_min; iframe < iframe_max; iframe++){
+//			cout << iframe << " " << samples_struct.basevect[iframe] << endl;
+//		}
+//
+//	}
 	/* ------------------------------------- READ bolo list ----------------------------*/
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){

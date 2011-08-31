@@ -113,10 +113,10 @@ int main(int argc, char *argv[]) {
 
 	int nwcs=1;             // We will only deal with one wcs....
 	struct wcsprm * wcs;    // wcs structure of the image
-	long NAXIS = 2, NAXIS1, NAXIS2;  // size of the image
+	long NAXIS1, NAXIS2;  // size of the image
 
 	char * subheader;       // Additionnal header keywords
-	int nsubkeys;           //
+	int nsubkeys=0;           //
 
 
 	double *PNdtot = NULL; /* to deal with mpi parallelization : Projected noised data */
@@ -338,6 +338,8 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
+
+
 	/* ------------------------------------------------------------------------------------*/
 
 	if(rank==0){
@@ -373,30 +375,28 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	if(rank==0){
-		// Just here to read subheader...
-		// TODO better to that with read_keyrec or something similar...
-		struct wcsprm * wcsDummy;    // wcs structure of the image
-
-		wcsDummy = (struct wcsprm *) malloc(sizeof(struct wcsprm));
-		wcsDummy->flag = -1;
-		wcsini(1, NAXIS, wcsDummy);
-
-		// Create a fake WCS image header and populate it with info from the first fits file
-		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcsDummy, &subheader, &nsubkeys))
-			cout << "pb getting fits META\n";
-
-		wcsvfree(&nwcs, &wcsDummy);
-
-	}
-
 	//	read pointing informations
-	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank)){ // read keyrec file
+	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 		return (EX_IOERR);
 	}
+
+//
+//
+//	if (rank == 0){
+//		print_MapHeader(wcs);
+//		cout << "nkeys" << nsubkeys << endl;
+//		char * hptr;
+//		// .... print it
+//		hptr = subheader;
+//		printf("\n\n Sub Header :\n");
+//		for (int ii = 0; ii < nsubkeys; ii++, hptr += 80) {
+//			printf("%.80s\n", hptr);
+//		}
+//	}
+
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
@@ -446,27 +446,22 @@ int main(int argc, char *argv[]) {
 
 
 #ifdef USE_MPI
-
-	MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(&npixsrc,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&npix,         1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&npixsrc,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&addnpix,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&indpix_size,  1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&indpsrc_size, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(rank!=0){
-		// each frame contains npixsrc pixels with index indsprc[] for which
-		// crossing constraint are removed
-		// thus
-		// addnpix = number of pix to add in pixon
-		//         = number of scans * number of pix in box crossing constraint removal
-		addnpix = samples_struct.ntotscan * npixsrc;
-
-		indpix_size = factdupl * NAXIS1 * NAXIS2 + 2 + addnpix;
-		indpsrc_size = NAXIS1 * NAXIS2;
-
-		indpix = new long long[indpix_size];
+		indpix  = new long long[indpix_size];
 		indpsrc = new long long[indpsrc_size];
 	}
 
-	MPI_Bcast(indpix,indpix_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(indpsrc,indpsrc_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(indpix,  indpix_size,  MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(indpsrc, indpsrc_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 #endif
 
 
@@ -524,6 +519,9 @@ int main(int argc, char *argv[]) {
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
+		if (rank == 0)
+			cout << endl << "Computing Pre Conditioner..." << endl;
 
 		// flush dirfile
 		//		gd_flush(samples_struct.dirfile_pointer,NULL);
@@ -677,7 +675,7 @@ int main(int argc, char *argv[]) {
 	/* END PARAMETER PROCESSING */
 
 	if (rank == 0)
-		printf("\nStarting Conjugate Gradient Descent... \n\n");
+		printf("Starting Conjugate Gradient Descent... \n\n");
 
 	//////////////////////////////////// Computing of sanePic starts here
 	string testfile; // log file to follow evolution of both criteria
@@ -895,8 +893,9 @@ int main(int argc, char *argv[]) {
 			Mptot = Mp;
 #endif
 
-			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
-					<< delta_n << endl;
+
+//			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
+//					<< delta_n << endl;
 
 			struct_sanePic.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
 

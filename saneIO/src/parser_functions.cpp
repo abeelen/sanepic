@@ -683,6 +683,8 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct,
 
 		if ((nframeI != ns) || (nframeD != ns)) {
 			cout << "Error... Dirfile data or Indexes has incorrect size !!\n";
+			cout << indexes_path << " : " << nframeI << " (vs ns= " << ns <<")" << endl;
+			cout << data_path    << " : " << nframeD << " (vs ns= " << ns <<")" << endl;
 			return 1;
 		}
 
@@ -974,8 +976,7 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 
 }
 
-int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct,
-		int rank) {
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank) {
 
 	long nframe_long;
 
@@ -1321,9 +1322,9 @@ void print_param_positions(struct param_sanePos pos_param) {
 void print_param_process(struct param_sanePre proc_param) {
 
 	if (proc_param.fill_gap)
-		cout << "Fill Gaps       : True\n";
+		cout << "Fill Gaps        : True\n";
 	else
-		cout << "Fill Gaps       : False\n";
+		cout << "Fill Gaps        : False\n";
 
 	if (proc_param.remove_linear)
 		cout << "Simple Baseline  : will be removed (default)\n";

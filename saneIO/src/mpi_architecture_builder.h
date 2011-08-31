@@ -100,14 +100,4 @@ int check_filelist_validity(struct samples samples_str, struct samples samples_s
  */
 void reorder_samples_struct(int rank, struct samples &samples_struct, int size, long &iframe_min, long &iframe_max);
 
-//! Determines which processor has to treat the given fits file index (ii), referenced by his number in the input list
-/*!
- * This is just a easy way to run short programs like saneCheck using a fast way to distribute scans over processors
-\param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
-\param size The number of processors used
-\param ii The scan index value (in samples_struct.fitsvect)
-\return An integer :  A processor's rank that determines which processor has to compute the scan
-*/
-int who_do_it(int size, int rank, int ii);
-
 #endif /* MPI_ARCHITECTURE_BUILDER_H_ */

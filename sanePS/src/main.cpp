@@ -74,8 +74,15 @@ int main(int argc, char *argv[])
 	long long indpix_size; /*! indpix read size */
 	//	long long indpsrc_size; /*! indpsrc read size */
 	long long *indpix; // map index
-	long NAXIS1, NAXIS2; // map size
 	long long npix; // npix = number of filled pixels
+
+	int nwcs=1;             // We will only deal with one wcs....
+	struct wcsprm * wcs;    // wcs structure of the image
+	long NAXIS1, NAXIS2;  // size of the image
+
+	char * subheader;       // Additionnal header keywords
+	int nsubkeys;           //
+
 
 	string field; // actual boloname in the bolo loop
 	string prefixe; // prefix used for temporary name file creation
@@ -216,11 +223,10 @@ int main(int argc, char *argv[])
 
 	long long addnpix = 0;
 	int factdupl = 1;
-	int nwcs = 1;
 	long long npixsrc = 0;
 	long long *indpsrc;
-	struct wcsprm * wcs;
-	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, rank)){ // read keyrec file
+
+	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

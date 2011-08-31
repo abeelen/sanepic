@@ -100,6 +100,8 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 
+	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
+
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	std::vector<int> indexIn; /* bolometer index, used to determine which intput detector corresponds to which output detector*/
@@ -148,7 +150,22 @@ int main(int argc, char *argv[]) {
 
 
 #ifdef PARA_FRAME
+
 	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+		MPI_Abort(MPI_COMM_WORLD, 1);
+		return EX_IOERR;
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+	}
+#else
+	iframe_min = 0;
+	iframe_max = samples_struct.ntotscan;
 #endif
 
 
@@ -217,61 +234,57 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		cout << "Inverting Covariance Matrices..." << endl;
 
-	for(int ii=0; ii<n_iter; ii++){
-		// select which proc number compute this loop
-		if(rank==who_do_it(size,rank,ii)){
-			//			fname="";
-			//			fname+=(string)samples_struct.noisevect[ii];
-			base_name=FitsBasename(samples_struct.noisevect[ii]);
-			//			cout << "Inversion of : " << base_name << endl;
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-			// get input covariance matrix file name
-			fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[ii];
+		base_name=FitsBasename(samples_struct.noisevect[iframe]);
 
-			std::vector<string> channelIn; /* Covariance matrix channel vector*/
+		// get input covariance matrix file name
+		fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[iframe];
 
-			// read covariance matrix in a fits file named fname
-			// returns : -the bins => Ell
-			// -the input channel list => channelIn
-			// -The number of bins (size of Ell) => nbins
-			// -The original NoiseNoise covariance matrix => RellthOrig
-			read_CovMatrix(fname, channelIn, nbins, ell, RellthOrig);
+		std::vector<string> channelIn; /* Covariance matrix channel vector*/
 
-			// total number of detectors in the covmatrix fits file
-			ndetOrig = channelIn.size();
+		// read covariance matrix in a fits file named fname
+		// returns : -the bins => Ell
+		// -the input channel list => channelIn
+		// -The number of bins (size of Ell) => nbins
+		// -The original NoiseNoise covariance matrix => RellthOrig
+		read_CovMatrix(fname, channelIn, nbins, ell, RellthOrig);
 
-			//			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
+		// total number of detectors in the covmatrix fits file
+		ndetOrig = channelIn.size();
 
-			std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
+		//			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
 
-			channelOut = bolo_list[ii];
+		std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
 
-			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
-			ndet = channelOut.size();
+		channelOut = bolo_list[iframe];
 
-			//Deal with bolometer reduction and fill Rellth and mixmat
-			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
+		//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
+		ndet = channelOut.size();
 
-			// Inverse reduced covariance Matrix : Returns iRellth
-			inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
+		//Deal with bolometer reduction and fill Rellth and mixmat
+		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
 
-			// write inversed noisePS in a binary file for each detector
-			if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, samples_struct.basevect[ii] + noise_suffix)){
+		// Inverse reduced covariance Matrix : Returns iRellth
+		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
+
+		// write inversed noisePS in a binary file for each detector
+		if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, samples_struct.basevect[iframe] + noise_suffix)){
 #ifdef PARA_FRAME
-				MPI_Abort(MPI_COMM_WORLD, 1);
+			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-				return EX_CANTCREAT;
-			}
-
-			// number of detector in the input channel list
-			nbolos = (int) channelIn.size();
-
-			// clean up
-			free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
-			free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
-			free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
-			delete [] ell;
+			return EX_CANTCREAT;
 		}
+
+		// number of detector in the input channel list
+		nbolos = (int) channelIn.size();
+
+		// clean up
+		free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
+		free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
+		free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
+		delete [] ell;
+
 
 	} // n_iter loop
 

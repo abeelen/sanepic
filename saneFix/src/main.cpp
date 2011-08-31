@@ -68,6 +68,9 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
 	struct saneCheck check_struct;
+
+	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
+
 	std::vector<long> indice; /* gap indexes (sample index) */
 	std::vector <long> add_sample; /* number of samples to add per gap */
 	double fsamp; /* sampling frequency */
@@ -123,7 +126,21 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
+	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+		MPI_Abort(MPI_COMM_WORLD, 1);
+		return EX_IOERR;
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
+		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
+	}
+#else
+	iframe_min = 0;
+	iframe_max = samples_struct.ntotscan;
 #endif
+
 
 	if(rank==0){
 		// parser print screen function
@@ -133,11 +150,7 @@ int main(int argc, char *argv[]) {
 		cout << "\nFixing Files..." << endl << endl;
 	}
 
-	for(long ii=0; ii<samples_struct.ntotscan;ii++){ // for each input scan
-
-		int do_it=who_do_it(size, rank, ii); /* which rank do the job ? */
-
-		if(rank==do_it){ /* if this rank has to do the job ... */
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
 			std::vector <long> suppress_time_sample;
@@ -145,44 +158,44 @@ int main(int argc, char *argv[]) {
 			long end_num_delete =0;
 
 #ifdef DEBUG
-			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[ii] << endl;
+			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[iframe] << endl;
 #endif
 			// fits files pointer
 			fitsfile * fptr;
 			fitsfile *outfptr;
 
 			// lookfor saneCheck log files
-			if((read_indices_file(samples_struct.fitsvect[ii],dir,  indice, fsamp, init_num_delete, end_num_delete))){
-				cout << "[ " << rank << " ] " << "Skipping file : " << samples_struct.fitsvect[ii] << ". Please run saneCheck on this file before\n";
-				continue; // log file were not found for the 'ii'th fits file
+			if((read_indices_file(samples_struct.fitsvect[iframe],dir,  indice, fsamp, init_num_delete, end_num_delete))){
+				cout << "[ " << rank << " ] " << "Skipping file : " << samples_struct.fitsvect[iframe] << ". Please run saneCheck on this file before\n";
+				continue; // log file were not found for the 'iframe'th fits file
 			}
 
-			format_fits=test_format(dir.data_dir + samples_struct.fitsvect[ii]); // get fits file format
+			format_fits=test_format(dir.data_dir + samples_struct.fitsvect[iframe]); // get fits file format
 			if(format_fits==0){
-				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << dir.data_dir + samples_struct.fitsvect[ii] << " . Skipping file...\n";
+				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << dir.data_dir + samples_struct.fitsvect[iframe] << " . Skipping file...\n";
 				continue;
 			}
 
 
-			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[ii]);
+			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[iframe]);
 
 			// compute the number of sample that must be added to fill the gaps and have a continous timeline
-			long samples_to_add=how_many(dir.data_dir + samples_struct.fitsvect[ii], samples_struct.nsamples[ii] ,indice, fsamp, add_sample,suppress_time_sample);
+			long samples_to_add=how_many(dir.data_dir + samples_struct.fitsvect[iframe], samples_struct.nsamples[iframe] ,indice, fsamp, add_sample,suppress_time_sample);
 #ifdef DEBUG
 			cout << "[ " << rank << " ] " << "samptoadd : " << samples_to_add << endl;
 			cout << "[ " << rank << " ] " << "samples to delete (begin/end) : (" << init_num_delete << "/" <<  end_num_delete << ")" << endl;
-			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete << endl;
+			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete << endl;
 #endif
 			// total number of samples in the fixed fits file
-			long ns_total = samples_struct.nsamples[ii] + samples_to_add - init_num_delete - end_num_delete;
+			long ns_total = samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete;
 
 			if(samples_to_add+init_num_delete+end_num_delete==0){
-				cout << "[ " << rank << " ] " << "Nothing to do for : " << dir.data_dir + samples_struct.fitsvect[ii] << " . Skipping file...\n";
+				cout << "[ " << rank << " ] " << "Nothing to do for : " << dir.data_dir + samples_struct.fitsvect[iframe] << " . Skipping file...\n";
 				continue;
 			}
 
-			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[ii]) + "_fixed.fits"; // output fits filename
-			string fname=dir.data_dir + samples_struct.fitsvect[ii]; // input fits filename
+			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) + ".fits"; // output fits filename
+			string fname=dir.data_dir + samples_struct.fitsvect[iframe]; // input fits filename
 
 			int status=0; // fits error status
 			std::vector<string> det;
@@ -197,7 +210,7 @@ int main(int argc, char *argv[]) {
 				fits_report_error(stderr, status);
 
 			// read channels list
-			read_bolo_list(dir.data_dir + samples_struct.fitsvect[ii], det, ndet);
+			read_bolo_list(dir.data_dir + samples_struct.fitsvect[iframe], det, ndet);
 
 			// Copy primary Header
 			fits_copy_header(fptr, outfptr, &status);
@@ -208,22 +221,22 @@ int main(int argc, char *argv[]) {
 #endif
 
 				// 1 signal
-				fix_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 2 LON 3 LAT
-				fix_LON_LAT(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_LON_LAT(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 4 mask
-				fix_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 5 time
-				fix_time_table(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp,suppress_time_sample, init_num_delete);
+				fix_time_table(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
 
 				// 6 channels
 				copy_channels(fptr, outfptr);
 
 				// 7 reference positions
-				fix_ref_pos(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_ref_pos(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 8 offsets
 				copy_offsets(fptr, outfptr);
@@ -234,7 +247,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 				// 1 ref pos
-				fix_ref_pos(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_ref_pos(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 2 offsets
 				copy_offsets(fptr, outfptr);
@@ -243,13 +256,13 @@ int main(int argc, char *argv[]) {
 				copy_channels(fptr, outfptr);
 
 				// 4 time
-				fix_time_table(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, indice, add_sample, samples_struct.nsamples[ii], fsamp, suppress_time_sample, init_num_delete);
+				fix_time_table(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp, suppress_time_sample, init_num_delete);
 
 				// 5 signal
-				fix_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_signal(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 6 mask
-				fix_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[ii], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+				fix_mask(fptr, outfptr, dir.data_dir + samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 			}
 
@@ -262,8 +275,6 @@ int main(int argc, char *argv[]) {
 
 			indice.clear();
 			add_sample.clear();
-
-		}
 
 	}
 

@@ -123,7 +123,7 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1, lo
  \param NAXIS2 Number of vertical pixels (determined by sanePos)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int save_keyrec(string tmpdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
+int save_keyrec(string tmpdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2, char * subheader, int nsubkeys);
 
 //! Read mapheader.keyrec file from disk
 /*!
@@ -136,7 +136,7 @@ int save_keyrec(string tmpdir, struct wcsprm * wcs, long NAXIS1, long NAXIS2);
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_keyrec(string tmpdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2, int rank);
+int read_keyrec(string tmpdir, struct wcsprm *& wcs, long *NAXIS1, long *NAXIS2, char ** subheader, int *nsubkeys, int rank);
 
 //! Print wcs structure to screen output (used for debug)
 /*!

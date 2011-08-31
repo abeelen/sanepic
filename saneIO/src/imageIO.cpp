@@ -29,15 +29,14 @@ using namespace std;
 
 int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *nsubkeys) {
 
-	//TODO: A number of field are part of the wcsprm structure
+	// A number of field are part of the wcsprm structure
 	// http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/structwcsprm.html
-	// There should be dealt with at the wcsprm creation (equinox, dateobs, radesys, restwav, restfrq)
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
 
 	double dvalue;
-	char value[80], comment[80], card[81];
+	char value[80], comment[80], card[162];
 	char *subheadptr;
 
 	if (fits_open_file(&fp, fname.c_str(), READONLY, &fits_status)) {
@@ -105,7 +104,6 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 
 	// Get the rest of the keys, not in the wcs struct....
 
-
 	std::vector<string> keys;
 
 	keys.push_back("TIMESYS");
@@ -123,31 +121,33 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	subheadptr = *subheader;
 
 	for (unsigned int ii = 0; ii < keys.size(); ii++) {
-	  
-	  if ( fits_read_card(fp,  (char *) keys[ii].c_str() , card, &fits_status) ) {
-	    if (fits_status == KEY_NO_EXIST) {
-	      // If the key is not found, just drop it...
-	      fits_status = 0;
-	    } else { 
-	      fits_report_error(stderr, fits_status); 
-	      return 1; 	
-	    }
-	  } else {
-	    /* pad record with blanks so that it is at least 80 chars long */
-	    strcat(card, "                                                                                ");
-	    
-	    // If the key is found, then add it
-	    strcpy(subheadptr, card);
-	    subheadptr += 80;
-	    (*nsubkeys)++;
-	  }
+
+		if ( fits_read_card(fp,  (char *) keys[ii].c_str() , card, &fits_status) ) {
+			if (fits_status == KEY_NO_EXIST) {
+				// If the key is not found, just drop it...
+				fits_status = 0;
+			} else {
+				fits_report_error(stderr, fits_status);
+				return 1;
+			}
+		} else {
+			/* pad record with blanks so that it is at least 80 chars long */
+			strcat(card, "                                                                                ");
+
+			// If the key is found, then add it
+			strcpy(subheadptr, card);
+			subheadptr += 80;
+			(*nsubkeys)++;
+		}
 	}
 
-    *subheadptr = '\0';   /* terminate the header string */
-    /* minimize the allocated memory */
-    *subheader = (char *) realloc(*subheader, (*nsubkeys *80) + 1);
+	*subheadptr = '\0';   /* terminate the header string */
+	/* minimize the allocated memory */
+	*subheader = (char *) realloc(*subheader, (*nsubkeys *80) + 1);
 
 	return 0;
+
+
 
 }
 
@@ -1048,16 +1048,19 @@ int read_fits_signal(string fname, double *S, long long* indpix, long NAXIS1,
 	return 0;
 }
 
-int save_keyrec(string filename, struct wcsprm * wcs, long NAXIS1, long NAXIS2) {
+int save_keyrec(string path, struct wcsprm * wcs, long NAXIS1, long NAXIS2, char * subheader, int nsubkeys) {
 
 	FILE *fout;
 	int nkeyrec, status;
 	char *header, *hptr;
+	string filename;
 
 	if ((status = wcshdo(WCSHDO_all, wcs, &nkeyrec, &header))) {
 		printf("%4d: %s.\n", status, wcs_errmsg[status]);
 		return 1;
 	}
+
+	filename = path + "mapHeader.keyrec";
 
 	fout = fopen(filename.c_str(), "w");
 	if (fout == NULL) {
@@ -1069,11 +1072,25 @@ int save_keyrec(string filename, struct wcsprm * wcs, long NAXIS1, long NAXIS2) 
 	fprintf(fout, "NAXIS2  = %20ld / %-47s\n", NAXIS2, "length of data axis 2");
 
 	hptr = header;
-	for (int i = 0; i < nkeyrec; i++, hptr += 80) {
+	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
 		fprintf(fout, "%.80s\n", hptr);
 	}
 	fclose(fout);
 	free(header);
+
+	filename = path + "subHeader.keyrec";
+
+	fout = fopen(filename.c_str(), "w");
+	if (fout == NULL) {
+		fputs("Creation error : File error on subHeader.keyrec\n", stderr);
+		return (1);
+	}
+	hptr = subheader;
+	for (int ii = 0; ii < nsubkeys; ii++, hptr += 80) {
+		fprintf(fout, "%.80s\n", hptr);
+	}
+	fclose(fout);
+
 
 	return 0;
 }
@@ -1097,19 +1114,22 @@ int print_MapHeader(struct wcsprm *wcs) {
 }
 
 int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
-		long * NAXIS2, int rank) {
+		long * NAXIS2, char ** subheader, int *nsubkeys, int rank) {
 
 	char *memblock = NULL;
 	int nkeyrec = 0, nreject, nwcs, status;
+	string filename;
+	char * subheadptr;
 
 	if (rank == 0) {
-		tmpdir = tmpdir + "mapHeader.keyrec";
 
 		FILE *fin;
 		size_t result;
 		int size;
 
-		fin = fopen(tmpdir.c_str(), "r");
+		filename = tmpdir + "mapHeader.keyrec";
+
+		fin = fopen(filename.c_str(), "r");
 		if (fin == NULL) {
 			fputs("Read error : File error on mapHeader.keyrec", stderr);
 			return 1;
@@ -1129,13 +1149,43 @@ int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
 		result = fscanf(fin, "NAXIS2  = %20ld / %47c\n", NAXIS2,
 				(char *) &comment);
 
-		memblock = new char[(nkeyrec - 2) * 80];
+		memblock = new char[(nkeyrec - 2) * 80+1];
 
 		for (int ii = 0; ii < nkeyrec; ii++) {
 			result = fread(&memblock[ii * 80], 80, sizeof(char), fin);
 			fseek(fin, 1, SEEK_CUR); // skip newline char
 		}
 		fclose(fin);
+
+		// Read the subHeader file...
+		filename = tmpdir + "subHeader.keyrec";
+
+		fin = fopen(filename.c_str(), "r");
+		if (fin == NULL) {
+			fputs("WW - Read error : File error on subHeader.keyrec", stderr);
+		} else {
+
+			fseek(fin, 0L, SEEK_END); /* Position to end of file */
+			size = ftell(fin); /* Get file length */
+			rewind(fin); /* Back to start of file */
+
+			*nsubkeys = size / 81;
+
+			if ((*nsubkeys) > 0 ){
+				*subheader = new char[(*nsubkeys) * 80+1];
+				subheadptr = *subheader;
+
+				for (int ii = 0; ii < (*nsubkeys); ii++) {
+
+					result = fread(&subheadptr[ii * 80], 80, sizeof(char), fin);
+					fseek(fin, 1, SEEK_CUR); // skip newline char
+				}
+			} else {
+				fputs("WW - Read error : no keys in subHeader.keyrec", stderr);
+			}
+			fclose(fin);
+		}
+
 	}
 
 #ifdef USE_MPI

@@ -325,7 +325,7 @@ int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits
 		fits_report_error(stderr, status);
 
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "ra", 0, &status)){ // move to ra table
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)){ // move to ra table
 		fits_report_error(stderr, status); // Does it exists ?
 		check_it.checkLON=0;
 		cout << "\"lon\" was not found, or his Type should be image" << endl;

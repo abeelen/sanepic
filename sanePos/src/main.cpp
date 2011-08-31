@@ -243,7 +243,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-
 	/************************ Look for distriBoxution failure *******************************/
 	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
 		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
@@ -253,18 +252,17 @@ int main(int argc, char *argv[])
 		return  EX_OSERR;
 	}
 
-	if( rank == 0 ){
+
+	if(rank==0){
 		// Construct the wcsprm structure
 
 		wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
 		wcs->flag = -1;
 		wcsini(1, NAXIS, wcs);
-
 		// Create a fake WCS image header and populate it with info from the first fits file
 		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
 			cout << "pb getting fits META\n";
 	}
-
 
 
 	// Distribute the wcs and subheader
@@ -273,7 +271,7 @@ int main(int argc, char *argv[])
 	char * header ;
 	int nkeys, nreject;
 
-	if (rank == 0) {
+	if (rank ==0){
 		if (int status = wcshdo(WCSHDO_all, wcs, &nkeys, &header)) {
 			printf("%4d: %s.\n", status, wcs_errmsg[status]);
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -479,12 +477,11 @@ int main(int argc, char *argv[])
 			wcs->crval[0] = lon_mean;
 			wcs->crval[1] = lat_mean;
 
-			if (rank == 0){
+			if (rank == 0) {
 				cout << "WW - Nominal Projection Center : " << endl;
 				cout << "     lon : " << lon_mean << endl;
 				cout << "     lat : " << lat_mean << endl << endl;
 			}
-
 		}
 
 
@@ -609,7 +606,7 @@ int main(int argc, char *argv[])
 
 	if (rank == 0) {
 		printf("Map Size         : %ld x %ld pixels\n", NAXIS1, NAXIS2);
-		if(save_keyrec(dir.tmp_dir + "mapHeader.keyrec" ,wcs, NAXIS1, NAXIS2)){
+		if(save_keyrec(dir.tmp_dir,wcs, NAXIS1, NAXIS2, subheader, nsubkeys)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
