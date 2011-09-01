@@ -226,12 +226,14 @@ int main(int argc, char *argv[])
 	long long npixsrc = 0;
 	long long *indpsrc;
 
+
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 		return (EX_IOERR);
 	}
+
 
 	if (pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
@@ -269,7 +271,7 @@ int main(int argc, char *argv[])
 			return (EX_IOERR);
 		}
 
-		if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix)) { // check size compatibility
+		if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix + 1)) { // check size compatibility
 			if (rank == 0)
 				cout
 				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
@@ -281,12 +283,20 @@ int main(int argc, char *argv[])
 		}
 
 	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+	MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(&npixsrc,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+	MPI_Bcast(&addnpix,1,MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&indpix_size, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+#endif
 
 	//First time run S=0, after sanepic, S = Pure signal
 	if (structPS.signame != "") {
 
 		S = new double[npix]; // pure signal
 		fill(S,S+npix,0.0);
+
 		// if map argument build S from map
 		if (rank == 0){
 #ifdef DEBUG
@@ -319,12 +329,8 @@ int main(int argc, char *argv[])
 #ifdef PARA_FRAME
 
 		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-		MPI_Bcast(&npixsrc,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
 
 		if(rank!=0){
-			addnpix = samples_struct.ntotscan * npixsrc;
-			indpix_size = factdupl * NAXIS1 * NAXIS2 + 2 + addnpix;
 			indpix = new long long[indpix_size];
 			S = new double[npix];
 			//			fill(S,S+npix,0.0);
@@ -334,7 +340,6 @@ int main(int argc, char *argv[])
 		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
 
 #endif
-
 		wcsvfree(&nwcs, &wcs);
 
 	} // structPS.signame != ""

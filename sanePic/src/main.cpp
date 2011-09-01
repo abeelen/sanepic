@@ -431,7 +431,7 @@ int main(int argc, char *argv[]) {
 			return (EX_IOERR);
 		}
 
-		if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix)) { // check size compatibility
+		if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix + 1)) { // check size compatibility
 			if (rank == 0)
 				cout
 				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"

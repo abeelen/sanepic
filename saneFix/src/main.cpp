@@ -170,12 +170,12 @@ int main(int argc, char *argv[]) {
 				continue; // log file were not found for the 'iframe'th fits file
 			}
 
+
 			format_fits=test_format(dir.data_dir + samples_struct.fitsvect[iframe]); // get fits file format
 			if(format_fits==0){
 				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << dir.data_dir + samples_struct.fitsvect[iframe] << " . Skipping file...\n";
 				continue;
 			}
-
 
 			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[iframe]);
 
@@ -190,6 +190,7 @@ int main(int argc, char *argv[]) {
 			long ns_total = samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete;
 
 			if(samples_to_add+init_num_delete+end_num_delete==0){
+				cout << "[ " << rank << " ]" << samples_to_add << " : " << init_num_delete << " : " << end_num_delete << endl;
 				cout << "[ " << rank << " ] " << "Nothing to do for : " << dir.data_dir + samples_struct.fitsvect[iframe] << " . Skipping file...\n";
 				continue;
 			}
