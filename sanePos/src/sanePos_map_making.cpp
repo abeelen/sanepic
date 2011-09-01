@@ -322,14 +322,13 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 	samptopix = new long long[ns];
 	bfilter = new double[ns / 2 + 1];
 
-for(	long idet1=0;idet1<ndet;idet1++) {
+	for(	long idet1=0;idet1<ndet;idet1++) {
 
 		field1 = det[idet1];
 
 		//Read pointing data
 		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
 		return 1;
-
 		if(read_data_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, data, ns))
 		return 1;
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, flag, ns))

@@ -628,10 +628,11 @@ int main(int argc, char *argv[])
 
 	// pixon indicates pixels that are seen
 	// factdupl if flagged data are to be projected onto a separate map
-	// 1 more pixel for flagged data
-	// 1 more pixel for all data outside the map
-	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix;
-
+	// 1  pixel for flagged data 
+	// 1  pixel for all data outside the map
+	// +1 because this all are indexes and C is indexing between 0 and sky_size-1
+	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix + 1; 
+	
 	pixon = new long long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
 
@@ -725,8 +726,9 @@ int main(int argc, char *argv[])
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Bcast(&npix,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-	MPI_Bcast(indpix,sky_size,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+
+	MPI_Bcast( &npix,       1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(indpix,sky_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 #endif
 
 	//--------------------------------------- NAIVE MAP COMPUTATION ------------------------------------------//
@@ -768,9 +770,7 @@ int main(int argc, char *argv[])
 		long ndet = (long)det_vect.size();
 
 		int pb=0;
-
 		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, det_vect, ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, indpix, iframe, hitsNaiv);
-
 		if(pb>0){
 			cout << "Problem after do_PtNd_Naiv. Exiting...\n";
 #ifdef PARA_FRAME

@@ -417,7 +417,9 @@ int computePixelIndex_HIPE(string tmpdir,
 			for (long ii=0 ; ii<ns; ii++){
 
 				// image1        + (if 2nd image)  + crossing constrain removal + flagged pixel + apodized data
-				// NAXIS1*NAXIS2 + NAXIS1*NAXIS2   + addnpix*nframe             + 1             + 1
+				// NAXIS1*NAXIS2 + NAXIS1*NAXIS2   + npixsrc*nframe             + 1             + 1
+			        //                                   addnpix
+
 
 				long long ll=0;
 				switch (bolo_flag[ii]) {
@@ -445,7 +447,6 @@ int computePixelIndex_HIPE(string tmpdir,
 					break;
 
 				case 3:												// apodized data -> flag
-
 					ll = factdupl*NAXIS1*NAXIS2 + addnpix + 2;
 					flagon = 1;
 					break;
