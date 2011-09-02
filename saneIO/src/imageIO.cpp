@@ -112,6 +112,7 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	keys.push_back("OBJECT");
 	keys.push_back("TELESCOP");
 	keys.push_back("OBSERVER");
+	keys.push_back("UNIT");
 
 	// Inspired by "ffhdr2str" from cfitsio
 
