@@ -90,7 +90,9 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 		text += "lon = " + StringOf(pos_param.lon) + "; LON nominal of the input scan data\n";
 		text += "lat = " + StringOf(pos_param.lat) + "; LAT nominal of the input scan data\n";
 		text += "proj_code = " + StringOf(pos_param.projcode) + "; projection type, see wcslib projection names for the projection you wish to use\n";
-		text += "axis_type" + StringOf(pos_param.axistype) + "; axis type, EQ/Gal";
+		text += "axis_type" + StringOf(pos_param.axistype) + "; axis type, EQ/GAL\n";
+		text += "eq2gal" + StringOf(pos_param.eq2gal) + "; Convert J2000.0 EQ to GAL\n";
+		text += "gal2eq" + StringOf(pos_param.gal2eq) + "; Convert GAL to J2000.0 \n";
 		text += "\n\n";
 
 		text += "[sanePre]\n\n";

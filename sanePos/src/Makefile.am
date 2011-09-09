@@ -23,4 +23,6 @@ main.cpp \
 sanePos_map_making.cpp \
 sanePos_map_making.h \
 sanePos_preprocess.cpp \
-sanePos_preprocess.h
+sanePos_preprocess.h \
+coord.cpp \
+coord.h

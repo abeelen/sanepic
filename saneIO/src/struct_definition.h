@@ -34,6 +34,9 @@ struct param_sanePos
 	std::string axistype;     /*! Axis type (EQ/Gal, default is EQ) */
 	std::string projcode; /*! Projection code (Default is TAN, optional) */
 
+	bool eq2gal; /* Projection from J2000.0 RA/DEC to Galactic coordinates (default False) */
+	bool gal2eq; /* Projection from Galactic Coordinates to J2000.0 RA/DEC (default False) */
+
 	bool flgdupl; /*! True if flagged data are put in a separated map (default is False) */
 	bool projgaps; /*! Gaps are projected in the maps ? */
 	int fileFormat; /*! indicates fits files format : HIPE = 1, SANEPIC = 0 */

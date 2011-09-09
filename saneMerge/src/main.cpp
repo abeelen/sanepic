@@ -84,7 +84,8 @@ int main(int argc, char *argv[]) {
 		case 2 : printf("Please Correct your command line. Exiting !\n");
 		break;
 
-		default :;
+		default :
+			break;
 		}
 
 		return EX_CONFIG;

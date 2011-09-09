@@ -169,6 +169,22 @@ void read_param_sanePos(string &output, dictionary *ini,
 	else
 		pos_param.projgaps = (bool) i;
 
+
+	i = iniparser_getboolean(ini, "sanePos:eq2gal", -1);
+	if (i == -1)
+		output2 += "sanePos:eq2gal : default value [" + StringOf(
+				pos_param.eq2gal) + "]\n";
+	else
+		pos_param.eq2gal = (bool) i;
+
+	i = iniparser_getboolean(ini, "sanePos:gal2eq", -1);
+	if (i == -1)
+		output2 += "sanePos:gal2eq : default value [" + StringOf(
+				pos_param.gal2eq) + "]\n";
+	else
+		pos_param.gal2eq = (bool) i;
+
+
 #ifdef DEBUG
 	output += output2;
 #endif
@@ -723,6 +739,15 @@ uint16_t check_param_positions(string &output, struct param_sanePos pos_param) {
 		return FILEFORMAT_NOT_FOUND;
 	}
 
+	// Force axis type to GAL if converting from EQ to GAL
+	if (pos_param.eq2gal)
+		pos_param.axistype = "GAL";
+
+	// Force axis type to EQ if converting from GAL to EQ
+	if (pos_param.gal2eq)
+		pos_param.axistype = "EQ";
+
+
 	return 0;
 }
 
@@ -816,6 +841,9 @@ void default_param_sanePos(struct param_sanePos &pos_param) {
 	pos_param.lat      = NAN;
 	pos_param.projcode = "TAN";
 	pos_param.axistype = "EQ";
+
+	pos_param.eq2gal   = false;
+	pos_param.gal2eq   = false;
 
 	pos_param.flgdupl = false; // What to do with flagged data : (default : False -- map in a single pixel)
 	pos_param.projgaps = false; // What to do with gaps : (default : 0 -- no projection)
@@ -1309,12 +1337,18 @@ void print_param_positions(struct param_sanePos pos_param) {
 			<< " deg\n";
 
 	if (pos_param.flgdupl)
-		cout << "Map Flags        : True\n";
+		cout << "Map Flags        : True" << endl;
 
 	if (pos_param.projgaps)
-		cout << "Gap Filling      : PROJECTED\n";
+		cout << "Gap Filling      : PROJECTED" << endl;
 	else
-		cout << "Gap Filling      : NOT projected (default)\n";
+		cout << "Gap Filling      : NOT projected (default)" << endl;
+
+	if (pos_param.eq2gal)
+		cout << "Converting to    : Galactic Coordinates" << endl;
+
+	if (pos_param.gal2eq)
+		cout << "Converting to    : Equatorial Coordinates" << endl;
 
 	cout << endl;
 }

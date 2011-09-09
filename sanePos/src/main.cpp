@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
 
 	// Distribute the wcs and subheader
 #ifdef PARA_FRAME
+	//TODO: do that inside get_fits_META as the other routine are now doing..
 	MPI_Barrier(MPI_COMM_WORLD);
 	char * header ;
 	int nkeys, nreject;
@@ -302,6 +303,8 @@ int main(int argc, char *argv[])
 
 	free(header);
 
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+
 #endif
 
 	//	if (rank == 1){
@@ -316,9 +319,16 @@ int main(int argc, char *argv[])
 	//		}
 	//	}
 
-#ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
-#endif
+	// TODO: Convert Position if needed here....
+	if (pos_param.eq2gal) {
+		if (rank == 0)
+			cout << "Nothing done yet for eq2gal" << endl;
+	}
+	if (pos_param.gal2eq) {
+		if (rank == 0)
+			cout << "Nothing done yet for gal2eq" << endl;
+	}
+
 
 	if (pos_param.maskfile == ""){
 

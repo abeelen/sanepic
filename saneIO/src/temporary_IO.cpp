@@ -17,6 +17,10 @@
 #include "dataIO.h"
 
 
+extern "C" {
+#include "getdata.h"
+}
+
 using namespace std;
 
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)

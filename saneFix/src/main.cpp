@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		printf("\nBeginning of saneFix:\n\n");
+		cout << "\nBeginning of saneFix:\n\n";
 
 	struct samples samples_struct; /* fits file list + number of scans */
 	struct param_common dir; /* directories : temporary input and output */
@@ -105,10 +105,10 @@ int main(int argc, char *argv[]) {
 
 		switch (compare_to_mask){/* error during parsing phase */
 
-		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
+		case 0x0001: cout << "Please run " << argv[0] << " using a correct *.ini file\n";
 		break;
 
-		default : printf("Wrong program options or argument. Exiting !\n");
+		default : cout << "Wrong program options or argument. Exiting !\n";
 		break;
 
 

@@ -43,7 +43,7 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 	string buffer_crc = dir.input_dir + dir.output_dir + dir.tmp_dir + dir.data_dir + dir.fits_filelist + dir.bolo_suffix +
 			dir.bolo_global_filename +
 			StringOf(pos_param.pixdeg) + StringOf(pos_param.flgdupl) + pos_param.maskfile + StringOf(pos_param.projgaps) +
-			pos_param.projcode + pos_param.axistype + StringOf(pos_param.lon) + StringOf(pos_param.lat) +
+			pos_param.projcode + pos_param.axistype + StringOf(pos_param.lon) + StringOf(pos_param.lat) + StringOf(pos_param.eq2gal) + StringOf(pos_param.gal2eq) +
 			StringOf(proc_param.CORRon) + StringOf(proc_param.fill_gap) + StringOf(proc_param.remove_linear) + StringOf(proc_param.f_lp) +
 			proc_param.fcut_file + StringOf(proc_param.fsamp) + StringOf(proc_param.napod) + StringOf(proc_param.poly_order) +
 			StringOf(proc_param.remove_polynomia) +
