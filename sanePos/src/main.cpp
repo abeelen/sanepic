@@ -33,7 +33,7 @@ extern "C" {
 #include "sanePos_map_making.h"
 #include "sanePos_preprocess.h"
 #include "parser_functions.h"
-
+#include "coord.h"
 
 #ifdef PARA_FRAME
 #include "mpi.h"
@@ -320,13 +320,20 @@ int main(int argc, char *argv[])
 	//	}
 
 	// TODO: Convert Position if needed here....
-	if (pos_param.eq2gal) {
-		if (rank == 0)
-			cout << "Nothing done yet for eq2gal" << endl;
-	}
-	if (pos_param.gal2eq) {
-		if (rank == 0)
-			cout << "Nothing done yet for gal2eq" << endl;
+	if (pos_param.eq2gal || pos_param.gal2eq) {
+		if (rank == 0) {
+			cout << "Converting coordinates to ";
+			if (pos_param.eq2gal) cout << "galactic...";
+			if (pos_param.eq2gal) cout << "equatorial...";
+		}
+		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, iframe_min, iframe_max, bolo_list);
+
+		if (status) {
+#ifdef PARA_FRAME
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return 1;
+		}
 	}
 
 
@@ -638,11 +645,11 @@ int main(int argc, char *argv[])
 
 	// pixon indicates pixels that are seen
 	// factdupl if flagged data are to be projected onto a separate map
-	// 1  pixel for flagged data 
+	// 1  pixel for flagged data
 	// 1  pixel for all data outside the map
 	// +1 because this all are indexes and C is indexing between 0 and sky_size-1
-	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix + 1; 
-	
+	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix + 1;
+
 	pixon = new long long[sky_size];
 	fill(pixon,pixon+(sky_size),0);
 

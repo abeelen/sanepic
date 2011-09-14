@@ -43,13 +43,13 @@ void equatorial2galactic (long nx, double *RA, double *DEC, double **glon, doubl
 
 
 	for (long ii=0; ii< nx; ii++) {
-		Spherical2Cartesian (RA[ii], DEC[ii], inCart);
+		Spherical2Cartesian (RA[ii]*DEG2RAD, DEC[ii]*DEG2RAD, inCart);
 		RotVect (RotMat, inCart, outCart);
 		Cartesian2Spherical (outCart, &tmp1, &tmp2);
 		tmp1 = ranrm (tmp1);
 		tmp2 = range (tmp2);
-		(*glon)[ii] = tmp1;
-		(*glat)[ii] = tmp2;
+		(*glon)[ii] = tmp1/DEG2RAD;
+		(*glat)[ii] = tmp2/DEG2RAD;
 	}
 
 }
@@ -66,13 +66,13 @@ void galactic2equatorial (long nx, double *glon, double *glat, double **RA, doub
 			{-0.867666135858, -0.198076386122, 0.455983795705 } };
 
 	for (long ii=0; ii< nx; ii++) {
-		Spherical2Cartesian (glon[ii], glat[ii], inCart);
+		Spherical2Cartesian (glon[ii]*DEG2RAD, glat[ii]*DEG2RAD, inCart);
 		RotVect (RotMat, inCart, outCart);
 		Cartesian2Spherical (outCart, &tmp1, &tmp2);
 		tmp1 = ranrm (tmp1);
 		tmp2 = range (tmp2);
-		(*RA)[ii]  = tmp1;
-		(*DEC)[ii] = tmp2;
+		(*RA)[ii]  = tmp1/DEG2RAD;
+		(*DEC)[ii] = tmp2/DEG2RAD;
 	}
 
 }
@@ -162,11 +162,11 @@ double range (double angle)
 //  glon = new double[nx];
 //  glat = new double[nx];
 //
-//  ra[0]  = 24.5*DEG2RAD;
-//  dec[0] = 29.4*DEG2RAD;
+//  ra[0]  = 24.5;
+//  dec[0] = 29.4;
 //
-//  ra[1]  = 12*DEG2RAD;
-//  dec[1] = -2.4*DEG2RAD;
+//  ra[1]  = 12;
+//  dec[1] = -2.4;
 //
 //
 //  cout << "Hello World" << endl;
@@ -174,111 +174,86 @@ double range (double angle)
 //  equatorial2galactic(nx, ra,dec, &glon, &glat);
 //
 //  for (long ii=0; ii< nx; ii++){
-//    cout << "(ra, dec)    = "  << setprecision(12) << ra[ii]/DEG2RAD   << " " << dec[ii]/DEG2RAD << endl;
-//    cout << "(glon, glat) = "  << setprecision(12) << glon[ii]/DEG2RAD << " " << glat[ii]/DEG2RAD << endl;
+//    cout << "(ra, dec)    = "  << setprecision(12) << ra[ii]   << " " << dec[ii]  << endl;
+//    cout << "(glon, glat) = "  << setprecision(12) << glon[ii] << " " << glat[ii] << endl;
 //  }
 //
 //}
 
 
-// TODO : fix this...
-
-int convert_Dirfile_LON_LAT(struct param_common dir, struct samples samples_struct, struct param_sanePos pos_param, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+// TODO : test this...
+int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
-	double *lon;
-	double *lat;
-	long ns;
-	DIRFILE* D, *H;
+	double *lon, *lat;
+	double *new_lon, *new_lat;
+	DIRFILE* D;
 
-	std::vector<string> det_vect;
+	long ns;
+	int n_get;
+	D = samples_struct.dirfile_pointer;
+
+
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-		det_vect=bolo_vect[iframe];
+		ns = samples_struct.nsamples[iframe];
 
-		string base_name = samples_struct.basevect[iframe];
-		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
-		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
+		lon = new double[ns];
+		lat = new double[ns];
 
-		D = gd_open((char *) LONdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
-		H = gd_open((char *) LATdir.c_str(), GD_RDWR | GD_CREAT |
-				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
+		new_lon = new double[ns];
+		new_lat = new double[ns];
 
+		for (long idet = 0; idet <  bolo_vect[iframe].size() ; idet++) {
 
-		for(long idet=0; idet < (long)det_vect.size(); idet ++){
+			string lon_file = "LON_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
+			string lat_file = "LAT_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
 
-			string field = det_vect[idet];
-			string lon_outfile = "LON_" + base_name + "_" + field;
-			string lat_outfile = "LAT_" + base_name + "_" + field;
+			const char * field_lon, *field_lat;
 
-			// from dirfile...
-			//			read_LON_LAT_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, lon, lat, ns);
+			field_lon = lon_file.c_str();
+			field_lat = lat_file.c_str();
 
-			//configure dirfile field
-			gd_entry_t E;
-			E.field = (char*) lon_outfile.c_str();
-			E.field_type = GD_RAW_ENTRY;
-			E.fragment_index = 0;
-			E.spf = 1;
-			E.data_type = GD_DOUBLE;
-			E.scalar[0] = NULL;
+			// Read lon and lat
 
-			// add to the dirfile
-			gd_add(D, &E);
-
-			// write binary file on disk
-			int n_write = gd_putdata(D, (char*) lon_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lon);
+			n_get = gd_getdata(D, field_lon, 0, 0, 0, ns, GD_DOUBLE, lon);
 			if (gd_error(D) != 0) {
-				cout << "error putdata in write_lon : wrote " << n_write
-						<< " and expected " << ns << endl;
+				cout << "error getdata in Convert : read " << n_get << endl;
 				return 1;
 			}
 
-			//configure dirfile field
-			gd_entry_t F;
-			F.field = (char*) lat_outfile.c_str();
-			F.field_type = GD_RAW_ENTRY;
-			F.fragment_index = 0;
-			F.spf = 1;
-			F.data_type = GD_DOUBLE;
-			F.scalar[0] = NULL;
-
-			// add to the dirfile
-			gd_add(H, &F);
-
-			// write binary file on disk
-			n_write = gd_putdata(H, (char*) lat_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lat);
-			if (gd_error(H) != 0) {
-				cout << "error putdata in write_lat : wrote " << n_write
-						<< " and expected " << ns << endl;
+			n_get = gd_getdata(D, field_lat, 0, 0, 0, ns, GD_DOUBLE, lon);
+			if (gd_error(D) != 0) {
+				cout << "error getdata in Convert : read " << n_get << endl;
 				return 1;
 			}
 
-			delete [] lon;
-			delete [] lat;
+			//convert here
 
-			gd_flush(D,NULL);
-			gd_flush(H,NULL);
+			if ( pos_param.eq2gal )
+				equatorial2galactic(ns, lon, lat, &new_lon, &new_lat);
+
+			if ( pos_param.gal2eq)
+				galactic2equatorial(ns, lon, lat, &new_lon, &new_lat);
+
+
+
+			// Write results
+			n_get = gd_putdata(D, field_lon, 0, 0, 0, ns, GD_DOUBLE, new_lon);
+			if (gd_error(D) != 0) {
+				cout << "error putdata in Convert_Dirfile : wrote " << n_get << " and expected " << ns << endl;
+				return 1;
+			}
+			n_get = gd_putdata(D, field_lat, 0, 0, 0, ns, GD_DOUBLE, new_lat);
+			if (gd_error(D) != 0) {
+				cout << "error putdata in write_lon : wrote " << n_get << " and expected " << ns << endl;
+				return 1;
+			}
+
+			gd_flush(D, field_lon);
+			gd_flush(D, field_lat);
+			return 0;
 		}
-
-		// close dirfile
-		if (gd_close(D)) {
-			cout << "Dirfile gd_close error  " << LONdir
-					<< endl;
-			return 1;
-		}
-
-		// close dirfile
-		if (gd_close(H)) {
-			cout << "Dirfile gd_close error for : " << LATdir
-					<< endl;
-			return 1;
-		}
-
 	}
-
-
-	return 0;
 }

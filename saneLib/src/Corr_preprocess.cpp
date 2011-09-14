@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <cmath>
 
 #include "Corr_preprocess.h"
 #include "dataIO.h"
