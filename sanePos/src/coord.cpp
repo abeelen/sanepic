@@ -254,11 +254,13 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 			gd_flush(D, field_lat);
 		}
 
+
+		delete [] lon;
+		delete [] lat;
+		delete [] new_lon;
+		delete [] new_lat;
 	}
-	delete [] lon;
-	delete [] lat;
-	delete [] new_lon;
-	delete [] new_lat;
+
 	return 0;
 
 }
