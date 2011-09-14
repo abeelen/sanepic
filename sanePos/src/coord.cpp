@@ -222,7 +222,7 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 				return 1;
 			}
 
-			n_get = gd_getdata(D, field_lat, 0, 0, 0, ns, GD_DOUBLE, lon);
+			n_get = gd_getdata(D, field_lat, 0, 0, 0, ns, GD_DOUBLE, lat);
 			if (gd_error(D) != 0) {
 				cout << "error getdata in Convert : read " << n_get << endl;
 				return 1;
