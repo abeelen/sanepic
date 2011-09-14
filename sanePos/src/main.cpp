@@ -326,6 +326,11 @@ int main(int argc, char *argv[])
 
 		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, iframe_min, iframe_max, bolo_list);
 
+		if (pos_param.eq2gal)
+			pos_param.axistype = "GAL";
+		if (pos_param.gal2eq)
+			pos_param.axistype = "EQ";
+
 		if (status) {
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -377,9 +382,10 @@ int main(int argc, char *argv[])
 		// ... From the ini file ...
 		if ( ! isnan(pos_param.lon) && ! isnan(pos_param.lat) ) {
 			wcs->crval[0] = pos_param.lon;
-			wcs->crval[1] = pos_param.lat ;
+			wcs->crval[1] = pos_param.lat;
 		} else {
 			// ... or from the first file header...
+			// TODO: in that case One should make a rotation if asked as only RA/DEC is read from the first file header...
 			if (wcs->crval[0] == 361 || wcs->crval[1] == 361)
 			{
 				// ... or the first data point
