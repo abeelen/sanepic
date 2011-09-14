@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
 		if (rank == 0) {
 			cout << "Converting coordinates to ";
 			if (pos_param.eq2gal) cout << "galactic...";
-			if (pos_param.eq2gal) cout << "equatorial...";
+			if (pos_param.gal2eq) cout << "equatorial...";
 		}
 		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, iframe_min, iframe_max, bolo_list);
 

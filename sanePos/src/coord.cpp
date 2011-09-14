@@ -194,7 +194,6 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 	D = samples_struct.dirfile_pointer;
 
 
-
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 		ns = samples_struct.nsamples[iframe];
@@ -205,7 +204,7 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 		new_lon = new double[ns];
 		new_lat = new double[ns];
 
-		for (long idet = 0; idet <  bolo_vect[iframe].size() ; idet++) {
+		for (unsigned long idet = 0; idet <  bolo_vect[iframe].size() ; idet++) {
 
 			string lon_file = "LON_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
 			string lat_file = "LAT_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
@@ -253,7 +252,13 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 
 			gd_flush(D, field_lon);
 			gd_flush(D, field_lat);
-			return 0;
 		}
+
 	}
+	delete [] lon;
+	delete [] lat;
+	delete [] new_lon;
+	delete [] new_lat;
+	return 0;
+
 }
