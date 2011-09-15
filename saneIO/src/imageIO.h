@@ -27,7 +27,7 @@ using namespace std;
  \param subheader, nsubkeys, additionnal header values
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int get_fits_META(string fname, struct wcsprm * &wcs, char **subheader, int * nsubkeys);
+int get_fits_META(string fname, struct wcsprm * &wcs, char **subheader, int * nsubkeys, int rank);
 
 //! Create or update an output fits map file
 /*!

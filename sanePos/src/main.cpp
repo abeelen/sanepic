@@ -253,59 +253,10 @@ int main(int argc, char *argv[])
 	}
 
 
-	if(rank==0){
-		// Construct the wcsprm structure
 
-		wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
-		wcs->flag = -1;
-		wcsini(1, NAXIS, wcs);
-		// Create a fake WCS image header and populate it with info from the first fits file
-		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
-			cout << "pb getting fits META\n";
-	}
-
-
-	// Distribute the wcs and subheader
-#ifdef PARA_FRAME
-	//TODO: do that inside get_fits_META as the other routine are now doing..
-	MPI_Barrier(MPI_COMM_WORLD);
-	char * header ;
-	int nkeys, nreject;
-
-	if (rank ==0){
-		if (int status = wcshdo(WCSHDO_all, wcs, &nkeys, &header)) {
-			printf("%4d: %s.\n", status, wcs_errmsg[status]);
-			MPI_Abort(MPI_COMM_WORLD, 1);
-			return 1;
-		}
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Bcast(&nkeys,   1,MPI_INT,0,MPI_COMM_WORLD);
-	MPI_Bcast(&nsubkeys,1,MPI_INT,0,MPI_COMM_WORLD);
-
-	if (rank != 0 ){
-		header    = (char *) calloc ( (nkeys    + 1) * 80 + 1, 1);
-		subheader = (char *) calloc ( (nsubkeys + 1) * 80 + 1, 1);
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Bcast(   header,(   nkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
-	MPI_Bcast(subheader,(nsubkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
-
-	// Back into wcs structure for rank != 0
-	if (rank != 0) {
-		if ( int status = wcspih(header, nkeys, WCSHDR_all, 2, &nreject, &nwcs, &wcs) ) {
-			fprintf(stderr, "wcspih ERROR %d: %s.\n", status, wcshdr_errmsg[status]);
-			return 1;
-		}
-	}
-
-	free(header);
-
-	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
-
-#endif
+	// Create a fake WCS image header and populate it with info from the first fits file
+	if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank))
+		cout << "pb getting fits META\n";
 
 	//	if (rank == 1){
 	//		print_MapHeader(wcsFake);
@@ -345,7 +296,7 @@ int main(int argc, char *argv[])
 		//TODO Find an easy way to provide for a map header (without going through mask...)
 
 		if(rank==0)
-			printf("\n\nDetermining Map Parameters...\n");
+			printf("\nDetermining Map Parameters...\n");
 
 		// Populate the wcs structure ...
 		// ... add pixel size in deg ...
@@ -384,48 +335,41 @@ int main(int argc, char *argv[])
 			wcs->crval[0] = pos_param.lon;
 			wcs->crval[1] = pos_param.lat;
 		} else {
-			// ... or from the first file header...
-			// TODO: in that case One should make a rotation if asked as only RA/DEC is read from the first file header...
-			if (wcs->crval[0] == 361 || wcs->crval[1] == 361)
-			{
-				// ... or the first data point
+			// ... or the first valid data point
+			double lon_center, lat_center;
 
-				double lon_center, lat_center;
+			if(rank==0) {
 
-				if(rank==0) {
+				double *lon, *lat;
+				int *flag=NULL;
+				long ns = samples_struct.nsamples[0];
 
-					double *lon, *lat;
-					int *flag=NULL;
-					long ns = samples_struct.nsamples[0];
+				if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lon, ns))
+					return 1;
+				if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lat, ns))
+					return 1;
+				if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], flag, ns))
+					return 1;
 
-					if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lon, ns))
-						return 1;
-					if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lat, ns))
-						return 1;
-					if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], flag, ns))
-						return 1;
+				int ii = 0;
+				while (flag[ii] != 0){ ii++; }
+				lon_center = lon[ii];
+				lat_center = lat[ii];
 
-					int ii = 0;
-					while (flag[ii] != 0){ ii++; }
-					lon_center = lon[ii];
-					lat_center = lat[ii];
-
-					delete [] lon;
-					delete [] lat;
-					delete [] flag;
-
-				}
-
-#ifdef PARA_FRAME
-				MPI_Barrier(MPI_COMM_WORLD);
-				MPI_Bcast(&lon_center,   1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-				MPI_Bcast(&lat_center,  1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-#endif
-
-				wcs->crval[0] = lon_center;
-				wcs->crval[1] = lat_center;
+				delete [] lon;
+				delete [] lat;
+				delete [] flag;
 
 			}
+
+#ifdef PARA_FRAME
+			MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Bcast(&lon_center,   1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+			MPI_Bcast(&lat_center,  1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
+
+			wcs->crval[0] = lon_center;
+			wcs->crval[1] = lat_center;
 
 			// In these two cases, the projection center has not been defined by the user, so we need to find a proper one
 			// so...
@@ -887,7 +831,7 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	if(rank==0){
 		//Get processing time
-		t3=time(NULL);
+		time_t t3=time(NULL);
 		printf("\nProcessing time : %d sec\n",(int)(t3-t2));
 	}
 #endif

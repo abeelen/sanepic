@@ -1,15 +1,13 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstring>
-
-#include "imageIO.h"
-#include "struct_definition.h"
-#include "inputFileIO.h"
-#include "utilities.h"
-
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "struct_definition.h"
+#include "inputFileIO.h"
+#include "utilities.h"
 
 extern "C" {
 #include <fitsio.h>
@@ -19,76 +17,96 @@ extern "C" {
 #include "wcslib/wcshdr.h"
 }
 
+
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
+
+
 #ifdef HAVE_CONFIG_H
 #include "../../config.h"
 #else
 #define PACKAGE_VERSION "Unknown"
 #endif
 
+#include "imageIO.h"
+
 using namespace std;
 
-int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *nsubkeys) {
+int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *nsubkeys, int rank) {
 
-	// A number of field are part of the wcsprm structure
-	// http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/structwcsprm.html
+	int NAXIS = 2;
+	if(rank==0){
+		// Construct the wcsprm structure
 
-	fitsfile *fp;
-	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+		wcs = (struct wcsprm *) malloc(sizeof(struct wcsprm));
+		wcs->flag = -1;
+		wcsini(1, NAXIS, wcs);
 
-	double dvalue;
-	char value[80], comment[80], card[162];
-	char *subheadptr;
-
-	if (fits_open_file(&fp, fname.c_str(), READONLY, &fits_status)) {
-		fits_report_error(stderr, fits_status); return 1;
-	}
-	//
-	//	// retrieve the wcs header ...
-	//	char * header, *hptr;
-	//	int nkeyrec;
-	//	if (fits_hdr2str(fp, 1, NULL, 0, &header, &nkeyrec, &fits_status)) {
-	//		fits_report_error(stderr, fits_status); return 1;
-	//	}
-	//	// .... print it
-	//	hptr = header;
-	//	printf("\n\n Header :\n");
-	//	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
-	//		printf("%.80s\n", hptr);
-	//	}
+		// A number of field are part of the wcsprm structure
+		// http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/structwcsprm.html
 
 
-	// As wcspih only deals with WCS coordinates when need to go around...
+		fitsfile *fp;
+		int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+
+		double dvalue;
+		char value[80], comment[80], card[162];
+		char *subheadptr;
+
+		if (fits_open_file(&fp, fname.c_str(), READONLY, &fits_status)) {
+			fits_report_error(stderr, fits_status); return 1;
+		}
+		//
+		//	// retrieve the wcs header ...
+		//	char * header, *hptr;
+		//	int nkeyrec;
+		//	if (fits_hdr2str(fp, 1, NULL, 0, &header, &nkeyrec, &fits_status)) {
+		//		fits_report_error(stderr, fits_status); return 1;
+		//	}
+		//	// .... print it
+		//	hptr = header;
+		//	printf("\n\n Header :\n");
+		//	for (int ii = 0; ii < nkeyrec; ii++, hptr += 80) {
+		//		printf("%.80s\n", hptr);
+		//	}
 
 
-	if (fits_read_key_dbl(fp, (char *) "EQUINOX", &dvalue, comment, &fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { dvalue = 2000.0; fits_status = 0;
-		} else { fits_report_error(stderr, fits_status); return 1; }
-	}
-	wcs->equinox = dvalue ;
+		// As wcspih only deals with WCS coordinates when need to go around...
 
-	if (fits_read_key_str(fp, (char *) "DATE-OBS", value, comment, &fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
-		} else { fits_report_error(stderr, fits_status); return 1; }
-	}
-	strcpy(wcs->dateobs, value);
 
-	if (fits_read_key_str(fp, (char *) "RADESYS", value, comment, &fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
-		} else { fits_report_error(stderr, fits_status); return 1; }
-	}
-	strcpy(wcs->radesys, value);
+		if (fits_read_key_dbl(fp, (char *) "EQUINOX", &dvalue, comment, &fits_status)) {
+			if (fits_status == KEY_NO_EXIST) { dvalue = 2000.0; fits_status = 0;
+			} else { fits_report_error(stderr, fits_status); return 1; }
+		}
+		wcs->equinox = dvalue ;
 
-	if (fits_read_key_dbl(fp, (char *) "RESTWAV", &dvalue, comment,	&fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
-		} else { fits_report_error(stderr, fits_status); return 1; }
-	}
-	wcs->restwav = dvalue;
+		if (fits_read_key_str(fp, (char *) "DATE-OBS", value, comment, &fits_status)) {
+			if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
+			} else { fits_report_error(stderr, fits_status); return 1; }
+		}
+		strcpy(wcs->dateobs, value);
 
-	if (fits_read_key_dbl(fp, (char *) "RESTFRQ", &dvalue, comment,	&fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
-		} else { fits_report_error(stderr, fits_status); return 1; 	}
-	}
-	wcs->restfrq = dvalue;
+		if (fits_read_key_str(fp, (char *) "RADESYS", value, comment, &fits_status)) {
+			if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
+			} else { fits_report_error(stderr, fits_status); return 1; }
+		}
+		strcpy(wcs->radesys, value);
+
+		if (fits_read_key_dbl(fp, (char *) "RESTWAV", &dvalue, comment,	&fits_status)) {
+			if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
+			} else { fits_report_error(stderr, fits_status); return 1; }
+		}
+		wcs->restwav = dvalue;
+
+		if (fits_read_key_dbl(fp, (char *) "RESTFRQ", &dvalue, comment,	&fits_status)) {
+			if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
+			} else { fits_report_error(stderr, fits_status); return 1; 	}
+		}
+		wcs->restfrq = dvalue;
+
+		/*
+	// Removed feature, so that it does not add a problem in case of change of coordinates....
 
 	if (fits_read_key_dbl(fp, (char *) "RA", &dvalue, comment,	&fits_status)) {
 		if (fits_status == KEY_NO_EXIST) { dvalue = 361; fits_status = 0;
@@ -101,54 +119,97 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 		} else { fits_report_error(stderr, fits_status); return 1; 	}
 	}
 	wcs->crval[1] = dvalue;
+		 */
 
-	// Get the rest of the keys, not in the wcs struct....
+		// Get the rest of the keys, not in the wcs struct....
+		std::vector<string> keys;
 
-	std::vector<string> keys;
+		keys.push_back("TIMESYS");
+		keys.push_back("CREATOR");
+		keys.push_back("INSTRUME");
+		keys.push_back("OBJECT");
+		keys.push_back("TELESCOP");
+		keys.push_back("OBSERVER");
+		keys.push_back("UNIT");
 
-	keys.push_back("TIMESYS");
-	keys.push_back("CREATOR");
-	keys.push_back("INSTRUME");
-	keys.push_back("OBJECT");
-	keys.push_back("TELESCOP");
-	keys.push_back("OBSERVER");
-	keys.push_back("UNIT");
+		// Inspired by "ffhdr2str" from cfitsio
 
-	// Inspired by "ffhdr2str" from cfitsio
+		*subheader = (char *) calloc ( (keys.size()+ 1) * 80 + 1, 1);
+		*nsubkeys = 0 ;
 
-	*subheader = (char *) calloc ( (keys.size()+ 1) * 80 + 1, 1);
-	*nsubkeys = 0 ;
+		subheadptr = *subheader;
 
-	subheadptr = *subheader;
+		for (unsigned int ii = 0; ii < keys.size(); ii++) {
 
-	for (unsigned int ii = 0; ii < keys.size(); ii++) {
-
-		if ( fits_read_card(fp,  (char *) keys[ii].c_str() , card, &fits_status) ) {
-			if (fits_status == KEY_NO_EXIST) {
-				// If the key is not found, just drop it...
-				fits_status = 0;
+			if ( fits_read_card(fp,  (char *) keys[ii].c_str() , card, &fits_status) ) {
+				if (fits_status == KEY_NO_EXIST) {
+					// If the key is not found, just drop it...
+					fits_status = 0;
+				} else {
+					fits_report_error(stderr, fits_status);
+					return 1;
+				}
 			} else {
-				fits_report_error(stderr, fits_status);
-				return 1;
-			}
-		} else {
-			/* pad record with blanks so that it is at least 80 chars long */
-			strcat(card, "                                                                                ");
+				/* pad record with blanks so that it is at least 80 chars long */
+				strcat(card, "                                                                                ");
 
-			// If the key is found, then add it
-			strcpy(subheadptr, card);
-			subheadptr += 80;
-			(*nsubkeys)++;
+				// If the key is found, then add it
+				strcpy(subheadptr, card);
+				subheadptr += 80;
+				(*nsubkeys)++;
+			}
+		}
+
+		*subheadptr = '\0';   /* terminate the header string */
+		/* minimize the allocated memory */
+		*subheader = (char *) realloc(*subheader, (*nsubkeys *80) + 1);
+
+
+	}
+
+	//TODO: distribue to other processes..
+
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
+	char * header ;
+	int nkeys, nreject;
+
+	if (rank ==0){
+		if (int status = wcshdo(WCSHDO_all, wcs, &nkeys, &header)) {
+			printf("%4d: %s.\n", status, wcs_errmsg[status]);
+			MPI_Abort(MPI_COMM_WORLD, 1);
+			return 1;
 		}
 	}
 
-	*subheadptr = '\0';   /* terminate the header string */
-	/* minimize the allocated memory */
-	*subheader = (char *) realloc(*subheader, (*nsubkeys *80) + 1);
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&nkeys,   1,MPI_INT,0,MPI_COMM_WORLD);
+	MPI_Bcast(&nsubkeys,1,MPI_INT,0,MPI_COMM_WORLD);
+
+	if (rank != 0 ){
+		header    = (char *) calloc ( (nkeys    + 1) * 80 + 1, 1);
+		subheader = (char *) calloc ( (nsubkeys + 1) * 80 + 1, 1);
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(   header,(   nkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
+	MPI_Bcast(subheader,(nsubkeys+1)*80+1,MPI_CHAR,0,MPI_COMM_WORLD);
+
+	// Back into wcs structure for rank != 0
+	if (rank != 0) {
+		if ( int status = wcspih(header, nkeys, WCSHDR_all, 2, &nreject, &nwcs, &wcs) ) {
+			fprintf(stderr, "wcspih ERROR %d: %s.\n", status, wcshdr_errmsg[status]);
+			return 1;
+		}
+	}
+
+	free(header);
+
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+
+#endif
 
 	return 0;
-
-
 
 }
 
