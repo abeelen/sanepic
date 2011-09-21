@@ -311,6 +311,7 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 			cout << "frame_read : " << s << endl;
 #endif
 			fitsfiles.push_back(line);
+			frameorder.push_back(0);
 		}
 		break;
 

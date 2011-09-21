@@ -773,7 +773,7 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos Pos_param) {
 	return 0;
 }
 
-uint16_t check_param_process(string &output, struct param_saneProc Proc_param) {
+uint16_t check_param_saneProc(string &output, struct param_saneProc Proc_param) {
 
 	if (Proc_param.napod < 0) {
 		output
@@ -1334,9 +1334,9 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	if (rank == 0)
 		parsed += check_common(output, dir);
 
-	parsed += check_param_positions(output, Pos_param);
+	parsed += check_param_sanePos(output, Pos_param);
 
-	parsed += check_param_process(output, Proc_param);
+	parsed += check_param_saneProc(output, Proc_param);
 
 	parsed += check_param_saneInv(output, Inv_param);
 

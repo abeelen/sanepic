@@ -94,10 +94,15 @@ int main(int argc, char *argv[]) {
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_saneProc proc_param; /* A structure that contains user options about preprocessing properties */
+	struct param_saneProc Proc_param; /* A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_sanePos pos_param; /* A structure that contains user options about map projection and properties */
+	struct param_sanePos Pos_param; /* A structure that contains user options about map projection and properties */
 	struct param_common dir; /* structure that contains output input temp directories */
+	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
+	struct param_sanePS PS_param;
+	struct param_sanePic Pic_param;
+	struct param_saneInv Inv_param;
+	string parser_output = "";
 
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
 	long iframe_min, iframe_max; /* For mpi usage : defines min/max number of frame for each processor */
@@ -128,13 +133,8 @@ int main(int argc, char *argv[]) {
 	long ns; // number of samples for the considered scan
 
 	string field; /* actual boloname in the bolo loop */
-	struct param_sanePic struct_sanePic;
 	//	std::vector<double> fcut; /* noise cutting frequency vector */
 
-	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
-	struct param_sanePS structPS;
-	struct param_saneInv saneInv_struct;
-	string parser_output = "";
 
 	// main loop variables
 	double *S; /* Pure signal */
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
 	//	while ( (retval = getopt(argc, argv, "r")) != -1) {
 	//		switch (retval) {
 	//		case 'r': /* read the fits file name and the number of samples */
-	//			struct_sanePic.restore = 1;
+	//			Pic_param.restore = 1;
 	//			cout << "restore!\n";
 	//			break;
 	//		default :
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
 	if ((argc < 2) || (argc > 3)) // no enough arguments
 		compare_to_mask = 0x0001;
 	else {
-		struct_sanePic.restore = 0; //default
+		Pic_param.restore = 0; //default
 
 		if (argc == 3) {
 
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
 			//				switch (c)
 			//				{
 			//				case 'r':
-			//					struct_sanePic.restore = 1;
+			//					Pic_param.restore = 1;
 			//					break;
 			//				case '?':
 			//					/* getopt_long already printed an error message. */
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
 			//				}
 			//
 			//
-			//			cout << "struct_sanePic.restore : " << struct_sanePic.restore << endl;
+			//			cout << "Pic_param.restore : " << Pic_param.restore << endl;
 			//			cout << "optind : " << optind << " vs argc : " << argc << endl;
 			//
 			//			while (optind < argc)
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
 			//
 			//			getchar();
 
-			struct_sanePic.restore = 1;
+			Pic_param.restore = 1;
 			if (strcmp(argv[1], (char*) "--restore") != 0) {
 				if (strcmp(argv[2], (char*) "--restore") != 0)
 					indice_argv = -1;
@@ -242,8 +242,8 @@ int main(int argc, char *argv[]) {
 		if (indice_argv > 0){
 			/* parse ini file and fill structures */
 			parsed = parser_function(argv[indice_argv], parser_output, dir,
-					samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-					struct_sanePic, size, rank);
+					samples_struct, Pos_param, Proc_param, PS_param, Inv_param,
+					Pic_param, size, rank);
 
 			compare_to_mask = parsed & mask_sanePic;
 
@@ -344,8 +344,8 @@ int main(int argc, char *argv[]) {
 
 	if(rank==0){
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic, saneInv_struct);
+		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
+				PS_param, Pic_param, Inv_param);
 
 		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, bolo_list);
 	}
@@ -398,7 +398,7 @@ int main(int argc, char *argv[]) {
 //	}
 
 
-	if (pos_param.flgdupl)
+	if (Pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	if (rank == 0){
@@ -485,11 +485,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	if (struct_sanePic.restore>0) { // restore incomplete work with previous saved data
+	if (Pic_param.restore>0) { // restore incomplete work with previous saved data
 		if (rank == 0){
 			cout << "Checking previous session\n";
 			struct checksum chk_t, chk_t2;
-			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
+			compute_checksum(dir, Pos_param, Proc_param, Inv_param, PS_param, Pic_param, samples_struct, npix,
 					indpix, indpsrc, indpsrc_size, chk_t);
 			read_checksum(dir.tmp_dir, chk_t2, "sanePic"); // read previous checksum
 			if (compare_checksum(chk_t, chk_t2)) { // compare them
@@ -533,8 +533,8 @@ int main(int argc, char *argv[]) {
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 			ns = samples_struct.nsamples[iframe]; // number of samples for this scan
-			f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-			f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+			f_lppix = Proc_param.f_lp*double(ns)/Proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
+			f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/Proc_param.fsamp; // noise PS threshold freq, in terms of samples
 
 			std::vector<string> det_vect = bolo_list[iframe];
 			long ndet = (long)det_vect.size();
@@ -552,7 +552,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			// if there is correlation between detectors
-			if (proc_param.CORRon){
+			if (Proc_param.CORRon){
 				int pb=0;
 				/* write_ftrProcesdata parameters : */
 				// var double *S =  NULL
@@ -568,7 +568,7 @@ int main(int argc, char *argv[]) {
 				// ns = number of sample for this scan
 				// iframe = scan number : 0=> ntotscan if non-MPI
 
-				pb=write_ftrProcesdata(NULL,proc_param,samples_struct,pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
+				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct,Pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
 						npixsrc,addnpix,f_lppix,ns,	iframe,para_bolo_indice, para_bolo_size, name_rank);
 
 				if(pb>0){
@@ -610,7 +610,7 @@ int main(int argc, char *argv[]) {
 				// *Hits = Null (map hits)
 
 				pb+=do_PtNd(samples_struct, PNd, "fdata_",
-						det_vect,ndet,f_lppix_Nk, proc_param.fsamp,ns,
+						det_vect,ndet,f_lppix_Nk, Proc_param.fsamp,ns,
 						para_bolo_indice,para_bolo_size,indpix,
 						NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
@@ -627,7 +627,7 @@ int main(int argc, char *argv[]) {
 			} else { // No correlation case
 
 
-				do_PtNd_nocorr(PNd, dir.tmp_dir,proc_param,pos_param,samples_struct,
+				do_PtNd_nocorr(PNd, dir.tmp_dir,Proc_param,Pos_param,samples_struct,
 						det_vect,ndet,f_lppix,f_lppix_Nk,addnpix,
 						ns,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
 				// fillgaps + butterworth filter + fourier transform and PNd generation
@@ -640,7 +640,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
-	if(struct_sanePic.restore>0){
+	if(Pic_param.restore>0){
 		if(rank==0)
 			for(long ii=0; ii<npix;ii++)
 				PNdtot[ii]=PNd[ii];
@@ -651,11 +651,11 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	if (struct_sanePic.save_data > 0) {
+	if (Pic_param.save_data > 0) {
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
-			compute_checksum(dir, pos_param, proc_param, saneInv_struct, structPS, struct_sanePic, samples_struct, npix,
+			compute_checksum(dir, Pos_param, Proc_param, Inv_param, PS_param, Pic_param, samples_struct, npix,
 					indpix, indpsrc, indpsrc_size, chk_t);
 			if(write_checksum(dir.tmp_dir, chk_t, "sanePic")){ // write down on disk the checksum values
 #ifdef USE_MPI
@@ -709,20 +709,19 @@ int main(int argc, char *argv[]) {
 	Mp = new double[npix];
 	s = new double[npix];
 
-	if (pos_param.projgaps || !flagon) {
+	if (Pos_param.projgaps || !flagon) {
 		npixeff = npix;
 	} else {
 		npixeff = npix - 1;
 	}
 
-
-	if ((struct_sanePic.restore > 0)) {
+	if ((Pic_param.restore > 0)) {
 		if (rank == 0){
 			cout << "loading idupl\n";
 			load_idupl(dir.tmp_dir, idupl);
 
 			// idupl compatibility
-			if((idupl>0) && !pos_param.flgdupl){
+			if((idupl>0) && !Pos_param.flgdupl){
 				cout << "Error. idupl cannot be >0 if flgdupl is False ! Exiting...\n";
 #ifdef USE_MPI
 				MPI_Finalize();
@@ -734,7 +733,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
-	if ((struct_sanePic.restore > 0))
+	if ((Pic_param.restore > 0))
 		MPI_Bcast(&idupl,1,MPI_INT,0,MPI_COMM_WORLD);
 	if(rank==0) { // malloc only for first processor that reduces the data
 		//		PtNPmatStot = new double[npix];
@@ -749,14 +748,14 @@ int main(int argc, char *argv[]) {
 
 
 	// in case flagged pixels are put in a duplicated map
-	while(idupl <= pos_param.flgdupl){
+	while(idupl <= Pos_param.flgdupl){
 
-		if (struct_sanePic.save_data > 0)
+ 		if (Pic_param.save_data > 0)
 			if(rank==0)
 				write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
 
 
-		if((struct_sanePic.restore == 0)){
+		if((Pic_param.restore == 0)){
 
 #ifdef USE_MPI
 			if(rank==0) { // malloc only for first processor that reduces the data
@@ -773,21 +772,19 @@ int main(int argc, char *argv[]) {
 			fill(d, d + npix, 0.0);
 			fill(s, s + npix, 0.0);
 
-
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
+				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
 				// preconditioner computation : Mp
-				if (proc_param.CORRon) {
-
+				if (Proc_param.CORRon) {
 
 					write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							pos_param.flgdupl, ns,
+							Pos_param.flgdupl, ns,
 							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
@@ -806,14 +803,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PtNPmatS, "fPs_",
-							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, Mp, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det_vect, ndet,
-							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl, ns,
+							f_lppix_Nk, Proc_param.fsamp, Pos_param.flgdupl, ns,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.basevect[iframe], PtNPmatS, Mp, NULL,
 							rank, size);
@@ -897,7 +894,7 @@ int main(int argc, char *argv[]) {
 //			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
 //					<< delta_n << endl;
 
-			struct_sanePic.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
+			Pic_param.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
 
 
 		}
@@ -913,23 +910,24 @@ int main(int argc, char *argv[]) {
 		//max iter = 2000 (default), but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while ((iter < struct_sanePic.itermax) && (((var_n / var0 > 1e-10) && (idupl
-				|| !pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
+		while ((iter < Pic_param.itermax) && (((var_n / var0 > 1e-10) && (idupl
+				|| !Pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
 
 			fill(q, q + npixeff, 0.0); // q <= A*d
+
 
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
+				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
-				if (proc_param.CORRon) {
+				if (Proc_param.CORRon) {
 
 					write_tfAS(samples_struct, d, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							pos_param.flgdupl, ns,
+							Pos_param.flgdupl, ns,
 							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
@@ -946,22 +944,20 @@ int main(int argc, char *argv[]) {
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
-
 					do_PtNd(samples_struct, q, "fPs_",
-							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det_vect, ndet,
-							f_lppix_Nk, proc_param.fsamp, pos_param.flgdupl,
+							f_lppix_Nk, Proc_param.fsamp, Pos_param.flgdupl,
 							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.basevect[iframe], q, NULL, NULL,
 							rank, size);
 				}
 			} // end of iframe loop
-
 
 #ifdef USE_MPI
 			if(rank==0)
@@ -1001,15 +997,15 @@ int main(int argc, char *argv[]) {
 
 				for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 					ns = samples_struct.nsamples[iframe];
-					f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
+					f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
 
 					std::vector<string> det_vect = bolo_list[iframe];
 					long ndet = (long)det_vect.size();
 
-					if (proc_param.CORRon) {
+					if (Proc_param.CORRon) {
 
 						write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-								pos_param.flgdupl, ns,
+								Pos_param.flgdupl, ns,
 								samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
@@ -1028,15 +1024,15 @@ int main(int argc, char *argv[]) {
 #endif
 
 						do_PtNd(samples_struct, PtNPmatS, "fPs_",
-								det_vect, ndet, f_lppix_Nk,	proc_param.fsamp, ns,
+								det_vect, ndet, f_lppix_Nk,	Proc_param.fsamp, ns,
 								para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 					} else {
 
 						do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir,
-								det_vect, ndet, f_lppix_Nk, proc_param.fsamp,
-								pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
+								det_vect, ndet, f_lppix_Nk, Proc_param.fsamp,
+								Pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
 								npix, iframe,
 								samples_struct.basevect[iframe], PtNPmatS,
 								NULL, NULL, rank, size);
@@ -1091,9 +1087,9 @@ int main(int argc, char *argv[]) {
 					d[ii] = s[ii] + beta * d[ii]; // d = s + beta * d
 
 				// saving iterated maps
-				if (struct_sanePic.iterw && (iter % struct_sanePic.iterw) == 0) {
+				if (Pic_param.iterw && (iter % Pic_param.iterw) == 0) {
 
-					if ((struct_sanePic.save_data > 0) && ((iter > 0) || (idupl > 0))){
+					if ((Pic_param.save_data > 0) && ((iter > 0) || (idupl > 0))){
 						write_disk(dir.tmp_dir, d, r, S, npixeff, var0, var_n, delta0, delta_n, iter, idupl, Mptot);
 					}
 
@@ -1111,9 +1107,10 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					temp_stream << dir.output_dir << struct_sanePic.map_prefix << "_" << (idupl>0 ? (std::string)"b" : (std::string)"a") << iter << ".fits";
+					temp_stream << dir.output_dir << Pic_param.map_prefix << "_" << (idupl>0 ? (std::string)"b" : (std::string)"a") << iter << ".fits";
 					fname = temp_stream.str();
 					temp_stream.str("");
+
 					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
 							(void *) map1d, (char *) "Image", 0, subheader, nsubkeys)) {
 						cerr << "Error Writing map : EXITING ... \n";
@@ -1123,7 +1120,7 @@ int main(int argc, char *argv[]) {
 						return EX_CANTCREAT;
 					}
 
-					if (pos_param.flgdupl) {
+					if (Pos_param.flgdupl) {
 						for (long ii = 0; ii < NAXIS1; ii++) {
 							for (long jj = 0; jj < NAXIS2; jj++) {
 								mi = jj * NAXIS1 + ii;
@@ -1185,6 +1182,7 @@ int main(int argc, char *argv[]) {
 									map1d[mi] = NAN;
 							}
 						}
+
 						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
 								(void *) map1d, "CCR Image", 1, subheader, nsubkeys)) {
 							cerr << "Error Writing map : EXITING ... \n";
@@ -1220,17 +1218,19 @@ int main(int argc, char *argv[]) {
 							return EX_CANTCREAT;
 						}
 					}
+
 					//TODO: Do we really need to write the inifile in that case ?
-					if(write_fits_inifile(fname, dir, proc_param, pos_param,
-							structPS, struct_sanePic, saneInv_struct)) // write saneProc parameters in naive Map fits file header
+					if(write_fits_inifile(fname, dir, Proc_param, Pos_param,
+							PS_param, Pic_param, Inv_param)) // write saneProc parameters in naive Map fits file header
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
+
+					cout << "before fits_inputfile" << endl;
 					if( write_fits_inputfile(fname, samples_struct))
 						cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
 
 
 					delete[] map1d;
 				} // end of saving iterated maps
-
 
 				time_t rawtime;
 				time ( &rawtime );
@@ -1272,23 +1272,23 @@ int main(int argc, char *argv[]) {
 		// If the gaps are projected on a second map, redo the preprocessing/writing of fdata,
 		// which will now replace the flagged data by data from the signal map
 
-		if ((pos_param.projgaps || (pos_param.flgdupl)) && !idupl) {
+		if ((Pos_param.projgaps || (Pos_param.flgdupl)) && !idupl) {
 
 			fill(PNd, PNd + npix, 0.0); // correct : has to be reset to 0 !
 
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
-				f_lppix = proc_param.f_lp * double(ns) / proc_param.fsamp;
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / proc_param.fsamp;
+				f_lppix = Proc_param.f_lp * double(ns) / Proc_param.fsamp;
+				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
-				if (proc_param.CORRon) {
+				if (Proc_param.CORRon) {
 
-					write_ftrProcesdata(S, proc_param, samples_struct,
-							pos_param, dir.tmp_dir, det_vect, ndet, indpix, indpsrc,
+					write_ftrProcesdata(S, Proc_param, samples_struct,
+							Pos_param, dir.tmp_dir, det_vect, ndet, indpix, indpsrc,
 							NAXIS1, NAXIS2, npix, npixsrc, addnpix, f_lppix,
 							ns, iframe, para_bolo_indice, para_bolo_size, name_rank);
 
@@ -1308,13 +1308,13 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PNd, "fdata_",
-							det_vect, ndet, f_lppix_Nk, proc_param.fsamp, ns,
+							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
-					do_PtNd_nocorr(PNd, dir.tmp_dir, proc_param, pos_param,
+					do_PtNd_nocorr(PNd, dir.tmp_dir, Proc_param, Pos_param,
 							samples_struct, det_vect, ndet, f_lppix, f_lppix_Nk, addnpix,
 							ns, indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc,
 							iframe, S, rank, size);
@@ -1359,8 +1359,8 @@ int main(int argc, char *argv[]) {
 
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				proc_param, pos_param, samples_struct, samples_struct.fcut, wcs,
-				pos_param.maskfile, structPS, struct_sanePic, saneInv_struct, subheader, nsubkeys, bolo_list))
+				Proc_param, Pos_param, samples_struct, samples_struct.fcut, wcs,
+				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys, bolo_list))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank==0
