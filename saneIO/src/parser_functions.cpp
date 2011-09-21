@@ -750,9 +750,9 @@ uint16_t check_common(string &output, struct param_common dir) {
 	return 0;
 }
 
-uint16_t check_param_positions(string &output, struct param_sanePos Pos_param) {
+uint16_t check_param_sanePos(string &output, struct param_sanePos Pos_param) {
 
-	if (Pos_param.pixdeg < 0) {
+	if (Pos_param.pixdeg <= 0 && Pos_param.maskfile == "") {
 		output += "EE - Pixsize cannot be negative ! \n";
 		return PIXDEG_WRONG_VALUE;
 	}
