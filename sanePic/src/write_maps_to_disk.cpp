@@ -17,7 +17,7 @@ using namespace std;
 
 int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
-		struct param_sanePre proc_param, struct param_sanePos pos_param,
+		struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS,
 		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys,
 		std::vector<std::vector<std::string> > bolo_vect){
@@ -153,11 +153,13 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 
 	if (maskfile != "")
-		if(write_fits_mask(fname, dir.input_dir + maskfile))
+		if(copy_fits_mask(fname, dir.input_dir + maskfile))
 			cerr << "WARNING ! No mask will be included in the file : " << fname << endl;
 
-	if(write_fits_history2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, sanePic_struct, saneInv_struct)) // write sanePre parameters in naive Map fits file header
+	if(write_fits_inifile(fname,  dir, proc_param, pos_param , structPS, sanePic_struct, saneInv_struct)) // write sanePre parameters in naive Map fits file header
 		cerr << "WARNING ! No history will be included in the file : " << fname << endl;
+	if(write_fits_inputfile(fname, samples_struct))
+		cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
 
 	// clean
 	delete [] hits;

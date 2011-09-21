@@ -8,12 +8,12 @@
 #include <fftw3.h>
 
 
-int common_mode_computation(struct samples samples_struct, std::vector<std::string> det,  struct param_sanePre proc_param, struct param_sanePos pos_param,
+int common_mode_computation(struct samples samples_struct, std::vector<std::string> det,  struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
 		double &factapod, std::string fits_filename);
 
-int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det,  struct param_sanePre proc_param, struct param_sanePos pos_param,
+int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det,  struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,

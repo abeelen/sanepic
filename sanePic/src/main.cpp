@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_sanePre proc_param; /* A structure that contains user options about preprocessing properties */
+	struct param_saneProc proc_param; /* A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /* A structure that contains user options about map projection and properties */
 	struct param_common dir; /* structure that contains output input temp directories */
@@ -1220,9 +1220,13 @@ int main(int argc, char *argv[]) {
 							return EX_CANTCREAT;
 						}
 					}
-					if(write_fits_history2(fname, NAXIS1, NAXIS2, dir, proc_param, pos_param,
-							samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
+					//TODO: Do we really need to write the inifile in that case ?
+					if(write_fits_inifile(fname, dir, proc_param, pos_param,
+							structPS, struct_sanePic, saneInv_struct)) // write saneProc parameters in naive Map fits file header
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
+					if( write_fits_inputfile(fname, samples_struct))
+						cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
+
 
 					delete[] map1d;
 				} // end of saving iterated maps

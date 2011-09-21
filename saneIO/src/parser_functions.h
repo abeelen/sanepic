@@ -99,12 +99,12 @@ std::string checkTrailingDir(std::string str);
  \param dir The param_common structure
  \param samples_struct The samples structure
  \param pos_param The param_sanePS structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param pic_param The param_sanePic structure
  \param inv_param The param_saneInv structure
   \return The default param_common structure
  */
-void default_param(struct param_common &dir, struct samples &samples_struct, struct param_sanePos &pos_param, struct param_sanePre &proc_param,
+void default_param(struct param_common &dir, struct samples &samples_struct, struct param_sanePos &pos_param, struct param_saneProc &proc_param,
 		struct param_saneInv &inv_param, struct param_sanePic &pic_param);
 
 
@@ -123,12 +123,12 @@ void default_param_common(struct param_common &dir);
  */
 void default_param_sanePos(struct param_sanePos &pos_param);
 
-//! Fill the struct param_sanePre with default values, in case an optional value was not given in ini file
+//! Fill the struct param_saneProc with default values, in case an optional value was not given in ini file
 /*!
-  \param proc_param An empty param_sanePre structure
-  \return The default param_sanePre structure
+  \param proc_param An empty param_saneProc structure
+  \return The default param_saneProc structure
  */
-void default_param_sanePre(struct param_sanePre &proc_param);
+void default_param_saneProc(struct param_saneProc &proc_param);
 
 //! Fill the struct param_sanePS with default values, in case an optional value was not given in ini file
 /*!
@@ -172,15 +172,15 @@ void read_common(std::string &output, dictionary *ini, struct param_common &dir)
  */
 void read_param_sanePos(std::string &output, dictionary *ini, struct param_sanePos &pos_param);
 
-//! Fill the struct param_sanePre with ini file values
+//! Fill the struct param_saneProc with ini file values
 /*!
  * Any warning or error is stored in "output" string and is printed after function exit
- \param proc_param The default param_sanePre structure
+ \param proc_param The default param_saneProc structure
  \param output The parser error string
  \param ini the ini file opened as a dictionnary with iniparser lib
- \return The filled param_sanePre structure
+ \return The filled param_saneProc structure
  */
-void read_param_sanePre(std::string &output, dictionary *ini, struct param_sanePre &proc_param);
+void read_param_saneProc(std::string &output, dictionary *ini, struct param_saneProc &proc_param);
 
 //! Fill the struct param_saneInv with ini file values
 /*!
@@ -283,14 +283,14 @@ uint16_t check_common(std::string &output, struct param_common dir);
  */
 uint16_t check_param_positions(std::string &output, struct param_sanePos pos_param);
 
-//! Check the struct param_sanePre is correct
+//! Check the struct param_saneProc is correct
 /*!
  * Any warning or error is stored in "output" string and is printed after function exit
- \param proc_param The param_sanePre struct
+ \param proc_param The param_saneProc struct
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_process(std::string &output, struct param_sanePre proc_param);
+uint16_t check_param_process(std::string &output, struct param_saneProc proc_param);
 
 //! Check the struct param_sanePS is correct
 /*!
@@ -363,7 +363,7 @@ int commit_dictionary(int rank, dictionary	*dict);
  \param dir The param_common structure
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param structPS The param_sanePS structure
  \param sanePic_struct The param_sanePic structure
  \param saneInv_struct The param_saneInv structure
@@ -373,7 +373,7 @@ int commit_dictionary(int rank, dictionary	*dict);
  */
 uint16_t parser_function(char * ini_name, std::string &output, struct param_common &dir,
 		struct samples &samples_struct,
-		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
+		struct param_sanePos &pos_param, struct param_saneProc &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct,
 		int size, int rank);
 
@@ -387,13 +387,13 @@ void print_common(struct param_common dir);
 /*!
  \param pos_param The param_sanePos structure
  */
-void print_param_positions(struct param_sanePos pos_param);
+void print_param_sanePos(struct param_sanePos pos_param);
 
-//! Print param_sanePre structure informations to screen
+//! Print param_saneProc structure informations to screen
 /*!
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  */
-void print_param_process(struct param_sanePre proc_param);
+void print_param_process(struct param_saneProc proc_param);
 
 //! Print param_sanePic structure informations to screen
 /*!
@@ -420,13 +420,33 @@ void print_param_saneInv(struct param_saneInv saneInv_struct);
  \param dir The param_common structure
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param structPS The param_sanePS structure
  \param sanePic_struct The param_sanePic structure
  \param saneInv_struct The param_saneInv structure
  */
 void parser_printOut(char * prog_name, struct param_common dir, struct samples samples_struct,
-		struct param_sanePos pos_param, struct param_sanePre proc_param,
+		struct param_sanePos pos_param, struct param_saneProc proc_param,
 		struct param_sanePS structPS, struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct);
+
+
+
+void export_param_sanePos(struct param_sanePos pos_param, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_common(struct param_common dir, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_saneProc(struct param_saneProc proc_param, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_saneInv(struct param_saneInv inv_param, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_sanePS(struct param_sanePS ps_param, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_sanePic(struct param_sanePic sanePic_struct, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+void export_param_saneCheck(struct param_saneCheck saneCheck_struct, std::vector<std::string> &key, std::vector<std::string> &value, std::vector<std::string> &comment);
+
+std::string rebuild_ini(struct param_common dir, struct param_saneProc proc_param, struct param_sanePos pos_param,
+		struct samples samples_struct, struct param_sanePS PS_param,
+		struct param_sanePic Pic_param, struct param_saneInv Inv_param);
 
 #endif /* PARSER_FUNCTIONS_H_ */

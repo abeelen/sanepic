@@ -32,7 +32,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
  \param tmpdir A string containing the temporary files pathname
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param iframe_min Actual rank first frame indice
  \param iframe_max Actual rank last frame indice
  \param wcs A pointer to a wcsprm struct
@@ -51,7 +51,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computePixelIndex(std::string tmpdir, std::string dirfile,
-		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect);
@@ -63,7 +63,7 @@ int computePixelIndex(std::string tmpdir, std::string dirfile,
  \param tmpdir A string containing the temporary files pathname
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param iframe_min Actual rank first frame indice
  \param iframe_max Actual rank last frame indice
  \param wcs A pointer to a wcsprm struct
@@ -82,7 +82,7 @@ int computePixelIndex(std::string tmpdir, std::string dirfile,
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computePixelIndex_HIPE(std::string tmpdir,
-		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect);

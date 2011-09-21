@@ -15,6 +15,7 @@ extern "C"{
 }
 
 #define EscapeChar "!#;"
+#define DelimiterChar " ,;\t"
 
 using namespace std;
 
@@ -67,7 +68,7 @@ int read_double(string fname, double *& array, long & size){
 
 		getline(inputFile,line);
 		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of(EscapeChar);				// Check for comment character at the beginning of the line
+		found = line.find_first_of(EscapeChar);			// Check for comment character at the beginning of the line
 
 		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
 
@@ -223,9 +224,21 @@ int read_channel_list(std::string &output, std::string fname, std::vector<string
 	return 0;
 }
 
+void skip_comment(ifstream &file, string &line){
+
+	size_t found;
+
+	// Skip any commented line at the beginning
+	while(! file.eof()){
+		getline(file,line);
+		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
+		found = line.find_first_of(EscapeChar);			// Check for comment character at the beginning of the line
+
+		if ( (! line.empty()) && (found != 0) ) break; 		// skip if empty or commented
+	}
+}
 
 int read_fits_list(string &output, string fname, struct samples &samples_str ) {
-
 
 	std::vector<string> &fitsfiles = samples_str.fitsvect;
 	std::vector<int> &frameorder = samples_str.scans_index;
@@ -245,16 +258,22 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 	char *pch;
 	int nb_elem = 0;
 
-	// count number of elements on the first line !
-	getline(file, line);
+	size_t found;
+
+	// Skip any comments line at the beginning of the file
+	skip_comment(file, line);
+
+
+	// count number of elements on the first valid line !
 	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str()," ,;\t");
+	pch = strtok ((char*) line.c_str(), DelimiterChar);
 
 	while (pch != NULL) {
-		pch = strtok (NULL, " ,;\t");
-		nb_elem++; 	}
+		pch = strtok (NULL, DelimiterChar);
+		nb_elem++;
+	}
 
-	// set pointer back to the beginning of file in order to parse the first line too
+	// set pointer back to the beginning of file in order to parse the first line too and...
 	file.seekg (0, ios::beg);
 
 #ifdef DEBUG
@@ -264,31 +283,34 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 	switch(nb_elem) {
 	case 2:
 		framegiven=1;
-		while(file >> s >> d){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
+		while(!file.eof()){
+			getline(file,line);
+			line.erase(0, line.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = line.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
 
-			if (found == 0) continue;
+			if ( line.empty() || found == 0) continue;
 #ifdef DEBUG
 			cout << "frame_read : " << s << " " << d << endl;
 #endif
+			istringstream iline(line);
+			iline >> s >> d;
 			fitsfiles.push_back(s);
 			frameorder.push_back(d);
 		}
 		break;
 
 	case 1:
-		while(file >> s){
-			size_t found;
-			s.erase(0, s.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = s.find_first_of("!#;"); 		// Check for comment character at the beginning of the filename
-			if (found == 0) continue;
+		while(!file.eof()){
+			getline(file,line);
+			line.erase(0, line.find_first_not_of(" \t")); // remove leading white space in the first name
+			found = line.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
+
+			if ( line.empty() || found == 0) continue;
 
 #ifdef DEBUG
 			cout << "frame_read : " << s << endl;
 #endif
-			fitsfiles.push_back(s);
+			fitsfiles.push_back(line);
 		}
 		break;
 
@@ -307,7 +329,6 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
 		return 1;
 	}
-
 
 	file.close();
 

@@ -12,6 +12,7 @@
 #include <sys/stat.h>   // For stat()
 #include <typeinfo>
 
+#include <wordexp.h>
 
 extern "C" {
 #include "iniparser.h"
@@ -38,56 +39,77 @@ string checkTrailingDir(string str) {
 	return str;
 }
 
+string expandDir(string str){
+	string output;
+
+	wordexp_t p;
+	wordexp (str.c_str(), &p, 0);
+	if (p.we_wordc != 1)
+		cerr << "EE - Problem with directory expansion " +str << endl;
+	output = p.we_wordv[0];
+
+	//	  for (size_t i = 0; i < p.we_wordc; i++)
+	//	    cout << w[i] << endl;
+
+	wordfree (&p);
+	return output;
+
+}
+
+string checkDir(string str){
+	return checkTrailingDir(expandDir(str));
+}
+
 void read_common(string &output, dictionary *ini, struct param_common &common) {
 
 	char *s;
 	string output2 = "";
 
-	s = iniparser_getstring(ini, "commons:data_directory", (char *) NULL);
+	s = iniparser_getstring(ini, "common:data_directory", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:data_directory : default value [" + StringOf(
+		output2 += "common:data_directory : default value [" + StringOf(
 				common.data_dir) + "]\n";
 	else
-		common.data_dir = checkTrailingDir(StringOf(s));
+		common.data_dir = checkDir(StringOf(s));
 
-	s = iniparser_getstring(ini, "commons:input_directory", (char *) NULL);
+	s = iniparser_getstring(ini, "common:input_directory", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:input_directory : default value [" + StringOf(
+		output2 += "common:input_directory : default value [" + StringOf(
 				common.input_dir) + "]\n";
 	else
-		common.input_dir = checkTrailingDir(StringOf(s));
+		common.input_dir = checkDir(StringOf(s));
 
-	s = iniparser_getstring(ini, "commons:output_dir", (char *) NULL);
+	s = iniparser_getstring(ini, "common:output_dir", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:output_dir : default value [" + StringOf(
+		output2 += "common:output_dir : default value [" + StringOf(
 				common.output_dir) + "]\n";
 	else
-		common.output_dir = checkTrailingDir(StringOf(s));
+		common.output_dir = checkDir(StringOf(s));
 
-	s = iniparser_getstring(ini, "commons:temp_dir", (char *) NULL);
+	s = iniparser_getstring(ini, "common:temp_dir", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:temp_dir : default value [" + StringOf(
+		output2 += "common:temp_dir : default value [" + StringOf(
 				common.tmp_dir) + "]\n";
 	else
-		common.tmp_dir = checkTrailingDir(StringOf(s));
+		common.tmp_dir = checkDir(StringOf(s));
 
-	s = iniparser_getstring(ini, "commons:fits_filelist", (char *) NULL);
+	s = iniparser_getstring(ini, "common:fits_filelist", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:fits_filelist : default value [" + StringOf(
+		output2 += "common:fits_filelist : default value [" + StringOf(
 				common.fits_filelist) + "]\n";
 	else
 		common.fits_filelist = StringOf(s);
 
-	s = iniparser_getstring(ini, "commons:bolo_suffix", (char *) NULL);
+	s = iniparser_getstring(ini, "common:bolo_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:bolos_suffix : default value [" + StringOf(
+		output2 += "common:bolos_suffix : default value [" + StringOf(
 				common.bolo_suffix) + "]\n";
 	else
 		common.bolo_suffix = StringOf(s);
 
-	s = iniparser_getstring(ini, "commons:bolo_global_file", (char *) NULL);
+	s = iniparser_getstring(ini, "common:bolo_global_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "commons:bolos_global_file : default value [" + StringOf(
+		output2 += "common:bolos_global_file : default value [" + StringOf(
 				common.bolo_global_filename) + "]\n";
 	else
 		common.bolo_global_filename = StringOf(s);
@@ -99,7 +121,7 @@ void read_common(string &output, dictionary *ini, struct param_common &common) {
 }
 
 void read_param_sanePos(string &output, dictionary *ini,
-		struct param_sanePos &pos_param) {
+		struct param_sanePos &Pos_param) {
 
 	char *s;
 	double d;
@@ -109,80 +131,80 @@ void read_param_sanePos(string &output, dictionary *ini,
 	d = iniparser_getdouble(ini, (char*) "sanePos:lon", -1.0);
 	if (d == -1.0)
 		output2 += "sanePos:lon : default value [" + StringOf(
-				pos_param.lon) + "]\n";
+				Pos_param.lon) + "]\n";
 	else
-		pos_param.lon = d;
+		Pos_param.lon = d;
 
 	d = iniparser_getdouble(ini, (char*) "sanePos:lat", -1.0);
 	if (d == -1.0)
 		output2 += "sanePos:lat : default value [" + StringOf(
-				pos_param.lat) + "]\n";
+				Pos_param.lat) + "]\n";
 	else
-		pos_param.lat = d;
+		Pos_param.lat = d;
 
 	d = iniparser_getdouble(ini, (char*) "sanePos:pixsize", -1.0);
 	if (d == -1.0)
 		output2 += "sanePos:pixsize : default value [" + StringOf(
-				pos_param.pixdeg) + "]\n";
+				Pos_param.pixdeg) + "]\n";
 	else
-		pos_param.pixdeg = d;
+		Pos_param.pixdeg = d;
 
 	s = iniparser_getstring(ini, (char*) "sanePos:proj_code", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePos:proj_code : default value [" + StringOf(
-				pos_param.projcode) + "]\n";
+				Pos_param.projcode) + "]\n";
 	else
-		pos_param.projcode = StringOf(s);
+		Pos_param.projcode = StringOf(s);
 
 	s = iniparser_getstring(ini, (char*) "sanePos:axis_type", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePos:axis_type : default value [" + StringOf(
-				pos_param.axistype) + "]\n";
+				Pos_param.axistype) + "]\n";
 	else
-		pos_param.axistype = StringOf(s);
+		Pos_param.axistype = StringOf(s);
 
 	s = iniparser_getstring(ini, "sanePos:mask_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePos:mask_file : default value [" + string(
-				pos_param.maskfile) + "]\n";
+				Pos_param.maskfile) + "]\n";
 	else
-		pos_param.maskfile = StringOf(s);
+		Pos_param.maskfile = StringOf(s);
 
 	i = iniparser_getint(ini, (char*) "sanePos:file_format", -1);
 	if (i == -1)
 		output2 += "sanePos:file_format : default value [" + StringOf(
-				pos_param.fileFormat) + "]\n";
+				Pos_param.fileFormat) + "]\n";
 	else
-		pos_param.fileFormat = i;
+		Pos_param.fileFormat = i;
 
 	i = iniparser_getboolean(ini, "sanePos:map_flagged_data", -1);
 	if (i == -1)
 		output2 += "sanePos:flgdupl : default value [" + StringOf(
-				pos_param.flgdupl) + "]\n";
+				Pos_param.flgdupl) + "]\n";
 	else
-		pos_param.flgdupl = (bool) i;
+		Pos_param.flgdupl = (bool) i;
 
 	i = iniparser_getboolean(ini, "sanePos:project_gaps", -1);
 	if (i == -1)
 		output2 += "sanePos:project_gaps : default value [" + StringOf(
-				pos_param.projgaps) + "]\n";
+				Pos_param.projgaps) + "]\n";
 	else
-		pos_param.projgaps = (bool) i;
+		Pos_param.projgaps = (bool) i;
 
 
 	i = iniparser_getboolean(ini, "sanePos:eq2gal", -1);
 	if (i == -1)
 		output2 += "sanePos:eq2gal : default value [" + StringOf(
-				pos_param.eq2gal) + "]\n";
+				Pos_param.eq2gal) + "]\n";
 	else
-		pos_param.eq2gal = (bool) i;
+		Pos_param.eq2gal = (bool) i;
 
 	i = iniparser_getboolean(ini, "sanePos:gal2eq", -1);
 	if (i == -1)
 		output2 += "sanePos:gal2eq : default value [" + StringOf(
-				pos_param.gal2eq) + "]\n";
+				Pos_param.gal2eq) + "]\n";
 	else
-		pos_param.gal2eq = (bool) i;
+		Pos_param.gal2eq = (bool) i;
 
 
 #ifdef DEBUG
@@ -191,79 +213,79 @@ void read_param_sanePos(string &output, dictionary *ini,
 
 }
 
-void read_param_sanePre(string &output, dictionary *ini,
-		struct param_sanePre &proc_param) {
+void read_param_saneProc(string &output, dictionary *ini,
+		struct param_saneProc &Proc_param) {
 
 	int i;
 	double d;
 	char *s;
 	string output2 = "";
 
-	i = iniparser_getint(ini, (char*) "sanePre:apodize_Nsamples", -1);
+	i = iniparser_getint(ini, (char*) "saneProc:apodize_Nsamples", -1);
 	if (i == -1)
-		output2 += "sanePre:apodize_Nsamples : default value [" + StringOf(
-				proc_param.napod) + "]\n";
+		output2 += "saneProc:apodize_Nsamples : default value [" + StringOf(
+				Proc_param.napod) + "]\n";
 	else
-		proc_param.napod = i;
+		Proc_param.napod = i;
 
-	i = iniparser_getboolean(ini, "sanePre:fill_gap", -1);
+	i = iniparser_getboolean(ini, "saneProc:fill_gap", -1);
 	if (i == -1)
-		output2 += "sanePre:fill_gap : default value [" + StringOf(
-				proc_param.fill_gap) + "]\n";
+		output2 += "saneProc:fill_gap : default value [" + StringOf(
+				Proc_param.fill_gap) + "]\n";
 	else
-		proc_param.fill_gap = (bool) i;
+		Proc_param.fill_gap = (bool) i;
 
-	d = iniparser_getdouble(ini, (char*) "sanePre:sampling_frequency", -1.0);
+	d = iniparser_getdouble(ini, (char*) "saneProc:sampling_frequency", -1.0);
 	if (d == -1.0)
-		output2 += "sanePre:sampling_frequency: default value [" + StringOf(
-				proc_param.fsamp) + "]\n";
+		output2 += "saneProc:sampling_frequency: default value [" + StringOf(
+				Proc_param.fsamp) + "]\n";
 	else
-		proc_param.fsamp = d;
+		Proc_param.fsamp = d;
 
-	d = iniparser_getdouble(ini, (char*) "sanePre:filter_frequency", -1.0);
+	d = iniparser_getdouble(ini, (char*) "saneProc:filter_frequency", -1.0);
 	if (d == -1.0)
-		output2 += "sanePre:filter_frequency: default value [" + StringOf(
-				proc_param.f_lp) + "]\n";
+		output2 += "saneProc:filter_frequency: default value [" + StringOf(
+				Proc_param.f_lp) + "]\n";
 	else
-		proc_param.f_lp = d;
+		Proc_param.f_lp = d;
 
-	i = iniparser_getboolean(ini, "sanePre:linear_baseline", -1);
+	i = iniparser_getboolean(ini, "saneProc:linear_baseline", -1);
 	if (i == -1)
-		output2 += "sanePre:no_baseline: default value [" + StringOf(
-				proc_param.remove_linear) + "]\n";
+		output2 += "saneProc:no_baseline: default value [" + StringOf(
+				Proc_param.remove_linear) + "]\n";
 	else
-		proc_param.remove_linear = (bool) i;
+		Proc_param.remove_linear = (bool) i;
 
-	i = iniparser_getboolean(ini, "sanePre:correlation", -1);
+	i = iniparser_getboolean(ini, "saneProc:correlation", -1);
 	if (i == -1)
-		output2 += "sanePre:correlation: default value [" + StringOf(
-				proc_param.CORRon) + "]\n";
+		output2 += "saneProc:correlation: default value [" + StringOf(
+				Proc_param.CORRon) + "]\n";
 	else
-		proc_param.CORRon = (bool) i;
+		Proc_param.CORRon = (bool) i;
 
-	i = iniparser_getint(ini, "sanePre:poly_order", -1);
+	i = iniparser_getint(ini, "saneProc:poly_order", -1);
 	if (i == -1)
-		output2 += "sanePre:poly_order: default value [" + StringOf(
-				proc_param.poly_order) + "]\n";
+		output2 += "saneProc:poly_order: default value [" + StringOf(
+				Proc_param.poly_order) + "]\n";
 	else
-		proc_param.poly_order = i;
+		Proc_param.poly_order = i;
 
-	if (proc_param.poly_order >= 0)
-		proc_param.remove_polynomia = 1;
+	if (Proc_param.poly_order >= 0)
+		Proc_param.remove_polynomia = 1;
 	else
-		proc_param.remove_polynomia = 0;
+		Proc_param.remove_polynomia = 0;
 
-	if (proc_param.f_lp > 0)
-		proc_param.highpass_filter = 1;
+	if (Proc_param.f_lp > 0)
+		Proc_param.highpass_filter = 1;
 	else
-		proc_param.highpass_filter = 0;
+		Proc_param.highpass_filter = 0;
 
-	s = iniparser_getstring(ini, "sanePre:fcut_file", (char *) NULL);
+	s = iniparser_getstring(ini, "saneProc:fcut_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "sanePre:fcut_file : default value [" + StringOf(
-				proc_param.fcut_file) + "]\n";
+		output2 += "saneProc:fcut_file : default value [" + StringOf(
+				Proc_param.fcut_file) + "]\n";
 	else
-		proc_param.fcut_file = StringOf(s);
+		Proc_param.fcut_file = StringOf(s);
 
 #ifdef DEBUG
 	output += output2;
@@ -271,7 +293,7 @@ void read_param_sanePre(string &output, dictionary *ini,
 }
 
 void read_param_saneInv(std::string &output, dictionary *ini,
-		struct param_saneInv &saneInv_struct) {
+		struct param_saneInv &Inv_param) {
 
 	char *s;
 	string output2 = "";
@@ -279,23 +301,23 @@ void read_param_saneInv(std::string &output, dictionary *ini,
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "saneInv:cov_matrix_file : default value [" + StringOf(
-				saneInv_struct.cov_matrix_file) + "]\n";
+				Inv_param.cov_matrix_file) + "]\n";
 	else
-		saneInv_struct.cov_matrix_file = StringOf(s);
+		Inv_param.cov_matrix_file = StringOf(s);
 
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "saneInv:cov_matrix_suffix : default value [" + StringOf(
-				saneInv_struct.cov_matrix_suffix) + "]\n";
+				Inv_param.cov_matrix_suffix) + "]\n";
 	else
-		saneInv_struct.cov_matrix_suffix = StringOf(s);
+		Inv_param.cov_matrix_suffix = StringOf(s);
 
 	s = iniparser_getstring(ini, "saneInv:noise_dir", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "saneInv:noise_dir : default value [" + StringOf(
-				saneInv_struct.noise_dir) + "]\n";
+				Inv_param.noise_dir) + "]\n";
 	else
-		saneInv_struct.noise_dir = checkTrailingDir(StringOf(s));
+		Inv_param.noise_dir = checkDir(StringOf(s));
 
 #ifdef DEBUG
 	output += output2;
@@ -304,7 +326,7 @@ void read_param_saneInv(std::string &output, dictionary *ini,
 }
 
 void read_param_sanePS(std::string &output, dictionary *ini,
-		struct param_sanePS &sanePS_struct) {
+		struct param_sanePS &PS_param) {
 
 	int i;
 	char *s;
@@ -313,67 +335,67 @@ void read_param_sanePS(std::string &output, dictionary *ini,
 	i = iniparser_getint(ini, "sanePS:ncomp", -1);
 	if (i == -1)
 		output2 += "sanePS:ncomp : default value [" + StringOf(
-				sanePS_struct.ncomp) + "]\n";
+				PS_param.ncomp) + "]\n";
 	else
-		sanePS_struct.ncomp = i;
+		PS_param.ncomp = i;
 
 	s = iniparser_getstring(ini, "sanePS:map_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePS:map_file : default value [" + StringOf(
-				sanePS_struct.signame) + "]\n";
+				PS_param.signame) + "]\n";
 	else
-		sanePS_struct.signame = StringOf(s);
+		PS_param.signame = StringOf(s);
 
 	s = iniparser_getstring(ini, "sanePS:MixingMatrix_Suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePS:MixingMatrix_Suffix : default value [" + StringOf(
-				sanePS_struct.mix_suffix) + "]\n";
+				PS_param.mix_suffix) + "]\n";
 	else
-		sanePS_struct.mix_suffix = StringOf(s);
+		PS_param.mix_suffix = StringOf(s);
 
 	s = iniparser_getstring(ini, "sanePS:ell_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePS:ell_suffix : default value [" + StringOf(
-				sanePS_struct.ell_suffix) + "]\n";
+				PS_param.ell_suffix) + "]\n";
 	else
-		sanePS_struct.ell_suffix = StringOf(s);
+		PS_param.ell_suffix = StringOf(s);
 
 	s = iniparser_getstring(ini, "sanePS:ell_global_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePS:ell_global_file : default value [" + StringOf(
-				sanePS_struct.ell_global_file) + "]\n";
+				PS_param.ell_global_file) + "]\n";
 	else
-		sanePS_struct.ell_global_file = StringOf(s);
+		PS_param.ell_global_file = StringOf(s);
 
 	s = iniparser_getstring(ini, "sanePS:MixingMatrix_global_file",
 			(char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePS:MixingMatrix_global_file : default value ["
-				+ StringOf(sanePS_struct.mix_global_file) + "]\n";
+				+ StringOf(PS_param.mix_global_file) + "]\n";
 	else
-		sanePS_struct.mix_global_file = StringOf(s);
+		PS_param.mix_global_file = StringOf(s);
 
 	i = iniparser_getboolean(ini, "sanePS:save_data", -1);
 	if (i == -1)
 		output2 += "sanePS:save_data: default value [" + StringOf(
-				sanePS_struct.save_data) + "]\n";
+				PS_param.save_data) + "]\n";
 	else
-		sanePS_struct.save_data = (bool) i;
+		PS_param.save_data = (bool) i;
 
 	//TODO: Ugly turnaround until sanePS is released;
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "saneInv:cov_matrix_file : default value [" + StringOf(
-				sanePS_struct.cov_matrix_file) + "]\n";
+				PS_param.cov_matrix_file) + "]\n";
 	else
-		sanePS_struct.cov_matrix_file = StringOf(s);
+		PS_param.cov_matrix_file = StringOf(s);
 
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "saneInv:cov_matrix_suffix : default value [" + StringOf(
-				sanePS_struct.cov_matrix_suffix) + "]\n";
+				PS_param.cov_matrix_suffix) + "]\n";
 	else
-		sanePS_struct.cov_matrix_suffix = StringOf(s);
+		PS_param.cov_matrix_suffix = StringOf(s);
 
 #ifdef DEBUG
 	output += output2;
@@ -381,7 +403,7 @@ void read_param_sanePS(std::string &output, dictionary *ini,
 
 }
 
-void read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &sanePic_struct){
+void read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &Pic_param){
 
 	int i;
 	char *s;
@@ -390,33 +412,33 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 	i = iniparser_getint(ini, "sanePic:iterW", -1);
 	if (i == -1)
 		output2 += "sanePic:iterW : default value [" + StringOf(
-				sanePic_struct.iterw) + "]\n";
+				Pic_param.iterw) + "]\n";
 	else
-		sanePic_struct.iterw = i;
+		Pic_param.iterw = i;
 
-	if (sanePic_struct.iterw == 0) {
-		sanePic_struct.save_data = 0;
-		sanePic_struct.iterw = 10;
+	if (Pic_param.iterw == 0) {
+		Pic_param.save_data = 0;
+		Pic_param.iterw = 10;
 	} else {
-		if (sanePic_struct.iterw < 0)
-			sanePic_struct.save_data = 0;
+		if (Pic_param.iterw < 0)
+			Pic_param.save_data = 0;
 		else
-			sanePic_struct.save_data = 1;
+			Pic_param.save_data = 1;
 	}
 
 	i = iniparser_getint(ini, "sanePic:iterMAX", -1);
 	if (i <= 0)
 		output2 += "sanePic:iterMAX : default value [" + StringOf(
-				sanePic_struct.itermax) + "]\n";
+				Pic_param.itermax) + "]\n";
 	else
-		sanePic_struct.itermax = i;
+		Pic_param.itermax = i;
 
 	s = iniparser_getstring(ini, "sanePic:map_prefix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
 		output2 += "sanePic:map_prefix : default value [" + StringOf(
-				sanePic_struct.map_prefix) + "]\n";
+				Pic_param.map_prefix) + "]\n";
 	else
-		sanePic_struct.map_prefix = StringOf(s);
+		Pic_param.map_prefix = StringOf(s);
 
 #ifdef DEBUG
 	output += output2;
@@ -442,13 +464,13 @@ int check_path(string &output, string strPath) {
 			output += "WW - " + strPath + " created\n";
 		else
 			output += "EE - " + strPath + " failed to create\n";
-			return 1;
+		return 1;
 	}
 	return 0;
 }
 
 int compute_dirfile_format_file(std::string tmp_dir,
-		struct samples samples_struct, int format) {
+		struct samples samples_param, int format) {
 
 	string filedir = tmp_dir + "dirfile";
 
@@ -458,9 +480,9 @@ int compute_dirfile_format_file(std::string tmp_dir,
 	D = gd_open((char *) filedir.c_str(),
 			GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 
-		string scan_name = samples_struct.basevect[iframe];
+		string scan_name = samples_param.basevect[iframe];
 		string scan_folder = filedir + "/" + scan_name;
 		string fdata = filedir + "/" + scan_name + "/fData";
 		string index_path = filedir + "/" + scan_name + "/Indexes";
@@ -545,16 +567,16 @@ int compute_dirfile_format_file(std::string tmp_dir,
 	return 0;
 }
 
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct,
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_param,
 		std::vector<std::vector<std::string> > bolo_vect) {
 
 	std::vector<string> det_vect;
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 
 		det_vect = bolo_vect[iframe];
 
-		string scan_name = samples_struct.basevect[iframe];
+		string scan_name = samples_param.basevect[iframe];
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
 		DIRFILE *S = gd_open((char *) index_path.c_str(),
@@ -585,7 +607,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct,
 	return 0;
 }
 
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct,
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_param,
 		long nframe, string noise_suffix,
 		std::vector<std::vector<std::string> > bolo_vect) {
 
@@ -595,7 +617,7 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct,
 
 		det_vect = bolo_vect[ii];
 
-		string base_name = samples_struct.basevect[ii];
+		string base_name = samples_param.basevect[ii];
 		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
 		string ell_path = noise_path + "/ell";
 
@@ -646,15 +668,15 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct,
 	return 0;
 }
 
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct,
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_param,
 		std::vector<std::vector<std::string> > bolo_vect) {
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 
 		std::vector<string> det_vect = bolo_vect[iframe];
 
 		//get fourier transform dirfile names !
-		string scan_name = samples_struct.basevect[iframe];
+		string scan_name = samples_param.basevect[iframe];
 		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/fData";
 
 		// clean up the dirfiles with TRUNC option
@@ -693,7 +715,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct,
 		long nframeI = gd_nframes(I);
 		long nframeD = gd_nframes(I);
 
-		long ns = samples_struct.nsamples[iframe];
+		long ns = samples_param.nsamples[iframe];
 		gd_close(I);
 		gd_close(D);
 
@@ -728,37 +750,37 @@ uint16_t check_common(string &output, struct param_common dir) {
 	return 0;
 }
 
-uint16_t check_param_positions(string &output, struct param_sanePos pos_param) {
+uint16_t check_param_positions(string &output, struct param_sanePos Pos_param) {
 
-	if (pos_param.pixdeg < 0) {
+	if (Pos_param.pixdeg < 0) {
 		output += "EE - Pixsize cannot be negative ! \n";
 		return PIXDEG_WRONG_VALUE;
 	}
-	if ((pos_param.fileFormat != 0) && (pos_param.fileFormat != 1)) {
+	if ((Pos_param.fileFormat != 0) && (Pos_param.fileFormat != 1)) {
 		output += "EE - Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
 		return FILEFORMAT_NOT_FOUND;
 	}
 
 	// Force axis type to GAL if converting from EQ to GAL
-	if (pos_param.eq2gal)
-		pos_param.axistype = "GAL";
+	if (Pos_param.eq2gal)
+		Pos_param.axistype = "GAL";
 
 	// Force axis type to EQ if converting from GAL to EQ
-	if (pos_param.gal2eq)
-		pos_param.axistype = "EQ";
+	if (Pos_param.gal2eq)
+		Pos_param.axistype = "EQ";
 
 
 	return 0;
 }
 
-uint16_t check_param_process(string &output, struct param_sanePre proc_param) {
+uint16_t check_param_process(string &output, struct param_saneProc Proc_param) {
 
-	if (proc_param.napod < 0) {
+	if (Proc_param.napod < 0) {
 		output
 		+= "EE - You must choose a positive number of samples to apodize\n";
 		return NAPOD_WRONG_VALUE;
 	}
-	if (proc_param.fsamp <= 0.0) {
+	if (Proc_param.fsamp <= 0.0) {
 		output += "EE - Sampling_frequency cannot be negative or 0 ! \n";
 		return FSAMP_WRONG_VALUE;
 	}
@@ -766,18 +788,18 @@ uint16_t check_param_process(string &output, struct param_sanePre proc_param) {
 	return 0;
 }
 
-uint16_t check_param_sanePS(string &output, struct param_sanePS structPS) {
+uint16_t check_param_sanePS(string &output, struct param_sanePS PS_param) {
 
-	if (structPS.ncomp <= 0) {
+	if (PS_param.ncomp <= 0) {
 		output += "EE - Number of component ncomp cannot be negative or zero ! \n";
 		return NCOMP_WRONG_VALUE;
 	}
-	if ((structPS.ell_global_file == "") && (structPS.ell_suffix == "")) {
+	if ((PS_param.ell_global_file == "") && (PS_param.ell_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     sanePS:ell_global_file or sanePS:ell_suffix\n";
 		return ELL_FILE_NOT_FOUND;
 	}
-	if ((structPS.mix_global_file == "") && (structPS.mix_suffix == "")) {
+	if ((PS_param.mix_global_file == "") && (PS_param.mix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     sanePS:mix_global_file or sanePS:mix_suffix\n";
 		return MIX_FILE_NOT_FOUND;
@@ -787,13 +809,13 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS structPS) {
 }
 
 uint16_t check_param_saneInv(string &output,
-		struct param_saneInv saneInv_struct) {
+		struct param_saneInv Inv_param) {
 
-	if (check_path(output, saneInv_struct.noise_dir))
+	if (check_path(output, Inv_param.noise_dir))
 		return SANEINV_INPUT_ERROR;
 
-	if ((saneInv_struct.cov_matrix_file == "")
-			&& (saneInv_struct.cov_matrix_suffix == "")) {
+	if ((Inv_param.cov_matrix_file == "")
+			&& (Inv_param.cov_matrix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     saneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
 		return SANEINV_INPUT_ERROR;
@@ -802,15 +824,15 @@ uint16_t check_param_saneInv(string &output,
 	return 0;
 }
 
-void default_param(struct param_common &dir, struct samples &samples_struct,
-		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_saneInv &inv_param, struct param_sanePic &pic_param) {
+void default_param(struct param_common &dir, struct samples &samples_param,
+		struct param_sanePos &Pos_param, struct param_saneProc &Proc_param,
+		struct param_saneInv &Inv_param, struct param_sanePic &Pic_param) {
 
 	default_param_common(dir);
-	default_param_sanePos(pos_param);
-	default_param_sanePre(proc_param);
-	default_param_saneInv(inv_param);
-	default_param_sanePic(pic_param);
+	default_param_sanePos(Pos_param);
+	default_param_saneProc(Proc_param);
+	default_param_saneInv(Inv_param);
+	default_param_sanePic(Pic_param);
 
 }
 
@@ -829,147 +851,147 @@ void default_param_common(struct param_common &dir) {
 
 }
 
-void default_param_sanePos(struct param_sanePos &pos_param) {
-	//	pos_param.flgdupl = 0; // map duplication factor
-	//	pos_param.flgdupl = 0; // map duplication factor
-	//	pos_param.maskfile = "";
+void default_param_sanePos(struct param_sanePos &Pos_param) {
+	//	Pos_param.flgdupl = 0; // map duplication factor
+	//	Pos_param.flgdupl = 0; // map duplication factor
+	//	Pos_param.maskfile = "";
 	// param_sanePos
-	pos_param.maskfile = "";
+	Pos_param.maskfile = "";
 
-	pos_param.pixdeg   = 0.0;
-	pos_param.lon      = NAN;
-	pos_param.lat      = NAN;
-	pos_param.projcode = "TAN";
-	pos_param.axistype = "EQ";
+	Pos_param.pixdeg   = 0.0;
+	Pos_param.lon      = NAN;
+	Pos_param.lat      = NAN;
+	Pos_param.projcode = "TAN";
+	Pos_param.axistype = "EQ";
 
-	pos_param.eq2gal   = false;
-	pos_param.gal2eq   = false;
+	Pos_param.eq2gal   = false;
+	Pos_param.gal2eq   = false;
 
-	pos_param.flgdupl = false; // What to do with flagged data : (default : False -- map in a single pixel)
-	pos_param.projgaps = false; // What to do with gaps : (default : 0 -- no projection)
-	pos_param.fileFormat = 0; // Default sanepic File Format
+	Pos_param.flgdupl  = true; // What to do with flagged data : (default : False -- map in a single pixel)
+	Pos_param.projgaps = true; // What to do with gaps : (default : 0 -- no projection)
+	Pos_param.fileFormat = 0;  // Default sanepic File Format
 
 	// 0: sanepic format with reference position & offsets
 	// 1: 'hipe' like format with LON/LAT for each time/bolo
 
 }
 
-void default_param_sanePre(struct param_sanePre &proc_param) {
+void default_param_saneProc(struct param_saneProc &Proc_param) {
 
-	//	proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
-	//	proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
-	//	proc_param.fsamp = 0.0;// sampling frequency
-	//	proc_param.remove_linear = 0; /*!  baseline is removed from the data, remove_linear = 1 else 0 */
-	//	proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
-	//	proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
-	//	proc_param.f_lp = 0.0; // low pass filter frequency
+	//	Proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
+	//	Proc_param.NOFILLGAP = 0; /*! dont fill the gaps ? default is NO => the program fill */
+	//	Proc_param.fsamp = 0.0;// sampling frequency
+	//	Proc_param.remove_linear = 0; /*!  baseline is removed from the data, remove_linear = 1 else 0 */
+	//	Proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
+	//	Proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
+	//	Proc_param.f_lp = 0.0; // low pass filter frequency
 
-	proc_param.remove_linear = false;
-	proc_param.fill_gap = true;
-	proc_param.CORRon = true;
-	proc_param.remove_polynomia = true;
-	proc_param.highpass_filter = false;
+	Proc_param.remove_linear = false;
+	Proc_param.fill_gap = true;
+	Proc_param.CORRon = true;
+	Proc_param.remove_polynomia = true;
+	Proc_param.highpass_filter = false;
 
-	proc_param.fcut_file = "";
-	proc_param.napod = 100;
-	proc_param.poly_order = 1;
-	proc_param.fsamp = 0.0;
-	proc_param.f_lp = 0.0;
+	Proc_param.fcut_file = "";
+	Proc_param.napod = 100;
+	Proc_param.poly_order = 1;
+	Proc_param.fsamp = 0.0;
+	Proc_param.f_lp = 0.0;
 
 }
 
-void default_param_sanePS(struct param_sanePS &ps_param) {
+void default_param_sanePS(struct param_sanePS &PS_param) {
 
-	ps_param.ell_suffix = ".ell";
-	ps_param.mix_suffix = ".mix";
-	ps_param.ell_global_file = "";
-	ps_param.mix_global_file = "";
-	ps_param.signame = "";
-	ps_param.ncomp = 1;
-	ps_param.save_data = 1;
+	PS_param.ell_suffix = ".ell";
+	PS_param.mix_suffix = ".mix";
+	PS_param.ell_global_file = "";
+	PS_param.mix_global_file = "";
+	PS_param.signame = "";
+	PS_param.ncomp = 1;
+	PS_param.save_data = 1;
 
 	//TODO: Ugly turnaround until sanePS is released;
 
-	ps_param.cov_matrix_file = "";
-	ps_param.cov_matrix_suffix = "_ps.fits";
+	PS_param.cov_matrix_file = "";
+	PS_param.cov_matrix_suffix = "_ps.fits";
 
 }
 
-void default_param_saneInv(struct param_saneInv &inv_param) {
+void default_param_saneInv(struct param_saneInv &Inv_param) {
 
-	inv_param.cov_matrix_file = "";
-	inv_param.cov_matrix_suffix = "_psd.fits";
-	inv_param.noise_dir = "./";
+	Inv_param.cov_matrix_file = "";
+	Inv_param.cov_matrix_suffix = "_psd.fits";
+	Inv_param.noise_dir = "./";
 }
 
-void default_param_sanePic(struct param_sanePic &pic_param) {
+void default_param_sanePic(struct param_sanePic &Pic_param) {
 
-	pic_param.iterw = 0;
-	pic_param.itermax = 2000;
-	pic_param.save_data = 0;
-	pic_param.map_prefix = "optimMap";
+	Pic_param.iterw = 0;
+	Pic_param.itermax = 2000;
+	Pic_param.save_data = 0;
+	Pic_param.map_prefix = "optimMap";
 }
 
-void fill_sanePS_struct(struct param_sanePS &structPS,
-		struct samples &samples_struct, struct param_common &dir) {
+void fill_sanePS_struct(struct param_sanePS &PS_param,
+		struct samples &samples_param, struct param_common &dir) {
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-		if (structPS.mix_global_file != "")
-			samples_struct.mix_names.push_back(
-					dir.input_dir + structPS.mix_global_file);
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
+		if (PS_param.mix_global_file != "")
+			samples_param.mix_names.push_back(
+					dir.input_dir + PS_param.mix_global_file);
 		else
-			samples_struct.mix_names.push_back(
+			samples_param.mix_names.push_back(
 					dir.input_dir + FitsBasename(
-							samples_struct.fitsvect[iframe])
-							+ structPS.mix_suffix);
+							samples_param.fitsvect[iframe])
+							+ PS_param.mix_suffix);
 
-		if (structPS.ell_global_file != "")
-			samples_struct.ell_names.push_back(
-					dir.input_dir + structPS.ell_global_file);
+		if (PS_param.ell_global_file != "")
+			samples_param.ell_names.push_back(
+					dir.input_dir + PS_param.ell_global_file);
 		else
-			samples_struct.ell_names.push_back(
+			samples_param.ell_names.push_back(
 					dir.input_dir + FitsBasename(
-							samples_struct.fitsvect[iframe])
-							+ structPS.ell_suffix);
+							samples_param.fitsvect[iframe])
+							+ PS_param.ell_suffix);
 	}
 
 }
 
-uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
-		struct param_common &dir, struct param_saneInv &inv_param,
+uint16_t fill_samples_param(string &output, struct samples &samples_param,
+		struct param_common &dir, struct param_saneInv &Inv_param,
 		string fcut_file) {
 
 	string filename;
 	filename = dir.input_dir + dir.fits_filelist;
-	if (read_fits_list(output, filename, samples_struct) != 0)
+	if (read_fits_list(output, filename, samples_param) != 0)
 		return 0x4000;
 
-	samples_struct.ntotscan = (samples_struct.fitsvect).size();
+	samples_param.ntotscan = (samples_param.fitsvect).size();
 
 	// Fill basevect
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-		samples_struct.basevect.push_back(
-				dirfile_Basename(samples_struct.fitsvect[iframe]));
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
+		samples_param.basevect.push_back(
+				dirfile_Basename(samples_param.fitsvect[iframe]));
 	}
 	// Fill bolovect
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 		if (dir.bolo_global_filename != "")
-			samples_struct.bolovect.push_back(dir.bolo_global_filename);
+			samples_param.bolovect.push_back(dir.bolo_global_filename);
 		else
-			samples_struct.bolovect.push_back(
-					FitsBasename(samples_struct.fitsvect[iframe])
+			samples_param.bolovect.push_back(
+					FitsBasename(samples_param.fitsvect[iframe])
 					+ dir.bolo_suffix);
 
 	}
 
 	// Fill noisevect
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-		if ((inv_param.cov_matrix_file != ""))
-			samples_struct.noisevect.push_back(inv_param.cov_matrix_file);
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
+		if ((Inv_param.cov_matrix_file != ""))
+			samples_param.noisevect.push_back(Inv_param.cov_matrix_file);
 		else
-			samples_struct.noisevect.push_back(
-					FitsBasename(samples_struct.fitsvect[iframe])
-					+ inv_param.cov_matrix_suffix);
+			samples_param.noisevect.push_back(
+					FitsBasename(samples_param.fitsvect[iframe])
+					+ Inv_param.cov_matrix_suffix);
 	}
 
 	if (FitsBasename(fcut_file).size() == 0) {
@@ -984,34 +1006,34 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 		return 0x8000;
 
 	if (((int) dummy2.size()) == 0 || ((int) dummy2.size() != 1
-			&& ((int) dummy2.size() != samples_struct.ntotscan))) {
+			&& ((int) dummy2.size() != samples_param.ntotscan))) {
 		output
 		+= "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
 		return 0x8000;
 	}
 
 	for (int iframe_dummy = 0; iframe_dummy < (int) dummy2.size(); iframe_dummy++)
-		samples_struct.fcut.push_back(atof(dummy2[iframe_dummy].c_str()));
+		samples_param.fcut.push_back(atof(dummy2[iframe_dummy].c_str()));
 
 	// If There is only one value, use it everywhere
-	if ((dummy2.size() == 1) && (samples_struct.ntotscan > 1)) {
+	if ((dummy2.size() == 1) && (samples_param.ntotscan > 1)) {
 		// if only one fcut, extend to all scans
-		samples_struct.fcut.resize(samples_struct.ntotscan,
-				samples_struct.fcut[0]);
+		samples_param.fcut.resize(samples_param.ntotscan,
+				samples_param.fcut[0]);
 	}
 
 	return 0;
 
 }
 
-int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank) {
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_param, int rank) {
 
 	long nframe_long;
 
-	for (long ii = 0; ii < samples_struct.ntotscan; ii++) {
+	for (long ii = 0; ii < samples_param.ntotscan; ii++) {
 
 		if (rank == 0) {
-			string scan_name = samples_struct.basevect[ii];
+			string scan_name = samples_param.basevect[ii];
 			// dirfile path
 			string filedir = tmp_dir + "dirfile/" + scan_name
 					+ "/Noise_data/ell/";
@@ -1036,11 +1058,11 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 #endif
 
 		// get nbins value
-		samples_struct.nbins.push_back(nframe_long);
+		samples_param.nbins.push_back(nframe_long);
 
 		if (rank == 0) {
 
-			string scan_name = samples_struct.basevect[ii];
+			string scan_name = samples_param.basevect[ii];
 
 			// get ndet value
 			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
@@ -1062,14 +1084,14 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 #endif
 
 		// compute ndet considering entry size and nbins
-		samples_struct.ndet.push_back(nframe_long / samples_struct.nbins[ii]);
+		samples_param.ndet.push_back(nframe_long / samples_param.nbins[ii]);
 
 	}
 
 	return 0;
 }
 
-int channel_list_to_vect_list(struct samples samples_struct,
+int channel_list_to_vect_list(struct samples samples_param,
 		std::vector<std::vector<std::string> > &bolo_vect, int rank) {
 
 #ifdef USE_MPI
@@ -1079,12 +1101,12 @@ int channel_list_to_vect_list(struct samples samples_struct,
 	long ndet;
 	std::vector<string> det_vect;
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 
 		if (rank == 0) {
 
 			string output_read = "";
-			if (read_channel_list(output_read, samples_struct.bolovect[iframe],
+			if (read_channel_list(output_read, samples_param.bolovect[iframe],
 					det_vect)) {
 				cout << output_read << endl;
 #ifdef USE_MPI
@@ -1243,10 +1265,10 @@ int commit_dictionary(int rank, dictionary *dict) {
 
 //TODO: sanePS is not in the default distribution, so should not be in the master parser_function....
 uint16_t parser_function(char * ini_name, std::string &output,
-		struct param_common &dir, struct samples &samples_struct,
-		struct param_sanePos &pos_param, struct param_sanePre &proc_param,
-		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct,
-		struct param_sanePic &sanePic_struct, int size, int rank) {
+		struct param_common &dir, struct samples &samples_param,
+		struct param_sanePos &Pos_param, struct param_saneProc &Proc_param,
+		struct param_sanePS &PS_param, struct param_saneInv &Inv_param,
+		struct param_sanePic &Pic_param, int size, int rank) {
 
 	dictionary * ini = NULL;
 	string filename;
@@ -1277,48 +1299,48 @@ uint16_t parser_function(char * ini_name, std::string &output,
 #endif
 
 	// default values :
-	default_param(dir, samples_struct, pos_param, proc_param, saneInv_struct,
-			sanePic_struct);
+	default_param(dir, samples_param, Pos_param, Proc_param, Inv_param,
+			Pic_param);
 
 	//TODO sanePS should be out of here
-	default_param_sanePS(structPS);
+	default_param_sanePS(PS_param);
 
 	read_common(output, ini, dir);
-	read_param_saneInv(output, ini, saneInv_struct);
-	read_param_sanePos(output, ini, pos_param);
-	read_param_sanePic(output, ini, sanePic_struct);
-	read_param_sanePre(output, ini, proc_param);
+	read_param_saneInv(output, ini, Inv_param);
+	read_param_sanePos(output, ini, Pos_param);
+	read_param_sanePic(output, ini, Pic_param);
+	read_param_saneProc(output, ini, Proc_param);
 	//TODO sanePS should be out of here (special case)
-	read_param_sanePS(output, ini, structPS);
+	read_param_sanePS(output, ini, PS_param);
 
 	iniparser_freedict(ini);
 
 	// Now the ini file has been read, do the rest
 
 	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-	filename = dir.input_dir + proc_param.fcut_file;
-	parsed += fill_samples_struct(output, samples_struct, dir, saneInv_struct,
+	filename = dir.input_dir + Proc_param.fcut_file;
+	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
 			filename);
 
-	for (int iframe = 0; iframe < (int) ((samples_struct.fitsvect).size()); iframe++) {
-		//		samples_struct.fitsvect[iframe] = dir.data_dir + samples_struct.fitsvect[iframe];
-		samples_struct.bolovect[iframe] = dir.input_dir
-				+ samples_struct.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
+	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
+		//		samples_param.fitsvect[iframe] = dir.data_dir + samples_param.fitsvect[iframe];
+		samples_param.bolovect[iframe] = dir.input_dir
+				+ samples_param.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
 	}
 
 	// Store scan sizes so that we dont need to read it again and again in the loops !
-	readFrames(dir.data_dir, samples_struct.fitsvect, samples_struct.nsamples);
+	readFrames(dir.data_dir, samples_param.fitsvect, samples_param.nsamples);
 
 	if (rank == 0)
 		parsed += check_common(output, dir);
 
-	parsed += check_param_positions(output, pos_param);
+	parsed += check_param_positions(output, Pos_param);
 
-	parsed += check_param_process(output, proc_param);
+	parsed += check_param_process(output, Proc_param);
 
-	parsed += check_param_saneInv(output, saneInv_struct);
+	parsed += check_param_saneInv(output, Inv_param);
 
-	parsed += check_param_sanePS(output, structPS);
+	parsed += check_param_sanePS(output, PS_param);
 
 	return parsed;
 }
@@ -1331,104 +1353,104 @@ void print_common(struct param_common dir) {
 	cout << "Output Dir.      : " << dir.output_dir << endl;
 }
 
-void print_param_positions(struct param_sanePos pos_param) {
+void print_param_sanePos(struct param_sanePos Pos_param) {
 
-	cout << "Pixel Size       : " << setprecision(14) << pos_param.pixdeg
+	cout << "Pixel Size       : " << setprecision(14) << Pos_param.pixdeg
 			<< " deg\n";
 
-	if (pos_param.flgdupl)
+	if (Pos_param.flgdupl)
 		cout << "Map Flags        : True" << endl;
 
-	if (pos_param.projgaps)
+	if (Pos_param.projgaps)
 		cout << "Gap Filling      : PROJECTED" << endl;
 	else
 		cout << "Gap Filling      : NOT projected (default)" << endl;
 
-	if (pos_param.eq2gal)
+	if (Pos_param.eq2gal)
 		cout << "Converting to    : Galactic Coordinates" << endl;
 
-	if (pos_param.gal2eq)
+	if (Pos_param.gal2eq)
 		cout << "Converting to    : Equatorial Coordinates" << endl;
 
 	cout << endl;
 }
 
-void print_param_process(struct param_sanePre proc_param) {
+void print_param_process(struct param_saneProc Proc_param) {
 
-	if (proc_param.fill_gap)
+	if (Proc_param.fill_gap)
 		cout << "Fill Gaps        : True\n";
 	else
 		cout << "Fill Gaps        : False\n";
 
-	if (proc_param.remove_linear)
+	if (Proc_param.remove_linear)
 		cout << "Simple Baseline  : will be removed (default)\n";
 	else
 		cout << "Simple Baseline  : will not be removed\n";
 
-	if (proc_param.CORRon)
+	if (Proc_param.CORRon)
 		cout << "Correlations     : INCLUDED in the analysis" << endl;
 	else
 		cout << "Correlations     : NOT INCLUDED in the analysis" << endl;
 
-	if (proc_param.remove_polynomia)
-		cout << "Poly. Order      : " << proc_param.poly_order << endl;
+	if (Proc_param.remove_polynomia)
+		cout << "Poly. Order      : " << Proc_param.poly_order << endl;
 	else
 		cout << "Poly. Order      : None\n";
 
-	if (proc_param.napod > 0)
-		cout << "# for Apodize    : " << proc_param.napod << endl;
+	if (Proc_param.napod > 0)
+		cout << "# for Apodize    : " << Proc_param.napod << endl;
 
-	if (proc_param.highpass_filter)
-		cout << "HPF Freq.        : " << proc_param.f_lp << " Hz" << endl;
+	if (Proc_param.highpass_filter)
+		cout << "HPF Freq.        : " << Proc_param.f_lp << " Hz" << endl;
 	else
 		cout << "HPF Freq.        : None" << endl;
 
-	cout << "Sampling Freq.   : " << proc_param.fsamp << " Hz\n";
+	cout << "Sampling Freq.   : " << Proc_param.fsamp << " Hz\n";
 
 	cout << endl;
 }
 
-void print_param_sanePic(struct param_sanePic sanepic_struct) {
+void print_param_sanePic(struct param_sanePic Pic_param) {
 
-	if (sanepic_struct.save_data)
-		cout << "Write Iter. Maps : " << sanepic_struct.iterw << endl;
+	if (Pic_param.save_data)
+		cout << "Write Iter. Maps : " << Pic_param.iterw << endl;
 	else
 		cout << "Write Iter. Maps : OFF \n";
 
-	cout << "Max Iter.        : " << sanepic_struct.itermax << endl;
+	cout << "Max Iter.        : " << Pic_param.itermax << endl;
 
-	cout << "Maps prefix      : " << sanepic_struct.map_prefix << endl;
+	cout << "Maps prefix      : " << Pic_param.map_prefix << endl;
 
 	cout << endl;
 }
 
-void print_param_sanePS(struct param_sanePS structPS) {
+void print_param_sanePS(struct param_sanePS PS_param) {
 
-	if (structPS.save_data)
+	if (PS_param.save_data)
 		cout << "Save data.       : ON\n";
 	else
 		cout << "Save data.       : OFF\n";
 
-	if (structPS.signame != "")
-		cout << "Removed map.     : " << structPS.signame << endl;
+	if (PS_param.signame != "")
+		cout << "Removed map.     : " << PS_param.signame << endl;
 
-	cout << "Noise comp.      : " << structPS.ncomp << endl;
+	cout << "Noise comp.      : " << PS_param.ncomp << endl;
 
 	cout << endl;
 }
 
-void print_param_saneInv(struct param_saneInv saneInv_struct) {
+void print_param_saneInv(struct param_saneInv Inv_param) {
 
-	cout << "Noise Dir.       : " << saneInv_struct.noise_dir << endl;
+	cout << "Noise Dir.       : " << Inv_param.noise_dir << endl;
 
 	cout << endl;
 }
 
 void parser_printOut(char * prog_name, struct param_common dir,
-		struct samples samples_struct, struct param_sanePos pos_param,
-		struct param_sanePre proc_param, struct param_sanePS structPS,
-		struct param_sanePic sanePic_struct,
-		struct param_saneInv saneInv_struct) {
+		struct samples samples_param, struct param_sanePos Pos_param,
+		struct param_saneProc Proc_param, struct param_sanePS PS_param,
+		struct param_sanePic Pic_param,
+		struct param_saneInv Inv_param) {
 
 	string basename(prog_name);
 	basename = FitsBasename(basename);
@@ -1439,34 +1461,291 @@ void parser_printOut(char * prog_name, struct param_common dir,
 
 	i = basename.find("sanePos");
 	if ((i >= 0) && (i < (int) basename.size())) {
-		print_param_positions(pos_param);
+		print_param_sanePos(Pos_param);
 	}
 
 	i = basename.find("sanePS");
 	if ((i >= 0) && (i < (int) basename.size())) {
-		print_param_positions(pos_param);
-		print_param_process(proc_param);
-		print_param_sanePS(structPS);
+		print_param_sanePos(Pos_param);
+		print_param_process(Proc_param);
+		print_param_sanePS(PS_param);
 	}
 
-	//	i=basename.find("sanePre");
+	//	i=basename.find("saneProc");
 	//	if((i>=0) && (i<(int)basename.size())){
-	//		print_param_positions(pos_param);
-	//		print_param_process(proc_param);
+	//		print_param_positions(Pos_param);
+	//		print_param_process(Proc_param);
 	//	}
 
 	i = basename.find("sanePic");
 	if ((i >= 0) && (i < (int) basename.size())) {
-		print_param_positions(pos_param);
-		print_param_process(proc_param);
-		print_param_sanePic(sanePic_struct);
+		print_param_sanePos(Pos_param);
+		print_param_process(Proc_param);
+		print_param_sanePic(Pic_param);
 	}
 
 	i = basename.find("saneInv");
 	if ((i >= 0) && (i < (int) basename.size())) {
-		print_param_saneInv(saneInv_struct);
+		print_param_saneInv(Inv_param);
 	}
 
-	printf("# of Scans       : %ld\n", samples_struct.ntotscan);
+	printf("# of Scans       : %ld\n", samples_param.ntotscan);
+
+}
+
+
+void export_param_sanePos(struct param_sanePos Pos_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("pixsize");
+	value.push_back(StringOf(Pos_param.pixdeg));
+	comment.push_back("size of pixels (degrees)");
+
+	key.push_back("map_flagged_data");
+	value.push_back(StringOf( Pos_param.flgdupl ?"True" :"False"));
+	comment.push_back("flagged data put in a separated map (default is False)");
+
+	key.push_back("file_format");
+	value.push_back(StringOf(Pos_param.fileFormat));
+	comment.push_back("SANEPIC 0, HIPE 1");
+
+	key.push_back("project_gaps");
+	value.push_back(StringOf(Pos_param.projgaps ? "True" :"False"));
+	comment.push_back("gaps are projected to a pixel in the map, if so gap filling of noise only is performed iteratively. Default is False");
+
+	key.push_back("mask_file");
+	value.push_back(Pos_param.maskfile);
+	comment.push_back("mask (fits file) : use to remove cross constraint due to strong sources");
+
+	key.push_back("lon");
+	value.push_back(StringOf(Pos_param.lon));
+	comment.push_back("LON nominal of the input scan data");
+
+	key.push_back("lat");
+	value.push_back(StringOf(Pos_param.lat));
+	comment.push_back("LAT nominal of the input scan data");
+
+	key.push_back("proj_code");
+	value.push_back(StringOf(Pos_param.projcode));
+	comment.push_back("projection type, see wcslib projection code (default: TAN)");
+
+	key.push_back("axis_type");
+	value.push_back(StringOf(Pos_param.axistype));
+	comment.push_back("axis type, EQ|GAL, (default EQ) ");
+
+	key.push_back("eq2gal");
+	value.push_back(StringOf(Pos_param.eq2gal ? "True" : "False"));
+	comment.push_back("Convert J2000.0 EQ to GAL");
+
+	key.push_back("gal2eq");
+	value.push_back(StringOf(Pos_param.gal2eq ? "True" : "False"));
+	comment.push_back("Convert GAL to J2000.0");
+
+}
+
+void export_param_common(struct param_common dir, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("data_directory");
+	value.push_back(dir.data_dir);
+	comment.push_back("source data directory");
+
+	key.push_back("input_directory");
+	value.push_back(dir.input_dir);
+	comment.push_back("input directory with all the configurations files");
+
+	key.push_back("output_dir");
+	value.push_back(dir.output_dir);
+	comment.push_back("output directory");
+
+	key.push_back("temp_dir");
+	value.push_back(dir.tmp_dir);
+	comment.push_back("temporary directory");
+
+	key.push_back("fits_filelist");
+	value.push_back(dir.fits_filelist);
+	comment.push_back("file containing fits file names");
+
+	key.push_back("bolo_global_file");
+	value.push_back(dir.bolo_global_filename);
+	comment.push_back("every scans have the same detector list");
+
+	key.push_back("bolo_suffix");
+	value.push_back(dir.bolo_suffix);
+	comment.push_back("bolometers filelist suffix");
+
+}
+
+void export_param_saneProc(struct param_saneProc Proc_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("sampling_frequency");
+	value.push_back(StringOf(Proc_param.fsamp));
+	comment.push_back("detectors sampling frequency [Hz]");
+
+	key.push_back("filter_frequency");
+	value.push_back(StringOf(Proc_param.f_lp));
+	comment.push_back("frequency of the high pass filter applied to the data [Hz]");
+
+	key.push_back("apodize_Nsamples");
+	value.push_back(StringOf(Proc_param.napod));
+	comment.push_back("number of samples to apodize");
+
+	key.push_back("fcut_file");
+	value.push_back(Proc_param.fcut_file);
+	comment.push_back("filename containing the frequency at which noise power spectra are thresholded");
+
+	key.push_back("poly_order");
+	value.push_back(StringOf(Proc_param.poly_order));
+	comment.push_back("baseline polynomia order (default : 0 no baseline)");
+
+	key.push_back("linear_baseline");
+	value.push_back(StringOf(Proc_param.remove_linear ? "True" : "False"));
+	comment.push_back("simple linear baseline removed from the data (False : default)");
+
+	key.push_back("correlation");
+	value.push_back(StringOf(Proc_param.CORRon ? "True" : "False"));
+	comment.push_back("Set this keyword to False if correlations between detectors are not included in the analysis (True : default)");
+
+	key.push_back("fill_gap");
+	value.push_back(StringOf(Proc_param.fill_gap ? "True" : "False"));
+	comment.push_back("Do we fill the gaps ?  (True : default)");
+
+}
+
+void export_param_saneInv(struct param_saneInv Inv_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("noise_dir");
+	value.push_back(Inv_param.noise_dir);
+	comment.push_back("cov matrix directory");
+
+	key.push_back("cov_matrix_file");
+	value.push_back(Inv_param.cov_matrix_file);
+	comment.push_back("this file contains the matrix you want to invert");
+
+	key.push_back("cov_matrix_suffix");
+	value.push_back(Inv_param.cov_matrix_suffix);
+	comment.push_back("this file contains the matrix you want to invert");
+
+}
+
+void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("MixingMatrix_suffix");
+	value.push_back(PS_param.mix_suffix);
+	comment.push_back("Mixing matrix files suffix");
+
+	key.push_back("MixingMatrix_global_file");
+	value.push_back(PS_param.mix_global_file);
+	comment.push_back("the MixingMatrix file common to all scans");
+
+	key.push_back("ncomp");
+	value.push_back(StringOf(PS_param.ncomp));
+	comment.push_back("number of component(s) to estimate (default : 1)");
+
+	key.push_back("map_file");
+	value.push_back(PS_param.signame);
+	comment.push_back("map substracted from the data (sanePos needed)");
+
+	key.push_back("ell_global_file");
+	value.push_back(PS_param.ell_global_file);
+	comment.push_back("the ell file common to all scans");
+
+	key.push_back("ell_suffix");
+	value.push_back(PS_param.ell_suffix);
+	comment.push_back("ell files suffix");
+
+	key.push_back("save_data");
+	value.push_back(StringOf(PS_param.save_data));
+	comment.push_back("set save_data to 1 if you wish to save the processing session after each sanePS step");
+
+}
+
+void export_param_sanePic(struct param_sanePic Pic_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("iterW");
+	value.push_back(StringOf(Pic_param.iterw));
+	comment.push_back("Write temporary map files on disk every iterW number of loop");
+
+	key.push_back("iterMAX");
+	value.push_back(StringOf(Pic_param.itermax));
+	comment.push_back("Maximum number of conjugate gradient loops (default: 2000)");
+
+	key.push_back("map_prefix");
+	value.push_back(Pic_param.map_prefix);
+	comment.push_back("prefix for the fits file (default : optimMap");
+
+}
+
+void export_param_saneCheck(struct param_saneCheck Check_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("check_NAN");
+	value.push_back(StringOf(Check_param.checkNAN ? "True" : "False"));
+	comment.push_back("check whether there are NANs in every tables and flag them if needed");
+
+	key.push_back("check_time_gaps");
+	value.push_back(StringOf(Check_param.checktime ? "True" : "False"));
+	comment.push_back("check whether there are gaps in time table and fill those gaps with flagged data to ensure continuity");
+
+	key.push_back("check_flag");
+	value.push_back(StringOf(Check_param.checkflag ? "True" : "False"));
+	comment.push_back("check whether there are detectors that are fully or more than 80% flagged");
+
+	key.push_back("check_bolo_gain");
+	value.push_back(StringOf(Check_param.checkGain ? "True" : "False"));
+	comment.push_back("Compute detector gain and print to screen");
+
+}
+
+string rebuild_ini(struct param_common dir, struct param_saneProc proc_param, struct param_sanePos pos_param,
+		struct samples samples_param, struct param_sanePS PS_param,
+		struct param_sanePic Pic_param, struct param_saneInv Inv_param) {
+
+	string text;
+
+	// Generates ini file model
+	text = "# Sanepic ini file :\n";
+	text += "# Edit the lines to modify the options !\n";
+	text += "# Some options are required : Check the comments !\n";
+	text += "\n";
+
+	std::vector<string> key_vect;
+	std::vector<string> val_vect;
+	std::vector<string> com_vect;
+
+	text += "\n[common]\n";
+	export_param_common(dir, key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	text += "\n[sanePos]\n";
+	export_param_sanePos(pos_param,   key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	text += "\n[saneProc]\n";
+	export_param_saneProc(proc_param, key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	text += "\n[saneInv]\n";
+	export_param_saneInv(Inv_param,   key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	text += "\n[sanePic]\n";
+	export_param_sanePic(Pic_param,   key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	text += "\n[sanePS]\n";
+	export_param_sanePS(PS_param,     key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	return text;
 
 }

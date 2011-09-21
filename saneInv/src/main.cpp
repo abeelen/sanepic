@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 	string output = "";
 
 	struct param_sanePos pos_param;
-	struct param_sanePre proc_param;
+	struct param_saneProc proc_param;
 	struct param_sanePS structPS;
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;

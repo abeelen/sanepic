@@ -31,12 +31,12 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
  \param data Input data to be pre-processed
  \param flag An array specifying which "data" samples are flagged
  \param ns Number of samples for the considered scan : samples_struct.fitsvect[iframe]
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param f_lppix High-pass Filter cut-off frequency (converted in samples)
  \param data_lp Filtered and pre-processed data (MapMakePreProcessData's output)
  \param Ps Deprojected signal to be removed from data
  */
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_sanePre proc_param, double f_lppix, double *data_lp, double *Ps);
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double f_lppix, double *data_lp, double *Ps);
 
 
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,

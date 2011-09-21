@@ -494,7 +494,7 @@ void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 	double *LAT, *LAT_fixed;
 	double *PHI, *PHI_fixed;
 
-	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){ // move input pointer to ref pos
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status)){ // move input pointer to ref pos
 		cout << "WARNING : reference position table was not found, skipping this table...\n";
 		return;
 	}

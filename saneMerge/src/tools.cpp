@@ -130,13 +130,13 @@ void copy_ref_pos(fitsfile *outfptr, string dirfile, struct samples samples_stru
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
 			fits_report_error(stderr, status);
 
-		if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)) // move HDU pointer to desired table
+		if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status)) // move HDU pointer to desired table
 			fits_report_error(stderr, status);
 
 		if(iframe==0){ // if this is the first file of the list
 			if(fits_copy_header(fptr, outfptr, &status))
 				fits_report_error(stderr, status);
-			if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", 0, &status)) // move HDU pointer to desired table
+			if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "refPos", 0, &status)) // move HDU pointer to desired table
 				fits_report_error(stderr, status);
 			if(fits_update_key(outfptr, TLONG, (char*)"NAXIS2", &ns_final, (char*)"Number of rows", &status)) // update table key
 				fits_report_error(stderr, status);

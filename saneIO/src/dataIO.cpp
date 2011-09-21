@@ -108,7 +108,7 @@ int read_ReferencePosition_from_fits(string filename, double *&LON, double *&LAT
 
 	// ---------------------------------------------
 	// move to the reference position table
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -132,7 +132,7 @@ int read_ReferencePosition_from_fits(string filename, double *&LON, double *&LAT
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, LAT, 0, &status);
 
 	// Read PHI
-	fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "phi", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 	fits_read_col(fptr, TDOUBLE, colnum, 1, 1, ns, NULL, PHI, 0, &status);
 
@@ -215,11 +215,11 @@ int read_signal_from_fits(string filename, string field, double *& signal, long 
 	int rowIndex = 0, naxis = 0, anynul;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
+
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
-
 	// ---------------------------------------------
 	// Retrieve the row of the specified channel
 	rowIndex = find_channel_index(fptr, field.c_str());
@@ -315,9 +315,19 @@ int read_channels(fitsfile *fptr, char **& data, long &nBolos){
 		return 1;
 	}
 
-	fits_get_num_rows(fptr, &nBolos, &status);
-	fits_get_colnum(fptr, CASEINSEN, (char*) "names", &colnum, &status);
-	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
+	if (fits_get_num_rows(fptr, &nBolos, &status)) {
+		fits_report_error(stderr, status);
+		return 1;
+	}
+
+	if (fits_get_colnum(fptr, CASEINSEN, (char*) "name", &colnum, &status)) {
+		fits_report_error(stderr, status);
+		return 1;
+	}
+	if (fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status)) {
+		fits_report_error(stderr, status);
+		return 1;
+	}
 
 	// Initialize the data container
 	data = new char*[nBolos];
@@ -528,7 +538,7 @@ int test_format(string fitsname){
 
 	status = 0;
 
-	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)>0) &&
+	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status)>0) &&
 			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)>0)){ // both tables were not found
 		if(format==2)
 			format=0;

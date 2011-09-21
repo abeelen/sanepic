@@ -80,7 +80,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 
 
 int computePixelIndex(string tmpdir, string dirfile,
-		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
@@ -297,7 +297,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 }
 
 int computePixelIndex_HIPE(string tmpdir,
-		struct samples samples_struct, struct param_sanePre proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
+		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)

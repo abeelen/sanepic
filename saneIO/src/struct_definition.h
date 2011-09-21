@@ -42,7 +42,7 @@ struct param_sanePos
 	int fileFormat; /*! indicates fits files format : HIPE = 1, SANEPIC = 0 */
 };
 
-struct param_sanePre
+struct param_saneProc
 /*! A structure that contains user options about preprocessing properties */
 {
 	bool remove_linear ;   /*! True if a simple baseline removed from the data */
@@ -148,7 +148,7 @@ struct checkHDU
 	bool checkLAT; /*! True if saneCheck has to check DEC table */
 };
 
-struct saneCheck
+struct param_saneCheck
 /*! A structure that contains saneCheck specific ini file informations */
 {
 	struct checkHDU Check_it; /*! A structure that determines which tables saneCheck has to check */

@@ -58,14 +58,15 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2, 
  \param dir The param_common structure
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param fcut A vector containing the fcut values
  \param PS_param The param_sanePS structure
  \param Pic_param The param_sanePic structure
  \param Inv_param The param_saneInv structure
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_fits_history2(std::string fname, long NAXIS1, long NAXIS2, struct param_common dir, struct param_sanePre proc_param, struct param_sanePos pos_param, std::vector<double> fcut, struct samples samples_struct, struct param_sanePS PS_param, struct param_sanePic Pic_param, struct param_saneInv Inv_param);
+int write_fits_inifile(std::string fname, struct param_common dir, struct param_saneProc proc_param, struct param_sanePos pos_param, struct param_sanePS PS_param, struct param_sanePic Pic_param, struct param_saneInv Inv_param);
+int write_fits_inputfile(std::string fname, struct samples samples_struct);
 
 
 //! copy mask image from "maskfile" fits image to "fname"
@@ -74,7 +75,7 @@ int write_fits_history2(std::string fname, long NAXIS1, long NAXIS2, struct para
  \param maskfile The input fits image filename, containing the mask map
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_fits_mask(std::string fname, std::string maskfile);
+int copy_fits_mask(std::string fname, std::string maskfile);
 
 //! Extract a wcs structure from fits extension named "fname"
 /*!

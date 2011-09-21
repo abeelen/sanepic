@@ -86,18 +86,18 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
-	struct param_sanePre proc_param; /* contains user options about preprocessing properties */
+	struct param_saneProc Proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
-	struct param_sanePos pos_param; /* contains user options about map projection and properties */
+	struct param_sanePos Pos_param; /* contains user options about map projection and properties */
 	struct param_common dir; /* contains output input temp directories */
 
 	// default parameters
 	long iframe_min=0, iframe_max=0; /* min and max number of frame (used with mpi) */
 
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-	struct param_sanePS structPS;
-	struct param_saneInv saneInv_struct;
-	struct param_sanePic struct_sanePic;
+	struct param_sanePS PS_param;
+	struct param_saneInv Inv_param;
+	struct param_sanePic Pic_param;
 	string parser_output = "";
 
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
@@ -121,8 +121,7 @@ int main(int argc, char *argv[])
 		compare_to_mask=0x001;
 	else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, Pos_param, Proc_param, PS_param, Inv_param, Pic_param, size, rank);
 
 		compare_to_mask = parsed & mask_sanePre;
 
@@ -200,10 +199,10 @@ int main(int argc, char *argv[])
 
 	if(rank==0){
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic, saneInv_struct);
+		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
+				PS_param, Pic_param, Inv_param);
 
-		compute_dirfile_format_file(dir.tmp_dir, samples_struct, pos_param.fileFormat);
+		compute_dirfile_format_file(dir.tmp_dir, samples_struct, Pos_param.fileFormat);
 	}
 
 #ifdef USE_MPI
@@ -222,7 +221,7 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	if(pos_param.fileFormat==1)
+	if(Pos_param.fileFormat==1)
 		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
 			cout << "error write_LON_LAT_to_dirfile !! Exiting ...\n";
 #ifdef USE_MPI

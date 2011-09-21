@@ -44,7 +44,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 
 
 	if (fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
-			(char*)"Channel List", &status))
+			(char*)"channels", &status))
 		return 1;
 	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status))
 		return 1;
@@ -85,7 +85,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 			return 1;
 	}
 	if (fits_write_key(fptr, TSTRING, (char *) "EXTNAME",
-			(char *) "Covariance Matrices",
+			(char *) "PowerSpectra",
 			(char *) "name of this binary table extension", &status))
 		return 1;
 	if (fits_write_comment(
@@ -135,7 +135,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	// ---------------------------------------------
 	// read the Channel List
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "Channel List", 0, &status)){
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -143,7 +143,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 
 	fits_get_num_rows(fptr, &nBolos, &status);
-	fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
+	fits_get_colnum(fptr, CASEINSEN, (char*) "name", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 
 	// Initialize the data container
@@ -178,7 +178,7 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 
 	// ---------------------------------------------
 	// read the spectras
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "Covariance Matrices", 0, &status)){
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "PowerSpectra", 0, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}

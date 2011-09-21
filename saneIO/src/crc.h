@@ -18,7 +18,7 @@ unsigned checksum(void *buffer, size_t len, unsigned int seed);
  \param dir The param_common structure
  \param samples_struct The samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param ps_param The param_sanePS structure
  \param pic_param The param_sanePic structure
  \param inv_param The param_saneInv structure
@@ -28,7 +28,7 @@ unsigned checksum(void *buffer, size_t len, unsigned int seed);
  \param indpsrc The masked pixels indices table
  \param indpsrc_size indpsrc Size
  */
-void compute_checksum(struct param_common dir, struct param_sanePos pos_param, struct param_sanePre proc_param,
+void compute_checksum(struct param_common dir, struct param_sanePos pos_param, struct param_saneProc proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct param_sanePic pic_param, struct samples samples_struct, long long npix,
 		long long* indpix, long long* indpsrc, long long indpsrc_size, struct checksum &chk);
 

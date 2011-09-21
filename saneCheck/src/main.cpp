@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
 	//	std::vector<double> bolometer_gain;
 
 	struct param_sanePos pos_param;
-	struct param_sanePre proc_param;
+	struct param_saneProc proc_param;
 	struct param_sanePic sanePic_struct;
 	struct param_saneInv saneInv_struct;
 	struct param_sanePS structPS;
-	struct saneCheck check_struct;
+	struct param_saneCheck check_struct;
 
 	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
 

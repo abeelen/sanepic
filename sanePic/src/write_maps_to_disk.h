@@ -22,7 +22,7 @@
  \param factdupl Map duplication factor
  \param ntotscan Total number of input scans
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param samples_struct The samples structure
  \param fcut A vector containing Noise filter cut-off frequency for each scan
  \param wcs A pointer to a wcsprm struct, that contains informations about map's projection and coordinates
@@ -39,7 +39,7 @@
  */
 int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct param_common dir, long long *indpix, long long *indpsrc,
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
-		struct param_sanePre proc_param, struct param_sanePos pos_param, struct samples samples_struct,
+		struct param_saneProc proc_param, struct param_sanePos pos_param, struct samples samples_struct,
 		std::vector<double> fcut, struct wcsprm *wcs, string maskfile,  struct param_sanePS structPS,
 		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys,
 		std::vector<std::vector<std::string> > bolo_vect);

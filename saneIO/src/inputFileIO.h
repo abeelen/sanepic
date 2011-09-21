@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
+
 #include "struct_definition.h"
 
 //! Reads a detector list in an ascii file
@@ -78,6 +80,6 @@ int read_channel_list(std::string &output, std::string fname, std::vector<std::s
  */
 int read_fits_list(std::string &output, std::string fname, struct samples &samples_struct);
 
-
+void skip_comment(std::ifstream &file, std::string &line);
 
 #endif /* INPUTFILEIO_H_ */

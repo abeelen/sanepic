@@ -50,11 +50,11 @@ void copy_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long min_samp
 	}
 
 	// copy header to output
-	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status))
+	if(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status))
 		fits_report_error(stderr, status);
 	if(fits_copy_header(fptr, outfptr, &status))
 		fits_report_error(stderr, status);
-	if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "reference position", 0, &status))
+	if(fits_movnam_hdu(outfptr, BINARY_TBL, (char*) "refPos", 0, &status))
 		fits_report_error(stderr, status);
 
 	// insert columns

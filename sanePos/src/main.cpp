@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		printf("\nBeginning of sanePos:\n\n");
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
-	struct param_sanePre proc_param;
+	struct param_saneProc proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /* structure that contains output input temp directories */
 
@@ -816,10 +816,14 @@ int main(int argc, char *argv[])
 			cerr << "Error Writing coverage map  ... \n";
 		}
 
-		if(write_fits_history2(fnaivname, NAXIS1, NAXIS2, dir, proc_param, pos_param , samples_struct.fcut, samples_struct, structPS, struct_sanePic, saneInv_struct)) // write sanePre parameters in naive Map fits file header
-			cerr << "WARNING ! No history will be included in the file : " << fnaivname << endl;
+		if( write_fits_inifile(fnaivname, dir, proc_param, pos_param, structPS, struct_sanePic, saneInv_struct)) // write saneProc parameters in naive Map fits file header
+			cerr << "WARNING ! No ini file will be included in the file : " << fnaivname << endl;
+		if( write_fits_inputfile(fnaivname, samples_struct))
+			cerr << "WARNING ! No input files will be included in the file : " << fnaivname << endl;
+
+
 		if (pos_param.maskfile != "")
-			if(write_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
+			if(copy_fits_mask(fnaivname, dir.input_dir + pos_param.maskfile)) // copy mask in naive map file
 				cerr << "Warning ! The mask will not be included in naive map fits file ...\n";
 
 		delete [] map1d_d;

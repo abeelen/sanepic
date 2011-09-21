@@ -55,42 +55,42 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits file
 		fits_report_error(stderr, status);
 
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "reference position", 0, &status)){ // go to reference table
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "RefPos", 0, &status)){ // go to reference table
 		fits_report_error(stderr, status); // reference position table was not found ?
 		check_it.checkREFERENCEPOSITION=0;
-		cout << "\"reference position\" was not found, or his Type should be Binary table" << endl;
+		cout << "\"RefPos\" was not found, or his Type should be Binary table" << endl;
 	}else{
 
 		fits_get_num_rows(fptr, &ns_test, &status);
 		if(ns!=ns_test){ // check reference position table's size
-			cout << "\"reference position\" has a wrong number of rows (must be equal to ns : " << ns << " )" << endl;
+			cout << "\"RefPos\" has a wrong number of rows (must be equal to ns : " << ns << " )" << endl;
 			return -1;
 		}
 
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=3){ // check reference position table's size
-			cout << "\"reference position\" has a wrong number of cols (must be equal to 3 : LON, LAT, PHI )" << endl;
+			cout << "\"RefPos\" has a wrong number of cols (must be equal to 3 : LON, LAT, PHI )" << endl;
 			return -1;
 		}else{
 
 
 			fits_get_colnum(fptr, CASEINSEN, (char*) "lon", &colnum, &status);
 			if(colnum!=1){
-				cout << "\"lon\" was not found in \"reference position\"" << endl;
+				cout << "\"lon\" was not found in \"RefPos\"" << endl;
 				return -1;
 			}
 
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "lat", &colnum, &status);
 			if(colnum!=2){
-				cout << "\"lat\" table was not found in \"reference position\"" << endl;
+				cout << "\"lat\" table was not found in \"RefPos\"" << endl;
 				return -1;
 			}
 
 			colnum=0;
 			fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
 			if(colnum!=3){ // check PHI table's size
-				cout << "\"PHI\" table was not found in \"reference position\"" << endl;
+				cout << "\"PHI\" table was not found in \"RefPos\"" << endl;
 				return -1;
 			}
 		}
@@ -117,7 +117,7 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 			string name_table,dx_table,dy_table;
 
 			if(format==1){ // check presence of dx and dy tables in offsets table : name depends on format
-				name_table="names";
+				name_table="name";
 				dx_table="dX";
 				dy_table="dY";
 			}else{

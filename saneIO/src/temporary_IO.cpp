@@ -57,7 +57,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			read_signal_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, d, ns);
 			read_flag_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, flag, ns);
 
-			//configure dirfile field
+ 			//configure dirfile field
 			gd_entry_t E;
 			E.field = (char*) data_outfile.c_str();
 			E.field_type = GD_RAW_ENTRY;

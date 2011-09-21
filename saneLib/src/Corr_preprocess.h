@@ -19,7 +19,7 @@ extern "C" {
  \param dirfile fits files data directory
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
- \param proc_param The param_sanePre structure
+ \param proc_param The param_saneProc structure
  \param NAXIS1 Number of horizontal pixels (determined by sanePos)
  \param NAXIS2 Number of vertical pixels (determined by sanePos)
  \param addnpix Number of pix to add to compute the final maps in case of duplication and/or user binary mask
@@ -37,7 +37,7 @@ extern "C" {
  \param fname log file that is used in debug mode to track processing time between detectors
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_ftrProcesdata(double *S, struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param,
+int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param,
 		std::string tmp_dir, std::vector<std::string> det, long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
 		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname);
 
