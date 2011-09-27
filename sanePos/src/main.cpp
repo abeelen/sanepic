@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
 	}
 
 
+	//TODO : This should be done in sanePre, and here reading back the wcs and subheader...
 
 	// Create a fake WCS image header and populate it with info from the first fits file
 	if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank))

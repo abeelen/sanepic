@@ -845,7 +845,7 @@ void default_param_common(struct param_common &dir) {
 	dir.tmp_dir = "./";
 	dir.input_dir = "./";
 
-	dir.fits_filelist = "";
+	dir.fits_filelist = "file.list";
 	dir.bolo_global_filename = "";
 	dir.bolo_suffix = ".bolo";
 
@@ -1321,6 +1321,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	filename = dir.input_dir + Proc_param.fcut_file;
 	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
 			filename);
+	cout << (samples_param.fitsvect).size() << endl;
 
 	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
 		//		samples_param.fitsvect[iframe] = dir.data_dir + samples_param.fitsvect[iframe];
