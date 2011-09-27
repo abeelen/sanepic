@@ -1223,8 +1223,6 @@ int main(int argc, char *argv[]) {
 					if(write_fits_inifile(fname, dir, Proc_param, Pos_param,
 							PS_param, Pic_param, Inv_param)) // write saneProc parameters in naive Map fits file header
 						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
-
-					cout << "before fits_inputfile" << endl;
 					if( write_fits_inputfile(fname, samples_struct))
 						cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
 

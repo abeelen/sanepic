@@ -935,6 +935,7 @@ int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
 		fin = fopen(filename.c_str(), "r");
 		if (fin == NULL) {
 			fputs("WW - Read error : File error on subHeader.keyrec", stderr);
+			*nsubkeys = 0 ;
 		} else {
 
 			fseek(fin, 0L, SEEK_END); /* Position to end of file */
