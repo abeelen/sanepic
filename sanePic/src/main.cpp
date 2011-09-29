@@ -375,7 +375,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	//	read pointing informations
+	//	read pointing header
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);

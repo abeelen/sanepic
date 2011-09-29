@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
 	struct param_sanePic Pic_param;
 	string parser_output = "";
 
+
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	//	uint16_t mask_sanePre = 0x405f;
@@ -181,13 +182,13 @@ int main(int argc, char *argv[])
 #endif
 
 
-//	if (rank == 0){
-//		cout << rank << " : " << iframe_min << " " << iframe_max << endl;
-//		for (long iframe = iframe_min; iframe < iframe_max; iframe++){
-//			cout << iframe << " " << samples_struct.basevect[iframe] << endl;
-//		}
-//
-//	}
+	//	if (rank == 0){
+	//		cout << rank << " : " << iframe_min << " " << iframe_max << endl;
+	//		for (long iframe = iframe_min; iframe < iframe_max; iframe++){
+	//			cout << iframe << " " << samples_struct.basevect[iframe] << endl;
+	//		}
+	//
+	//	}
 	/* ------------------------------------- READ bolo list ----------------------------*/
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
@@ -221,6 +222,7 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+	//TODO: What if Pos_param = 0 ?????
 	if(Pos_param.fileFormat==1)
 		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
 			cout << "error write_LON_LAT_to_dirfile !! Exiting ...\n";
@@ -229,6 +231,35 @@ int main(int argc, char *argv[])
 #endif
 			exit(EXIT_FAILURE);
 		}
+
+	// Create a fake WCS image header and populate it with info from the first fits file
+	if (rank == 0){
+
+		int nwcs=1;                      // We will only deal with one wcs....
+		struct wcsprm * wcs;             // wcs structure of the image
+
+		char * subheader;               // Additionnal header keywords
+		int nsubkeys;                   //
+
+
+		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank)){
+			cout << "pb getting fits META\n";
+#ifdef PARA_FRAME
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+		}
+
+		if(save_keyrec(dir.tmp_dir,wcs, 0, 0, subheader, nsubkeys)){
+#ifdef PARA_FRAME
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return(EX_CANTCREAT);
+		}
+
+		wcsvfree(&nwcs, &wcs);
+
+	}
+
 
 #ifdef DEBUG
 	//Get processing time

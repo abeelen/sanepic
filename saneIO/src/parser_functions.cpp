@@ -1368,7 +1368,7 @@ void print_common(struct param_common dir) {
 void print_param_sanePos(struct param_sanePos Pos_param) {
 
 	cout << "Pixel Size       : " << setprecision(14) << Pos_param.pixdeg
-			<< " deg\n";
+			<< " deg" << endl;
 
 	if (Pos_param.flgdupl)
 		cout << "Map Flags        : True" << endl;
@@ -1469,7 +1469,6 @@ void parser_printOut(char * prog_name, struct param_common dir,
 	int i;
 
 	print_common(dir);
-	cout << endl;
 
 	i = basename.find("sanePos");
 	if ((i >= 0) && (i < (int) basename.size())) {
