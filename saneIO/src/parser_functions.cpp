@@ -446,7 +446,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 
 }
 
-int check_path(string &output, string strPath) {
+int check_path(string &output, string strPath, bool create) {
 
 	if (access(strPath.c_str(), 0) == 0) {
 		struct stat status;
@@ -459,12 +459,19 @@ int check_path(string &output, string strPath) {
 			return 1;
 		}
 	} else {
-		string make_it = "mkdir " + strPath;
-		if (system((char*) make_it.c_str()) == 0)
+		if (! create) {
+			output += "EE - " + strPath + " does not exist\n";
+			return 1;
+		}
+
+		int status;
+		status = mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if (status == 0)
 			output += "WW - " + strPath + " created\n";
-		else
+		else {
 			output += "EE - " + strPath + " failed to create\n";
-		return 1;
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -738,13 +745,13 @@ uint16_t check_common(string &output, struct param_common dir) {
 		output += "     param_common:bolo_suffix or param_common:bolo_blobal_file\n";
 		return BOLOFILE_NOT_FOUND;
 	}
-	if (check_path(output, dir.data_dir))
+	if (check_path(output, dir.data_dir, false))
 		return DATA_INPUT_PATHS_PROBLEM;
-	if (check_path(output, dir.input_dir))
+	if (check_path(output, dir.input_dir, false))
 		return DATA_INPUT_PATHS_PROBLEM;
-	if (check_path(output, dir.output_dir))
+	if (check_path(output, dir.output_dir, true))
 		return OUPUT_PATH_PROBLEM;
-	if (check_path(output, dir.tmp_dir))
+	if (check_path(output, dir.tmp_dir, true))
 		return TMP_PATH_PROBLEM;
 
 	return 0;
@@ -811,7 +818,7 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS PS_param) {
 uint16_t check_param_saneInv(string &output,
 		struct param_saneInv Inv_param) {
 
-	if (check_path(output, Inv_param.noise_dir))
+	if (check_path(output, Inv_param.noise_dir, false))
 		return SANEINV_INPUT_ERROR;
 
 	if ((Inv_param.cov_matrix_file == "")
@@ -1285,6 +1292,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	}
 
 #ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(size>1) {
 		if(rank!=0)
@@ -1315,25 +1323,28 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	iniparser_freedict(ini);
 
-	// Now the ini file has been read, do the rest
-
 	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
 	filename = dir.input_dir + Proc_param.fcut_file;
 	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
 			filename);
-	cout << (samples_param.fitsvect).size() << endl;
 
 	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
-		//		samples_param.fitsvect[iframe] = dir.data_dir + samples_param.fitsvect[iframe];
 		samples_param.bolovect[iframe] = dir.input_dir
 				+ samples_param.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
 	}
-
+	// TODO: this should be done elsewhere as the input files might be missing...
 	// Store scan sizes so that we dont need to read it again and again in the loops !
 	readFrames(dir.data_dir, samples_param.fitsvect, samples_param.nsamples);
 
+
+	// Now the ini file has been read, do the rest
 	if (rank == 0)
 		parsed += check_common(output, dir);
+
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
 
 	parsed += check_param_sanePos(output, Pos_param);
 

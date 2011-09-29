@@ -19,24 +19,35 @@
 
 extern "C" {
 #include "getdata.h"
+#include <fitsio.h>
 }
 
 using namespace std;
 
+//TODO: Absolutely inefficient.... Need to rewrite that, open the fits file ONCE !
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
-	double *d;
+	double *signal;
 	int *flag;
 	long ns;
 	DIRFILE* D, *H;
 	std::vector<string> det_vect;
+
+
+	fitsfile *fptr;
+	int status = 0;
+	int rowIndex = 0, naxis = 0, anynul;
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 		det_vect=bolo_vect[iframe];
 
 		string base_name = samples_struct.basevect[iframe];
+		string fits_name = dir.data_dir + samples_struct.fitsvect[iframe];
+
 		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
 
@@ -46,18 +57,85 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 				GD_VERBOSE | GD_UNENCODED);
 
 
+		base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: needed ???
+
+
+		if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
+			fits_report_error(stderr, status);
+			return 1;
+		}
+
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
-			base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO  . pas possible dans les dirfile ! basename ??
 
 			string field = det_vect[idet];
 			string data_outfile = "data_" + base_name + "_" + field;
 			string flag_outfile = "flag_" + base_name + "_" + field;
 
-			read_signal_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, d, ns);
-			read_flag_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, flag, ns);
+			// Retrieve the row of the specified channel
+			rowIndex = find_channel_index(fptr, field.c_str());
 
- 			//configure dirfile field
+			// Move ptr to signal hdu
+			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Retrieve the size of the signal
+			if (fits_get_img_dim(fptr, &naxis, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if(naxis != 2){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (fits_get_img_size(fptr, 2, naxes, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Allocate Memory
+			ns = naxes[0];
+			signal = new double[ns];
+			flag   = new int[ns];
+
+			// Retrieve the corresponding row
+			fpixel[0] = 1;
+			fpixel[1] = rowIndex;
+			if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, signal, &anynul, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Move ptr to mask hdu ...
+			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Retrieve the size of the mask
+			if (fits_get_img_dim(fptr, &naxis, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if(naxis != 2){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (fits_get_img_size(fptr, 2, naxes, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (ns != naxes[0])
+				return 1;
+
+			if (fits_read_pix(fptr, TINT, fpixel, ns, 0, flag, &anynul, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			//configure dirfile field
 			gd_entry_t E;
 			E.field = (char*) data_outfile.c_str();
 			E.field_type = GD_RAW_ENTRY;
@@ -71,8 +149,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			//			gd_flush(D,NULL);
 
 			// write binary file on disk
-			int n_write = gd_putdata(D, (char*) data_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE,
-					d);
+			int n_write = gd_putdata(D, (char*) data_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, signal);
 			if (gd_error(D) != 0) {
 				cout << "error putdata in write_data_flag : wrote " << n_write
 						<< " and expected " << ns << endl;
@@ -92,8 +169,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			gd_add(H, &F);
 
 			// write binary file on disk
-			n_write = gd_putdata(H, (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32,
-					flag);
+			n_write = gd_putdata(H, (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32, flag);
 			if (gd_error(H) != 0) {
 				cout << "error putdata in write_data_flag : wrote " << n_write
 						<< " and expected " << ns << endl;
@@ -101,10 +177,17 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 			}
 
 			delete [] flag;
-			delete [] d;
+			delete [] signal;
 
-			gd_flush(D,NULL);
-			gd_flush(H,NULL);
+			gd_flush(D, data_outfile.c_str());
+			gd_flush(H, flag_outfile.c_str());
+		}
+
+
+		// close fits file
+		if(fits_close_file(fptr, &status)){
+			fits_report_error(stderr, status);
+			return 1;
 		}
 
 		// close dirfile
@@ -126,6 +209,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 	return 0;
 }
 
+//TODO: What about the other format ???
 int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
 {
 
@@ -134,6 +218,13 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 	long ns;
 	DIRFILE* D, *H;
 
+
+	fitsfile *fptr;
+	int status = 0;
+	int rowIndex = 0, naxis = 0, anynul;
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+
+
 	std::vector<string> det_vect;
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
@@ -141,6 +232,8 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 		det_vect=bolo_vect[iframe];
 
 		string base_name = samples_struct.basevect[iframe];
+		string fits_name = dir.data_dir + samples_struct.fitsvect[iframe];
+
 		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
 		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
 
@@ -150,13 +243,87 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 
 
+		base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: needed ???
+
+		if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
+			fits_report_error(stderr, status);
+			return 1;
+		}
+
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
 			string field = det_vect[idet];
 			string lon_outfile = "LON_" + base_name + "_" + field;
 			string lat_outfile = "LAT_" + base_name + "_" + field;
 
-			read_LON_LAT_from_fits(dir.data_dir + samples_struct.fitsvect[iframe], field, lon, lat, ns);
+			// Retrieve the row of the specified channel
+			rowIndex = find_channel_index(fptr, field.c_str());
+
+			// Move ptr to lon hdu
+			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Retrieve the size of the signal
+			if (fits_get_img_dim(fptr, &naxis, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if(naxis != 2){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (fits_get_img_size(fptr, 2, naxes, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Allocate Memory
+			ns = naxes[0];
+			lon = new double[ns];
+			lat = new double[ns];
+
+			// ---------------------------------------------
+			// Retrieve the corresponding row
+			fpixel[0] = 1;
+			fpixel[1] = rowIndex;
+			if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, lon, &anynul, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+
+			// ---------------------------------------------
+			// Move ptr to lat hdu
+			if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
+			// Retrieve the size of the signal
+			if (fits_get_img_dim(fptr, &naxis, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if(naxis != 2){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (fits_get_img_size(fptr, 2, naxes, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+			if (ns != naxes[0])
+				return 1;
+
+			// ---------------------------------------------
+			// Retrieve the corresponding row
+			if (fits_read_pix(fptr, TDOUBLE, fpixel, ns, 0, lat, &anynul, &status)){
+				fits_report_error(stderr, status);
+				return 1;
+			}
+
 
 			//configure dirfile field
 			gd_entry_t E;
@@ -201,9 +368,17 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 			delete [] lon;
 			delete [] lat;
 
-			gd_flush(D,NULL);
-			gd_flush(H,NULL);
+			gd_flush(D, lon_outfile.c_str());
+			gd_flush(H, lat_outfile.c_str());
 		}
+
+
+		// close fits file
+		if(fits_close_file(fptr, &status)){
+			fits_report_error(stderr, status);
+			return 1;
+		}
+
 
 		// close dirfile
 		if (gd_close(D)) {

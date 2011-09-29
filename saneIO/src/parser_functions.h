@@ -221,7 +221,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
  \param path_type A string that determines which is being checked
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int check_path(std::string &output, std::string strPath, std::string path_type);
+int check_path(std::string &output, std::string strPath, std::string path_type, bool create);
 
 //! Creates dirfile architecture and format files considering fits file format (SANEPIC or HIPE)
 /*!
