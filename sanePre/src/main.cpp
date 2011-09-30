@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << endl << "sanePre :  Pre Processing of the data" << endl;
+	  cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
 	struct param_saneProc Proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */

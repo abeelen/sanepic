@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		printf("\nBeginning of saneInv\n\n");
+	  cout << endl << "saneInv : Inversion of the Noise-Noise PowerSpectra" << endl;
 
 	// data parameters
 	/*
@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		printf("\nEND OF SANEINV \n");
+		printf("\nEnd of saneInv\n");
 
 	return EXIT_SUCCESS;
 }

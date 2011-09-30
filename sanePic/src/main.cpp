@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		printf("\nBeginning of sanePic:\n\n");
+	  cout << endl << "Beginning of sanePic : conjugate gradient descent" << endl;
 
 	//************************************************************************//
 	//************************************************************************//
@@ -1419,7 +1419,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-		cout << "\nEND OF SANEPIC" << endl;
+	  cout << endl << "End of sanePic" << endl;
 
 	return EXIT_SUCCESS;
 }

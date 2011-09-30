@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		printf("\nBeginning of sanePos:\n\n");
+	  cout << endl << "sanePos: computation of pixel indexes" << endl;
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_saneProc proc_param;
