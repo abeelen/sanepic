@@ -8,7 +8,7 @@ AC_INIT([sanepic],[0.4.svnversion],[sanepic@ias.u-psud.fr])
 # In order to create a distribution package, one has to commit all
 # pending changes first: 
 
-ssvn commit -m "commit before packaging"
+svn commit -m "commit before packaging"
 
 # create a release tag (matched with the counter release)
 
