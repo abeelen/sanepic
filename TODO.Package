@@ -3,7 +3,7 @@
 #
 # Update the counter release in configure.ac, for e.g.
 
-AC_INIT([sanepic],[0.4.svnversion],[sanepic@ias.u-psud.fr])
+AC_INIT([sanepic],[0.1.svnversion],[sanepic@ias.u-psud.fr])
 
 # In order to create a distribution package, one has to commit all
 # pending changes first: 
