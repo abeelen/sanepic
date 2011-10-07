@@ -39,6 +39,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	int *flag;
 
 	fftw_plan fftplan;
+	fftw_complex *fdata1;
 
 
 	double *data, *data_lp, *Ps/*, *bfilter*/;
@@ -48,18 +49,18 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	long ndet = (long)det.size();
 
-	fftw_complex *fdata1;
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2;
 
 
-	data    = new double[ns];
+	data    = (double *) fftw_malloc(ns*sizeof(double));
+	fdata1  = (fftw_complex *) fftw_malloc((ns/2+1)*sizeof(fftw_complex)); // fourier transform
+
 	flag    = new int[ns];
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // deprojected signal
 	samptopix = new long long[ns]; // sample to pixel proj matrix
-	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 
 
 	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
@@ -77,6 +78,8 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	sign = new double[ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
+
+	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_MEASURE);
 
 	// loop over detectors
 	for (long idet=0;idet<ndet;idet++){
@@ -111,9 +114,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		//       BUT it is done differently than power spectrum estimation WHY ?
 
 		// compute fft and save data to disk for later
-		fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
-		fftw_execute(fftplan);
-		fftw_destroy_plan(fftplan);
+		fftw_execute_dft_r2c(fftplan, data, fdata1);
 
 
 		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata1,  "fdata_", idet, fits_filename, det))
@@ -139,8 +140,12 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	}
 
 
-	delete [] data;
+//	delete [] data;
+	fftw_free(data);
+	fftw_free(fdata1);
 	delete [] flag;
+	fftw_destroy_plan(fftplan);
+
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -190,7 +195,6 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	delete [] data_lp;
 	delete [] Ps;
 	delete [] samptopix;
-	delete [] fdata1;
 	delete [] uvec;
 	delete [] ivec;
 
