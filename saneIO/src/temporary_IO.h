@@ -159,7 +159,7 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix, std::string file
  \param boloname A channel name (to find which data to open in the dirfile tree)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_samptopix(DIRFILE* D, long ns, long long **samptopix, std::string filename, std::string boloname);
+int read_samptopix(DIRFILE* D, long ns, long long *samptopix, std::string filename, std::string boloname);
 
 //! Writes a fourier transform to disk, in the dirfile pointed by "D"
 /*!

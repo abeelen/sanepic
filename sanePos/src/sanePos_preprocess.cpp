@@ -52,7 +52,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, filename, field, mask, ns))
 				return 1;
 
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, field))
 				return 1;
 
 			// modify if in indpsrc !

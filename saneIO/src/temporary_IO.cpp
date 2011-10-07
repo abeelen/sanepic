@@ -499,7 +499,7 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 	return 0;
 }
 
-int read_samptopix(DIRFILE* D, long ns, long long **samptopix,
+int read_samptopix(DIRFILE* D, long ns, long long *samptopix,
 		string filename, std::string boloname)
 /*!  read a sample to pixel vector from disk  */
 {
@@ -509,7 +509,7 @@ int read_samptopix(DIRFILE* D, long ns, long long **samptopix,
 	field_code = outfile.c_str();
 
 	// fill samptopix array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,	*samptopix);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,	samptopix);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_samptopix : read " << nget << endl;
 		return 1;
