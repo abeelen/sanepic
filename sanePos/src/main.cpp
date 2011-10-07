@@ -451,8 +451,8 @@ int main(int argc, char *argv[])
 
 			if (rank == 0) {
 				cout << "WW - Nominal Projection Center : " << endl;
-				cout << "     lon : " << lon_mean << endl;
-				cout << "     lat : " << lat_mean << endl << endl;
+				cout << "     lon = " << lon_mean << endl;
+				cout << "     lat = " << lat_mean << endl << endl;
 			}
 		}
 

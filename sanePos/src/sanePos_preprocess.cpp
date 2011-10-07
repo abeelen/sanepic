@@ -324,10 +324,12 @@ int computePixelIndex_HIPE(string tmpdir,
 
 		double *lon, *lat;
 		int *flag=NULL;
+		int *bolo_flag=NULL;
 
 		lon = new double[ns];
 		lat = new double[ns];
 		flag = new int[ns];
+		bolo_flag = new int[ns];
 
 		for (long idet = 0; idet<ndet; idet++){
 			string field = det_vect[idet];
@@ -385,14 +387,6 @@ int computePixelIndex_HIPE(string tmpdir,
 			delete [] phi;
 			delete [] wcsstatus;
 
-
-
-
-
-			// Combine position and bolo flags
-			// and check
-
-			int *bolo_flag=NULL;
 
 			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 			//				return 1;
