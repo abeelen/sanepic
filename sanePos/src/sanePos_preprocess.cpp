@@ -323,8 +323,8 @@ int computePixelIndex_HIPE(string tmpdir,
 		long ndet = (long)det_vect.size();
 
 		double *lon, *lat;
-		int *flag=NULL;
-		int *bolo_flag=NULL;
+		int *flag;
+		int *bolo_flag;
 
 		lon = new double[ns];
 		lat = new double[ns];
@@ -459,12 +459,12 @@ int computePixelIndex_HIPE(string tmpdir,
 			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
 				return 1;
 
-			delete [] bolo_flag;
 			delete [] samptopix;
 			delete [] xx;
 			delete [] yy;
 
 		}
+		delete [] bolo_flag;
 		delete [] flag;
 		delete [] lon;
 		delete [] lat;
