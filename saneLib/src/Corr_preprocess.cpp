@@ -57,7 +57,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, det[idet1]))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, filename, det[idet1]))
 			return 1;
 
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
@@ -104,13 +104,12 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	}
 #endif
 
+	data    = new double[ns];
+	flag    = new int[ns];
 	data_lp = new double[ns];
 	samptopix = new long long[ns];
 
 	fdata = new fftw_complex[ns/2+1];
-
-	fill(data_lp,data_lp+ns,0.0);
-	fill(samptopix,samptopix+ns,0);
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
@@ -149,7 +148,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 		if (S != NULL){
 			//// Read pointing
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename, field1))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, dirfile_filename, field1))
 				return 1;
 
 			Ps = new double[ns];
@@ -180,14 +179,14 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			return 1;
 
 
-		delete [] flag;
-		delete [] data;
 	} // idet1
 
 
-	delete[] data_lp;
-	delete[] samptopix;
-	delete[] fdata;
+	delete [] flag;
+	delete [] data;
+	delete [] data_lp;
+	delete [] samptopix;
+	delete [] fdata;
 
 
 #ifdef DEBUG
@@ -275,7 +274,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, samples_struct.basevect[iframe], field1))
 			return 1;
 #ifdef DEBUG
 		time ( &rawtime );
@@ -325,7 +324,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 			fill(Nk,Nk+(ns/2+1),0.0);
 
 			//read Fourier transform of the data
-			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata, prefixe, idet2, samples_struct.basevect[iframe], det))
+			if(read_fdata(samples_struct.dirfile_pointer, ns, &fdata, prefixe, idet2, samples_struct.basevect[iframe], det))
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//

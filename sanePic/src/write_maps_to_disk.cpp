@@ -110,7 +110,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 
 			string field1 = det_vect[idet1];
 
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, samples_struct.basevect[iframe], field1))
 				return 1;
 			//compute hit counts
 			for (long ii=0;ii<ns;ii++){

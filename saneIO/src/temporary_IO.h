@@ -42,7 +42,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&data, long ns);
+int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *data, long ns);
 
 //! Reads flag table in a dirfile pointed by "H" and stores it to "mask" array
 /*!
@@ -53,7 +53,7 @@ int read_data_from_dirfile(DIRFILE* D, std::string filename, std::string field, 
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *&mask, long ns);
+int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, int *mask, long ns);
 
 //! Reads LON table in a dirfile pointed by "D" and stores it to "ra" array
 /*!
@@ -64,7 +64,7 @@ int read_flag_from_dirfile(DIRFILE* H, std::string filename, std::string field, 
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_LON_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&lon, long ns);
+int read_LON_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *lon, long ns);
 
 //! Reads LAT table in a dirfile pointed by "D" and stores it to "dec" array
 /*!
@@ -75,7 +75,7 @@ int read_LON_from_dirfile(DIRFILE* D, std::string filename, std::string field, d
   \param ns Scan "filename" number of samples
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_LAT_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *&lat, long ns);
+int read_LAT_from_dirfile(DIRFILE* D, std::string filename, std::string field, double *lat, long ns);
 
 //! Writes indpix to disk, in a binary file named indpix.bi
 /*!
@@ -159,7 +159,7 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix, std::string file
  \param boloname A channel name (to find which data to open in the dirfile tree)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_samptopix(DIRFILE* D, long ns, long long *&samptopix, std::string filename, std::string boloname);
+int read_samptopix(DIRFILE* D, long ns, long long **samptopix, std::string filename, std::string boloname);
 
 //! Writes a fourier transform to disk, in the dirfile pointed by "D"
 /*!
@@ -185,7 +185,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, std::string prefixe, l
  \param idet A channel index (to find which channel to consider in the list "bolonames")
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
+int read_fdata(DIRFILE* D, long ns, fftw_complex **fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
 
 //! Reads a mixing matrix in a .txt file
 /*!

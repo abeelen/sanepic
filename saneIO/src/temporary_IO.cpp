@@ -401,18 +401,15 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 }
 
 
-int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&data, long ns){
+int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *data, long ns){
 
 	// set dirfile name and binary name
 	string outfile = "data_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
-	data = new double[ns];
-
 	// fill data array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,
-			data);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,data);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_data_from_dirfile : read " << nget << endl;
 		return 1;
@@ -423,18 +420,15 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *&d
 	return 0;
 }
 
-int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask, long ns){
+int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *mask, long ns){
 
 	// set dirfile name and binary name
 	string outfile = "flag_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
-	mask = new int[ns];
-
 	// fill mask array
-	int nget = gd_getdata(H, field_code, 0, 0, 0, ns, GD_INT32,
-			mask);
+	int nget = gd_getdata(H, field_code, 0, 0, 0, ns, GD_INT32,	mask);
 	if (gd_error(H) != 0) {
 		cout << "error getdata in read_flag_from_dirfile : read " << nget << endl;
 		return 1;
@@ -446,14 +440,12 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *&mask
 }
 
 
-int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *&lon, long ns){
+int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *lon, long ns){
 
 	// set dirfile name and binary name
 	string outfile = "LON_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
-
-	lon = new double[ns];
 
 	// fill ra array
 	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE, lon);
@@ -467,17 +459,15 @@ int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *&lo
 	return 0;
 }
 
-int read_LAT_from_dirfile(DIRFILE* D, string filename, string field, double *&lat, long ns){
+int read_LAT_from_dirfile(DIRFILE* D, string filename, string field, double *lat, long ns){
 
 	// set dirfile name and binary name
 	string outfile = "LAT_" + filename + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
-	lat = new double[ns];
-
 	// fill lat array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE,lat);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_DOUBLE, lat);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_LAT_from_dirfile : read " << nget << endl;
 		return 1;
@@ -509,7 +499,7 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 	return 0;
 }
 
-int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
+int read_samptopix(DIRFILE* D, long ns, long long **samptopix,
 		string filename, std::string boloname)
 /*!  read a sample to pixel vector from disk  */
 {
@@ -519,8 +509,7 @@ int read_samptopix(DIRFILE* D, long ns, long long *&samptopix,
 	field_code = outfile.c_str();
 
 	// fill samptopix array
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,
-			samptopix);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,	*samptopix);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_samptopix : read " << nget << endl;
 		return 1;
@@ -718,7 +707,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 	return 0;
 }
 
-int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
+int read_fdata(DIRFILE* D, long ns, fftw_complex **fdata, string prefixe,
 		long idet, string filename, std::vector<std::string> bolonames)
 /*!  read the map preconditioner from disk  */
 {
@@ -729,8 +718,7 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex *&fdata, string prefixe,
 	field_code = outfile.c_str();
 
 	// fill fdata with binary
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128,
-			fdata);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128, *fdata);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_fdata : read " << nget << endl;
 		return 1;
