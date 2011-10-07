@@ -31,6 +31,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 		string filename = samples_struct.basevect[iframe];
 		long ns = samples_struct.nsamples[iframe];
 
+		samptopix = new long long[ns];
 
 		mask = new int[ns];
 
