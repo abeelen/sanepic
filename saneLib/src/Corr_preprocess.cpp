@@ -61,7 +61,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, det[idet1]))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, filename, det[idet1]))
 			return 1;
 
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
@@ -149,7 +149,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			fill(data_lp,data_lp+ns,0.0);
 
 			//// Read pointing
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename, field1))
+			if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, dirfile_filename, field1))
 				return 1;
 
 			Ps = new double[ns];
@@ -277,7 +277,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, samples_struct.basevect[iframe], field1))
 			return 1;
 #ifdef DEBUG
 		time ( &rawtime );

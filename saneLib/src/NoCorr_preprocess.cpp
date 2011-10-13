@@ -74,7 +74,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 		//// Read pointing
-		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename,field);
+		read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, dirfile_filename,field);
 
 
 		if (S != NULL){
@@ -163,7 +163,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 
 		field = det[idet];
 
-		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fname,field);
+		read_samptopix(samples_struct.dirfile_pointer, ns, &samptopix, fname,field);
 
 
 		// AS

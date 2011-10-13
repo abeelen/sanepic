@@ -19,19 +19,22 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 	// sx is normalised between -1 and 1
 
 	gsl_matrix *V;
-	gsl_vector *Y, *residual, *resultat, *tau;
+	gsl_vector *Y, *resultat, *tau, *residual;
 
 	// malloc
-	V        = gsl_matrix_alloc ((size_t) taille, (size_t) norder+1);
-	Y        = gsl_vector_alloc ((size_t) taille);
-	residual = gsl_vector_alloc ((size_t) taille);
-	resultat = gsl_vector_alloc ((size_t) norder+1);
-	tau      = gsl_vector_alloc ((size_t) norder+1);
+	V=gsl_matrix_calloc ((size_t) taille, (size_t) norder+1);
+	Y = gsl_vector_calloc ((size_t) taille);
+	residual=gsl_vector_calloc((size_t) taille);
+	resultat = gsl_vector_calloc ((size_t) norder+1);
+	tau = gsl_vector_calloc ((size_t) norder+1);
+
 
 	// sy is converted to a gsl vector
 	for(int i=0; i<taille; i++){
 		gsl_vector_set(Y, i, sy[i]);
 	}
+
+
 
 	// vandermonde matrix computation
 
