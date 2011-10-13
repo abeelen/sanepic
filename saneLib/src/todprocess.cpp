@@ -131,7 +131,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 
 double* apodwindow(int ns, int nn)
-																																																{
+{
 
 	double *apodis;
 
@@ -152,7 +152,7 @@ double* apodwindow(int ns, int nn)
 
 	return apodis;
 
-																																																}
+}
 
 
 
@@ -465,23 +465,24 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	buf_0.push_back(0);
 	buf_1.push_back(0);
 
-	if(flag[0]>0){
+	if(flag[0]!=0){
 		buf_0.push_back(0);
 		indic=1;
+		p=0;
 	}
 
-	for(long ii=1; ii<ns;ii++)
-		if(flag[ii]!=flag[ii-1]){
-			if(indic==1){
-				buf_1.push_back(ii-p);
-				indic=0;
-				p=ii;
-			}else{
-				buf_0.push_back(ii-p);
-				indic=1;
-				p=ii;
-			}
+	for(long ii=1; ii<ns;ii++) {
+		if( indic == 1 && flag[ii] == 0 ){
+			buf_1.push_back(ii-p);
+			indic=0;
+			p=ii;
 		}
+		if ( indic == 0 && flag[ii] != 0 ) {
+			buf_0.push_back(ii-p);
+			indic=1;
+			p=ii;
+		}
+	}
 
 
 	if(indic==0)
