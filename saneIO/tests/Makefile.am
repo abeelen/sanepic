@@ -1,5 +1,5 @@
 check_PROGRAMS = parserTest
-TESTS = $(check_PROGRAMS)
+#TESTS = $(check_PROGRAMS)
 
 parserTest_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
         $(SANEIO_INCLUDE)
