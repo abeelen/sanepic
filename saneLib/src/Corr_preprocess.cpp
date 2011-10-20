@@ -113,8 +113,6 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 	flag    = new int[ns];
 	data_lp = new double[ns];
-	samptopix = new long long[ns];
-
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
@@ -126,6 +124,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_MEASURE); //FFTW_ESTIMATE
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
+
 
 #ifdef DEBUG
 		cout << "[ " << para_bolo_indice << " ] progression write_ftr : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)ndet)) << " %" << endl;
@@ -140,20 +139,27 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 		field1 = det[idet1];
 
+		fill(data_lp,data_lp+ns,0.0);
+		for (long ii=0;ii<ns/2+1;ii++){
+			fdata[ii][0] = 0.0;
+			fdata[ii][1] = 0.0;
+		}
+
 		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, data, ns))
 			return 1;
 		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, flag, ns))
 			return 1;
 
 		if (S != NULL){
-			fill(data_lp,data_lp+ns,0.0);
+			samptopix = new long long[ns];
+			Ps        = new double[ns];
+
+			fill(Ps,Ps+ns,0.0);
 
 			//// Read pointing
 			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename, field1))
 				return 1;
 
-			Ps = new double[ns];
-			fill(Ps,Ps+ns,0.0);
 
 			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
 
@@ -163,6 +169,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
 
 			delete[] Ps;
+			delete[] samptopix;
 		}else
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
 
@@ -185,7 +192,6 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	delete [] flag;
 	delete [] data;
 	delete [] data_lp;
-	delete [] samptopix;
 	delete [] fdata;
 
 

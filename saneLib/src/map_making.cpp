@@ -312,7 +312,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 	if (proc_param.remove_linear){
 		/// remove a baseline
-		aa = (data_lp[ns-1]-data[0])/double(ns);
+		aa = (data_lp[ns-1]-data_lp[0])/double(ns);
 		bb = data_lp[0];
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] -= aa*(double)ii+bb;
