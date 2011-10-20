@@ -510,7 +510,7 @@ int read_samptopix(DIRFILE* D, long ns, long long *samptopix,
 
 	// fill samptopix array
 	int nget = gd_getdata(D, field_code, 0, 0, 0, ns, GD_INT64,	samptopix);
-	if (gd_error(D) != 0) {
+	if (gd_error(D) != 0 || nget != ns) {
 		cout << "error getdata in read_samptopix : read " << nget << endl;
 		return 1;
 	}
@@ -707,7 +707,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, string prefixe,
 	return 0;
 }
 
-int read_fdata(DIRFILE* D, long ns, fftw_complex **fdata, string prefixe,
+int read_fdata(DIRFILE* D, long ns, fftw_complex *fdata, string prefixe,
 		long idet, string filename, std::vector<std::string> bolonames)
 /*!  read the map preconditioner from disk  */
 {
@@ -718,7 +718,7 @@ int read_fdata(DIRFILE* D, long ns, fftw_complex **fdata, string prefixe,
 	field_code = outfile.c_str();
 
 	// fill fdata with binary
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128, *fdata);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns/2+1, GD_COMPLEX128, fdata);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_fdata : read " << nget << endl;
 		return 1;

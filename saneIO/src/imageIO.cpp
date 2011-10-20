@@ -1,5 +1,5 @@
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <string>
@@ -896,7 +896,6 @@ int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
 	if (rank == 0) {
 
 		FILE *fin;
-		size_t result;
 		int size;
 
 		filename = tmpdir + "mapHeader.keyrec";
@@ -914,17 +913,22 @@ int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
 		nkeyrec = size / 81;
 
 		char comment[47];
+		int result;
 
 		// Read the two first lines, NAXIS1/NAXIS2
-		result = fscanf(fin, "NAXIS1  = %20ld / %47c\n", NAXIS1,
-				(char *) &comment);
-		result = fscanf(fin, "NAXIS2  = %20ld / %47c\n", NAXIS2,
-				(char *) &comment);
+		result = fscanf(fin, "NAXIS1  = %20ld / %47c\n", NAXIS1, (char *) &comment);
+		if (result == 0)
+			cerr << "WW - Read error : File error on mapHeader.keyrec";
+		result = fscanf(fin, "NAXIS2  = %20ld / %47c\n", NAXIS2, (char *) &comment);
+		if (result == 0)
+			cerr << "WW - Read error : File error on mapHeader.keyrec";
 
 		memblock = new char[(nkeyrec - 2) * 80+1];
 
 		for (int ii = 0; ii < nkeyrec; ii++) {
 			result = fread(&memblock[ii * 80], 80, sizeof(char), fin);
+			if (result == 0)
+				cerr << "WW - Read error : File error on mapHeader.keyrec";
 			fseek(fin, 1, SEEK_CUR); // skip newline char
 		}
 		fclose(fin);

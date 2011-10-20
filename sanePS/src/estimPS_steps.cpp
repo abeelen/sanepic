@@ -392,13 +392,13 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		if(read_fdata(samples_struct.dirfile_pointer, ns, &fdata1, "fdata_", idet1, fits_filename, det))
+		if(read_fdata(samples_struct.dirfile_pointer, ns, fdata1, "fdata_", idet1, fits_filename, det))
 			return EX_NOINPUT;
 
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			if(read_fdata(samples_struct.dirfile_pointer, ns, &fdata2, "fdata_", idet2, fits_filename, det))
+			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata2, "fdata_", idet2, fits_filename, det))
 				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);

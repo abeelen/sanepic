@@ -39,7 +39,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	fftw_complex *fdata;
 
 
-	Ps    = (double *) fftw_malloc(ns*sizeof(double));
+	Ps     = (double *) fftw_malloc(ns*sizeof(double));
 	fdata  = (fftw_complex *) fftw_malloc((ns/2+1)*sizeof(fftw_complex));
 
 
@@ -230,10 +230,10 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	bfilter   = new double[ns/2+1];
 	bfilter_  = new double[ns/2+1];
 	Nk        = new double[ns/2+1];
-	fdata     = new fftw_complex[ns/2+1];
 
-	Ndf  = (fftw_complex *) fftw_malloc((ns/2+1)*sizeof(fftw_complex));
-	Nd   = (double *)       fftw_malloc(ns*sizeof(double));
+	fdata     = (fftw_complex *) fftw_malloc((ns/2+1)*sizeof(fftw_complex));
+	Ndf       = (fftw_complex *) fftw_malloc((ns/2+1)*sizeof(fftw_complex));
+	Nd        = (double *)       fftw_malloc(ns*sizeof(double));
 
 
 	double **SpN_all;
@@ -327,7 +327,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 			fill(Nk,Nk+(ns/2+1),0.0);
 
 			//read Fourier transform of the data
-			if(read_fdata(samples_struct.dirfile_pointer, ns, &fdata, prefixe, idet2, samples_struct.basevect[iframe], det))
+			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata, prefixe, idet2, samples_struct.basevect[iframe], det))
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//

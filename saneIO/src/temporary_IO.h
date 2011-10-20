@@ -185,7 +185,7 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, std::string prefixe, l
  \param idet A channel index (to find which channel to consider in the list "bolonames")
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_fdata(DIRFILE* D, long ns, fftw_complex **fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
+int read_fdata(DIRFILE* D, long ns, fftw_complex *fdata, std::string prefixe, long idet, std::string filename, std::vector<std::string> bolonames);
 
 //! Reads a mixing matrix in a .txt file
 /*!
