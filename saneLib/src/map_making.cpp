@@ -312,7 +312,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 	if (proc_param.remove_linear){
 		/// remove a baseline
-		aa = (data_lp[ns-1]-data_lp[0])/double(ns);
+		aa = (data_lp[ns-1]-data[0])/double(ns);
 		bb = data_lp[0];
 		for (long ii=0;ii<ns;ii++)
 			data_lp[ii] -= aa*(double)ii+bb;
@@ -376,7 +376,6 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	//Fourier transform the data
 	fftplan = fftw_plan_dft_r2c_1d(ns, datatemp, fdata, FFTW_ESTIMATE);
 	fftw_execute(fftplan);
-	fftw_destroy_plan(fftplan);
 
 
 	// TODO: apodisation done twice ??
@@ -432,6 +431,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	delete [] bfiltertemp;
 	delete []  apodwind;
 
+	fftw_destroy_plan(fftplan);
 
 }
 

@@ -37,8 +37,6 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	Nk = new double[ns/2+1];
 
 
-	data    = new double[ns];
-	flag    = new int[ns];
 	data_lp = new double[ns];
 	Ps = new double[ns];
 

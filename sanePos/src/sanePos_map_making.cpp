@@ -227,20 +227,15 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 		long ns = samples_struct.nsamples[iframe];
 
-
-		double *lon, *lat;
-		int *flag = NULL;
-
-		lon = new double[ns];
-		lat = new double[ns];
-		flag = new int[ns];
-
 		for (long idet = 0; idet < ndet; idet++) {
 
 			field = det_vect[idet];
 
 			double *phi, *theta, *x, *y;
 			int *status;
+
+			double *lon, *lat;
+			int *flag = NULL;
 
 			phi = new double[ns];
 			theta = new double[ns];
@@ -290,6 +285,10 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 				lat_min = l_lat_min;
 			// }
 
+			delete[] lon;
+			delete[] lat;
+			delete[] flag;
+
 			delete[] phi;
 			delete[] theta;
 
@@ -298,10 +297,6 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 			delete[] status;
 		}
-
-		delete[] lon;
-		delete[] lat;
-		delete[] flag;
 
 	}
 
@@ -322,8 +317,6 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 	double aa, bb;
 	int *flag;
 
-	data    = new double[ns];
-	flag    = new int[ns];
 	data_lp = new double[ns];
 	data_out = new double[ns];
 	samptopix = new long long[ns];
@@ -379,11 +372,10 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 			hits[indpix[samptopix[ii]]] += 1;
 		}
 
+		delete[] data;
+		delete[] flag;
+
 	} // end of idet1 loop
-
-
-	delete[] data;
-	delete[] flag;
 
 	delete[] samptopix;
 	delete[] data_out;

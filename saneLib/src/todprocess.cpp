@@ -292,7 +292,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 {
 	// ell is an array of double, units are Hz
 
-	int f_lp;
+	int counttemp, f_lp;
 	double ellmin, ellmax, kmin, kmax, a, b;
 	//	double lkmin, lkmax;
 	double *ellm;
@@ -314,6 +314,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 		ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
 
 
+	counttemp = 0;
 	ellmin = ellm[0];
 	ellmax = ellm[1];
 	kmin = ellmin*ns/fsamp;
@@ -461,8 +462,8 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		if(flag[ff]==0)
 			yout[ff]=data[ff];
 
-//	buf_0.push_back(0);
-//	buf_1.push_back(0);
+	buf_0.push_back(0);
+	buf_1.push_back(0);
 
 	if(flag[0]!=0){
 		buf_0.push_back(0);
@@ -489,8 +490,8 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	else
 		buf_1.push_back(ns-p);
 
-	//	buf_0.erase(buf_0.begin());
-//	buf_1.erase(buf_1.begin());
+	buf_0.erase(buf_0.begin());
+	buf_1.erase(buf_1.begin());
 
 
 	long n=(long)buf_0.size();

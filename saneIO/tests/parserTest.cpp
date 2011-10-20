@@ -38,7 +38,7 @@ extern "C" {
 using namespace std;
 
 
-void print_struct(struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
+void print_struct(struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
 	       struct param_saneInv saneInv_struct, struct param_sanePic struct_sanePic, struct param_sanePS structPS);
 
 int main(int argc, char *argv[])
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 #endif
 
 
-	struct param_saneProc proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
@@ -85,8 +85,7 @@ int main(int argc, char *argv[])
 		/* parse ini file and fill structures */
 		parsed = parser_function(argv[1], parser_output, dir,
 				samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-					 struct_sanePic, size, rank);
-
+				struct_sanePic);
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
 
 
 
-void print_struct(struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
+void print_struct(struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
 		struct param_saneInv saneInv_struct, struct param_sanePic struct_sanePic, struct param_sanePS structPS)
 {
 
@@ -182,9 +181,9 @@ void print_struct(struct param_saneProc proc_param, struct samples samples_struc
 	cout << "projgaps = " << pos_param.projgaps << endl;
 	cout << "fileFormat = " << pos_param.fileFormat << endl;
 
-	cout << "\nproc_param : struct param_saneProc\n";
-	cout << "remove_linear = " << proc_param.remove_linear << endl;
-	cout << "fill_gap = " << proc_param.fill_gap << endl;
+	cout << "\nproc_param : struct param_sanePre\n";
+	cout << "NORMLIN = " << proc_param.NORMLIN << endl;
+	cout << "NOFILLGAP = " << proc_param.NOFILLGAP << endl;
 	cout << "CORRon = " << proc_param.CORRon << endl;
 	cout << "remove_polynomia = " << proc_param.remove_polynomia << endl;
 	cout << "napod = " << proc_param.napod << endl;

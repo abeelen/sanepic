@@ -343,13 +343,9 @@ int main(int argc, char *argv[])
 
 			if(rank==0) {
 
-				long ns = samples_struct.nsamples[0];
-
 				double *lon, *lat;
-				int *flag;
-				lon = new double[ns];
-				lat = new double[ns];
-				flag = new int[ns];
+				int *flag=NULL;
+				long ns = samples_struct.nsamples[0];
 
 				if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lon, ns))
 					return 1;
@@ -451,8 +447,8 @@ int main(int argc, char *argv[])
 
 			if (rank == 0) {
 				cout << "WW - Nominal Projection Center : " << endl;
-				cout << "     lon = " << lon_mean << endl;
-				cout << "     lat = " << lat_mean << endl << endl;
+				cout << "     lon : " << lon_mean << endl;
+				cout << "     lat : " << lat_mean << endl << endl;
 			}
 		}
 
