@@ -29,16 +29,17 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 	long long *samptopix;
 	double *bfilter, *Nk, *data, *data_lp, *Ps;
-	int *flag=NULL;
+	int *flag;
 	double powered;
 
 	samptopix = new long long[ns];
-	bfilter = new double[ns/2+1];
-	Nk = new double[ns/2+1];
+	bfilter   = new double[ns/2+1];
+	Nk        = new double[ns/2+1];
 
-
-	data_lp = new double[ns];
-	Ps = new double[ns];
+	data      = new double[ns];
+	flag      = new int[ns];
+	data_lp   = new double[ns];
+	Ps        = new double[ns];
 
 	int factdupl = 1;
 	if (pos_param.flgdupl) factdupl=2;
@@ -72,7 +73,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 		//// Read pointing
-		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, dirfile_filename,field);
+		read_samptopix(samples_struct.dirfile_pointer, dirfile_filename,field, samptopix, ns);
 
 
 		if (S != NULL){
@@ -161,7 +162,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 
 		field = det[idet];
 
-		read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fname,field);
+		read_samptopix(samples_struct.dirfile_pointer,  fname,field, samptopix, ns);
 
 
 		// AS

@@ -204,6 +204,9 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 	// Compute map extrema by projecting the bolometers position
 	// output (lon|lat)_(min|max)
 
+	double *lon, *lat;
+	int *flag;
+
 	string base_file;
 	string field;
 	int drop_sanepos = 0;
@@ -227,6 +230,11 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 		long ns = samples_struct.nsamples[iframe];
 
+		flag   = new int[ns];
+		lon    = new double[ns];
+		lat    = new double[ns];
+
+
 		for (long idet = 0; idet < ndet; idet++) {
 
 			field = det_vect[idet];
@@ -234,14 +242,14 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 			double *phi, *theta, *x, *y;
 			int *status;
 
-			double *lon, *lat;
-			int *flag = NULL;
 
 			phi = new double[ns];
 			theta = new double[ns];
 			x = new double[ns];
 			y = new double[ns];
 			status = new int[ns];
+
+
 
 			if (read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file,
 					field, lon, ns))
@@ -250,8 +258,7 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 					field, lat, ns))
 				return 1;
 
-			if (read_flag_from_dirfile(samples_struct.dirfile_pointer,
-					base_file, field, flag, ns))
+			if (read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
 				return 1;
 
 			if (cels2x(&(wcs->cel), ns, 0, 1, 1, lon, lat, phi, theta, x, y,
@@ -285,9 +292,6 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 				lat_min = l_lat_min;
 			// }
 
-			delete[] lon;
-			delete[] lat;
-			delete[] flag;
 
 			delete[] phi;
 			delete[] theta;
@@ -297,6 +301,10 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 			delete[] status;
 		}
+
+		delete[] lon;
+		delete[] lat;
+		delete[] flag;
 
 	}
 
@@ -317,6 +325,8 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 	double aa, bb;
 	int *flag;
 
+	data    = new double[ns];
+	flag    = new int[ns];
 	data_lp = new double[ns];
 	data_out = new double[ns];
 	samptopix = new long long[ns];
@@ -327,7 +337,7 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		field1 = det[idet1];
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, samples_struct.basevect[iframe], field1))
+		if(read_samptopix(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, samptopix, ns))
 		return 1;
 		if(read_data_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, data, ns))
 		return 1;
@@ -372,10 +382,11 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 			hits[indpix[samptopix[ii]]] += 1;
 		}
 
-		delete[] data;
-		delete[] flag;
-
 	} // end of idet1 loop
+
+
+	delete[] data;
+	delete[] flag;
 
 	delete[] samptopix;
 	delete[] data_out;

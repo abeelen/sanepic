@@ -56,9 +56,12 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	data_lp = new double[ns]; // data low passed
 	Ps = new double[ns]; // deprojected signal
+
 	samptopix = new long long[ns]; // sample to pixel proj matrix
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 
+	data      = new double[ns];
+	flag      = new int[ns];
 
 	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
 	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
@@ -88,7 +91,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer, fits_filename, field, samptopix, ns))
 				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -134,9 +137,10 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 			for (long ii=0;ii<ns;ii++)
 				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
 
-		delete [] data;
-		delete [] flag;
 	}
+
+	delete [] data;
+	delete [] flag;
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -229,11 +233,12 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2; // map duplication factor
 
-
-	data_lp = new double[ns]; // data low passed
+	data      = new double[ns];
+	flag      = new int[ns];
+	data_lp   = new double[ns]; // data low passed
 	commontmp = new double[ns]; //
-	Nell = new double[nbins]; // binned noise PS
-	Nk = new double[ns/2+1]; // noise PS
+	Nell      = new double[nbins]; // binned noise PS
+	Nk        = new double[ns/2+1]; // noise PS
 
 	if (S != NULL){
 		samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -267,7 +272,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, fits_filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer,  fits_filename, field, samptopix, ns))
 				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -301,9 +306,10 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 			N[idet][ii] = Nell[ii]/factapod; // uncorrelated part
 		}
 
-		delete [] data;
-		delete [] flag;
 	}
+
+	delete [] data;
+	delete [] flag;
 
 	////*********************** Component power spectra
 
@@ -382,13 +388,13 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		if(read_fdata(samples_struct.dirfile_pointer, ns, fdata1, "fdata_", idet1, fits_filename, det))
+		if(read_fdata(samples_struct.dirfile_pointer, fits_filename, det[idet1], "fdata_", fdata1, ns ))
 			return EX_NOINPUT;
 
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			if(read_fdata(samples_struct.dirfile_pointer, ns, fdata2, "fdata_", idet2, fits_filename, det))
+			if(read_fdata(samples_struct.dirfile_pointer, fits_filename, det[idet2],"fdata_", fdata2, ns))
 				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);

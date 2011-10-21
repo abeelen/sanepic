@@ -31,8 +31,8 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 		string filename = samples_struct.basevect[iframe];
 		long ns = samples_struct.nsamples[iframe];
 
-
-
+		mask  = new int[ns];
+		samptopix = new long long[ns];
 
 		string output_read = "";
 		std::vector<string> bolonames = bolo_list[iframe];
@@ -52,7 +52,7 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, filename, field, mask, ns))
 				return 1;
 
-			if(read_samptopix(samples_struct.dirfile_pointer, ns, samptopix, filename, field))
+			if(read_samptopix(samples_struct.dirfile_pointer, filename, field, samptopix, ns))
 				return 1;
 
 			// modify if in indpsrc !
@@ -69,9 +69,11 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 				return 1;
 			}
 
-			delete [] mask;
 			gd_flush(samples_struct.dirfile_pointer, NULL);
 		}
+
+		delete [] mask;
+		delete [] samptopix;
 
 	}
 
@@ -212,7 +214,9 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 			delete [] phi;
 			delete [] wcsstatus;
 
-			int *bolo_flag=NULL;
+			int *bolo_flag;
+
+			bolo_flag = new int[ns];
 
 			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, bolo_flag, ns))
 				return 1;
@@ -323,7 +327,12 @@ int computePixelIndex_HIPE(string tmpdir,
 		long ndet = (long)det_vect.size();
 
 		double *lon, *lat;
-		int *flag=NULL;
+		int *flag, *bolo_flag;
+
+		lon  = new double[ns];
+		lat  = new double[ns];
+		flag = new int[ns];
+		bolo_flag = new int[ns];
 
 		for (long idet = 0; idet<ndet; idet++){
 			string field = det_vect[idet];
@@ -380,8 +389,7 @@ int computePixelIndex_HIPE(string tmpdir,
 			delete [] theta;
 			delete [] phi;
 			delete [] wcsstatus;
-			delete [] lon;
-			delete [] lat;
+
 
 
 
@@ -389,7 +397,6 @@ int computePixelIndex_HIPE(string tmpdir,
 			// Combine position and bolo flags
 			// and check
 
-			int *bolo_flag=NULL;
 
 			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 			//				return 1;
@@ -462,13 +469,17 @@ int computePixelIndex_HIPE(string tmpdir,
 			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
 				return 1;
 
-			delete [] bolo_flag;
 			delete [] samptopix;
 			delete [] xx;
 			delete [] yy;
-			delete [] flag;
+
 
 		}
+		delete [] lon;
+		delete [] lat;
+		delete [] flag;
+		delete [] bolo_flag;
+
 	}
 
 	return 0;
