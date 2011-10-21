@@ -39,8 +39,9 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	fftw_complex *fdata;
 
 	samptopix = new long long[ns];
-	Ps = new double[ns];
-	fdata = new fftw_complex[ns/2+1];
+
+	Ps    = (double *) fftw_malloc(sizeof(double)*ns);
+	fdata = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * (ns/2+1));
 
 	fill(samptopix,samptopix+ns,0);
 	fill(Ps,Ps+ns,0.0);
@@ -52,7 +53,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	int factdupl = 1;
 	if(flgdupl==1)  factdupl = 2;
 
-
+	fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_MEASURE);
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
@@ -63,14 +64,13 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_ESTIMATE);
-		fftw_execute(fftplan);
-		fftw_destroy_plan(fftplan);
+		fftw_execute_dft_r2c(fftplan, Ps, fdata);
 
 		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fPs_", idet1, filename, det))
 			return 1;
 
 	}
+	fftw_destroy_plan(fftplan);
 
 	delete[] samptopix;
 	delete[] Ps;
@@ -104,12 +104,13 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	}
 #endif
 
-	data_lp   = new double[ns];
 	data      = new double[ns];
 	samptopix = new long long[ns];
 	flag      = new int[ns];
 
-	fdata = new fftw_complex[ns/2+1];
+
+	data_lp   = (double *) fftw_malloc(sizeof(double)*ns);
+	fdata     = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 
 	fill(data_lp,data_lp+ns,0.0);
 	fill(samptopix,samptopix+ns,0);
@@ -119,6 +120,8 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 	fits_filename = samples_struct.fitsvect[iframe];
 	dirfile_filename = samples_struct.basevect[iframe];
+
+	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_MEASURE);
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
@@ -168,13 +171,8 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
 
 
-
-
 		//Fourier transform of the data
-		fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE); //FFTW_ESTIMATE
-
-		fftw_execute(fftplan);
-		fftw_destroy_plan(fftplan);
+		fftw_execute_dft_r2c(fftplan, data_lp, fdata);
 
 		//write fourier transform to disk
 		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fdata_", idet1, dirfile_filename, det))
@@ -182,6 +180,8 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 
 	} // idet1
+
+	fftw_destroy_plan(fftplan);
 
 	delete [] flag;
 	delete [] data;
@@ -228,12 +228,13 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 
 	samptopix = new long long[ns];
-	Nd = new double[ns];
 	bfilter = new double[ns/2+1];
 	bfilter_ = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
-	Ndf = new fftw_complex[ns/2+1];
+
+	Nd   = (double *) fftw_malloc(sizeof(double)*ns);
+	Ndf  = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 
 	double **SpN_all;
 
@@ -249,6 +250,9 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	fill(Nd,Nd+ns,0.0);
 	fill(Nk,Nk+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
+
+
+	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_MEASURE);
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
@@ -389,9 +393,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		timeinfo = localtime ( &rawtime );
 		file << "before fft : at " << asctime (timeinfo) << endl;
 #endif
-		fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
-		fftw_execute(fftplan);
-		fftw_destroy_plan(fftplan);
+		fftw_execute_dft_c2r(fftplan, Ndf, Nd);
 
 #ifdef DEBUG
 		time ( &rawtime );
@@ -418,6 +420,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	}// end of idet1 loop
 
+	fftw_destroy_plan(fftplan);
 
 	delete[] samptopix;
 	delete[] Nd;

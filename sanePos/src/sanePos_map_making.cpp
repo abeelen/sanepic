@@ -327,10 +327,12 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 
 	data    = new double[ns];
 	flag    = new int[ns];
-	data_lp = new double[ns];
-	data_out = new double[ns];
+
 	samptopix = new long long[ns];
 	bfilter = new double[ns / 2 + 1];
+
+	data_lp  = (double *) fftw_malloc(sizeof(double)*ns);
+	data_out = (double *) fftw_malloc(sizeof(double)*ns);
 
 	for(	long idet1=0;idet1<ndet;idet1++) {
 

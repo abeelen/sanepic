@@ -85,7 +85,7 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 	fftw_complex *fdata;
 	fftw_plan fftplan;
 
-	fdata = new fftw_complex[ndata/2+1];
+	fdata = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ndata/2+1));
 
 	//apodize if asked, and define plan for fft
 	if (apodize){

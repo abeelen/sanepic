@@ -46,10 +46,9 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 	fftw_plan fftplan;
 
 
-	fdata = new fftw_complex[ndata/2+1];
-	Ndf = new fftw_complex[ndata/2+1];
-	Nd = new double[ndata];
-
+	fdata = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ndata/2+1));
+	Ndf   = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ndata/2+1));
+	Nd    = (double *) fftw_malloc(sizeof(double)*ndata);
 
 	//Fourier transform of the data
 	fftplan = fftw_plan_dft_r2c_1d(ndata, data, fdata, FFTW_ESTIMATE);
@@ -99,8 +98,9 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	double *N_;
 	fftw_plan fftplan;
 
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
+	Nk_ = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ndata/2+1));
+	N_  = (double *) fftw_malloc(sizeof(double)*ndata);
+
 	pixpos = new long long[ndata];
 	data_compare = new long long[ndata];
 	pixtosamp = new long long[ndata];
@@ -194,12 +194,12 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	//	timeinfo = localtime ( &rawtime );
 	//	file << "do_ptnd : " << oss.str() << " at " << asctime (timeinfo) << endl;
 
-	Nk_ = new fftw_complex[ndata/2+1];
-	N_ = new double[ndata];
-	//	pixpos = new long long [ndata];
+
+	Nk_ = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ndata/2+1));
+	N_  = (double *) fftw_malloc(sizeof(double)*ndata);
+
 	data_compare = new long long[ndata];
 	pixtosamp = new long long[ndata];
-	//	pixtosamp = new size_t[ndata];
 
 	//fill(N_,N_+ndata,0.0);
 	//fill(pixpos,pixpos+ndata,0);
@@ -280,8 +280,8 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 	double *data_out;
 	double *bfilter;
 
-	data_out = new double[ns];
-	bfilter = new double[ns/2+1];
+	data_out = (double *) fftw_malloc(sizeof(double)*ns);
+	bfilter  = new double[ns/2+1];
 
 	fill(data_out,data_out+ns,0.0);
 	fill(bfilter,bfilter+ns/2+1,0.0);
@@ -358,11 +358,13 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	fftw_complex  *fdata;
 	fftw_plan fftplan;
 
-	datatemp = new double[ns];
+	datatemp = (double *) fftw_malloc(sizeof(double)*ns);
+	fdata    = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
+
+
 	datatemp2 = new double[ns];
 	bfiltertemp = new double[ns/2+1];
 	count = new int[nbins];
-	fdata = new fftw_complex[ns/2+1];
 
 	//TODO : Why removing a polynomial here ???? SHOULD NOT
 	//TODO : apodization done twice ?? SHOULD NOT, but see below
