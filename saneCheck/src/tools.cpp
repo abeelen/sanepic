@@ -191,16 +191,16 @@ int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
 		colnum=0;
 		fits_get_num_cols(fptr, &colnum, &status);
 		if(colnum!=1){  // Is the size correct ?
-			cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAMES )" << endl;
+			cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAME )" << endl;
 			return -1;
 		}else{
 
 			colnum=0;
-			fits_get_colnum(fptr, CASEINSEN, (char*) "NAMES", &colnum, &status);
-			if(colnum!=1){ // Table NAMES is present ?
+			fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
+			if(colnum!=1){ // Table NAME is present ?
 				fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
 				if(colnum!=1){ // Table NAME is present ?
-					cout << "\"NAMES\" table was not found in \"channels\"" << endl;
+					cout << "\"NAME\" table was not found in \"channels\"" << endl;
 					return -1;
 				}
 			}
