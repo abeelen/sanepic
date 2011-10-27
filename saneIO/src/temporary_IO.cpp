@@ -231,7 +231,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 
 		det_vect=bolo_vect[iframe];
 
-		string base_name = samples_struct.basevect[iframe];
+		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
 		string fits_name = dir.data_dir + samples_struct.fitsvect[iframe];
 
 		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
@@ -243,9 +243,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 
 
-		base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: needed ???
-
-		if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
+			if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
 			fits_report_error(stderr, status);
 			return 1;
 		}

@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include <fftw3.h>
+
 
 extern "C"{
 #include "getdata.h"
@@ -57,6 +59,10 @@ struct param_saneProc
 	double f_lp;           /*! frequency of the high pass filter applied to the data */
 
 	std::string fcut_file; /*! Noise filter cut-off frequency */
+
+	bool wisdom ;          /*! True will force sanePre to precompute some fftw to acquire wisdom */
+
+
 };
 
 struct param_saneInv
@@ -125,6 +131,7 @@ struct samples
 
 	std::vector<long> nsamples; /*! a vector containing the number of samples for each input fits filenames */
 	long ntotscan; /*! the total number of scans */
+
 };
 
 struct checksum

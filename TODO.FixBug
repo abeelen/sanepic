@@ -1,0 +1,16 @@
+# If one needs to fix a bug in a released version of sanepic
+# First checkout this version
+
+svn co https://svn.ias.u-psud.fr/sanepic/tags/release-0.1/
+
+# Fix the bug and commit it
+
+svn commit -m "fixed bug"
+
+# Then if this bug also applies to the trunk merge it in your trunk directory
+
+svn merge -r 1120:1121 https://svn.ias.u-psud.fr/sanepic/tags/release-0.1/ .
+
+# and commit this change
+
+svn commit -m "Merge r1121 (fixed bug)"

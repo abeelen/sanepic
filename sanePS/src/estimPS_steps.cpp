@@ -81,7 +81,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
-	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_MEASURE);
+	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata1, FFTW_ESTIMATE);
 
 	// loop over detectors
 	for (long idet=0;idet<ndet;idet++){

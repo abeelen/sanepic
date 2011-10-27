@@ -12,7 +12,7 @@
 #include <sys/stat.h>   // For stat()
 #include <typeinfo>
 
-#include <wordexp.h>
+#include <wordexp.h>     // To perform word expansion in path (system variable)
 
 extern "C" {
 #include "iniparser.h"
@@ -227,6 +227,15 @@ void read_param_saneProc(string &output, dictionary *ini,
 				Proc_param.napod) + "]\n";
 	else
 		Proc_param.napod = i;
+
+
+	i = iniparser_getboolean(ini, (char*) "saneProc:wisdom", -1);
+	if (i == -1)
+		output2 += "saneProc:wisdom : default value [" + StringOf(
+				Proc_param.wisdom) + "]\n";
+	else
+		Proc_param.wisdom = (bool) i;
+
 
 	i = iniparser_getboolean(ini, "saneProc:fill_gap", -1);
 	if (i == -1)
@@ -740,11 +749,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_param,
 
 uint16_t check_common(string &output, struct param_common dir) {
 
-	if ((dir.bolo_global_filename == "") && (dir.bolo_suffix == "")) {
-		output += "EE - You must mention one of those parameters :\n";
-		output += "     param_common:bolo_suffix or param_common:bolo_blobal_file\n";
-		return BOLOFILE_NOT_FOUND;
-	}
+
 	if (check_path(output, dir.data_dir, false))
 		return DATA_INPUT_PATHS_PROBLEM;
 	if (check_path(output, dir.input_dir, false))
@@ -753,6 +758,14 @@ uint16_t check_common(string &output, struct param_common dir) {
 		return OUPUT_PATH_PROBLEM;
 	if (check_path(output, dir.tmp_dir, true))
 		return TMP_PATH_PROBLEM;
+
+	if ((dir.bolo_global_filename == "") && (dir.bolo_suffix == "")) {
+		output += "EE - You must mention one of those parameters :\n";
+		output += "     param_common:bolo_suffix or param_common:bolo_blobal_file\n";
+		return BOLOFILE_NOT_FOUND;
+	}
+
+	//TODO: Check for file existence....
 
 	return 0;
 }
@@ -781,6 +794,8 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos Pos_param) {
 }
 
 uint16_t check_param_saneProc(string &output, struct param_saneProc Proc_param) {
+
+	//TODO: Check for file existence....
 
 	if (Proc_param.napod < 0) {
 		output
@@ -817,6 +832,8 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS PS_param) {
 
 uint16_t check_param_saneInv(string &output,
 		struct param_saneInv Inv_param) {
+
+	//TODO: Check for file existence....
 
 	if (check_path(output, Inv_param.noise_dir, false))
 		return SANEINV_INPUT_ERROR;
@@ -904,6 +921,8 @@ void default_param_saneProc(struct param_saneProc &Proc_param) {
 	Proc_param.poly_order = 1;
 	Proc_param.fsamp = 0.0;
 	Proc_param.f_lp = 0.0;
+
+	Proc_param.wisdom = false;
 
 }
 
@@ -1323,18 +1342,6 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	iniparser_freedict(ini);
 
-	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-	filename = dir.input_dir + Proc_param.fcut_file;
-	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
-			filename);
-
-	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
-		samples_param.bolovect[iframe] = dir.input_dir
-				+ samples_param.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
-	}
-	// TODO: this should be done elsewhere as the input files might be missing...
-	// Store scan sizes so that we dont need to read it again and again in the loops !
-	readFrames(dir.data_dir, samples_param.fitsvect, samples_param.nsamples);
 
 
 	// Now the ini file has been read, do the rest
@@ -1345,7 +1352,6 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-
 	parsed += check_param_sanePos(output, Pos_param);
 
 	parsed += check_param_saneProc(output, Proc_param);
@@ -1353,6 +1359,69 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	parsed += check_param_saneInv(output, Inv_param);
 
 	parsed += check_param_sanePS(output, PS_param);
+
+	// Test to know if all required files are present of not before doing the following... (based on the parsed value)
+
+	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
+	filename = dir.input_dir + Proc_param.fcut_file;
+	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
+			filename);
+
+	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
+		samples_param.bolovect[iframe] = dir.input_dir
+				+ samples_param.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
+	}
+
+	// Store scan sizes so that we dont need to read it again and again in the loops !
+	readFrames(dir.data_dir, samples_param.fitsvect, samples_param.nsamples);
+
+
+	// Retrieve wisdom if asked / possible
+
+	if (rank == 0 && Proc_param.wisdom) {
+		string filename = dir.tmp_dir + "fftw.wisdom";
+		FILE * pFilename;
+
+		pFilename = fopen((const char*) filename.c_str(), "r");
+
+		if ( pFilename != NULL ){
+			fftw_import_wisdom_from_file( pFilename );
+			fclose(pFilename);
+		} else {
+#ifdef DEBUG
+			output += "WW - no FFTW wisdom imported from fftw.wisdom\n";
+#endif
+		}
+	}
+
+#ifdef USE_MPI
+	if ( Proc_param.wisdom ) {
+
+		char * wisdom;
+		int size_wisdom;
+
+		if (rank == 0){
+			wisdom = fftw_export_wisdom_to_string();
+			size_wisdom = strlen(wisdom);
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(&size_wisdom, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+		if (rank != 0){
+			wisdom = (char *)calloc(size_wisdom+1, sizeof(char));
+			fill(wisdom, wisdom + size_wisdom+1, '\0');
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(wisdom, size_wisdom, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+		if (rank != 0)
+			if ( fftw_import_wisdom_from_string(wisdom) != 0 )
+				output += "WW - Problem propagating FFTW wisdom\n";
+	}
+#endif
+
 
 	return parsed;
 }
@@ -1387,12 +1456,17 @@ void print_param_sanePos(struct param_sanePos Pos_param) {
 	cout << endl;
 }
 
-void print_param_process(struct param_saneProc Proc_param) {
+void print_param_saneProc(struct param_saneProc Proc_param) {
 
 	if (Proc_param.fill_gap)
 		cout << "Fill Gaps        : True\n";
 	else
 		cout << "Fill Gaps        : False\n";
+
+	if (Proc_param.wisdom)
+		cout << "Use Wisdom       : True\n";
+	else
+		cout << "Use Wisdom       : False\n";
 
 	if (Proc_param.remove_linear)
 		cout << "Simple Baseline  : will be removed (default)\n";
@@ -1478,7 +1552,7 @@ void parser_printOut(char * prog_name, struct param_common dir,
 	i = basename.find("sanePS");
 	if ((i >= 0) && (i < (int) basename.size())) {
 		print_param_sanePos(Pos_param);
-		print_param_process(Proc_param);
+		print_param_saneProc(Proc_param);
 		print_param_sanePS(PS_param);
 	}
 
@@ -1491,7 +1565,7 @@ void parser_printOut(char * prog_name, struct param_common dir,
 	i = basename.find("sanePic");
 	if ((i >= 0) && (i < (int) basename.size())) {
 		print_param_sanePos(Pos_param);
-		print_param_process(Proc_param);
+		print_param_saneProc(Proc_param);
 		print_param_sanePic(Pic_param);
 	}
 
@@ -1618,6 +1692,11 @@ void export_param_saneProc(struct param_saneProc Proc_param, std::vector<string>
 	key.push_back("fill_gap");
 	value.push_back(StringOf(Proc_param.fill_gap ? "True" : "False"));
 	comment.push_back("Do we fill the gaps ?  (True : default)");
+
+	key.push_back("wisdom");
+	value.push_back(StringOf(Proc_param.wisdom ? "True" : "False"));
+	comment.push_back("Do we use FFTW wisdom ?  (False: default)");
+
 
 }
 

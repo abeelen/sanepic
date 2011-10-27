@@ -53,7 +53,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	int factdupl = 1;
 	if(flgdupl==1)  factdupl = 2;
 
-	fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_MEASURE);
+	fftplan = fftw_plan_dft_r2c_1d(ns, Ps, fdata, FFTW_ESTIMATE);
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
@@ -121,7 +121,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	fits_filename = samples_struct.fitsvect[iframe];
 	dirfile_filename = samples_struct.basevect[iframe];
 
-	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_MEASURE);
+	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
@@ -252,7 +252,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	fill(samptopix,samptopix+ns,0);
 
 
-	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_MEASURE);
+	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){

@@ -20,8 +20,9 @@
 
 extern "C" {
 #include "nrutil.h"
-#include "wcslib/wcs.h"
+#include "wcslib/wcs.h"     // to export wcs header keys
 #include "wcslib/wcshdr.h"
+#include <fftw3.h>          // for wisdom
 }
 
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-	  cout << endl << "sanePre :  Pre Processing of the data" << endl;
+		cout << endl << "sanePre :  Pre Processing of the data" << endl;
 
 	struct param_saneProc Proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
@@ -210,8 +211,11 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+	if(rank==0)
+		cout << endl << "Exporting signal and flags... " << endl;
+
 	if(write_data_flag_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-		cout << "error write_data_flag_to_dirfile !! Exiting ...\n";
+		cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -222,10 +226,15 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+
+	if(rank==0)
+		cout << "Exporting positions... " << endl;
+
+
 	//TODO: What if Pos_param = 0 ?????
 	if(Pos_param.fileFormat==1)
 		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-			cout << "error write_LON_LAT_to_dirfile !! Exiting ...\n";
+			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -234,6 +243,8 @@ int main(int argc, char *argv[])
 
 	// Create a fake WCS image header and populate it with info from the first fits file
 	if (rank == 0){
+
+		cout << "Exporting header keys... " << endl;
 
 		int nwcs=1;                      // We will only deal with one wcs....
 		struct wcsprm * wcs;             // wcs structure of the image
@@ -257,6 +268,49 @@ int main(int argc, char *argv[])
 		}
 
 		wcsvfree(&nwcs, &wcs);
+
+	}
+
+
+	if (rank == 0 && Proc_param.wisdom ){
+		cout << "Building some wisdom..." << endl;
+
+		fftw_complex * fdata;
+		double *        data;
+		long ns;
+		fftw_plan plan;
+
+		for (long iframe=0 ;iframe<samples_struct.ntotscan;iframe++){
+
+			ns = samples_struct.nsamples[iframe];
+
+			data  = (double *) fftw_malloc(sizeof(double)*ns);
+			fdata = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * (ns/2+1));
+
+			plan = fftw_plan_dft_r2c_1d(ns, data, fdata, FFTW_PATIENT);
+			//			fftw_print_plan(plan);
+			fftw_destroy_plan(plan);
+
+			plan = fftw_plan_dft_c2r_1d(ns, fdata, data, FFTW_PATIENT);
+			//			fftw_print_plan(plan);
+			fftw_destroy_plan(plan);
+
+			fftw_free(data);
+			fftw_free(fdata);
+		}
+
+		string filename = dir.tmp_dir + "fftw.wisdom";
+		FILE * pFilename;
+
+		pFilename = fopen((const char*) filename.c_str(), "w+");
+
+		if ( pFilename != NULL ){
+			fftw_export_wisdom_to_file( pFilename );
+		} else {
+			cerr << "EE - Problem while writing FFTW wisdom in " << filename << endl;
+		}
+
+		fclose(pFilename);
 
 	}
 

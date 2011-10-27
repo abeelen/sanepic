@@ -393,7 +393,7 @@ void print_param_sanePos(struct param_sanePos pos_param);
 /*!
  \param proc_param The param_saneProc structure
  */
-void print_param_process(struct param_saneProc proc_param);
+void print_param_saneProc(struct param_saneProc proc_param);
 
 //! Print param_sanePic structure informations to screen
 /*!
