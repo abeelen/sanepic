@@ -6,3 +6,6 @@ endif
 
 SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic $(PARA) $(OPT_SUBDIRS)
 DIST_SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic saneFrameOrder
+
+# # Distribution with sanePS included
+# DIST_SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic saneFrameOrder sanePS

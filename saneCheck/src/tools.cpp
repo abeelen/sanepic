@@ -103,8 +103,8 @@ int check_positionHDU(string fname,long ns, long ndet, int format, struct checkH
 	}else{
 
 		fits_get_num_rows(fptr, &ndet_test, &status);
-		if(ndet!=ndet_test){ // check offsets table's size
-			cout << "\"offsets\" has a wrong number of rows (must be equal to ndet : " << ndet << " )" << endl;
+		if(ndet>ndet_test){ // check offsets table's size
+			cout << "\"offsets\" has a wrong number of rows (must be greater or equal to ndet : " << ndet << " )" << endl;
 			return -1;
 		}
 

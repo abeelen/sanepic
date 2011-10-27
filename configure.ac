@@ -1,11 +1,11 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.68])
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
-AC_INIT([sanepic], [0.1.svnversion], [sanepic@ias.u-psud.fr])
-AC_CANONICAL_SYSTEM
+AC_INIT([sanepic],[0.1.svnversion],[sanepic@ias.u-psud.fr])
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall -Werror])
 
 AC_LANG(C++)
@@ -17,7 +17,7 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+LT_INIT
 #AC_OPENMP
 
 # Configure options
@@ -162,11 +162,12 @@ fi
 
 # Checks for lib
 
-AC_CHECK_LIB(cfitsio, ffvers,,AC_MSG_ERROR(cfitsio needed))
+AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
+AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
 AC_CHECK_LIB(fftw3, fftw_plan_dft_c2r_1d,,AC_MSG_ERROR(fftw3 needed))
 AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR(GSLCBLAS needed for GSL ))
 AC_CHECK_LIB(gsl,main,,AC_MSG_ERROR(GSL needed))
-AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
+AC_CHECK_LIB(cfitsio, ffvers,,AC_MSG_ERROR(cfitsio needed))
 AC_CHECK_LIB(wcs, wcsini,,AC_MSG_ERROR(wcslib needed))
 AC_CHECK_LIB(getdata, gd_open,,AC_MSG_ERROR(getdata needed))
 

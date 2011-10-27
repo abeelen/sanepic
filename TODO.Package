@@ -12,8 +12,8 @@ svn commit -m "commit before packaging"
 
 # create a release tag (matched with the counter release)
 
-svn copy https://svn.ias.u-psud.fr/sanepic/trunk \
-    https://svn.ias.u-psud.fr/sanepic/tags/release-0.1 \
+svn copy https://inf-cvs.ias.u-psud.fr/sanepic/trunk \
+    https://inf-cvs.ias.u-psud.fr/sanepic/tags/release-0.1 \
     -m "Tagging the 0.1 release of the 'sanepic' project"
 
 # Use your local workspace ...
@@ -38,3 +38,9 @@ autoreconf -i -f
 
 make dist
 
+# Propagate the code to the sourceforge repository
+
+tar zxvf sanepic-*
+cd sanepic-*
+
+svn copy --username=abeelen . svn+ssh://abeelen@svn.code.sf.net/p/sanepic/code/tags/0.1
