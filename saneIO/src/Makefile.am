@@ -25,6 +25,7 @@ utilities.cpp \
 covMatrix_IO.h \
 crc.h \
 dataIO.h \
+error_code.h \
 imageIO.h \
 inputFileIO.h \
 mpi_architecture_builder.h \

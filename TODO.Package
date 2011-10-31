@@ -45,4 +45,6 @@ make dist
 tar zxvf sanepic-*
 cd sanepic-*
 
-svn copy --username=abeelen . svn+ssh://abeelen@svn.code.sf.net/p/sanepic/code/tags/0.2
+svn import --username=abeelen . svn+ssh://abeelen@svn.code.sf.net/p/sanepic/code/tags/0.2
+
+# Update sanepic.rss (use date --rfc-2822 )
