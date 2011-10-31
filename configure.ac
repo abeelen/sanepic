@@ -4,7 +4,7 @@
 AC_PREREQ([2.67])
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
-AC_INIT([sanepic],[0.1.svnversion],[sanepic@ias.u-psud.fr])
+AC_INIT([sanepic],[0.2.svnversion],[sanepic@ias.u-psud.fr])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall -Werror])
 
