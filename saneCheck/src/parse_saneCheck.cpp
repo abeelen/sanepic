@@ -53,7 +53,7 @@ uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_
 	}
 
 	read_saneCheck_ini(ini , Check_param);
-	//	read_bolo_gain_global_file(output, ini, dir.input_dir, bolo_gain_file, rank);
+	//	read_bolo_gain(output, ini, dir.input_dir, bolo_gain_file, rank);
 
 	iniparser_freedict(ini);
 

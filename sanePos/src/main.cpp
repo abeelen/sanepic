@@ -21,6 +21,7 @@
 #include "imageIO.h"
 #include "temporary_IO.h"
 #include "inputFileIO.h"
+#include "error_code.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
 
 	//naiv map data params
 	long ns; /* number of samples for this scan, first frame number of this scan*/
-	double f_lppix, f_lppix_Nk; /* frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
+	double fhp_pix, fcut_pix; /* frequencies : filter knee freq, noise PS threshold freq ; frequencies converted in a number of samples*/
 	double *PNdNaiv, *PNdtotNaiv=NULL; /*  projected noised data, and global Pnd for mpi utilization */
 	long *hitsNaiv, *hitstotNaiv=NULL; /* naivmap parameters : hits count */
 
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
 
 	uint16_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
-			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc2ff
+			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc2ff
 
 	string field; /* field = actual boloname in the bolo loop */
 
@@ -388,19 +389,20 @@ int main(int argc, char *argv[])
 			}
 
 			// Project all data once using the temporary projection center...
+			// at this stage all shall be in dirfile, so HIPE format...
 			if(iframe_min!=iframe_max){
-				switch (pos_param.fileFormat) {
-				case 0:
-					if(computeMapMinima(samples_struct, dir.data_dir,
-							iframe_min,iframe_max, wcs,
-							lon_min,lon_max,lat_min,lat_max, bolo_list)){
-#ifdef PARA_FRAME
-						MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-						return(EX_OSERR);
-					}
-					break;
-				case 1:
+//				switch (pos_param.fileFormat) {
+//				case 0:
+//					if(computeMapMinima(samples_struct, dir.data_dir,
+//							iframe_min,iframe_max, wcs,
+//							lon_min,lon_max,lat_min,lat_max, bolo_list)){
+//#ifdef PARA_FRAME
+//						MPI_Abort(MPI_COMM_WORLD, 1);
+//#endif
+//						return(EX_OSERR);
+//					}
+//					break;
+//				case 1:
 					if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
 							iframe_min,iframe_max, wcs,
 							lon_min,lon_max,lat_min,lat_max, bolo_list)){
@@ -409,8 +411,8 @@ int main(int argc, char *argv[])
 #endif
 						return(EX_OSERR);
 					}
-					break;
-				}
+//					break;
+//				}
 			}
 
 #ifdef PARA_FRAME
@@ -463,19 +465,20 @@ int main(int argc, char *argv[])
 			printf("wcsset ERROR %d: %s.\n", status, wcs_errmsg[status]);
 		}
 
+		// At this stage all should be in DIRFILE so ... HIPE format
 		if(iframe_min!=iframe_max){
-			switch (pos_param.fileFormat) {
-			case 0:
-				if(computeMapMinima(samples_struct, dir.data_dir,
-						iframe_min,iframe_max, wcs,
-						lon_min,lon_max,lat_min,lat_max, bolo_list)){
-#ifdef PARA_FRAME
-					MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-					return(EX_OSERR);
-				}
-				break;
-			case 1:
+//			switch (pos_param.fileFormat) {
+//			case 0:
+//				if(computeMapMinima(samples_struct, dir.data_dir,
+//						iframe_min,iframe_max, wcs,
+//						lon_min,lon_max,lat_min,lat_max, bolo_list)){
+//#ifdef PARA_FRAME
+//					MPI_Abort(MPI_COMM_WORLD, 1);
+//#endif
+//					return(EX_OSERR);
+//				}
+//				break;
+//			case 1:
 				if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
 						iframe_min,iframe_max, wcs,
 						lon_min,lon_max,lat_min,lat_max, bolo_list)){
@@ -484,8 +487,8 @@ int main(int argc, char *argv[])
 #endif
 					return(EX_OSERR);
 				}
-				break;
-			}
+//				break;
+//			}
 		}
 
 #ifdef PARA_FRAME
@@ -617,21 +620,22 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "Computing pixel indexes..." << endl;
 
-	switch (pos_param.fileFormat) {
-	case 0:
-		if(computePixelIndex(dir.tmp_dir, dir.data_dir, samples_struct,
-				proc_param, pos_param, iframe_min, iframe_max,
-				wcs, NAXIS1, NAXIS2,
-				mask,factdupl,
-				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout, bolo_list)){
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-			return(EX_OSERR);
-		}
-		break;
-	case 1:
+	// At this stage all should be in DIRFILE format, so HIPE...
+//	switch (pos_param.fileFormat) {
+//	case 0:
+//		if(computePixelIndex(dir.tmp_dir, dir.data_dir, samples_struct,
+//				proc_param, pos_param, iframe_min, iframe_max,
+//				wcs, NAXIS1, NAXIS2,
+//				mask,factdupl,
+//				addnpix, pixon, rank,
+//				indpsrc, npixsrc, flagon, pixout, bolo_list)){
+//#ifdef PARA_FRAME
+//			MPI_Abort(MPI_COMM_WORLD, 1);
+//#endif
+//			return(EX_OSERR);
+//		}
+//		break;
+//	case 1:
 		if(computePixelIndex_HIPE(dir.tmp_dir, samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
@@ -643,8 +647,8 @@ int main(int argc, char *argv[])
 #endif
 			return(EX_OSERR);
 		}
-		break;
-	}
+//		break;
+//	}
 
 
 
@@ -734,15 +738,15 @@ int main(int argc, char *argv[])
 	// loop over the scans
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-		ns = samples_struct.nsamples[iframe]; // number of samples for this scan
-		f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-		f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/proc_param.fsamp; // noise PS threshold freq, in terms of samples
+		ns       = samples_struct.nsamples[iframe]; // number of samples for this scan
+		fhp_pix  = samples_struct.fhp[iframe]  * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
+		fcut_pix = samples_struct.fcut[iframe] * double(ns)/samples_struct.fsamp[iframe]; // noise PS threshold freq, in terms of samples
 
 		std::vector<string> det_vect = bolo_list[iframe];
 		long ndet = (long)det_vect.size();
 
 		int pb=0;
-		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, det_vect, ndet, proc_param.poly_order, proc_param.napod, f_lppix, ns, indpix, iframe, hitsNaiv);
+		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, det_vect, ndet, proc_param.poly_order, proc_param.napod, fhp_pix, ns, indpix, iframe, hitsNaiv);
 		if(pb>0){
 			cout << "Problem after do_PtNd_Naiv. Exiting...\n";
 #ifdef PARA_FRAME

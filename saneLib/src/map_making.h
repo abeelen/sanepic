@@ -17,12 +17,12 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 
 void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		long NAXIS1, long NAXIS2, long long *indpix,
-		long npix, double f_lppix, double *dPtNP);
+		long npix, double fhp_pix, double *dPtNP);
 
 
 void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 		long NAXIS1, long NAXIS2, long long *indpix,
-		long long npix, double f_lppix, double *dPtNP);
+		long long npix, double fhp_pix, double *dPtNP);
 
 
 //! Subtract deprojected signal to the data and apply a pre-process to the data
@@ -32,11 +32,11 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
  \param flag An array specifying which "data" samples are flagged
  \param ns Number of samples for the considered scan : samples_struct.fitsvect[iframe]
  \param proc_param The param_saneProc structure
- \param f_lppix High-pass Filter cut-off frequency (converted in samples)
+ \param fhp_pix High-pass Filter cut-off frequency (converted in samples)
  \param data_lp Filtered and pre-processed data (MapMakePreProcessData's output)
  \param Ps Deprojected signal to be removed from data
  */
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double f_lppix, double *data_lp, double *Ps);
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double fhp_pix, double *data_lp, double *Ps);
 
 
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,

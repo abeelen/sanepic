@@ -75,7 +75,7 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 
 
 
-void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
+void butterworth(double y[], int ndata, double f_hp, int orderB, double *yout,
 		double *bfilter, bool apodize, int napod, bool overwrite)
 {
 
@@ -108,8 +108,8 @@ void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout,
 
 	//filter
 	for (int ii=0;ii<ndata/2+1;ii++){
-		powered = gsl_pow_int(double(ii)/f_lp, 2*orderB) ;
-		bfilter[ii] = powered/(1.0+powered);//pow(double(ii)/f_lp, 2*orderB) /(1.0+pow(double(ii)/f_lp, 2*orderB));
+		powered = gsl_pow_int(double(ii)/f_hp, 2*orderB) ;
+		bfilter[ii] = powered/(1.0+powered);//pow(double(ii)/f_hp, 2*orderB) /(1.0+pow(double(ii)/f_hp, 2*orderB));
 		fdata[ii][0] = fdata[ii][0]*bfilter[ii]/ndata;
 		fdata[ii][1] = fdata[ii][1]*bfilter[ii]/ndata;
 	}
@@ -161,7 +161,7 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 	// ell is an array of double, units are Hz
 
-	int counttemp, f_lp;
+	int counttemp, f_hp;
 	double ellmin, ellmax, kmin, kmax, a, b;
 	double *ellm;
 	double N_flp;
@@ -214,14 +214,14 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 
 
-		f_lp = 0;
-		while (bfilter[f_lp] <= 0.5) f_lp++;
-		f_lp++;
+		f_hp = 0;
+		while (bfilter[f_hp] <= 0.5) f_hp++;
+		f_hp++;
 
 
 		//give a lower limit to the spectrum
-		for (int k=0;k<f_lp;k++) if (Nk[k] < Nk[f_lp]) Nk[k] = Nk[f_lp];
-		//for (k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
+		for (int k=0;k<f_hp;k++) if (Nk[k] < Nk[f_hp]) Nk[k] = Nk[f_hp];
+		//for (k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
 
 		// suppress effect of aafilter on the Noise Sp
 		for (int k=0;k<ns/2+1;k++) if (Nk[k] < Nk[ns/5]) Nk[k] = Nk[ns/5];
@@ -246,15 +246,15 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 		*Nk *= gsl_pow_2(bfilter[int(*mode)]);
 
 
-		f_lp = 0;
-		while (bfilter[f_lp] <= 0.5) f_lp++;
-		f_lp++;
+		f_hp = 0;
+		while (bfilter[f_hp] <= 0.5) f_hp++;
+		f_hp++;
 
 
-		if (*mode < f_lp){
+		if (*mode < f_hp){
 
 			counttemp = 0;
-			while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+			while (f_hp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 				counttemp++;
 			}
 			if (counttemp > 0){
@@ -266,8 +266,8 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 						log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
 				b = log(SpN[counttemp-1]);
 			}
-			N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
-			N_flp *= gsl_pow_2(bfilter[f_lp]);
+			N_flp = exp(a*(log((double)f_hp)-log(kmin))+b)/double(ns);
+			N_flp *= gsl_pow_2(bfilter[f_hp]);
 
 
 
@@ -292,7 +292,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 {
 	// ell is an array of double, units are Hz
 
-	int counttemp, f_lp;
+	int counttemp, f_hp;
 	double ellmin, ellmax, kmin, kmax, a, b;
 	//	double lkmin, lkmax;
 	double *ellm;
@@ -371,14 +371,14 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 
-	f_lp = 0;
-	while (bfilter[f_lp] > 2.0) f_lp++;
-	f_lp++;
+	f_hp = 0;
+	while (bfilter[f_hp] > 2.0) f_hp++;
+	f_hp++;
 
 
 
 	//give a lower limit to the spectrum
-	for (int k=0;k<f_lp;k++) Nk[k] = Nk[f_lp];
+	for (int k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
 
 	// suppress effect of aafilter on the Noise Sp
 	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
@@ -403,15 +403,15 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	//		*Nk *= gsl_pow_2(bfilter[int(*mode)]);
 	//
 	//
-	//		f_lp = 0;
-	//		while (bfilter[f_lp] > 2.0) f_lp++;
-	//		f_lp++;
+	//		f_hp = 0;
+	//		while (bfilter[f_hp] > 2.0) f_hp++;
+	//		f_hp++;
 	//
 	//
-	//		if (*mode < f_lp){
+	//		if (*mode < f_hp){
 	//
 	//			counttemp = 0;
-	//			while (f_lp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+	//			while (f_hp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
 	//				counttemp++;
 	//			}
 	//			if (counttemp > 0){
@@ -423,8 +423,8 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	//						log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
 	//				b = log(SpN[counttemp-1]);
 	//			}
-	//			N_flp = exp(a*(log((double)f_lp)-log(kmin))+b)/double(ns);
-	//			N_flp *= gsl_pow_2(bfilter[f_lp]);
+	//			N_flp = exp(a*(log((double)f_hp)-log(kmin))+b)/double(ns);
+	//			N_flp *= gsl_pow_2(bfilter[f_hp]);
 	//
 	//
 	//

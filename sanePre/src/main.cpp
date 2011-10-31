@@ -16,6 +16,7 @@
 #include "parser_functions.h"
 #include "struct_definition.h"
 #include "inputFileIO.h"
+#include "error_code.h"
 
 
 extern "C" {
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-		cout << endl << "sanePre :  Pre Processing of the data" << endl;
+		cout << endl << "sanePre :  pre processing of the data" << endl;
 
 	struct param_saneProc Proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
@@ -232,14 +233,27 @@ int main(int argc, char *argv[])
 
 
 	//TODO: What if Pos_param = 0 ?????
-	if(Pos_param.fileFormat==1)
-		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
-#ifdef USE_MPI
+	switch (Pos_param.fileFormat) {
+	case 0:
+		if(export_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+					cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
+#ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			exit(EXIT_FAILURE);
 		}
+		break;
+	case 1:
+		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+					cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
+#ifdef PARA_FRAME
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			exit(EXIT_FAILURE);
+		}
+		break;
+	}
+
 
 	// Create a fake WCS image header and populate it with info from the first fits file
 	if (rank == 0){
@@ -253,7 +267,7 @@ int main(int argc, char *argv[])
 		int nsubkeys;                   //
 
 
-		if (get_fits_META(dir.data_dir + samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank)){
+		if (get_fits_META(samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank)){
 			cout << "pb getting fits META\n";
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);

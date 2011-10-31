@@ -15,7 +15,7 @@
 using namespace std;
 
 int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct samples samples_struct, std::vector<std::string> det, long ndet, double f_lppix, double f_lppix_Nk,
+		struct samples samples_struct, std::vector<std::string> det, long ndet, double fhp_pix, double fcut_pix,
 		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
 		long long npixsrc, long iframe, double *S, int para_bolo_indice, int para_bolo_size)
 {
@@ -47,9 +47,8 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	if (pos_param.flgdupl) factdupl=2;
 
 
-	string fits_filename, dirfile_filename;
+	string  dirfile_filename;
 
-	fits_filename = samples_struct.fitsvect[iframe];
 	dirfile_filename = samples_struct.basevect[iframe];
 
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
@@ -83,10 +82,10 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 
 			//********************  pre-processing of data ********************//
-			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp,  Ps);
+			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp,  Ps);
 
 		} else {
-			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
+			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
 		}
 
 
@@ -95,7 +94,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 		// end of preprocess begin of fdata
 
 		for (long ii=0;ii<ns/2+1;ii++){
-			powered=pow(double(ii)/f_lppix, 16);
+			powered=pow(double(ii)/fhp_pix, 16);
 			bfilter[ii] = powered /(1.0+powered);
 		}
 
@@ -136,7 +135,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::string> noisevect, struct param_common dir,
-		std::vector<std::string> det, long ndet, double f_lppix,double fsamp, bool flgdupl, long ns,
+		std::vector<std::string> det, long ndet, double fhp_pix,double fsamp, bool flgdupl, long ns,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
 		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
 
@@ -172,7 +171,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
 
 		for (long ii=0;ii<(ns)/2+1;ii++){
-			powered=pow(double(ii)/f_lppix, 16);
+			powered=pow(double(ii)/fhp_pix, 16);
 			bfilter[ii] = powered /(1.0+powered);
 		}
 
@@ -187,7 +186,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 
 		//Compute weight map for preconditioner
 		if ((Mp != NULL))
-			compute_diagPtNP(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,f_lppix,Mp);
+			compute_diagPtNP(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,fhp_pix,Mp);
 
 
 		//compute hit counts

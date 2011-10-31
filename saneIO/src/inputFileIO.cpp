@@ -9,6 +9,7 @@
 #include "imageIO.h"
 #include "inputFileIO.h"
 #include "covMatrix_IO.h"
+#include "error_code.h"
 
 extern "C"{
 #include "nrutil.h"
@@ -30,7 +31,7 @@ int read_strings(string fname, std::vector<string> &bolos) {
 	ifstream inputFile(fname.c_str(), ios::in);
 	if (!inputFile.is_open()) {
 		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		return 1;
+		return FILE_PROBLEM;
 	}
 
 	while (!inputFile.eof()) {
@@ -52,15 +53,14 @@ int read_strings(string fname, std::vector<string> &bolos) {
 	return 0;
 }
 
-int read_double(string fname, double *& array, long & size){
+int read_double(string fname, std::vector<double> &array ){
 	string line;
-	std::vector<double> temp;
 	size_t found;
 
 	ifstream inputFile(fname.c_str(), ios::in);
 	if (!inputFile.is_open()) {
 		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		return 1;
+		return FILE_PROBLEM;
 	}
 
 	// Count the number of lines ;
@@ -74,17 +74,10 @@ int read_double(string fname, double *& array, long & size){
 
 		line = line.substr(0, line.find_first_of(EscapeChar)); // pick out line until Escape Character
 
-		temp.push_back(atof(line.c_str()));
+		array.push_back(atof(line.c_str()));
 	}
-	// Last element is an empty line
-//	temp.pop_back();
-//	inputFile.close();
 
-	size = temp.size();
-	// Memory allocation
-	array = new double[size];
-	for (long ii=0; ii< size; ii++)
-		array[ii] = temp[ii];
+	inputFile.close();
 
 	return 0;
 }
@@ -100,50 +93,37 @@ std::string replace_all(std::string str, std::string tobe_replace, std::string w
 	return str;
 }
 
-std::string FitsBasename(std::string path)
+std::string Basename(std::string path)
 {
-
-	//	size_t found;
 	string filename="";
 	int i;
 
-
-	//	cout << path << " deb fonction" << endl;
-
-	//	path=replace_all(path, "\\", "/");
-
 	// Strip the path and get the filename
 	// Find the last " directory separator
-	//	found = path.find_last_of("/\\");
 	i=path.rfind("/");
-
-	//	cout << " i : " << i << endl;
 
 	if((i<0) || (i>(int)path.size()))
 		filename = path;
 	else
 		filename.assign(path.begin()+i+1,path.end());
 
-	//	cout << filename << " apres path" << endl;
+	return filename;
+}
 
-	//	if (found != string::npos)
-	//		filename = 	path.substr(found+1);
-	//	else
-	//		filename = path;
+
+std::string FitsBasename(std::string path)
+{
+	string filename="";
+	int i;
+
+	filename = Basename(path);
 
 	// Strip the file extension (whatever is after the last ".fits"
-
-	//	found = filename.find_last_of(".fits");
 	i=filename.rfind(".fits");
-	//	cout << " i : " << i << endl;
-
-	//	if (found != string::npos)
-	//		filename = 	filename.substr(0,found-4);
 
 	if((i>0) && (i<(int)path.size()))
 		filename.erase(filename.begin()+i,filename.end());
 
-	//	cout << filename << " fin fonction" << endl;
 
 	return filename;
 }
@@ -203,12 +183,12 @@ long readFitsLength(string filename){
 	return ns;
 }
 
-void readFrames(std::string inputdir, std::vector<string> &inputList, std::vector<long> &nsamples){
+void readFrames(std::vector<string> &inputList, std::vector<long> &nsamples){
 
 	long nScan  = inputList.size();
 	//	nsamples = new long[nScan];
 	for (long i=0; i<nScan; i++){
-		nsamples.push_back(readFitsLength(inputdir + inputList[i]));
+		nsamples.push_back(readFitsLength(inputList[i]));
 	}
 
 }
@@ -238,17 +218,17 @@ void skip_comment(ifstream &file, string &line){
 	}
 }
 
-int read_fits_list(string &output, string fname, struct samples &samples_str ) {
+uint16_t read_fits_list(string &output, string fname, struct samples &samples_param ) {
 
-	std::vector<string> &fitsfiles = samples_str.fitsvect;
-	std::vector<int> &frameorder = samples_str.scans_index;
-	bool &framegiven = samples_str.framegiven;
+	std::vector<string> &fitsvect = samples_param.fitsvect;
+	std::vector<int> &scans_index = samples_param.scans_index;
+	bool &framegiven = samples_param.framegiven;
 
 	ifstream file;
 	file.open(fname.c_str(), ios::in);
 	if(!file.is_open()){
 		output += "File [" + fname + "] Invalid.\n";
-		return 1;
+		return FILE_PROBLEM;
 	}
 
 	framegiven=0;
@@ -294,8 +274,8 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 #endif
 			istringstream iline(line);
 			iline >> s >> d;
-			fitsfiles.push_back(s);
-			frameorder.push_back(d);
+			fitsvect.push_back(s);
+			scans_index.push_back(d);
 		}
 		break;
 
@@ -310,29 +290,30 @@ int read_fits_list(string &output, string fname, struct samples &samples_str ) {
 #ifdef DEBUG
 			cout << "frame_read : " << s << endl;
 #endif
-			fitsfiles.push_back(line);
-			frameorder.push_back(0);
+			fitsvect.push_back(line);
+			scans_index.push_back(0);
 		}
 		break;
 
 	default:
 		output += "File [" + fname + "] must have at least one row and at most 2 colums. Exiting\n";
-		return 1;
+		return FILE_SIZE_PROBLEM;
 		break;
 	}
 
-	if(fitsfiles.size()==0){
+	if(fitsvect.size()==0){
 		output += "File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
-		return 1;
+		return FILE_SIZE_PROBLEM;
 	}
 
 	if (file>>s){
 		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
-		return 1;
+		return FILE_SIZE_PROBLEM;
 	}
 
 	file.close();
 
+	samples_param.ntotscan = fitsvect.size();
 	return 0;
 }
 

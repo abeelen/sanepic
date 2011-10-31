@@ -25,6 +25,8 @@ extern "C" {
 #include "parser_functions.h"
 #include "mpi_architecture_builder.h"
 #include "crc.h"
+#include "error_code.h"
+
 
 #ifdef USE_MPI
 #include "mpi.h"
@@ -59,6 +61,53 @@ string expandDir(string str){
 string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
+
+uint16_t fillvect_double(double value, string file, long ntotscan, vector<double> &outputVector){
+
+	vector<double> dummy;
+	outputVector.resize(ntotscan);
+
+	if (file != "" && value <= 0.0){
+
+		if ( read_double(file, dummy) )
+			return FILE_PROBLEM;
+		if ( dummy.size() != (long unsigned) ntotscan )
+			return FILE_SIZE_PROBLEM;
+
+		outputVector = dummy;
+	}
+
+	if ( value > 0.0 ) {
+		for (long ii=0; ii < ntotscan; ii++)
+			outputVector[ii] = value;
+	}
+
+	return 0;
+}
+
+
+void fillvect_strings(string commonFile, vector<string> FitsFilename, string suffix, string dir, vector<string> & outputVector){
+
+	unsigned long size;
+
+	size = FitsFilename.size();
+	outputVector.resize(size);
+
+	if (commonFile != ""){
+
+		for (unsigned long ii=0; ii < size; ii++)
+			outputVector[ii] = dir + commonFile;
+
+	} else {
+
+		for (unsigned long ii=0; ii < size; ii++)
+			outputVector[ii] = dir + FitsBasename(FitsFilename[ii])+ suffix;
+
+	}
+
+}
+
+
 
 void read_common(string &output, dictionary *ini, struct param_common &common) {
 
@@ -107,12 +156,12 @@ void read_common(string &output, dictionary *ini, struct param_common &common) {
 	else
 		common.bolo_suffix = StringOf(s);
 
-	s = iniparser_getstring(ini, "common:bolo_global_file", (char *) NULL);
+	s = iniparser_getstring(ini, "common:bolo", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "common:bolos_global_file : default value [" + StringOf(
-				common.bolo_global_filename) + "]\n";
+		output2 += "common:bolos : default value [" + StringOf(
+				common.bolo) + "]\n";
 	else
-		common.bolo_global_filename = StringOf(s);
+		common.bolo = StringOf(s);
 
 #ifdef DEBUG
 	output += output2;
@@ -244,19 +293,37 @@ void read_param_saneProc(string &output, dictionary *ini,
 	else
 		Proc_param.fill_gap = (bool) i;
 
-	d = iniparser_getdouble(ini, (char*) "saneProc:sampling_frequency", -1.0);
+	d = iniparser_getdouble(ini, (char*) "saneProc:fsamp", -1.0);
 	if (d == -1.0)
-		output2 += "saneProc:sampling_frequency: default value [" + StringOf(
+		output2 += "saneProc:fsamp: default value [" + StringOf(
 				Proc_param.fsamp) + "]\n";
 	else
 		Proc_param.fsamp = d;
 
-	d = iniparser_getdouble(ini, (char*) "saneProc:filter_frequency", -1.0);
-	if (d == -1.0)
-		output2 += "saneProc:filter_frequency: default value [" + StringOf(
-				Proc_param.f_lp) + "]\n";
+
+	s = iniparser_getstring(ini, "saneProc:fsamp_file", (char *) NULL);
+	if (s == (char *) NULL || strlen(s) == 0)
+		output2 += "saneProc:fsamp_file : default value [" + StringOf(
+				Proc_param.fsamp_file) + "]\n";
 	else
-		Proc_param.f_lp = d;
+		Proc_param.fsamp_file = StringOf(s);
+
+
+	d = iniparser_getdouble(ini, (char*) "saneProc:fhp", -1.0);
+	if (d == -1.0)
+		output2 += "saneProc:fhp: default value [" + StringOf(
+				Proc_param.fhp) + "]\n";
+	else
+		Proc_param.fhp = d;
+
+
+	s = iniparser_getstring(ini, "saneProc:fhp_file", (char *) NULL);
+	if (s == (char *) NULL || strlen(s) == 0)
+		output2 += "saneProc:fhp_file : default value [" + StringOf(
+				Proc_param.fhp_file) + "]\n";
+	else
+		Proc_param.fhp_file = StringOf(s);
+
 
 	i = iniparser_getboolean(ini, "saneProc:linear_baseline", -1);
 	if (i == -1)
@@ -279,15 +346,14 @@ void read_param_saneProc(string &output, dictionary *ini,
 	else
 		Proc_param.poly_order = i;
 
-	if (Proc_param.poly_order >= 0)
-		Proc_param.remove_polynomia = 1;
-	else
-		Proc_param.remove_polynomia = 0;
 
-	if (Proc_param.f_lp > 0)
-		Proc_param.highpass_filter = 1;
+
+	d = iniparser_getdouble(ini, (char *) "saneProc:fcut", -1.0);
+	if (d == -1.0)
+		output2 += "saneProc:fcut : default value [" + StringOf(
+				Proc_param.fcut) + "]\n";
 	else
-		Proc_param.highpass_filter = 0;
+		Proc_param.fcut = d;
 
 	s = iniparser_getstring(ini, "saneProc:fcut_file", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
@@ -307,12 +373,12 @@ void read_param_saneInv(std::string &output, dictionary *ini,
 	char *s;
 	string output2 = "";
 
-	s = iniparser_getstring(ini, "saneInv:cov_matrix_file", (char *) NULL);
+	s = iniparser_getstring(ini, "saneInv:cov_matrix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "saneInv:cov_matrix_file : default value [" + StringOf(
-				Inv_param.cov_matrix_file) + "]\n";
+		output2 += "saneInv:cov_matrix : default value [" + StringOf(
+				Inv_param.cov_matrix) + "]\n";
 	else
-		Inv_param.cov_matrix_file = StringOf(s);
+		Inv_param.cov_matrix = StringOf(s);
 
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
@@ -369,20 +435,20 @@ void read_param_sanePS(std::string &output, dictionary *ini,
 	else
 		PS_param.ell_suffix = StringOf(s);
 
-	s = iniparser_getstring(ini, "sanePS:ell_global_file", (char *) NULL);
+	s = iniparser_getstring(ini, "sanePS:ell", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "sanePS:ell_global_file : default value [" + StringOf(
-				PS_param.ell_global_file) + "]\n";
+		output2 += "sanePS:ell : default value [" + StringOf(
+				PS_param.ell) + "]\n";
 	else
-		PS_param.ell_global_file = StringOf(s);
+		PS_param.ell = StringOf(s);
 
-	s = iniparser_getstring(ini, "sanePS:MixingMatrix_global_file",
+	s = iniparser_getstring(ini, "sanePS:MixingMatrix",
 			(char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "sanePS:MixingMatrix_global_file : default value ["
-				+ StringOf(PS_param.mix_global_file) + "]\n";
+		output2 += "sanePS:MixingMatrix : default value ["
+				+ StringOf(PS_param.mix) + "]\n";
 	else
-		PS_param.mix_global_file = StringOf(s);
+		PS_param.mix = StringOf(s);
 
 	i = iniparser_getboolean(ini, "sanePS:save_data", -1);
 	if (i == -1)
@@ -392,12 +458,12 @@ void read_param_sanePS(std::string &output, dictionary *ini,
 		PS_param.save_data = (bool) i;
 
 	//TODO: Ugly turnaround until sanePS is released;
-	s = iniparser_getstring(ini, "saneInv:cov_matrix_file", (char *) NULL);
+	s = iniparser_getstring(ini, "saneInv:cov_matrix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "saneInv:cov_matrix_file : default value [" + StringOf(
-				PS_param.cov_matrix_file) + "]\n";
+		output2 += "saneInv:cov_matrix : default value [" + StringOf(
+				PS_param.cov_matrix) + "]\n";
 	else
-		PS_param.cov_matrix_file = StringOf(s);
+		PS_param.cov_matrix = StringOf(s);
 
 	s = iniparser_getstring(ini, "saneInv:cov_matrix_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
@@ -483,6 +549,23 @@ int check_path(string &output, string strPath, bool create) {
 		}
 	}
 	return 0;
+}
+
+
+uint16_t check_file(string strPath) {
+
+	if (access(strPath.c_str(), 0) == 0) {
+		struct stat status;
+		stat(strPath.c_str(), &status);
+
+		if ( (status.st_mode & S_IFREG) && (status.st_mode & S_IFLNK) )
+			return 0;
+		else
+			return FILE_PROBLEM;
+
+	} else {
+		return FILE_PROBLEM;
+	}
 }
 
 int compute_dirfile_format_file(std::string tmp_dir,
@@ -747,38 +830,42 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_param,
 	return 0;
 }
 
-uint16_t check_common(string &output, struct param_common dir) {
 
+uint16_t check_common(string &output, struct param_common &dir) {
+
+	uint16_t returnCode = 0;
 
 	if (check_path(output, dir.data_dir, false))
-		return DATA_INPUT_PATHS_PROBLEM;
+		returnCode |= DATA_INPUT_PATHS_PROBLEM;
 	if (check_path(output, dir.input_dir, false))
-		return DATA_INPUT_PATHS_PROBLEM;
+		returnCode |= DATA_INPUT_PATHS_PROBLEM;
 	if (check_path(output, dir.output_dir, true))
-		return OUPUT_PATH_PROBLEM;
+		returnCode |= OUPUT_PATH_PROBLEM;
 	if (check_path(output, dir.tmp_dir, true))
-		return TMP_PATH_PROBLEM;
+		returnCode |= TMP_PATH_PROBLEM;
 
-	if ((dir.bolo_global_filename == "") && (dir.bolo_suffix == "")) {
+	if ((dir.bolo == "") && (dir.bolo_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
-		output += "     param_common:bolo_suffix or param_common:bolo_blobal_file\n";
-		return BOLOFILE_NOT_FOUND;
+		output += "     param_common:bolo_suffix or param_common:bolo\n";
+		returnCode |= BOLOFILE_NOT_FOUND;
 	}
 
 	//TODO: Check for file existence....
 
-	return 0;
+	return returnCode;
 }
 
-uint16_t check_param_sanePos(string &output, struct param_sanePos Pos_param) {
+uint16_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
+
+	uint16_t returnCode = 0;
 
 	if (Pos_param.pixdeg <= 0 && Pos_param.maskfile == "") {
 		output += "EE - Pixsize cannot be negative ! \n";
-		return PIXDEG_WRONG_VALUE;
+		returnCode |= PIXDEG_WRONG_VALUE;
 	}
 	if ((Pos_param.fileFormat != 0) && (Pos_param.fileFormat != 1)) {
 		output += "EE - Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
-		return FILEFORMAT_NOT_FOUND;
+		returnCode |= FILEFORMAT_NOT_FOUND;
 	}
 
 	// Force axis type to GAL if converting from EQ to GAL
@@ -789,64 +876,117 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos Pos_param) {
 	if (Pos_param.gal2eq)
 		Pos_param.axistype = "EQ";
 
-
-	return 0;
+	return returnCode;
 }
 
-uint16_t check_param_saneProc(string &output, struct param_saneProc Proc_param) {
+uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param) {
+
+	uint16_t returnCode = 0;
 
 	//TODO: Check for file existence....
 
 	if (Proc_param.napod < 0) {
 		output
 		+= "EE - You must choose a positive number of samples to apodize\n";
-		return NAPOD_WRONG_VALUE;
-	}
-	if (Proc_param.fsamp <= 0.0) {
-		output += "EE - Sampling_frequency cannot be negative or 0 ! \n";
-		return FSAMP_WRONG_VALUE;
+		returnCode |= NAPOD_WRONG_VALUE;
 	}
 
-	return 0;
+	if ( ( Proc_param.fsamp <= 0.0 ) && ( Proc_param.fsamp_file == "" ) ) {
+		output += "EE - You must mention one of those parameters :\n";
+		output += "     saneProc:fsamp or saneProc:fsamp_file\n";
+		returnCode |= FSAMP_PROBLEM;
+	}
+
+	if ( ( Proc_param.fhp <= 0.0 ) && ( Proc_param.fhp_file == "" ) ) {
+		output += "EE - You must mention one of those parameters :\n";
+		output += "     saneProc:fhp or saneProc:fhp_file\n";
+		returnCode |= FHP_PROBLEM;
+	}
+
+	if ( ( Proc_param.fcut <= 0.0 ) && ( Proc_param.fcut_file == "" ) ) {
+		output += "EE - You must mention one of those parameters :\n";
+		output += "     saneProc:fcut or saneProc:fcut_file\n";
+		returnCode |= FCUT_PROBLEM;
+	}
+
+	if (Proc_param.poly_order >= 0)
+		Proc_param.remove_polynomia = true;
+	else
+		Proc_param.remove_polynomia = false;
+
+	//TODO: Check the case of fhp_file
+	if (Proc_param.fhp > 0 || Proc_param.fhp_file != "" )
+		Proc_param.highpass_filter = true;
+	else
+		Proc_param.highpass_filter = false;
+
+	return returnCode;
 }
 
-uint16_t check_param_sanePS(string &output, struct param_sanePS PS_param) {
+uint16_t check_param_sanePS(string &output, struct param_sanePS &PS_param) {
+
+	uint16_t returnCode = 0;
 
 	if (PS_param.ncomp <= 0) {
 		output += "EE - Number of component ncomp cannot be negative or zero ! \n";
-		return NCOMP_WRONG_VALUE;
+		returnCode |= NCOMP_WRONG_VALUE;
 	}
-	if ((PS_param.ell_global_file == "") && (PS_param.ell_suffix == "")) {
+	if ((PS_param.ell == "") && (PS_param.ell_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
-		output += "     sanePS:ell_global_file or sanePS:ell_suffix\n";
-		return ELL_FILE_NOT_FOUND;
+		output += "     sanePS:ell or sanePS:ell_suffix\n";
+		returnCode |= ELL_FILE_NOT_FOUND;
 	}
-	if ((PS_param.mix_global_file == "") && (PS_param.mix_suffix == "")) {
+	if ((PS_param.mix == "") && (PS_param.mix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
-		output += "     sanePS:mix_global_file or sanePS:mix_suffix\n";
-		return MIX_FILE_NOT_FOUND;
+		output += "     sanePS:mix or sanePS:mix_suffix\n";
+		returnCode |= MIX_FILE_NOT_FOUND;
 	}
 
-	return 0;
+	return returnCode;
 }
 
 uint16_t check_param_saneInv(string &output,
-		struct param_saneInv Inv_param) {
+		struct param_saneInv &Inv_param) {
+
+	uint16_t returnCode = 0;
 
 	//TODO: Check for file existence....
 
 	if (check_path(output, Inv_param.noise_dir, false))
-		return SANEINV_INPUT_ERROR;
+		returnCode |= SANEINV_INPUT_ERROR;
 
-	if ((Inv_param.cov_matrix_file == "")
+	if ((Inv_param.cov_matrix == "")
 			&& (Inv_param.cov_matrix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
-		output += "     saneInv:cov_matrix_suffix or saneInv:cov_matrix_global_file\n";
-		return SANEINV_INPUT_ERROR;
+		output += "     saneInv:cov_matrix_suffix or saneInv:cov_matrix\n";
+		returnCode |= SANEINV_INPUT_ERROR;
 	}
 
-	return 0;
+	return returnCode;
 }
+
+uint16_t check_param_samples(string &output, struct samples &samples_param){
+
+	uint16_t returnCode = 0;
+
+	for (long iframe=0; iframe < samples_param.ntotscan; iframe++) {
+		if ( (check_file(samples_param.fitsvect[iframe])  & check_file(samples_param.fitsvect[iframe] +".gz")) != 0 ){
+			output += "EE - " + samples_param.fitsvect[iframe] + " not found\n";
+			returnCode |= FILE_PROBLEM;
+		}
+		if ( (check_file(samples_param.noisevect[iframe])  & check_file(samples_param.noisevect[iframe] +".gz")) != 0 ){
+			output += "EE - " + samples_param.noisevect[iframe] + " not found\n";
+			returnCode |= FILE_PROBLEM;
+		}
+		if ( check_file(samples_param.bolovect[iframe]) != 0 ){
+			output += "EE - " + samples_param.bolovect[iframe] + " not found\n";
+			returnCode |= FILE_PROBLEM;
+		}
+
+	}
+	return returnCode;
+}
+
 
 void default_param(struct param_common &dir, struct samples &samples_param,
 		struct param_sanePos &Pos_param, struct param_saneProc &Proc_param,
@@ -870,7 +1010,7 @@ void default_param_common(struct param_common &dir) {
 	dir.input_dir = "./";
 
 	dir.fits_filelist = "file.list";
-	dir.bolo_global_filename = "";
+	dir.bolo = "";
 	dir.bolo_suffix = ".bolo";
 
 }
@@ -908,7 +1048,7 @@ void default_param_saneProc(struct param_saneProc &Proc_param) {
 	//	Proc_param.remove_linear = 0; /*!  baseline is removed from the data, remove_linear = 1 else 0 */
 	//	Proc_param.CORRon = 1; /*! correlation included in the analysis (=1), else 0, default 0*/
 	//	Proc_param.remove_polynomia = 1; /*! remove a polynomia fitted to the data*/
-	//	Proc_param.f_lp = 0.0; // low pass filter frequency
+	//	Proc_param.fhp = 0.0; // low pass filter frequency
 
 	Proc_param.remove_linear = false;
 	Proc_param.fill_gap = true;
@@ -916,11 +1056,16 @@ void default_param_saneProc(struct param_saneProc &Proc_param) {
 	Proc_param.remove_polynomia = true;
 	Proc_param.highpass_filter = false;
 
-	Proc_param.fcut_file = "";
 	Proc_param.napod = 100;
 	Proc_param.poly_order = 1;
-	Proc_param.fsamp = 0.0;
-	Proc_param.f_lp = 0.0;
+
+	Proc_param.fsamp = -1.0;
+	Proc_param.fhp = -1.0;
+	Proc_param.fcut = -1.0;
+
+	Proc_param.fsamp_file = "";
+	Proc_param.fhp_file   = "";
+	Proc_param.fcut_file  = "";
 
 	Proc_param.wisdom = false;
 
@@ -930,22 +1075,22 @@ void default_param_sanePS(struct param_sanePS &PS_param) {
 
 	PS_param.ell_suffix = ".ell";
 	PS_param.mix_suffix = ".mix";
-	PS_param.ell_global_file = "";
-	PS_param.mix_global_file = "";
+	PS_param.ell = "";
+	PS_param.mix = "";
 	PS_param.signame = "";
 	PS_param.ncomp = 1;
 	PS_param.save_data = 1;
 
 	//TODO: Ugly turnaround until sanePS is released;
 
-	PS_param.cov_matrix_file = "";
-	PS_param.cov_matrix_suffix = "_ps.fits";
+	PS_param.cov_matrix = "";
+	PS_param.cov_matrix_suffix = "_psd.fits";
 
 }
 
 void default_param_saneInv(struct param_saneInv &Inv_param) {
 
-	Inv_param.cov_matrix_file = "";
+	Inv_param.cov_matrix = "";
 	Inv_param.cov_matrix_suffix = "_psd.fits";
 	Inv_param.noise_dir = "./";
 }
@@ -961,94 +1106,60 @@ void default_param_sanePic(struct param_sanePic &Pic_param) {
 void fill_sanePS_struct(struct param_sanePS &PS_param,
 		struct samples &samples_param, struct param_common &dir) {
 
-	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
-		if (PS_param.mix_global_file != "")
-			samples_param.mix_names.push_back(
-					dir.input_dir + PS_param.mix_global_file);
-		else
-			samples_param.mix_names.push_back(
-					dir.input_dir + FitsBasename(
-							samples_param.fitsvect[iframe])
-							+ PS_param.mix_suffix);
+	vector<string> dummy_string;
 
-		if (PS_param.ell_global_file != "")
-			samples_param.ell_names.push_back(
-					dir.input_dir + PS_param.ell_global_file);
-		else
-			samples_param.ell_names.push_back(
-					dir.input_dir + FitsBasename(
-							samples_param.fitsvect[iframe])
-							+ PS_param.ell_suffix);
-	}
+	fillvect_strings(PS_param.mix, samples_param.fitsvect, PS_param.mix_suffix, dir.input_dir, dummy_string);
+	samples_param.mix_names = dummy_string;
+	dummy_string.clear();
+
+	fillvect_strings(PS_param.ell, samples_param.fitsvect, PS_param.ell_suffix, dir.input_dir, dummy_string);
+	samples_param.ell_names = dummy_string;
+	dummy_string.clear();
 
 }
 
 uint16_t fill_samples_param(string &output, struct samples &samples_param,
 		struct param_common &dir, struct param_saneInv &Inv_param,
-		string fcut_file) {
+		struct param_saneProc &Proc_param) {
 
-	string filename;
-	filename = dir.input_dir + dir.fits_filelist;
-	if (read_fits_list(output, filename, samples_param) != 0)
-		return 0x4000;
+	uint16_t returnCode = 0;
 
-	samples_param.ntotscan = (samples_param.fitsvect).size();
+	returnCode |= read_fits_list(output, dir.input_dir + dir.fits_filelist, samples_param);
+
+	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++)
+		samples_param.fitsvect[iframe] = dir.data_dir + samples_param.fitsvect[iframe];
+
 
 	// Fill basevect
 	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
 		samples_param.basevect.push_back(
 				dirfile_Basename(samples_param.fitsvect[iframe]));
 	}
-	// Fill bolovect
-	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
-		if (dir.bolo_global_filename != "")
-			samples_param.bolovect.push_back(dir.bolo_global_filename);
-		else
-			samples_param.bolovect.push_back(
-					FitsBasename(samples_param.fitsvect[iframe])
-					+ dir.bolo_suffix);
 
-	}
+	vector<string> dummy_string;
+	vector<double> dummy_double;
 
-	// Fill noisevect
-	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {
-		if ((Inv_param.cov_matrix_file != ""))
-			samples_param.noisevect.push_back(Inv_param.cov_matrix_file);
-		else
-			samples_param.noisevect.push_back(
-					FitsBasename(samples_param.fitsvect[iframe])
-					+ Inv_param.cov_matrix_suffix);
-	}
+	fillvect_strings(dir.bolo, samples_param.fitsvect, dir.bolo_suffix, dir.input_dir, dummy_string);
+	samples_param.bolovect = dummy_string;
+	dummy_string.clear();
 
-	if (FitsBasename(fcut_file).size() == 0) {
-		output
-		+= "Warning ! fcut_file filename is missing in the ini file ...\n";
-		return 0x8000;
-	}
+	fillvect_strings(Inv_param.cov_matrix, samples_param.fitsvect, Inv_param.cov_matrix_suffix, Inv_param.noise_dir, dummy_string);
+	samples_param.noisevect = dummy_string;
+	dummy_string.clear();
 
-	// Read the fcut file
-	std::vector<string> dummy2;
-	if (read_strings(fcut_file, dummy2))
-		return 0x8000;
+	returnCode |= fillvect_double(Proc_param.fcut, dir.input_dir + Proc_param.fcut_file, samples_param.ntotscan, dummy_double);
+	samples_param.fcut = dummy_double;
+	dummy_double.clear();
 
-	if (((int) dummy2.size()) == 0 || ((int) dummy2.size() != 1
-			&& ((int) dummy2.size() != samples_param.ntotscan))) {
-		output
-		+= "You must provide at least one number of noise cut frequency (or one per scan) in fcut_file !\n";
-		return 0x8000;
-	}
+	returnCode |= fillvect_double(Proc_param.fsamp, dir.input_dir + Proc_param.fsamp_file, samples_param.ntotscan, dummy_double);
+	samples_param.fsamp = dummy_double;
+	dummy_double.clear();
 
-	for (int iframe_dummy = 0; iframe_dummy < (int) dummy2.size(); iframe_dummy++)
-		samples_param.fcut.push_back(atof(dummy2[iframe_dummy].c_str()));
+	returnCode |= fillvect_double(Proc_param.fhp, dir.input_dir + Proc_param.fhp_file, samples_param.ntotscan, dummy_double);
+	samples_param.fhp = dummy_double;
+	dummy_double.clear();
 
-	// If There is only one value, use it everywhere
-	if ((dummy2.size() == 1) && (samples_param.ntotscan > 1)) {
-		// if only one fcut, extend to all scans
-		samples_param.fcut.resize(samples_param.ntotscan,
-				samples_param.fcut[0]);
-	}
-
-	return 0;
+	return returnCode;
 
 }
 
@@ -1298,7 +1409,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	dictionary * ini = NULL;
 	string filename;
-	uint16_t parsed = 0x0000;
+	uint16_t parsed = 0;
 
 	if (rank == 0) {
 		// load dictionnary
@@ -1346,34 +1457,25 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	// Now the ini file has been read, do the rest
 	if (rank == 0)
-		parsed += check_common(output, dir);
+		parsed |= check_common(output, dir);
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	parsed += check_param_sanePos(output, Pos_param);
+	parsed |= check_param_sanePos(output, Pos_param);
+	parsed |= check_param_saneProc(output, Proc_param);
+	parsed |= check_param_saneInv(output, Inv_param);
+	parsed |= check_param_sanePS(output, PS_param);
 
-	parsed += check_param_saneProc(output, Proc_param);
-
-	parsed += check_param_saneInv(output, Inv_param);
-
-	parsed += check_param_sanePS(output, PS_param);
+	parsed |= fill_samples_param(output, samples_param, dir, Inv_param, Proc_param);
 
 	// Test to know if all required files are present of not before doing the following... (based on the parsed value)
-
-	// Fill fitsvec, noisevect, scans_index with values read from the 'str' filename
-	filename = dir.input_dir + Proc_param.fcut_file;
-	parsed += fill_samples_param(output, samples_param, dir, Inv_param,
-			filename);
-
-	for (int iframe = 0; iframe < (int) ((samples_param.fitsvect).size()); iframe++) {
-		samples_param.bolovect[iframe] = dir.input_dir
-				+ samples_param.bolovect[iframe]; // better for bolovect cause you dont need to handle path in every function call !
-	}
+	parsed |= check_param_samples(output, samples_param);
 
 	// Store scan sizes so that we dont need to read it again and again in the loops !
-	readFrames(dir.data_dir, samples_param.fitsvect, samples_param.nsamples);
+	if ( ! parsed )
+		readFrames(samples_param.fitsvect, samples_param.nsamples);
 
 
 	// Retrieve wisdom if asked / possible
@@ -1397,7 +1499,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 #ifdef USE_MPI
 	if ( Proc_param.wisdom ) {
 
-		char * wisdom;
+		char * wisdom = NULL;
 		int size_wisdom;
 
 		if (rank == 0){
@@ -1486,14 +1588,21 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 	if (Proc_param.napod > 0)
 		cout << "# for Apodize    : " << Proc_param.napod << endl;
 
-	if (Proc_param.highpass_filter)
-		cout << "HPF Freq.        : " << Proc_param.f_lp << " Hz" << endl;
-	else
+	cout << "HPF Freq.        : ";
+	if (Proc_param.highpass_filter) {
+		if (Proc_param.fhp_file == "")
+			cout << Proc_param.fhp << " Hz" << endl;
+		else
+			cout << "[from file]" << endl;
+	} else
 		cout << "HPF Freq.        : None" << endl;
 
-	cout << "Sampling Freq.   : " << Proc_param.fsamp << " Hz\n";
+	cout << "Sampling Freq.   : ";
+	if ( Proc_param.fsamp_file == "" )
+		 cout << Proc_param.fsamp << " Hz" << endl;
+	else
+		cout << "[from file]" << endl;
 
-	cout << endl;
 }
 
 void print_param_sanePic(struct param_sanePic Pic_param) {
@@ -1649,8 +1758,8 @@ void export_param_common(struct param_common dir, std::vector<string> &key, std:
 	value.push_back(dir.fits_filelist);
 	comment.push_back("file containing fits file names");
 
-	key.push_back("bolo_global_file");
-	value.push_back(dir.bolo_global_filename);
+	key.push_back("bolo");
+	value.push_back(dir.bolo);
 	comment.push_back("every scans have the same detector list");
 
 	key.push_back("bolo_suffix");
@@ -1661,21 +1770,33 @@ void export_param_common(struct param_common dir, std::vector<string> &key, std:
 
 void export_param_saneProc(struct param_saneProc Proc_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
 
-	key.push_back("sampling_frequency");
+	key.push_back("fsamp");
 	value.push_back(StringOf(Proc_param.fsamp));
 	comment.push_back("detectors sampling frequency [Hz]");
 
-	key.push_back("filter_frequency");
-	value.push_back(StringOf(Proc_param.f_lp));
+	key.push_back("fsamp_file");
+	value.push_back(Proc_param.fsamp_file);
+	comment.push_back("filename containing the detectors sampling frequencies [Hz]");
+
+	key.push_back("fhp");
+	value.push_back(StringOf(Proc_param.fhp));
 	comment.push_back("frequency of the high pass filter applied to the data [Hz]");
+
+	key.push_back("fhp_file");
+	value.push_back(Proc_param.fhp_file);
+	comment.push_back("filename containing the frequencies of the high pass filter applied to the data [Hz]");
 
 	key.push_back("apodize_Nsamples");
 	value.push_back(StringOf(Proc_param.napod));
 	comment.push_back("number of samples to apodize");
 
+	key.push_back("fcut");
+	value.push_back(StringOf(Proc_param.fcut));
+	comment.push_back("frequency at which noise power spectra are thresholded");
+
 	key.push_back("fcut_file");
 	value.push_back(Proc_param.fcut_file);
-	comment.push_back("filename containing the frequency at which noise power spectra are thresholded");
+	comment.push_back("filename containing the frequencies at which noise power spectra are thresholded");
 
 	key.push_back("poly_order");
 	value.push_back(StringOf(Proc_param.poly_order));
@@ -1706,8 +1827,8 @@ void export_param_saneInv(struct param_saneInv Inv_param, std::vector<string> &k
 	value.push_back(Inv_param.noise_dir);
 	comment.push_back("cov matrix directory");
 
-	key.push_back("cov_matrix_file");
-	value.push_back(Inv_param.cov_matrix_file);
+	key.push_back("cov_matrix");
+	value.push_back(Inv_param.cov_matrix);
 	comment.push_back("this file contains the matrix you want to invert");
 
 	key.push_back("cov_matrix_suffix");
@@ -1722,8 +1843,8 @@ void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key,
 	value.push_back(PS_param.mix_suffix);
 	comment.push_back("Mixing matrix files suffix");
 
-	key.push_back("MixingMatrix_global_file");
-	value.push_back(PS_param.mix_global_file);
+	key.push_back("MixingMatrix");
+	value.push_back(PS_param.mix);
 	comment.push_back("the MixingMatrix file common to all scans");
 
 	key.push_back("ncomp");
@@ -1734,8 +1855,8 @@ void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key,
 	value.push_back(PS_param.signame);
 	comment.push_back("map substracted from the data (sanePos needed)");
 
-	key.push_back("ell_global_file");
-	value.push_back(PS_param.ell_global_file);
+	key.push_back("ell");
+	value.push_back(PS_param.ell);
 	comment.push_back("the ell file common to all scans");
 
 	key.push_back("ell_suffix");

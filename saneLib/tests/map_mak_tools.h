@@ -47,7 +47,7 @@
 using namespace std;
 
 int test_map_mak(struct samples samples_struct, long ns,struct param_sanePre proc_param,
-		std::string outdir,	std::vector<std::string> det,long ndet, double f_lppix, long iframe, int para_bolo_indice, int para_bolo_size);
+		std::string outdir,	std::vector<std::string> det,long ndet, double fhp_pix, long iframe, int para_bolo_indice, int para_bolo_size);
 
 int write_to_fits_data_lp(std::string fits_name, double *data_lp, string outdir,string field, long ns_total);
 int copy_fits(std::string fits_name,  std::string outdir, long ns_total);

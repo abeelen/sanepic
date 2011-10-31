@@ -4,7 +4,7 @@
 
 
 int test_map_mak(struct samples samples_struct, long ns,struct param_sanePre proc_param,
-		std::string outdir,	std::vector<std::string> det,long ndet, double f_lppix, long iframe, int para_bolo_indice, int para_bolo_size){
+		std::string outdir,	std::vector<std::string> det,long ndet, double fhp_pix, long iframe, int para_bolo_indice, int para_bolo_size){
 
 
 
@@ -49,7 +49,7 @@ int test_map_mak(struct samples samples_struct, long ns,struct param_sanePre pro
 		}
 
 
-		MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
+		MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
 
 		//		write_to_fits !
 		write_to_fits_data_lp(fits_filename, data_lp, outdir, field1, ns);

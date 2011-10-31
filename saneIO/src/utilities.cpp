@@ -60,4 +60,14 @@ char** vString2carray(std::vector<string> strings) {
 
 }
 
+void vDouble2carray(std::vector<double> doubles, double ** data, long *size){
+	// Transform a vector of double into a array of double, safe way
+
+	*size = doubles.size();
+	*data = new double[(*size)];
+	for (long ii=0; ii<(*size); ii++){
+		(*data)[ii] = doubles[ii];
+	}
+
+}
 

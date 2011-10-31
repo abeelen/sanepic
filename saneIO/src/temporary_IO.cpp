@@ -19,6 +19,12 @@
 
 extern "C" {
 #include "getdata.h"
+#include <wcslib/cel.h>
+#include <wcslib/wcs.h>
+#include <wcslib/sph.h>
+#include <wcslib/wcsmath.h>
+#include <wcslib/wcstrig.h>
+#include <wcslib/prj.h>
 #include <fitsio.h>
 }
 
@@ -46,7 +52,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 		det_vect=bolo_vect[iframe];
 
 		string base_name = samples_struct.basevect[iframe];
-		string fits_name = dir.data_dir + samples_struct.fitsvect[iframe];
+		string fits_name = samples_struct.fitsvect[iframe];
 
 		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
 		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
@@ -232,7 +238,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 		det_vect=bolo_vect[iframe];
 
 		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
-		string fits_name = dir.data_dir + samples_struct.fitsvect[iframe];
+		string fits_name = samples_struct.fitsvect[iframe];
 
 		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
 		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
@@ -243,7 +249,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
 
 
-			if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
+		if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
 			fits_report_error(stderr, status);
 			return 1;
 		}
@@ -397,6 +403,181 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 
 	return 0;
 }
+
+
+int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+{
+
+	DIRFILE* D, *H;
+
+	std::vector<string> det_vect;
+
+	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+
+		det_vect=bolo_vect[iframe];
+
+		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
+		string fits_name = samples_struct.fitsvect[iframe];
+
+		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
+		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
+
+		D = gd_open((char *) LONdir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
+		H = gd_open((char *) LATdir.c_str(), GD_RDWR | GD_CREAT |
+				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
+
+
+		double *reflon, *reflat, *phi, **offsets;
+
+		long ns = samples_struct.nsamples[iframe];
+
+		// read bolo offsets
+		// TODO : This function should also return the PRJCODE to be used below...
+		if (read_all_bolo_offsets_from_fits(fits_name, det_vect, offsets))
+			return 1;
+
+		// read reference position
+		long test_ns;
+		if (read_ReferencePosition_from_fits(fits_name, reflon, reflat, phi, test_ns))
+			return 1;
+
+		if (test_ns != ns) {
+			cerr << "Read position does not correspond to frame position"
+					<< endl;
+			cerr << "Check !!" << endl;
+			return 1;
+		}
+
+		// Save some computation time...
+		double *cosphi, *sinphi;
+		cosphi = new double[ns];
+		sinphi = new double[ns];
+
+		for (long ii=0; ii< ns; ii++){
+			cosphi[ii] = cos(phi[ii] / 180.0 * M_PI);
+			sinphi[ii] = sin(phi[ii] / 180.0 * M_PI);
+		}
+
+		// find the pointing solution at each time stamp for each detector
+		struct celprm arrayProj;
+		celini(&arrayProj);
+
+		// TODO: use the PRJCODE read from the file...
+		tanset(&arrayProj.prj);
+
+		//TODO Looping on detector is absolutely inefficient here...
+		//     as one need to initialize projection center by time stamp
+		//     and therefore we can not parallelize call to wcslib
+
+		double *lon, *lat;
+		lon = new double[ns];
+		lat = new double[ns];
+
+
+		for(long idet=0; idet < (long)det_vect.size(); idet ++){
+
+			string field = det_vect[idet];
+			string lon_outfile = "LON_" + base_name + "_" + field;
+			string lat_outfile = "LAT_" + base_name + "_" + field;
+
+			double offxx, offyy, dummy1, dummy2, lon_deg, lat_deg;
+			int status;
+
+
+			// Deproject the detector offset.
+			for (long ii = 0; ii< ns ; ii++){
+
+				arrayProj.ref[0] = reflon[ii];
+				arrayProj.ref[1] = reflat[ii];
+
+				if (celset(&arrayProj))
+					cerr  << "problem celset\n";
+
+				offxx = ( cosphi[ii] * offsets[idet][0] \
+						- sinphi[ii] * offsets[idet][1]) * -1;
+				offyy =   sinphi[ii] * offsets[idet][0] \
+						+ cosphi[ii] * offsets[idet][1];
+
+				// Projection away from the detector plane, into the spherical sky...
+				if (celx2s(&arrayProj, 1, 0, 1, 1, &offxx, &offyy, &dummy1, &dummy2, &lon_deg, &lat_deg, &status) == 1) {
+					printf("   TAN(X2S) ERROR 1: %s\n", prj_errmsg[1]);
+					continue;
+				}
+				lon[ii] = lon_deg;
+				lat[ii] = lat_deg;
+
+			}
+
+
+			//configure dirfile field
+			gd_entry_t E;
+			E.field = (char*) lon_outfile.c_str();
+			E.field_type = GD_RAW_ENTRY;
+			E.fragment_index = 0;
+			E.spf = 1;
+			E.data_type = GD_DOUBLE;
+			E.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(D, &E);
+
+			// write binary file on disk
+			int n_write = gd_putdata(D, (char*) lon_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lon);
+			if (gd_error(D) != 0) {
+				cout << "error putdata in write_lon : wrote " << n_write
+						<< " and expected " << ns << endl;
+				return 1;
+			}
+
+			//configure dirfile field
+			gd_entry_t F;
+			F.field = (char*) lat_outfile.c_str();
+			F.field_type = GD_RAW_ENTRY;
+			F.fragment_index = 0;
+			F.spf = 1;
+			F.data_type = GD_DOUBLE;
+			F.scalar[0] = NULL;
+
+			// add to the dirfile
+			gd_add(H, &F);
+
+			// write binary file on disk
+			n_write = gd_putdata(H, (char*) lat_outfile.c_str(), 0, 0, 0, ns, GD_DOUBLE, lat);
+			if (gd_error(H) != 0) {
+				cout << "error putdata in write_lat : wrote " << n_write
+						<< " and expected " << ns << endl;
+				return 1;
+			}
+
+			gd_flush(D, lon_outfile.c_str());
+			gd_flush(H, lat_outfile.c_str());
+		}
+
+		delete [] lon;
+		delete [] lat;
+
+
+		// close dirfile
+		if (gd_close(D)) {
+			cout << "Dirfile gd_close error  " << LONdir
+					<< endl;
+			return 1;
+		}
+
+		// close dirfile
+		if (gd_close(H)) {
+			cout << "Dirfile gd_close error for : " << LATdir
+					<< endl;
+			return 1;
+		}
+
+	}
+
+
+	return 0;
+}
+
 
 
 int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *data, long ns){

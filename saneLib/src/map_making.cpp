@@ -85,7 +85,7 @@ void compute_PtNmd(double *data, double *Nk, long ndata, long NAXIS1, long NAXIS
 
 void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 		long  NAXIS1, long NAXIS2, long long *indpix,
-		long npix, double f_lppix, double *dPtNP){
+		long npix, double fhp_pix, double *dPtNP){
 
 
 	long long kk2, ii2, ndataf;
@@ -130,7 +130,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 	//	for(long ii=0; ii< ndata; ii++)
 	//		data_compare[ii]=pixpos[pixtosamp[ii]];
 
-	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
+	ndataf = (ndata)/MAX(2,int(fhp_pix+0.5));
 
 	count = 0;
 
@@ -174,7 +174,7 @@ void compute_diagPtNP(double *Nk, long long *samptopix, long ndata,
 
 void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 		long NAXIS1, long NAXIS2, long long *indpix,
-		long long npix, double f_lppix, double *dPtNP){
+		long long npix, double fhp_pix, double *dPtNP){
 
 
 	long long kk2, ii2, ndataf;
@@ -231,7 +231,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	//	for(long ii=0; ii< ndata; ii++)
 	//		data_compare[ii]=pixpos[pixtosamp[ii]];
 
-	ndataf = (ndata)/MAX(2,int(f_lppix+0.5));
+	ndataf = (ndata)/MAX(2,int(fhp_pix+0.5));
 
 	count = 0;
 
@@ -272,7 +272,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 }
 
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double f_lppix, double *data_lp,  double *Ps){
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double fhp_pix, double *data_lp,  double *Ps){
 
 
 	double aa, bb;
@@ -320,7 +320,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 	//Butterworth filter (if necessary)
 	if (proc_param.highpass_filter){
-		butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,proc_param.napod,0);
+		butterworth(data_lp,ns,fhp_pix,8,data_out,bfilter,1,proc_param.napod,0);
 	} /*else{
 		for (long ii=0;ii<(ns)/2+1;ii++)
 			bfilter[ii] = 1.0;
@@ -503,6 +503,8 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 }
 
 int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
+//TODO: Deprecated....
+
 
 	FILE *fp;
 

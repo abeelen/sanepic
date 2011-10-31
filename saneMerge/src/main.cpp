@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
-	string fname = dir.data_dir + samples_struct.fitsvect[0]; /* first input fits file name */
+	string fname = samples_struct.fitsvect[0]; /* first input fits file name */
 
 
 	int status=0; /* fits error status */
@@ -101,10 +101,10 @@ int main(int argc, char *argv[]) {
 	// generate output filename using input file names
 	int format_fits=0; // 1= HIPE, 2 = SANEPIC
 	for(long ii=0; ii<samples_struct.ntotscan-1;ii++){ // for each scan that has to be merged
-		format_fits+=test_format(dir.data_dir + samples_struct.fitsvect[ii]); // Check each scan fits format
+		format_fits+=test_format(samples_struct.fitsvect[ii]); // Check each scan fits format
 		outname += FitsBasename(samples_struct.fitsvect[ii]) + "_merged_with_"; // generate output filename !
 	}
-	format_fits+=test_format(dir.data_dir + samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
+	format_fits+=test_format(samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
 	outname += FitsBasename(samples_struct.fitsvect[samples_struct.ntotscan-1]) + ".fits";
 	outname = "!" + dir.output_dir + outname; // complete output path + file name
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 	file_compatibility_verification(dir.data_dir, samples_struct);
 
 	// read the first file detector list (which is the same in every scans)
-	read_bolo_list(dir.data_dir + samples_struct.fitsvect[0], det, ndet);
+	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
 
 	cout << "Merging files..." << endl;
 

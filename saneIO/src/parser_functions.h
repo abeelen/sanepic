@@ -22,75 +22,32 @@ extern "C"{
 #include "mpi.h"
 #endif
 
-//! Parser functions binary return flag
-/*! ini file was not found : incorrect name, or name was not given by user */
-#define INI_NOT_FOUND 0x0001
+//! Given a single value (<= 0 if not used) and a filename, fill a vector<double> of length ntotscan
+/*!
+  \param value the common positive value
+  \param filename a filename containing ntotscan double value to be read
+  \param ntotscan the desired output vector size (filename shall contains that exact number of lines...
+  \return outputVector the content of filename or value if value > 0
+ */
 
-//! Parser functions binary return flag
-/*! data or/and input path(s) are incorrects or were not correctly filled in ini file */
-#define DATA_INPUT_PATHS_PROBLEM 0x0002
+uint16_t fillvect_double(double value, std::string filename, long ntotscan, std::vector<double> &outputVector);
 
-//! Parser functions binary return flag
-/*! output path is incorrect or was not correctly filled in ini file */
-#define OUPUT_PATH_PROBLEM 0x0004
+//! Given a common string ("" if not used) and a vector of string and a suffit, fill a vector<string> of length ntotscan
+/*!
+  \param commonFile if used
+  \param Fitsfilename a vector of fits filename
+  \param suffix the suffix if commonFile is not used
+  \return outputVector contains commonFile if used or FitsBasename(FitsFilename[ii]) + suffix
+ */
 
-//! Parser functions binary return flag
-/*! temporary files path is incorrect or was not correctly filled in ini file */
-#define TMP_PATH_PROBLEM 0x0008
-
-//! Parser functions binary return flag
-/*! channels files were not found or not correctly filled in ini file */
-#define BOLOFILE_NOT_FOUND 0x0010
-
-//! Parser functions binary return flag
-/*! pixel size was not correctly filled in ini file or the value is wrong */
-#define PIXDEG_WRONG_VALUE 0x0020
-
-//! Parser functions binary return flag
-/*! file format was not correctly filled in ini file or the value is absent */
-#define FILEFORMAT_NOT_FOUND 0x0040
-
-//! Parser functions binary return flag
-/*! napod was not correctly filled in ini file or the value is < 0 */
-#define NAPOD_WRONG_VALUE 0x0080
-
-//! Parser functions binary return flag
-/*! fsamp was not correctly filled in ini file or the value is < 0 */
-#define FSAMP_WRONG_VALUE 0x0100
-
-//! Parser functions binary return flag
-/*! f_lp was not correctly filled in ini file or the value is < 0 */
-#define F_LP_WRONG_VALUE 0x0200
-
-//! Parser functions binary return flag
-/*! ncomp was not correctly filled in ini file or the value is < 0 */
-#define NCOMP_WRONG_VALUE 0x0400
-
-//! Parser functions binary return flag
-/*! ell file(s) were not found or the name was not correctly given in ini file */
-#define ELL_FILE_NOT_FOUND 0x0800
-
-//! Parser functions binary return flag
-/*! mixing matrix file(s) were not found or not correctly filled in ini file */
-#define MIX_FILE_NOT_FOUND 0x1000
-
-//! Parser functions binary return flag
-/*! Noise path or covariance matrices was/were not found or not correctly filled in ini file */
-#define SANEINV_INPUT_ERROR 0x2000
-
-//! Parser functions binary return flag
-/*! fits filelist file was not found or not correctly filled in ini file */
-#define FITS_FILELIST_NOT_FOUND 0x4000
-
-//! Parser functions binary return flag
-/*! fcut file was not found or not correctly filled */
-#define FCUT_FILE_PROBLEM 0x8000
+void fillvect_strings(std::string commonFile, std::vector<std::string> FitsFilename, std::string suffix, std::string dir, std::vector<std::string> & outputVector);
 
 //! Given a pathname, add a "/", if needed, at the end of the string
 /*!
   \param str A path stored in a string
   \return The corrected path (as a string)
  */
+
 std::string checkTrailingDir(std::string str);
 
 //! Fill each struct with default values, in case an optional value was not given in ini file
@@ -223,6 +180,13 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
  */
 int check_path(std::string &output, std::string strPath, std::string path_type, bool create);
 
+//! Check for file existence
+/*!
+ * \param strPath the complete filepath
+ * \return int 0 if file exist
+ */
+uint16_t check_file(std::string strPath);
+
 //! Creates dirfile architecture and format files considering fits file format (SANEPIC or HIPE)
 /*!
  * Each scan has his own branch, with : data / flag / Indexes / fData / Noise_data
@@ -272,7 +236,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, st
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_common(std::string &output, struct param_common dir);
+uint16_t check_common(std::string &output, struct param_common &dir);
 
 //! Check the struct param_sanePos is correct
 /*!
@@ -281,7 +245,7 @@ uint16_t check_common(std::string &output, struct param_common dir);
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_sanePos(std::string &output, struct param_sanePos pos_param);
+uint16_t check_param_sanePos(std::string &output, struct param_sanePos &pos_param);
 
 //! Check the struct param_saneProc is correct
 /*!
@@ -290,7 +254,7 @@ uint16_t check_param_sanePos(std::string &output, struct param_sanePos pos_param
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_saneProc(std::string &output, struct param_saneProc proc_param);
+uint16_t check_param_saneProc(std::string &output, struct param_saneProc &proc_param);
 
 //! Check the struct param_sanePS is correct
 /*!
@@ -299,7 +263,7 @@ uint16_t check_param_saneProc(std::string &output, struct param_saneProc proc_pa
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_sanePS(std::string &output, struct param_sanePS structPS);
+uint16_t check_param_sanePS(std::string &output, struct param_sanePS &structPS);
 
 //! Fill param_sanePS structure with ell and mixing matrices names
 /*!
@@ -319,7 +283,7 @@ void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_s
  \param fcut_file A string containing the fcut filename
  \return A flag corresponding to an error code, or 0
  */
-uint16_t fill_samples_struct(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, std::string fcut_file);
+uint16_t fill_samples_param(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, struct param_saneProc &Proc_param);
 
 //! Open a dirfile to get nbins (Noise_data/ell) and ndet (Noise_data) values
 /*!

@@ -43,7 +43,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 
 	for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 		// for each scan
-		fits_file = dirfile + samples_struct.fitsvect[iframe];
+		fits_file = samples_struct.fitsvect[iframe];
 
 		std::vector<string> det_vect = bolo_vect[iframe];
 
@@ -317,7 +317,7 @@ int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
 
 int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		std::vector<std::string> det, long ndet, int orderpoly, int napod,
-		double f_lppix, long ns, long long *indpix, long iframe, long *hits) {
+		double fhp_pix, long ns, long long *indpix, long iframe, long *hits) {
 
 	string field1;
 	double *data, *data_lp, *data_out, *bfilter;
@@ -368,8 +368,8 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		for (long ii=0;ii<ns;ii++)
 		data_lp[ii] -= aa*(double)ii+bb;
 
-		if (f_lppix > 0.0)
-		butterworth(data_lp,ns,f_lppix,8,data_out,bfilter,1,napod,0);
+		if (fhp_pix > 0.0)
+		butterworth(data_lp,ns,fhp_pix,8,data_out,bfilter,1,napod,0);
 
 		fill(data,data+ns,0.0);
 		//******************* process gaps

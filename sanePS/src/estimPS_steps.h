@@ -14,7 +14,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		double &factapod, std::string fits_filename);
 
 int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det,  struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
+		struct param_common dir, long &nbins,	long &nbins2, long ns, double fsamp, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, std::string fits_filename);

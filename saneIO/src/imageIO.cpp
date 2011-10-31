@@ -456,17 +456,23 @@ int write_fits_inputfile(std::string fname, struct samples samples_struct) {
 	std::vector<string> fits_svect;
 	std::vector<string> bolo_svect;
 	std::vector<string> index_svect;
+	std::vector<string> fsamp_svect;
+	std::vector<string> fhp_svect;
+
 
 	std::vector<string> noise_svect;
 	std::vector<string> fcut_svect;
 
 	for (long ii=0; ii<nsamples; ii++){
 
-		fits_svect.push_back(samples_struct.fitsvect[ii]);
-		bolo_svect.push_back(samples_struct.bolovect[ii]);
+		fits_svect.push_back(Basename(samples_struct.fitsvect[ii]));
+		bolo_svect.push_back(Basename(samples_struct.bolovect[ii]));
 		index_svect.push_back(StringOf(samples_struct.scans_index[ii]));
+		fsamp_svect.push_back(StringOf(samples_struct.fsamp[ii]));
+		fhp_svect.push_back(StringOf(samples_struct.fhp[ii]));
 
-		noise_svect.push_back(samples_struct.noisevect[ii]);
+
+		noise_svect.push_back(Basename(samples_struct.noisevect[ii]));
 		fcut_svect.push_back(StringOf(samples_struct.fcut[ii]));
 	}
 
@@ -476,29 +482,35 @@ int write_fits_inputfile(std::string fname, struct samples samples_struct) {
 		return 1;
 	}
 
-	char *ttype[] = { (char*) "DataFile", (char*) "BoloFile", (char*) "ScanIndex", (char*) "NoiseFile", (char*) "fcut"};
-	char *tform[] = { tableFormat(fits_svect), tableFormat(bolo_svect),	tableFormat(index_svect), tableFormat(noise_svect), tableFormat(fcut_svect) };
-	char *tunit[] = { (char*) "None", (char*) "None", (char*) "None" , (char*) "None", (char*) "Hz"};
+	char *ttype[] = { (char*) "DataFile", (char *) "fsamp", (char*) "fhp", (char*) "BoloFile", (char*) "ScanIndex", (char*) "NoiseFile", (char*) "fcut"};
+	char *tform[] = { tableFormat(fits_svect), tableFormat(fsamp_svect), tableFormat(fhp_svect), tableFormat(bolo_svect),	tableFormat(index_svect), tableFormat(noise_svect), tableFormat(fcut_svect) };
+	char *tunit[] = { (char*) "None", (char*) "Hz", (char *) "Hz", (char*) "None", (char*) "None" , (char*) "None", (char*) "Hz"};
 
-	char **fits_char, **bolo_char, **index_char, **noise_char, **fcut_char;
+	char **fits_char, **fsamp_char, **fhp_char, **bolo_char, **index_char, **noise_char, **fcut_char;
 
 	fits_char  = vString2carray(fits_svect);
+	fsamp_char = vString2carray(fsamp_svect);
+	fhp_char   = vString2carray(fhp_svect);
 	bolo_char  = vString2carray(bolo_svect);
 	index_char = vString2carray(index_svect);
 	noise_char = vString2carray(noise_svect);
 	fcut_char  = vString2carray(fcut_svect);
 
-	if (fits_create_tbl(fptr, BINARY_TBL, nsamples, 5, ttype, tform,	tunit, (char*) "InputFiles", &fits_status))
+	if (fits_create_tbl(fptr, BINARY_TBL, nsamples, 7, ttype, tform,	tunit, (char*) "InputFiles", &fits_status))
 		return 1;
 	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nsamples, fits_char, &fits_status))
 		return 1;
-	if (fits_write_col(fptr, TSTRING, 2, 1, 1, nsamples, bolo_char, &fits_status))
+	if (fits_write_col(fptr, TSTRING, 2, 1, 1, nsamples, fsamp_char, &fits_status))
 		return 1;
-	if (fits_write_col(fptr, TSTRING, 3, 1, 1, nsamples, index_char, &fits_status))
+	if (fits_write_col(fptr, TSTRING, 3, 1, 1, nsamples, fhp_char, &fits_status))
 		return 1;
-	if (fits_write_col(fptr, TSTRING, 4, 1, 1, nsamples, noise_char, &fits_status))
+	if (fits_write_col(fptr, TSTRING, 4, 1, 1, nsamples, bolo_char, &fits_status))
 		return 1;
-	if (fits_write_col(fptr, TSTRING, 5, 1, 1, nsamples, fcut_char, &fits_status))
+	if (fits_write_col(fptr, TSTRING, 5, 1, 1, nsamples, index_char, &fits_status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 6, 1, 1, nsamples, noise_char, &fits_status))
+		return 1;
+	if (fits_write_col(fptr, TSTRING, 7, 1, 1, nsamples, fcut_char, &fits_status))
 		return 1;
 
 
@@ -515,6 +527,8 @@ int write_fits_inputfile(std::string fname, struct samples samples_struct) {
 
 	for (long ii = 0; ii < nsamples; ii++) {
 		delete[] fits_char[ii];
+		delete[] fsamp_char[ii];
+		delete[] fhp_char[ii];
 		delete[] bolo_char[ii];
 		delete[] index_char[ii];
 		delete[] noise_char[ii];
@@ -522,6 +536,8 @@ int write_fits_inputfile(std::string fname, struct samples samples_struct) {
 	}
 
 	delete[] fits_char;
+	delete[] fsamp_char;
+	delete[] fhp_char;
 	delete[] bolo_char;
 	delete[] index_char;
 	delete[] noise_char;
@@ -532,6 +548,8 @@ int write_fits_inputfile(std::string fname, struct samples samples_struct) {
 	delete[] tform[2];
 	delete[] tform[3];
 	delete[] tform[4];
+	delete[] tform[5];
+	delete[] tform[6];
 
 	return 0;
 }

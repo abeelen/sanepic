@@ -51,4 +51,11 @@ long maxStringLength(std::vector<std::string> strings);
 char** vString2carray(std::vector<std::string> strings);
 
 
+//! Transform a vector of double into a array of double
+/*!
+ \param doubles A vector of double
+ \return A double * array and long containing the same informations as strings, but using a char* array format
+ */
+void vDouble2carray(std::vector<double> doubles, double ** data, long *size);
+
 #endif /* UTILITIES_H_ */

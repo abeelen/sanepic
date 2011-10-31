@@ -38,8 +38,8 @@ extern "C" {
 using namespace std;
 
 
-void print_struct(struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
-	       struct param_saneInv saneInv_struct, struct param_sanePic struct_sanePic, struct param_sanePS structPS);
+void print_struct(struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
+		struct param_saneInv inv_param, struct param_sanePic pic_param, struct param_sanePS ps_param);
 
 int main(int argc, char *argv[])
 {
@@ -59,19 +59,19 @@ int main(int argc, char *argv[])
 #endif
 
 
-	struct param_sanePre proc_param; /*! A structure that contains user options about preprocessing properties */
+	struct param_saneProc proc_param; /*! A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_sanePos pos_param; /*! A structure that contains user options about map projection and properties */
 	struct param_common dir; /*! structure that contains output input temp directories */
 
 	string field; /*! actual boloname in the bolo loop */
-	struct param_sanePic struct_sanePic;
+	struct param_sanePic pic_param;
 
 	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
 
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
-	struct param_sanePS structPS;
-	struct param_saneInv saneInv_struct;
+	struct param_sanePS ps_param;
+	struct param_saneInv inv_param;
 	string parser_output = "";
 
 
@@ -84,8 +84,9 @@ int main(int argc, char *argv[])
 
 		/* parse ini file and fill structures */
 		parsed = parser_function(argv[1], parser_output, dir,
-				samples_struct, pos_param, proc_param, structPS, saneInv_struct,
-				struct_sanePic);
+				samples_struct, pos_param, proc_param, ps_param, inv_param,
+				pic_param, size, rank);
+
 
 		if(rank==0)
 			// print parser warning and/or errors
@@ -150,12 +151,19 @@ int main(int argc, char *argv[])
 
 
 
-	fill_sanePS_struct(structPS, samples_struct, dir);
+	fill_sanePS_struct(ps_param, samples_struct, dir);
+
+	print_common(dir);
+	print_param_sanePos(pos_param);
+	print_param_saneProc(proc_param);
+	print_param_saneInv(inv_param);
+	print_param_sanePic(pic_param);
+	print_param_sanePS(ps_param);
 
 	if(rank==0)
 		// parser print screen function
-		print_struct(proc_param, samples_struct, pos_param, dir, saneInv_struct,
-				struct_sanePic,structPS);
+		print_struct(proc_param, samples_struct, pos_param, dir, inv_param,
+				pic_param,ps_param);
 
 
 
@@ -167,78 +175,92 @@ int main(int argc, char *argv[])
 
 
 
-void print_struct(struct param_sanePre proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
-		struct param_saneInv saneInv_struct, struct param_sanePic struct_sanePic, struct param_sanePS structPS)
+void print_struct(struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param, struct param_common dir,
+		struct param_saneInv inv_param, struct param_sanePic pic_param, struct param_sanePS ps_param)
 {
 
 	cout << "\ndir : struct common\n";
 	print_common(dir);
 
 	cout << "\npos_param : struct param_sanePos\n";
-	cout << "maskfile = "  << pos_param.maskfile << endl;
-	cout << "pixdeg = " << pos_param.pixdeg << endl;
-	cout << "flgdupl = " << pos_param.flgdupl << endl;
-	cout << "projgaps = " << pos_param.projgaps << endl;
+	cout << "maskfile   = "  << pos_param.maskfile << endl;
+	cout << "pixdeg     = " << pos_param.pixdeg << endl;
+	cout << "flgdupl    = " << pos_param.flgdupl << endl;
+	cout << "projgaps   = " << pos_param.projgaps << endl;
 	cout << "fileFormat = " << pos_param.fileFormat << endl;
 
-	cout << "\nproc_param : struct param_sanePre\n";
-	cout << "NORMLIN = " << proc_param.NORMLIN << endl;
-	cout << "NOFILLGAP = " << proc_param.NOFILLGAP << endl;
-	cout << "CORRon = " << proc_param.CORRon << endl;
+	cout << "\nproc_param : struct param_saneProc\n";
+	cout << "CORRon           = " << proc_param.CORRon << endl;
 	cout << "remove_polynomia = " << proc_param.remove_polynomia << endl;
-	cout << "napod = " << proc_param.napod << endl;
-	cout << "poly_order = " << proc_param.poly_order << endl;
-	cout << "fsamp = " << proc_param.fsamp << endl;
-	cout << "f_lp = " << proc_param.f_lp << endl;
-	cout << "fcut_file = " << proc_param.fcut_file << endl;
+	cout << "poly_order       = " << proc_param.poly_order << endl;
+	cout << "napod            = " << proc_param.napod << endl;
+	cout << "fsamp            = " << proc_param.fsamp << endl;
+	cout << "fsamp_file       = " << proc_param.fsamp_file << endl;
+	cout << "fhp              = " << proc_param.fhp << endl;
+	cout << "fhp_file         = " << proc_param.fhp_file << endl;
+	cout << "highpass_filter  = " << proc_param.highpass_filter << endl;
+	cout << "fcut             = " << proc_param.fcut << endl;
+	cout << "fcut_file        = " << proc_param.fcut_file << endl;
 
-	cout << "\nsaneInv_struct : struct param_saneInv\n";
-	cout << "cov_matrix_file = " << saneInv_struct.cov_matrix_file << endl;
-	cout << "cov_matrix_suffix = " << saneInv_struct.cov_matrix_suffix << endl;
+	cout << "\ninv_param : struct param_saneInv\n";
+	cout << "cov_matrix        = " << inv_param.cov_matrix << endl;
+	cout << "cov_matrix_suffix = " << inv_param.cov_matrix_suffix << endl;
 
-	cout << "\nstruct_sanePic : struct param_sanePic\n";
-	cout << "iterW = " << struct_sanePic.iterw << endl;
+	cout << "\npic_param : struct param_sanePic\n";
+	cout << "iterW = " << pic_param.iterw << endl;
 
-	cout << "\nstructPS : struct param_sanePS\n";
-	cout << "ell_suffix = " << structPS.ell_suffix << endl;
-	cout << "mix_suffix = " << structPS.mix_suffix << endl;
-	cout << "ell_global_file = " << structPS.ell_global_file << endl;
-	cout << "mix_global_file = " << structPS.mix_global_file << endl;
-	cout << "signame = " << structPS.signame << endl;
-	cout << "ncomp = " << structPS.ncomp << endl;
+	cout << "\nps_param : struct param_sanePS\n";
+	cout << "ell        = " << ps_param.ell << endl;
+	cout << "ell_suffix = " << ps_param.ell_suffix << endl;
+	cout << "mix        = " << ps_param.mix << endl;
+	cout << "mix_suffix = " << ps_param.mix_suffix << endl;
+	cout << "signame    = " << ps_param.signame << endl;
+	cout << "ncomp      = " << ps_param.ncomp << endl;
 
 	cout << "\nsamples_struct : struct samples\n";
 	cout << "ntotscan = " << samples_struct.ntotscan << endl;
 
-	cout << "fitsvect = " << endl;
 
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++)
-		cout << samples_struct.fitsvect[ii] << endl;
-
-	cout << "noisevect = " << endl;
-	for(long ii=0; ii< (long)samples_struct.noisevect.size(); ii++)
-		cout << samples_struct.noisevect[ii] << endl;
+	cout << endl << "samples_struct :" << endl;
 	cout << "framegiven = " << samples_struct.framegiven << endl;
 
-	cout << "bolovect = " << endl;
-	for(long ii=0; ii< samples_struct.ntotscan; ii++)
-		cout << samples_struct.bolovect[ii] << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : " ;
+		cout << samples_struct.fitsvect[ii]  << " : " ;
+		cout << samples_struct.nsamples[ii]  << endl;
+	}
 
-	cout << "fcut = " << endl;
-	for(long ii=0; ii< samples_struct.ntotscan; ii++)
-		cout << samples_struct.fcut[ii] << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : " ;
+		cout << samples_struct.basevect[ii]  << " : " ;
+		cout << samples_struct.fsamp[ii] << " : ";
+		cout << samples_struct.fhp[ii] << " : ";
+		cout << endl;
+	}
 
-	cout << "nsamples = " << endl;
-	for(long ii=0; ii< samples_struct.ntotscan; ii++)
-		cout << samples_struct.nsamples[ii] << endl;
-
-	cout << "ell_names = " << endl;
-	for(long ii=0; ii< samples_struct.ntotscan; ii++)
+	cout << endl << "ell_names :" << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : ";
 		cout << samples_struct.ell_names[ii] << endl;
+	}
 
-	cout << "mix_names = " << endl;
-	for(long ii=0; ii< samples_struct.ntotscan; ii++)
+	cout << endl << "mix_names :" << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : ";
 		cout << samples_struct.mix_names[ii] << endl;
+	}
+
+	cout << endl << "noisevect :" << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : ";
+		cout << samples_struct.noisevect[ii] << " : ";
+		cout << samples_struct.fcut[ii] << endl;
+	}
+	cout << endl << "bolovect :" << endl;
+	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+		cout << ii << " : ";
+		cout << samples_struct.bolovect[ii]  << endl;
+	}
 
 
 }

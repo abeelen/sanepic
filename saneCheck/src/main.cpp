@@ -13,7 +13,7 @@
 #include "parser_functions.h"
 #include "tools.h"
 #include "struct_definition.h"
-
+#include "error_code.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 	uint16_t parsed=0x0000; // parser error status
 
 	uint16_t mask_saneCheck = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
-			BOLOFILE_NOT_FOUND | FSAMP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND; // 0x411f
+			BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x411f
 
 	uint16_t compare_to_mask; // parser error status
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
 	std::vector<string> bolo_fits_0; // bolometers list of the first fits file given as input
 	long ndet0;
-	read_bolo_list(dir.data_dir + samples_struct.fitsvect[0],bolo_fits_0,ndet0); // Read the first fits file bolo table
+	read_bolo_list(samples_struct.fitsvect[0],bolo_fits_0,ndet0); // Read the first fits file bolo table
 
 	long *bolo_bad_tot = NULL; // bad detectors full list => fully flag detectors
 	long *bolo_bad_80_tot = NULL; // valid worst detectors full list => more than 80% flag detectors
@@ -264,13 +264,13 @@ int main(int argc, char *argv[]) {
 			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[iframe] << endl << endl;
 #endif
 
-			format[iframe]=test_format(dir.data_dir + samples_struct.fitsvect[iframe]); // format = 1 => HIPE, else Sanepic
+			format[iframe]=test_format(samples_struct.fitsvect[iframe]); // format = 1 => HIPE, else Sanepic
 			if(format[iframe]==0){/* fits format indicator : 1 HIPE, 2 Sanepic */
 				cerr << "input fits file format is undefined : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
 				continue;
 			}
 
-			read_bolo_list(dir.data_dir + samples_struct.fitsvect[iframe], bolo_fits, ndet_fits); // read fits file detector list
+			read_bolo_list(samples_struct.fitsvect[iframe], bolo_fits, ndet_fits); // read fits file detector list
 			if(check_bolos(bolo_fits, bolo_fits_0)){ // compare to the first input fits file to ensure compatibility between scans
 				cout << "Skipping file : " << samples_struct.fitsvect[iframe] << ". Please run only together scans that correspond to the same field\n";
 				continue;
@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
 			std::vector<string> det_vect=bolo_list[iframe];
 			long ndet_vect = (long)det_vect.size();
 
-			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, dir.data_dir + samples_struct.fitsvect[iframe]); // check wether used detector user list is correct
+			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, samples_struct.fitsvect[iframe]); // check wether used detector user list is correct
 
 			bolo_bad = new long[ndet_fits]; // this scan bad detectors list
 			bolo_bad_80 = new long[ndet_fits]; // this scan valid worst detectors list
@@ -292,57 +292,57 @@ int main(int argc, char *argv[]) {
 			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
 #endif
 
-			return_value+=check_commonHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
-			return_value+=check_positionHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits, format[iframe],check_struct.Check_it); // check presence of reference positions and offsets HDUs
+			return_value+=check_commonHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
+			return_value+=check_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits, format[iframe],check_struct.Check_it); // check presence of reference positions and offsets HDUs
 			if(format[iframe]==1){ // check LON/LAT table presence for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking Alt position HDU presence\n";
 #endif
-				return_value+=check_altpositionHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it);
+				return_value+=check_altpositionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it);
 			}
 
 
 			if(return_value<0){
-				cerr << "Some Mandatory HDUs are missing in : " << dir.data_dir + samples_struct.fitsvect[iframe] << " . Skipping...\n";
+				cerr << "Some Mandatory HDUs are missing in : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
 				continue;
 			}
 
 
 			if(((format[iframe]==2)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
 					((format[iframe]==1)&&((!check_struct.Check_it.checkLON)||(!check_struct.Check_it.checkLAT)))){
-				cout << "NO POSITION TABLES in : " << dir.data_dir + samples_struct.fitsvect[iframe] << " ... Skipping...\n";
+				cout << "NO POSITION TABLES in : " << samples_struct.fitsvect[iframe] << " ... Skipping...\n";
 			}
 
 			if(check_struct.checkNAN){
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
 #endif
-				nb_Nan[iframe] += check_NAN_commonHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
-				nb_Nan[iframe] += check_NAN_positionHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[iframe] += check_NAN_commonHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[iframe] += check_NAN_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if((format[iframe]==1)&&(check_struct.checkNAN)){ // check NANs presence in LON/LAT tables for HIPE format
 #ifdef DEBUG
 				cout << "[" << rank <<  "] HIPE format found, Checking NANs in Alt position HDU\n";
 #endif
-				nb_Nan[iframe] += check_NAN_altpositionHDU(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
+				nb_Nan[iframe] += check_NAN_altpositionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
 			}
 
 			if(check_struct.checktime){
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
 #endif
-				check_time_gaps(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], proc_param.fsamp, indice, Populated_freq, check_struct.Check_it);
+				check_time_gaps(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], indice, Populated_freq, check_struct.Check_it);
 				t_gaps[iframe] = (long)indice.size();
 			}else{
-				Populated_freq=proc_param.fsamp;
+				Populated_freq=samples_struct.fsamp[iframe];
 			}
 
 			sampling_freq[iframe]=Populated_freq;
 
 			if(check_struct.checkGain){
 				//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
-				//				check_bolo_gain(dir.data_dir + samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
+				//				check_bolo_gain(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
 				//				getchar();
 			}
 
@@ -351,18 +351,18 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
 				cout << "\n[" << rank <<  "] Checking flagged detectors\n"; // check for time gaps in time table
 #endif
-				check_flag(dir.data_dir + samples_struct.fitsvect[iframe],bolo_fits,ndet_fits, samples_struct.nsamples[iframe], bolo_bad, n_hund[iframe],bolo_bad_80, n_heig[iframe],percent_tab, init_flag_num, end_flag_num, check_struct.Check_it);
+				check_flag(samples_struct.fitsvect[iframe],bolo_fits,ndet_fits, samples_struct.nsamples[iframe], bolo_bad, n_hund[iframe],bolo_bad_80, n_heig[iframe],percent_tab, init_flag_num, end_flag_num, check_struct.Check_it);
 
 				if((init_flag_num>0) && (init_flag_num<samples_struct.nsamples[iframe])){
 #ifdef DEBUG
-					cout << "\nInitial Flagged samples will be removed from " << dir.data_dir + samples_struct.fitsvect[iframe] << ".\n Considering " << init_flag_num << " samples...\n\n";
+					cout << "\nInitial Flagged samples will be removed from " << samples_struct.fitsvect[iframe] << ".\n Considering " << init_flag_num << " samples...\n\n";
 #endif
 				}else
 					init_flag_num=0;
 
 				if((end_flag_num>0) && (end_flag_num<samples_struct.nsamples[iframe])){
 #ifdef DEBUG
-					cout << "Final Flagged samples will be removed from " << dir.data_dir + samples_struct.fitsvect[iframe] << ".\n Considering " << end_flag_num << " samples...\n\n";
+					cout << "Final Flagged samples will be removed from " << samples_struct.fitsvect[iframe] << ".\n Considering " << end_flag_num << " samples...\n\n";
 #endif
 				}else
 					end_flag_num=0;

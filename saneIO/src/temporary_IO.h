@@ -32,6 +32,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
+int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect);
 
 //! Reads data table in a dirfile pointed by "D" and stores it to "data" array
 /*!

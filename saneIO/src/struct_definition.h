@@ -20,7 +20,7 @@ struct param_common
 	std::string input_dir; /*! input directory (config files) */
 
 	std::string fits_filelist; /*! A list (txt file) in which are listed fits files (and processors orders if MPI : optional) */
-	std::string bolo_global_filename; /*! A list (txt file) in which are listed used channels for the whole scans (optional) */
+	std::string bolo; /*! A list (txt file) in which are listed used channels for the whole scans (optional) */
 	std::string bolo_suffix;  /*! A string suffix that indicates what to add to scan names to find scans channel list (one list per scan, optional) */
 
 };
@@ -55,10 +55,15 @@ struct param_saneProc
 
 	long napod;            /*! number of samples to apodize at data begin and end */
 	int poly_order;        /*! Polynomia order to be removed from the timeline */
-	double fsamp;          /*! Detectors sampling frequency (Hz) */
-	double f_lp;           /*! frequency of the high pass filter applied to the data */
 
-	std::string fcut_file; /*! Noise filter cut-off frequency */
+	double fsamp;          /*! sampling frequency (Hz) (same for all scans) */
+	double fhp;            /*! high pass frequency filter for the time stream (same for all scans)*/
+	double fcut;           /*! noise filter cut-off frequency (same for all scans) */
+
+	std::string fsamp_file; /*! sampling frequencies (per scan) (Hz) */
+	std::string fhp_file;   /*! high pass frequencies filter for the timestream (per scan) */
+	std::string fcut_file;  /*! noise filter cut-off frequencies (per scan) */
+
 
 	bool wisdom ;          /*! True will force sanePre to precompute some fftw to acquire wisdom */
 
@@ -70,7 +75,7 @@ struct param_saneInv
 {
 	std::string noise_dir; /*! covariance matrices directory */
 
-	std::string cov_matrix_file;  /*! covariance matrix filename (same for all scans) */
+	std::string cov_matrix;  /*! covariance matrix filename (same for all scans) */
 	std::string cov_matrix_suffix; /*! add this suffix to fits filenames to obtain the corresponding cov matrix */
 };
 
@@ -79,11 +84,11 @@ struct param_sanePS
 {
 	std::string ell_suffix; /*! suffix to add to fits filenames to obtain the bins for the noise spectrum */
 	std::string mix_suffix; /*! suffix to add to fits filenames to obtain mixing matrix for the given scan */
-	std::string ell_global_file; /*! file containing the bins for the noise spectrum (same for all scans) */
-	std::string mix_global_file; /*! file containing the mixing matrix (same for all scans) */
+	std::string ell; /*! file containing the bins for the noise spectrum (same for all scans) */
+	std::string mix; /*! file containing the mixing matrix (same for all scans) */
 
 	//TODO: Ugly turnaround until sanePS is released;
-	std::string cov_matrix_file;  /*! covariance matrix filename (same for all scans) */
+	std::string cov_matrix;  /*! covariance matrix filename (same for all scans) */
 	std::string cov_matrix_suffix;  /*! add this suffix to fits filenames to obtain the corresponding cov matrix */
 
 
@@ -115,8 +120,9 @@ struct samples
 
 	DIRFILE *dirfile_pointer; /*! a pointer to the dirfile that contains temporary binaries */
 
-	//TODO: Add the same vector for fsamp and f_lp
-	std::vector<double> fcut; /*! a vector containing Noise filter cut-off frequency for each scan */
+	std::vector<double> fcut;  /*! a vector containing Noise filter cut-off frequency for each scan */
+	std::vector<double> fsamp; /*! a vector containing the sampling frequencies for each scan */
+	std::vector<double> fhp;   /*! a vector containing data high pass filter frequency for each scan */
 
 	std::vector<std::string> ell_names; /*! a vector for the bins (for the noise spectrum) filenames */
 	std::vector<std::string> mix_names; /*! a vector containing the mixing matrices filenames */

@@ -212,7 +212,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 
 int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det, struct param_saneProc proc_param,struct param_sanePos pos_param,
-		struct param_common dir, long &nbins,	long &nbins2, long ns, long NAXIS1,
+		struct param_common dir, long &nbins,	long &nbins2, long ns, double fsamp, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
@@ -230,7 +230,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	double *data, *data_lp, *Ps=NULL;
 	double  *commontmp;
 	double *Nell, *Nk;
-	long long *samptopix; // sample to pixel projection matrix
+	long long *samptopix=NULL; // sample to pixel projection matrix
 
 	long ndet = (long)det.size();
 
@@ -301,7 +301,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 		// Noise power spectra
 		/// measure power spectrum of the uncorrelated part of the noise
-		noisepectrum_estim(data,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(data,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 
 		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
@@ -320,7 +320,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	for (long ii=0;ii<ncomp;ii++){
 		for (long jj=0;jj<ns;jj++)
 			commontmp[jj]=commonm2[ii][jj];
-		noisepectrum_estim(commontmp,ns,ell,(int)nbins,proc_param.fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(commontmp,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
 

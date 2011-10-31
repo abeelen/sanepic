@@ -14,6 +14,7 @@
 #include "struct_definition.h"
 #include "inputFileIO.h"
 #include "crc.h"
+#include "error_code.h"
 
 extern "C" {
 #include "wcslib/wcs.h"
@@ -101,8 +102,8 @@ int main(int argc, char *argv[])
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	uint16_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
-			BOLOFILE_NOT_FOUND | FSAMP_WRONG_VALUE | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
-			FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xdd1f
+			BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
+			FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xdd1f
 
 	//	ncomp = number of noise component to estimate
 	//	fcut = cut-off freq : dont focus on freq larger than fcut for the estimation !

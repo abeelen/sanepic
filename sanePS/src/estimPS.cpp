@@ -9,6 +9,8 @@
 #include "estimPS.h"
 #include "temporary_IO.h"
 #include "crc.h"
+#include "error_code.h"
+#include "utilities.h"
 
 extern "C" {
 #include <fitsio.h>
@@ -44,8 +46,12 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 	//	bfilter = butterworth filter values
 	//	fdata = fourier transform
 
-	if(read_double(samples_struct.ell_names[iframe], ell, nbins)) // read ell in ellfile
-		return 1;
+	std::vector<double> dummy;
+	if ( read_double(samples_struct.ell_names[iframe], dummy) )
+			return FILE_PROBLEM;
+	vDouble2carray(dummy, &ell, &nbins);
+	dummy.clear();
+
 	nbins = nbins-1;
 	//	Nell = binned noise PS
 	SPref = new double[nbins]; // first detector PS to avoid numerical problems
@@ -120,7 +126,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 3/6 - Estimation of Noise Power Spectrum" << endl;
 #endif
-		if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], NAXIS1,
+		if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], NAXIS1,
 				NAXIS2, npix, ell, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2,
 				factapod,Rellth, N, P, samples_struct.basevect[iframe]))
 			return 1;
@@ -139,7 +145,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 #endif
-		if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, proc_param.fsamp,
+		if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, samples_struct.fsamp[iframe],
 				factapod, Rellexp, N, P, SPref, samples_struct.basevect[iframe], rank))
 			return 1;
 

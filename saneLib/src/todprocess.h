@@ -62,7 +62,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille);
 /*!
  * \param y is the input data array to be filtered
  * \param ndata the number of samples in y
- * \param f_lp frequency of this high pass filter applied to the data
+ * \param f_hp frequency of this high pass filter applied to the data
  * \param orderB Butterworth filter order
  * \param yout The output data : butterworth filter applied to y
  * \param bfilter Butterworth filter values in Fourier space
@@ -70,7 +70,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille);
  * \param napod Number of samples to apodize
  * \param overwrite A boolean specifying whether y is overwritten (yout is not used), or not (output array is yout)
  */
-void butterworth(double y[], int ndata, double f_lp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite);
+void butterworth(double y[], int ndata, double f_hp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite);
 
 //! Compute an apodization window
 /*!

@@ -98,7 +98,7 @@ int computePixelIndex(string tmpdir, string dirfile,
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 		// for each scan
-		fits_file=dirfile + samples_struct.fitsvect[iframe];
+		fits_file=samples_struct.fitsvect[iframe];
 		base_file = samples_struct.basevect[iframe];
 		ns = samples_struct.nsamples[iframe];
 

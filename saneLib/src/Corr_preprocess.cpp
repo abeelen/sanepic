@@ -81,7 +81,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 
 int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param,
 		string tmp_dir,std::vector<std::string> det,long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname)
+		long long npix,	long long npixsrc, long long addnpix, double fhp_pix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname)
 {
 
 
@@ -93,7 +93,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	fftw_plan fftplan;
 	fftw_complex *fdata;
 
-	string field1, fits_filename, dirfile_filename;
+	string field1, dirfile_filename;
 
 #ifdef DEBUG
 	ofstream file;
@@ -118,7 +118,6 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	int factdupl = 1;
 	if(pos_param.flgdupl==1)		factdupl = 2;
 
-	fits_filename = samples_struct.fitsvect[iframe];
 	dirfile_filename = samples_struct.basevect[iframe];
 
 	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
@@ -164,11 +163,11 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 			//********************  pre-processing of data ********************//
-			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, Ps);
+			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, Ps);
 
 			delete[] Ps;
 		}else
-			MapMakePreProcessData(data,  flag, ns, proc_param, f_lppix, data_lp, NULL);
+			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
 
 
 		//Fourier transform of the data
@@ -198,7 +197,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 }
 
 int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
-		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
+		std::vector<std::string> det, long ndet, double fhp_pix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits,std::string fname)
 {
@@ -241,7 +240,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	// This is a butterworth filter.... why not use butterworth()
 	// Cause we want 1/butterworth() + we don't want to deal with fourier transform here !
 	for (long ii=0;ii<ns/2+1;ii++){
-		powered=gsl_pow_int(double(ii)/f_lppix,16);
+		powered=gsl_pow_int(double(ii)/fhp_pix,16);
 		bfilter[ii] = powered /(1.0+powered);
 	}
 	for (long ii=0;ii<ns/2+1;ii++)
@@ -376,7 +375,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 			//Compute weight map for preconditioner
 			if ((Mp != NULL) && (idet2 == idet1))
-				compute_diagPtNPCorr(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,f_lppix,Mp);
+				compute_diagPtNPCorr(Nk,samptopix,ns,NAXIS1, NAXIS2,indpix,npix,fhp_pix,Mp);
 #ifdef DEBUG
 			time ( &rawtime );
 			timeinfo = localtime ( &rawtime );

@@ -23,6 +23,7 @@
 #include "write_maps_to_disk.h"
 #include "crc.h"
 #include "inputFileIO.h"
+#include "error_code.h"
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
 	long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
 
 
-	double f_lppix_Nk, f_lppix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
+	double fcut_pix, fhp_pix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
 	long ns; // number of samples for the considered scan
 
 	string field; /* actual boloname in the bolo loop */
@@ -143,8 +144,8 @@ int main(int argc, char *argv[]) {
 	string fname; /* parallel scheme filename */
 
 	uint16_t mask_sanePic = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
-			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_WRONG_VALUE |
-			F_LP_WRONG_VALUE | FITS_FILELIST_NOT_FOUND | FCUT_FILE_PROBLEM; // 0xc39f
+			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_PROBLEM |
+			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc39f
 
 	std::vector<string> key;
 	std::vector<int> datatype;
@@ -533,8 +534,8 @@ int main(int argc, char *argv[]) {
 		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
 			ns = samples_struct.nsamples[iframe]; // number of samples for this scan
-			f_lppix = Proc_param.f_lp*double(ns)/Proc_param.fsamp; // knee freq of the filter in terms of samples in order to compute fft
-			f_lppix_Nk = samples_struct.fcut[iframe]*double(ns)/Proc_param.fsamp; // noise PS threshold freq, in terms of samples
+			fhp_pix  = samples_struct.fhp[iframe] * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
+			fcut_pix = samples_struct.fcut[iframe]* double(ns)/samples_struct.fsamp[iframe]; // noise PS threshold freq, in terms of samples
 
 			std::vector<string> det_vect = bolo_list[iframe];
 			long ndet = (long)det_vect.size();
@@ -564,12 +565,12 @@ int main(int argc, char *argv[]) {
 				// addnpix = number of added pixels in the map
 				// tmp_dir = temporary directory
 				// det = bolo names array + number of bolo
-				// f_lppix = filter freq in term of sample
+				// fhp_pix = filter freq in term of sample
 				// ns = number of sample for this scan
 				// iframe = scan number : 0=> ntotscan if non-MPI
 
 				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct,Pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-						npixsrc,addnpix,f_lppix,ns,	iframe,para_bolo_indice, para_bolo_size, name_rank);
+						npixsrc,addnpix,fhp_pix,ns,	iframe,para_bolo_indice, para_bolo_size, name_rank);
 
 				if(pb>0){
 					cout << "Problem in write_ftrProcesdata. Exiting ...\n";
@@ -597,7 +598,7 @@ int main(int argc, char *argv[]) {
 				/* do_PtNd parameters : */
 				// PNd => npix (dimension), initialised to 0.0 : (At N-1 d)
 				// det = bolo names array + bolo number
-				// f_lppix_Nk = freq threshold noise (in term of samples)
+				// fcut_pix = freq threshold noise (in term of samples)
 				// fsamp = sampling frequency
 				// ns = number of samples in the scan
 				// size. cf mpi
@@ -610,7 +611,7 @@ int main(int argc, char *argv[]) {
 				// *Hits = Null (map hits)
 
 				pb+=do_PtNd(samples_struct, PNd, "fdata_",
-						det_vect,ndet,f_lppix_Nk, Proc_param.fsamp,ns,
+						det_vect,ndet,fcut_pix, samples_struct.fsamp[iframe],ns,
 						para_bolo_indice,para_bolo_size,indpix,
 						NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
@@ -628,7 +629,7 @@ int main(int argc, char *argv[]) {
 
 
 				do_PtNd_nocorr(PNd, dir.tmp_dir,Proc_param,Pos_param,samples_struct,
-						det_vect,ndet,f_lppix,f_lppix_Nk,addnpix,
+						det_vect,ndet,fhp_pix,fcut_pix,addnpix,
 						ns,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
 				// fillgaps + butterworth filter + fourier transform and PNd generation
 
@@ -774,8 +775,8 @@ int main(int argc, char *argv[]) {
 
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
-				ns = samples_struct.nsamples[iframe];
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
+				ns       = samples_struct.nsamples[iframe];
+				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
@@ -803,14 +804,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PtNPmatS, "fPs_",
-							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
+							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, Mp, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det_vect, ndet,
-							f_lppix_Nk, Proc_param.fsamp, Pos_param.flgdupl, ns,
+							fcut_pix, samples_struct.fsamp[iframe], Pos_param.flgdupl, ns,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.basevect[iframe], PtNPmatS, Mp, NULL,
 							rank, size);
@@ -918,8 +919,8 @@ int main(int argc, char *argv[]) {
 
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
-				ns = samples_struct.nsamples[iframe];
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
+				ns       = samples_struct.nsamples[iframe];
+				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
@@ -945,14 +946,14 @@ int main(int argc, char *argv[]) {
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 					do_PtNd(samples_struct, q, "fPs_",
-							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
+							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
 					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det_vect, ndet,
-							f_lppix_Nk, Proc_param.fsamp, Pos_param.flgdupl,
+							fcut_pix, samples_struct.fsamp[iframe], Pos_param.flgdupl,
 							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
 							samples_struct.basevect[iframe], q, NULL, NULL,
 							rank, size);
@@ -997,7 +998,7 @@ int main(int argc, char *argv[]) {
 
 				for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 					ns = samples_struct.nsamples[iframe];
-					f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
+					fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
 					std::vector<string> det_vect = bolo_list[iframe];
 					long ndet = (long)det_vect.size();
@@ -1024,14 +1025,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 						do_PtNd(samples_struct, PtNPmatS, "fPs_",
-								det_vect, ndet, f_lppix_Nk,	Proc_param.fsamp, ns,
+								det_vect, ndet, fcut_pix,	samples_struct.fsamp[iframe], ns,
 								para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 					} else {
 
 						do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir,
-								det_vect, ndet, f_lppix_Nk, Proc_param.fsamp,
+								det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe],
 								Pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
 								npix, iframe,
 								samples_struct.basevect[iframe], PtNPmatS,
@@ -1277,8 +1278,8 @@ int main(int argc, char *argv[]) {
 			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
-				f_lppix = Proc_param.f_lp * double(ns) / Proc_param.fsamp;
-				f_lppix_Nk = samples_struct.fcut[iframe] * double(ns) / Proc_param.fsamp;
+				fhp_pix = samples_struct.fhp[iframe]* double(ns) / samples_struct.fsamp[iframe];
+				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
 				std::vector<string> det_vect = bolo_list[iframe];
 				long ndet = (long)det_vect.size();
@@ -1287,7 +1288,7 @@ int main(int argc, char *argv[]) {
 
 					write_ftrProcesdata(S, Proc_param, samples_struct,
 							Pos_param, dir.tmp_dir, det_vect, ndet, indpix, indpsrc,
-							NAXIS1, NAXIS2, npix, npixsrc, addnpix, f_lppix,
+							NAXIS1, NAXIS2, npix, npixsrc, addnpix, fhp_pix,
 							ns, iframe, para_bolo_indice, para_bolo_size, name_rank);
 
 #ifdef DEBUG
@@ -1306,14 +1307,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PNd, "fdata_",
-							det_vect, ndet, f_lppix_Nk, Proc_param.fsamp, ns,
+							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
 					do_PtNd_nocorr(PNd, dir.tmp_dir, Proc_param, Pos_param,
-							samples_struct, det_vect, ndet, f_lppix, f_lppix_Nk, addnpix,
+							samples_struct, det_vect, ndet, fhp_pix, fcut_pix, addnpix,
 							ns, indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc,
 							iframe, S, rank, size);
 				}

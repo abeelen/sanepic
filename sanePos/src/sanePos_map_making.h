@@ -88,14 +88,14 @@ void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coords
  \param ndet The number of channels contained in det
  \param orderpoly Polynomia order to be removed from the timeline
  \param napod Number of samples to apodize at data begin and end
- \param f_lppix High-pass Filter cut-off frequency (converted in samples)
+ \param fhp_pix High-pass Filter cut-off frequency (converted in samples)
  \param ns Actual frame's (files[iframe]) number of samples
  \param indpix The pixels indices table
  \param iframe Actual frame loop indice
  \param hits This array corresponds to map's coverage. Stored in naïve map has a fits image
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double f_lppix, long ns,
+int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double fhp_pix, long ns,
 		long long *indpix, long iframe, long *hits);
 
 #endif /* MAP_MAKING_H_ */

@@ -20,7 +20,6 @@ extern "C" {
 
 using namespace std;
 
-
 int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double *ell, double **Rellth)
 {
 	fitsfile *fptr;

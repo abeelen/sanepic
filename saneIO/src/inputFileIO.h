@@ -22,7 +22,7 @@ int read_strings(std::string fname, std::vector<std::string>& bolos);
  \param size "array" size
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_double(std::string fname, double *& array, long & size);
+int read_double(std::string fname, std::vector<double> & array );
 
 //! Given a string str, replace a part of this string (tobe_replace) with another (with_this)
 /*!
@@ -38,6 +38,7 @@ std::string replace_all(std::string str, std::string tobe_replace, std::string w
  \param path A string containing an input fits file filename
  \return The modified string
  */
+std::string Basename(std::string path);
 std::string FitsBasename(std::string path);
 
 //! Removes from the input string ".fits" extension and replace all '.' with '_' character
@@ -53,7 +54,7 @@ std::string dirfile_Basename(std::string path);
  \param inputFiles A vector of string containing input fits filenames
  \param nsamples An array in which the number of samples for each scan is stored
  */
-void readFrames(std::string inputdir, std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
+void readFrames(std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
 
 //! Given an input fits "filename", get its number of samples (called by readFrames routine)
 /*!
@@ -78,7 +79,7 @@ int read_channel_list(std::string &output, std::string fname, std::vector<std::s
  \param output The parser error string
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_fits_list(std::string &output, std::string fname, struct samples &samples_struct);
+uint16_t read_fits_list(std::string &output, std::string fname, struct samples &samples_struct);
 
 void skip_comment(std::ifstream &file, std::string &line);
 

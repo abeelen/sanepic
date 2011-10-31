@@ -1,10 +1,3 @@
-#include "covMatrix_IO.h"
-#include "invMatrix.h"
-#include "temporary_IO.h"
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "parser_functions.h"
-#include "struct_definition.h"
 
 #include <iostream>
 #include <string>
@@ -13,6 +6,15 @@
 #include <cstdio>  // for printf()
 #include <algorithm>
 #include <sysexits.h>
+
+#include "covMatrix_IO.h"
+#include "invMatrix.h"
+#include "temporary_IO.h"
+#include "inputFileIO.h"
+#include "mpi_architecture_builder.h"
+#include "parser_functions.h"
+#include "struct_definition.h"
+#include "error_code.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -61,7 +63,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-	  cout << endl << "saneInv : Inversion of the Noise-Noise PowerSpectra" << endl;
+	  cout << endl << "saneInv : inversion of the Noise-Noise PowerSpectra" << endl;
 
 	// data parameters
 	/*
@@ -88,8 +90,6 @@ int main(int argc, char *argv[]) {
 	double **Rellth, **RellthOrig, **iRellth;
 
 	//	string noiseSp_dir_output;/* output directory */
-	string base_name="";/* output noise file suffix */
-	string fname; /* covariance matrix fits filename */
 	string boloname;/* channels list file */
 	string noise_suffix = "_InvNoisePS";
 	string output = "";
@@ -236,11 +236,6 @@ int main(int argc, char *argv[]) {
 
 	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
 
-		base_name=FitsBasename(samples_struct.noisevect[iframe]);
-
-		// get input covariance matrix file name
-		fname=saneInv_struct.noise_dir + (string)samples_struct.noisevect[iframe];
-
 		std::vector<string> channelIn; /* Covariance matrix channel vector*/
 
 		// read covariance matrix in a fits file named fname
@@ -248,7 +243,7 @@ int main(int argc, char *argv[]) {
 		// -the input channel list => channelIn
 		// -The number of bins (size of Ell) => nbins
 		// -The original NoiseNoise covariance matrix => RellthOrig
-		read_CovMatrix(fname, channelIn, nbins, ell, RellthOrig);
+		read_CovMatrix(samples_struct.noisevect[iframe], channelIn, nbins, ell, RellthOrig);
 
 		// total number of detectors in the covmatrix fits file
 		ndetOrig = channelIn.size();

@@ -41,14 +41,14 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 
 	// fill a buffer with all the struct values !
 	string buffer_crc = dir.input_dir + dir.output_dir + dir.tmp_dir + dir.data_dir + dir.fits_filelist + dir.bolo_suffix +
-			dir.bolo_global_filename +
+			dir.bolo +
 			StringOf(pos_param.pixdeg) + StringOf(pos_param.flgdupl) + pos_param.maskfile + StringOf(pos_param.projgaps) +
 			pos_param.projcode + pos_param.axistype + StringOf(pos_param.lon) + StringOf(pos_param.lat) + StringOf(pos_param.eq2gal) + StringOf(pos_param.gal2eq) +
-			StringOf(proc_param.CORRon) + StringOf(proc_param.fill_gap) + StringOf(proc_param.remove_linear) + StringOf(proc_param.f_lp) +
+			StringOf(proc_param.CORRon) + StringOf(proc_param.fill_gap) + StringOf(proc_param.remove_linear) + StringOf(proc_param.fhp) +
 			proc_param.fcut_file + StringOf(proc_param.fsamp) + StringOf(proc_param.napod) + StringOf(proc_param.poly_order) +
 			StringOf(proc_param.remove_polynomia) +
-			inv_param.cov_matrix_file + inv_param.cov_matrix_suffix + inv_param.noise_dir +
-			ps_param.cov_matrix_file + ps_param.cov_matrix_suffix + ps_param.ell_global_file + ps_param.ell_suffix + ps_param.mix_global_file +
+			inv_param.cov_matrix + inv_param.cov_matrix_suffix + inv_param.noise_dir +
+			ps_param.cov_matrix + ps_param.cov_matrix_suffix + ps_param.ell + ps_param.ell_suffix + ps_param.mix +
 			ps_param.mix_suffix + StringOf(ps_param.ncomp) + ps_param.signame +
 			StringOf(pic_param.itermax) + StringOf(pic_param.iterw) + pic_param.map_prefix;
 

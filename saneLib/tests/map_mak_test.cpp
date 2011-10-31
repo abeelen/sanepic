@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 
 	for(long iframe=0; iframe< samples_struct.ntotscan; iframe ++){
 		long ns = samples_struct.nsamples[iframe];
-		double f_lppix = proc_param.f_lp*double(ns)/proc_param.fsamp;string output_read = "";
+		double fhp_pix = proc_param.fhp*double(ns)/proc_param.fsamp;string output_read = "";
 		std::vector<string> det_vect;
 		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det_vect)){
 			cout << output_read << endl;
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 			return EX_CONFIG;
 		}
 		long ndet = (long)det_vect.size();
-		if(test_map_mak(samples_struct,  ns, proc_param, dir.output_dir, det_vect, ndet, f_lppix, iframe, rank, size)){
+		if(test_map_mak(samples_struct,  ns, proc_param, dir.output_dir, det_vect, ndet, fhp_pix, iframe, rank, size)){
 			cout << "ERROR IN test_map_mak... EXITING ... \n";
 			return EXIT_FAILURE;
 		}
@@ -195,11 +195,11 @@ void print_struct(struct param_sanePre proc_param, struct samples samples_struct
 	cout << "napod = " << proc_param.napod << endl;
 	cout << "poly_order = " << proc_param.poly_order << endl;
 	cout << "fsamp = " << proc_param.fsamp << endl;
-	cout << "f_lp = " << proc_param.f_lp << endl;
+	cout << "fhp = " << proc_param.fhp << endl;
 	cout << "fcut_file = " << proc_param.fcut_file << endl;
 
 	cout << "\nsaneInv_struct : struct param_saneInv\n";
-	cout << "cov_matrix_file = " << saneInv_struct.cov_matrix_file << endl;
+	cout << "cov_matrix = " << saneInv_struct.cov_matrix << endl;
 	cout << "cov_matrix_suffix = " << saneInv_struct.cov_matrix_suffix << endl;
 
 	cout << "\nstruct_sanePic : struct param_sanePic\n";
@@ -208,8 +208,8 @@ void print_struct(struct param_sanePre proc_param, struct samples samples_struct
 	cout << "\nstructPS : struct param_sanePS\n";
 	cout << "ell_suffix = " << structPS.ell_suffix << endl;
 	cout << "mix_suffix = " << structPS.mix_suffix << endl;
-	cout << "ell_global_file = " << structPS.ell_global_file << endl;
-	cout << "mix_global_file = " << structPS.mix_global_file << endl;
+	cout << "ell = " << structPS.ell << endl;
+	cout << "mix = " << structPS.mix << endl;
 	cout << "signame = " << structPS.signame << endl;
 	cout << "ncomp = " << structPS.ncomp << endl;
 

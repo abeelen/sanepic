@@ -55,11 +55,11 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.859488601" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1235981317" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
-									<listOptionValue builtIn="false" value="cfitsio"/>
-									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
+									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 								</option>
@@ -646,6 +646,7 @@
 								<option id="gnu.cpp.link.option.libs.108681724" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
@@ -1243,6 +1244,7 @@
 								<option id="gnu.cpp.link.option.libs.1789447602" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
@@ -1839,6 +1841,7 @@
 								<option id="gnu.cpp.link.option.libs.1408924352" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>

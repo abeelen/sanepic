@@ -52,7 +52,7 @@ int parse_saneMerge_ini_file(char * opt_name[], string &output, int arg, struct 
 		samples_struct.ntotscan++;
 	}
 
-	readFrames(dir.data_dir, samples_struct.fitsvect, samples_struct.nsamples); // for each file, read and store number of samples in nsamples tab
+	readFrames(samples_struct.fitsvect, samples_struct.nsamples); // for each file, read and store number of samples in nsamples tab
 
 	cout << "You have specified the following options : \n\n";
 

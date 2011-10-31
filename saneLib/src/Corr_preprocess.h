@@ -29,7 +29,7 @@ extern "C" {
  \param ndet The number of detector in det
  \param indpix The pixels indices table
  \param npix Number of filled pixels (in the map)
- \param f_lppix High-pass Filter cut-off frequency (converted in samples)
+ \param fhp_pix High-pass Filter cut-off frequency (converted in samples)
  \param ns Number of samples for the considered scan : samples_struct.fitsvect[iframe]
  \param iframe Current loop frame indice
  \param para_bolo_indice In case para_bolo is used : processor rank is given to select which channels it has to computes
@@ -39,7 +39,7 @@ extern "C" {
  */
 int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param,
 		std::string tmp_dir, std::vector<std::string> det, long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double f_lppix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname);
+		long long npix,	long long npixsrc, long long addnpix, double fhp_pix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname);
 
 //! Computes Mp and hits arrays using write_ftrProcesdata or write_tfAS outputs
 /*!
@@ -52,7 +52,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
  \param ndet The number of detector in det
  \param indpix The pixels indices table
  \param npix Number of filled pixels (in the map)
- \param f_lppix High-pass Filter cut-off frequency (converted in samples)
+ \param fhp_pix High-pass Filter cut-off frequency (converted in samples)
  \param fsamp Instrument Sampling frequency
  \param ns Number of samples for the considered scan : samples_struct.fitsvect[iframe]
  \param iframe Current loop frame indice
@@ -64,7 +64,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int do_PtNd(struct samples samples_struct, double *PNd, std::string prefixe,
-		std::vector<std::string> det, long ndet, double f_lppix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
+		std::vector<std::string> det, long ndet, double fhp_pix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits,std::string fname);
 

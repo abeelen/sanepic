@@ -44,8 +44,8 @@ void file_compatibility_verification(string dirfile, struct samples samples_stru
 
 		string file1, file2; // 2 filenames
 
-		file1 = dirfile + samples_struct.fitsvect[ii-1]; // file2 will be checked in regards to file1
-		file2 = dirfile + samples_struct.fitsvect[ii];
+		file1 = samples_struct.fitsvect[ii-1]; // file2 will be checked in regards to file1
+		file2 = samples_struct.fitsvect[ii];
 
 		// open both files
 		if (fits_open_file(&fptr1, file1.c_str(), READONLY, &status))
@@ -122,7 +122,7 @@ void copy_ref_pos(fitsfile *outfptr, string dirfile, struct samples samples_stru
 		long ns_temp=0;
 
 
-		string fname=dirfile + samples_struct.fitsvect[iframe];
+		string fname=samples_struct.fitsvect[iframe];
 		//		indice_debut = indice_fin;
 
 
@@ -194,7 +194,7 @@ void copy_time(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 
 		long ns_temp=samples_struct.nsamples[iframe]; // get number of samples
 
-		string fname=dirfile + samples_struct.fitsvect[iframe]; // get filename
+		string fname=samples_struct.fitsvect[iframe]; // get filename
 
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open input file
 			fits_report_error(stderr, status);
@@ -249,7 +249,7 @@ void copy_signal(fitsfile *outfptr, string dirfile, struct samples samples_struc
 			long ns_temp=0; // input number of samples
 
 
-			string fname=dirfile + samples_struct.fitsvect[iframe]; // input filename
+			string fname=samples_struct.fitsvect[iframe]; // input filename
 
 			// open fits file
 			if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
@@ -282,7 +282,7 @@ void copy_signal(fitsfile *outfptr, string dirfile, struct samples samples_struc
 
 		string field= det[jj]; // actual detector name
 
-		string fname=dirfile + samples_struct.fitsvect[0]; // first input file name
+		string fname=samples_struct.fitsvect[0]; // first input file name
 
 		// open first input file
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
@@ -323,7 +323,7 @@ void copy_mask(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 		for(long iframe=0; iframe<samples_struct.ntotscan;iframe++){ // for each scan
 
 			long ns_temp=0; // input number of samples
-			string fname=dirfile + samples_struct.fitsvect[iframe]; // input file name
+			string fname=samples_struct.fitsvect[iframe]; // input file name
 
 
 			// open fits file a
@@ -357,7 +357,7 @@ void copy_mask(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 		}
 
 		string field= det[jj]; // actual bolometer's name
-		string fname=dirfile + samples_struct.fitsvect[0]; // first input file name
+		string fname=samples_struct.fitsvect[0]; // first input file name
 
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
 			fits_report_error(stderr, status);
@@ -403,7 +403,7 @@ void copy_LON_LAT(fitsfile *outfptr, string dirfile, struct samples samples_stru
 			long ns_temp=0; // actual fits file number of sample
 
 
-			string fname=dirfile + samples_struct.fitsvect[iframe]; // actual input file name
+			string fname=samples_struct.fitsvect[iframe]; // actual input file name
 
 
 			// open fits file
@@ -443,7 +443,7 @@ void copy_LON_LAT(fitsfile *outfptr, string dirfile, struct samples samples_stru
 
 		// for this bolometer, find index in first input detector list
 		string field= det[jj];
-		string fname=dirfile + samples_struct.fitsvect[0];
+		string fname=samples_struct.fitsvect[0];
 
 		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits file
 			fits_report_error(stderr, status);
