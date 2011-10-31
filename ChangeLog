@@ -1,7 +1,20 @@
+2011-10-31 16:30  abeelen
+	* v0.2: new release of SANEPIC
+	* News: frequency sampling and the high pass filter can be atomized by
+	input data files, more checks on initialization
+	* FFTW : optimisation of FFTW plans, added FFTW wisdom support
+
 2011-09-23 10:12  abeelen
-	* v0.4: First release of SANEPIC v0.4
-	* New: coordinates conversion, use of libgetdata internally, 
-	       cleaning of screen output
+	* v0.1: release of SANEPIC v0.1
+	* News: coordinates conversion, use of libgetdata internally,
+	cleaning of screen output
 	* Memory: Decrease memory usage.
 	* BUGS: Lots of (important) bug fixes everywhere, more stable
 
+2010-07-31 00:00  abeelen
+	* v0.01: initial release of SANEPIC v0.01
+	* Deblastification : sanepic can be used on several bolometers array.
+	* Modularity : the code is now devided into several programs
+	* Projection : sanepic now use wcslib to project data, all wcslib-supported projection are available.
+	* Input : input files are now multi-extension fits files, ascii files, and a master ini file
+	* Output : output files are now multi-extension fits files.

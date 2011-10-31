@@ -1,1 +1,4 @@
-* Initial release of Sanepic version 0.0.1
+** SANEPIC is now on v0.2 **
+- all input parameters can now be atomized by input data files (frequency sampling, high pass filter frequency, cut-off frequency for the noise-noise power spectra)
+- on large datasets, one can now use FFT wisdom to optimize FFTs
+
