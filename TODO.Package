@@ -14,8 +14,8 @@ svn commit -m "commit before packaging 0.2"
 
 # create a release tag (matched with the counter release)
 
-svn copy https://inf-cvs.ias.u-psud.fr/sanepic/trunk \
-    https://inf-cvs.ias.u-psud.fr/sanepic/tags/release-0.2 \
+svn copy https://svn.ias.u-psud.fr/sanepic/trunk \
+    https://svn.ias.u-psud.fr/sanepic/tags/release-0.2 \
     -m "Tagging the 0.2 release of the 'sanepic' project"
 
 # Use your local workspace ...
