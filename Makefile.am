@@ -4,7 +4,7 @@ if PARABOLO
  PARA = saneFrameOrder
 endif
 
-SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic $(PARA) $(OPT_SUBDIRS)
+SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic $(PARA) $(OPT_SANEPS) $(OPT_CHECKFIX) $(OPT_SPLITMERGE)
 DIST_SUBDIRS = nr iniparser saneIO saneLib saneInv sanePos sanePre sanePic saneFrameOrder
 
 # # Distribution with sanePS included

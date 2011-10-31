@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.67])
 define([svnversion], esyscmd([sh -c "svnversion|tr -d '\n'"]))dnl
 AC_DEFINE(SVN_REVISION, "svnversion", [SVN Revision])
 AC_INIT([sanepic],[0.1.svnversion],[sanepic@ias.u-psud.fr])
@@ -66,17 +66,27 @@ dnl   AC_CHECK_FUNC(MPI_Init, [MPILIBS=" "])
    LIBS="$LIBS $MPILIBS"
 fi
 
-if test -d "sanePS" && test -d "saneCheck" && test -d "saneFix" && test -d "saneMerge" && test -d "saneSplit"; then
-   dnl AC_CONFIG_SUBDIRS([sanePS saneCheck saneFix saneMerge saneSplit])
-   AC_SUBST([OPT_SUBDIRS],["sanePS saneCheck saneFix saneMerge saneSplit"])
+if test -d "sanePS"; then
+   dnl AC_CONFIG_SUBDIRS([sanePS])
+   AC_SUBST([OPT_SANEPS],["sanePS"])
+   AC_CONFIG_FILES([sanePS/Makefile
+		    sanePS/src/Makefile])
+fi
+
+if test -d "saneCheck" && test -d "saneFix"; then
+   dnl AC_CONFIG_SUBDIRS([saneCheck saneFix])
+   AC_SUBST([OPT_CHECKFIX],["saneCheck saneFix"])
    AC_CONFIG_FILES([saneCheck/Makefile
 		    saneCheck/src/Makefile
 		    saneFix/Makefile
-		    saneFix/src/Makefile
-		    saneMerge/Makefile
+		    saneFix/src/Makefile])
+fi
+
+if test -d "saneMerge" && test -d "saneSplit"; then
+   dnl AC_CONFIG_SUBDIRS([saneMerge saneSplit])
+   AC_SUBST([OPT_SPLITMERGE],["saneMerge saneSplit"])
+   AC_CONFIG_FILES([saneMerge/Makefile
 		    saneMerge/src/Makefile
-		    sanePS/Makefile
-		    sanePS/src/Makefile
 		    saneSplit/Makefile
 		    saneSplit/src/Makefile])
 
