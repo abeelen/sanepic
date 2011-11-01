@@ -1,6 +1,6 @@
 # check_PROGRAMS = parserTest
 # TESTS = $(check_PROGRAMS)
-bin_PROGRAMS = parserTest
+EXTRA_PROGRAMS = parserTest
 
 parserTest_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
         $(SANEIO_INCLUDE)

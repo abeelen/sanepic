@@ -975,8 +975,7 @@ uint16_t check_param_samples(string &output, struct samples &samples_param){
 			returnCode |= FILE_PROBLEM;
 		}
 		if ( (check_file(samples_param.noisevect[iframe])  & check_file(samples_param.noisevect[iframe] +".gz")) != 0 ){
-			output += "EE - " + samples_param.noisevect[iframe] + " not found\n";
-			returnCode |= FILE_PROBLEM;
+			output += "WW - " + samples_param.noisevect[iframe] + " not found\n";
 		}
 		if ( check_file(samples_param.bolovect[iframe]) != 0 ){
 			output += "EE - " + samples_param.bolovect[iframe] + " not found\n";
