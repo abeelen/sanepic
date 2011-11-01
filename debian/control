@@ -1,0 +1,20 @@
+Source: sanepic
+Section: science
+Priority: extra
+Maintainer: Alexandre Beelen <abeelen@glx-cluster.ias.u-psud.fr>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libgetdata-dev, wcslib-dev, libgsl0-dev, libfftw3-dev, libcfitsio3-dev
+Standards-Version: 3.9.2
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/sanepic.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/sanepic.git;a=summary
+
+Package: sanepic
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends} , libgetdata, libwcs4, libgsl0ldbl, libfftw3-3, libcfitsio3, libstdc++6
+Description: Signal and Noise Estimation Procedure Including Correlations
+ SANEPIC is a maximum likelihood mapmaker indented to be used on BLAST and Herschel/SPIRE data.
+
+Package: sanepic-doc
+Architecture: all
+Description: documentation for sanepic
+ Not much for the moment

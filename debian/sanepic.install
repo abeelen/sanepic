@@ -1,0 +1,6 @@
+usr/bin/sanePre
+usr/bin/sanePos
+usr/bin/saneInv
+usr/bin/sanePic
+usr/lib/libsaneIO.so*
+usr/lib/libsaneLib.so*
