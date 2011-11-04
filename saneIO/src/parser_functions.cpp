@@ -62,14 +62,14 @@ string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
 
-uint16_t fillvect_double(double value, string file, long ntotscan, vector<double> &outputVector){
+uint16_t fillvect_double(double value, string file, string dir, long ntotscan, vector<double> &outputVector){
 
 	vector<double> dummy;
 	outputVector.resize(ntotscan);
 
 	if (file != "" && value <= 0.0){
 
-		if ( read_double(file, dummy) )
+		if ( read_double(dir + file, dummy) )
 			return FILE_PROBLEM;
 		if ( dummy.size() != (long unsigned) ntotscan )
 			return FILE_SIZE_PROBLEM;
@@ -1146,15 +1146,15 @@ uint16_t fill_samples_param(string &output, struct samples &samples_param,
 	samples_param.noisevect = dummy_string;
 	dummy_string.clear();
 
-	returnCode |= fillvect_double(Proc_param.fcut, dir.input_dir + Proc_param.fcut_file, samples_param.ntotscan, dummy_double);
+	returnCode |= fillvect_double(Proc_param.fcut, Proc_param.fcut_file, dir.input_dir, samples_param.ntotscan, dummy_double);
 	samples_param.fcut = dummy_double;
 	dummy_double.clear();
 
-	returnCode |= fillvect_double(Proc_param.fsamp, dir.input_dir + Proc_param.fsamp_file, samples_param.ntotscan, dummy_double);
+	returnCode |= fillvect_double(Proc_param.fsamp,Proc_param.fsamp_file, dir.input_dir, samples_param.ntotscan, dummy_double);
 	samples_param.fsamp = dummy_double;
 	dummy_double.clear();
 
-	returnCode |= fillvect_double(Proc_param.fhp, dir.input_dir + Proc_param.fhp_file, samples_param.ntotscan, dummy_double);
+	returnCode |= fillvect_double(Proc_param.fhp, Proc_param.fhp_file, dir.input_dir, samples_param.ntotscan, dummy_double);
 	samples_param.fhp = dummy_double;
 	dummy_double.clear();
 
@@ -1453,7 +1453,6 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	iniparser_freedict(ini);
 
 
-
 	// Now the ini file has been read, do the rest
 	if (rank == 0)
 		parsed |= check_common(output, dir);
@@ -1475,7 +1474,6 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	// Store scan sizes so that we dont need to read it again and again in the loops !
 	if ( ! parsed )
 		readFrames(samples_param.fitsvect, samples_param.nsamples);
-
 
 	// Retrieve wisdom if asked / possible
 
@@ -1598,7 +1596,7 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 
 	cout << "Sampling Freq.   : ";
 	if ( Proc_param.fsamp_file == "" )
-		 cout << Proc_param.fsamp << " Hz" << endl;
+		cout << Proc_param.fsamp << " Hz" << endl;
 	else
 		cout << "[from file]" << endl;
 

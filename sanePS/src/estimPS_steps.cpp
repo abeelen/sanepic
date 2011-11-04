@@ -315,6 +315,12 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	delete [] data;
 	delete [] flag;
 
+	// clean up
+	if (S != NULL){
+		delete [] Ps ;
+		delete [] samptopix;
+	}
+
 	////*********************** Component power spectra
 
 	for (long ii=0;ii<ncomp;ii++){
@@ -349,11 +355,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 					Rellth[ii*ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
 
 
-	// clean up
-	if (S != NULL){
-		delete [] Ps ;
-		delete [] samptopix;
-	}
+
 
 	delete [] data_lp ;
 	delete [] commontmp;

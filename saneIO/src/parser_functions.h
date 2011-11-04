@@ -30,7 +30,7 @@ extern "C"{
   \return outputVector the content of filename or value if value > 0
  */
 
-uint16_t fillvect_double(double value, std::string filename, long ntotscan, std::vector<double> &outputVector);
+uint16_t fillvect_double(double value, std::string filename, std::string dir, long ntotscan, std::vector<double> &outputVector);
 
 //! Given a common string ("" if not used) and a vector of string and a suffit, fill a vector<string> of length ntotscan
 /*!

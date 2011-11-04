@@ -388,13 +388,6 @@ int main(int argc, char *argv[])
 
 		std::vector<string> det=bolo_list[iframe];
 
-		//		string output_read = "";
-		//		if(read_channel_list(output_read, samples_struct.bolovect[iframe], det)){
-		//			cout << output_read << endl;
-		//			cerr << "input channel list could not be read for : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
-		//			continue; // skip the file if channel list (was not found) / (is incorrect) !
-		//		}
-
 		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
 			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";

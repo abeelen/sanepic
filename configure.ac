@@ -173,7 +173,6 @@ fi
 # Checks for lib
 
 AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
-AC_CHECK_LIB(m,main,,AC_MSG_ERROR(math needed for GSL))
 AC_CHECK_LIB(fftw3, fftw_plan_dft_c2r_1d,,AC_MSG_ERROR(fftw3 needed))
 AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR(GSLCBLAS needed for GSL ))
 AC_CHECK_LIB(gsl,main,,AC_MSG_ERROR(GSL needed))
