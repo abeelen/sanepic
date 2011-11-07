@@ -1,3 +1,15 @@
 # In order to compile sanepic for gprof profiling use
 
 LDFLAGS="-pg" CPPFLAGS="-pg" ./configure --disable-shared
+
+# Then launch the standard executable il will create a gmon.out file
+
+${executable}
+
+# Use gprof to exact usefull information...
+
+gprof ${executable} > {executable}.gprof
+
+# Then on can use gprof2dot to convert it to a .dot file
+
+gprof2dot.py ${executable}.gprof -n1e-50 -e0 -s -w --skew=1e-300 > ${executable}.dot

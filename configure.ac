@@ -213,6 +213,17 @@ AC_CHECK_HEADERS(wcslib/wcstrig.h,,AC_MSG_WARN(wcslib header missing ?))
 AC_CHECK_HEADERS(getdata.h,,AC_MSG_WARN(getdata header missing ?))
 
 
+# For GSL speed-up
+AC_C_INLINE
+          
+if test "$ac_cv_c_inline" != no ; then
+   AC_DEFINE([HAVE_INLINE], [1], [GSL inlining function])
+   AC_SUBST(HAVE_INLINE)
+fi
+
+AC_DEFINE([GSL_RANGE_CHECK_OFF],[1],[disable GSL range check for speed up])
+
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
@@ -239,6 +250,6 @@ echo "
  Debug.............: $debug.
  Para Frame........: $paraframe;
  Para Bolo.........: $parabolo;
- C++ Compiler......: $CXX $CXXFLAGS $CPPFLAGS $OPENMP_CXXFLAGS
- Linker............: $LD $LDFLAGS $LIBS
+ C++ Compiler......: $CXX $CXXFLAGS $CPPFLAGS $OPENMP_CXXFLAGS $GSL_CFLAGS
+ Linker............: $LD $LDFLAGS $LIBS $GSL_LIBS
 "
