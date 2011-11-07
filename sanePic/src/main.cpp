@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <ostream>
@@ -24,6 +28,7 @@
 #include "crc.h"
 #include "inputFileIO.h"
 #include "error_code.h"
+
 
 extern "C" {
 #include "wcslib/wcshdr.h"

@@ -1,3 +1,8 @@
+
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,13 +12,14 @@
 #include <vector>
 #include <algorithm>
 
-
 #include "covMatrix_IO.h"
 #include "utilities.h"
+#include <gsl/gsl_matrix.h>
+
 
 extern "C" {
-#include <nrutil.h>
 #include <fitsio.h>
+#include "nrutil.h"
 #include "getdata.h"
 }
 
@@ -113,8 +119,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 }
 
 
-//saneInv
-int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, double **&Rellth)
+int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, gsl_matrix *& Rellth)
 /*
  * This function read the NoiseNoise Matrices.
  */
@@ -138,8 +143,6 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 		fits_report_error(stderr, status);
 		return 1;
 	}
-
-
 
 	fits_get_num_rows(fptr, &nBolos, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "name", &colnum, &status);
@@ -188,11 +191,12 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 		return 1;
 	}
 
-	Rellth = dmatrix(0, nBolos * nBolos - 1, 0, nbins - 1);
+	Rellth = gsl_matrix_alloc(nBolos*nBolos, nbins);
 
 	for (int i = 0; i < nBolos * nBolos; i++) {
-		fpixel[1] = i + 1;
-		fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, (Rellth)[i], NULL, &status);
+	  double * matrix_ptr = gsl_matrix_ptr(Rellth, i, 0);
+	  fpixel[1] = i + 1;
+	  fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, matrix_ptr, NULL, &status);
 	}
 
 	if (fits_close_file(fptr, &status)){
@@ -204,13 +208,14 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 }
 
 //saneInv
-int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins, double * ell,
-		double **Rellth, string suffix)
+int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins, double * ell, gsl_matrix *Rellth, string suffix)
 /*
  * This function writes the Inverse Covariance Matrices in binary format
  */
 {
 	long ndet = bolos.size();
+
+	double * vector_ptr;
 
 	for (int idet = 0; idet < ndet; idet++) {
 
@@ -228,8 +233,10 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 		// spectra filename
 		outfile = bolos[idet] + "_" + suffix;
 
+		vector_ptr = gsl_matrix_ptr(Rellth, idet, 0);
+
 		// write binary file on disk
-		n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, ndet*nbins, GD_DOUBLE, Rellth[idet]);
+		n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, ndet*nbins, GD_DOUBLE, vector_ptr);
 		if(gd_error(D)!=0){
 			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins * ndet << " for " << outfile << endl;
 			return 1;

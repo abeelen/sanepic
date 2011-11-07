@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -11,6 +15,8 @@
 #include "struct_definition.h"
 #include "write_maps_to_disk.h"
 #include "inputFileIO.h"
+
+
 
 using namespace std;
 

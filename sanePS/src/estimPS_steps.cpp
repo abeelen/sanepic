@@ -1,3 +1,8 @@
+
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <vector>
 #include <sstream>
 #include <cmath>
@@ -13,13 +18,20 @@
 #include "dataIO.h"
 #include "covMatrix_IO.h"
 #include "estimPS_steps.h"
-#include "cholesky.h"
+
+
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+
+
 
 extern "C" {
 #include "nrutil.h"
 #include <fitsio.h>
 }
 
+#include <omp.h>
 
 using namespace std;
 
@@ -43,8 +55,9 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	double *data, *data_lp, *Ps/*, *bfilter*/;
 	long long *samptopix; // sample to pixel projection matrix
-	double **iCov, **Cov, *ivec, **l;
-	double *uvec;
+
+	gsl_matrix *iCov, *Cov;
+	gsl_vector *ivec, *uvec;
 
 	long ndet = (long)det.size();
 
@@ -63,21 +76,8 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	data   = (double *) fftw_malloc(sizeof(double)*ns);
 	fdata1 = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 
-	flag      = new int[ns];
-
-	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
-	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
-	uvec = new double[ncomp];
-	ivec = new double[ncomp];
-	l    = new double*[ncomp];
-	for(int i=0; i<ncomp; i++)
-		l[i]=new double [ncomp];
-
-
-	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
-	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
-
-	sign = new double[ndet];
+	flag    = new int[ns];
+	sign    = new double[ndet];
 	commonm = dmatrix(0,ncomp,0,ns-1); // common mode
 	init2D_double(commonm,0,0,ncomp,ns,0.0);
 
@@ -156,29 +156,41 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	//***************************************************************************
 
 
+	Cov = gsl_matrix_alloc(ncomp, ncomp);
+	iCov = gsl_matrix_alloc(ncomp, ncomp);
+
+	uvec = gsl_vector_alloc(ncomp);
+	ivec = gsl_vector_alloc(ncomp);
+
+	gsl_matrix_set_zero(Cov);
+	gsl_matrix_set_zero(iCov);
+
+
 	/////////// AtN-1A
 	for (long jj=0;jj<ncomp;jj++){
 		for (long kk=0;kk<ncomp;kk++){
 			for (long ii=0;ii<ndet;ii++){
-				Cov[jj][kk] += mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii];
+				gsl_matrix_set(Cov,jj,kk, \
+						gsl_matrix_get(Cov,jj,kk) \
+						+ mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii]);
 			}
 		}
 	}
 
 
 	// invert AtN-1A
+	gsl_linalg_cholesky_decomp (Cov);
 
-	cholesky(ncomp,Cov,l);
 
 	//	printf("ncomp:%ld", ncomp);
 
 	for (long ii=0;ii<ncomp;ii++){
+
+		gsl_vector_set_basis(uvec,ii);
+		gsl_linalg_cholesky_solve(Cov, uvec, ivec);
+
 		for (long jj=0;jj<ncomp;jj++)
-			uvec[jj] = 0.0;
-		uvec[ii] = 1.0;
-		solve_cholesky(Cov, uvec, l, ivec, ncomp);
-		for (long jj=0;jj<ncomp;jj++)
-			iCov[ii][jj] = ivec[jj];
+			gsl_matrix_set(iCov,ii,jj,gsl_vector_get(ivec,jj));
 	}
 
 	//	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
@@ -187,7 +199,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	for (long ii=0;ii<ns;ii++)
 		for (long jj=0;jj<ncomp;jj++)
 			for (long kk=0;kk<ncomp;kk++)
-				commonm2[jj][ii] += iCov[jj][kk] * commonm[kk][ii]; //common mode * (AtN-1A)-1
+				commonm2[jj][ii] += gsl_matrix_get(iCov,jj,kk) * commonm[kk][ii]; //common mode * (AtN-1A)-1
 
 	// clean up
 	delete [] sign;
@@ -195,15 +207,12 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	delete [] Ps;
 	delete [] samptopix;
 	delete [] fdata1;
-	delete [] uvec;
-	delete [] ivec;
 
-	for (int i = 0; i <ncomp; i++)
-		delete[] l[i];
-	delete [] l;
+	gsl_vector_free(uvec);
+	gsl_vector_free(ivec);
+	gsl_matrix_free(Cov);
+	gsl_matrix_free(iCov);
 
-	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
 	free_dmatrix(commonm,0,ncomp,0,ns-1);
 
 	return EX_OK;
@@ -548,26 +557,20 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		ib++;
 	}
 
+	double ** iCov;
+	gsl_matrix *Cov;
+	gsl_vector *uvec, *ivec;
+
+	Cov  = gsl_matrix_alloc(ncomp, ncomp);
+
+	uvec = gsl_vector_alloc(ncomp);
+	ivec = gsl_vector_alloc(ncomp);
+
+	gsl_matrix_set_zero(Cov);
 
 
-	double **Cov, **iCov, **l;
-	double *uvec, *ivec;
-
-
-	Cov = dmatrix(0,ncomp-1,0,ncomp-1); // AtN-1A
-	iCov = dmatrix(0,ncomp-1,0,ncomp-1);  // inverted AtN-1A
-	uvec = new double[ncomp];
-	ivec = new double[ncomp];
-	l = new double*[ncomp];
-	for(int i=0; i<ncomp;i++)
-		l[i]=new double[ncomp];
-
-
-	init2D_double(Cov,0,0,ncomp,ncomp,0.0);
+	iCov = dmatrix(0, ncomp-1, 0, ncomp-1);
 	init2D_double(iCov,0,0,ncomp,ncomp,0.0);
-
-//	printf("\nnbins2 = %ld                \n",nbins2);
-
 
 
 	iN = new double[ndet];
@@ -648,27 +651,27 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 						AiNA[ii][jj] += mixmat[idet][jj] * mixmat[idet][ii] * iN[idet];
 				}
 
+
+
 			for (long ii=0;ii<ncomp;ii++){
 				for (long jj=0;jj<ncomp;jj++){
-					Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
+					gsl_matrix_set(Cov,ii,jj, Pr2[ii][jj] * AiNA[ii][jj]);
 				}
-				Cov[ii][ii] += 1.0;
+				gsl_matrix_set(Cov,ii,ii, gsl_matrix_get(Cov,ii,ii) + 1.0);
 			}
 
 			// invert matrix
-			cholesky(ncomp, Cov,l);
+			gsl_linalg_cholesky_decomp (Cov);
 
 			for (long ii=0;ii<ncomp;ii++){
+				gsl_vector_set_basis(uvec,ii);
+				gsl_linalg_cholesky_solve(Cov, uvec, ivec);
+
 				for (long jj=0;jj<ncomp;jj++)
-					uvec[jj] = 0.0;
-				uvec[ii] = 1.0;
-				solve_cholesky(Cov, uvec, l, ivec, ncomp);
-
-				for (long jj=0;jj<ncomp;jj++){
-					iCov[ii][jj] = ivec[jj];
-				}
-
+					iCov[ii][jj]  = gsl_vector_get(ivec,jj);
 			}
+
+
 
 
 			for (long ii=0;ii<ncomp;ii++)
@@ -727,19 +730,19 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 		for (long idet=0;idet<ndet;idet++){
 
 			for (long ii=0;ii<ncomp;ii++){
-				uvec[ii] = RnRxsb[idet][ii];
+				gsl_vector_set(uvec,ii, RnRxsb[idet][ii] );
 				for (long jj=0;jj<ncomp;jj++){
-					Cov[ii][jj] = RnRssb[ii][jj+idet*ncomp];
+					gsl_matrix_set(Cov,ii,jj, RnRssb[ii][jj+idet*ncomp]);
 				}
 			}
 
 			// solving the linear system
 
-			cholesky(ncomp, Cov, l);
-			solve_cholesky(Cov, uvec, l, ivec, ncomp);
+			gsl_linalg_cholesky_decomp (Cov);
+			gsl_linalg_cholesky_solve(Cov, uvec, ivec);
 
 			for (long ii=0;ii<ncomp;ii++){
-				mixmat[idet][ii] = ivec[ii];
+				mixmat[idet][ii] = gsl_vector_get(ivec,ii);
 			}
 		}
 
@@ -770,25 +773,22 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 			for (long ii=0;ii<ncomp;ii++){
 				for (long jj=0;jj<ncomp;jj++){
-					Cov[ii][jj] = Pr2[ii][jj] * AiNA[ii][jj];
+					gsl_matrix_set(Cov, ii,jj, Pr2[ii][jj] * AiNA[ii][jj]);
 				}
-				Cov[ii][ii] += 1.0;
+				gsl_matrix_set(Cov, ii, ii, gsl_matrix_get(Cov,ii,ii) + 1.0 );
 			}
 
 
 
 			// invert matrix
-
-			cholesky(ncomp, Cov, l);
+			gsl_linalg_cholesky_decomp (Cov);
 
 			for (long ii=0;ii<ncomp;ii++){
-				for (long jj=0;jj<ncomp;jj++)
-					uvec[jj] = 0.0;
-				uvec[ii] = 1.0;
-				solve_cholesky(Cov, uvec, l, ivec, ncomp);
+				gsl_vector_set_basis(uvec,ii);
+				gsl_linalg_cholesky_solve(Cov, uvec, ivec);
 
 				for (long jj=0;jj<ncomp;jj++)
-					iCov[ii][jj] = ivec[jj];
+					iCov[ii][jj] = gsl_vector_get(ivec, jj);
 			}
 
 
@@ -895,15 +895,15 @@ int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long 
 
 	//cleaning up
 
-	delete [] uvec ;
-	delete [] ivec;
-	delete [] w;
-	for(int i=0; i<ncomp; i++)
-		delete [] l[i];
-	delete [] l;
 
-	free_dmatrix(Cov,0,ncomp-1,0,ncomp-1);
-	free_dmatrix(iCov,0,ncomp-1,0,ncomp-1);
+	delete [] w;
+
+	gsl_matrix_free(Cov);
+	gsl_vector_free(ivec);
+	gsl_vector_free(uvec);
+
+	free_dmatrix(iCov, 0, ncomp-1, 0, ncomp-1);
+
 
 	delete [] iN;
 	delete [] Pr;
@@ -933,112 +933,75 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 
 	double triRhR, logdetiR;
 
-	double *uvec, *ivec;
-	double *Pl, *Pnl;
-	double **R, **hR, **eR, **iR, **iRhR, **l;
+	gsl_vector *uvec, *ivec;
+	gsl_matrix *R;
 
-	uvec = new double[ndet];
-	ivec = new double[ndet];
-	l= new double*[ndet];
-	for(int i=0; i<ndet; i++)
-		l[i]=new double[ndet];
+	double **hR, **eR, **iR;
 
-	Pl   = new double[ncomp] ;
-	Pnl  = new double[ndet] ;
-	R  = dmatrix(0,ndet-1,0,ndet-1);
 	hR = dmatrix(0,ndet-1,0,ndet-1);
 	eR = dmatrix(0,ndet-1,0,ndet-1);
 	iR = dmatrix(0,ndet-1,0,ndet-1);
-	iRhR = dmatrix(0,ndet-1,0,ndet-1);
 
-
-	init2D_double(R,0,0,ndet,ndet,0.0);
-	init2D_double(hR,0,0,ndet,ndet,0.0);
-	init2D_double(eR,0,0,ndet,ndet,0.0);
-	init2D_double(iR,0,0,ndet,ndet,0.0);
-	fill(Pl,Pl+ncomp,0.0);
-	fill(Pnl,Pnl+ndet,0.0);
-	init2D_double(iRhR,0,0,ndet,ndet,0.0);
-
+	uvec = gsl_vector_alloc(ndet);
+	ivec = gsl_vector_alloc(ndet);
+	R    = gsl_matrix_alloc(ndet, ndet);
 
 	// init
 	f   = 0.0 ;
+	long ii, jj, kk;
 
-	for (long ib=0;ib<nbins;ib++){
 
-		//// reading Rexp
-		for (long ii=0;ii<ncomp;ii++)
-			Pl[ii] = P[ii][ib];
-		for (long ii=0;ii<ndet;ii++){
-			Pnl[ii] = N[ii][ib];
-			for (long jj=0;jj<ndet;jj++)
+
+	for (long ib=0;ib<nbins;ib++) {
+
+		for (ii=0;ii<ndet;ii++)
+			for (jj=0;jj<ndet;jj++)
 				hR[ii][jj] = Rellexp[ii+jj*ndet][ib];
-		}
 
 		/// building Rth from A, P, N
-		for (long ii=0;ii<ndet;ii++)
-			for (long jj=0;jj<ndet;jj++){
-				R[ii][jj] = 0.0;
-				if (ii == jj)
-					R[ii][jj] = Pnl[ii];
-				for (long kk=0;kk<ncomp;kk++)
-					R[ii][jj] += A[ii][kk] * Pl[kk] * A[jj][kk];
-			}
 
+		gsl_matrix_set_zero(R);
+		for(ii=0; ii< ndet; ii++)
+			gsl_matrix_set(R,ii,ii,N[ii][ib]);
 
-		for (long ii=0;ii<ndet;ii++){
-			for (long jj=0;jj<ndet;jj++)
-				eR[ii][jj] = R[ii][jj];
+		for (ii=0;ii<ndet;ii++)
+			for (jj=0;jj<ndet;jj++)
+				for (kk=0;kk<ncomp;kk++)
+					gsl_matrix_set(R, ii, jj, gsl_matrix_get(R, ii, jj) + A[ii][kk] * P[kk][ib] * A[jj][kk]);
+
+		gsl_linalg_cholesky_decomp(R);
+
+		for (ii=0;ii<ndet;ii++){
+
+			gsl_vector_set_basis(uvec,ii);
+			gsl_linalg_cholesky_solve(R, uvec, ivec);
+
+			for (jj=0;jj<ndet;jj++)
+				iR[ii][jj] = gsl_vector_get(ivec,jj);
 		}
-		cholesky(ndet,eR,l);
-
-		for (long ii=0;ii<ndet;ii++){
-			for (long jj=0;jj<ndet;jj++)
-				uvec[jj] = 0.0;
-			uvec[ii] = 1.0;
-			solve_cholesky(eR, uvec,l, ivec, ndet);
-
-			for (long jj=0;jj<ndet;jj++)
-				iR[ii][jj] = ivec[jj];
-
-		}
-
-		/// computing mismatch from Rexp and Rth
-		for (long ii=0;ii<ndet;ii++)
-			for (long jj=0;jj<ndet;jj++){
-				iRhR[ii][jj] = 0.0;
-				for (long kk=0;kk<ndet;kk++)
-					iRhR[ii][jj] += iR[ii][kk]*hR[kk][jj] ;
-			}
-
 
 		triRhR = 0.0;
+		for (ii=0;ii<ndet;ii++)
+			for (jj=0;jj<ndet;jj++)
+				triRhR += iR[ii][jj]*hR[jj][ii] ;
+
 		logdetiR = 0;
-		for (long ii=0;ii<ndet;ii++){
-			triRhR += iRhR[ii][ii];
-			logdetiR -= log(l[ii][ii]*l[ii][ii]);
-		}
+		for (ii=0;ii<ndet;ii++)
+			logdetiR -= log(gsl_matrix_get(R,ii,ii)*gsl_matrix_get(R,ii,ii));
 
 
-		f   +=  w[ib] * (triRhR - logdetiR - ndet ) ; //pb when hR non inversible
+		f   = f + w[ib] * (triRhR - logdetiR - ndet ) ; //pb when hR non inversible
+
 
 	}
 
+	gsl_vector_free(uvec);
+	gsl_vector_free(ivec);
+	gsl_matrix_free(R);
 
-	delete [] uvec;
-	delete [] ivec;
-	delete [] Pl;
-	delete [] Pnl;
-	for(int i=0; i<ndet; i++)
-		delete [] l[i];
-	delete [] l;
-
-	free_dmatrix(R,0,ndet-1,0,ndet-1);
 	free_dmatrix(hR,0,ndet-1,0,ndet-1);
 	free_dmatrix(eR,0,ndet-1,0,ndet-1);
 	free_dmatrix(iR,0,ndet-1,0,ndet-1);
-	free_dmatrix(iRhR,0,ndet-1,0,ndet-1);
-
 
 	return f;
 

@@ -1,5 +1,6 @@
-
-
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
 
 #include <iostream>
 #include <cstdlib>
@@ -12,14 +13,11 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_poly.h>
 
+
 #include "todprocess.h"
-#include "cholesky.h"
 #include "fitpoly.h"
 
 using namespace std;
-
-
-
 
 
 void init2D_double(double **A, long im, long jm, long nx, long ny, double val){

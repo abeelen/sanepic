@@ -8,13 +8,11 @@ libsaneLib_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) \
 
 
 libsaneLib_la_SOURCES = \
-cholesky.cpp \
 Corr_preprocess.cpp \
 fitpoly.cpp \
 map_making.cpp \
 NoCorr_preprocess.cpp \
 todprocess.cpp \
-cholesky.h \
 Corr_preprocess.h \
 fitpoly.h \
 map_making.h \

@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
 
 #include <iostream>
 #include <string>
@@ -16,9 +19,9 @@
 #include "struct_definition.h"
 #include "error_code.h"
 
-extern "C" {
-#include "nrutil.h"
-}
+#include <gsl/gsl_matrix.h>
+
+
 
 
 #ifdef PARA_FRAME
@@ -71,8 +74,7 @@ int main(int argc, char *argv[]) {
 	 * -ndetOrig = number of detectors in the NoiseNoise matrix
 	 * -nbins = number of bins (Ell)
 	 */
-	long ndet, ndetOrig, nbins;
-	int nbolos;
+	long ndet, nbins;
 	long n_iter;
 
 	double *ell; /* bins values */
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]) {
 	 * -mixmatOrig : original mixing matrix
 	 * -mixmat : Reduced mixing matrix
 	 */
-	double **Rellth, **RellthOrig, **iRellth;
+	gsl_matrix *Rellth, *RellthOrig, *iRellth;
 
 	//	string noiseSp_dir_output;/* output directory */
 	string boloname;/* channels list file */
@@ -245,11 +247,6 @@ int main(int argc, char *argv[]) {
 		// -The original NoiseNoise covariance matrix => RellthOrig
 		read_CovMatrix(samples_struct.noisevect[iframe], channelIn, nbins, ell, RellthOrig);
 
-		// total number of detectors in the covmatrix fits file
-		ndetOrig = channelIn.size();
-
-		//			printf("TOTAL NUMBER OF DETECTORS IN PS file: %d\n", (int) channelIn.size());
-
 		std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
 
 		channelOut = bolo_list[iframe];
@@ -258,10 +255,10 @@ int main(int argc, char *argv[]) {
 		ndet = channelOut.size();
 
 		//Deal with bolometer reduction and fill Rellth and mixmat
-		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, &Rellth);
+		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, Rellth);
 
 		// Inverse reduced covariance Matrix : Returns iRellth
-		inverseCovMatrixByMode(nbins, ndet, Rellth, &iRellth);
+		inverseCovMatrixByMode(nbins, ndet, Rellth, iRellth);
 
 		// write inversed noisePS in a binary file for each detector
 		if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, samples_struct.basevect[iframe] + noise_suffix)){
@@ -271,13 +268,10 @@ int main(int argc, char *argv[]) {
 			return EX_CANTCREAT;
 		}
 
-		// number of detector in the input channel list
-		nbolos = (int) channelIn.size();
-
 		// clean up
-		free_dmatrix(Rellth,0, ndet - 1, 0, ndet * nbins - 1);
-		free_dmatrix(iRellth,0, ndet - 1, 0, ndet * nbins - 1);
-		free_dmatrix(RellthOrig,0, nbolos * nbolos - 1, 0, nbins - 1);
+		gsl_matrix_free(Rellth);
+		gsl_matrix_free(iRellth);
+		gsl_matrix_free(RellthOrig);
 		delete [] ell;
 
 

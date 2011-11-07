@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -9,6 +13,8 @@
 #include <fftw3.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sort_double.h>
+
+
 
 #define NR_END 1
 #define FREE_ARG char*
@@ -518,11 +524,13 @@ int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, dou
 
 
 	if ((fp = fopen(nameSpfile.c_str(),"r")) == NULL){
-		cerr << "ERROR: Can't find noise power spectra file, check -k or -K in command line. Exiting. \n";
+		cerr << "EE - Can not open noise power spectra file "<< nameSpfile << endl;
 		return 1;
 	}
-	result = fscanf(fp,"%d",&nbins);
 
+	result = fscanf(fp,"%d",&nbins);
+	if (result != 1)
+		cerr << "EE - Could not read " << nameSpfile << endl;
 
 	SpN = new double[nbins];
 	ell = new double[nbins+1];

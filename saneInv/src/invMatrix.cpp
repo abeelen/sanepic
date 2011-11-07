@@ -1,19 +1,23 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <cmath>
 #include <string>
 #include <vector>
 #include <cstdlib>
 #include "invMatrix.h"
-#include "cholesky.h"
 
-extern "C" {
-#include "nrutil.h"
-}
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+
+
+
 
 using namespace std;
 
-int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
-		std::vector<string> listOut, double ***MatrixOut)
+int reorderMatrix(long nbins, std::vector<string> listIn, gsl_matrix *MatrixIn, std::vector<string> listOut, gsl_matrix * & MatrixOut)
 /* Resizes the covariance matrix with only needed detectors */
 {
 	std::vector<int> indexIn; /* Used to match input and output channels */
@@ -44,18 +48,15 @@ int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 		}
 	}
 
-	// memory allocation
-	*MatrixOut = dmatrix(0, ndetOut - 1, 0, ndetOut * nbins - 1);
+	MatrixOut = gsl_matrix_alloc(ndetOut, ndetOut*nbins);
 
 	for (int idetOut1 = 0; idetOut1 < ndetOut; idetOut1++) {
 		for (int idetOut2 = 0; idetOut2 < ndetOut; idetOut2++) {
 			for (int ii = 0; ii < nbins; ii++) {
 				// MatrixIn/Out should be symetric definite positive, but well... a mean does not hurt...
-				(*MatrixOut)[idetOut1][idetOut2 * nbins + ii]
-				                       = (MatrixIn[indexIn[idetOut1] * ndetIn
-				                                   + indexIn[idetOut2]][ii]
-				                                                        + MatrixIn[indexIn[idetOut2] * ndetIn
-				                                                                   + indexIn[idetOut1]][ii]) / 2;
+				gsl_matrix_set(MatrixOut, idetOut1, idetOut2 * nbins + ii, \
+						( gsl_matrix_get(MatrixIn,indexIn[idetOut1] * ndetIn + indexIn[idetOut2],ii) \
+								+ gsl_matrix_get(MatrixIn,indexIn[idetOut2] * ndetIn + indexIn[idetOut1],ii)) / 2);
 			}
 		}
 	}
@@ -66,80 +67,61 @@ int reorderMatrix(long nbins, std::vector<string> listIn, double **MatrixIn,
 
 
 
-void inverseCovMatrixByMode(long nbins, long ndet, double **MatrixIn,
-		double ***MatrixOut)
+void inverseCovMatrixByMode(long nbins, long ndet, gsl_matrix * MatrixIn, gsl_matrix *& MatrixOut)
 /* Inverses the Covariance PowerSpectrum by mode */
 {
-	double **Mat_k, **iMat_k;
-	double *uvec, *ivec;
-
-	double **l;
+	gsl_matrix * Mat_k, * iMat_k;
+	gsl_vector * uvec, * ivec;
 
 
-	l=new double*[ndet];
-	for(long ii=0;ii<ndet;ii++)
-		l[ii]=new double[ndet];
+	Mat_k     = gsl_matrix_alloc(ndet, ndet);
+	iMat_k    = gsl_matrix_alloc(ndet, ndet);
+	MatrixOut = gsl_matrix_alloc(ndet, ndet*nbins);
 
+	uvec = gsl_vector_alloc(ndet);
+	ivec = gsl_vector_alloc(ndet);
 
-	Mat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // k-Mode Matrix
-	iMat_k = dmatrix(0, ndet - 1, 0, ndet - 1); // inverted k-Mode Matrix
-	*MatrixOut = dmatrix(0, ndet - 1, 0, ndet * nbins - 1); // whole Mode inverted Matrix
-
-	uvec = new double[ndet];
-	ivec = new double[ndet];
 
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
 		//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
 
+		gsl_matrix_set_zero(iMat_k);
 		// Matrix preparation
-		for (int idet1 = 0; idet1 < ndet; idet1++) {
-			for (int idet2 = 0; idet2 < ndet; idet2++) {
+		for (int idet1 = 0; idet1 < ndet; idet1++)
+			for (int idet2 = 0; idet2 < ndet; idet2++)
+				gsl_matrix_set(Mat_k, idet1, idet2, gsl_matrix_get(MatrixIn,idet1, idet2*nbins+ibin));
 
-				Mat_k[idet1][idet2] = MatrixIn[idet1][idet2 * nbins + ibin];
-				iMat_k[idet1][idet2] = 0.0;
-			}
-		}
+
 
 		// Check for definit positive
-		for (int idet1 = 0; idet1 < ndet; idet1++) {
-			for (int idet2 = 0; idet2 < ndet; idet2++) {
-				if (Mat_k[idet1][idet2] > sqrt(Mat_k[idet1][idet1]
-				                                            * Mat_k[idet2][idet2]))
-					cerr << "ERROR " << Mat_k[idet1][idet2] << endl;
-			}
-		}
+		for (int idet1 = 0; idet1 < ndet; idet1++)
+			for (int idet2 = 0; idet2 < ndet; idet2++)
+				if (gsl_matrix_get(Mat_k,idet1,idet2) > sqrt(gsl_matrix_get(Mat_k,idet1,idet1) * gsl_matrix_get(Mat_k,idet2,idet2)))
+					cerr << "ERROR " << gsl_matrix_get(Mat_k,idet1,idet2) << endl;
 
-		// invert the covariance matrix per mode
-		cholesky(ndet, Mat_k, l);
+		gsl_linalg_cholesky_decomp (Mat_k);
 
 		for (int idet1 = 0; idet1 < ndet; idet1++) {
-			for (int idet2 = 0; idet2 < ndet; idet2++)
-				uvec[idet2] = 0.0;
 
-			uvec[idet1] = 1.0;
-			solve_cholesky(Mat_k, uvec, l, ivec, ndet);
+			gsl_vector_set_basis(uvec,idet1);
+			gsl_linalg_cholesky_solve(Mat_k, uvec, ivec);
 
 			for (int idet2 = 0; idet2 < ndet; idet2++)
-				iMat_k[idet1][idet2] = ivec[idet2];
+				gsl_matrix_set(iMat_k,idet1,idet2, gsl_vector_get(ivec,idet2));
 		}
 
 		for (int idet1 = 0; idet1 < ndet; idet1++)
 			for (int idet2 = 0; idet2 < ndet; idet2++)
-				(*MatrixOut)[idet1][idet2 * nbins + ibin] = iMat_k[idet1][idet2];
+				gsl_matrix_set(MatrixOut,idet1,idet2 * nbins + ibin, gsl_matrix_get(iMat_k,idet1,idet2));
 
 	}
 
 	// just to get a 100% value printed on screen
 	//	cout << "Progress : 100.00% \r" << flush;
 
-	// clean up
-	free_dmatrix(Mat_k,0, ndet - 1, 0, ndet - 1);
-	free_dmatrix(iMat_k,0, ndet - 1, 0, ndet - 1);
-	delete [] ivec;
-	delete [] uvec;
-	for(long ii=0;ii<ndet;ii++)
-		delete [] l[ii];
-	delete [] l;
+	gsl_matrix_free(Mat_k);
+	gsl_matrix_free(iMat_k);
+	gsl_vector_free(ivec);
+	gsl_vector_free(uvec);
 }
-

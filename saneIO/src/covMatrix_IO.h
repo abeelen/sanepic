@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <gsl/gsl_matrix.h>
+
 extern "C" {
 #include "getdata.h"
 }
@@ -19,7 +21,7 @@ extern "C" {
  \param suffix A file suffix to add to fits file name (_InvNoisePS : arbitrary chosen by us)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<std::string> bolos, long nbins, double * ell, double **Rellth, std::string suffix);
+int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<std::string> bolos, long nbins, double * ell, gsl_matrix *Rellth, std::string suffix);
 
 //!  Reads the Inverse Covariance Matrices (and bins : ell) from disk, using a binary format
 /*!
@@ -54,7 +56,7 @@ int write_CovMatrix(std::string fname, std::vector<std::string> bolos, long nbin
  \param Rellth Theorical Covariance matrix, read in fits file (filled by read_CovMatrix)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_CovMatrix(std::string fname, std::vector<std::string> &bolos, long &nbins, double *&ell, double **&Rellth);
+int read_CovMatrix(std::string fname, std::vector<std::string> &bolos, long &nbins, double *&ell, gsl_matrix *&Rellth);
 
 //! Used in sanePS to write DEBUG channels psd
 /*!

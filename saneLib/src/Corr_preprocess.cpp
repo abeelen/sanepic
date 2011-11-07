@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <ostream>
 #include <iostream>
 #include <string>
@@ -17,6 +21,9 @@
 #include <time.h>
 
 #include <gsl/gsl_math.h>
+
+
+
 #include <fftw3.h>
 
 using namespace std;

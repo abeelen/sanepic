@@ -1,9 +1,15 @@
+
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
 #include <iostream>
 #include <vector>
 #include <string>
 
 #include <fftw3.h>
 #include <gsl/gsl_math.h>
+
 
 #include "todprocess.h"
 #include "map_making.h"

@@ -1,8 +1,8 @@
 lib_LTLIBRARIES = libsaneIO.la
 libsaneIO_la_LDFLAGS = -version-info 0:3:0
 
-libsaneIO_la_LIBADD = $(NR_LIB) $(INIPARSER_LIB)
-libsaneIO_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG)
+libsaneIO_la_LIBADD = $(NR_LIB) $(INIPARSER_LIB) $(GSL_LIBS)
+libsaneIO_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) $(GSL_CFLAGS)
 
 if PARAFRAME
   libsaneIO_la_CPPFLAGS += -DUSE_MPI

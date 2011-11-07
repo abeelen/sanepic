@@ -1,5 +1,11 @@
-#include "fitpoly.h"
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#endif
+
+
 #include <iostream>
+
+#include "fitpoly.h"
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
@@ -7,6 +13,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>
+
 
 using namespace std;
 
@@ -22,7 +29,7 @@ void fitpoly(int norder, long taille, double *sx, double *sy, double *a){
 	gsl_vector *Y, *resultat, *tau, *residual;
 
 	// malloc
-	V=gsl_matrix_calloc ((size_t) taille, (size_t) norder+1);
+	V = gsl_matrix_calloc ((size_t) taille, (size_t) norder+1);
 	Y = gsl_vector_calloc ((size_t) taille);
 	residual=gsl_vector_calloc((size_t) taille);
 	resultat = gsl_vector_calloc ((size_t) norder+1);

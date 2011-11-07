@@ -1,3 +1,9 @@
+#ifdef HAVE_CONFIG_H
+#include "../../config.h"
+#else
+#define PACKAGE_VERSION "Unknown"
+#endif
+
 #include <iostream>
 #include <stdio.h>
 #include <cstring>
@@ -12,22 +18,13 @@
 
 extern "C" {
 #include <fitsio.h>
-#include <nrutil.h>
 #include "wcslib/wcslib.h"
 #include "wcslib/wcs.h"
 #include "wcslib/wcshdr.h"
 }
 
-
 #ifdef USE_MPI
 #include "mpi.h"
-#endif
-
-
-#ifdef HAVE_CONFIG_H
-#include "../../config.h"
-#else
-#define PACKAGE_VERSION "Unknown"
 #endif
 
 #include "imageIO.h"
@@ -934,10 +931,12 @@ int read_keyrec(string tmpdir, struct wcsprm * & wcs, long * NAXIS1,
 		char comment[47];
 
 		// Read the two first lines, NAXIS1/NAXIS2
-		result = fscanf(fin, "NAXIS1  = %20ld / %47c\n", NAXIS1,
-				(char *) &comment);
-		result = fscanf(fin, "NAXIS2  = %20ld / %47c\n", NAXIS2,
-				(char *) &comment);
+		result = fscanf(fin, "NAXIS1  = %20ld / %47c\n", NAXIS1, (char *) &comment);
+		if (result != 2 )
+			cerr << "EE - Read error on mapHeader.keyrec "  << endl;
+		result = fscanf(fin, "NAXIS2  = %20ld / %47c\n", NAXIS2, (char *) &comment);
+		if (result != 2 )
+			cerr << "EE - Read error on mapHeader.keyrec " << endl;
 
 		memblock = new char[(nkeyrec - 2) * 80+1];
 
