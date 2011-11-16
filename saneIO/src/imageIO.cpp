@@ -573,29 +573,10 @@ int copy_fits_mask(std::string fname, std::string maskfile) {
 		return 1;
 	}
 
-	if (fits_copy_header(fptr, outfptr, &fits_status)) {
+	if (fits_copy_hdu(fptr, outfptr, &fits_status))
 		fits_report_error(stderr, fits_status);
 		return 1;
 	}
-
-	if (fits_write_chksum(fptr, &fits_status)) {
-		cout << "error checksum !\n";
-		return 1;
-	}
-
-	// Retrieve the image size
-	if (fits_get_img_size(fptr, 2, naxes, &fits_status)) {
-		fits_report_error(stderr, fits_status);
-		return 1;
-	}
-
-	//	long NAXIS1 = naxes[0];
-
-	if (fits_movnam_hdu(outfptr, IMAGE_HDU, (char*) "Mask", 0, &fits_status))
-		if (fits_copy_data(fptr, outfptr, &fits_status)) {
-			fits_report_error(stderr, fits_status);
-			return 1;
-		}
 
 	// close files
 	if (fits_close_file(fptr, &fits_status)) {
