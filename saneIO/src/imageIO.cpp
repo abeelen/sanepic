@@ -573,7 +573,7 @@ int copy_fits_mask(std::string fname, std::string maskfile) {
 		return 1;
 	}
 
-	if (fits_copy_hdu(fptr, outfptr, &fits_status))
+	if (fits_copy_hdu(fptr, outfptr, 0, &fits_status))
 		fits_report_error(stderr, fits_status);
 		return 1;
 	}
