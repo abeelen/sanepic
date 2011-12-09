@@ -605,7 +605,6 @@ int main(int argc, char *argv[])
 	// factdupl if flagged data are to be projected onto a separate map
 	// 1  pixel for flagged data
 	// 1  pixel for all data outside the map
-	// 1  pixel for all apodized data
 	// +1 because this all are indexes and C is indexing between 0 and sky_size-1
 	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix + 1;
 
@@ -676,7 +675,7 @@ int main(int argc, char *argv[])
 				indpix[ii] = -1;
 
 
-		/* Write indpix to a binary file
+		/* Write indpix to a binary file : ind_size = factdupl*nn*nn+2 + addnpix;
 		 * npix : total number of filled pixels,
 		 * flagon : if some pixels are apodized or outside the map
 		 */

@@ -290,7 +290,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 {
 	// ell is an array of double, units are Hz
 
-	int f_hp;
+	int counttemp, f_hp;
 	double ellmin, ellmax, kmin, kmax, a, b;
 	//	double lkmin, lkmax;
 	double *ellm;
@@ -312,6 +312,7 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 		ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
 
 
+	counttemp = 0;
 	ellmin = ellm[0];
 	ellmax = ellm[1];
 	kmin = ellmin*ns/fsamp;

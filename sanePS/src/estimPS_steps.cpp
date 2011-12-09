@@ -98,7 +98,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 			if(read_samptopix(samples_struct.dirfile_pointer, fits_filename, field, samptopix, ns))
 				return EX_NOINPUT;
 
-			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,factdupl);
+			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];
@@ -288,7 +288,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 			if(read_samptopix(samples_struct.dirfile_pointer,  fits_filename, field, samptopix, ns))
 				return EX_NOINPUT;
 
-			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,factdupl);
+			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
 
 			for(long ii=0;ii<ns;ii++)
 				data[ii] = data[ii] - Ps[ii];

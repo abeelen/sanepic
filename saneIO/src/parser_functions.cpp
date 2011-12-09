@@ -67,7 +67,7 @@ uint16_t fillvect_double(double value, string file, string dir, long ntotscan, v
 	vector<double> dummy;
 	outputVector.resize(ntotscan);
 
-	if (file != "" && value < 0.0){
+	if (file != "" && value <= 0.0){
 
 		if ( read_double(dir + file, dummy) )
 			return FILE_PROBLEM;
@@ -77,7 +77,7 @@ uint16_t fillvect_double(double value, string file, string dir, long ntotscan, v
 		outputVector = dummy;
 	}
 
-	if ( value >= 0.0 ) {
+	if ( value > 0.0 ) {
 		for (long ii=0; ii < ntotscan; ii++)
 			outputVector[ii] = value;
 	}
@@ -897,7 +897,7 @@ uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param)
 		returnCode |= FSAMP_PROBLEM;
 	}
 
-	if ( ( Proc_param.fhp == -1 ) && ( Proc_param.fhp_file == "" ) ) {
+	if ( ( Proc_param.fhp <= 0.0 ) && ( Proc_param.fhp_file == "" ) ) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     saneProc:fhp or saneProc:fhp_file\n";
 		returnCode |= FHP_PROBLEM;

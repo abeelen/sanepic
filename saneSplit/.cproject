@@ -30,7 +30,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saneIO/src}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.undef.2071720754" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.2071720754" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
 									<listOptionValue builtIn="false" value="USE_MPI"/>
 								</option>
@@ -45,7 +45,6 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1451428623" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.628039710" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
-									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -66,9 +65,6 @@
 					</folderInfo>
 				</configuration>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 			<storageModule moduleId="scannerConfiguration">
 				<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 				<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -151,76 +147,6 @@
 						<parser enabled="true"/>
 					</scannerInfoProvider>
 				</profile>
-				<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
 				<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1829987244;cdt.managedbuild.config.gnu.exe.debug.1829987244.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2046383219;cdt.managedbuild.tool.gnu.cpp.compiler.input.591531149">
 					<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 					<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -301,76 +227,6 @@
 						<scannerInfoProvider id="specsFile">
 							<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 							<parser enabled="true"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
 						</scannerInfoProvider>
 					</profile>
 				</scannerConfigBuildInfo>
@@ -456,76 +312,6 @@
 							<parser enabled="true"/>
 						</scannerInfoProvider>
 					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
 				</scannerConfigBuildInfo>
 				<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1829987244;cdt.managedbuild.config.gnu.exe.debug.1829987244.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.607733926;cdt.managedbuild.tool.gnu.c.compiler.input.949907522">
 					<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
@@ -607,76 +393,6 @@
 						<scannerInfoProvider id="specsFile">
 							<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 							<parser enabled="true"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
 						</scannerInfoProvider>
 					</profile>
 				</scannerConfigBuildInfo>
@@ -762,78 +478,11 @@
 							<parser enabled="true"/>
 						</scannerInfoProvider>
 					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.691417175">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.691417175" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -872,9 +521,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.392482444" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1629705365" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.676143041" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="nr"/>
-									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.992882979" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
@@ -894,9 +542,6 @@
 					</folderInfo>
 				</configuration>
 			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 			<storageModule moduleId="scannerConfiguration">
 				<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 				<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -979,76 +624,6 @@
 						<parser enabled="true"/>
 					</scannerInfoProvider>
 				</profile>
-				<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
-				<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-					<buildOutputProvider>
-						<openAction enabled="false" filePath=""/>
-						<parser enabled="true"/>
-					</buildOutputProvider>
-					<scannerInfoProvider id="specsFile">
-						<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-						<parser enabled="false"/>
-					</scannerInfoProvider>
-				</profile>
 				<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1829987244;cdt.managedbuild.config.gnu.exe.debug.1829987244.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.2046383219;cdt.managedbuild.tool.gnu.cpp.compiler.input.591531149">
 					<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 					<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -1129,76 +704,6 @@
 						<scannerInfoProvider id="specsFile">
 							<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 							<parser enabled="true"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
 						</scannerInfoProvider>
 					</profile>
 				</scannerConfigBuildInfo>
@@ -1284,76 +789,6 @@
 							<parser enabled="true"/>
 						</scannerInfoProvider>
 					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
 				</scannerConfigBuildInfo>
 				<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1829987244;cdt.managedbuild.config.gnu.exe.debug.1829987244.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.607733926;cdt.managedbuild.tool.gnu.c.compiler.input.949907522">
 					<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
@@ -1435,76 +870,6 @@
 						<scannerInfoProvider id="specsFile">
 							<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
 							<parser enabled="true"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
 						</scannerInfoProvider>
 					</profile>
 				</scannerConfigBuildInfo>
@@ -1590,78 +955,11 @@
 							<parser enabled="true"/>
 						</scannerInfoProvider>
 					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.cdt.managedbuilder.xlc.core.XLCManagedMakePerProjectProfileCPP">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${plugin_state_location}/${specs_file}" command="${XL_compilerRoot}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.core.RemoteGCCStandardMakePerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -P -v -dD ${specs_file_path}" command="gcc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlc.ui.RemoteXLCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlC" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerProjectProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
-					<profile id="org.eclipse.ptp.rdt.managedbuilder.xlupc.ui.RemoteXLUPCPerFileProfile">
-						<buildOutputProvider>
-							<openAction enabled="false" filePath=""/>
-							<parser enabled="true"/>
-						</buildOutputProvider>
-						<scannerInfoProvider id="specsFile">
-							<runAction arguments="-E -v ${specs_file_path}" command="${XL_COMPILER_ROOT}/xlupc" useDefault="true"/>
-							<parser enabled="false"/>
-						</scannerInfoProvider>
-					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
