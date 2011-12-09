@@ -65,8 +65,7 @@ int readNSpectrum(std::string nameSpfile, double *bfilter, long ns, double fsamp
  \param npixsrc The number of pixels in the mask
  */
 void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2,
-		long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan = 0,
-		long long *indpsrc = NULL, long long npixsrc = 0);
+		long long npix, double *Ps,int factdupl);
 
 //! Cast to long and compare data_compare[*a] to data_compare[*b]
 /*!

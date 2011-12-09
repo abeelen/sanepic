@@ -68,7 +68,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 		if(read_samptopix(samples_struct.dirfile_pointer, filename, det[idet1], samptopix,ns))
 			return 1;
 
-		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
+		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,factdupl);
 
 		//Fourier transform of the data
 		fftw_execute_dft_r2c(fftplan, Ps, fdata);
@@ -146,10 +146,10 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 		field1 = det[idet1];
 
 		fill(data_lp,data_lp+ns,0.0);
-			for (long ii=0;ii<ns/2+1;ii++){
-					fdata[ii][0] = 0.0;
-					fdata[ii][1] = 0.0;
-				}
+		for (long ii=0;ii<ns/2+1;ii++){
+			fdata[ii][0] = 0.0;
+			fdata[ii][1] = 0.0;
+		}
 
 		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, data, ns))
 			return 1;
@@ -164,8 +164,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			Ps        = new double[ns];
 			fill(Ps,Ps+ns,0.0);
 
-
-			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl);
+				deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,factdupl);
 
 			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS

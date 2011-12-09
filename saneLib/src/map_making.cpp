@@ -509,7 +509,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 }
 
 int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
-//TODO: Deprecated....
+	//TODO: Deprecated....
 
 
 	FILE *fp;
@@ -558,7 +558,7 @@ int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, dou
 }
 
 
-void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2, long long npix, double *Ps, int flgdupl, int factdupl, long ntotscan, long long *indpsrc, long long npixsrc){
+void deproject(double *S, long long *indpix, long long *samptopix, long long ndata, long NAXIS1, long NAXIS2, long long npix, double *Ps, int factdupl){ //, long ntotscan, long long *indpsrc, long long npixsrc){
 
 
 	//	double a, b;
@@ -569,26 +569,25 @@ void deproject(double *S, long long *indpix, long long *samptopix, long long nda
 		Ps[ii] = S[indpix[samptopix[ii]]];
 
 		// in case we replaced flagged data
-		if ((flgdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
-			if (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0){
-				Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
-			}
-			//			else {
-			//					cout << "there " << endl;
-			//				a = 0.0;
-			//				b = 0.0;
-			//				if (ntotscan){
-			//					for (long iframe=0;iframe<ntotscan;iframe++){
-			//						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
-			//							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
-			//							b++;
-			//						}
-			//					}
-			//				}
-			//				if (b > 0.5)
-			//					Ps[ii] = a/b;
-			//			}
+		if ((factdupl == 2) && (samptopix[ii] >= NAXIS1*NAXIS2) && (samptopix[ii] < 2*NAXIS1*NAXIS2) && (indpix[samptopix[ii] - NAXIS1*NAXIS2] >= 0)){
+			Ps[ii] = S[indpix[samptopix[ii]-NAXIS1*NAXIS2]];
 		}
+		//		else {
+		//				cout << "there " << endl;
+		//				a = 0.0;
+		//				b = 0.0;
+		//				if (ntotscan){
+		//					for (long iframe=0;iframe<ntotscan;iframe++){
+		//						if (indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc] >= 0){
+		//							a += S[indpix[factdupl*NAXIS1*NAXIS2 + indpsrc[samptopix[ii] - NAXIS1*NAXIS2] + iframe*npixsrc]];
+		//							b++;
+		//						}
+		//					}
+		//				}
+		//				if (b > 0.5)
+		//					Ps[ii] = a/b;
+		//			}
+		//		}
 
 	}
 

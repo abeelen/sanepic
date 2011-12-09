@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
 	// map making parameters
 	long long indpix_size; /* indpix read size */
 	long long indpsrc_size; /* indpsrc read size */
-	long long npix; /* nn = side of the map, npix = number of filled pixels */
+	long long npix; /* npix = number of filled pixels */
 
 	int nwcs=1;             // We will only deal with one wcs....
 	struct wcsprm * wcs;    // wcs structure of the image

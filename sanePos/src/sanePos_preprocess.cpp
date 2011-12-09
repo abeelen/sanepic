@@ -425,12 +425,11 @@ int computePixelIndex_HIPE(string tmpdir,
 
 				// image1        + (if 2nd image)  + crossing constrain removal + flagged pixel + apodized data
 				// NAXIS1*NAXIS2 + NAXIS1*NAXIS2   + npixsrc*nframe             + 1             + 1
-			        //                                   addnpix
+			    //                                   addnpix
 
 
 				long long ll=0;
 				switch (bolo_flag[ii]) {
-				case 0:			// sample is not rejected
 
 					ll = NAXIS1*yy[ii]+xx[ii];
 					if (mask[ll] != 0)								//if pixel is in the box constraint removal mask
@@ -442,7 +441,7 @@ int computePixelIndex_HIPE(string tmpdir,
 					if (pos_param.flgdupl)							// if flagged pixels are in a duplicated map
 						ll = NAXIS1*yy[ii]+xx[ii] + NAXIS1*NAXIS2;	// index in the second map...
 					else											// else every flagged sample is projected to the same pixel (outside the map)
-						ll = factdupl*NAXIS1*NAXIS2 + addnpix + 1;
+						ll = NAXIS1*NAXIS2 + addnpix + 1;
 
 					break;
 
