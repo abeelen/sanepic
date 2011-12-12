@@ -53,7 +53,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	fftw_plan fftplan;
 
 
-	double *data, *data_lp, *Ps/*, *bfilter*/;
+	double *data, *Ps/*, *bfilter*/;
 	long long *samptopix; // sample to pixel projection matrix
 
 	gsl_matrix *iCov, *Cov;
@@ -61,12 +61,16 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	long ndet = (long)det.size();
 
+	double *bfilter;
+	bfilter = new double[ns / 2 + 1];
+	//TODO : f_lp_pix is hard fixed to 1.0 -> avoid errors and wasted time ?
+	butterworth_filter(ns, 1, 8, bfilter);
+
+
 	fftw_complex *fdata1;
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2;
-
-	data_lp = (double *) fftw_malloc(sizeof(double)*ns);
 
 	Ps = new double[ns]; // deprojected signal
 
@@ -104,13 +108,12 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 				data[ii] = data[ii] - Ps[ii];
 		}
 
-		//TODO : f_lp_pix is hard fixed to 1.0 -> avoid errors and wasted time ?
-		MapMakePreProcessData(data,flag,ns,proc_param ,1.0,data_lp, NULL);
+		MapMakePreProcessData(data,flag,ns,proc_param ,bfilter,NULL);
 
 
 		// should apodisation be part of MapMakePreProcess ? : no, not in Corr_preprocess !
 		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_lp[ii]*apodwind[ii];
+			data[ii] = data[ii]*apodwind[ii];
 
 		//       fdata are used in cross power spectrum estimation...
 		//       BUT it is done differently than power spectrum estimation WHY ?
@@ -145,6 +148,11 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	delete [] data;
 	delete [] flag;
+	delete [] bfilter;
+	delete [] Ps;
+	delete [] samptopix;
+	delete [] fdata1;
+
 
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
@@ -203,10 +211,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 	// clean up
 	delete [] sign;
-	delete [] data_lp;
-	delete [] Ps;
-	delete [] samptopix;
-	delete [] fdata1;
+
 
 	gsl_vector_free(uvec);
 	gsl_vector_free(ivec);
@@ -236,10 +241,11 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 	int *flag;
 
-	double *data, *data_lp, *Ps=NULL;
+	double *data, *Ps=NULL;
 	double  *commontmp;
 	double *Nell, *Nk;
 	long long *samptopix=NULL; // sample to pixel projection matrix
+	double *bfilter;
 
 	long ndet = (long)det.size();
 
@@ -248,10 +254,14 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 	data      = new double[ns];
 	flag      = new int[ns];
-	data_lp   = new double[ns]; // data low passed
 	commontmp = new double[ns]; //
 	Nell      = new double[nbins]; // binned noise PS
 	Nk        = new double[ns/2+1]; // noise PS
+
+	bfilter = new double[ns / 2 + 1];
+	//TODO : f_lp_pix is hard fixed to 1.0 -> avoid errors and wasted time ?
+	butterworth_filter(ns, 1, 8, bfilter);
+
 
 	if (S != NULL){
 		samptopix = new long long[ns]; // sample to pixel proj matrix
@@ -296,10 +306,10 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		}
 
 		//TODO : why f_lppix set to 1.0 ?
-		MapMakePreProcessData(data,  flag, ns, proc_param, 1.0, data_lp, NULL);
+		MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
 
 		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_lp[ii] * apodwind[ii];
+			data[ii] = data[ii] * apodwind[ii];
 
 
 		// Subtract components
@@ -323,6 +333,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 	delete [] data;
 	delete [] flag;
+	delete [] bfilter;
 
 	// clean up
 	if (S != NULL){
@@ -366,7 +377,6 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 
 
-	delete [] data_lp ;
 	delete [] commontmp;
 	delete [] Nell;
 	delete [] Nk;

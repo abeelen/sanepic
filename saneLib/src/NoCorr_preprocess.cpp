@@ -34,19 +34,21 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 	long long *samptopix;
-	double *bfilter, *Nk, *data, *data_lp, *Ps;
+	double *bfilter, *Nk, *data, *Ps;
 	int *flag;
-	double powered;
 
 	samptopix = new long long[ns];
 	bfilter   = new double[ns/2+1];
 	Nk        = new double[ns/2+1];
 
-	data      = new double[ns];
 	flag      = new int[ns];
 	Ps        = new double[ns];
 
-	data_lp   = (double *) fftw_malloc(sizeof(double)*ns);
+
+	bfilter = new double[ns / 2 + 1];
+	butterworth_filter(ns, fhp_pix, 8, bfilter);
+
+	data      = (double *) fftw_malloc(sizeof(double)*ns);
 
 
 	int factdupl = 1;
@@ -88,23 +90,16 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 			deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,2,factdupl,samples_struct.ntotscan,indpsrc,npixsrc);
 
 			//********************  pre-processing of data ********************//
-			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp,  Ps);
+			MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, Ps);
 
 		} else {
-			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
+			MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
 		}
 
 
 		/************************************************************************************/
 
 		// end of preprocess begin of fdata
-
-		for (long ii=0;ii<ns/2+1;ii++){
-			powered=pow(double(ii)/fhp_pix, 16);
-			bfilter[ii] = powered /(1.0+powered);
-		}
-
-
 
 		//****************** Compute (or read) input power spectrum of the NOISE  ***************//
 		extentnoiseSp = samples_struct.noisevect[iframe];
@@ -114,7 +109,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 		//********************** compute P^t N-1 d ************************//
-		compute_PtNmd(data_lp,Nk,ns,NAXIS1, NAXIS2,indpix,samptopix,npix,PNd);
+		compute_PtNmd(data,Nk,ns,NAXIS1, NAXIS2,indpix,samptopix,npix,PNd);
 
 
 	}// end of idet loop
@@ -125,8 +120,6 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	delete[] Nk;
 
 	delete[] data;
-	delete[] data_lp;
-
 	delete[] flag;
 
 	delete[] Ps;

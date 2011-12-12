@@ -278,20 +278,14 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 
 }
 
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double fhp_pix, double *data_lp,  double *Ps){
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double * bfilter, double *Ps){
 
 
 	double aa, bb;
-
 	double *data_out;
-	double *bfilter;
 
 	data_out = (double *) fftw_malloc(sizeof(double)*ns);
-	bfilter  = new double[ns/2+1];
-
 	fill(data_out,data_out+ns,0.0);
-	fill(bfilter,bfilter+ns/2+1,0.0);
-
 
 	//TODO : TEST : Change the removal of the map here => means ??
 	// Optimized the memory management here....
@@ -303,50 +297,57 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 
 	//*********************************************************************
-	if (proc_param.fill_gap)
+	if (proc_param.fill_gap) {
 		fillgaps2(data,ns,data_out,flag,40);
+	} else {
+		for (long ii=0; ii<ns; ii++)
+			data_out[ii] = data[ii];
+	}
 
 
-	if(proc_param.remove_polynomia)
+	if(proc_param.remove_polynomia) {
 		//remove polynomia to correct from time varying calibration
-		remove_poly(data_out,ns,proc_param.poly_order,data_lp,flag);
-
-	//linear prediction
-	for (long ii=0;ii<ns;ii++)
-		data[ii] = data_lp[ii];
-
+		remove_poly(data_out,ns,proc_param.poly_order,data,flag);
+	} else {
+		for (long ii=0; ii<ns; ii++)
+			data[ii] = data_out[ii];
+	}
 
 	if (proc_param.remove_linear){
 		/// remove a baseline
-		aa = (data_lp[ns-1]-data[0])/double(ns);
-		bb = data_lp[0];
+		aa = (data[ns-1]-data[0])/double(ns);
+		bb = data[0];
 		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] -= aa*(double)ii+bb;
+			data[ii] -= aa*(double)ii+bb;
 	}
+
+
 
 	//Butterworth filter (if necessary)
 	if (proc_param.highpass_filter){
-		butterworth(data_lp,ns,fhp_pix,8,data_out,bfilter,1,proc_param.napod,0);
-	} /*else{
-		for (long ii=0;ii<(ns)/2+1;ii++)
-			bfilter[ii] = 1.0;
-	}*/
+		butterworth(data,ns,data_out,bfilter,1,proc_param.napod,0);
+	} else{
+		for (long ii=0; ii<ns; ii++)
+			data_out[ii] = data[ii];
+	}
 
 
 
 	//******************* process gaps
-	if (proc_param.fill_gap)
-		fillgaps2(data_out,ns,data_lp,flag,40);
+	if (proc_param.fill_gap) {
+		fillgaps2(data_out,ns,data,flag,40);
+	} else {
+		for (long ii=0; ii<ns; ii++)
+			data[ii] = data_out[ii];
+	}
 
-	if (Ps != NULL)
+
+	if (Ps != NULL) {
 		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data_lp[ii] + Ps[ii];
-
-
+			data[ii] = data[ii] + Ps[ii];
+	}
 
 	delete [] data_out;
-	delete [] bfilter;
-
 
 }
 
@@ -366,7 +367,6 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 	datatemp = (double *) fftw_malloc(sizeof(double)*ns);
 	fdata    = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
-
 
 	datatemp2 = new double[ns];
 	bfiltertemp = new double[ns/2+1];
@@ -509,7 +509,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 }
 
 int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, double *Nk){
-//TODO: Deprecated....
+	//TODO: Deprecated....
 
 
 	FILE *fp;

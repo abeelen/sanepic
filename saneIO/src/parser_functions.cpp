@@ -492,14 +492,14 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 	else
 		Pic_param.iterw = i;
 
-	d = iniparser_getdouble(ini, "sanePic:tolerance", -1.0);
+	d = iniparser_getdouble(ini, (char *) "sanePic:tolerance", -1.0);
 	if (d == -1)
 		output2 += "sanePic:tolerance : default value [" + StringOf(
 				Pic_param.tolerance) + "]\n";
 	else
 		Pic_param.tolerance = d;
 
-	d = iniparser_getdouble(ini, "sanePic:subtolerance", -1.0);
+	d = iniparser_getdouble(ini, (char *) "sanePic:subtolerance", -1.0);
 	if (d == -1)
 		output2 += "sanePic:subtolerance : default value [" + StringOf(
 				Pic_param.subtolerance) + "]\n";

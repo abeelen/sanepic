@@ -93,9 +93,14 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 
 
-	double *data, *data_lp, *Ps=NULL;
+	double *data, *Ps=NULL;
 	int *flag=NULL;
 	long long *samptopix;
+
+	double *bfilter;
+
+	bfilter = new double[ns / 2 + 1];
+	butterworth_filter(ns, fhp_pix, 8, bfilter);
 
 	fftw_plan fftplan;
 	fftw_complex *fdata;
@@ -111,15 +116,14 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	}
 #endif
 
-	data      = new double[ns];
 	samptopix = new long long[ns];
 	flag      = new int[ns];
 
 
-	data_lp   = (double *) fftw_malloc(sizeof(double)*ns);
+	data      = (double *) fftw_malloc(sizeof(double)*ns);
 	fdata     = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 
-	fill(data_lp,data_lp+ns,0.0);
+	fill(data,data+ns,0.0);
 	fill(samptopix,samptopix+ns,0);
 
 	int factdupl = 1;
@@ -127,8 +131,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 	dirfile_filename = samples_struct.basevect[iframe];
 
-	fftplan = fftw_plan_dft_r2c_1d(ns, data_lp, fdata, FFTW_ESTIMATE);
-
+	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata, FFTW_ESTIMATE);
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
@@ -145,7 +148,6 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 		field1 = det[idet1];
 
-		fill(data_lp,data_lp+ns,0.0);
 		for (long ii=0;ii<ns/2+1;ii++){
 			fdata[ii][0] = 0.0;
 			fdata[ii][1] = 0.0;
@@ -170,11 +172,11 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			//TODO : Ps should not be here...  remove the signal before or make the deproject inside MapMakePreProcess
 			//TODO : write fdata inside MapMakePreProcess.. or create a function same is true in sanePS
 			//********************  pre-processing of data ********************//
-			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, Ps);
+			MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, Ps);
 
 			delete[] Ps;
 		}else
-			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
+			MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
 //
 //		if (field1=="PLWD8" && iframe == 0)
 //		{
@@ -195,7 +197,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 
 		//Fourier transform of the data
-		fftw_execute_dft_r2c(fftplan, data_lp, fdata);
+		fftw_execute_dft_r2c(fftplan, data, fdata);
 
 		//write fourier transform to disk
 		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fdata_", idet1, dirfile_filename, det))
@@ -208,10 +210,9 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 
 	delete [] flag;
 	delete [] data;
-	delete [] data_lp;
 	delete [] samptopix;
 	delete [] fdata;
-
+	delete [] bfilter;
 
 #ifdef DEBUG
 	file.close();
@@ -234,8 +235,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	long long *samptopix;
 	double *ell, *SpN, *bfilter, *bfilter_, *Nk, *Nd;
-
-	double powered;
 
 	fftw_plan fftplan;
 	fftw_complex *fdata, *Ndf;
@@ -262,11 +261,8 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	double **SpN_all;
 
 	// This is a butterworth filter.... why not use butterworth()
-	// Cause we want 1/butterworth() + we don't want to deal with fourier transform here !
-	for (long ii=0;ii<ns/2+1;ii++){
-		powered=gsl_pow_int(double(ii)/fhp_pix,16);
-		bfilter[ii] = powered /(1.0+powered);
-	}
+	butterworth_filter(ns, fhp_pix, 8, bfilter);
+
 	for (long ii=0;ii<ns/2+1;ii++)
 		bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
 

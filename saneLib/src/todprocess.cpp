@@ -72,13 +72,24 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 }
 
 
+void butterworth_filter(int ndata, double f_hp, int orderB, double *bfilter)
+{
 
-void butterworth(double y[], int ndata, double f_hp, int orderB, double *yout,
-		double *bfilter, bool apodize, int napod, bool overwrite)
+	double powered;
+
+	//filter
+	for (long ii=0;ii<ndata/2+1;ii++){
+		powered = gsl_pow_int(double(ii)/f_hp, 2*orderB) ;
+		bfilter[ii] = powered/(1.0+powered);  //pow(double(ii)/f_hp, 2*orderB) /(1.0+pow(double(ii)/f_hp, 2*orderB));
+	}
+
+}
+
+
+void butterworth(double y[], int ndata, double *yout, double * bfilter , bool apodize, int napod, bool overwrite)
 {
 
 	double *apodwind;
-	double powered;
 
 	fftw_complex *fdata;
 	fftw_plan fftplan;
@@ -106,8 +117,6 @@ void butterworth(double y[], int ndata, double f_hp, int orderB, double *yout,
 
 	//filter
 	for (int ii=0;ii<ndata/2+1;ii++){
-		powered = gsl_pow_int(double(ii)/f_hp, 2*orderB) ;
-		bfilter[ii] = powered/(1.0+powered);//pow(double(ii)/f_hp, 2*orderB) /(1.0+pow(double(ii)/f_hp, 2*orderB));
 		fdata[ii][0] = fdata[ii][0]*bfilter[ii]/ndata;
 		fdata[ii][1] = fdata[ii][1]*bfilter[ii]/ndata;
 	}

@@ -70,7 +70,8 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille);
  * \param napod Number of samples to apodize
  * \param overwrite A boolean specifying whether y is overwritten (yout is not used), or not (output array is yout)
  */
-void butterworth(double y[], int ndata, double f_hp, int orderB, double *yout, double *bfilter, bool apodize, int napod, bool overwrite);
+void butterworth_filter(int ndata, double f_hp, int orderB, double *bfilter);
+void butterworth(double y[], int ndata, double *yout, double *bfilter, bool apodize, int napod, bool overwrite);
 
 //! Compute an apodization window
 /*!

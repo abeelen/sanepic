@@ -331,6 +331,8 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 	samptopix = new long long[ns];
 	bfilter = new double[ns / 2 + 1];
 
+	butterworth_filter(ns, fhp_pix, 8, bfilter);
+
 	data_lp  = (double *) fftw_malloc(sizeof(double)*ns);
 	data_out = (double *) fftw_malloc(sizeof(double)*ns);
 
@@ -369,7 +371,7 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		data_lp[ii] -= aa*(double)ii+bb;
 
 		if (fhp_pix > 0.0)
-		butterworth(data_lp,ns,fhp_pix,8,data_out,bfilter,1,napod,0);
+		butterworth(data_lp,ns, data_out,bfilter,1,napod,0);
 
 		fill(data,data+ns,0.0);
 		//******************* process gaps

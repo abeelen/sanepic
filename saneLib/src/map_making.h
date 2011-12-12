@@ -28,15 +28,14 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 //! Subtract deprojected signal to the data and apply a pre-process to the data
 /*!
  * Pre-process is : fill gaps, remove a polynomia, remove a baseline, apply butterworth filter and re-fill the gaps. Re-add deprojected signal to finish
- \param data Input data to be pre-processed
+ \param data Input data to be pre-processed (changed in place)
  \param flag An array specifying which "data" samples are flagged
  \param ns Number of samples for the considered scan : samples_struct.fitsvect[iframe]
  \param proc_param The param_saneProc structure
  \param fhp_pix High-pass Filter cut-off frequency (converted in samples)
- \param data_lp Filtered and pre-processed data (MapMakePreProcessData's output)
  \param Ps Deprojected signal to be removed from data
  */
-void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double fhp_pix, double *data_lp, double *Ps);
+void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneProc proc_param, double * bfilter, double *Ps);
 
 
 void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp,
