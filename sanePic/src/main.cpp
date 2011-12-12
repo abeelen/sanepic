@@ -752,7 +752,6 @@ int main(int argc, char *argv[]) {
 	}
 #endif
 
-
 	// in case flagged pixels are put in a duplicated map
 	while(idupl <= Pos_param.flgdupl){
 
@@ -916,8 +915,8 @@ int main(int argc, char *argv[]) {
 		//max iter = 2000 (default), but ~100 iterations are required to achieve convergence
 
 		// while i<imax and var_new > epsilon² * var_0 : epsilon² = 1e-10 => epsilon = 1e-5
-		while ((iter < Pic_param.itermax) && (((var_n / var0 > 1e-10) && (idupl
-				|| !Pos_param.flgdupl)) || (!idupl && (var_n / var0 > 1e-5)))) {
+		while ((iter < Pic_param.itermax) && (((var_n / var0 > Pic_param.tolerance) && (idupl
+				|| !Pos_param.flgdupl)) || (!idupl && (var_n / var0 > Pic_param.subtolerance)))) {
 
 			fill(q, q + npixeff, 0.0); // q <= A*d
 
@@ -1117,8 +1116,7 @@ int main(int argc, char *argv[]) {
 					fname = temp_stream.str();
 					temp_stream.str("");
 
-					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd',
-							(void *) map1d, (char *) "Image", 0, subheader, nsubkeys)) {
+					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d, (char *) "Image", 0, subheader, nsubkeys)) {
 						cerr << "Error Writing map : EXITING ... \n";
 #ifdef USE_MPI
 						MPI_Abort(MPI_COMM_WORLD, 1);
@@ -1132,8 +1130,7 @@ int main(int argc, char *argv[]) {
 								mi = jj * NAXIS1 + ii;
 								if (indpix[mi] >= 0) { // pixel observed in first map
 									if (indpix[mi + NAXIS1 * NAXIS2] >= 0)
-										map1d[mi] = S[indpix[mi + NAXIS1
-										                     * NAXIS2]]; //-finalmap[ii][jj];
+										map1d[mi] = S[indpix[mi + NAXIS1 * NAXIS2]]; //-finalmap[ii][jj];
 									else
 										map1d[mi] = INFINITY;
 								} else {
@@ -1164,15 +1161,10 @@ int main(int argc, char *argv[]) {
 							for (long jj = 0; jj < NAXIS2; jj++) {
 								mi = jj * NAXIS1 + ii;
 								double b = 0.;
-								for (long iframe = 0; iframe
-								< samples_struct.ntotscan; iframe++) {
-									//TODO : Better : Make a weithted mean with Mptot
-									long long ll = factdupl * NAXIS1 * NAXIS2
-											+ iframe * npixsrc + indpsrc[mi];
-									if ((indpsrc[mi] != -1) && (indpix[ll]
-									                                   != -1)) {
-										map1d[mi] += S[indpix[ll]] / gsl_pow_2(
-												Mptot[indpix[ll]]);
+								for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+									long long ll = factdupl * NAXIS1 * NAXIS2 + iframe * npixsrc + indpsrc[mi];
+									if ((indpsrc[mi] != -1) && (indpix[ll] != -1)) {
+										map1d[mi] += S[indpix[ll]] / gsl_pow_2(Mptot[indpix[ll]]);
 										b += 1. / gsl_pow_2(Mptot[indpix[ll]]);
 									}
 								}

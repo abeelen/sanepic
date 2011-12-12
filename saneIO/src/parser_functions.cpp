@@ -481,6 +481,7 @@ void read_param_sanePS(std::string &output, dictionary *ini,
 void read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &Pic_param){
 
 	int i;
+	double d;
 	char *s;
 	string output2 = "";
 
@@ -490,6 +491,20 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 				Pic_param.iterw) + "]\n";
 	else
 		Pic_param.iterw = i;
+
+	d = iniparser_getdouble(ini, "sanePic:tolerance", -1.0);
+	if (d == -1)
+		output2 += "sanePic:tolerance : default value [" + StringOf(
+				Pic_param.tolerance) + "]\n";
+	else
+		Pic_param.tolerance = d;
+
+	d = iniparser_getdouble(ini, "sanePic:subtolerance", -1.0);
+	if (d == -1)
+		output2 += "sanePic:subtolerance : default value [" + StringOf(
+				Pic_param.subtolerance) + "]\n";
+	else
+		Pic_param.subtolerance = d;
 
 	if (Pic_param.iterw == 0) {
 		Pic_param.save_data = 0;
@@ -897,7 +912,7 @@ uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param)
 		returnCode |= FSAMP_PROBLEM;
 	}
 
-	if ( ( Proc_param.fhp <= 0.0 ) && ( Proc_param.fhp_file == "" ) ) {
+	if ( ( Proc_param.fhp < 0.0 ) && ( Proc_param.fhp_file == "" ) ) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     saneProc:fhp or saneProc:fhp_file\n";
 		returnCode |= FHP_PROBLEM;
@@ -1098,6 +1113,8 @@ void default_param_sanePic(struct param_sanePic &Pic_param) {
 
 	Pic_param.iterw = 0;
 	Pic_param.itermax = 2000;
+	Pic_param.tolerance =  1e-10;
+	Pic_param.subtolerance =  1e-5;
 	Pic_param.save_data = 0;
 	Pic_param.map_prefix = "optimMap";
 }
@@ -1592,7 +1609,7 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 		else
 			cout << "[from file]" << endl;
 	} else
-		cout << "HPF Freq.        : None" << endl;
+		cout << " None" << endl;
 
 	cout << "Sampling Freq.   : ";
 	if ( Proc_param.fsamp_file == "" )
@@ -1871,6 +1888,14 @@ void export_param_sanePic(struct param_sanePic Pic_param, std::vector<string> &k
 	key.push_back("iterW");
 	value.push_back(StringOf(Pic_param.iterw));
 	comment.push_back("Write temporary map files on disk every iterW number of loop");
+
+	key.push_back("tolerance");
+	value.push_back(StringOf(Pic_param.tolerance));
+	comment.push_back("Tolerance to reach the end of the loop");
+
+	key.push_back("subtolerance");
+	value.push_back(StringOf(Pic_param.subtolerance));
+	comment.push_back("Tolerance to reach the first map");
 
 	key.push_back("iterMAX");
 	value.push_back(StringOf(Pic_param.itermax));

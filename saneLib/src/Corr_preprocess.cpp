@@ -146,10 +146,10 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 		field1 = det[idet1];
 
 		fill(data_lp,data_lp+ns,0.0);
-			for (long ii=0;ii<ns/2+1;ii++){
-					fdata[ii][0] = 0.0;
-					fdata[ii][1] = 0.0;
-				}
+		for (long ii=0;ii<ns/2+1;ii++){
+			fdata[ii][0] = 0.0;
+			fdata[ii][1] = 0.0;
+		}
 
 		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, data, ns))
 			return 1;
@@ -175,6 +175,23 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			delete[] Ps;
 		}else
 			MapMakePreProcessData(data,  flag, ns, proc_param, fhp_pix, data_lp, NULL);
+//
+//		if (field1=="PLWD8" && iframe == 0)
+//		{
+//			FILE *fp;
+//			if ((fp = fopen("PLWD8", "a+")) != NULL) {
+//				for (long iFile = 0; iFile < ns; iFile++)
+//					if (S != NULL){
+//						fprintf(fp,"%i %f %f\n",iFile, data_lp[iFile], Ps[iFile]);
+//					}else {
+//						fprintf(fp,"%i %f %f \n",iFile, data_lp[iFile], 0);
+//					}
+//						fclose(fp);
+//			} else {
+//				cerr << "ERROR : Could not open file " << endl;
+//				return 1;
+//			}
+//		}
 
 
 		//Fourier transform of the data
