@@ -295,60 +295,26 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 
 
-void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
+void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_InvSquared, int nbins, int ns, double* Nk, double* mode)
 {
 	// ell is an array of double, units are Hz
 
 	int counttemp, f_hp;
-	double ellmin, ellmax, kmin, kmax, a, b;
-	//	double lkmin, lkmax;
-	double *ellm;
-	//	double *logSpN;
-	//	double N_flp;
-
+	double kmin, kmax, a, b;
 	a = 0.0;
 	b = 0.0;
 
+	kmin = km[0];
+	kmax = km[1];
 
-	ellm = new double[nbins];
-	//	logSpN = new double[nbins];
-
-	fill(ellm,ellm+nbins,0.0);
-	//	fill(logSpN,logSpN+nbins,0.0);
-
-
-	for (int ii=0;ii<nbins;ii++)
-		ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
-
-
-	counttemp = 0;
-	ellmin = ellm[0];
-	ellmax = ellm[1];
-	kmin = ellmin*ns/fsamp;
-	kmax = ellmax*ns/fsamp;
-	//	lkmin = log(kmin);
-	//	lkmax = log(kmax);
-
-
-	//	if (mode == NULL){
-
-
-
-	for (long k=1;k<=(long)kmin;k++){
-
+	for (long k=1;k<=(long)kmin;k++)
 		Nk[k] = SpN[0]/double(ns);
-
-	}
-
-
 
 	/////////////  linear interpolation
 	// because, by convention, some spectrum can be negatives !!!
 	for (int ibin=0;ibin<nbins-1;ibin++){
-		ellmin = ellm[ibin];
-		ellmax = ellm[ibin+1];
-		kmin = ellmin*ns/fsamp;
-		kmax = ellmax*ns/fsamp;
+		kmin = km[ibin];
+		kmax = km[ibin+1];
 		if (abs(SpN[ibin]) > 0){
 			a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
 			b = SpN[ibin]/double(ns);
@@ -360,26 +326,19 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 			Nk[k] = (a*((double)k-kmin)+b);
 
 			//apply filter
-			Nk[k] *= gsl_pow_2(bfilter[k]);
+			Nk[k] *= bfilter_InvSquared[k];
 
 		}
 	}
 
 
-
-	for (long k=long(kmax);k<ns/2+1;k++){
-
-		Nk[k] = SpN[nbins-1]*gsl_pow_2(bfilter[k])/double(ns);
-
-	}
-
+	for (long k=long(kmax);k<ns/2+1;k++)
+		Nk[k] = SpN[nbins-1]*bfilter_InvSquared[k]/double(ns);
 
 	Nk[0] = Nk[1];
 
-
-
 	f_hp = 0;
-	while (bfilter[f_hp] > 2.0) f_hp++;
+	while (bfilter_InvSquared[f_hp] > 4.0) f_hp++;
 	f_hp++;
 
 
@@ -387,9 +346,8 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 	//give a lower limit to the spectrum
 	for (int k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
 
-	// suppress effect of aafilter on the Noise Sp
-	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
-
+	//	// suppress effect of aafilter on the Noise Sp
+//	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
 
 
 
@@ -445,7 +403,6 @@ void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, i
 
 
 
-	delete [] ellm;
 	//	delete [] logSpN;
 
 }

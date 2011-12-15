@@ -1609,7 +1609,7 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 		else
 			cout << "[from file]" << endl;
 	} else
-		cout << " None" << endl;
+		cout << "None" << endl;
 
 	cout << "Sampling Freq.   : ";
 	if ( Proc_param.fsamp_file == "" )

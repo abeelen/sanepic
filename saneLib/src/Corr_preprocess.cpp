@@ -177,23 +177,23 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			delete[] Ps;
 		}else
 			MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
-//
-//		if (field1=="PLWD8" && iframe == 0)
-//		{
-//			FILE *fp;
-//			if ((fp = fopen("PLWD8", "a+")) != NULL) {
-//				for (long iFile = 0; iFile < ns; iFile++)
-//					if (S != NULL){
-//						fprintf(fp,"%i %f %f\n",iFile, data_lp[iFile], Ps[iFile]);
-//					}else {
-//						fprintf(fp,"%i %f %f \n",iFile, data_lp[iFile], 0);
-//					}
-//						fclose(fp);
-//			} else {
-//				cerr << "ERROR : Could not open file " << endl;
-//				return 1;
-//			}
-//		}
+		//
+		//		if (field1=="PLWD8" && iframe == 0)
+		//		{
+		//			FILE *fp;
+		//			if ((fp = fopen("PLWD8", "a+")) != NULL) {
+		//				for (long iFile = 0; iFile < ns; iFile++)
+		//					if (S != NULL){
+		//						fprintf(fp,"%i %f %f\n",iFile, data_lp[iFile], Ps[iFile]);
+		//					}else {
+		//						fprintf(fp,"%i %f %f \n",iFile, data_lp[iFile], 0);
+		//					}
+		//						fclose(fp);
+		//			} else {
+		//				cerr << "ERROR : Could not open file " << endl;
+		//				return 1;
+		//			}
+		//		}
 
 
 		//Fourier transform of the data
@@ -234,7 +234,8 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	string nameSpfile;
 
 	long long *samptopix;
-	double *ell, *SpN, *bfilter, *bfilter_, *Nk, *Nd;
+	double *ell, *SpN, *bfilter_InvSquared, *Nk, *Nd;
+	double *km;
 
 	fftw_plan fftplan;
 	fftw_complex *fdata, *Ndf;
@@ -250,8 +251,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 
 	samptopix = new long long[ns];
-	bfilter = new double[ns/2+1];
-	bfilter_ = new double[ns/2+1];
+	bfilter_InvSquared = new double[ns/2+1];
 	Nk = new double[ns/2+1];
 	fdata = new fftw_complex[ns/2+1];
 
@@ -261,10 +261,10 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	double **SpN_all;
 
 	// This is a butterworth filter.... why not use butterworth()
-	butterworth_filter(ns, fhp_pix, 8, bfilter);
+	butterworth_filter(ns, fhp_pix, 8, bfilter_InvSquared);
 
 	for (long ii=0;ii<ns/2+1;ii++)
-		bfilter_[ii] = 1.0/(bfilter[ii]+0.000001);
+		bfilter_InvSquared[ii] = gsl_pow_2(1.0/(bfilter_InvSquared[ii]+0.000001));
 
 	fill(Nd,Nd+ns,0.0);
 	fill(Nk,Nk+(ns/2+1),0.0);
@@ -275,9 +275,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
-
-
-
 #ifdef DEBUG
 		cout << "[ " << para_bolo_indice << " ] progression do_ptNd : " << 100.0*(1.0-((double)(para_bolo_indice+1)-(double)idet1*(double)para_bolo_size/(double)ndet)) << " %" << endl;
 		ostringstream oss;
@@ -314,20 +311,18 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		long ndet2 = samples_struct.ndet[iframe];
 		long nbins = samples_struct.nbins[iframe];
 
-#ifdef DEBUG
-		time ( &rawtime );
-		timeinfo = localtime ( &rawtime );
-		file << "before read Invnoise : at " << asctime (timeinfo) << endl;
-#endif
 
 		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointer, field1,  suffix, nbins, ndet2, &ell, &SpN_all))
 			return 1;
 
-#ifdef DEBUG
-		time ( &rawtime );
-		timeinfo = localtime ( &rawtime );
-		file << "after read Invnoise : at " << asctime (timeinfo) << endl;
-#endif
+		km = new double[nbins];
+		//	logSpN = new double[nbins];
+
+		for (long ii=0;ii<nbins;ii++)
+			km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
+
+		delete[] ell;
+
 		//		if(ndet!=ndet2) cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 
 
@@ -363,7 +358,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
 			// interpolate logarithmically the noise power spectrum
-			InvbinnedSpectrum2log_interpol(ell,SpN,bfilter_,nbins,ns,fsamp,Nk, NULL);
+			InvbinnedSpectrum2log_interpol(km,SpN,bfilter_InvSquared,nbins,ns,Nk, NULL);
 
 #ifdef DEBUG
 			time ( &rawtime );
@@ -405,6 +400,10 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 		}// end of idet2 loop
 
+		delete [] km;
+		delete[] SpN;
+		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
+
 		// dEBUG
 
 #ifdef DEBUG
@@ -432,9 +431,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		}
 
 
-		delete[] ell;
-		delete[] SpN;
-		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 
 
 	}// end of idet1 loop
@@ -443,8 +439,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	delete[] samptopix;
 	delete[] Nd;
-	delete[] bfilter;
-	delete[] bfilter_;
+	delete[] bfilter_InvSquared;
 	delete[] Nk;
 	delete[] fdata;
 	delete[] Ndf;

@@ -109,6 +109,6 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
  \param Nk Interpolated Spectrum binned, computed by this routines
  \param mode If mode != NULL, Nk is computed for the given mode value
  */
-void InvbinnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode = NULL);
+void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int nbins, int ns, double* Nk, double* mode = NULL);
 
 #endif
