@@ -230,6 +230,10 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 			return 1;
 		}
 
+		// flush dirfile
+		gd_flush(D,(char*)outfile.c_str());
+
+
 		// spectra filename
 		outfile = bolos[idet] + "_" + suffix;
 
@@ -242,10 +246,11 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 			return 1;
 		}
 
+		// flush dirfile
+		gd_flush(D,(char*)outfile.c_str());
+
 	}
 
-	// flush dirfile
-	gd_flush(D,NULL);
 
 	return 0;
 }
@@ -272,6 +277,8 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string suffix,
 		return 1;
 	}
 
+	gd_flush(D, (char *) outfile.c_str());
+
 	// Power spectra binary file name
 	outfile = boloName + "_" + suffix;
 
@@ -284,6 +291,8 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string suffix,
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
+
+	gd_flush(D, (char *) outfile.c_str());
 
 	// alloc spectra 2D array
 	*SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);

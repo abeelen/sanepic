@@ -270,9 +270,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	fill(Nk,Nk+(ns/2+1),0.0);
 	fill(samptopix,samptopix+ns,0);
 
-
 	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
-
 
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 #ifdef DEBUG
@@ -369,7 +367,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 			for (long jj=0;jj<ns/2+1;jj++){
 				if (isnan(Nk[jj])) {
-					printf("A NaN has been found in Nk : iframe %ld, det1 %ld, det2 %ld\n",iframe, idet1, idet2);
+					printf("A NaN has been found in Nk : iframe %ld, det1 %s, det2 %s\n",iframe, det[idet1].c_str(), det[idet2].c_str());
 					return 1;
 				}
 			}
