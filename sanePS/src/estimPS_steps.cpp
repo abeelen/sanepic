@@ -350,21 +350,21 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		for (long jj=0;jj<nbins;jj++)
 			P[ii][jj] = Nell[jj]/factapod;
 
-		basename = FitsBasename(fits_filename);
-
-		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << basename << ".bi";
-		// Get the string
-		testfile= temp_stream.str();
-		// Clear ostringstream buffer
-		temp_stream.str("");
-
-		if((fp = fopen(testfile.c_str(),"w"))){
-			fwrite(Nell,sizeof(double), nbins, fp);
-			fclose(fp);
-		}else{
-			cerr << "Error. Can't open " << testfile << ".Exiting.\n";
-			return 1;
-		}
+//		basename = FitsBasename(fits_filename);
+//
+//		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << basename << ".bin";
+//		// Get the string
+//		testfile= temp_stream.str();
+//		// Clear ostringstream buffer
+//		temp_stream.str("");
+//
+//		if((fp = fopen(testfile.c_str(),"w"))){
+//			fwrite(Nell,sizeof(double), nbins, fp);
+//			fclose(fp);
+//		}else{
+//			cerr << "Error. Can't open " << testfile << ".Exiting.\n";
+//			return 1;
+//		}
 
 	}
 
@@ -459,34 +459,34 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 
 	basename = FitsBasename(fits_filename);
 
-	// write Rellexp to disk and also first guess of parameters
-	temp_stream << dir.output_dir + "Rellexp_" << basename << ".txt";
-
-	// get filename
-	testfile= temp_stream.str();
-	temp_stream.str("");
-
-	fp = fopen(testfile.c_str(),"w");
-	for (long jj=0;jj<nbins;jj++)
-		for (long ii=0;ii<ndet;ii++)
-			for (long kk=0;kk<ndet;kk++)
-				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]); // cross power spectrum
-	fprintf(fp,"\n");
-	fclose(fp);
-
-	temp_stream << dir.output_dir + "Ninit_" << basename << ".txt";
-
-	// get filename
-	testfile= temp_stream.str();
-	temp_stream.str("");
-
-	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ndet;ii++){
-		for (long jj=0;jj<nbins;jj++)
-			fprintf(fp,"%10.15g \t",N[ii][jj]); // uncorralated part of the noise
-		fprintf(fp,"\n");
-	}
-	fclose(fp);
+//	// write Rellexp to disk and also first guess of parameters
+//	temp_stream << dir.output_dir + "Rellexp_" << basename << ".txt";
+//
+//	// get filename
+//	testfile= temp_stream.str();
+//	temp_stream.str("");
+//
+//	fp = fopen(testfile.c_str(),"w");
+//	for (long jj=0;jj<nbins;jj++)
+//		for (long ii=0;ii<ndet;ii++)
+//			for (long kk=0;kk<ndet;kk++)
+//				fprintf(fp,"%10.15g \t",Rellexp[ii*ndet+kk][jj]); // cross power spectrum
+//	fprintf(fp,"\n");
+//	fclose(fp);
+//
+//	temp_stream << dir.output_dir + "Ninit_" << basename << ".txt";
+//
+//	// get filename
+//	testfile= temp_stream.str();
+//	temp_stream.str("");
+//
+//	fp = fopen(testfile.c_str(),"w");
+//	for (long ii=0;ii<ndet;ii++){
+//		for (long jj=0;jj<nbins;jj++)
+//			fprintf(fp,"%10.15g \t",N[ii][jj]); // uncorralated part of the noise
+//		fprintf(fp,"\n");
+//	}
+//	fclose(fp);
 
 
 	for (long i=0; i< ndet; i++)
@@ -501,33 +501,33 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 
 	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
 
-	temp_stream << dir.output_dir + "Pinit_" << basename << ".txt";
-
-	// get filename
-	testfile= temp_stream.str();
-	temp_stream.str("");
-
-	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ncomp;ii++)
-		for (long jj=0;jj<nbins;jj++)
-			fprintf(fp,"%10.15g \t",P[ii][jj]); // common mode part of the noise
-	fprintf(fp,"\n");
-	fclose(fp);
-
-
-	temp_stream << dir.output_dir + "Ainit_" << basename << ".txt";
-
-	// get filename
-	testfile= temp_stream.str();
-	temp_stream.str("");
-
-	fp = fopen(testfile.c_str(),"w");
-	for (long ii=0;ii<ndet;ii++)
-		for (long jj=0;jj<ncomp;jj++){
-			fprintf(fp,"%10.15g \t",mixmat[ii][jj]); // mixing matrix
-			fprintf(fp,"\n");
-		}
-	fclose(fp);
+//	temp_stream << dir.output_dir + "Pinit_" << basename << ".txt";
+//
+//	// get filename
+//	testfile= temp_stream.str();
+//	temp_stream.str("");
+//
+//	fp = fopen(testfile.c_str(),"w");
+//	for (long ii=0;ii<ncomp;ii++)
+//		for (long jj=0;jj<nbins;jj++)
+//			fprintf(fp,"%10.15g \t",P[ii][jj]); // common mode part of the noise
+//	fprintf(fp,"\n");
+//	fclose(fp);
+//
+//
+//	temp_stream << dir.output_dir + "Ainit_" << basename << ".txt";
+//
+//	// get filename
+//	testfile= temp_stream.str();
+//	temp_stream.str("");
+//
+//	fp = fopen(testfile.c_str(),"w");
+//	for (long ii=0;ii<ndet;ii++)
+//		for (long jj=0;jj<ncomp;jj++){
+//			fprintf(fp,"%10.15g \t",mixmat[ii][jj]); // mixing matrix
+//			fprintf(fp,"\n");
+//		}
+//	fclose(fp);
 
 
 
