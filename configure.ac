@@ -56,14 +56,18 @@ AM_CONDITIONAL([PARAFRAME],[test "x$paraframe" = xyes])
 AM_CONDITIONAL([PARABOLO],[test "x$parabolo" = xyes])
 
 if test "x$paraframe" = xyes || test "x$parabolo" = xyes; then
-   AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
-   AC_CHECK_PROGS(MPICXX, mpicxx, $CXX)
+   LX_FIND_MPI
    CXX="$MPICXX"
-   AC_SUBST(MPICXX)
-dnl   AC_CHECK_FUNC(MPI_Init, [MPILIBS=" "])
-   AC_CHECK_LIB(mpich, MPI_Init, [MPILIBS="-lmpich"])
-   CPPFLAGS="$CPPFLAGS -DMPICH_IGNORE_CXX_SEEK"
-   LIBS="$LIBS $MPILIBS"
+   LIBS="$MPI_CXXLDFLAGS $LIBS"
+
+dnl    AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
+dnl    AC_CHECK_PROGS(MPICXX, mpicxx, $CXX)
+dnl    CXX="$MPICXX"
+dnl    AC_SUBST(MPICXX)
+dnl dnl   AC_CHECK_FUNC(MPI_Init, [MPILIBS=" "])
+dnl    AC_CHECK_LIB(mpich, MPI_Init, [MPILIBS="-lmpich"])
+dnl    CPPFLAGS="$CPPFLAGS -DMPICH_IGNORE_CXX_SEEK"
+dnl    LIBS="$LIBS $MPILIBS"
 fi
 
 if test -d "sanePS"; then
