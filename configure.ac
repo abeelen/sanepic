@@ -18,7 +18,8 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX
 AC_PROG_INSTALL
 LT_INIT
-#AC_OPENMP
+
+# AC_OPENMP
 
 # Configure options
 AC_ARG_ENABLE([debug],
@@ -157,22 +158,6 @@ if test -n "$SANELIBLIB"; then
    AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la $OPENMP_CXXFLAGS"])
    AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC $OPENMP_CXXFLAGS"])
 fi
-
-if test -d "$srcdir/saneLib"; then
-   SANELIBINC='$(top_srcdir)/saneLib/src'
-   SANELIBLIB='$(top_builddir)/saneLib/src'
-else
-   if test -d "$srcdir/../saneLib"; then
-      SANELIBINC='$(top_srcdir)/../saneLib/src'
-      SANELIBLIB='$(top_builddir)/../saneLib/src'
-   fi
-fi
-if test -n "$SANELIBLIB"; then
-   AC_SUBST([SANELIB_LIB],["$SANELIBLIB/libsaneLib.la  $OPENMP_CXXFLAGS"])
-   AC_SUBST([SANELIB_INCLUDE],["-I$SANELIBINC  $OPENMP_CXXFLAGS"])
-fi
-
-
 
 # Checks for lib
 

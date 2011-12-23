@@ -299,38 +299,42 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 {
 	// ell is an array of double, units are Hz
 
-	int counttemp, f_hp;
+	int f_hp;
 	double kmin, kmax, a, b;
+	long ibin, k;
+
 	a = 0.0;
 	b = 0.0;
 
 	kmin = km[0];
 	kmax = km[1];
 
-	for (long k=1;k<=(long)kmin;k++)
+	for (k=1;k<=(long)kmin;k++)
 		Nk[k] = SpN[0]/double(ns);
 
 	/////////////  linear interpolation
 	// because, by convention, some spectrum can be negatives !!!
-	for (int ibin=0;ibin<nbins-1;ibin++){
-		kmin = km[ibin];
-		kmax = km[ibin+1];
-		if (abs(SpN[ibin]) > 0){
-			a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
-			b = SpN[ibin]/double(ns);
-		} else {
-			a = 0.0;
-			b = 0.0;
+
+#pragma omp parallel for default(none) \
+	shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
+		for (ibin=0;ibin<nbins-1;ibin++){
+			kmin = km[ibin];
+			kmax = km[ibin+1];
+			if (abs(SpN[ibin]) > 0){
+				a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
+				b = SpN[ibin]/double(ns);
+			} else {
+				a = 0.0;
+				b = 0.0;
+			}
+			for (k=long(kmin+1);k<=long(kmax);k++){
+				Nk[k] = (a*((double)k-kmin)+b);
+
+				//apply filter
+				Nk[k] *= bfilter_InvSquared[k];
+
+			}
 		}
-		for (long k=long(kmin+1);k<=long(kmax);k++){
-			Nk[k] = (a*((double)k-kmin)+b);
-
-			//apply filter
-			Nk[k] *= bfilter_InvSquared[k];
-
-		}
-	}
-
 
 	for (long k=long(kmax);k<ns/2+1;k++)
 		Nk[k] = SpN[nbins-1]*bfilter_InvSquared[k]/double(ns);
@@ -347,7 +351,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 	for (int k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
 
 	//	// suppress effect of aafilter on the Noise Sp
-//	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
+	//	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
 
 
 
