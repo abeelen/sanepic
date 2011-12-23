@@ -314,29 +314,33 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 
 	/////////////  linear interpolation
 	// because, by convention, some spectrum can be negatives !!!
-
-#pragma omp parallel for default(none) \
-	shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
-		for (ibin=0;ibin<nbins-1;ibin++){
-			kmin = km[ibin];
-			kmax = km[ibin+1];
-			if (abs(SpN[ibin]) > 0){
-				a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
-				b = SpN[ibin]/double(ns);
-			} else {
-				a = 0.0;
-				b = 0.0;
-			}
-			for (k=long(kmin+1);k<=long(kmax);k++){
-				Nk[k] = (a*((double)k-kmin)+b);
-
-				//apply filter
-				Nk[k] *= bfilter_InvSquared[k];
-
-			}
+	////////////
+	// This do not work for some reason, it change the results without speed-up
+	//#pragma omp parallel for default(none) \
+	//	shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
+	for (ibin=0;ibin<nbins-1;ibin++){
+		kmin = km[ibin];
+		kmax = km[ibin+1];
+		if (abs(SpN[ibin]) > 0){
+			a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
+			b = SpN[ibin]/double(ns);
+		} else {
+			a = 0.0;
+			b = 0.0;
 		}
+		// Failing too... ???
+		//#pragma omp parallel for default(none) \
+		//		shared(Nk, a, b, kmin, kmax, bfilter_InvSquared) private(k)
+		for (k=long(kmin+1);k<=long(kmax);k++){
+			Nk[k] = (a*((double)k-kmin)+b);
 
-	for (long k=long(kmax);k<ns/2+1;k++)
+			//apply filter
+			Nk[k] *= bfilter_InvSquared[k];
+
+		}
+	}
+
+	for (k=long(kmax);k<ns/2+1;k++)
 		Nk[k] = SpN[nbins-1]*bfilter_InvSquared[k]/double(ns);
 
 	Nk[0] = Nk[1];
@@ -348,7 +352,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 
 
 	//give a lower limit to the spectrum
-	for (int k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
+	for (k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];
 
 	//	// suppress effect of aafilter on the Noise Sp
 	//	for (long k=ns/20;k<ns/2+1;k++) Nk[k] = Nk[ns/20];
