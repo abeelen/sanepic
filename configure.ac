@@ -19,7 +19,7 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 LT_INIT
 
-#AC_OPENMP
+AC_OPENMP
 
 # Configure options
 AC_ARG_ENABLE([debug],

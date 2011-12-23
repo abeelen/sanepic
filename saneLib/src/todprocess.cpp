@@ -13,6 +13,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_poly.h>
 
+#include <omp.h>
 
 #include "todprocess.h"
 #include "fitpoly.h"
@@ -317,7 +318,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 	////////////
 	// This do not work for some reason, it change the results without speed-up
 	//#pragma omp parallel for default(none) \
-	//	shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
+	//		shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
 	for (ibin=0;ibin<nbins-1;ibin++){
 		kmin = km[ibin];
 		kmax = km[ibin+1];
