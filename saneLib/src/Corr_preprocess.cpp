@@ -260,15 +260,9 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	double **SpN_all;
 
-	// This is a butterworth filter.... why not use butterworth()
 	butterworth_filter(ns, fhp_pix, 8, bfilter_InvSquared);
-
 	for (long ii=0;ii<ns/2+1;ii++)
 		bfilter_InvSquared[ii] = gsl_pow_2(1.0/(bfilter_InvSquared[ii]+0.000001));
-
-	fill(Nd,Nd+ns,0.0);
-	fill(Nk,Nk+(ns/2+1),0.0);
-	fill(samptopix,samptopix+ns,0);
 
 	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 
@@ -346,16 +340,17 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 			//****************** Cross power spectrum of the noise  ***************//
 			for (int ii=0;ii<nbins;ii++)
-				SpN[ii] = SpN_all[idet2][ii];
+				SpN[ii] = SpN_all[idet2][ii] / (double) ns;
 
 
 #ifdef DEBUG
+
 			time ( &rawtime );
 			timeinfo = localtime ( &rawtime );
 			file << "before Invbinned : at " << asctime (timeinfo) << endl;
 #endif
-			// TODO : Why do we need to reinterpolate the noise power spectrum here ?
-			// interpolate logarithmically the noise power spectrum
+
+			// interpolate logarithmically the inversed noise power spectrum
 			InvbinnedSpectrum2log_interpol(km,SpN,bfilter_InvSquared,nbins,ns,Nk, NULL);
 
 #ifdef DEBUG
@@ -402,7 +397,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		delete[] SpN;
 		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 
-		// dEBUG
 
 #ifdef DEBUG
 		time ( &rawtime );
@@ -435,10 +429,10 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	fftw_destroy_plan(fftplan);
 
+	delete[] Nk;
+	delete[] bfilter_InvSquared;
 	delete[] samptopix;
 	delete[] Nd;
-	delete[] bfilter_InvSquared;
-	delete[] Nk;
 	delete[] fdata;
 	delete[] Ndf;
 

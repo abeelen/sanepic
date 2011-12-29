@@ -12,6 +12,8 @@
 #include "error_code.h"
 #include "utilities.h"
 
+#include <gsl/gsl_math.h>
+
 extern "C" {
 #include <fitsio.h>
 #include "nrutil.h"
@@ -32,33 +34,37 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 
 	double *apodwind, *SPref;
 	double **commonm2; // ?
-	double **P, **N, **Rellth, **Rellexp; // Rellth = theorical covariance matrix, Rellexp = experimental cov mat
-	//	Nk = Noise power spectrum
-	double *ell;// bins values, Nell = binned noise PS
-	double **mixmat; // mixing matrix
+	double **P, **N, **Rellth, **Rellexp;	// Rellth = theorical covariance matrix, Rellexp = experimental cov mat
+	//	Nk = Noise power spectrum , Nell = binned noise PS
+	double *ell, *km;						// bins values
+	double **mixmat; 						// mixing matrix
 
 	long ndet = (long)det.size();
 
 	//	data = raw data
 	//	data_lp = data low passed
 	//	samptopix = sample to pixel projection matrix
-	//	Nk = noise PS
 	//	bfilter = butterworth filter values
 	//	fdata = fourier transform
 
+	// Read out the ells ...
 	std::vector<double> dummy;
 	if ( read_double(samples_struct.ell_names[iframe], dummy) )
-			return FILE_PROBLEM;
+		return FILE_PROBLEM;
 	vDouble2carray(dummy, &ell, &nbins);
 	dummy.clear();
+	nbins   = nbins-1;
 
-	nbins = nbins-1;
-	//	Nell = binned noise PS
-	SPref = new double[nbins]; // first detector PS to avoid numerical problems
-	P = dmatrix(0,structPS.ncomp-1,0,nbins-1); // component power spectra
-	N = dmatrix(0,ndet-1,0,nbins-1); // uncorralated part of the noise
-	Rellexp = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1); // covariance estimated from signal (measured)
-	Rellth = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1); // covariance matrix (Theory) = pattern : invertible but not Rellexp
+	// .. transform them into km once for all
+	km = new double[nbins];
+	for (int ii=0;ii<nbins;ii++)
+		km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*samples_struct.nsamples[iframe]/samples_struct.fsamp[iframe];
+
+	SPref   = new double[nbins];						// first detector PS to avoid numerical problems
+	P       = dmatrix(0,structPS.ncomp-1,0,nbins-1);	// component power spectra
+	N       = dmatrix(0,ndet-1,0,nbins-1);				// uncorralated part of the noise
+	Rellexp = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance estimated from signal (measured)
+	Rellth  = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance matrix (Theory) = pattern : invertible but not Rellexp
 
 	// sign = sigma of the noise
 	// Cov = AtN-1A
@@ -74,12 +80,11 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 	init2D_double(commonm2,0,0,structPS.ncomp,samples_struct.nsamples[iframe],0.0);
 
 	//apodization
-	//TODO: 4% fixed... why not use the apodwindow from the ini file ?
-	apodwind = apodwindow(samples_struct.nsamples[iframe],int(samples_struct.nsamples[iframe]*0.04));
-
+	apodwind = apodwindow(samples_struct.nsamples[iframe],proc_param.napod);
 
 	for (long ii=0;ii<samples_struct.nsamples[iframe];ii++)
-		factapod += apodwind[ii]*apodwind[ii]/samples_struct.nsamples[iframe]; // apodization factor
+		factapod += gsl_pow_2(apodwind[ii]);
+	factapod /= samples_struct.nsamples[iframe]; // apodization factor
 
 
 	if(structPS.restore)
@@ -105,7 +110,8 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
 #endif
-		if(common_mode_computation(samples_struct, det, proc_param, pos_param, dir, apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix,
+		if(common_mode_computation(samples_struct, det, proc_param, pos_param, dir, \
+				apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix, \
 				mixmat, structPS.ncomp, commonm2, factapod, samples_struct.basevect[iframe])) // return commonm2
 			return 1;
 
@@ -126,8 +132,9 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 3/6 - Estimation of Noise Power Spectrum" << endl;
 #endif
-		if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, nbins, nbins2, samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], NAXIS1,
-				NAXIS2, npix, ell, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2,
+		if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, \
+				nbins, nbins2, samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], NAXIS1, \
+				NAXIS2, npix, km, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2, \
 				factapod,Rellth, N, P, samples_struct.basevect[iframe]))
 			return 1;
 
@@ -145,7 +152,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 #endif
-		if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], ell, structPS.ncomp, mixmat, samples_struct.fsamp[iframe],
+		if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], km, structPS.ncomp, mixmat, samples_struct.fsamp[iframe],
 				factapod, Rellexp, N, P, SPref, samples_struct.basevect[iframe], rank))
 			return 1;
 
@@ -195,12 +202,14 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 	// clean up
 	delete [] SPref;
 	delete [] apodwind;
+	delete [] ell;
+	delete [] km;
+
 	free_dmatrix(Rellexp,0,(ndet)*(ndet)-1,0,nbins-1);
 	free_dmatrix(Rellth,0,(ndet)*(ndet)-1,0,nbins-1);
 	free_dmatrix(mixmat,0,ndet-1,0,structPS.ncomp-1);
 
 	free_dmatrix(commonm2,0,structPS.ncomp,0,samples_struct.nsamples[iframe]-1);
-	delete [] ell;
 	free_dmatrix(P,0,structPS.ncomp-1,0,nbins-1);
 	free_dmatrix(N,0,ndet-1,0,nbins-1);
 

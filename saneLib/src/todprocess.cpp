@@ -55,12 +55,10 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 
 	double value =0.0;
 	//remove best fit poly
-	//	for (long i=0;i<ndata;i++) yout[i] = y[i];
 	for (long i=0;i<ndata;i++){
 		value = gsl_poly_eval (a, norder+1, (double)i);
 		yout[i] = y[i] - value ;
-		//	for (int pp=0;pp<=norder;pp++)
-		//		yout[i] -= a[pp]*gsl_pow_int((double)i,pp);
+
 	}
 
 
@@ -136,8 +134,6 @@ void butterworth(double y[], int ndata, double *yout, double * bfilter , bool ap
 }
 
 
-
-
 double* apodwindow(int ns, int nn)
 {
 
@@ -164,7 +160,7 @@ double* apodwindow(int ns, int nn)
 
 
 
-void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
+void binnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
 
 	// ell is an array of double, units are Hz
@@ -175,16 +171,9 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 	double N_flp;
 
 	// interpolate logarithmically the noise power spectrum
-
-	ellm = new double[nbins];
-	for (int ii=0;ii<nbins;ii++)
-		ellm[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0);
-
 	counttemp = 0;
-	ellmin = ellm[0];
-	ellmax = ellm[1];
-	kmin = ellmin*ns/fsamp;
-	kmax = ellmax*ns/fsamp;
+	kmin = km[0];
+	kmax = km[1];
 
 	a = (log(SpN[1]) - log(SpN[0]))/(log(kmax)-log(kmin));
 	b = log(SpN[0]);
@@ -192,14 +181,12 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 	if (mode == NULL){
 		for (int k=0;k<ns/2+1;k++){
-			while (double(k) > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+			while (double(k) > km[counttemp] && counttemp < nbins-1){
 				counttemp++;
 			}
 			if (counttemp > 0){
-				ellmin = ellm[counttemp-1];
-				ellmax = ellm[counttemp];
-				kmin = ellmin*ns/fsamp;
-				kmax = ellmax*ns/fsamp;
+				kmin = km[counttemp-1];
+				kmax = km[counttemp];
 				if ((abs(SpN[counttemp]) > 0) || (SpN[counttemp] > 0)){
 					a = (log(SpN[counttemp]) -
 							log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
@@ -238,14 +225,12 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 
 
 	} else {////// compute noise power spectrum for a given mode
-		while (*mode > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+		while (*mode > km[counttemp] && counttemp < nbins-1){
 			counttemp++;
 		}
 		if (counttemp > 0){
-			ellmin = ellm[counttemp-1];
-			ellmax = ellm[counttemp];
-			kmin = ellmin*ns/fsamp;
-			kmax = ellmax*ns/fsamp;
+			kmin = km[counttemp-1];
+			kmax = km[counttemp];
 			a = (log(SpN[counttemp]) -
 					log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
 			b = log(SpN[counttemp-1]);
@@ -262,14 +247,12 @@ void binnedSpectrum2log_interpol(double* ell, double* SpN, double* bfilter, int 
 		if (*mode < f_hp){
 
 			counttemp = 0;
-			while (f_hp > ellm[counttemp]*ns/fsamp && counttemp < nbins-1){
+			while (f_hp > km[counttemp] && counttemp < nbins-1){
 				counttemp++;
 			}
 			if (counttemp > 0){
-				ellmin = ellm[counttemp-1];
-				ellmax = ellm[counttemp];
-				kmin = ellmin*ns/fsamp;
-				kmax = ellmax*ns/fsamp;
+				kmin = km[counttemp-1];
+				kmax = km[counttemp];
 				a = (log(SpN[counttemp]) -
 						log(SpN[counttemp-1]))/(log(kmax)-log(kmin));
 				b = log(SpN[counttemp-1]);
@@ -302,7 +285,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 
 	int f_hp;
 	double kmin, kmax, a, b;
-	long ibin, k;
+	int ibin, k;
 
 	a = 0.0;
 	b = 0.0;
@@ -310,47 +293,41 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 	kmin = km[0];
 	kmax = km[1];
 
+	// Can be slower if too many threads are used
+	//	#pragma omp parallel for default(none) \
+	//			shared(Nk, SpN, ns, kmin) private(k)
 	for (k=1;k<=(long)kmin;k++)
-		Nk[k] = SpN[0]/double(ns);
+		Nk[k] = SpN[0];
 
 	/////////////  linear interpolation
 	// because, by convention, some spectrum can be negatives !!!
 	////////////
 	// This do not work for some reason, it change the results without speed-up
-	//#pragma omp parallel for default(none) \
-	//		shared(nbins,ns,Nk,SpN,km,bfilter_InvSquared) private(ibin,k,kmin,kmax,a,b)
+	//#pragma omp parallel for default(shared) private(k,kmin,kmax,a,b) schedule(static)
 	for (ibin=0;ibin<nbins-1;ibin++){
 		kmin = km[ibin];
 		kmax = km[ibin+1];
-		if (abs(SpN[ibin]) > 0){
-			a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin)/double(ns);
-			b = SpN[ibin]/double(ns);
-		} else {
-			a = 0.0;
-			b = 0.0;
-		}
-		// Failing too... ???
-		//#pragma omp parallel for default(none) \
-		//		shared(Nk, a, b, kmin, kmax, bfilter_InvSquared) private(k)
-		for (k=long(kmin+1);k<=long(kmax);k++){
-			Nk[k] = (a*((double)k-kmin)+b);
+		//		if (abs(SpN[ibin]) > 0){
+		a = (SpN[ibin+1] - SpN[ibin])/(kmax-kmin);
+		b = SpN[ibin];
+		//		} else {
+		//			a = 0.0;
+		//			b = 0.0;
+		//		}
+		for (k=long(kmin+1);k<=long(kmax);k++)
+			Nk[k] = (a*((double)k-kmin)+b) * bfilter_InvSquared[k];
 
-			//apply filter
-			Nk[k] *= bfilter_InvSquared[k];
-
-		}
 	}
-
+	// Can be slower if too many threads are used
+	//#pragma omp parallel for default(none) shared(Nk, SpN, ns, kmax, nbins, bfilter_InvSquared) private(k)
 	for (k=long(kmax);k<ns/2+1;k++)
-		Nk[k] = SpN[nbins-1]*bfilter_InvSquared[k]/double(ns);
+		Nk[k] = SpN[nbins-1]*bfilter_InvSquared[k];
 
 	Nk[0] = Nk[1];
 
 	f_hp = 0;
 	while (bfilter_InvSquared[f_hp] > 4.0) f_hp++;
 	f_hp++;
-
-
 
 	//give a lower limit to the spectrum
 	for (k=0;k<f_hp;k++) Nk[k] = Nk[f_hp];

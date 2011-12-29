@@ -353,7 +353,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 
 
 ///// measure power spectrum of the uncorrelated part of the noise
-void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
+void noisepectrum_estim(double *data, long ns, double *km, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
 	//TODO : should be almost the same as noisecrossspectrum_estim : i.e. take fdata as input
 	int qq;
@@ -365,38 +365,36 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 	fftw_complex  *fdata;
 	fftw_plan fftplan;
 
-	datatemp = (double *) fftw_malloc(sizeof(double)*ns);
 	fdata    = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 
-	datatemp2 = new double[ns];
 	bfiltertemp = new double[ns/2+1];
 	count = new int[nbins];
 
 	//TODO : Why removing a polynomial here ???? SHOULD NOT
 	//TODO : apodization done twice ?? SHOULD NOT, but see below
 
-	remove_poly(data,ns,4,datatemp2,0);
-	apodwind = apodwindow(ns,ns/10);
-	for (long ii=0;ii<ns;ii++)
-		datatemp[ii] = datatemp2[ii]*apodwind[ii];
+//	remove_poly(data,ns,4,datatemp2,0);
+//	apodwind = apodwindow(ns,ns/10);
+//	for (long ii=0;ii<ns;ii++)
+//		datatemp[ii] = datatemp2[ii]*apodwind[ii];
 
 
 	//Fourier transform the data
-	fftplan = fftw_plan_dft_r2c_1d(ns, datatemp, fdata, FFTW_ESTIMATE);
+	fftplan = fftw_plan_dft_r2c_1d(ns, data, fdata, FFTW_ESTIMATE);
 	fftw_execute(fftplan);
-
-
-	// TODO: apodisation done twice ??
-	// TODO: resamblance to factapod in other routines, can we merge that ? (factor ns)
-	totapod = 0.0;
-	for (long ii=0;ii<ns;ii++)
-		totapod += apodwind[ii]*apodwind[ii];
+//
+//
+//	// TODO: apodisation done twice ??
+//	// TODO: resamblance to factapod in other routines, can we merge that ? (factor ns)
+//	totapod = 0.0;
+//	for (long ii=0;ii<ns;ii++)
+//		totapod += apodwind[ii]*apodwind[ii];
 
 
 	//power spectrum
 	for (long k=0;k<ns/2+1;k++){
 		Nk[k] = gsl_pow_2(fdata[k][0]) + gsl_pow_2(fdata[k][1]);
-		Nk[k] = Nk[k]/(totapod/(double)ns)/(double)ns;
+		Nk[k] = Nk[k]/(double)ns;
 	}
 
 
@@ -408,7 +406,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 	qq=0;
 	for (long k=0;k<ns/2+1;k++){
-		if (k >= ell[qq+1]/fsamp*(double)ns)
+		if (k >= km[qq+1])
 			if (qq<nbins-1)
 				qq++;
 		Nell[qq] += Nk[k];
@@ -428,16 +426,16 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 
 	// interpolate logarithmically the spectrum and filter
-	binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
+	binnedSpectrum2log_interpol(km,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
 
 
 	//clean up
 	delete [] count;
-	delete [] datatemp;
-	delete [] datatemp2;
 	delete [] fdata;
 	delete [] bfiltertemp;
-	delete []  apodwind;
+//	delete [] datatemp;
+//	delete [] datatemp2;
+//	delete []  apodwind;
 
 	fftw_destroy_plan(fftplan);
 
@@ -445,7 +443,7 @@ void noisepectrum_estim(double *data, long ns, double *ell, int nbins, double fs
 
 
 
-void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *ell, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
+void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns, double *km, int nbins, double fsamp, double *bfilter, double *Nell, double *Nk){
 
 	// TODO : no apodization factor correction here ??
 	// TODO : should be almost the same as noisespectrum_estim
@@ -475,7 +473,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 	qq=0;
 	for (long k=0;k<ns/2+1;k++){
-		if (k >= ell[qq+1]/fsamp*(double)ns)
+		if (k >= km[qq+1])
 			if (qq<nbins-1)
 				qq++;
 		Nell[qq] += Nk[k];
@@ -498,7 +496,7 @@ void noisecrosspectrum_estim(fftw_complex *fdata1, fftw_complex *fdata2, int ns,
 
 
 	// interpol logarithmically the spectrum and filter
-	binnedSpectrum2log_interpol(ell,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
+	binnedSpectrum2log_interpol(km,Nell,bfiltertemp,nbins,ns,fsamp,Nk,NULL);
 
 
 
@@ -519,7 +517,7 @@ int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, dou
 	double dummy1, dummy2;
 
 	double *SpN;
-	double *ell;
+	double *km;
 	int result;
 
 
@@ -533,25 +531,25 @@ int readNSpectrum(string nameSpfile, double *bfilter, long ns, double fsamp, dou
 		cerr << "EE - Could not read " << nameSpfile << endl;
 
 	SpN = new double[nbins];
-	ell = new double[nbins+1];
+	km  = new double[nbins+1];
 
 	for (int ii=0;ii<nbins;ii++){
 		result = fscanf(fp,"%lf %lf",&dummy1,&dummy2);
-		ell[ii] = dummy1;
+		km[ii]  = dummy1 * ns/fsamp;
 		SpN[ii] = dummy2;
 	}
 	result = fscanf(fp,"%lf",&dummy1);
-	ell[nbins] = dummy1;
+	km[nbins] = dummy1 * ns/fsamp;
 	fclose(fp);
 
 
 	// interpolate logarithmically the noise power spectrum
-	binnedSpectrum2log_interpol(ell,SpN,bfilter,nbins,ns,fsamp,Nk);
+	binnedSpectrum2log_interpol(km,SpN,bfilter,nbins,ns,fsamp,Nk);
 
 
 
 	delete[] SpN;
-	delete[] ell;
+	delete[] km;
 
 	return 0;
 

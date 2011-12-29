@@ -1,0 +1,8 @@
+# In order to compile sanepic for valgrind testing use
+
+LDFLAGS="-pg" CXXFLAGS="-00" CPPFLAGS="-pg" ./configure --disable-shared
+
+# Then launch the standard executable normally 
+
+valgrind --leak-check ${executable} arguments
+

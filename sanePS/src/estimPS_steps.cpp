@@ -23,7 +23,7 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
-
+#include <gsl/gsl_math.h>
 
 
 extern "C" {
@@ -125,12 +125,13 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata1,  "fdata_", idet, fits_filename, det))
 			return EX_DATAERR;
 
+		// TODO: on 500 samples only in the middle of the timeline... is there a better/simpler/faster way...
 		/// compute sigma of the noise
 		mm = 0.0;
-		for (long ii=ns/2;ii<ns/2+500;ii++) mm += data[ii]; // sur 500 samples seulement ??
+		for (long ii=ns/2;ii<ns/2+500;ii++) mm += data[ii];
 		mm = mm/501.0;
 		tmpsign = 0.0;
-		for (long ii=ns/2;ii<ns/2+500;ii++) tmpsign += (data[ii]-mm)*(data[ii]-mm);
+		for (long ii=ns/2;ii<ns/2+500;ii++) tmpsign += gsl_pow_2(data[ii]-mm);
 		sign[idet] = sqrt(tmpsign/500.0);
 		// normalize to the first detector
 		if (idet == 0) sign0 = sign[0];
@@ -140,7 +141,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		// common mode computation
 		for (long jj=0;jj<ncomp;jj++)
 			for (long ii=0;ii<ns;ii++)
-				commonm[jj][ii] += mixmat[idet][jj]/(sign[idet]*sign[idet])*data[ii];
+				commonm[jj][ii] += mixmat[idet][jj]/gsl_pow_2(sign[idet])*data[ii];
 
 	}
 
@@ -179,8 +180,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		for (long kk=0;kk<ncomp;kk++){
 			for (long ii=0;ii<ndet;ii++){
 				gsl_matrix_set(Cov,jj,kk, \
-						gsl_matrix_get(Cov,jj,kk) \
-						+ mixmat[ii][jj] * mixmat[ii][kk]/sign[ii]/sign[ii]);
+						gsl_matrix_get(Cov,jj,kk)  + mixmat[ii][jj] * mixmat[ii][kk]/gsl_pow_2(sign[ii]));
 			}
 		}
 	}
@@ -224,10 +224,9 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 }
 
 
-
 int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det, struct param_saneProc proc_param,struct param_sanePos pos_param,
 		struct param_common dir, long &nbins,	long &nbins2, long ns, double fsamp, long NAXIS1,
-		long NAXIS2, long long npix, double *&ell, double *S,long long *indpix,
+		long NAXIS2, long long npix, double *&km, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
 		double factapod,double **Rellth, double **N, double **P, string fits_filename)
 {
@@ -241,6 +240,8 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 	int *flag;
 
+	double *data1d; // buffer used to write down 1d array
+
 	double *data, *Ps=NULL;
 	double  *commontmp;
 	double *Nell, *Nk;
@@ -252,9 +253,9 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2; // map duplication factor
 
-	data      = new double[ns];
+	data      = (double *) fftw_malloc(sizeof(double)*ns);
+	commontmp = (double *) fftw_malloc(sizeof(double)*ns);
 	flag      = new int[ns];
-	commontmp = new double[ns]; //
 	Nell      = new double[nbins]; // binned noise PS
 	Nk        = new double[ns/2+1]; // noise PS
 
@@ -308,19 +309,18 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 		//TODO : why f_lppix set to 1.0 ?
 		MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
 
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data[ii] * apodwind[ii];
-
 
 		// Subtract components
 		for (long ii=0;ii<ns;ii++)
-			for (long jj=0;jj<ncomp;jj++)
-				data[ii] -= mixmat[idet][jj]*commonm2[jj][ii];
+			for (long ll=0;ll<ncomp;ll++)
+				data[ii] -= mixmat[idet][ll]*commonm2[ll][ii];
 
+		for (long ii=0;ii<ns;ii++)
+			data[ii] = data[ii] * apodwind[ii];
 
 		// Noise power spectra
 		/// measure power spectrum of the uncorrelated part of the noise
-		noisepectrum_estim(data,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
+		noisepectrum_estim(data,ns,km,(int)nbins,fsamp,NULL,Nell,Nk);
 
 		//TODO : normalization by factapod is also done in noisespectrum_estim ?? DONE TWICE ??
 
@@ -343,38 +343,39 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 	////*********************** Component power spectra
 
-	for (long ii=0;ii<ncomp;ii++){
-		for (long jj=0;jj<ns;jj++)
-			commontmp[jj]=commonm2[ii][jj];
-		noisepectrum_estim(commontmp,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
-		for (long jj=0;jj<nbins;jj++)
-			P[ii][jj] = Nell[jj]/factapod;
+	for (long ll=0;ll<ncomp;ll++){
 
-//		basename = FitsBasename(fits_filename);
-//
-//		temp_stream << dir.output_dir + "Nellc_" << ii << "_" << basename << ".bin";
-//		// Get the string
-//		testfile= temp_stream.str();
-//		// Clear ostringstream buffer
-//		temp_stream.str("");
-//
-//		if((fp = fopen(testfile.c_str(),"w"))){
-//			fwrite(Nell,sizeof(double), nbins, fp);
-//			fclose(fp);
-//		}else{
-//			cerr << "Error. Can't open " << testfile << ".Exiting.\n";
-//			return 1;
-//		}
+		for (long ii=0;ii<ns;ii++)
+			commontmp[ii]=commonm2[ll][ii] * apodwind[ii];
 
+		noisepectrum_estim(commontmp,ns,km,(int)nbins,fsamp,NULL,Nell,Nk);
+
+		for (long ii=0;ii<nbins;ii++)
+			P[ll][ii] = Nell[ii]/factapod;
 	}
+
+	// Write down the Power spectra of the common modes...
+	basename = FitsBasename(fits_filename);
+	data1d = new double[ncomp*nbins];
+
+	for (long ll=0; ll< ncomp; ll++)
+		for (long j=0; j<nbins; j++)
+			data1d[ll*nbins+j] = P[ll][j];
+
+	// get filename
+	temp_stream << "!" + dir.output_dir + "Pinit_" << basename << ".fits";
+	testfile= temp_stream.str();
+	temp_stream.str("");
+
+	write_psd_tofits(testfile.c_str(),ncomp,nbins,'d', data1d);
+	delete [] data1d;
+
 
 	for (long ii=0;ii<ndet;ii++)
 		for (long kk=0;kk<ndet;kk++)
 			for (long ll=0;ll<ncomp;ll++)
 				for (long jj=0;jj<nbins;jj++)
 					Rellth[ii*ndet+kk][jj] += mixmat[ii][ll] * mixmat[kk][ll] * P[ll][jj]; // add correlated part to covariance matrix
-
-
 
 
 	delete [] commontmp;
@@ -385,7 +386,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 }
 
 
-int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
+int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *km, long ncomp, double **mixmat,double fsamp,
 		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
 {
 
@@ -394,7 +395,6 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
 	double *data1d; // buffer used to write down 1d array
-	data1d = new double[ndet*nbins];
 	string testfile;
 	string basename;
 	fftw_complex *fdata1, *fdata2;
@@ -422,7 +422,7 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 			if(read_fdata(samples_struct.dirfile_pointer, fits_filename, det[idet2],"fdata_", fdata2, ns))
 				return EX_NOINPUT;
 
-			noisecrosspectrum_estim(fdata1,fdata2,ns,ell,(int)nbins,fsamp,NULL,Nell,Nk);
+			noisecrosspectrum_estim(fdata1,fdata2,ns,km,(int)nbins,fsamp,NULL,Nell,Nk);
 
 
 			for (long ii=0;ii<nbins;ii++)
@@ -488,18 +488,18 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 //	}
 //	fclose(fp);
 
+	data1d = new double[ndet*nbins];
 
 	for (long i=0; i< ndet; i++)
 		for (long j=0; j<nbins; j++)
 			data1d[i*nbins+j] = N[i][j];
 
-	temp_stream << "!" + dir.output_dir + "Ninit_" << basename << ".fits";
-
 	// get filename
+	temp_stream << "!" + dir.output_dir + "Ninit_" << basename << ".fits";
 	testfile= temp_stream.str();
 	temp_stream.str("");
 
-	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorralated part
+	write_psd_tofits(testfile.c_str(),ndet,nbins,'d', data1d); //resized uncorrelated part
 
 //	temp_stream << dir.output_dir + "Pinit_" << basename << ".txt";
 //
@@ -528,7 +528,6 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 //			fprintf(fp,"\n");
 //		}
 //	fclose(fp);
-
 
 
 	delete [] data1d;
