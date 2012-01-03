@@ -163,6 +163,10 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 		*subheader = (char *) realloc(*subheader, (*nsubkeys *80) + 1);
 
 
+		if(fits_close_file(fp, &fits_status)){
+			fits_report_error(stderr, fits_status);
+			return -1;
+		}
 	}
 
 	//TODO: distribue to other processes..
