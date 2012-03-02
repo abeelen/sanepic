@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
 		break;
 
-		default : printf("Wrong program options or argument. Exiting !\n");
+		default : cout << "Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
 		break;
 
 

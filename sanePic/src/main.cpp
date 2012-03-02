@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-	if(rank==0)
+	if(rank == 0)
 	  cout << endl << "Beginning of sanePic : conjugate gradient descent" << endl;
 
 	//************************************************************************//
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		//		if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
+		//		if (rank == 0){ // root parse ini file and fill the structures. Also print warnings or errors
 		if (indice_argv > 0){
 			/* parse ini file and fill structures */
 			parsed = parser_function(argv[indice_argv], parser_output, dir,
@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
 			compare_to_mask = parsed & mask_sanePic;
 
 			// print parser warning and/or errors
-			if (rank==0)
+			if (rank == 0)
 				cout << parser_output << endl;
 
 		}else
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
 
 	/* ------------------------------------------------------------------------------------*/
 
-	if(rank==0){
+	if(rank == 0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
@@ -484,7 +484,7 @@ int main(int argc, char *argv[]) {
 
 
 #ifdef USE_MPI
-	if(rank==0){	// global (At N-1 D) malloc for mpi
+	if(rank == 0){	// global (At N-1 D) malloc for mpi
 		PNdtot = new double[npix];
 		fill(PNdtot, PNdtot+npix, 0.0);
 	}
@@ -507,7 +507,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		if(rank==0)
+		if(rank == 0)
 			read_PNd(PNd, npix, dir.tmp_dir, "PNd.bi");
 		else{
 			PNd = new double[npix];
@@ -546,7 +546,7 @@ int main(int argc, char *argv[]) {
 			long ndet = (long)det_vect.size();
 
 			if(ndet!=samples_struct.ndet[iframe]){ // check here to avoid problems between saneInv and sanePic
-				if(rank==0){
+				if(rank == 0){
 					cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
 					cout << "Did you forgot to run saneInv ??? Exiting..." << endl;
 				}
@@ -647,7 +647,7 @@ int main(int argc, char *argv[]) {
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(Pic_param.restore>0){
-		if(rank==0)
+		if(rank == 0)
 			for(long ii=0; ii<npix;ii++)
 				PNdtot[ii]=PNd[ii];
 	}else
@@ -741,7 +741,7 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	if ((Pic_param.restore > 0))
 		MPI_Bcast(&idupl,1,MPI_INT,0,MPI_COMM_WORLD);
-	if(rank==0) { // malloc only for first processor that reduces the data
+	if(rank == 0) { // malloc only for first processor that reduces the data
 		//		PtNPmatStot = new double[npix];
 		Mptot = new double[npix];
 
@@ -756,18 +756,11 @@ int main(int argc, char *argv[]) {
 	while(idupl <= Pos_param.flgdupl){
 
  		if (Pic_param.save_data > 0)
-			if(rank==0)
+			if(rank == 0)
 				write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
 
 
 		if((Pic_param.restore == 0)){
-
-#ifdef USE_MPI
-			if(rank==0) { // malloc only for first processor that reduces the data
-				PtNPmatStot = new double[npix];
-				fill(PtNPmatStot,PtNPmatStot+npix,0.0);
-			}
-#endif
 
 			PtNPmatS = new double[npix];
 
@@ -800,9 +793,6 @@ int main(int argc, char *argv[]) {
 					file_rank.close();
 #endif
 
-					// flush dirfile
-					//					gd_flush(samples_struct.dirfile_pointer,NULL);
-
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -824,8 +814,12 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 #ifdef USE_MPI
-			if(rank==0){
+
+			if(rank == 0){
+				PtNPmatStot = new double[npix];
+
 				fill(Mptot,Mptot+npix,0.0);
+				fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 			}
 			MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 			MPI_Reduce(Mp,Mptot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -869,7 +863,7 @@ int main(int argc, char *argv[]) {
 			delete [] PtNPmatS;
 
 #ifdef USE_MPI
-			if(rank==0)
+			if(rank == 0)
 				delete [] PtNPmatStot;
 #endif
 
@@ -887,7 +881,7 @@ int main(int argc, char *argv[]) {
 			MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 			//copy Mp to Mptot and PtNPmatS to PtNPmatStot
-			if(rank==0)
+			if(rank == 0)
 				for(long ii = 0; ii< npix; ii++){
 					Mptot[ii] = Mp[ii];
 				}
@@ -965,13 +959,14 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 #ifdef USE_MPI
-			if(rank==0)
+			if(rank == 0)
 				fill(qtot,qtot+npix,0.0);
 			MPI_Reduce(q,qtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 			qtot = q;
 #endif
 			if (rank == 0) {
+
 				rtq = 0.0;
 				for (long ii = 0; ii < npixeff; ii++)
 					rtq += qtot[ii] * d[ii]; // rtq = (dT * q)
@@ -990,12 +985,6 @@ int main(int argc, char *argv[]) {
 
 			// every 10 iterations do ....
 			if ((iter % 10) == 0) { // if iter is divisible by 10, recompute PtNPmatStot
-#ifdef USE_MPI
-				if(rank==0) { // malloc only for first processor that reduces the data
-					PtNPmatStot = new double[npix];
-					fill(PtNPmatStot,PtNPmatStot+npix,0.0);
-				}
-#endif
 
 				PtNPmatS = new double[npix];
 				fill(PtNPmatS, PtNPmatS + npix, 0.0);
@@ -1020,10 +1009,6 @@ int main(int argc, char *argv[]) {
 						file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
 						file_rank.close();
 #endif
-
-						// flush dirfile
-						//						gd_flush(samples_struct.dirfile_pointer,NULL);
-
 #ifdef PARA_BOLO
 						MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -1045,14 +1030,18 @@ int main(int argc, char *argv[]) {
 
 				} // end of iframe loop
 
-
 #ifdef USE_MPI
+				if(rank == 0) { // malloc only for first processor that reduces the data
+					PtNPmatStot = new double[npix];
+					fill(PtNPmatStot,PtNPmatStot+npix,0.0);
+				}
 				MPI_Reduce(PtNPmatS,PtNPmatStot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
 				PtNPmatStot = PtNPmatS;
 #endif
 
 				if (rank == 0) {
+
 					for (long ii = 0; ii < npixeff; ii++)
 						r[ii] = PNdtot[ii] - PtNPmatStot[ii]; //r = b - Ax
 				}
@@ -1060,7 +1049,7 @@ int main(int argc, char *argv[]) {
 				delete [] PtNPmatS;
 
 #ifdef USE_MPI
-				if(rank==0)
+				if(rank == 0)
 					delete [] PtNPmatStot;
 #endif
 
@@ -1319,7 +1308,7 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 #ifdef USE_MPI
-			if(rank==0)
+			if(rank == 0)
 				fill(PNdtot,PNdtot+npix,0.0);
 			MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
@@ -1359,7 +1348,7 @@ int main(int argc, char *argv[]) {
 				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys, bolo_list))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
-	}// end of rank==0
+	}// end of rank == 0
 
 
 	// clean up of conjugate gradient variables
@@ -1416,7 +1405,7 @@ int main(int argc, char *argv[]) {
 	MPI_Finalize();
 #endif
 
-	if(rank==0)
+	if(rank == 0)
 	  cout << endl << "End of sanePic" << endl;
 
 	return EXIT_SUCCESS;
