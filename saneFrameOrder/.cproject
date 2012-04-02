@@ -47,6 +47,8 @@
 							<tool command="mpicxx" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1019793751" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1893877778" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -529,6 +531,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.305779445" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1935313681" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>

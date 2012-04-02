@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
 		struct param_saneProc proc_param;
 		struct param_sanePos pos_param;
 
-		sortclass_int sortobject;
 		long *ruleorder ;
 		long *frnum ;
 		int parsed;

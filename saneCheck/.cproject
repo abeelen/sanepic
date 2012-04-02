@@ -47,8 +47,10 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.451450050" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2035526751" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1367795919" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1457594654" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
@@ -531,6 +533,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.277534600" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1271378470" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="saneIO"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 								</option>
@@ -1003,7 +1007,7 @@
 									<listOptionValue builtIn="false" value="USE_MPI"/>
 									<listOptionValue builtIn="false" value="MPICH_IGNORE_CXX_SEEK"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.undef.1080460165" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef" valueType="undefDefinedSymbols"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.undef.1080460165" name="Undefined symbols (-U)" superClass="gnu.cpp.compiler.option.preprocessor.undef"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.561813192" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1449625066" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -1014,8 +1018,10 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1292859359" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1855118692" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1119465625" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.564710851" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
@@ -1474,7 +1480,7 @@
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.1378820450" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
 							<builder buildPath="${workspace_loc:/saneCheck/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.2128044873" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1208448650" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1089414010" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+							<tool command="mpicxx" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1089414010" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.1120656357" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.1435525656" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1694199981" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -1501,6 +1507,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1136524460" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1801139192" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="saneIO"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 								</option>

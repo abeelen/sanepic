@@ -52,6 +52,8 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.1108446306" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -534,6 +536,8 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.1040802819" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -1016,6 +1020,8 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.1865308289" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -1469,7 +1475,7 @@
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.1336635077" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
 							<builder buildPath="${workspace_loc:/saneFix/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.1864880829" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.3045370" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1013090416" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+							<tool command="mpicxx" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1013090416" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.1264510007" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.914303435" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1736828241" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -1498,6 +1504,8 @@
 								</option>
 								<option id="gnu.cpp.link.option.libs.293910466" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>

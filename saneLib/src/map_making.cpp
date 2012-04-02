@@ -357,9 +357,8 @@ void noisepectrum_estim(double *data, long ns, double *km, int nbins, double fsa
 
 	//TODO : should be almost the same as noisecrossspectrum_estim : i.e. take fdata as input
 	int qq;
-	double totapod;
 
-	double *datatemp, *datatemp2, *apodwind, *bfiltertemp;
+	double *bfiltertemp;
 	int *count;
 
 	fftw_complex  *fdata;

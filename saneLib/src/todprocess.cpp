@@ -161,8 +161,7 @@ void binnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int n
 	// ell is an array of double, units are Hz
 
 	int counttemp, f_hp;
-	double ellmin, ellmax, kmin, kmax, a, b;
-	double *ellm;
+	double kmin, kmax, a, b;
 	double N_flp;
 
 	// interpolate logarithmically the noise power spectrum
@@ -264,9 +263,6 @@ void binnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int n
 			for (int k=0;k<ns/2+1;k++) if (Nk[k] < Nk[ns/5]) Nk[k] = Nk[ns/5];
 		}
 	}
-
-	delete [] ellm;
-
 }
 
 void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_InvSquared, int nbins, int ns, double* Nk, double* mode)
@@ -284,8 +280,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 	kmax = km[1];
 
 	// Can be slower if too many threads are used
-	//	#pragma omp parallel for default(none) \
-	//			shared(Nk, SpN, ns, kmin) private(k)
+	//	#pragma omp parallel for default(none) shared(Nk, SpN, ns, kmin) private(k)
 	for (k=1;k<=(long)kmin;k++)
 		Nk[k] = SpN[0];
 
