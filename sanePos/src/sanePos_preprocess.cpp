@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
+int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
 		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max){
 
 
@@ -80,9 +80,8 @@ int modify_mask_flag_in_dirfile(std::string tmp_dir, struct samples samples_stru
 	return 0;
 }
 
-
-int computePixelIndex(string tmpdir, string dirfile,
-		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+// deprecated
+int computePixelIndex(string dirfile, struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
@@ -300,8 +299,14 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 	return 0;
 }
 
-int computePixelIndex_HIPE(string tmpdir,
-		struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
+//int computeMaskIntersection(samples_struct, pos_param, iframe_min, iframe_max, rank,
+//				wcs, NAXIS1, NAXIS2, mask, indpsrc, npixsrc, bolo_list, count_pixsrc)
+//{
+//
+//
+//}
+
+int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)

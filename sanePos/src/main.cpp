@@ -56,7 +56,7 @@ using namespace std;
  *
  *  - Get input fits META DATA
  *
- *  - Compute map extremums or read it from binary mask file
+ *  - Compute map extrema or read it from binary mask file
  *  - Compute map Header or read it from binary mask file
  *  - Compute masked pixels indice table and save it to disk
  *  - Save mapHeader to disk for the other programs
@@ -205,9 +205,6 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
-		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-	}
 #else
 	iframe_min = 0;
 	iframe_max = samples_struct.ntotscan;
@@ -309,7 +306,7 @@ int main(int argc, char *argv[])
 
 		// ... add axis label ...
 		if (pos_param.axistype.compare("EQ") == 0){
-			char TYPE[2][5] = { "RA--", "DEC-"};
+			char TYPE[2][5]  = { "RA--", "DEC-"};
 			char NAME[2][16] = {"Right Ascension","Declination"};
 
 			for (int ii = 0; ii < NAXIS; ii++) {
@@ -321,7 +318,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (pos_param.axistype.compare("GAL") == 0){
-			char TYPE[2][5] = { "GLON", "GLAT"};
+			char TYPE[2][5]  = { "GLON", "GLAT"};
 			char NAME[2][19] = {"Galactic Longitude", "Galactic Latitude"};
 
 			for (int ii = 0; ii < NAXIS; ii++) {
@@ -379,7 +376,7 @@ int main(int argc, char *argv[])
 			wcs->crval[0] = lon_center;
 			wcs->crval[1] = lat_center;
 
-			// In these two cases, the projection center has not been defined by the user, so we need to find a proper one
+			// In these case, the projection center has not been defined by the user, so we need to find a proper one
 			// so...
 			if (rank == 0)
 				cout << endl << "WW - Projections will have to be made twice, define a projection center..." << endl;
@@ -403,7 +400,7 @@ int main(int argc, char *argv[])
 //					}
 //					break;
 //				case 1:
-					if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
+					if(computeMapMinima_HIPE(samples_struct,
 							iframe_min,iframe_max, wcs,
 							lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
@@ -479,7 +476,7 @@ int main(int argc, char *argv[])
 //				}
 //				break;
 //			case 1:
-				if(computeMapMinima_HIPE(dir.tmp_dir, samples_struct,
+				if(computeMapMinima_HIPE(samples_struct,
 						iframe_min,iframe_max, wcs,
 						lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
@@ -532,7 +529,9 @@ int main(int argc, char *argv[])
 		}
 
 		npixsrc = 0;
-		// Initialize the masks
+		addnpix = 0;
+
+		// Initialize empty masks
 		mask    = new short[NAXIS1*NAXIS2];
 		indpsrc = new long long[NAXIS1*NAXIS2];
 
@@ -567,6 +566,28 @@ int main(int argc, char *argv[])
 					indpsrc[ll] = -1;
 			}
 		}
+//		if(rank==0)
+//			cout << "Computing mask intersection... " << endl;
+//		count_pixsrc = new long long[npixsrc*samples_struct.ntotscan];
+//		fill(count_pixsrc,count_pixsrc+(npixsrc*samples_struct.ntotscan),0);
+//
+//		if(computeMaskIntersection(samples_struct, pos_param, iframe_min, iframe_max, rank,
+//				wcs, NAXIS1, NAXIS2, mask, indpsrc, npixsrc, bolo_list, count_pixsrc)){
+//#ifdef PARA_FRAME
+//			MPI_Abort(MPI_COMM_WORLD, 1);
+//#endif
+//			return(EX_OSERR);
+//		}
+//
+//#ifdef PARA_FRAME
+//	if(rank==0){
+//		count_pixsrc_tot = new long long[npixsrc*samples_struct.ntotscan];
+//	}
+//	MPI_Reduce(count_pixsrc,count_pixsrc_tot,npixsrc*samples_struct.ntotscan,MPI_LONG_LONG,MPI_SUM,0,MPI_COMM_WORLD);
+//#else
+//	count_pixsrc_tot=count_pixsrc;
+//#endif
+
 	}
 
 	// TODO : test and run with real data !!!
@@ -636,7 +657,7 @@ int main(int argc, char *argv[])
 //		}
 //		break;
 //	case 1:
-		if(computePixelIndex_HIPE(dir.tmp_dir, samples_struct,
+		if(computePixelIndex_HIPE(samples_struct,
 				proc_param, pos_param, iframe_min, iframe_max,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,

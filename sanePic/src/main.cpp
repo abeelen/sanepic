@@ -326,9 +326,6 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
-		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-	}
 #else
 
 	iframe_min = 0;

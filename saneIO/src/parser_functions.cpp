@@ -85,7 +85,6 @@ uint16_t fillvect_double(double value, string file, string dir, long ntotscan, v
 	return 0;
 }
 
-
 void fillvect_strings(string commonFile, vector<string> FitsFilename, string suffix, string dir, vector<string> & outputVector){
 
 	unsigned long size;
@@ -106,8 +105,6 @@ void fillvect_strings(string commonFile, vector<string> FitsFilename, string suf
 	}
 
 }
-
-
 
 void read_common(string &output, dictionary *ini, struct param_common &common) {
 
@@ -339,8 +336,8 @@ void read_param_saneProc(string &output, dictionary *ini,
 	else
 		Proc_param.CORRon = (bool) i;
 
-	i = iniparser_getint(ini, "saneProc:poly_order", -1);
-	if (i == -1)
+	i = iniparser_getint(ini, "saneProc:poly_order", -42);
+	if (i == -42)
 		output2 += "saneProc:poly_order: default value [" + StringOf(
 				Proc_param.poly_order) + "]\n";
 	else
@@ -1002,7 +999,7 @@ uint16_t check_param_samples(string &output, struct samples &samples_param){
 }
 
 
-void default_param(struct param_common &dir, struct samples &samples_param,
+void default_param(struct param_common &dir,
 		struct param_sanePos &Pos_param, struct param_saneProc &Proc_param,
 		struct param_saneInv &Inv_param, struct param_sanePic &Pic_param) {
 
@@ -1453,8 +1450,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 #endif
 
 	// default values :
-	default_param(dir, samples_param, Pos_param, Proc_param, Inv_param,
-			Pic_param);
+	default_param(dir, Pos_param, Proc_param, Inv_param, Pic_param);
 
 	//TODO sanePS should be out of here
 	default_param_sanePS(PS_param);

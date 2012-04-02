@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
+
 	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		exit(EX_IOERR);
@@ -173,9 +174,6 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
-		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-	}
 #else
 
 	iframe_min = 0; // single processor, will compute all the scans
@@ -236,7 +234,7 @@ int main(int argc, char *argv[])
 	switch (Pos_param.fileFormat) {
 	case 0:
 		if(export_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-					cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
+			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -245,7 +243,7 @@ int main(int argc, char *argv[])
 		break;
 	case 1:
 		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
-					cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
+			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

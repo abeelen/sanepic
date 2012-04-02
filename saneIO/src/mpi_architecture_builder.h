@@ -5,7 +5,7 @@
 #include <string>
 #include "struct_definition.h"
 
-#define parallel_scheme_filename  "parallel_scheme.txt";
+#define parallel_scheme_filename  "parallel_scheme";
 
 //! A structure that is used to sort integers vectors with standard routine "sort"
 struct sortclass_int {
@@ -80,14 +80,6 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
   \param iframe_max Ending frame index for processor "rank"
  */
 int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max);
-
-//! Check that input file fits filelist is correct and consistent, in regards to parallel_scheme.txt file
-/*!
- \param samples_str A samples structure that was filled using fits filelist
- \param samples_str_para A samples structure that was filled using parallel_scheme.txt
-  \return An integer >0 if there were a problem, or 0 if everything went OK
- */
-int check_filelist_validity(struct samples samples_str, struct samples samples_str_para);
 
 //! Reorder whole samples_struct vectors (fitsvect, bolovect, ...) using processor orders and attributes, to each rank, its frame begin and end indexes
 /*!

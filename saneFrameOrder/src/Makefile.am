@@ -10,6 +10,4 @@ saneFrameOrder_CPPFLAGS += -DPARA_FRAME
 EXEEXT=_PARA_FRAME
 
 saneFrameOrder_SOURCES = \
-main.cpp \
-parse_FBFO.cpp \
-parse_FBFO.h
+main.cpp

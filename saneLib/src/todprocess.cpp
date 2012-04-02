@@ -70,7 +70,6 @@ void remove_poly(double y[], long ndata, int norder, double* yout, int* flag)
 
 }
 
-
 void butterworth_filter(int ndata, double f_hp, int orderB, double *bfilter)
 {
 
@@ -83,7 +82,6 @@ void butterworth_filter(int ndata, double f_hp, int orderB, double *bfilter)
 	}
 
 }
-
 
 void butterworth(double y[], int ndata, double *yout, double * bfilter , bool apodize, int napod, bool overwrite)
 {
@@ -133,7 +131,6 @@ void butterworth(double y[], int ndata, double *yout, double * bfilter , bool ap
 
 }
 
-
 double* apodwindow(int ns, int nn)
 {
 
@@ -157,8 +154,6 @@ double* apodwindow(int ns, int nn)
 	return apodis;
 
 }
-
-
 
 void binnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int nbins, int ns, double fsamp, double* Nk, double* mode)
 {
@@ -273,11 +268,6 @@ void binnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter, int n
 	delete [] ellm;
 
 }
-
-
-
-
-
 
 void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_InvSquared, int nbins, int ns, double* Nk, double* mode)
 {

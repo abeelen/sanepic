@@ -196,7 +196,7 @@ int minmax_flag(double *& array, int *& flag, long size, double & min_array,
 	return EXIT_SUCCESS;
 }
 
-int computeMapMinima_HIPE(std::string tmp_dir, struct samples samples_struct,
+int computeMapMinima_HIPE(struct samples samples_struct,
 		long iframe_min, long iframe_max, struct wcsprm * & wcs,
 		double &lon_min, double &lon_max, double &lat_min, double &lat_max,
 		std::vector<std::vector<std::string> > bolo_vect) {
