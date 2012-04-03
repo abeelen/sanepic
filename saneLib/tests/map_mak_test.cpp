@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 #ifdef USE_MPI
 
 
-	if(configure_PARA_FRAME_samples_struct(dir.output_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 		return EX_IOERR;

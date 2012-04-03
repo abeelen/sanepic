@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
 			frnum         = new long[size+1];
 
 
-			fname = dir.output_dir + parallel_scheme_filename;
 
 			if(samples_struct.ntotscan==size){ // special case : number of proc = number of scan
 
@@ -105,7 +104,7 @@ int main(int argc, char *argv[])
 				frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
 
 				//write parallel schema in a file
-				parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+				parsed=write_ParallelizationScheme(dir.tmp_dir, ruleorder, frnum, size,samples_struct);
 
 
 			}else{ // less procs than number of scans
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
 				find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
 
 				//write parallel schema in a file
-				parsed=write_ParallelizationScheme(fname, ruleorder, frnum, size,samples_struct);
+				parsed=write_ParallelizationScheme(dir.tmp_dir, ruleorder, frnum, size,samples_struct);
 			}
 
 			if(parsed==-1)

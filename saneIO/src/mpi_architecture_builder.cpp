@@ -241,11 +241,12 @@ void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, l
 
 }
 
-int write_ParallelizationScheme(string fname, long *position, long *frnum, int size, struct samples samples_struct)
+int write_ParallelizationScheme(string outdir, long *position, long *frnum, int size, struct samples samples_struct)
 // Write the Parallelization Scheme for further use.
 {
 
 	ofstream file;
+	string fname = outdir + parallel_scheme_filename;
 
 	cout << "parallelization scheme written in file : " << fname << endl;
 
@@ -352,7 +353,6 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 
 }
 
-
 int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max){
 
 
@@ -405,7 +405,6 @@ int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_s
 	}
 	return 0;
 }
-
 
 void reorder_samples_struct(int rank, struct samples &samples_struct,  int size, long &iframe_min, long &iframe_max){
 	// TODO : This routine does not do what it is supposed to do...

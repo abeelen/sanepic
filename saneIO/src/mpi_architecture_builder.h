@@ -49,14 +49,14 @@ double* randg(long nombre, int seedpass);
 
 //! Writes the parallel scheme file to disk
 /*!
-  \param fname Output file name : outdir/parallel_scheme.txt
+  \param outdir Output directory : outdir/parallel_scheme
   \param position The processor indice array. This array will be filled by find_best_order_frames
   \param frnum Frame number (proc 0 has to do scans which frame's index goes from frnum(0) to frnum(1), proc 1 from frnum(1) to frnum(2), etc...)
   \param size The number of processors to be used
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_ParallelizationScheme(std::string fname, long *position, long *frnum, int size, struct samples samples_struct);
+int write_ParallelizationScheme(std::string outdir, long *position, long *frnum, int size, struct samples samples_struct);
 
 //! Verify that samples_struct is correct in regards to the number of processors launched with mpirun
 /*!
