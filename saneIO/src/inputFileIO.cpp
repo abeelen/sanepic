@@ -218,11 +218,13 @@ void skip_comment(ifstream &file, string &line){
 	}
 }
 
-uint16_t read_fits_list(string &output, string fname, struct samples &samples_param ) {
 
-	std::vector<string> &fitsvect = samples_param.fitsvect;
-	std::vector<int> &scans_index = samples_param.scans_index;
-	bool &framegiven = samples_param.framegiven;
+
+uint16_t read_fits_list(std::string &output, string fname, struct samples &samples_struct ) {
+
+	std::vector<string> &fitsvect = samples_struct.fitsvect;
+	std::vector<int> &scans_index = samples_struct.scans_index;
+	bool &framegiven = samples_struct.framegiven;
 
 	ifstream file;
 	file.open(fname.c_str(), ios::in);
@@ -313,7 +315,7 @@ uint16_t read_fits_list(string &output, string fname, struct samples &samples_pa
 
 	file.close();
 
-	samples_param.ntotscan = fitsvect.size();
+	samples_struct.ntotscan = fitsvect.size();
 	return 0;
 }
 

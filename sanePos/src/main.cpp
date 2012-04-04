@@ -136,8 +136,6 @@ int main(int argc, char *argv[])
 	std::vector<string> val;
 	std::vector<string> com;
 
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
-
 	uint16_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
 			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc2ff
@@ -206,17 +204,12 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
-
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct, bolo_list);
+		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
 	}
 
 #ifdef PARA_FRAME
@@ -262,7 +255,7 @@ int main(int argc, char *argv[])
 		if (rank == 0)
 			cout << endl<< "Converting coordinates..." << endl;
 
-		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, bolo_list);
+		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, samples_struct.bolo_list);
 
 		if (pos_param.eq2gal)
 			pos_param.axistype = "GAL";
@@ -335,11 +328,11 @@ int main(int argc, char *argv[])
 				lat  = new double[ns];
 				flag = new int[ns];
 
-				if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lon, ns))
+				if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], lon, ns))
 					return 1;
-				if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], lat, ns))
+				if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], lat, ns))
 					return 1;
-				if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], bolo_list[0][0], flag, ns))
+				if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], flag, ns))
 					return 1;
 
 				int ii = 0;
@@ -387,7 +380,7 @@ int main(int argc, char *argv[])
 //					break;
 //				case 1:
 					if(computeMapMinima_HIPE(samples_struct,
-							wcs, lon_min,lon_max,lat_min,lat_max, bolo_list)){
+							wcs, lon_min,lon_max,lat_min,lat_max, samples_struct.bolo_list)){
 #ifdef PARA_FRAME
 						MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -462,7 +455,7 @@ int main(int argc, char *argv[])
 //				break;
 //			case 1:
 				if(computeMapMinima_HIPE(samples_struct,
-						wcs, lon_min,lon_max,lat_min,lat_max, bolo_list)){
+						wcs, lon_min,lon_max,lat_min,lat_max, samples_struct.bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -646,7 +639,7 @@ int main(int argc, char *argv[])
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout, bolo_list)){
+				indpsrc, npixsrc, flagon, pixout, samples_struct.bolo_list)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -748,7 +741,7 @@ int main(int argc, char *argv[])
 		fhp_pix  = samples_struct.fhp[iframe]  * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
 		fcut_pix = samples_struct.fcut[iframe] * double(ns)/samples_struct.fsamp[iframe]; // noise PS threshold freq, in terms of samples
 
-		std::vector<string> det_vect = bolo_list[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 		long ndet = (long)det_vect.size();
 
 		int pb=0;

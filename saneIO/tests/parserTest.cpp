@@ -27,10 +27,6 @@ extern "C" {
 #include "nrutil.h"
 }
 
-#if defined(PARA_BOLO) || defined(PARA_FRAME)
-#define USE_MPI
-#endif
-
 #ifdef USE_MPI
 #include "mpi.h"
 #endif
@@ -122,12 +118,13 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-	cout << "parser done." << endl;
+	fill_sanePS_struct(ps_param, samples_struct, dir);
 
-	// REORDER WITH MPI_ARCHI
+	cout << rank << " parser done." << endl;
 
 
 #ifdef PARA_FRAME
+//	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -139,26 +136,26 @@ int main(int argc, char *argv[])
 
 #endif
 
+	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
 
+	if (rank==0){
+//		print_common(dir);
+//		print_param_sanePos(pos_param);
+//		print_param_saneProc(proc_param);
+//		print_param_saneInv(inv_param);
+//		print_param_sanePic(pic_param);
+//		print_param_sanePS(ps_param);
 
-	fill_sanePS_struct(ps_param, samples_struct, dir);
+		cout << " ---" << endl;
+		print_struct(proc_param, samples_struct, pos_param, dir, inv_param, pic_param,ps_param);
 
-	print_common(dir);
-	print_param_sanePos(pos_param);
-	print_param_saneProc(proc_param);
-	print_param_saneInv(inv_param);
-	print_param_sanePic(pic_param);
-	print_param_sanePS(ps_param);
+	}
 
-	if(rank==0)
-		// parser print screen function
-		print_struct(proc_param, samples_struct, pos_param, dir, inv_param,
-				pic_param,ps_param);
-
-
-
-
-	cout << "\n\nEXIT SUCCESS  !!!\n";
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Finalize();
+#endif
+	cout << rank << " EXIT SUCCESS  !!!\n";
 	return 0;
 }
 
@@ -213,44 +210,81 @@ void print_struct(struct param_saneProc proc_param, struct samples samples_struc
 
 	cout << endl << "samples_struct :" << endl;
 	cout << "framegiven = " << samples_struct.framegiven << endl;
+	cout << endl;
+	cout << "iframe_min = " << samples_struct.iframe_min << endl;
+	cout << "iframe_max = " << samples_struct.iframe_max << endl;
+	cout << endl;
 
+	cout << endl << "scans_index :" << endl;
+	for(long ii=0; ii< (long)samples_struct.scans_index.size(); ii++) {
+		cout << ii << " : " ;
+		cout << samples_struct.scans_index[ii]  << endl;
+	}
+
+	cout << endl << "fitsvect :" << endl;
 	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
 		cout << ii << " : " ;
-		cout << samples_struct.fitsvect[ii]  << " : " ;
+		cout << samples_struct.fitsvect[ii]  << endl;
+	}
+
+	cout << endl << "basevect :" << endl;
+	for(long ii=0; ii< (long)samples_struct.basevect.size(); ii++) {
+		cout << ii << " : " ;
+		cout << samples_struct.basevect[ii]  << endl;
+	}
+
+	cout << endl << "fcut : fsamp : fhp : nsamples :" << endl;
+	for(long ii=0; ii< (long)samples_struct.fsamp.size(); ii++) {
+		cout << ii << " : " ;
+		cout << samples_struct.fcut[ii] << " : ";
+		cout << samples_struct.fsamp[ii] << " : ";
+		cout << samples_struct.fhp[ii] << " : ";
 		cout << samples_struct.nsamples[ii]  << endl;
 	}
 
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
-		cout << ii << " : " ;
-		cout << samples_struct.basevect[ii]  << " : " ;
-		cout << samples_struct.fsamp[ii] << " : ";
-		cout << samples_struct.fhp[ii] << " : ";
-		cout << endl;
-	}
-
 	cout << endl << "ell_names :" << endl;
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+	for(long ii=0; ii< (long)samples_struct.ell_names.size(); ii++) {
 		cout << ii << " : ";
 		cout << samples_struct.ell_names[ii] << endl;
 	}
 
 	cout << endl << "mix_names :" << endl;
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+	for(long ii=0; ii< (long)samples_struct.mix_names.size(); ii++) {
 		cout << ii << " : ";
 		cout << samples_struct.mix_names[ii] << endl;
 	}
 
+	cout << endl << "nbins :" << endl;
+	for(long ii=0; ii< (long)samples_struct.nbins.size(); ii++) {
+		cout << ii << " : ";
+		cout << samples_struct.nbins[ii] << endl;
+	}
+
+	cout << endl << "ndet :" << endl;
+	for(long ii=0; ii< (long)samples_struct.ndet.size(); ii++) {
+		cout << ii << " : ";
+		cout << samples_struct.ndet[ii] << endl;
+	}
 	cout << endl << "noisevect :" << endl;
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+	for(long ii=0; ii< (long)samples_struct.noisevect.size(); ii++) {
 		cout << ii << " : ";
 		cout << samples_struct.noisevect[ii] << " : ";
 		cout << samples_struct.fcut[ii] << endl;
 	}
 	cout << endl << "bolovect :" << endl;
-	for(long ii=0; ii< (long)samples_struct.fitsvect.size(); ii++) {
+	for(long ii=0; ii< (long)samples_struct.bolovect.size(); ii++) {
 		cout << ii << " : ";
 		cout << samples_struct.bolovect[ii]  << endl;
 	}
+
+	cout << endl << "bolo_list :" << endl;
+	for (long ii=0; ii< (long) samples_struct.bolo_list.size(); ii++){
+		cout << ii << " [" << samples_struct.bolo_list[ii].size() << "] : ";
+		for (long jj=0; jj<4; jj++)
+			cout << samples_struct.bolo_list[ii][jj] << ", " ;
+		cout << "... " << endl;
+	}
+
 
 
 }

@@ -406,7 +406,7 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	fdata1 = new fftw_complex[ns/2+1]; // fourier transform
 	fdata2 = new fftw_complex[ns/2+1];
 
-	FILE *fp;
+//	FILE *fp;
 
 	/////////////////////////////////////// loop again over detectors
 	for (long idet1=0;idet1<ndet;idet1++){

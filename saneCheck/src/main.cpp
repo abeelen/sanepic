@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
 	string output = "";
 	string bolo_gain_filename="";
 
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 	if (rank == 0)
 		printf("\nBeginning of saneCheck:\n\n");
 
@@ -154,14 +153,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-
-
-	/* ------------------------------------- READ bolo list ----------------------------*/
-
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
 
 	/* ------------------------------------------------------------------------------------*/
 
@@ -268,7 +259,7 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			std::vector<string> det_vect=bolo_list[iframe];
+			std::vector<string> det_vect=samples_struct.bolo_list[iframe];
 			long ndet_vect = (long)det_vect.size();
 
 			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, samples_struct.fitsvect[iframe]); // check wether used detector user list is correct

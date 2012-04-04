@@ -102,8 +102,6 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
-
 	std::vector<int> indexIn; /* bolometer index, used to determine which intput detector corresponds to which output detector*/
 
 	uint16_t mask_saneInv = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM |
@@ -162,14 +160,6 @@ int main(int argc, char *argv[]) {
 
 #endif
 
-
-	/* ------------------------------------- READ bolo list ----------------------------*/
-
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
-
 	/* ------------------------------------------------------------------------------------*/
 
 	if(rank==0)
@@ -206,7 +196,7 @@ int main(int argc, char *argv[]) {
 	//	}
 
 	if(rank==0)
-		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix, bolo_list);
+		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix, samples_struct.bolo_list);
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
@@ -241,7 +231,7 @@ int main(int argc, char *argv[]) {
 
 		std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
 
-		channelOut = bolo_list[iframe];
+		channelOut = samples_struct.bolo_list[iframe];
 
 		//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
 		ndet = channelOut.size();

@@ -65,7 +65,7 @@ int write_ParallelizationScheme(std::string outdir, long *position, long *frnum,
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int verify_parallelization_scheme(int rank, struct samples &samples_struct, int size);
+int verify_parallelization_scheme(struct samples &samples_struct, int rank, int size);
 
 
 //! Test and fill and reorganize samples_struct structure
@@ -88,6 +88,6 @@ int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samp
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
   \param iframe_max Ending frame index for processor "rank"
  */
-void reorder_samples_struct(int rank, struct samples &samples_struct, int size);
+void reorder_samples_struct(struct samples & samples_struct, int rank, int size);
 
 #endif /* MPI_ARCHITECTURE_BUILDER_H_ */

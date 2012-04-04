@@ -99,9 +99,6 @@ int main(int argc, char *argv[])
 	struct param_sanePic Pic_param;
 	string parser_output = "";
 
-
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
-
 	//	uint16_t mask_sanePre = 0x405f;
 	uint16_t mask_sanePre = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FILEFORMAT_NOT_FOUND | FITS_FILELIST_NOT_FOUND; // 0x405f
@@ -173,13 +170,6 @@ int main(int argc, char *argv[])
 
 #endif
 
-	/* ------------------------------------- READ bolo list ----------------------------*/
-
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
-
 	/* ------------------------------------------------------------------------------------*/
 
 	if(rank==0){
@@ -197,7 +187,7 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "Exporting signal and flags... " << endl;
 
-	if(write_data_flag_to_dirfile(dir, samples_struct, bolo_list)){
+	if(write_data_flag_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
 		cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -217,7 +207,7 @@ int main(int argc, char *argv[])
 	//TODO: What if Pos_param = 0 ?????
 	switch (Pos_param.fileFormat) {
 	case 0:
-		if(export_LON_LAT_to_dirfile(dir, samples_struct, bolo_list)){
+		if(export_LON_LAT_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -226,7 +216,7 @@ int main(int argc, char *argv[])
 		}
 		break;
 	case 1:
-		if(write_LON_LAT_to_dirfile(dir, samples_struct, bolo_list)){
+		if(write_LON_LAT_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);

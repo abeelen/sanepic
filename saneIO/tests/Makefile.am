@@ -9,13 +9,13 @@ parserTest_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
         $(SANEIO_LIB)
 
 if PARAFRAME
-   parserTest_CPPFLAGS += -DPARA_FRAME
+   parserTest_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
    ext=_PARA_FRAME
 endif
 
 if PARABOLO
-   parserTest_CPPFLAGS += -DPARA_BOLO
-   ext=_PARA_BOLO
+   parserTest_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
+   ext=_PARA_FRAME
 endif
 
 parserTest_SOURCES = \

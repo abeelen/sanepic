@@ -173,8 +173,6 @@ int main(int argc, char *argv[]) {
 	std::vector<string> val;
 	std::vector<string> com;
 
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
-
 	int para_bolo_indice = 0;
 	int para_bolo_size = 1;
 
@@ -345,15 +343,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	/* ------------------------------------- READ bolo list ----------------------------*/
-
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
-
-
-
 	/* ------------------------------------------------------------------------------------*/
 
 	if(rank == 0){
@@ -361,7 +350,7 @@ int main(int argc, char *argv[]) {
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, bolo_list);
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
 	}
 
 #ifdef USE_MPI
@@ -550,7 +539,7 @@ int main(int argc, char *argv[]) {
 			fhp_pix  = samples_struct.fhp[iframe] * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
 			fcut_pix = samples_struct.fcut[iframe]* double(ns)/samples_struct.fsamp[iframe]; // noise PS threshold freq, in terms of samples
 
-			std::vector<string> det_vect = bolo_list[iframe];
+			std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 			long ndet = (long)det_vect.size();
 
 			if(ndet!=samples_struct.ndet[iframe]){ // check here to avoid problems between saneInv and sanePic
@@ -783,7 +772,7 @@ int main(int argc, char *argv[]) {
 				ns       = samples_struct.nsamples[iframe];
 				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
-				std::vector<string> det_vect = bolo_list[iframe];
+				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
 				// preconditioner computation : Mp
@@ -928,7 +917,7 @@ int main(int argc, char *argv[]) {
 				ns       = samples_struct.nsamples[iframe];
 				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
-				std::vector<string> det_vect = bolo_list[iframe];
+				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
 				if (Proc_param.CORRon) {
@@ -1001,7 +990,7 @@ int main(int argc, char *argv[]) {
 					ns = samples_struct.nsamples[iframe];
 					fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
-					std::vector<string> det_vect = bolo_list[iframe];
+					std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 					long ndet = (long)det_vect.size();
 
 					if (Proc_param.CORRon) {
@@ -1275,7 +1264,7 @@ int main(int argc, char *argv[]) {
 				fhp_pix = samples_struct.fhp[iframe]* double(ns) / samples_struct.fsamp[iframe];
 				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
-				std::vector<string> det_vect = bolo_list[iframe];
+				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 				long ndet = (long)det_vect.size();
 
 				if (Proc_param.CORRon) {
@@ -1353,7 +1342,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				Proc_param, Pos_param, samples_struct, samples_struct.fcut, wcs,
-				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys, bolo_list))
+				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys, samples_struct.bolo_list))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank == 0

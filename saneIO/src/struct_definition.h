@@ -115,16 +115,17 @@ struct samples
 /*! A structure that contains everything about frames, noise files and frame processing order */
 {
 	DIRFILE *dirfile_pointer;           /*! a pointer to the dirfile that contains temporary binaries */
+	bool framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
 
 	long iframe_min, iframe_max;        /*! current rank indexes for the following vector */
 
 	std::vector<int> scans_index;       /*!  a vector containing the index of the scans */
-	bool framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
 
 	std::vector<std::string> fitsvect;  /*! a vector containing input fits filenames */
 	std::vector<std::string> noisevect; /*! a vector containing input covariance matrices filenames */
 	std::vector<std::string> bolovect;  /*! a vector containing input bolometer lists filenames */
 	std::vector<std::string> basevect;  /*! a vector containing input fits basenames : "." are replaced by _ and ".fits" is removed */
+	std::vector<std::vector<std::string> > bolo_list;
 
 	std::vector<double> fcut;           /*! a vector containing Noise filter cut-off frequency for each scan */
 	std::vector<double> fsamp;          /*! a vector containing the sampling frequencies for each scan */

@@ -283,7 +283,7 @@ void fill_sanePS_struct(struct param_sanePS &structPS, struct samples &samples_s
  \param fcut_file A string containing the fcut filename
  \return A flag corresponding to an error code, or 0
  */
-uint16_t fill_samples_param(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, struct param_saneProc &Proc_param);
+uint16_t fill_samples_param(std::string &output, struct samples &samples_struct, struct param_common &dir, struct param_saneInv &inv_param, struct param_saneProc &Proc_param, int rank, int size);
 
 //! Open a dirfile to get nbins (Noise_data/ell) and ndet (Noise_data) values
 /*!
@@ -301,23 +301,25 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int channel_list_to_vect_list(struct samples samples_struct, std::vector<std::vector<std::string> > &bolo_vect, int rank);
-
-#ifdef USE_MPI
+uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size);
 
 //! Computes the size of each string contained in "str_vect"
 /*!
- * Stores the maximum size in size_max and returns the whole strings sizes after summation
  \param str_vect A vector containing a list of channels (their names)
- \param size_max A long int that corresponds to the longest channel's name
- \return size_buff : A long int that corresponds to the summation of whole string sizes
+ \return size_buff : A long that corresponds to maximum string size
  */
-long compute_bololist_size(std::vector<std::string> str_vect, long &size_max);
+unsigned long max_size_str_vect(std::vector<std::string> str_vect);
 
+#ifdef USE_MPI
 
 int commit_dictionary(int rank, dictionary	*dict);
 
+uint16_t BCast_string_vector(std::vector<std::string> &fitsvect, int rank, int size);
+uint16_t BCast_int_vector(std::vector<int> & intvect, int rank, int size);
+
 #endif
+
+
 
 //! Fill structures with ini, fcut and fitsfilelist files informations
 /*!

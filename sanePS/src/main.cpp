@@ -97,8 +97,6 @@ int main(int argc, char *argv[])
 	struct param_sanePic struct_sanePic;
 	string output = "";
 
-	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
-
 	uint16_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
 			FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xdd1f
@@ -181,17 +179,12 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
-		cout << "error in channel_list_to_vect_list" << endl;
-		return EX_CONFIG;
-	}
-
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, bolo_list);
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
 	}
 
 #ifdef USE_MPI
@@ -378,7 +371,7 @@ int main(int argc, char *argv[])
 
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
 
-		std::vector<string> det=bolo_list[iframe];
+		std::vector<string> det = samples_struct.bolo_list[iframe];
 
 		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
 				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
