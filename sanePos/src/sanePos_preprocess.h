@@ -18,12 +18,11 @@ extern "C" {
  \param indpsrc The masked pixels indices table, to be read from disk
  \param NAXIS1 Number of horizontal pixels (determined by sanePos)
  \param NAXIS2 Number of vertical pixels (determined by sanePos)
- \param iframe_min Actual rank first frame indice
- \param iframe_max Actual rank last frame indice
+
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
-		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max);
+		long NAXIS1, long NAXIS2);
 
 //! Get coordinates of pixels that are seen, computes the position to pixel projetcion matrices : One binary file per bolometer and per scan
 /*!
@@ -32,8 +31,6 @@ int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_saneProc structure
- \param iframe_min Actual rank first frame indice
- \param iframe_max Actual rank last frame indice
  \param wcs A pointer to a wcsprm struct
  \param NAXIS1 Number of horizontal pixels (determined by sanePos)
  \param NAXIS2 Number of vertical pixels (determined by sanePos)
@@ -49,7 +46,7 @@ int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::
  \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int computePixelIndex(std::string dirfile, struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+int computePixelIndex(std::string dirfile, struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect);
@@ -61,8 +58,7 @@ int computePixelIndex(std::string dirfile, struct samples samples_struct, struct
  \param samples_struct A samples structure
  \param pos_param The param_sanePos structure
  \param proc_param The param_saneProc structure
- \param iframe_min Actual rank first frame indice
- \param iframe_max Actual rank last frame indice
+
  \param wcs A pointer to a wcsprm struct
  \param NAXIS1 Number of horizontal pixels (determined by sanePos)
  \param NAXIS2 Number of vertical pixels (determined by sanePos)
@@ -78,7 +74,7 @@ int computePixelIndex(std::string dirfile, struct samples samples_struct, struct
  \param bolo_vect A vector containing the channel list (as a vector of string), for whole scan
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect);

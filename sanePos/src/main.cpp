@@ -52,7 +52,7 @@ using namespace std;
  *	- Read all channel files, store it into a vector<vector> (and commit to other ranks if needed)
  *
  *  - For each file :
- *      - Generate or clear the dirfile parts that will be filled : Indexes
+ *      - Generate or clear the dirfile parts that will be filled : indices
  *
  *  - Get input fits META DATA
  *
@@ -84,14 +84,13 @@ int main(int argc, char *argv[])
 #endif
 
 	if(rank==0)
-	  cout << endl << "sanePos: computation of pixel indexes" << endl;
+	  cout << endl << "sanePos: computation of pixel indices" << endl;
 
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_saneProc proc_param;
 	struct param_sanePos pos_param;
 	struct param_common dir; /* structure that contains output input temp directories */
 
-	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
 	int flagon = 0; /* if rejectsample [ii]==3, flagon=1*/
 	bool pixout = 0; /* indicates that at least one pixel has been flagged and is out */
 
@@ -198,16 +197,13 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-#else
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 #endif
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
@@ -241,16 +237,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/************************ Look for distriBoxution failure *******************************/
-	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max > samples_struct.ntotscan){
-		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting" << endl;
-#ifdef PARA_FRAME
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return  EX_OSERR;
-	}
-
-
 	//	read pointing header
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
 #ifdef USE_MPI
@@ -276,7 +262,7 @@ int main(int argc, char *argv[])
 		if (rank == 0)
 			cout << endl<< "Converting coordinates..." << endl;
 
-		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, iframe_min, iframe_max, bolo_list);
+		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, bolo_list);
 
 		if (pos_param.eq2gal)
 			pos_param.axistype = "GAL";
@@ -387,7 +373,7 @@ int main(int argc, char *argv[])
 
 			// Project all data once using the temporary projection center...
 			// at this stage all shall be in dirfile, so HIPE format...
-			if(iframe_min!=iframe_max){
+			if(samples_struct.iframe_min!=samples_struct.iframe_max){
 //				switch (pos_param.fileFormat) {
 //				case 0:
 //					if(computeMapMinima(samples_struct, dir.data_dir,
@@ -401,8 +387,7 @@ int main(int argc, char *argv[])
 //					break;
 //				case 1:
 					if(computeMapMinima_HIPE(samples_struct,
-							iframe_min,iframe_max, wcs,
-							lon_min,lon_max,lat_min,lat_max, bolo_list)){
+							wcs, lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
 						MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -463,7 +448,7 @@ int main(int argc, char *argv[])
 		}
 
 		// At this stage all should be in DIRFILE so ... HIPE format
-		if(iframe_min!=iframe_max){
+		if(samples_struct.iframe_min!=samples_struct.iframe_max){
 //			switch (pos_param.fileFormat) {
 //			case 0:
 //				if(computeMapMinima(samples_struct, dir.data_dir,
@@ -477,8 +462,7 @@ int main(int argc, char *argv[])
 //				break;
 //			case 1:
 				if(computeMapMinima_HIPE(samples_struct,
-						iframe_min,iframe_max, wcs,
-						lon_min,lon_max,lat_min,lat_max, bolo_list)){
+						wcs, lon_min,lon_max,lat_min,lat_max, bolo_list)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -626,7 +610,7 @@ int main(int argc, char *argv[])
 	// factdupl if flagged data are to be projected onto a separate map
 	// 1  pixel for flagged data
 	// 1  pixel for all data outside the map
-	// +1 because this all are indexes and C is indexing between 0 and sky_size-1
+	// +1 because this all are indices and C is indexing between 0 and sky_size-1
 	long long sky_size = factdupl*NAXIS1*NAXIS2 + 1 + 1 + addnpix + 1;
 
 	pixon = new long long[sky_size];
@@ -639,7 +623,7 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0)
-		cout << endl << "Computing pixel indexes..." << endl;
+		cout << endl << "Computing pixel indices..." << endl;
 
 	// At this stage all should be in DIRFILE format, so HIPE...
 //	switch (pos_param.fileFormat) {
@@ -658,7 +642,7 @@ int main(int argc, char *argv[])
 //		break;
 //	case 1:
 		if(computePixelIndex_HIPE(samples_struct,
-				proc_param, pos_param, iframe_min, iframe_max,
+				proc_param, pos_param,
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
@@ -714,8 +698,9 @@ int main(int argc, char *argv[])
 		}
 
 		//		printf("Total number of Scans : %d \n", (int) samples_struct.ntotscan);
-		printf("Pixels Indices   : %lld\n", sky_size);
-		printf("Filled Pixels    : %lld\n", npix);
+		printf("Pixels Indices   : %9lld (%6.1f Mo)\n", sky_size, sky_size*8./1024/1024);
+		printf("Filled Pixels    : %9lld (%6.1f Mo)\n", npix, npix*8./1024/1024);
+
 		if (pixout)
 			printf("THERE ARE SAMPLES OUTSIDE OF MAP LIMITS: ASSUMING CONSTANT SKY EMISSION FOR THOSE SAMPLES, THEY ARE PUT IN A SINGLE PIXEL\n");
 	}
@@ -757,7 +742,7 @@ int main(int argc, char *argv[])
 
 
 	// loop over the scans
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		ns       = samples_struct.nsamples[iframe]; // number of samples for this scan
 		fhp_pix  = samples_struct.fhp[iframe]  * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft

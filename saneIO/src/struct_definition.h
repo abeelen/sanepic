@@ -114,31 +114,31 @@ struct param_sanePic
 struct samples
 /*! A structure that contains everything about frames, noise files and frame processing order */
 {
+	DIRFILE *dirfile_pointer;           /*! a pointer to the dirfile that contains temporary binaries */
+
+	long iframe_min, iframe_max;        /*! current rank indexes for the following vector */
+
+	std::vector<int> scans_index;       /*!  a vector containing the index of the scans */
+	bool framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
+
 	std::vector<std::string> fitsvect;  /*! a vector containing input fits filenames */
 	std::vector<std::string> noisevect; /*! a vector containing input covariance matrices filenames */
-	std::vector<std::string> bolovect; /*! a vector containing input bolometer lists filenames */
-	std::vector<std::string> basevect; /*! a vector containing input fits basenames : "." are replaced by _ and ".fits" is removed */
+	std::vector<std::string> bolovect;  /*! a vector containing input bolometer lists filenames */
+	std::vector<std::string> basevect;  /*! a vector containing input fits basenames : "." are replaced by _ and ".fits" is removed */
 
+	std::vector<double> fcut;           /*! a vector containing Noise filter cut-off frequency for each scan */
+	std::vector<double> fsamp;          /*! a vector containing the sampling frequencies for each scan */
+	std::vector<double> fhp;            /*! a vector containing data high pass filter frequency for each scan */
 
-	DIRFILE *dirfile_pointer; /*! a pointer to the dirfile that contains temporary binaries */
+	std::vector<long> nsamples;         /*! a vector containing the number of samples for each input fits filenames */
+	long ntotscan;                      /*! the total number of scans, should be the size of all vector in this struct */
 
-	std::vector<double> fcut;  /*! a vector containing Noise filter cut-off frequency for each scan */
-	std::vector<double> fsamp; /*! a vector containing the sampling frequencies for each scan */
-	std::vector<double> fhp;   /*! a vector containing data high pass filter frequency for each scan */
-
+	// for sanePS only
 	std::vector<std::string> ell_names; /*! a vector for the bins (for the noise spectrum) filenames */
 	std::vector<std::string> mix_names; /*! a vector containing the mixing matrices filenames */
+	std::vector<long> nbins;            /*!  a vector containing the number of bins for each scan */
+	std::vector<long> ndet;             /*! a vector containing the number of detector for each scan */
 
-	//noise binary sizes
-	std::vector<long> nbins; /*!  a vector containing the number of bins for each scan */
-	std::vector<long> ndet; /*! a vector containing the number of detector for each scan */
-
-	std::vector<int> scans_index; /*!  a vector containing the index of the scans */
-
-	bool framegiven; /*!  True if the processor/scan index is given in fitsfilelist */
-
-	std::vector<long> nsamples; /*! a vector containing the number of samples for each input fits filenames */
-	long ntotscan; /*! the total number of scans */
 
 };
 

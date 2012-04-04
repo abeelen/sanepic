@@ -102,8 +102,6 @@ int main(int argc, char *argv[]) {
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 
-	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
-
 	std::vector<std::vector<std::string> > bolo_list; // this vector contains all bolonames for all the scans
 
 	std::vector<int> indexIn; /* bolometer index, used to determine which intput detector corresponds to which output detector*/
@@ -155,16 +153,13 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-#else
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 #endif
 
 
@@ -233,7 +228,7 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		cout << "Inverting Covariance Matrices..." << endl;
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		std::vector<string> channelIn; /* Covariance matrix channel vector*/
 

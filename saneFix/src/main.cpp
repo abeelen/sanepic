@@ -70,8 +70,6 @@ int main(int argc, char *argv[]) {
 	struct param_sanePS structPS;
 	struct param_saneCheck check_struct;
 
-	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
-
 	std::vector<long> indice; /* gap indexes (sample index) */
 	std::vector <long> add_sample; /* number of samples to add per gap */
 	double fsamp; /* sampling frequency */
@@ -127,17 +125,13 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-
-#else
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 #endif
 
 
@@ -149,7 +143,7 @@ int main(int argc, char *argv[]) {
 		cout << "\nFixing Files..." << endl << endl;
 	}
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
 			std::vector <long> suppress_time_sample;

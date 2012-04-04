@@ -20,13 +20,13 @@ using namespace std;
 
 
 int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::vector<std::string> > bolo_list, long long *indpsrc,
-		long NAXIS1, long NAXIS2, long iframe_min, long iframe_max){
+		long NAXIS1, long NAXIS2){
 
 
 	long long * samptopix;
 	int *mask;
 
-	for(long iframe=iframe_min; iframe< iframe_max; iframe++){
+	for(long iframe=samples_struct.iframe_min; iframe< samples_struct.iframe_max; iframe++){
 		// set dirfile name and binary name
 		string filename = samples_struct.basevect[iframe];
 		long ns = samples_struct.nsamples[iframe];
@@ -81,7 +81,7 @@ int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::
 }
 
 // deprecated
-int computePixelIndex(string dirfile, struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param, long iframe_min, long iframe_max,
+int computePixelIndex(string dirfile, struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
@@ -95,7 +95,7 @@ int computePixelIndex(string dirfile, struct samples samples_struct, struct para
 
 	long ns;
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
 		base_file = samples_struct.basevect[iframe];
@@ -306,7 +306,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 //
 //}
 
-int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,long iframe_min, long iframe_max,
+int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
 		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
@@ -321,7 +321,7 @@ int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc 
 	long ns;
 	int status;
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 		// for each scan
 		fits_file=samples_struct.fitsvect[iframe];
 		base_file= samples_struct.basevect[iframe];

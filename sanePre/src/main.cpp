@@ -93,9 +93,6 @@ int main(int argc, char *argv[])
 	struct param_sanePos Pos_param; /* contains user options about map projection and properties */
 	struct param_common dir; /* contains output input temp directories */
 
-	// default parameters
-	long iframe_min=0, iframe_max=0; /* min and max number of frame (used with mpi) */
-
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
 	struct param_sanePS PS_param;
 	struct param_saneInv Inv_param;
@@ -167,28 +164,15 @@ int main(int argc, char *argv[])
 	MPI_Barrier(MPI_COMM_WORLD);
 
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		exit(EX_IOERR);
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-#else
-
-	iframe_min = 0; // single processor, will compute all the scans
-	iframe_max = samples_struct.ntotscan;
-
 #endif
 
-
-	//	if (rank == 0){
-	//		cout << rank << " : " << iframe_min << " " << iframe_max << endl;
-	//		for (long iframe = iframe_min; iframe < iframe_max; iframe++){
-	//			cout << iframe << " " << samples_struct.basevect[iframe] << endl;
-	//		}
-	//
-	//	}
 	/* ------------------------------------- READ bolo list ----------------------------*/
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
@@ -213,7 +197,7 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "Exporting signal and flags... " << endl;
 
-	if(write_data_flag_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+	if(write_data_flag_to_dirfile(dir, samples_struct, bolo_list)){
 		cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -233,7 +217,7 @@ int main(int argc, char *argv[])
 	//TODO: What if Pos_param = 0 ?????
 	switch (Pos_param.fileFormat) {
 	case 0:
-		if(export_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+		if(export_LON_LAT_to_dirfile(dir, samples_struct, bolo_list)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -242,7 +226,7 @@ int main(int argc, char *argv[])
 		}
 		break;
 	case 1:
-		if(write_LON_LAT_to_dirfile(dir, samples_struct, iframe_min, iframe_max, bolo_list)){
+		if(write_LON_LAT_to_dirfile(dir, samples_struct, bolo_list)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);

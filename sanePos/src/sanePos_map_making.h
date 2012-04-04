@@ -17,8 +17,7 @@ extern "C" {
  * outputs or updates (ra|dec)_(min|max) for SANEPIC format ONLY
  * Each rank treats his scans (indice_min and _max are given has inputs)
  \param samples_struct A samples structure
- \param iframe_min Actual rank first frame indice
- \param iframe_max Actual rank last frame indice
+
  \param ra_min ra minimum coordinate of the map : To be filled/replaced
  \param ra_max ra maximum coordinate of the map : To be filled/replaced
  \param dec_min dec minimum coordinate of the map : To be filled/replaced
@@ -27,7 +26,7 @@ extern "C" {
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computeMapMinima(struct samples samples_struct, std::string dirfile,
-		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		struct wcsprm * & wcs,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
 
 //! Computes map extrema by projecting the bolometers offsets back into the sky plane
@@ -36,9 +35,7 @@ int computeMapMinima(struct samples samples_struct, std::string dirfile,
  * Each rank treats his scans (indice_min and _max are given has inputs)
  \param tmp_dir A string containing the temporary files pathname
  \param samples_struct A samples structure
- \param iframe_min Actual rank first frame indice
- \param iframe_max Actual rank last frame indice
- \param ra_min ra minimum coordinate of the map : To be filled/replaced
+  \param ra_min ra minimum coordinate of the map : To be filled/replaced
  \param ra_max ra maximum coordinate of the map : To be filled/replaced
  \param dec_min dec minimum coordinate of the map : To be filled/replaced
  \param dec_max dec maximum coordinate of the map : To be filled/replaced
@@ -46,7 +43,7 @@ int computeMapMinima(struct samples samples_struct, std::string dirfile,
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int computeMapMinima_HIPE(struct samples samples_struct,
-		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		struct wcsprm * & wcs,
 		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
 
 

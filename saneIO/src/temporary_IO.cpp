@@ -31,7 +31,7 @@ extern "C" {
 using namespace std;
 
 //TODO: Absolutely inefficient.... Need to rewrite that, open the fits file ONCE !
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	double *signal;
@@ -47,7 +47,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		det_vect=bolo_vect[iframe];
 
@@ -216,7 +216,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 }
 
 //TODO: What about the other format ???
-int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	double *lon;
@@ -233,7 +233,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 
 	std::vector<string> det_vect;
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		det_vect=bolo_vect[iframe];
 
@@ -405,14 +405,14 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 }
 
 
-int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	DIRFILE* D, *H;
 
 	std::vector<string> det_vect;
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		det_vect=bolo_vect[iframe];
 

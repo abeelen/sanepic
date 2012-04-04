@@ -67,8 +67,6 @@ int main(int argc, char *argv[])
 	string field; /*! actual boloname in the bolo loop */
 	struct param_sanePic pic_param;
 
-	long iframe_min, iframe_max; /*! For mpi usage : defines min/max number of frame for each processor */
-
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS ps_param;
 	struct param_saneInv inv_param;
@@ -131,21 +129,13 @@ int main(int argc, char *argv[])
 
 #ifdef PARA_FRAME
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
-	if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
-		cout << "Warning. Rank " << rank << " will not do anything ! please run saneFrameorder\n";
-	}
-#else
-
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 
 #endif
 

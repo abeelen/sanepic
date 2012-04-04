@@ -236,7 +236,6 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	string testfile;
 	string basename;
 	std::ostringstream temp_stream;
-	FILE *fp;
 
 	int *flag;
 

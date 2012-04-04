@@ -189,7 +189,7 @@ double range (double angle)
 
 
 // TODO : test this...
-int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param, long iframe_min, long iframe_max, std::vector<std::vector<std::string> > bolo_vect)
+int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param, std::vector<std::vector<std::string> > bolo_vect)
 {
 
 	double *lon, *lat;
@@ -201,7 +201,7 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 	D = samples_struct.dirfile_pointer;
 
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		ns = samples_struct.nsamples[iframe];
 

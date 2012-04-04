@@ -1139,9 +1139,13 @@ uint16_t fill_samples_param(string &output, struct samples &samples_param,
 
 	returnCode |= read_fits_list(output, dir.input_dir + dir.fits_filelist, samples_param);
 
+	// Default values
+	samples_param.iframe_min = 0;
+	samples_param.iframe_max = samples_param.ntotscan;
+
+	// Add data directory to fitsvect
 	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++)
 		samples_param.fitsvect[iframe] = dir.data_dir + samples_param.fitsvect[iframe];
-
 
 	// Fill basevect
 	for (long iframe = 0; iframe < samples_param.ntotscan; iframe++) {

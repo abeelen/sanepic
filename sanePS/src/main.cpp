@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
 	string field; // actual boloname in the bolo loop
 	string prefixe; // prefix used for temporary name file creation
 
-	long iframe_min = 0, iframe_max = 0;
-
 	// main loop variables
 	double *S = NULL; // signal
 	struct param_sanePS structPS;
@@ -173,7 +171,7 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		MPI_Finalize();
 		return EX_IOERR;
@@ -181,9 +179,6 @@ int main(int argc, char *argv[])
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-#else
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 #endif
 
 	if(channel_list_to_vect_list(samples_struct, bolo_list, rank)){
@@ -381,7 +376,7 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << "Noise Power Spectra Estimation started : " << endl;
 
-	for (long iframe = iframe_min; iframe < iframe_max; iframe++) { // proceed scan by scan
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
 
 		std::vector<string> det=bolo_list[iframe];
 

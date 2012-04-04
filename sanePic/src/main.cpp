@@ -14,6 +14,7 @@
 #include <cstring>
 #include <gsl/gsl_math.h>
 #include <sysexits.h>
+#include <unistd.h>
 #include "getopt.h"
 
 #include "imageIO.h"
@@ -44,6 +45,22 @@ extern "C" {
 #endif
 
 using namespace std;
+
+
+long getTotalSystemMemory()
+{
+	long pages = sysconf(_SC_PHYS_PAGES);
+	long page_size = sysconf(_SC_PAGE_SIZE);
+	return pages * page_size;
+}
+
+long getAvailableSystemMemory()
+{
+	long pages = sysconf(_SC_AVPHYS_PAGES);
+	long page_size = sysconf(_SC_PAGE_SIZE);
+	return pages * page_size;
+}
+
 
 /*!
  *  This is organized as :
@@ -92,7 +109,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank == 0)
-	  cout << endl << "Beginning of sanePic : conjugate gradient descent" << endl;
+		cout << endl << "Beginning of sanePic : conjugate gradient descent" << endl;
 
 	//************************************************************************//
 	//************************************************************************//
@@ -111,7 +128,6 @@ int main(int argc, char *argv[]) {
 	string parser_output = "";
 
 	//	iterw = sanePic writes a temporary fits file (map) to disk each iterw iterations (conjugate gradient)
-	long iframe_min, iframe_max; /* For mpi usage : defines min/max number of frame for each processor */
 	int flagon = 0; /*  if at least one sample is rejected, flagon=1 */
 	int factdupl = 1; /* map duplication factor */
 	long long addnpix = 0; /* number of pix to add to compute the final maps in case of duplication + box constraint */
@@ -318,18 +334,13 @@ int main(int argc, char *argv[]) {
 
 #ifdef PARA_FRAME
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
-#else
-
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 
 #endif
 
@@ -386,26 +397,26 @@ int main(int argc, char *argv[]) {
 		return (EX_IOERR);
 	}
 
-//
-//
-//	if (rank == 0){
-//		print_MapHeader(wcs);
-//		cout << "nkeys" << nsubkeys << endl;
-//		char * hptr;
-//		// .... print it
-//		hptr = subheader;
-//		printf("\n\n Sub Header :\n");
-//		for (int ii = 0; ii < nsubkeys; ii++, hptr += 80) {
-//			printf("%.80s\n", hptr);
-//		}
-//	}
+	//
+	//
+	//	if (rank == 0){
+	//		print_MapHeader(wcs);
+	//		cout << "nkeys" << nsubkeys << endl;
+	//		char * hptr;
+	//		// .... print it
+	//		hptr = subheader;
+	//		printf("\n\n Sub Header :\n");
+	//		for (int ii = 0; ii < nsubkeys; ii++, hptr += 80) {
+	//			printf("%.80s\n", hptr);
+	//		}
+	//	}
 
 
 	if (Pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
 	if (rank == 0){
-		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels\n" << endl; // print map size
+		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels" << endl; // print map size
 
 		if (read_indpsrc(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
 #ifdef USE_MPI
@@ -445,6 +456,15 @@ int main(int argc, char *argv[]) {
 			return (EX_IOERR);
 		}
 
+		printf("Mem. per process : %4.0f Mo\n", (indpix_size+npix*9)*8./1024/1024);
+		if (getAvailableSystemMemory() < (indpix_size+npix*9)*8.*size){
+			cerr << endl << "EE - Available physical memory too low" << endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return (EX_IOERR);
+
+		}
 	} // rank ==0
 
 
@@ -469,15 +489,6 @@ int main(int argc, char *argv[]) {
 
 
 	/*************************************************************/
-
-	if (iframe_min < 0 || iframe_min > iframe_max || iframe_max	> samples_struct.ntotscan) {
-		cerr << "Error distributing frame ranges. Check iframe_min and iframe_max. Exiting"
-				<< endl;
-#ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return (EX_SOFTWARE);
-	}
 
 
 #ifdef USE_MPI
@@ -533,7 +544,7 @@ int main(int argc, char *argv[]) {
 		fill(PNd, PNd+npix, 0.0);
 
 		// loop over the scans
-		for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 			ns = samples_struct.nsamples[iframe]; // number of samples for this scan
 			fhp_pix  = samples_struct.fhp[iframe] * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
@@ -752,7 +763,7 @@ int main(int argc, char *argv[]) {
 	// in case flagged pixels are put in a duplicated map
 	while(idupl <= Pos_param.flgdupl){
 
- 		if (Pic_param.save_data > 0)
+		if (Pic_param.save_data > 0)
 			if(rank == 0)
 				write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
 
@@ -767,7 +778,7 @@ int main(int argc, char *argv[]) {
 			fill(d, d + npix, 0.0);
 			fill(s, s + npix, 0.0);
 
-			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
 				ns       = samples_struct.nsamples[iframe];
 				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
@@ -887,8 +898,8 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-//			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
-//					<< delta_n << endl;
+			//			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
+			//					<< delta_n << endl;
 
 			Pic_param.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
 
@@ -912,7 +923,7 @@ int main(int argc, char *argv[]) {
 			fill(q, q + npixeff, 0.0); // q <= A*d
 
 
-			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
 				ns       = samples_struct.nsamples[iframe];
 				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
@@ -986,7 +997,7 @@ int main(int argc, char *argv[]) {
 				PtNPmatS = new double[npix];
 				fill(PtNPmatS, PtNPmatS + npix, 0.0);
 
-				for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+				for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 					ns = samples_struct.nsamples[iframe];
 					fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
 
@@ -1258,7 +1269,7 @@ int main(int argc, char *argv[]) {
 
 			fill(PNd, PNd + npix, 0.0); // correct : has to be reset to 0 !
 
-			for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
 				ns = samples_struct.nsamples[iframe];
 				fhp_pix = samples_struct.fhp[iframe]* double(ns) / samples_struct.fsamp[iframe];
@@ -1403,7 +1414,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank == 0)
-	  cout << endl << "End of sanePic" << endl;
+		cout << endl << "End of sanePic" << endl;
 
 	return EXIT_SUCCESS;
 }

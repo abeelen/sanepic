@@ -76,8 +76,6 @@ int main(int argc, char *argv[]) {
 	struct param_sanePS structPS;
 	struct param_saneCheck check_struct;
 
-	long iframe_min=0, iframe_max=0; /* frame number min and max each processor has to deal with */
-
 	string outname; // Ouput log files name
 	string output = "";
 	string bolo_gain_filename="";
@@ -146,16 +144,13 @@ int main(int argc, char *argv[]) {
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size, iframe_min, iframe_max)){
+	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Abort(MPI_COMM_WORLD, 1);
 		return EX_IOERR;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-#else
-	iframe_min = 0;
-	iframe_max = samples_struct.ntotscan;
 #endif
 
 
@@ -237,7 +232,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	for (long iframe=iframe_min;iframe<iframe_max;iframe++){
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 			std::vector<string> bolo_fits;
 			long ndet_fits;

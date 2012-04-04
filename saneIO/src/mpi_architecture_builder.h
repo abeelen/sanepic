@@ -76,10 +76,9 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
   \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
   \param size The number of processors to be used
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
-  \param iframe_min Beginning frame index for processor "rank"
   \param iframe_max Ending frame index for processor "rank"
  */
-int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max);
+int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samples_struct, int rank, int size);
 
 //! Reorder whole samples_struct vectors (fitsvect, bolovect, ...) using processor orders and attributes, to each rank, its frame begin and end indexes
 /*!
@@ -87,9 +86,8 @@ int configure_PARA_FRAME_samples_struct(std::string outdir, struct samples &samp
   \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
   \param size The number of processors to be used
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
-  \param iframe_min Beginning frame index for processor "rank"
   \param iframe_max Ending frame index for processor "rank"
  */
-void reorder_samples_struct(int rank, struct samples &samples_struct, int size, long &iframe_min, long &iframe_max);
+void reorder_samples_struct(int rank, struct samples &samples_struct, int size);
 
 #endif /* MPI_ARCHITECTURE_BUILDER_H_ */

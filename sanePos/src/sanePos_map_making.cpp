@@ -26,7 +26,7 @@ extern "C" {
 using namespace std;
 
 int computeMapMinima(struct samples samples_struct, string dirfile,
-		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		struct wcsprm * & wcs,
 		double &lon_min, double &lon_max, double &lat_min, double &lat_max,
 		std::vector<std::vector<std::string> > bolo_vect) {
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
@@ -41,7 +41,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 	lat_min = 360;
 	lat_max = -360;
 
-	for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 		// for each scan
 		fits_file = samples_struct.fitsvect[iframe];
 
@@ -197,7 +197,7 @@ int minmax_flag(double *& array, int *& flag, long size, double & min_array,
 }
 
 int computeMapMinima_HIPE(struct samples samples_struct,
-		long iframe_min, long iframe_max, struct wcsprm * & wcs,
+		struct wcsprm * & wcs,
 		double &lon_min, double &lon_max, double &lat_min, double &lat_max,
 		std::vector<std::vector<std::string> > bolo_vect) {
 
@@ -220,7 +220,7 @@ int computeMapMinima_HIPE(struct samples samples_struct,
 	lat_min = 360;
 	lat_max = -360;
 
-	for (long iframe = iframe_min; iframe < iframe_max; iframe++) {
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 		// for each scan
 		base_file = samples_struct.basevect[iframe];
 

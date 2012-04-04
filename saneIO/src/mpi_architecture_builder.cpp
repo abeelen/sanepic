@@ -293,7 +293,7 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 
 	long size_tmp = 0;
 	int num_frame = 0;
-//	char c;
+	//	char c;
 
 	// Retrieve the MPI size from the scans_indexes...
 	std::vector<int> index_copy(samples_struct.scans_index);
@@ -323,18 +323,18 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 		index_copy.resize( size_tmp );
 		if(rank==0){
 			cout << "WW - The number of processors defined in " << origin_file << " is lower than the number of processor used by MPI !\n";
-//			cout << "     Do you wish to continue ? (y/[n]) ";
-//			c=getchar();
-//			switch (c){
-//			case 'y':
-				cout << "WW - Continuing with only " << (size_tmp) << "/" << size << " processors !" << endl;
-//				break;
-//			default:
-//				cout << "EE - Please modify " << origin_file << " to use the correct number of processors" << endl;
-//				cout << "EE - Exiting ! " << endl;
-//				return 1;
-//				break;
-//			}
+			//			cout << "     Do you wish to continue ? (y/[n]) ";
+			//			c=getchar();
+			//			switch (c){
+			//			case 'y':
+			cout << "WW - Continuing with only " << (size_tmp) << "/" << size << " processors !" << endl;
+			//				break;
+			//			default:
+			//				cout << "EE - Please modify " << origin_file << " to use the correct number of processors" << endl;
+			//				cout << "EE - Exiting ! " << endl;
+			//				return 1;
+			//				break;
+			//			}
 
 			// Check that we are using rank 0
 			for(long ii=0;ii<size_tmp;ii++)
@@ -353,7 +353,7 @@ int verify_parallelization_scheme(int rank, struct samples &samples_struct, int 
 
 }
 
-int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_struct, int rank, int size, long &iframe_min, long &iframe_max){
+int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_struct, int rank, int size){
 
 
 	struct samples samples_str_para;
@@ -398,20 +398,25 @@ int configure_PARA_FRAME_samples_struct(string outdir, struct samples &samples_s
 		return 1;
 
 	// reorder samples_struct
-	reorder_samples_struct(rank, samples_struct, size, iframe_min, iframe_max);
+	reorder_samples_struct(rank, samples_struct, size);
 
-		if (iframe_max==iframe_min){ // ifram_min=iframe_max => This processor will not do anything
+	if (samples_struct.iframe_max==samples_struct.iframe_min){ // ifram_min=iframe_max => This processor will not do anything
 		cout << "WW - rank " << rank << " not used... (run saneFrameorder to fix)" << endl 	;
 	}
+
+	if (samples_struct.iframe_min < 0 || samples_struct.iframe_min > samples_struct.iframe_max || samples_struct.iframe_max	> samples_struct.ntotscan) {
+		cerr << "EE - Error distributing frame ranges. Check iframe_min and iframe_max. " << endl;
+		cerr << "EE - Exiting" 	<< endl;
+		return 1;
+	}
+
 	return 0;
 }
 
-void reorder_samples_struct(int rank, struct samples &samples_struct,  int size, long &iframe_min, long &iframe_max){
+void reorder_samples_struct(int rank, struct samples &samples_struct,  int size){
 	// TODO : This routine does not do what it is supposed to do...
 
 	long frame_index=0;
-	iframe_min=0;
-	iframe_max=0;
 
 	// copy the whole vectors
 	std::vector<string>        fitsvect_copy(samples_struct.fitsvect);
@@ -436,7 +441,7 @@ void reorder_samples_struct(int rank, struct samples &samples_struct,  int size,
 	for(long ii = 0; ii<size; ii++){
 
 		if(rank==ii)
-			iframe_min=frame_index;
+			samples_struct.iframe_min=frame_index;
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++){
 			if(scans_index_copy[jj]==ii){
 
@@ -466,6 +471,6 @@ void reorder_samples_struct(int rank, struct samples &samples_struct,  int size,
 			}
 		}
 		if(rank==ii)
-			iframe_max=frame_index;
+			samples_struct.iframe_max=frame_index;
 	}
 }
