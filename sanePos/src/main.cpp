@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
+		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
 	}
 
 #ifdef PARA_FRAME
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 		if (rank == 0)
 			cout << endl<< "Converting coordinates..." << endl;
 
-		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param, samples_struct.bolo_list);
+		int status = convert_Dirfile_LON_LAT(samples_struct, pos_param);
 
 		if (pos_param.eq2gal)
 			pos_param.axistype = "GAL";
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 //					break;
 //				case 1:
 					if(computeMapMinima_HIPE(samples_struct,
-							wcs, lon_min,lon_max,lat_min,lat_max, samples_struct.bolo_list)){
+							wcs, lon_min,lon_max,lat_min,lat_max)){
 #ifdef PARA_FRAME
 						MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -454,8 +454,7 @@ int main(int argc, char *argv[])
 //				}
 //				break;
 //			case 1:
-				if(computeMapMinima_HIPE(samples_struct,
-						wcs, lon_min,lon_max,lat_min,lat_max, samples_struct.bolo_list)){
+				if(computeMapMinima_HIPE(samples_struct, wcs, lon_min,lon_max,lat_min,lat_max)){
 #ifdef PARA_FRAME
 					MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -639,7 +638,7 @@ int main(int argc, char *argv[])
 				wcs, NAXIS1, NAXIS2,
 				mask,factdupl,
 				addnpix, pixon, rank,
-				indpsrc, npixsrc, flagon, pixout, samples_struct.bolo_list)){
+				indpsrc, npixsrc, flagon, pixout)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif

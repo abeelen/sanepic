@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-	fill_sanePS_struct(ps_param, samples_struct, dir);
+//	fill_sanePS_struct(ps_param, samples_struct, dir);
 
 	cout << rank << " parser done." << endl;
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
 #endif
 
-	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
+//	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
 
 	if (rank==0){
 //		print_common(dir);

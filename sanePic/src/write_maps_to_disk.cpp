@@ -25,8 +25,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, std::vector<double> fcut, struct wcsprm *wcs, string maskfile, struct param_sanePS structPS,
-		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys,
-		std::vector<std::vector<std::string> > bolo_vect){
+		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys){
 
 
 
@@ -109,7 +108,7 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		long ns = samples_struct.nsamples[iframe];
 		samptopix=new long long [ns];
 
-		std::vector<string> det_vect = bolo_vect[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 		long ndet = (long)det_vect.size();
 
 		for (long idet1=0;idet1<ndet;idet1++){

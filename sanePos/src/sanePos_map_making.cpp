@@ -27,8 +27,7 @@ using namespace std;
 
 int computeMapMinima(struct samples samples_struct, string dirfile,
 		struct wcsprm * & wcs,
-		double &lon_min, double &lon_max, double &lat_min, double &lat_max,
-		std::vector<std::vector<std::string> > bolo_vect) {
+		double &lon_min, double &lon_max, double &lat_min, double &lat_max) {
 	// Compute map extrema by projecting the bolometers offsets back into the sky plane
 	// output or update (lon|lat) (min|max)
 
@@ -45,7 +44,7 @@ int computeMapMinima(struct samples samples_struct, string dirfile,
 		// for each scan
 		fits_file = samples_struct.fitsvect[iframe];
 
-		std::vector<string> det_vect = bolo_vect[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
 		long ndet = (long) det_vect.size();
 
@@ -198,8 +197,7 @@ int minmax_flag(double *& array, int *& flag, long size, double & min_array,
 
 int computeMapMinima_HIPE(struct samples samples_struct,
 		struct wcsprm * & wcs,
-		double &lon_min, double &lon_max, double &lat_min, double &lat_max,
-		std::vector<std::vector<std::string> > bolo_vect) {
+		double &lon_min, double &lon_max, double &lat_min, double &lat_max) {
 
 	// Compute map extrema by projecting the bolometers position
 	// output (lon|lat)_(min|max)
@@ -224,7 +222,7 @@ int computeMapMinima_HIPE(struct samples samples_struct,
 		// for each scan
 		base_file = samples_struct.basevect[iframe];
 
-		std::vector<string> det_vect = bolo_vect[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
 		long ndet = (long) det_vect.size();
 

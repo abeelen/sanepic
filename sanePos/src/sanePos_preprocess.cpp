@@ -309,7 +309,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect)
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout)
 {
 
 	// TODO : samptopix unsigned long ?
@@ -327,7 +327,7 @@ int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc 
 		base_file= samples_struct.basevect[iframe];
 		ns = samples_struct.nsamples[iframe];
 
-		std::vector<string> det_vect = bolo_vect[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
 		long ndet = (long)det_vect.size();
 

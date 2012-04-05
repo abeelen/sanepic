@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
 	//	}
 
 	if(rank==0)
-		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix, samples_struct.bolo_list);
+		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix);
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.

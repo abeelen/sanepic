@@ -41,7 +41,6 @@ int write_maps_to_disk(double *S, long NAXIS1, long NAXIS2, long npix, struct pa
 		double *Mptot, long long addnpix, long long npixsrc, int factdupl, long ntotscan,
 		struct param_saneProc proc_param, struct param_sanePos pos_param, struct samples samples_struct,
 		std::vector<double> fcut, struct wcsprm *wcs, string maskfile,  struct param_sanePS structPS,
-		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys,
-		std::vector<std::vector<std::string> > bolo_vect);
+		struct param_sanePic sanePic_struct, struct param_saneInv saneInv_struct, char * subheader, int nsubkeys);
 
 #endif /* WRITE_MAPS_TO_DISK_H_ */

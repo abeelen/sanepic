@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		cout << endl << "Exporting signal and flags... " << endl;
 
-	if(write_data_flag_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
+	if(write_data_flag_to_dirfile(dir, samples_struct)){
 		cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
 #ifdef USE_MPI
 		MPI_Abort(MPI_COMM_WORLD, 1);
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 	//TODO: What if Pos_param = 0 ?????
 	switch (Pos_param.fileFormat) {
 	case 0:
-		if(export_LON_LAT_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
+		if(export_LON_LAT_to_dirfile(dir, samples_struct)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 		}
 		break;
 	case 1:
-		if(write_LON_LAT_to_dirfile(dir, samples_struct, samples_struct.bolo_list)){
+		if(write_LON_LAT_to_dirfile(dir, samples_struct)){
 			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);

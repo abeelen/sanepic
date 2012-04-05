@@ -8,18 +8,21 @@
 #ifndef ERROR_CODE_H_
 #define ERROR_CODE_H_
 
+#define OK 0x0000
+
 /*! ini file was not found : incorrect name, or name was not given by user */
 #define INI_NOT_FOUND 0x0001
 
 /*! input file related problems */
-#define FILE_PROBLEM 0x0002
-#define FILE_SIZE_PROBLEM 0x0003
+#define DIR_PROBLEM 0x0002
+#define FILE_PROBLEM 0x0003
+#define FILE_SIZE_PROBLEM 0x0004
 
 /*! data or/and input path(s) are incorrects or were not correctly filled in ini file */
-#define DATA_INPUT_PATHS_PROBLEM 0x0002
+#define DATA_INPUT_PATHS_PROBLEM 0x0005
 
 /*! output path is incorrect or was not correctly filled in ini file */
-#define OUPUT_PATH_PROBLEM 0x0004
+#define OUPUT_PATH_PROBLEM 0x0006
 
 /*! temporary files path is incorrect or was not correctly filled in ini file */
 #define TMP_PATH_PROBLEM 0x0008

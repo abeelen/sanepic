@@ -31,7 +31,7 @@ extern "C" {
 using namespace std;
 
 //TODO: Absolutely inefficient.... Need to rewrite that, open the fits file ONCE !
-int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
+int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
 	double *signal;
@@ -49,7 +49,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
-		det_vect=bolo_vect[iframe];
+		det_vect=samples_struct.bolo_list[iframe];
 
 		string base_name = samples_struct.basevect[iframe];
 		string fits_name = samples_struct.fitsvect[iframe];
@@ -216,7 +216,7 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 }
 
 //TODO: What about the other format ???
-int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
+int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
 	double *lon;
@@ -235,7 +235,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
-		det_vect=bolo_vect[iframe];
+		det_vect=samples_struct.bolo_list[iframe];
 
 		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
 		string fits_name = samples_struct.fitsvect[iframe];
@@ -405,7 +405,7 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 }
 
 
-int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect)
+int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
 	DIRFILE* D, *H;
@@ -414,7 +414,7 @@ int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_st
 
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
-		det_vect=bolo_vect[iframe];
+		det_vect=samples_struct.bolo_list[iframe];
 
 		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
 		string fits_name = samples_struct.fitsvect[iframe];

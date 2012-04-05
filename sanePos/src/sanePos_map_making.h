@@ -27,7 +27,7 @@ extern "C" {
  */
 int computeMapMinima(struct samples samples_struct, std::string dirfile,
 		struct wcsprm * & wcs,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
 //! Computes map extrema by projecting the bolometers offsets back into the sky plane
 /*!
@@ -44,7 +44,7 @@ int computeMapMinima(struct samples samples_struct, std::string dirfile,
  */
 int computeMapMinima_HIPE(struct samples samples_struct,
 		struct wcsprm * & wcs,
-		double &ra_min,double &ra_max,double &dec_min,double &dec_max, std::vector<std::vector<std::string> > bolo_vect);
+		double &ra_min,double &ra_max,double &dec_min,double &dec_max);
 
 
 //! Computes an array's minimum and maximum values without taking flagged samples into account

@@ -189,7 +189,7 @@ double range (double angle)
 
 
 // TODO : test this...
-int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param, std::vector<std::vector<std::string> > bolo_vect)
+int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param)
 {
 
 	double *lon, *lat;
@@ -211,10 +211,10 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 		new_lon = new double[ns];
 		new_lat = new double[ns];
 
-		for (unsigned long idet = 0; idet <  bolo_vect[iframe].size() ; idet++) {
+		for (unsigned long idet = 0; idet < samples_struct.bolo_list[iframe].size() ; idet++) {
 
-			string lon_file = "LON_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
-			string lat_file = "LAT_" + samples_struct.basevect[iframe] + "_" + bolo_vect[iframe][idet];
+			string lon_file = "LON_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
+			string lat_file = "LAT_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
 
 			const char * field_lon, *field_lat;
 

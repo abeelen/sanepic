@@ -77,6 +77,6 @@ int computePixelIndex(std::string dirfile, struct samples samples_struct, struct
 int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct wcsprm * wcs, long NAXIS1, long NAXIS2, short *&mask,
 		int factdupl,long long addnpix, long long *&pixon, int rank,
-		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout, std::vector<std::vector<std::string> > bolo_vect);
+		long long *indpsrc, long long npixsrc, int &flagon, bool &pixout);
 
 #endif /* SANEPOS_PREPROCESS_H_ */

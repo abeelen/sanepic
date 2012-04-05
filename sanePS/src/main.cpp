@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
 	}
 
 #ifdef USE_MPI

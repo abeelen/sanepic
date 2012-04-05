@@ -62,6 +62,52 @@ string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
 
+uint16_t check_path(string &output, string strPath, bool create) {
+
+	if (access(strPath.c_str(), 0) == 0) {
+		struct stat status;
+		stat(strPath.c_str(), &status);
+
+		if (status.st_mode & S_IFDIR) {
+			return OK;
+		} else {
+			output += "EE - " + strPath + " is a file.\n";
+			return DIR_PROBLEM;
+		}
+	} else {
+		if (! create) {
+			output += "EE - " + strPath + " does not exist\n";
+			return DIR_PROBLEM;
+		}
+
+		int status;
+		status = mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		if (status == 0)
+			output += "WW - " + strPath + " created\n";
+		else {
+			output += "EE - " + strPath + " failed to create\n";
+			return DIR_PROBLEM;
+		}
+	}
+	return OK;
+}
+
+uint16_t check_file(string strPath) {
+
+	if (access(strPath.c_str(), 0) == 0) {
+		struct stat status;
+		stat(strPath.c_str(), &status);
+
+		if ( (status.st_mode & S_IFREG) && (status.st_mode & S_IFLNK) )
+			return 0;
+		else
+			return FILE_PROBLEM;
+
+	} else {
+		return FILE_PROBLEM;
+	}
+}
+
 uint16_t fillvect_double(double value, string file, string dir, long ntotscan, vector<double> &outputVector){
 
 	vector<double> dummy;
@@ -82,7 +128,7 @@ uint16_t fillvect_double(double value, string file, string dir, long ntotscan, v
 			outputVector[ii] = value;
 	}
 
-	return 0;
+	return OK;
 }
 
 void fillvect_strings(string commonFile, vector<string> FitsFilename, string suffix, string dir, vector<string> & outputVector){
@@ -105,6 +151,171 @@ void fillvect_strings(string commonFile, vector<string> FitsFilename, string suf
 	}
 
 }
+
+uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
+		struct param_common &dir, struct param_saneInv &Inv_param,
+		struct param_saneProc &Proc_param, int rank, int size) {
+
+	uint16_t returnCode = 0;
+
+	if (rank == 0)
+		returnCode |= read_fits_list(output, dir.input_dir + dir.fits_filelist, samples_struct);
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
+	// Then we need to BCast the read vectors
+	returnCode |=  BCast_string_vector(samples_struct.fitsvect,  rank, size);
+	returnCode |=  BCast_int_vector(samples_struct.scans_index,  rank, size);
+
+	returnCode |=  MPI_Bcast(&(samples_struct.framegiven), 1, MPI_INT,  0, MPI_COMM_WORLD);
+	returnCode |=  MPI_Bcast(&(samples_struct.ntotscan),   1, MPI_LONG, 0, MPI_COMM_WORLD);
+
+#endif
+
+	// Default values
+	samples_struct.iframe_min = 0;
+	samples_struct.iframe_max = samples_struct.ntotscan;
+
+	// Add data directory to fitsvect
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++)
+		samples_struct.fitsvect[iframe] = dir.data_dir + samples_struct.fitsvect[iframe];
+
+	// Fill basevect
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+		samples_struct.basevect.push_back(
+				dirfile_Basename(samples_struct.fitsvect[iframe]));
+	}
+
+	vector<string> dummy_string;
+	vector<double> dummy_double;
+
+	fillvect_strings(dir.bolo, samples_struct.fitsvect, dir.bolo_suffix, dir.input_dir, dummy_string);
+	samples_struct.bolovect = dummy_string;
+	dummy_string.clear();
+
+	fillvect_strings(Inv_param.cov_matrix, samples_struct.fitsvect, Inv_param.cov_matrix_suffix, Inv_param.noise_dir, dummy_string);
+	samples_struct.noisevect = dummy_string;
+	dummy_string.clear();
+
+	returnCode |= fillvect_double(Proc_param.fcut, Proc_param.fcut_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	samples_struct.fcut = dummy_double;
+	dummy_double.clear();
+
+	returnCode |= fillvect_double(Proc_param.fsamp,Proc_param.fsamp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	samples_struct.fsamp = dummy_double;
+	dummy_double.clear();
+
+	returnCode |= fillvect_double(Proc_param.fhp, Proc_param.fhp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	samples_struct.fhp = dummy_double;
+	dummy_double.clear();
+
+	// Read all channels list once for all
+	returnCode |= fill_channel_list(output, samples_struct, rank, size);
+
+	return returnCode;
+
+}
+
+int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank) {
+
+	long nframe_long;
+
+	for (long ii = 0; ii < samples_struct.ntotscan; ii++) {
+
+		if (rank == 0) {
+			string scan_name = samples_struct.basevect[ii];
+			// dirfile path
+			string filedir = tmp_dir + "dirfile/" + scan_name
+					+ "/Noise_data/ell/";
+
+			// open dirfile
+			DIRFILE* H = gd_open((char *) filedir.c_str(),
+					GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+			unsigned int nframe = gd_nframes(H);
+
+			// close dirfile
+			if (gd_close(H)) {
+				cout << "Dirfile gd_close error in get_noise_bin_sizes for : "
+						<< filedir << endl;
+				return 1;
+			}
+
+			nframe_long = (long) (nframe - 1);
+		}
+
+#ifdef USE_MPI
+		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+#endif
+
+		// get nbins value
+		samples_struct.nbins.push_back(nframe_long);
+
+		if (rank == 0) {
+
+			string scan_name = samples_struct.basevect[ii];
+
+			// get ndet value
+			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
+			DIRFILE* H = gd_open((char *) filedir.c_str(),
+					GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+			unsigned int nframe = gd_nframes(H);
+
+			// close dirfile
+			if (gd_close(H)) {
+				cout << "Dirfile gd_close error in get_noise_bin_sizes for : "
+						<< filedir << endl;
+				return 1;
+			}
+			nframe_long = (long) nframe;
+		}
+
+#ifdef USE_MPI
+		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
+#endif
+
+		// compute ndet considering entry size and nbins
+		samples_struct.ndet.push_back(nframe_long / samples_struct.nbins[ii]);
+
+	}
+
+	return 0;
+}
+
+uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size){
+	uint16_t returnCode = 0;
+
+	std::vector<string> det_vect;
+
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+
+		if (rank == 0)
+			returnCode |= read_channel_list(output, samples_struct.bolovect[iframe], det_vect);
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
+		// Then we need to BCast the read vectors
+		returnCode |=  BCast_string_vector(det_vect, rank, size);
+#endif
+
+		samples_struct.bolo_list.push_back(det_vect);
+
+		det_vect.clear();
+	}
+
+	return returnCode;
+}
+
+unsigned long max_size_str_vect(std::vector<std::string> str_vect)
+{
+	unsigned long size_max=0;
+
+	for(unsigned long ii=0; ii < str_vect.size(); ii++)
+		if( str_vect[ii].size()>size_max)
+			size_max=str_vect[ii].size();
+
+	return size_max;
+}
+
 
 void read_common(string &output, dictionary *ini, struct param_common &common) {
 
@@ -533,52 +744,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 
 }
 
-int check_path(string &output, string strPath, bool create) {
 
-	if (access(strPath.c_str(), 0) == 0) {
-		struct stat status;
-		stat(strPath.c_str(), &status);
-
-		if (status.st_mode & S_IFDIR) {
-			return 0;
-		} else {
-			output += "EE - " + strPath + " is a file.\n";
-			return 1;
-		}
-	} else {
-		if (! create) {
-			output += "EE - " + strPath + " does not exist\n";
-			return 1;
-		}
-
-		int status;
-		status = mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0)
-			output += "WW - " + strPath + " created\n";
-		else {
-			output += "EE - " + strPath + " failed to create\n";
-			return 1;
-		}
-	}
-	return 0;
-}
-
-
-uint16_t check_file(string strPath) {
-
-	if (access(strPath.c_str(), 0) == 0) {
-		struct stat status;
-		stat(strPath.c_str(), &status);
-
-		if ( (status.st_mode & S_IFREG) && (status.st_mode & S_IFLNK) )
-			return 0;
-		else
-			return FILE_PROBLEM;
-
-	} else {
-		return FILE_PROBLEM;
-	}
-}
 
 int compute_dirfile_format_file(std::string tmp_dir,
 		struct samples samples_struct, int format) {
@@ -678,14 +844,13 @@ int compute_dirfile_format_file(std::string tmp_dir,
 	return 0;
 }
 
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct,
-		std::vector<std::vector<std::string> > bolo_vect) {
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct) {
 
 	std::vector<string> det_vect;
 
 	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
 
-		det_vect = bolo_vect[iframe];
+		det_vect = samples_struct.bolo_list[iframe];
 
 		string scan_name = samples_struct.basevect[iframe];
 		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
@@ -718,15 +883,13 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct,
 	return 0;
 }
 
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct,
-		long nframe, string noise_suffix,
-		std::vector<std::vector<std::string> > bolo_vect) {
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, string noise_suffix) {
 
 	std::vector<string> det_vect;
 
 	for (long ii = 0; ii < nframe; ii++) {
 
-		det_vect = bolo_vect[ii];
+		det_vect = samples_struct.bolo_list[ii];
 
 		string base_name = samples_struct.basevect[ii];
 		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
@@ -779,12 +942,11 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct,
 	return 0;
 }
 
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct,
-		std::vector<std::vector<std::string> > bolo_vect) {
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct) {
 
 	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
 
-		std::vector<string> det_vect = bolo_vect[iframe];
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
 		//get fourier transform dirfile names !
 		string scan_name = samples_struct.basevect[iframe];
@@ -841,6 +1003,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct,
 
 	return 0;
 }
+
 
 uint16_t check_common(string &output, struct param_common &dir) {
 
@@ -1131,172 +1294,6 @@ void fill_sanePS_struct(struct param_sanePS &PS_param,
 }
 
 
-
-uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
-		struct param_common &dir, struct param_saneInv &Inv_param,
-		struct param_saneProc &Proc_param, int rank, int size) {
-
-	uint16_t returnCode = 0;
-
-	if (rank == 0)
-		returnCode |= read_fits_list(output, dir.input_dir + dir.fits_filelist, samples_struct);
-
-#ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
-	// Then we need to BCast the read vectors
-	returnCode |=  BCast_string_vector(samples_struct.fitsvect,  rank, size);
-	returnCode |=  BCast_int_vector(samples_struct.scans_index,  rank, size);
-
-	returnCode |=  MPI_Bcast(&(samples_struct.framegiven), 1, MPI_INT,  0, MPI_COMM_WORLD);
-	returnCode |=  MPI_Bcast(&(samples_struct.ntotscan),   1, MPI_LONG, 0, MPI_COMM_WORLD);
-
-#endif
-
-	// Default values
-	samples_struct.iframe_min = 0;
-	samples_struct.iframe_max = samples_struct.ntotscan;
-
-	// Add data directory to fitsvect
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++)
-		samples_struct.fitsvect[iframe] = dir.data_dir + samples_struct.fitsvect[iframe];
-
-	// Fill basevect
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-		samples_struct.basevect.push_back(
-				dirfile_Basename(samples_struct.fitsvect[iframe]));
-	}
-
-	vector<string> dummy_string;
-	vector<double> dummy_double;
-
-	fillvect_strings(dir.bolo, samples_struct.fitsvect, dir.bolo_suffix, dir.input_dir, dummy_string);
-	samples_struct.bolovect = dummy_string;
-	dummy_string.clear();
-
-	fillvect_strings(Inv_param.cov_matrix, samples_struct.fitsvect, Inv_param.cov_matrix_suffix, Inv_param.noise_dir, dummy_string);
-	samples_struct.noisevect = dummy_string;
-	dummy_string.clear();
-
-	returnCode |= fillvect_double(Proc_param.fcut, Proc_param.fcut_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
-	samples_struct.fcut = dummy_double;
-	dummy_double.clear();
-
-	returnCode |= fillvect_double(Proc_param.fsamp,Proc_param.fsamp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
-	samples_struct.fsamp = dummy_double;
-	dummy_double.clear();
-
-	returnCode |= fillvect_double(Proc_param.fhp, Proc_param.fhp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
-	samples_struct.fhp = dummy_double;
-	dummy_double.clear();
-
-	// Read all channels list once for all
-	returnCode |= fill_channel_list(output, samples_struct, rank, size);
-
-	return returnCode;
-
-}
-
-int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int rank) {
-
-	long nframe_long;
-
-	for (long ii = 0; ii < samples_struct.ntotscan; ii++) {
-
-		if (rank == 0) {
-			string scan_name = samples_struct.basevect[ii];
-			// dirfile path
-			string filedir = tmp_dir + "dirfile/" + scan_name
-					+ "/Noise_data/ell/";
-
-			// open dirfile
-			DIRFILE* H = gd_open((char *) filedir.c_str(),
-					GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-			unsigned int nframe = gd_nframes(H);
-
-			// close dirfile
-			if (gd_close(H)) {
-				cout << "Dirfile gd_close error in get_noise_bin_sizes for : "
-						<< filedir << endl;
-				return 1;
-			}
-
-			nframe_long = (long) (nframe - 1);
-		}
-
-#ifdef USE_MPI
-		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-#endif
-
-		// get nbins value
-		samples_struct.nbins.push_back(nframe_long);
-
-		if (rank == 0) {
-
-			string scan_name = samples_struct.basevect[ii];
-
-			// get ndet value
-			string filedir = tmp_dir + "dirfile/" + scan_name + "/Noise_data/";
-			DIRFILE* H = gd_open((char *) filedir.c_str(),
-					GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-			unsigned int nframe = gd_nframes(H);
-
-			// close dirfile
-			if (gd_close(H)) {
-				cout << "Dirfile gd_close error in get_noise_bin_sizes for : "
-						<< filedir << endl;
-				return 1;
-			}
-			nframe_long = (long) nframe;
-		}
-
-#ifdef USE_MPI
-		MPI_Bcast(&nframe_long,1,MPI_LONG_LONG,0,MPI_COMM_WORLD);
-#endif
-
-		// compute ndet considering entry size and nbins
-		samples_struct.ndet.push_back(nframe_long / samples_struct.nbins[ii]);
-
-	}
-
-	return 0;
-}
-
-uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size){
-	uint16_t returnCode = 0;
-
-	std::vector<string> det_vect;
-
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-
-		if (rank == 0)
-			returnCode |= read_channel_list(output, samples_struct.bolovect[iframe], det_vect);
-
-#ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
-		// Then we need to BCast the read vectors
-		returnCode |=  BCast_string_vector(det_vect, rank, size);
-#endif
-
-		samples_struct.bolo_list.push_back(det_vect);
-
-		det_vect.clear();
-	}
-
-	return returnCode;
-}
-
-
-unsigned long max_size_str_vect(std::vector<std::string> str_vect)
-{
-	unsigned long size_max=0;
-
-	for(unsigned long ii=0; ii < str_vect.size(); ii++)
-		if( str_vect[ii].size()>size_max)
-			size_max=str_vect[ii].size();
-
-	return size_max;
-}
-
 #ifdef USE_MPI
 
 uint16_t BCast_string_vector(std::vector<std::string> & strvect, int rank, int size){
@@ -1468,6 +1465,9 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	dictionary * ini = NULL;
 	string filename;
 	uint16_t parsed = 0;
+#ifdef USE_MPI
+	uint16_t mpi_parsed = 0;
+#endif
 
 	if (rank == 0) {
 		// load dictionnary
@@ -1505,6 +1505,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	read_param_sanePos(output, ini, Pos_param);
 	read_param_sanePic(output, ini, Pic_param);
 	read_param_saneProc(output, ini, Proc_param);
+
 	//TODO sanePS should be out of here (special case)
 	read_param_sanePS(output, ini, PS_param);
 
@@ -1512,26 +1513,25 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 
 	// Now the ini file has been read, do the rest
-	if (rank == 0)
+	if (rank == 0) {
 		parsed |= check_common(output, dir);
-
-#ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-	parsed |= check_param_sanePos(output, Pos_param);
-	parsed |= check_param_saneProc(output, Proc_param);
-	parsed |= check_param_saneInv(output, Inv_param);
-	parsed |= check_param_sanePS(output, PS_param);
+		parsed |= check_param_sanePos(output, Pos_param);
+		parsed |= check_param_saneProc(output, Proc_param);
+		parsed |= check_param_saneInv(output, Inv_param);
+		// Should probably be somewhere else...
+		parsed |= check_param_sanePS(output, PS_param);
+	}
 
 	parsed |= fill_samples_struct(output, samples_struct, dir, Inv_param, Proc_param, rank, size);
 
-#ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
 	// Test to know if all required files are present of not before doing the following... (based on the parsed value)
 	parsed |= check_param_samples(output, samples_struct);
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Allreduce(&parsed, &mpi_parsed, 1, MPI_UNSIGNED_SHORT, MPI_BOR, MPI_COMM_WORLD);
+	parsed = mpi_parsed;
+#endif
 
 	// Store scan sizes so that we dont need to read it again and again in the loops !
 	if ( ! parsed )
@@ -1586,6 +1586,7 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	return parsed;
 }
+
 
 void print_common(struct param_common dir) {
 

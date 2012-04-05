@@ -1,7 +1,7 @@
 #ifndef COORD_H_
 #define COORD_H_
 
-int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param, std::vector<std::vector<std::string> > bolo_vect);
+int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param);
 
 void equatorial2galactic (long nx, double *RA, double *DEC, double **glon, double **glat);
 void galactic2equatorial (long nx, double *glon, double *glat, double **RA, double **DEC);

@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, samples_struct.bolo_list);
+		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
 	}
 
 #ifdef USE_MPI
@@ -1342,7 +1342,7 @@ int main(int argc, char *argv[]) {
 		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
 				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
 				Proc_param, Pos_param, samples_struct, samples_struct.fcut, wcs,
-				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys, samples_struct.bolo_list))
+				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys))
 			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
 
 	}// end of rank == 0

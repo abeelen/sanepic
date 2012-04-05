@@ -178,7 +178,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
  \param path_type A string that determines which is being checked
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int check_path(std::string &output, std::string strPath, std::string path_type, bool create);
+uint16_t check_path(std::string &output, std::string strPath, std::string path_type, bool create);
 
 //! Check for file existence
 /*!
@@ -205,7 +205,7 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect);
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
 
 //! Clean up Noise_data and Noise_data/ell dirfiles and format files or Creates it if needed
 /*!
@@ -217,7 +217,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct, 
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, std::string noise_suffix, std::vector<std::vector<std::string> > bolo_vect);
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, std::string noise_suffix);
 
 //! Clean up fData dirfiles and format files or Creates it if needed
 /*!
@@ -227,7 +227,7 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct, std::vector<std::vector<std::string> > bolo_vect);
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
 
 //! Check the struct param_common is correct
 /*!
