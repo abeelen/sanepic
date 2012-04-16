@@ -33,8 +33,8 @@ using namespace std;
 #include <sstream>
 #endif
 
-int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string> det, long ndet,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, long ns, string filename, int para_bolo_indice, int para_bolo_size)
+int write_tfAS(struct samples samples_struct, double *S, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, long iframe, int para_bolo_indice, int para_bolo_size)
 {
 
 
@@ -44,6 +44,10 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 
 	fftw_plan fftplan;
 	fftw_complex *fdata;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet                    = (long) det.size();
+	long ns				         = samples_struct.nsamples[iframe];
 
 	samptopix = new long long[ns];
 
@@ -65,7 +69,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 	for (long idet1=para_bolo_indice*ndet/para_bolo_size;idet1<(para_bolo_indice+1)*ndet/para_bolo_size;idet1++){
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, filename, det[idet1], samptopix,ns))
+		if(read_samptopix(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe] , det[idet1], samptopix,ns))
 			return 1;
 
 		deproject(S,indpix,samptopix,ns,NAXIS1, NAXIS2,npix,Ps,flgdupl,factdupl);
@@ -73,7 +77,7 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 		//Fourier transform of the data
 		fftw_execute_dft_r2c(fftplan, Ps, fdata);
 
-		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fPs_", idet1, filename, det))
+		if(write_fdata(samples_struct.dirfile_pointers[iframe], ns, fdata, "fPs_", idet1, samples_struct.basevect[iframe], det))
 			return 1;
 
 	}
@@ -87,8 +91,8 @@ int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string
 }
 
 int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param,
-		string tmp_dir,std::vector<std::string> det,long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double fhp_pix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname)
+		string tmp_dir, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
+		long long npix,	long long npixsrc, long long addnpix, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname)
 {
 
 
@@ -98,6 +102,12 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 	long long *samptopix;
 
 	double *bfilter;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet                    = (long) det.size();
+	long ns				         = samples_struct.nsamples[iframe];
+	double fsamp                 = samples_struct.fsamp[iframe];
+	double fhp_pix               = samples_struct.fhp[iframe]* double(ns) / fsamp;
 
 	bfilter = new double[ns / 2 + 1];
 	butterworth_filter(ns, fhp_pix, 8, bfilter);
@@ -153,14 +163,14 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 			fdata[ii][1] = 0.0;
 		}
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointers[iframe], dirfile_filename, field1, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field1, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], dirfile_filename, field1, flag, ns))
 			return 1;
 
 		if (S != NULL){
 			//// Read pointing
-			if(read_samptopix(samples_struct.dirfile_pointer,  dirfile_filename, field1, samptopix, ns))
+			if(read_samptopix(samples_struct.dirfile_pointers[iframe],  dirfile_filename, field1, samptopix, ns))
 				return 1;
 
 			Ps        = new double[ns];
@@ -200,7 +210,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 		fftw_execute_dft_r2c(fftplan, data, fdata);
 
 		//write fourier transform to disk
-		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata, "fdata_", idet1, dirfile_filename, det))
+		if(write_fdata(samples_struct.dirfile_pointers[iframe], ns, fdata, "fData_", idet1, dirfile_filename, det))
 			return 1;
 
 
@@ -222,7 +232,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
 }
 
 int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
-		std::vector<std::string> det, long ndet, double fhp_pix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
+		int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits,std::string fname)
 {
@@ -239,6 +249,13 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	fftw_plan fftplan;
 	fftw_complex *fdata, *Ndf;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet                    = (long) det.size();
+	long ns				         = samples_struct.nsamples[iframe];
+	double fsamp                 = samples_struct.fsamp[iframe];
+	double fhp_pix               = samples_struct.fcut[iframe] * double(ns) / fsamp;
+
 
 #ifdef DEBUG
 	ofstream file;
@@ -287,7 +304,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, samptopix, ns))
+		if(read_samptopix(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, samptopix, ns))
 			return 1;
 #ifdef DEBUG
 		time ( &rawtime );
@@ -296,15 +313,12 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 #endif
 
 		//**************************************** Noise power spectrum
-		string extname = "_InvNoisePS";
-		string suffix = samples_struct.basevect[iframe] + extname;
 
 		//read noise PS file for idet1
 		long ndet2 = samples_struct.ndet[iframe];
 		long nbins = samples_struct.nbins[iframe];
 
-
-		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointer, field1,  suffix, nbins, ndet2, &ell, &SpN_all))
+		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe], field1,  samples_struct.basevect[iframe], nbins, ndet2, &ell, &SpN_all))
 			return 1;
 
 		km = new double[nbins];
@@ -335,7 +349,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 			fill(Nk,Nk+(ns/2+1),0.0);
 
 			//read Fourier transform of the data
-			if(read_fdata(samples_struct.dirfile_pointer,  samples_struct.basevect[iframe], det[idet2], prefixe, fdata, ns))
+			if(read_fdata(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], det[idet2], prefixe, fdata, ns))
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//

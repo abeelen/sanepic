@@ -12,6 +12,8 @@
 using namespace std;
 
 
+
+
 char* tableFormat(std::vector<string> strings) {
 	// Return the table Format for the given vector of string
 	stringstream stream_tform;
@@ -25,7 +27,6 @@ char* tableFormat(std::vector<string> strings) {
 	strcpy(p_tform, string_tform.c_str());
 	return p_tform;
 }
-
 
 long maxStringLength(std::vector<string> strings) {
 	// Return the longest string length of a string vector

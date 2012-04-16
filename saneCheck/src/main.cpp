@@ -134,12 +134,6 @@ int main(int argc, char *argv[]) {
 	MPI_Bcast(&check_struct.checkGain, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&check_struct.checkflag, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
 
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#endif
-
-
-#ifdef PARA_FRAME
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -163,6 +157,9 @@ int main(int argc, char *argv[]) {
 				structPS, sanePic_struct, saneInv_struct);
 		print_saneCheck_ini(check_struct);
 	}
+
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
 
 
 	std::vector<string> bolo_fits_0; // bolometers list of the first fits file given as input
@@ -454,6 +451,20 @@ int main(int argc, char *argv[]) {
 		cout << "\nPlease run saneFix\n";
 
 	}
+
+
+
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 	//clean up
 	//	delete [] samples_struct.nsamples;

@@ -178,7 +178,7 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
  \param path_type A string that determines which is being checked
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-uint16_t check_path(std::string &output, std::string strPath, std::string path_type, bool create);
+uint16_t check_path(std::string &output, std::string strPath, bool create, int rank);
 
 //! Check for file existence
 /*!
@@ -195,7 +195,7 @@ uint16_t check_file(std::string strPath);
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_struct, int format);
+int init_dirfile(std::string tmp_dir, struct samples & samples_struct, int format, int rank);
 
 //! Clean up Indexes dirfiles and format files or Creates it if needed
 /*!
@@ -205,7 +205,7 @@ int compute_dirfile_format_file(std::string tmp_dir, struct samples samples_stru
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Clean up Noise_data and Noise_data/ell dirfiles and format files or Creates it if needed
 /*!
@@ -217,7 +217,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct);
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, std::string noise_suffix);
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Clean up fData dirfiles and format files or Creates it if needed
 /*!
@@ -227,7 +227,7 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, 
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
+int cleanup_dirfile_fdata(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Check the struct param_common is correct
 /*!
@@ -236,7 +236,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct);
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_common(std::string &output, struct param_common &dir);
+uint16_t check_common(std::string &output, struct param_common &dir, int rank);
 
 //! Check the struct param_sanePos is correct
 /*!
@@ -254,7 +254,7 @@ uint16_t check_param_sanePos(std::string &output, struct param_sanePos &pos_para
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_saneProc(std::string &output, struct param_saneProc &proc_param);
+uint16_t check_param_saneProc(std::string &output, struct param_common dir, struct param_saneProc &proc_param);
 
 //! Check the struct param_sanePS is correct
 /*!
@@ -263,7 +263,9 @@ uint16_t check_param_saneProc(std::string &output, struct param_saneProc &proc_p
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint16_t check_param_sanePS(std::string &output, struct param_sanePS &structPS);
+uint16_t check_param_sanePS(std::string &output, struct param_common dir, struct param_sanePS &structPS);
+
+uint16_t check_param_saneInv(std::string &output, struct param_common dir, struct param_saneInv &Inv_param);
 
 //! Fill param_sanePS structure with ell and mixing matrices names
 /*!

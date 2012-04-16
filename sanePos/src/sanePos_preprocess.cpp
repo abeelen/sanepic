@@ -49,10 +49,10 @@ int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::
 			string field = bolonames[idet];
 			string flag_outfile = "flag_" + filename + "_" + field;
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, filename, field, mask, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], filename, field, mask, ns))
 				return 1;
 
-			if(read_samptopix(samples_struct.dirfile_pointer, filename, field, samptopix, ns))
+			if(read_samptopix(samples_struct.dirfile_pointers[iframe], filename, field, samptopix, ns))
 				return 1;
 
 			// modify if in indpsrc !
@@ -61,15 +61,15 @@ int modify_mask_flag_in_dirfile(struct samples samples_struct, std::vector<std::
 					mask[ii]=-1;
 
 			//put back in dirfile
-			int n_write = gd_putdata(samples_struct.dirfile_pointer, (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32,
+			int n_write = gd_putdata(samples_struct.dirfile_pointers[iframe], (char*) flag_outfile.c_str(), 0, 0, 0, ns, GD_INT32,
 					mask);
-			if (gd_error(samples_struct.dirfile_pointer) != 0) {
+			if (gd_error(samples_struct.dirfile_pointers[iframe]) != 0) {
 				cout << "error putdata in modify_mask_flag_in_dirfile : wrote " << n_write
 						<< " and expected " << ns << endl;
 				return 1;
 			}
 
-			gd_flush(samples_struct.dirfile_pointer, NULL);
+			gd_flush(samples_struct.dirfile_pointers[iframe], NULL);
 		}
 
 		delete [] mask;
@@ -217,7 +217,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 
 			bolo_flag = new int[ns];
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, bolo_flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, bolo_flag, ns))
 				return 1;
 
 
@@ -279,7 +279,7 @@ cout << ii << " " << world[2*ii] << " " << world[2*ii+1] << " : " << phi[ii] << 
 
 			}
 
-			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointers[iframe], base_file, det_vect[idet], ns, samptopix))
 				return 1;
 
 			delete [] bolo_flag;
@@ -357,12 +357,12 @@ int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc 
 			wcsstatus = new int[ns];
 
 
-			if(read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lon, ns))
+			if(read_LON_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, lon, ns))
 				return 1;
-			if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, base_file, field, lat, ns))
+			if(read_LAT_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, lat, ns))
 				return 1;
 
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, flag, ns))
 				return 1;
 			for (long ii=0; ii <ns; ii++){
 				world[2*ii]   = lon[ii];
@@ -405,7 +405,7 @@ int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc 
 
 			//			if(read_flag_from_fits(fits_file, field, bolo_flag, test_ns))
 			//				return 1;
-			if(read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, bolo_flag, ns))
+			if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, bolo_flag, ns))
 				return 1;
 
 			for (long ii=0; ii<ns; ii++){
@@ -471,7 +471,7 @@ int computePixelIndex_HIPE(struct samples samples_struct, struct param_saneProc 
 
 			}
 
-			if(write_samptopix(samples_struct.dirfile_pointer, ns, samptopix, base_file, det_vect[idet]))
+			if(write_samptopix(samples_struct.dirfile_pointers[iframe], base_file, det_vect[idet], ns, samptopix))
 				return 1;
 
 			delete [] samptopix;

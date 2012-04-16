@@ -108,14 +108,14 @@ int main(int argc, char *argv[])
 		return(EX_CONFIG);
 	}
 
-
+	// TODO : might be broken here....
 	int retval;
 	// read -f, -m and -M options
 	while ( (retval = getopt(argc, argv, "f:m:M:")) != -1) {
 		switch (retval) {
 		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
-			readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+			readFramesFromFits(samples_struct, 0);
 #ifdef DEBUG
 			cout << "Scan.            : " << samples_struct.fitsvect[0] << endl;
 			cout << "Containing.      : " << samples_struct.nsamples[0] << " samples. " << endl;
@@ -348,6 +348,22 @@ int main(int argc, char *argv[])
 		oss.str("");
 		cout << endl;
 	}
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 	// clean up
 	delete [] time;

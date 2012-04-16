@@ -150,10 +150,6 @@ int main(int argc, char *argv[]) {
 	double *PNd = NULL; // (At N-1 d)
 	long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
 
-
-	double fcut_pix, fhp_pix; // noise cut-off frequency (in terms of samples number), filter cut-off freq (samples)
-	long ns; // number of samples for the considered scan
-
 	string field; /* actual boloname in the bolo loop */
 	//	std::vector<double> fcut; /* noise cutting frequency vector */
 
@@ -325,12 +321,8 @@ int main(int argc, char *argv[]) {
 
 	/********************* Define parallelization scheme   *******/
 
-#ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-
 #ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -350,8 +342,13 @@ int main(int argc, char *argv[]) {
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
 	}
+
+	// this should be done by subrank 0 only
+	cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, rank);
+
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
@@ -362,20 +359,6 @@ int main(int argc, char *argv[]) {
 		MPI_Finalize();
 #endif
 		return (EX_IOERR);
-	}
-
-	// Open the dirfile to read temporary files
-	string filedir = dir.tmp_dir + "dirfile";
-	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED);
-
-
-	if (gd_error(samples_struct.dirfile_pointer) != 0) {
-		cout << "error opening dirfile : " << filedir << endl;
-#ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return 1;
 	}
 
 	//	read pointing header
@@ -526,33 +509,11 @@ int main(int argc, char *argv[]) {
 		if (rank == 0)
 			cout << endl << "Computing Pre Conditioner..." << endl;
 
-		// flush dirfile
-		//		gd_flush(samples_struct.dirfile_pointer,NULL);
-
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
 
 		// loop over the scans
 		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
-
-			ns = samples_struct.nsamples[iframe]; // number of samples for this scan
-			fhp_pix  = samples_struct.fhp[iframe] * double(ns)/samples_struct.fsamp[iframe]; // knee freq of the filter in terms of samples in order to compute fft
-			fcut_pix = samples_struct.fcut[iframe]* double(ns)/samples_struct.fsamp[iframe]; // noise PS threshold freq, in terms of samples
-
-			std::vector<string> det_vect = samples_struct.bolo_list[iframe];
-			long ndet = (long)det_vect.size();
-
-			if(ndet!=samples_struct.ndet[iframe]){ // check here to avoid problems between saneInv and sanePic
-				if(rank == 0){
-					cout << "Error. The number of detector in noisePower Spectra file must be egal to input bolofile number\n";
-					cout << "Did you forgot to run saneInv ??? Exiting..." << endl;
-				}
-#ifdef USE_MPI
-				MPI_Barrier(MPI_COMM_WORLD);
-				MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-				return EX_CONFIG;
-			}
 
 			// if there is correlation between detectors
 			if (Proc_param.CORRon){
@@ -571,8 +532,10 @@ int main(int argc, char *argv[]) {
 				// ns = number of sample for this scan
 				// iframe = scan number : 0=> ntotscan if non-MPI
 
-				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct,Pos_param,dir.tmp_dir,det_vect,ndet,indpix,indpsrc,NAXIS1, NAXIS2,npix,
-						npixsrc,addnpix,fhp_pix,ns,	iframe,para_bolo_indice, para_bolo_size, name_rank);
+				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct,
+						Pos_param,dir.tmp_dir, indpix,indpsrc,
+						NAXIS1, NAXIS2,npix, npixsrc,addnpix,
+						iframe,para_bolo_indice, para_bolo_size, name_rank);
 
 				if(pb>0){
 					cout << "Problem in write_ftrProcesdata. Exiting ...\n";
@@ -612,8 +575,7 @@ int main(int argc, char *argv[]) {
 				// *Mp = Null :
 				// *Hits = Null (map hits)
 
-				pb+=do_PtNd(samples_struct, PNd, "fdata_",
-						det_vect,ndet,fcut_pix, samples_struct.fsamp[iframe],ns,
+				pb+=do_PtNd(samples_struct, PNd, "fData_",
 						para_bolo_indice,para_bolo_size,indpix,
 						NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
 				// Returns Pnd = (At N-1 d), Mp and hits
@@ -630,9 +592,10 @@ int main(int argc, char *argv[]) {
 			} else { // No correlation case
 
 
-				do_PtNd_nocorr(PNd, dir.tmp_dir,Proc_param,Pos_param,samples_struct,
-						det_vect,ndet,fhp_pix,fcut_pix,addnpix,
-						ns,indpix,indpsrc,NAXIS1, NAXIS2,npix,npixsrc,iframe,NULL,rank,size);
+				do_PtNd_nocorr(PNd, dir.tmp_dir,Proc_param,Pos_param,
+						samples_struct, addnpix, indpix,indpsrc,
+						NAXIS1, NAXIS2,npix,npixsrc,
+						iframe,NULL,rank,size);
 				// fillgaps + butterworth filter + fourier transform and PNd generation
 
 			}
@@ -769,18 +732,11 @@ int main(int argc, char *argv[]) {
 
 			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
-				ns       = samples_struct.nsamples[iframe];
-				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
-
-				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
-				long ndet = (long)det_vect.size();
-
 				// preconditioner computation : Mp
 				if (Proc_param.CORRon) {
 
-					write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							Pos_param.flgdupl, ns,
-							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
+					write_tfAS(samples_struct, S, indpix, NAXIS1, NAXIS2, npix,
+							Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 					time ( &rawtime );
@@ -795,17 +751,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 					do_PtNd(samples_struct, PtNPmatS, "fPs_",
-							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, Mp, NULL, name_rank);
 
 				} else {
 
-					do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir, det_vect, ndet,
-							fcut_pix, samples_struct.fsamp[iframe], Pos_param.flgdupl, ns,
+					do_PtNPS_nocorr(samples_struct, S, dir, Pos_param.flgdupl,
 							indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.basevect[iframe], PtNPmatS, Mp, NULL,
-							rank, size);
+							PtNPmatS, Mp, NULL, rank, size);
 				}
 
 			} // end of iframe loop
@@ -914,17 +867,10 @@ int main(int argc, char *argv[]) {
 
 			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
-				ns       = samples_struct.nsamples[iframe];
-				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
-
-				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
-				long ndet = (long)det_vect.size();
-
 				if (Proc_param.CORRon) {
 
-					write_tfAS(samples_struct, d, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-							Pos_param.flgdupl, ns,
-							samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
+					write_tfAS(samples_struct, d, indpix, NAXIS1, NAXIS2, npix,
+							Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 					time ( &rawtime );
@@ -934,24 +880,18 @@ int main(int argc, char *argv[]) {
 					file_rank.close();
 #endif
 
-					// flush dirfile
-					//					gd_flush(samples_struct.dirfile_pointer,NULL);
-
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 					do_PtNd(samples_struct, q, "fPs_",
-							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
-					do_PtNPS_nocorr(samples_struct, d, samples_struct.noisevect, dir, det_vect, ndet,
-							fcut_pix, samples_struct.fsamp[iframe], Pos_param.flgdupl,
-							ns, indpix, NAXIS1, NAXIS2, npix, iframe,
-							samples_struct.basevect[iframe], q, NULL, NULL,
-							rank, size);
+					do_PtNPS_nocorr(samples_struct, d,  dir, Pos_param.flgdupl,
+							indpix, NAXIS1, NAXIS2, npix, iframe,
+							q, NULL, NULL, rank, size);
 				}
 			} // end of iframe loop
 
@@ -987,17 +927,11 @@ int main(int argc, char *argv[]) {
 				fill(PtNPmatS, PtNPmatS + npix, 0.0);
 
 				for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
-					ns = samples_struct.nsamples[iframe];
-					fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
-
-					std::vector<string> det_vect = samples_struct.bolo_list[iframe];
-					long ndet = (long)det_vect.size();
 
 					if (Proc_param.CORRon) {
 
-						write_tfAS(samples_struct, S, det_vect, ndet, indpix, NAXIS1, NAXIS2, npix,
-								Pos_param.flgdupl, ns,
-								samples_struct.basevect[iframe], para_bolo_indice, para_bolo_size);
+						write_tfAS(samples_struct, S, indpix, NAXIS1, NAXIS2, npix,
+								Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
 
 #ifdef DEBUG
 						time ( &rawtime );
@@ -1011,18 +945,14 @@ int main(int argc, char *argv[]) {
 #endif
 
 						do_PtNd(samples_struct, PtNPmatS, "fPs_",
-								det_vect, ndet, fcut_pix,	samples_struct.fsamp[iframe], ns,
 								para_bolo_indice, para_bolo_size, indpix,
 								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 					} else {
 
-						do_PtNPS_nocorr(samples_struct, S, samples_struct.noisevect, dir,
-								det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe],
-								Pos_param.flgdupl, ns, indpix, NAXIS1, NAXIS2,
-								npix, iframe,
-								samples_struct.basevect[iframe], PtNPmatS,
-								NULL, NULL, rank, size);
+						do_PtNPS_nocorr(samples_struct, S, dir,	Pos_param.flgdupl,
+								indpix, NAXIS1, NAXIS2,	npix, iframe,
+								PtNPmatS, NULL, NULL, rank, size);
 					}
 
 				} // end of iframe loop
@@ -1260,19 +1190,12 @@ int main(int argc, char *argv[]) {
 
 			for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
 
-				ns = samples_struct.nsamples[iframe];
-				fhp_pix = samples_struct.fhp[iframe]* double(ns) / samples_struct.fsamp[iframe];
-				fcut_pix = samples_struct.fcut[iframe] * double(ns) / samples_struct.fsamp[iframe];
-
-				std::vector<string> det_vect = samples_struct.bolo_list[iframe];
-				long ndet = (long)det_vect.size();
-
 				if (Proc_param.CORRon) {
 
 					write_ftrProcesdata(S, Proc_param, samples_struct,
-							Pos_param, dir.tmp_dir, det_vect, ndet, indpix, indpsrc,
-							NAXIS1, NAXIS2, npix, npixsrc, addnpix, fhp_pix,
-							ns, iframe, para_bolo_indice, para_bolo_size, name_rank);
+							Pos_param, dir.tmp_dir, indpix, indpsrc,
+							NAXIS1, NAXIS2, npix, npixsrc, addnpix,
+							iframe, para_bolo_indice, para_bolo_size, name_rank);
 
 #ifdef DEBUG
 					time ( &rawtime );
@@ -1282,23 +1205,19 @@ int main(int argc, char *argv[]) {
 					file_rank.close();
 #endif
 
-					// flush dirfile
-					//					gd_flush(samples_struct.dirfile_pointer,NULL);
-
 #ifdef PARA_BOLO
 					MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-					do_PtNd(samples_struct, PNd, "fdata_",
-							det_vect, ndet, fcut_pix, samples_struct.fsamp[iframe], ns,
+					do_PtNd(samples_struct, PNd, "fData_",
 							para_bolo_indice, para_bolo_size, indpix,
 							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
 
 				} else {
 
 					do_PtNd_nocorr(PNd, dir.tmp_dir, Proc_param, Pos_param,
-							samples_struct, det_vect, ndet, fhp_pix, fcut_pix, addnpix,
-							ns, indpix, indpsrc, NAXIS1, NAXIS2, npix, npixsrc,
+							samples_struct, addnpix, indpix, indpsrc,
+							NAXIS1, NAXIS2, npix, npixsrc,
 							iframe, S, rank, size);
 				}
 
@@ -1395,8 +1314,21 @@ int main(int argc, char *argv[]) {
 	//TODO: Should it be here ?
 	fftw_cleanup();
 
-	if (gd_close(samples_struct.dirfile_pointer))
-		cout << "error closing dirfile : " << filedir << endl;
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 #ifdef USE_MPI
 	MPI_Finalize();

@@ -8,20 +8,20 @@
 #include <fftw3.h>
 
 
-int common_mode_computation(struct samples samples_struct, std::vector<std::string> det,  struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
+int common_mode_computation(struct samples samples_struct,  struct param_saneProc proc_param, struct param_sanePos pos_param,
+		struct param_common dir, long iframe, double *apodwind, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
-		double &factapod, std::string fits_filename);
+		double &factapod);
 
-int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det,  struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct param_common dir, long &nbins,	long &nbins2, long ns, double fsamp, long NAXIS1,
+int estimate_noise_PS(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
+		struct param_common dir, long iframe, long &nbins,	long &nbins2, long NAXIS1,
 		long NAXIS2, long long npix, double *&ell, double *S, long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
-		double factapod,double **Rellth, double **N, double **P, std::string fits_filename);
+		double factapod,double **Rellth, double **N, double **P);
 
 
-int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *ell, long ncomp, double **mixmat,double fsamp,
-		double factapod,double **Rellexp, double **N, double **P, double *SPref, std::string fits_filename, int rank);
+int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, long iframe, long nbins, double *ell, long ncomp, double **mixmat,
+		double factapod,double **Rellexp, double **N, double **P, double *SPref, int rank);
 
 int expectation_maximization_algorithm(double fcut, long nbins, long ndet, long ncomp,long ns, double fsamp,
 		std::string outdirSpN,	double **Rellexp, double **Rellth, double **mixmat,double **P,double **N,

@@ -16,6 +16,13 @@
 #include <fstream>
 
 
+template<typename T, size_t N> T * end(T (&ra)[N]) {
+    return ra + N;
+}
+
+#define Elements_in(arrayname) (sizeof arrayname/sizeof *arrayname)
+
+
 //! Given a variable "object", which type can be boolean, numerical or string, transform it as a string using stringstream
 /*!
  \param object An object that can be a string (or char*), a boolean, or a numerical value
@@ -27,7 +34,6 @@ std::string StringOf(const T& object){
 	os << object;
 	return os.str();
 }
-
 
 //! Returns the cfitsio table Format for a given vector of string
 /*!

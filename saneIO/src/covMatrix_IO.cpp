@@ -119,7 +119,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 }
 
 
-int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double *&ell, gsl_matrix *& Rellth)
+int read_CovMatrix(string fname, std::vector<string> &det_vect, long &nbins, double *&ell, gsl_matrix *& Rellth)
 /*
  * This function read the NoiseNoise Matrices.
  */
@@ -158,9 +158,9 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
 
 	// convert to string vector and free the container
-	bolos.resize(nBolos);
+	det_vect.resize(nBolos);
 	for (int i = 0; i < nBolos; i++)
-		bolos[i] = data[i];
+		det_vect[i] = data[i];
 	//		free(data[i]);
 
 	for (int i = 0; i < nBolos; i++)
@@ -208,19 +208,20 @@ int read_CovMatrix(string fname, std::vector<string> &bolos, long &nbins, double
 }
 
 //saneInv
-int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins, double * ell, gsl_matrix *Rellth, string suffix)
+int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> det_vect, string scan_name, long nbins, double * ell, gsl_matrix *Rellth)
 /*
  * This function writes the Inverse Covariance Matrices in binary format
  */
 {
-	long ndet = bolos.size();
+	long ndet = det_vect.size();
 
 	double * vector_ptr;
+	string outfile;
 
 	for (int idet = 0; idet < ndet; idet++) {
 
 		// ell binary filename
-		string outfile = bolos[idet] + "_" + suffix + "_ell"; // suffix is now made with fitsbasename of the scan file + noise suffix from inifile !
+		outfile = "Ell_InvNoisePS_" + scan_name + "_" + det_vect[idet];
 
 		// write binary file on disk
 		int n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
@@ -235,7 +236,7 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 
 
 		// spectra filename
-		outfile = bolos[idet] + "_" + suffix;
+		outfile = "InvNoisePS_" + scan_name + "_" + det_vect[idet];
 
 		vector_ptr = gsl_matrix_ptr(Rellth, idet, 0);
 
@@ -255,14 +256,15 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> bolos, long nbins
 	return 0;
 }
 
-int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string suffix,
-		long nbins, long ndet, double ** ell, double *** SpN_all)
+int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, long nbins, long ndet, double ** ell, double *** SpN_all)
 /*
  * This function reads the Inverse Covariance Matrices in binary format
  */
 {
 	//binary name
-	string outfile = boloName + "_" + suffix + "_ell";
+	string outfile;
+
+	outfile = "Ell_InvNoisePS_" + scan_name + "_" + boloName;
 
 	// temp 1D array
 	double *Rellth_full;
@@ -280,7 +282,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string suffix,
 	gd_flush(D, (char *) outfile.c_str());
 
 	// Power spectra binary file name
-	outfile = boloName + "_" + suffix;
+	outfile = "InvNoisePS_" + scan_name + "_" + boloName;
 
 	//alloc temp 1D array
 	Rellth_full = new double[nbins*ndet];

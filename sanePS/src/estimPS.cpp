@@ -21,8 +21,8 @@ extern "C" {
 
 using namespace std;
 
-int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_param, struct param_common dir, struct param_sanePos pos_param, struct param_sanePS structPS, struct samples samples_struct,
-		long NAXIS1, long NAXIS2, long long npix, long iframe, long long *indpix, double *S, int rank)
+int EstimPowerSpectra(struct param_saneProc proc_param, struct param_common dir, struct param_sanePos pos_param, struct param_sanePS structPS, struct samples samples_struct,
+		long iframe, long NAXIS1, long NAXIS2, long long npix, long long *indpix, double *S, int rank)
 {
 
 	long nbins; // temp value
@@ -39,6 +39,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 	double *ell, *km;						// bins values
 	double **mixmat; 						// mixing matrix
 
+	std::vector<string> det = samples_struct.bolo_list[iframe];
 	long ndet = (long)det.size();
 
 	//	data = raw data
@@ -110,10 +111,11 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 2/6 - Common Mode Computation" << endl;
 #endif
-		if(common_mode_computation(samples_struct, det, proc_param, pos_param, dir, \
-				apodwind, samples_struct.nsamples[iframe], NAXIS1, NAXIS2, npix, S, indpix, \
-				mixmat, structPS.ncomp, commonm2, factapod, samples_struct.basevect[iframe])) // return commonm2
+		if(common_mode_computation(samples_struct, proc_param, pos_param, dir, iframe, \
+				apodwind,  NAXIS1, NAXIS2, npix, S, indpix, \
+				mixmat, structPS.ncomp, commonm2, factapod)) // return commonm2
 			return 1;
+
 
 		completed_step=2;
 		if(structPS.save_data){
@@ -132,10 +134,10 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 3/6 - Estimation of Noise Power Spectrum" << endl;
 #endif
-		if(estimate_noise_PS(samples_struct, det, proc_param, pos_param, dir, \
-				nbins, nbins2, samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], NAXIS1, \
-				NAXIS2, npix, km, S, indpix, apodwind, structPS.ncomp, mixmat, commonm2, \
-				factapod,Rellth, N, P, samples_struct.basevect[iframe]))
+		if(estimate_noise_PS(samples_struct, proc_param, pos_param, dir, iframe, \
+				nbins, nbins2,  NAXIS1, NAXIS2, npix, km,
+				S, indpix, apodwind, structPS.ncomp, mixmat, commonm2, \
+				factapod,Rellth, N, P))
 			return 1;
 
 		completed_step=3;
@@ -152,8 +154,8 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 4/6 - Estimation of Covariance Matrix" << endl;
 #endif
-		if(estimate_CovMat_of_Rexp(samples_struct, dir, det, nbins, samples_struct.nsamples[iframe], km, structPS.ncomp, mixmat, samples_struct.fsamp[iframe],
-				factapod, Rellexp, N, P, SPref, samples_struct.basevect[iframe], rank))
+		if(estimate_CovMat_of_Rexp(samples_struct, dir, iframe, nbins, km, structPS.ncomp, mixmat,
+				factapod, Rellexp, N, P, SPref, rank))
 			return 1;
 
 		completed_step=4;
@@ -171,7 +173,7 @@ int EstimPowerSpectra(std::vector<std::string> det, struct param_saneProc proc_p
 #ifdef DEBUG
 		cout << "[ " << rank << " ] 5/6 - Expectation Maximization" << endl;
 #endif
-		if(expectation_maximization_algorithm(proc_param.fsamp, nbins, ndet, structPS.ncomp, samples_struct.nsamples[iframe], proc_param.fsamp,
+		if(expectation_maximization_algorithm(samples_struct.fsamp[iframe], nbins, ndet, structPS.ncomp, samples_struct.nsamples[iframe], samples_struct.fsamp[iframe],
 				dir.output_dir,  Rellexp, Rellth, mixmat, P, N, SPref, ell, rank))
 			return 1;
 

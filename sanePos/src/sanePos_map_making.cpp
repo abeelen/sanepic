@@ -249,14 +249,14 @@ int computeMapMinima_HIPE(struct samples samples_struct,
 
 
 
-			if (read_LON_from_dirfile(samples_struct.dirfile_pointer, base_file,
+			if (read_LON_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file,
 					field, lon, ns))
 				return 1;
-			if (read_LAT_from_dirfile(samples_struct.dirfile_pointer, base_file,
+			if (read_LAT_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file,
 					field, lat, ns))
 				return 1;
 
-			if (read_flag_from_dirfile(samples_struct.dirfile_pointer, base_file, field, flag, ns))
+			if (read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], base_file, field, flag, ns))
 				return 1;
 
 			if (cels2x(&(wcs->cel), ns, 0, 1, 1, lon, lat, phi, theta, x, y,
@@ -339,11 +339,11 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		field1 = det[idet1];
 
 		//Read pointing data
-		if(read_samptopix(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, samptopix, ns))
+		if(read_samptopix(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, samptopix, ns))
 		return 1;
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, data, ns))
 		return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[iframe], field1, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, flag, ns))
 		return 1;
 
 		fill(data_out,data_out+ns,0.0);

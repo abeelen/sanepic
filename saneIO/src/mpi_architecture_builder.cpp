@@ -16,9 +16,15 @@ extern "C" {
 #include <fitsio.h>
 }
 
+#ifdef USE_MPI
+#include "mpi.h"
+#endif
 
 using namespace std;
 
+#ifdef USE_MPI
+extern MPI_Comm MPI_COMM_SUB;
+#endif
 
 double *dat_compare;
 
@@ -61,7 +67,6 @@ int compare_array_double (const void *array_1, const void *array_2)
 
 	return (dat_compare[*casted_array_1] > dat_compare[*casted_array_2]) - (dat_compare[*casted_array_1] < dat_compare[*casted_array_2]);
 }
-
 
 void find_best_order_frames(long *position, long *frnum, std::vector<long> ns, long ntotscan, int size){
 
@@ -303,10 +308,10 @@ int verify_parallelization_scheme(struct samples &samples_struct, int rank, int 
 	std::vector<int>::iterator it = unique(index_copy.begin(), index_copy.end());
 	size_tmp = it - index_copy.begin();
 
-//	std::list<index> uniq_index(samples_struct.scans_index.begin(),samples_struct.scans_index.end());
-//	uniq_index.sort();
-//	uniq_index.uniq();
-//	size_tmp = uniq_index.size();
+	//	std::list<index> uniq_index(samples_struct.scans_index.begin(),samples_struct.scans_index.end());
+	//	uniq_index.sort();
+	//	uniq_index.uniq();
+	//	size_tmp = uniq_index.size();
 
 #ifdef DEBUG
 	//	if(rank==0){
@@ -421,25 +426,25 @@ void reorder_samples_struct( struct samples &samples_struct, int rank, int size)
 	// TODO : This routine does not do what it is supposed to do...
 
 	// copy the whole vectors
-	std::vector<int>        scans_index_copy(samples_struct.scans_index);
-	std::vector<long>          nsamples_copy(samples_struct.nsamples);
+	std::vector<int>                     scans_index_copy(samples_struct.scans_index);
+	std::vector<long>                       nsamples_copy(samples_struct.nsamples);
 
-	std::vector<string>        fitsvect_copy(samples_struct.fitsvect);
-	std::vector<std::string>  noisevect_copy(samples_struct.noisevect);
-	std::vector<std::string>   bolovect_copy(samples_struct.bolovect);
-	std::vector<std::string>   basevect_copy(samples_struct.basevect);
+	std::vector<DIRFILE *>          dirfile_pointers_copy(samples_struct.dirfile_pointers);
+	std::vector<string>                     fitsvect_copy(samples_struct.fitsvect);
+	std::vector<std::string>               noisevect_copy(samples_struct.noisevect);
+	std::vector<std::string>                bolovect_copy(samples_struct.bolovect);
+	std::vector<std::string>                basevect_copy(samples_struct.basevect);
 	std::vector<std::vector<std::string> > bolo_list_copy(samples_struct.bolo_list);
 
-	std::vector<double>            fcut_copy(samples_struct.fcut);
-	std::vector<double>           fsamp_copy(samples_struct.fsamp);
-	std::vector<double>             fhp_copy(samples_struct.fhp);
+	std::vector<double>                         fcut_copy(samples_struct.fcut);
+	std::vector<double>                        fsamp_copy(samples_struct.fsamp);
+	std::vector<double>                          fhp_copy(samples_struct.fhp);
 
 
-
-	std::vector<std::string>  ell_names_copy(samples_struct.ell_names);
-	std::vector<std::string>  mix_names_copy(samples_struct.mix_names);
-	std::vector<long>             nbins_copy(samples_struct.nbins);
-	std::vector<long>              ndet_copy(samples_struct.ndet);
+	std::vector<std::string>               ell_names_copy(samples_struct.ell_names);
+	std::vector<std::string>              mix_names_copy(samples_struct.mix_names);
+	std::vector<long>                         nbins_copy(samples_struct.nbins);
+	std::vector<long>                          ndet_copy(samples_struct.ndet);
 
 	long frame_index=0;
 
@@ -451,18 +456,23 @@ void reorder_samples_struct( struct samples &samples_struct, int rank, int size)
 		for(long jj = 0; jj<samples_struct.ntotscan; jj++){
 			if(scans_index_copy[jj]==ii){
 
-				samples_struct.scans_index[frame_index] = scans_index_copy[jj];
-				samples_struct.nsamples[frame_index]    = nsamples_copy[jj];
+				samples_struct.scans_index[frame_index]      = scans_index_copy[jj];
 
-				samples_struct.fitsvect[frame_index]    = fitsvect_copy[jj];
-				samples_struct.noisevect[frame_index]   = noisevect_copy[jj];
-				samples_struct.bolovect[frame_index]    = bolovect_copy[jj];
-				samples_struct.basevect[frame_index]    = basevect_copy[jj];
-				samples_struct.bolo_list[frame_index]   = bolo_list_copy[jj];
+				samples_struct.fitsvect[frame_index]         = fitsvect_copy[jj];
+				samples_struct.noisevect[frame_index]        = noisevect_copy[jj];
+				samples_struct.bolovect[frame_index]         = bolovect_copy[jj];
+				samples_struct.basevect[frame_index]         = basevect_copy[jj];
+				samples_struct.bolo_list[frame_index]        = bolo_list_copy[jj];
+				samples_struct.dirfile_pointers[frame_index] = dirfile_pointers_copy[jj];
 
-				samples_struct.fcut[frame_index]        = fcut_copy[jj];
-				samples_struct.fsamp[frame_index]       = fsamp_copy[jj];
-				samples_struct.fhp[frame_index]         = fhp_copy[jj];
+				samples_struct.fcut[frame_index]             = fcut_copy[jj];
+				samples_struct.fsamp[frame_index]            = fsamp_copy[jj];
+				samples_struct.fhp[frame_index]              = fhp_copy[jj];
+
+
+				// nsamples is usually filled AFTER reordering..
+				if (samples_struct.nsamples.size() != 0)
+					samples_struct.nsamples[frame_index]    = nsamples_copy[jj];
 
 
 				// Only present for sanePS

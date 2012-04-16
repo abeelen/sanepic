@@ -20,6 +20,7 @@ struct param_common
 	std::string input_dir; /*! input directory (config files) */
 
 	std::string fits_filelist; /*! A list (txt file) in which are listed fits files (and processors orders if MPI : optional) */
+
 	std::string bolo; /*! A list (txt file) in which are listed used channels for the whole scans (optional) */
 	std::string bolo_suffix;  /*! A string suffix that indicates what to add to scan names to find scans channel list (one list per scan, optional) */
 
@@ -114,10 +115,10 @@ struct param_sanePic
 struct samples
 /*! A structure that contains everything about frames, noise files and frame processing order */
 {
-	DIRFILE *dirfile_pointer;           /*! a pointer to the dirfile that contains temporary binaries */
 	bool framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
 
 	long iframe_min, iframe_max;        /*! current rank indexes for the following vector */
+	std::vector<DIRFILE *> dirfile_pointers; /*! pointers to the dirfiles that contains temporary binaries */
 
 	std::vector<int> scans_index;       /*!  a vector containing the index of the scans */
 

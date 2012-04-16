@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if(rank==0)
-	  cout << endl << "saneInv : inversion of the Noise-Noise PowerSpectra" << endl;
+		cout << endl << "saneInv : inversion of the Noise-Noise PowerSpectra" << endl;
 
 	// data parameters
 	/*
@@ -75,8 +75,6 @@ int main(int argc, char *argv[]) {
 	 * -nbins = number of bins (Ell)
 	 */
 	long ndet, nbins;
-	long n_iter;
-
 	double *ell; /* bins values */
 
 	struct param_common dir;
@@ -93,7 +91,6 @@ int main(int argc, char *argv[]) {
 
 	//	string noiseSp_dir_output;/* output directory */
 	string boloname;/* channels list file */
-	string noise_suffix = "_InvNoisePS";
 	string output = "";
 
 	struct param_sanePos pos_param;
@@ -162,61 +159,21 @@ int main(int argc, char *argv[]) {
 
 	/* ------------------------------------------------------------------------------------*/
 
-	if(rank==0)
+	if(rank==0) {
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-
-	// START OF saneInv
-
-	//	std::vector<string>::iterator it;
-	//	long size_tmp;
-	//
-	//	it = unique(samples_struct.noisevect.begin(), samples_struct.noisevect.end());
-	//	size_tmp = it - samples_struct.noisevect.begin();
-	//
-	//	if(size_tmp==1){
-	//		n_iter=1;
-	//		if(rank==0)
-	//			cout << "The same covariance Matrix will be inverted for all the scans\n" << endl;
-	//	}else{
-	n_iter = (long)samples_struct.noisevect.size();
-	if(n_iter==0){
-		if(rank==0)
-			cerr << "WARNING. You have forgotten to mention covariance matrix in ini file\n";
-#ifdef PARA_FRAME
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-#endif
-		return EX_CONFIG;
 	}
-	if(rank==0)
-		cout << n_iter << " covariance Matrix will be inverted\n" << endl;
-	//	}
 
-	if(rank==0)
-		cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, n_iter, noise_suffix);
+	cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, rank);
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
 
-	// Open the dirfile to read temporary files
-	string filedir = dir.tmp_dir + "dirfile";
-	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED);
-
-	if (gd_error(samples_struct.dirfile_pointer) != 0) {
-		cout << "error opening dirfile : " << filedir << endl;
-#ifdef PARA_FRAME
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return 1;
-	}
-
 	if(rank==0)
-		cout << "Inverting Covariance Matrices..." << endl;
+		cout << endl << "Inverting Covariance Matrices..." << endl;
 
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
@@ -243,7 +200,7 @@ int main(int argc, char *argv[]) {
 		inverseCovMatrixByMode(nbins, ndet, Rellth, iRellth);
 
 		// write inversed noisePS in a binary file for each detector
-		if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointer, channelOut, nbins, ell, iRellth, samples_struct.basevect[iframe] + noise_suffix)){
+		if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe], channelOut, samples_struct.basevect[iframe], nbins, ell, iRellth)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
@@ -257,7 +214,7 @@ int main(int argc, char *argv[]) {
 		delete [] ell;
 
 
-	} // n_iter loop
+	} // iframe loop
 
 	if(rank==0)
 		printf("done. \n");
@@ -266,8 +223,17 @@ int main(int argc, char *argv[]) {
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	if (gd_close(samples_struct.dirfile_pointer))
-		cout << "error closing dirfile : " << filedir << endl;
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 #ifdef PARA_FRAME
 	MPI_Finalize();

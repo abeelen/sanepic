@@ -35,10 +35,10 @@ extern "C" {
 
 using namespace std;
 
-int common_mode_computation(struct samples samples_struct, std::vector<std::string> det, struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct param_common dir, double *apodwind,long ns, long NAXIS1, long NAXIS2, long long npix,
+int common_mode_computation(struct samples samples_struct, struct param_saneProc proc_param, struct param_sanePos pos_param,
+		struct param_common dir, long iframe, double *apodwind, long NAXIS1, long NAXIS2, long long npix,
 		double *S, long long *indpix,double **mixmat, long ncomp, double **commonm2,
-		double &factapod, string fits_filename)
+		double &factapod)
 {
 	//*************************** Read data and compute components
 
@@ -59,7 +59,10 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	gsl_matrix *iCov, *Cov;
 	gsl_vector *ivec, *uvec;
 
+	std::vector<string> det = samples_struct.bolo_list[iframe];
 	long ndet = (long)det.size();
+
+	long ns = samples_struct.nsamples[iframe];
 
 	double *bfilter;
 	bfilter = new double[ns / 2 + 1];
@@ -92,14 +95,14 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 
 		field = det[idet];
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field, flag, ns))
 			return 1;
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(samples_struct.dirfile_pointer, fits_filename, field, samptopix, ns))
+			if(read_samptopix(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field, samptopix, ns))
 				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -122,7 +125,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 		fftw_execute_dft_r2c(fftplan, data, fdata1);
 
 
-		if(write_fdata(samples_struct.dirfile_pointer, ns, fdata1,  "fdata_", idet, fits_filename, det))
+		if(write_fdata(samples_struct.dirfile_pointers[iframe], ns, fdata1,  "fData_", idet, samples_struct.basevect[iframe], det))
 			return EX_DATAERR;
 
 		// TODO: on 500 samples only in the middle of the timeline... is there a better/simpler/faster way...
@@ -158,7 +161,7 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 	for (long jj=0; jj<ncomp; jj++)
 		for (long ii= 0 ;ii<ns;ii++)
 			if ( isnan(commonm[jj][ii]) || isinf(commonm[jj][ii]) ){
-				cout << fits_filename << " something went wrong in the computation of the common mode " << ncomp << endl;
+				cout << samples_struct.basevect[iframe] << " something went wrong in the computation of the common mode " << ncomp << endl;
 				exit(EXIT_FAILURE);
 			}
 
@@ -224,11 +227,11 @@ int common_mode_computation(struct samples samples_struct, std::vector<std::stri
 }
 
 
-int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> det, struct param_saneProc proc_param,struct param_sanePos pos_param,
-		struct param_common dir, long &nbins,	long &nbins2, long ns, double fsamp, long NAXIS1,
+int estimate_noise_PS(struct samples samples_struct,  struct param_saneProc proc_param,struct param_sanePos pos_param,
+		struct param_common dir, long iframe, long &nbins,	long &nbins2, long NAXIS1,
 		long NAXIS2, long long npix, double *&km, double *S,long long *indpix,
 		double *apodwind, long ncomp, double **mixmat, double **commonm2,
-		double factapod,double **Rellth, double **N, double **P, string fits_filename)
+		double factapod,double **Rellth, double **N, double **P)
 {
 
 
@@ -247,7 +250,11 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	long long *samptopix=NULL; // sample to pixel projection matrix
 	double *bfilter;
 
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
 	long ndet = (long)det.size();
+
+	long ns      = samples_struct.nsamples[iframe];
+	double fsamp = samples_struct.fsamp[iframe];
 
 	int factdupl = 1;
 	if(pos_param.flgdupl==1) factdupl = 2; // map duplication factor
@@ -284,9 +291,9 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 		field = det[idet];
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, fits_filename, field, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field, flag, ns))
 			return 1;
 
 		//TODO : This computation is already done when computing the common mode ->
@@ -295,7 +302,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 		if (S != NULL){
 			//Read pointing data
-			if(read_samptopix(samples_struct.dirfile_pointer,  fits_filename, field, samptopix, ns))
+			if(read_samptopix(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], field, samptopix, ns))
 				return EX_NOINPUT;
 
 			deproject(S,indpix,samptopix,ns,NAXIS1,NAXIS2,npix,Ps,pos_param.flgdupl,factdupl);
@@ -305,7 +312,6 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 
 		}
 
-		//TODO : why f_lppix set to 1.0 ?
 		MapMakePreProcessData(data,  flag, ns, proc_param, bfilter, NULL);
 
 
@@ -354,7 +360,7 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 	}
 
 	// Write down the Power spectra of the common modes...
-	basename = FitsBasename(fits_filename);
+	basename = FitsBasename(samples_struct.fitsvect[iframe]);
 	data1d = new double[ncomp*nbins];
 
 	for (long ll=0; ll< ncomp; ll++)
@@ -385,11 +391,9 @@ int estimate_noise_PS(struct samples samples_struct, std::vector<std::string> de
 }
 
 
-int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, std::vector<std::string> det, long nbins, long ns, double *km, long ncomp, double **mixmat,double fsamp,
-		double factapod,double **Rellexp, double **N, double **P, double *SPref, string fits_filename, int rank)
+int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common dir, long iframe, long nbins,  double *km, long ncomp, double **mixmat,
+		double factapod,double **Rellexp, double **N, double **P, double *SPref, int rank)
 {
-
-	long ndet = (long)det.size();
 
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
@@ -398,6 +402,12 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	string basename;
 	fftw_complex *fdata1, *fdata2;
 	double * Nell, *Nk;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet = (long)det.size();
+
+	long ns      = samples_struct.nsamples[iframe];
+	double fsamp = samples_struct.fsamp[iframe];
 
 
 	Nell = new double[nbins]; // binned noise PS
@@ -412,13 +422,13 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	for (long idet1=0;idet1<ndet;idet1++){
 
 		// read data from disk
-		if(read_fdata(samples_struct.dirfile_pointer, fits_filename, det[idet1], "fdata_", fdata1, ns ))
+		if(read_fdata(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], det[idet1], "fData_", fdata1, ns ))
 			return EX_NOINPUT;
 
 		for (long idet2=0;idet2<ndet;idet2++) {
 
 			// read data from disk
-			if(read_fdata(samples_struct.dirfile_pointer, fits_filename, det[idet2],"fdata_", fdata2, ns))
+			if(read_fdata(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], det[idet2],"fData_", fdata2, ns))
 				return EX_NOINPUT;
 
 			noisecrosspectrum_estim(fdata1,fdata2,ns,km,(int)nbins,fsamp,NULL,Nell,Nk);
@@ -456,7 +466,7 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 			N[jj][ii] = N[jj][ii]/SPref[ii]; //normalize uncorrelated part
 
 
-	basename = FitsBasename(fits_filename);
+	basename = FitsBasename(samples_struct.fitsvect[iframe]);
 
 //	// write Rellexp to disk and also first guess of parameters
 //	temp_stream << dir.output_dir + "Rellexp_" << basename << ".txt";
@@ -1061,7 +1071,7 @@ int write_to_disk(string outdirSpN, string fits_filename, struct param_sanePS st
 	basename = FitsBasename(fits_filename);
 
 	temp_stream << outdirSpN << basename << structPS.ell_suffix;
-	nameSpfile= temp_stream.str();
+	nameSpfile = temp_stream.str();
 	temp_stream.str("");
 
 	fp = fopen(nameSpfile.c_str(),"w");

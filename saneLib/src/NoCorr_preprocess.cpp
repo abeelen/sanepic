@@ -21,8 +21,7 @@
 using namespace std;
 
 int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param, struct param_sanePos pos_param,
-		struct samples samples_struct, std::vector<std::string> det, long ndet, double fhp_pix, double fcut_pix,
-		long addnpix, long ns, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
+		struct samples samples_struct, long addnpix,  long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2, long long npix,
 		long long npixsrc, long iframe, double *S, int para_bolo_indice, int para_bolo_size)
 {
 
@@ -36,6 +35,13 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	long long *samptopix;
 	double *bfilter, *Nk, *data, *Ps;
 	int *flag;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet                    = (long) det.size();
+	long ns				         = samples_struct.nsamples[iframe];
+	double fsamp                 = samples_struct.fsamp[iframe];
+	double fhp_pix               = samples_struct.fhp[iframe] * double(ns)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
+	double fcut_pix              = samples_struct.fcut[iframe]* double(ns)/fsamp; // noise PS threshold freq, in terms of samples
 
 	samptopix = new long long[ns];
 	bfilter   = new double[ns/2+1];
@@ -62,9 +68,9 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	for (long idet=para_bolo_indice*ndet/para_bolo_size;idet<(para_bolo_indice+1)*ndet/para_bolo_size;idet++){
 		field = det[idet];
 
-		if(read_data_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field, data, ns))
+		if(read_data_from_dirfile(samples_struct.dirfile_pointers[iframe], dirfile_filename, field, data, ns))
 			return 1;
-		if(read_flag_from_dirfile(samples_struct.dirfile_pointer, dirfile_filename, field, flag, ns))
+		if(read_flag_from_dirfile(samples_struct.dirfile_pointers[iframe], dirfile_filename, field, flag, ns))
 			return 1;
 
 		//		long test_ns;
@@ -82,7 +88,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 		//// Read pointing
-		read_samptopix(samples_struct.dirfile_pointer, dirfile_filename,field, samptopix, ns);
+		read_samptopix(samples_struct.dirfile_pointers[iframe], dirfile_filename,field, samptopix, ns);
 
 
 		if (S != NULL){
@@ -133,10 +139,9 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 
 
 
-void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::string> noisevect, struct param_common dir,
-		std::vector<std::string> det, long ndet, double fhp_pix,double fsamp, bool flgdupl, long ns,
-		long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		long iframe,std::string fname, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
+void do_PtNPS_nocorr(struct samples samples_struct, double *S, struct param_common dir,
+		bool flgdupl,long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		long iframe, double *PtNPmatS, double *Mp, long *hits, int para_bolo_indice, int para_bolo_size)
 
 {
 
@@ -148,6 +153,14 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 	long long *samptopix;
 	double *bfilter, *Nk, *Ps;
 	double powered;
+
+	std::vector<std::string> det = samples_struct.bolo_list[iframe];
+	long ndet                    = (long) det.size();
+	long ns				         = samples_struct.nsamples[iframe];
+	double fsamp                 = samples_struct.fsamp[iframe];
+	double fhp_pix               = samples_struct.fcut[iframe] * double(ns) / fsamp;
+
+	std::string fname            = samples_struct.basevect[iframe];
 
 	samptopix = new long long[ns];
 	bfilter = new double[ns/2+1];
@@ -163,7 +176,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 
 		field = det[idet];
 
-		read_samptopix(samples_struct.dirfile_pointer,  fname,field, samptopix, ns);
+		read_samptopix(samples_struct.dirfile_pointers[iframe],  fname,field, samptopix, ns);
 
 
 		// AS
@@ -174,7 +187,7 @@ void do_PtNPS_nocorr(struct samples samples_struct, double *S, std::vector<std::
 			bfilter[ii] = powered /(1.0+powered);
 		}
 
-		extentnoiseSp = noisevect[iframe];
+		extentnoiseSp = samples_struct.noisevect[iframe];
 		nameSpfile = dir.tmp_dir + field + extentnoiseSp;
 		readNSpectrum(nameSpfile,bfilter,ns,fsamp,Nk);
 

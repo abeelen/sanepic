@@ -122,7 +122,6 @@ int main(int argc, char *argv[])
 
 		compare_to_mask = parsed & mask_sanePre;
 
-
 		// print parser warning and/or errors
 		if (rank==0)
 			cout << endl << parser_output << endl;
@@ -176,9 +175,13 @@ int main(int argc, char *argv[])
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
-
-		compute_dirfile_format_file(dir.tmp_dir, samples_struct, Pos_param.fileFormat);
 	}
+	// this should be done by subrank 0 only
+	init_dirfile(dir.tmp_dir, samples_struct, Pos_param.fileFormat, rank);
+
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
+
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -239,7 +242,7 @@ int main(int argc, char *argv[])
 		int nsubkeys;                   //
 
 
-		if (get_fits_META(samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys, rank)){
+		if (get_fits_META(samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys)){
 			cout << "pb getting fits META\n";
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -256,7 +259,6 @@ int main(int argc, char *argv[])
 		wcsvfree(&nwcs, &wcs);
 
 	}
-
 
 	if (rank == 0 && Proc_param.wisdom ){
 		cout << "Building some wisdom..." << endl;
@@ -300,6 +302,21 @@ int main(int argc, char *argv[])
 
 	}
 
+#ifdef PARA_FRAME
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
 
 #ifdef DEBUG
 	//Get processing time
@@ -310,12 +327,12 @@ int main(int argc, char *argv[])
 
 #endif
 
+	if(rank==0)
+		cout << endl << "end of sanePre" << endl;
+
 #ifdef USE_MPI
 	MPI_Finalize();
 #endif
-
-	if(rank==0)
-		cout << endl << "end of sanePre" << endl;
 
 	return EXIT_SUCCESS;
 

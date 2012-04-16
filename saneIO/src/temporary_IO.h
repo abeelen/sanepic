@@ -145,7 +145,7 @@ int read_PNd(double *&PNdtot, long long &npix, std::string outdir, std::string f
  \param boloname A channel name (to find which data to open in the dirfile tree)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_samptopix(DIRFILE *D, long ns, long long *&samptopix, std::string filename, std::string boloname);
+int write_samptopix(DIRFILE *D, std::string filename, std::string boloname, long ns, long long *&samptopix);
 
 //! Reads samptopix from disk, in the dirfile pointed by "D"
 /*!
@@ -183,17 +183,6 @@ int write_fdata(DIRFILE *D, long ns, fftw_complex *fdata, std::string prefixe, l
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int read_fdata(DIRFILE* D, std::string filename, std::string boloname, std::string prefixe, fftw_complex *fdata, long ns );
-
-//! Reads a mixing matrix in a .txt file
-/*!
- \param MixMatfile This file name contains the mixing matrix values
- \param ndet The number of detectors contained in the mixing matrix (determines mixing matrix size)
- \param ncomp The number of noise component to estimate by sanePS (determines mixing matrix size)
- \param mixmat The mixing matrix data (read from the file)
- \return An integer >0 if there were a problem, or 0 if everything went OK
- */
-int read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
-
 
 
 #endif

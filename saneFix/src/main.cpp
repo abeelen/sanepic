@@ -143,6 +143,10 @@ int main(int argc, char *argv[]) {
 		cout << "\nFixing Files..." << endl << endl;
 	}
 
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
+
+
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
@@ -270,6 +274,21 @@ int main(int argc, char *argv[]) {
 			indice.clear();
 			add_sample.clear();
 
+	}
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
 	}
 
 	if(rank==0)

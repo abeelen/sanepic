@@ -54,7 +54,7 @@ std::string dirfile_Basename(std::string path);
  \param inputFiles A vector of string containing input fits filenames
  \param nsamples An array in which the number of samples for each scan is stored
  */
-void readFrames(std::vector<std::string> &inputFiles, std::vector<long> &nsamples);
+void readFramesFromFits(struct samples &samples_struct, int rank);
 
 //! Given an input fits "filename", get its number of samples (called by readFrames routine)
 /*!
@@ -82,5 +82,18 @@ int read_channel_list(std::string &output, std::string fname, std::vector<std::s
 uint16_t read_fits_list(std::string &output, std::string fname, struct samples &samples_struct);
 
 void skip_comment(std::ifstream &file, std::string &line);
+
+
+//! Reads a mixing matrix in a .txt file
+/*!
+ \param MixMatfile This file name contains the mixing matrix values
+ \param ndet The number of detectors contained in the mixing matrix (determines mixing matrix size)
+ \param ncomp The number of noise component to estimate by sanePS (determines mixing matrix size)
+ \param mixmat The mixing matrix data (read from the file)
+ \return An integer >0 if there were a problem, or 0 if everything went OK
+ */
+int read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
+
+
 
 #endif /* INPUTFILEIO_H_ */

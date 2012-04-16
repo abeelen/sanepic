@@ -25,6 +25,7 @@
 
 extern "C" {
 #include "nrutil.h"
+#include "getdata.h"
 }
 
 #ifdef USE_MPI
@@ -118,13 +119,24 @@ int main(int argc, char *argv[])
 		return EX_CONFIG;
 	}
 
-//	fill_sanePS_struct(ps_param, samples_struct, dir);
+
+	if(rank==12){
+		// parser print screen function
+		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
+				ps_param, pic_param, inv_param);
+
+	}
+
+
+	// this should be done by subrank 0 only
+//	init_dirfile(dir.tmp_dir, samples_struct, pos_param.fileFormat, rank);
+	//	fill_sanePS_struct(ps_param, samples_struct, dir);
 
 	cout << rank << " parser done." << endl;
 
 
 #ifdef PARA_FRAME
-//	MPI_Barrier(MPI_COMM_WORLD);
+	//	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -136,15 +148,17 @@ int main(int argc, char *argv[])
 
 #endif
 
+	readFramesFromFits(samples_struct, rank);
+
 //	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
 
-	if (rank==0){
-//		print_common(dir);
-//		print_param_sanePos(pos_param);
-//		print_param_saneProc(proc_param);
-//		print_param_saneInv(inv_param);
-//		print_param_sanePic(pic_param);
-//		print_param_sanePS(ps_param);
+	if (rank==12){
+		//		print_common(dir);
+		//		print_param_sanePos(pos_param);
+		//		print_param_saneProc(proc_param);
+		//		print_param_saneInv(inv_param);
+		//		print_param_sanePic(pic_param);
+		//		print_param_sanePS(ps_param);
 
 		cout << " ---" << endl;
 		print_struct(proc_param, samples_struct, pos_param, dir, inv_param, pic_param,ps_param);

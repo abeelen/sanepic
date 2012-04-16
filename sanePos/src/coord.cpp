@@ -198,12 +198,12 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 
 	long ns;
 	int n_get;
-	D = samples_struct.dirfile_pointer;
 
 
 	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 		ns = samples_struct.nsamples[iframe];
+		D  = samples_struct.dirfile_pointers[iframe];
 
 		lon = new double[ns];
 		lat = new double[ns];
@@ -213,8 +213,8 @@ int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos 
 
 		for (unsigned long idet = 0; idet < samples_struct.bolo_list[iframe].size() ; idet++) {
 
-			string lon_file = "LON_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
-			string lat_file = "LAT_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
+			string lon_file = "Lon_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
+			string lat_file = "Lat_" + samples_struct.basevect[iframe] + "_" + samples_struct.bolo_list[iframe][idet];
 
 			const char * field_lon, *field_lat;
 

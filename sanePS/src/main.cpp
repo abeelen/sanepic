@@ -184,26 +184,16 @@ int main(int argc, char *argv[])
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_fdata(dir.tmp_dir, samples_struct);
 	}
+	// this should be done by subrank 0 only
+	cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, rank);
+
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
-
-
-	// Open the dirfile to read temporary files
-	string filedir = dir.tmp_dir + "dirfile";
-	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED);
-
-	if (gd_error(samples_struct.dirfile_pointer) != 0) {
-		cout << "error opening dirfile : " << filedir << endl;
-#ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return 1;
-	}
 
 	fill_sanePS_struct(structPS, samples_struct, dir); // all ranks do it !
 
@@ -371,10 +361,8 @@ int main(int argc, char *argv[])
 
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
 
-		std::vector<string> det = samples_struct.bolo_list[iframe];
-
-		if(EstimPowerSpectra(det, proc_param, dir, pos_param, structPS,
-				samples_struct, NAXIS1, NAXIS2, npix, iframe, indpix, S, rank)){
+		if(EstimPowerSpectra(proc_param, dir, pos_param, structPS,
+				samples_struct, iframe, NAXIS1, NAXIS2, npix, indpix, S, rank)){
 			cout << "Error in EstimPowerSpectra procedure. Exiting ...\n";
 			break;
 		}
@@ -402,8 +390,21 @@ int main(int argc, char *argv[])
 	if(rank==0)
 		delete[] indpsrc;
 
-	if (gd_close(samples_struct.dirfile_pointer))
-		cout << "error closing dirfile : " << filedir << endl;
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 #ifdef PARA_FRAME
 

@@ -369,8 +369,8 @@ void noisepectrum_estim(double *data, long ns, double *km, int nbins, double fsa
 	bfiltertemp = new double[ns/2+1];
 	count = new int[nbins];
 
-	//TODO : Why removing a polynomial here ???? SHOULD NOT
-	//TODO : apodization done twice ?? SHOULD NOT, but see below
+	//RESOLVED : Why removing a polynomial here ???? SHOULD NOT
+	//RESOLVED: apodization done twice ?? SHOULD NOT, but see below
 
 //	remove_poly(data,ns,4,datatemp2,0);
 //	apodwind = apodwindow(ns,ns/10);
@@ -383,8 +383,8 @@ void noisepectrum_estim(double *data, long ns, double *km, int nbins, double fsa
 	fftw_execute(fftplan);
 //
 //
-//	// TODO: apodisation done twice ??
-//	// TODO: resamblance to factapod in other routines, can we merge that ? (factor ns)
+//	// RESOLVED: apodisation done twice ??
+//	// RESOLVED: resamblance to factapod in other routines, can we merge that ? (factor ns)
 //	totapod = 0.0;
 //	for (long ii=0;ii<ns;ii++)
 //		totapod += apodwind[ii]*apodwind[ii];

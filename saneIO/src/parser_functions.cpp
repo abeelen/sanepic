@@ -62,7 +62,7 @@ string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
 
-uint16_t check_path(string &output, string strPath, bool create) {
+uint16_t check_path(string &output, string strPath, bool create, int rank) {
 
 	if (access(strPath.c_str(), 0) == 0) {
 		struct stat status;
@@ -80,13 +80,15 @@ uint16_t check_path(string &output, string strPath, bool create) {
 			return DIR_PROBLEM;
 		}
 
-		int status;
-		status = mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0)
-			output += "WW - " + strPath + " created\n";
-		else {
-			output += "EE - " + strPath + " failed to create\n";
-			return DIR_PROBLEM;
+		if (rank == 0) {
+			int status;
+			status = mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			if (status == 0)
+				output += "WW - " + strPath + " created\n";
+			else {
+				output += "EE - " + strPath + " failed to create\n";
+				return DIR_PROBLEM;
+			}
 		}
 	}
 	return OK;
@@ -175,6 +177,8 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 	// Default values
 	samples_struct.iframe_min = 0;
 	samples_struct.iframe_max = samples_struct.ntotscan;
+	samples_struct.dirfile_pointers.clear();
+	samples_struct.dirfile_pointers.resize(samples_struct.ntotscan, NULL);
 
 	// Add data directory to fitsvect
 	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++)
@@ -226,7 +230,7 @@ int get_noise_bin_sizes(std::string tmp_dir, struct samples &samples_struct, int
 			string scan_name = samples_struct.basevect[ii];
 			// dirfile path
 			string filedir = tmp_dir + "dirfile/" + scan_name
-					+ "/Noise_data/ell/";
+					+ "/Noise_data/Ell/";
 
 			// open dirfile
 			DIRFILE* H = gd_open((char *) filedir.c_str(),
@@ -316,7 +320,6 @@ unsigned long max_size_str_vect(std::vector<std::string> str_vect)
 	return size_max;
 }
 
-
 void read_common(string &output, dictionary *ini, struct param_common &common) {
 
 	char *s;
@@ -377,8 +380,7 @@ void read_common(string &output, dictionary *ini, struct param_common &common) {
 
 }
 
-void read_param_sanePos(string &output, dictionary *ini,
-		struct param_sanePos &Pos_param) {
+void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &Pos_param) {
 
 	char *s;
 	double d;
@@ -470,8 +472,7 @@ void read_param_sanePos(string &output, dictionary *ini,
 
 }
 
-void read_param_saneProc(string &output, dictionary *ini,
-		struct param_saneProc &Proc_param) {
+void read_param_saneProc(string &output, dictionary *ini, struct param_saneProc &Proc_param) {
 
 	int i;
 	double d;
@@ -575,8 +576,7 @@ void read_param_saneProc(string &output, dictionary *ini,
 #endif
 }
 
-void read_param_saneInv(std::string &output, dictionary *ini,
-		struct param_saneInv &Inv_param) {
+void read_param_saneInv(std::string &output, dictionary *ini, struct param_saneInv &Inv_param) {
 
 	char *s;
 	string output2 = "";
@@ -608,8 +608,7 @@ void read_param_saneInv(std::string &output, dictionary *ini,
 
 }
 
-void read_param_sanePS(std::string &output, dictionary *ini,
-		struct param_sanePS &PS_param) {
+void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS &PS_param) {
 
 	int i;
 	char *s;
@@ -744,278 +743,365 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 
 }
 
+void read_wisdom(std::string &output, struct param_common &dir, struct param_saneProc Proc_param, int rank){
+	// Retrieve wisdom if asked / possible
+
+	if (rank == 0 && Proc_param.wisdom) {
+		string filename = dir.tmp_dir + "fftw.wisdom";
+		FILE * pFilename;
+
+		pFilename = fopen((const char*) filename.c_str(), "r");
+
+		if ( pFilename != NULL ){
+			fftw_import_wisdom_from_file( pFilename );
+			fclose(pFilename);
+		} else {
+#ifdef DEBUG
+			output += "WW - no FFTW wisdom imported from fftw.wisdom\n";
+#endif
+		}
+	}
+
+#ifdef USE_MPI
+	if ( Proc_param.wisdom ) {
+
+		char * wisdom = NULL;
+		int size_wisdom;
+
+		if (rank == 0){
+			wisdom = fftw_export_wisdom_to_string();
+			size_wisdom = strlen(wisdom);
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(&size_wisdom, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+		if (rank != 0){
+			wisdom = (char *)calloc(size_wisdom+1, sizeof(char));
+			fill(wisdom, wisdom + size_wisdom+1, '\0');
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(wisdom, size_wisdom, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+		if (rank != 0)
+			if ( fftw_import_wisdom_from_string(wisdom) != 0 )
+				output += "WW - Problem propagating FFTW wisdom\n";
+	}
+#endif
+
+}
+
+int init_dirfile(std::string tmp_dir, struct samples & samples_struct, int format, int rank) {
+
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
 
 
-int compute_dirfile_format_file(std::string tmp_dir,
-		struct samples samples_struct, int format) {
+	//TODO This should be done on iframe_min iframe_max in case of subranks and by subrank 0
+	if (rank == 0) {
 
-	string filedir = tmp_dir + "dirfile";
+		DIRFILE *temp;
 
-	DIRFILE *D, *H, *F, *I, *I2, *J, *K, *S, *R, *R2;
-
-	// create folders
-	D = gd_open((char *) filedir.c_str(),
-			GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-
-		string scan_name = samples_struct.basevect[iframe];
-		string scan_folder = filedir + "/" + scan_name;
-		string fdata = filedir + "/" + scan_name + "/fData";
-		string index_path = filedir + "/" + scan_name + "/Indexes";
-		string data = filedir + "/" + scan_name + "/data";
-		string flag_dir = filedir + "/" + scan_name + "/flag";
-		string LON = filedir + "/" + scan_name + "/LON";
-		string LAT = filedir + "/" + scan_name + "/LAT";
-		string noise_path = filedir + "/" + scan_name + "/Noise_data";
-		string ell_path = filedir + "/" + scan_name + "/Noise_data/ell";
-
-		// create folders
-		S = gd_open((char *) scan_folder.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		H = gd_open((char *) index_path.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		F = gd_open((char *) fdata.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		J = gd_open((char *) data.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		K = gd_open((char *) flag_dir.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		I = gd_open((char *) noise_path.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		I2 = gd_open((char *) ell_path.c_str(),
-				GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-		if (format == 1) {
+		for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+			string dirfile_basename = tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
 
 			// create folders
-			R = gd_open((char *) LON.c_str(),
-					GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
-			R2 = gd_open((char *) LAT.c_str(),
+			samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(),
 					GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
-			// close subdirfiles
-			gd_close(R);
-			gd_close(R2);
+			const char * subdirs[] = { "fData", "Indexes", "Data", "Flag", "Lon", "Lat", "Noise_data", "Noise_data/Ell" };
+			for (unsigned long ii=0; ii< Elements_in(subdirs); ii++){
+				string dirfile_name   = dirfile_basename + "/" + subdirs[ii];
+				temp = gd_open((char *) dirfile_name.c_str(), GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+				gd_close(temp);
+				string dirfile_format = string(subdirs[ii]) + "/format";
+				gd_include(samples_struct.dirfile_pointers[iframe], (char *) dirfile_format.c_str(), 0, GD_RDWR | GD_CREAT | GD_UNENCODED);
+			}
+
+			gd_flush(samples_struct.dirfile_pointers[iframe], NULL);
+			gd_close(samples_struct.dirfile_pointers[iframe]);
 		}
 
-		// close subdirfiles
-		gd_close(H);
-		gd_close(F);
-		gd_close(J);
-		gd_close(K);
-		gd_close(S);
-		gd_close(I);
-		gd_close(I2);
-
-		// include subdir and create format files
-		gd_include(D, (char *) (scan_name + "/format").c_str(), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-
-		S = gd_open((char *) scan_folder.c_str(),
-				GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-
-		gd_include(S, (char *) ("Indexes/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		gd_include(S, (char *) ("fData/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		gd_include(S, (char *) ("flag/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		gd_include(S, (char *) ("data/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		gd_include(S, (char *) ("Noise_data/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		gd_include(S, (char *) ("Noise_data/ell/format"), 0,
-				GD_RDWR | GD_CREAT | GD_UNENCODED);
-		if (format == 1) {
-			gd_include(S, (char *) ("LON/format"), 0,
-					GD_RDWR | GD_CREAT | GD_UNENCODED);
-			gd_include(S, (char *) ("LAT/format"), 0,
-					GD_RDWR | GD_CREAT | GD_UNENCODED);
-		}
-
-		gd_flush(S, NULL);
-
-		gd_close(S);
 	}
 
-	// close dirfile
-	gd_close(D);
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
+	// and reopen it for furter use....
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		string dirfile_basename = tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
+		samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+	}
 	return 0;
 }
 
-int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples samples_struct) {
+int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_struct, int rank) {
+
+
+
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
 
 	std::vector<string> det_vect;
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+	//TODO This should be done on iframe_min iframe_max in case of subranks and by subrank 0 only
+	if (rank == 0){
 
-		det_vect = samples_struct.bolo_list[iframe];
+		for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
 
-		string scan_name = samples_struct.basevect[iframe];
-		string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
+			det_vect = samples_struct.bolo_list[iframe];
 
-		DIRFILE *S = gd_open((char *) index_path.c_str(),
-				GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+			string scan_name = samples_struct.basevect[iframe];
+			string index_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
 
-		// then generate binaries and fill format file
-		for (long idet = 0; idet < (long) det_vect.size(); idet++) {
-			string outfile = scan_name + "_" + det_vect[idet];
-			//configure dirfile field
-			gd_entry_t E;
-			E.field = (char*) outfile.c_str();
-			E.field_type = GD_RAW_ENTRY;
-			E.fragment_index = 0;
-			E.spf = 1;
-			E.data_type = GD_INT64;
-			E.scalar[0] = NULL;
+			DIRFILE *S = gd_open((char *) index_path.c_str(),
+					GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
-			// add to the dirfile
-			gd_add(S, &E);
-			gd_flush(S, E.field);
+			// then generate binaries and fill format file
+			// then generate binaries and fill format file
+			const char * prefixes[] = { "Indexes_" };
+			for (unsigned long ip = 0; ip < Elements_in(prefixes); ip++) {
+				for (long idet = 0; idet < (long) det_vect.size(); idet++) {
+					string outfile = prefixes[ip] + scan_name + "_" + det_vect[idet];
+					//configure dirfile field
+					gd_entry_t E;
+					E.field = (char*) outfile.c_str();
+					E.field_type = GD_RAW_ENTRY;
+					E.fragment_index = 0;
+					E.spf = 1;
+					E.data_type = GD_INT64;
+					E.scalar[0] = NULL;
+
+					// add to the dirfile
+					gd_add(S, &E);
+					gd_flush(S, E.field);
+				}
+			}
+
+			if (gd_close(S))
+				cout << "error closing " << index_path << "-> memory leaks ..." << endl;
+
 		}
-
-		if (gd_close(S))
-			cout << "error closing " << index_path << "-> memory leaks ..."
-			<< endl;
-
 	}
-	return 0;
-}
 
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples samples_struct, long nframe, string noise_suffix) {
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
-	std::vector<string> det_vect;
 
-	for (long ii = 0; ii < nframe; ii++) {
-
-		det_vect = samples_struct.bolo_list[ii];
-
-		string base_name = samples_struct.basevect[ii];
-		string noise_path = tmp_dir + "dirfile/" + base_name + "/Noise_data";
-		string ell_path = noise_path + "/ell";
-
-		DIRFILE *S = gd_open((char *) noise_path.c_str(),
-				GD_RDWR | GD_TRUNC | GD_UNENCODED);
-		DIRFILE *D = gd_open((char *) ell_path.c_str(),
-				GD_RDWR | GD_TRUNC | GD_UNENCODED);
-
-		string suffix = base_name + noise_suffix; // base_name instead of noisevect[ii]
-
-		for (int idet = 0; idet < (long) det_vect.size(); idet++) {
-
-			// ell binary filename
-			string outfile = det_vect[idet] + "_" + suffix + "_ell";
-
-			// configure dirfile field for ell
-			gd_entry_t E;
-			E.field = (char*) outfile.c_str();
-			E.field_type = GD_RAW_ENTRY;
-			E.fragment_index = 0;
-			E.spf = 1;
-			E.data_type = GD_DOUBLE;
-			E.scalar[0] = NULL;
-
-			// add to the dirfile
-			gd_add(D, &E);
-
-			// spectra filename
-			outfile = det_vect[idet] + "_" + suffix;
-
-			// set field information for spectra
-			E.field = (char*) outfile.c_str();
-
-			// add to the dirfile
-			gd_add(S, &E);
-			gd_flush(S, NULL);
-		}
-
-		if (gd_close(S))
-			cout << "error closing " << noise_path << "-> memory leaks ..."
-			<< endl;
-		if (gd_close(D))
-			cout << "error closing " << ell_path << "-> memory leaks ..."
-			<< endl;
-
+	// and reopen it for furter use....
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		string dirfile_basename = tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
+		samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 	}
 
 	return 0;
 }
 
-int cleanup_dirfile_fdata(std::string tmp_dir, struct samples samples_struct) {
+int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int rank) {
 
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
 
-		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
-		//get fourier transform dirfile names !
-		string scan_name = samples_struct.basevect[iframe];
-		string fdata_path = tmp_dir + "dirfile/" + scan_name + "/fData";
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
 
-		// clean up the dirfiles with TRUNC option
-		DIRFILE *S = gd_open((char *) fdata_path.c_str(),
-				GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 
-		// then generate binaries and fill format file
-		string prefixe[2] = { "fdata_", "fPs_" };
-		for (long ip = 0; ip < 2; ip++)
+	//TODO This should be done on iframe_min iframe_max in case of subranks
+	if (rank == 0){
+		for (unsigned long iframe = 0; iframe < samples_struct.noisevect.size() ; iframe++) {
+
+			std::vector<string> det_vect = samples_struct.bolo_list[iframe];
+
+			string scan_name  = samples_struct.basevect[iframe];
+			string noise_path = tmp_dir + "dirfile/" + scan_name + "/Noise_data";
+			string ell_path   = noise_path + "/Ell";
+
+			DIRFILE *S = gd_open((char *) noise_path.c_str(),  GD_RDWR | GD_TRUNC | GD_UNENCODED);
+			DIRFILE *D = gd_open((char *) ell_path.c_str(),    GD_RDWR | GD_TRUNC | GD_UNENCODED);
+
+			gd_add_string(S,(const char *) "WARN_Noise",(const char *) "The size of this dirfile is different from the main dirfile", 0);
+			gd_add_string(D,(const char *) "WARN_Ell",  (const char *) "The size of this dirfile is different from the main dirfile", 0);
+
+			string outfile;
 			for (long idet = 0; idet < (long) det_vect.size(); idet++) {
-				string outfile = prefixe[ip] + scan_name + "_" + det_vect[idet];
-				//configure dirfile field
+
+				// ell binary filename
+				outfile = "Ell_InvNoisePS_" + scan_name + "_" + det_vect[idet];
+
+				// configure dirfile field for ell
 				gd_entry_t E;
 				E.field = (char*) outfile.c_str();
 				E.field_type = GD_RAW_ENTRY;
 				E.fragment_index = 0;
 				E.spf = 1;
-				E.data_type = GD_COMPLEX128;
+				E.data_type = GD_DOUBLE;
 				E.scalar[0] = NULL;
+
+				// add to the dirfile
+				gd_add(D, &E);
+				gd_flush(D, E.field);
+
+				// spectra filename
+				outfile = "InvNoisePS_" + scan_name + "_" + det_vect[idet];
+
+				// set field information for spectra
+				E.field = (char*) outfile.c_str();
 
 				// add to the dirfile
 				gd_add(S, &E);
 				gd_flush(S, E.field);
 			}
 
-		gd_close(S);
+			if (gd_close(S))
+				cout << "error closing " << noise_path << "-> memory leaks ..."
+				<< endl;
+			if (gd_close(D))
+				cout << "error closing " << ell_path << "-> memory leaks ..."
+				<< endl;
 
-		// check sizes in Indexes, data and flag format
-		string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
-		string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
-		DIRFILE *I = gd_open((char *) indexes_path.c_str(),
-				GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-		DIRFILE *D = gd_open((char *) data_path.c_str(),
-				GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-
-		long nframeI = gd_nframes(I);
-		long nframeD = gd_nframes(I);
-
-		long ns = samples_struct.nsamples[iframe];
-		gd_close(I);
-		gd_close(D);
-
-		if ((nframeI != ns) || (nframeD != ns)) {
-			cout << "Error... Dirfile data or Indexes has incorrect size !!\n";
-			cout << indexes_path << " : " << nframeI << " (vs ns= " << ns <<")" << endl;
-			cout << data_path    << " : " << nframeD << " (vs ns= " << ns <<")" << endl;
-			return 1;
 		}
 
+	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// and reopen it for furter use....
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		string dirfile_basename = tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
+		samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+	}
+
+	return 0;
+}
+
+int cleanup_dirfile_fdata(std::string tmp_dir, struct  samples & samples_struct, int rank) {
+
+
+	// Close previously openened dirfile
+	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
+
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+	//TODO This should be done on iframe_min iframe_max in case of subranks
+	if (rank == 0){
+
+		for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
+			std::vector<string> det_vect = samples_struct.bolo_list[iframe];
+
+			//get fourier transform dirfile names !
+			string scan_name  = samples_struct.basevect[iframe];
+			string fdata_path = tmp_dir + "dirfile/" + scan_name + "/fData";
+
+			// clean up the dirfiles with TRUNC option
+			DIRFILE *S = gd_open((char *) fdata_path.c_str(), GD_RDWR | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
+
+			// then generate binaries and fill format file
+			const char * prefixes[] = { "fData_", "fPs_" };
+			for (unsigned long ip = 0; ip < Elements_in(prefixes); ip++)
+				for (long idet = 0; idet < (long) det_vect.size(); idet++) {
+					string outfile = prefixes[ip] + scan_name + "_" + det_vect[idet];
+					//configure dirfile field
+					gd_entry_t E;
+					E.field = (char*) outfile.c_str();
+					E.field_type = GD_RAW_ENTRY;
+					E.fragment_index = 0;
+					E.spf = 1;
+					E.data_type = GD_COMPLEX128;
+					E.scalar[0] = NULL;
+
+					// add to the dirfile
+					gd_add(S, &E);
+					gd_flush(S, E.field);
+				}
+
+			gd_close(S);
+//			// check sizes in Indexes, data and flag format
+//			string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
+//			string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
+//			DIRFILE *I = gd_open((char *) indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+//			DIRFILE *D = gd_open((char *) data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+//
+//			long nframeI = gd_nframes(I);
+//			long nframeD = gd_nframes(I);
+//
+//			//			long ns = samples_struct.nsamples[iframe];
+//			gd_close(I);
+//			gd_close(D);
+//
+//			if (nframeI != nframeD ) {
+//				cout << "Error... Dirfile data or Indexes has incorrect size !!" << endl;
+//				cout << indexes_path << " : " << nframeI << endl;
+//				cout << data_path    << " : " << nframeD << endl;
+//				return 1;
+//			}
+
+		}
+	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// and reopen it for furter use....
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		string dirfile_basename = tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
+		samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
 	}
 
 	return 0;
 }
 
 
-uint16_t check_common(string &output, struct param_common &dir) {
+uint16_t check_common(string &output, struct param_common &dir, int rank) {
 
 	uint16_t returnCode = 0;
 
-	if (check_path(output, dir.data_dir, false))
+	if (check_path(output, dir.data_dir, false, rank))
 		returnCode |= DATA_INPUT_PATHS_PROBLEM;
-	if (check_path(output, dir.input_dir, false))
+	if (check_path(output, dir.input_dir, false, rank))
 		returnCode |= DATA_INPUT_PATHS_PROBLEM;
-	if (check_path(output, dir.output_dir, true))
+	if (check_path(output, dir.output_dir, true, rank))
 		returnCode |= OUPUT_PATH_PROBLEM;
-	if (check_path(output, dir.tmp_dir, true))
+	if (check_path(output, dir.tmp_dir, true, rank))
+		returnCode |= TMP_PATH_PROBLEM;
+	if (check_path(output, dir.tmp_dir+"dirfile", true, rank))
 		returnCode |= TMP_PATH_PROBLEM;
 
 	if ((dir.bolo == "") && (dir.bolo_suffix == "")) {
@@ -1024,7 +1110,15 @@ uint16_t check_common(string &output, struct param_common &dir) {
 		returnCode |= BOLOFILE_NOT_FOUND;
 	}
 
-	//TODO: Check for file existence....
+	if ((dir.bolo != "") && (check_file(dir.input_dir+dir.bolo) != 0)){
+		output += "EE - " + dir.bolo + " not found\n";
+		returnCode |= FILE_PROBLEM;
+	}
+
+	if (check_file(dir.input_dir+dir.fits_filelist) != 0){
+		output += "EE - " + dir.fits_filelist + " not found\n";
+		returnCode |= FILE_PROBLEM;
+	}
 
 	return returnCode;
 }
@@ -1037,6 +1131,7 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 		output += "EE - Pixsize cannot be negative ! \n";
 		returnCode |= PIXDEG_WRONG_VALUE;
 	}
+
 	if ((Pos_param.fileFormat != 0) && (Pos_param.fileFormat != 1)) {
 		output += "EE - Fileformat must be 0 (SANEPIC) or 1 (HIPE) \n";
 		returnCode |= FILEFORMAT_NOT_FOUND;
@@ -1053,11 +1148,9 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 	return returnCode;
 }
 
-uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param) {
+uint16_t check_param_saneProc(string &output, struct param_common dir, struct param_saneProc &Proc_param) {
 
 	uint16_t returnCode = 0;
-
-	//TODO: Check for file existence....
 
 	if (Proc_param.napod < 0) {
 		output
@@ -1071,9 +1164,19 @@ uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param)
 		returnCode |= FSAMP_PROBLEM;
 	}
 
+	if ( (Proc_param.fsamp_file != ""  ) && (check_file(dir.input_dir + Proc_param.fsamp_file) != 0) ){
+		output += "EE - " + Proc_param.fsamp_file + " not found\n";
+		returnCode |= FSAMP_PROBLEM;
+	}
+
 	if ( ( Proc_param.fhp < 0.0 ) && ( Proc_param.fhp_file == "" ) ) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     saneProc:fhp or saneProc:fhp_file\n";
+		returnCode |= FHP_PROBLEM;
+	}
+
+	if ( (Proc_param.fhp_file != ""  ) && (check_file(dir.input_dir + Proc_param.fhp_file) != 0) ){
+		output += "EE - " + Proc_param.fhp_file + " not found\n";
 		returnCode |= FHP_PROBLEM;
 	}
 
@@ -1083,12 +1186,16 @@ uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param)
 		returnCode |= FCUT_PROBLEM;
 	}
 
+	if ( (Proc_param.fcut_file != ""  ) && (check_file(dir.input_dir + Proc_param.fcut_file) != 0) ){
+		output += "EE - " + Proc_param.fcut_file + " not found\n";
+		returnCode |= FCUT_PROBLEM;
+	}
+
 	if (Proc_param.poly_order >= 0)
 		Proc_param.remove_polynomia = true;
 	else
 		Proc_param.remove_polynomia = false;
 
-	//TODO: Check the case of fhp_file
 	if (Proc_param.fhp > 0 || Proc_param.fhp_file != "" )
 		Proc_param.highpass_filter = true;
 	else
@@ -1097,7 +1204,7 @@ uint16_t check_param_saneProc(string &output, struct param_saneProc &Proc_param)
 	return returnCode;
 }
 
-uint16_t check_param_sanePS(string &output, struct param_sanePS &PS_param) {
+uint16_t check_param_sanePS(string &output, struct param_common dir, struct param_sanePS &PS_param) {
 
 	uint16_t returnCode = 0;
 
@@ -1110,31 +1217,45 @@ uint16_t check_param_sanePS(string &output, struct param_sanePS &PS_param) {
 		output += "     sanePS:ell or sanePS:ell_suffix\n";
 		returnCode |= ELL_FILE_NOT_FOUND;
 	}
+
+	if ( (PS_param.ell != ""  ) && (check_file(dir.input_dir + PS_param.ell) != 0) ){
+		output += "EE - " + PS_param.ell + " not found\n";
+		returnCode |= ELL_FILE_NOT_FOUND;
+	}
+
 	if ((PS_param.mix == "") && (PS_param.mix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     sanePS:mix or sanePS:mix_suffix\n";
 		returnCode |= MIX_FILE_NOT_FOUND;
 	}
 
+	if ( (PS_param.mix != ""  ) && (check_file(dir.input_dir + PS_param.mix) != 0) ){
+		output += "EE - " + PS_param.mix + " not found\n";
+		returnCode |= MIX_FILE_NOT_FOUND;
+	}
+
+
 	return returnCode;
 }
 
-uint16_t check_param_saneInv(string &output,
-		struct param_saneInv &Inv_param) {
+uint16_t check_param_saneInv(string &output, struct param_common dir, struct param_saneInv &Inv_param) {
 
 	uint16_t returnCode = 0;
 
-	//TODO: Check for file existence....
-
-	if (check_path(output, Inv_param.noise_dir, false))
+	if (check_path(output, Inv_param.noise_dir, false, -1))
 		returnCode |= SANEINV_INPUT_ERROR;
 
-	if ((Inv_param.cov_matrix == "")
-			&& (Inv_param.cov_matrix_suffix == "")) {
+	if ((Inv_param.cov_matrix == "") && (Inv_param.cov_matrix_suffix == "")) {
 		output += "EE - You must mention one of those parameters :\n";
 		output += "     saneInv:cov_matrix_suffix or saneInv:cov_matrix\n";
 		returnCode |= SANEINV_INPUT_ERROR;
 	}
+
+	if ( (Inv_param.cov_matrix != ""  ) && (check_file(dir.input_dir + Inv_param.cov_matrix) != 0) ){
+		output += "EE - " + Inv_param.cov_matrix + " not found\n";
+		returnCode |= SANEINV_INPUT_ERROR;
+	}
+
 
 	return returnCode;
 }
@@ -1183,8 +1304,9 @@ void default_param_common(struct param_common &dir) {
 	dir.input_dir = "./";
 
 	dir.fits_filelist = "file.list";
-	dir.bolo = "";
-	dir.bolo_suffix = ".bolo";
+
+	dir.bolo          = "";
+	dir.bolo_suffix   = ".bolo";
 
 }
 
@@ -1463,8 +1585,9 @@ uint16_t parser_function(char * ini_name, std::string &output,
 		struct param_sanePic &Pic_param, int size, int rank) {
 
 	dictionary * ini = NULL;
-	string filename;
+	string dummy;
 	uint16_t parsed = 0;
+
 #ifdef USE_MPI
 	uint16_t mpi_parsed = 0;
 #endif
@@ -1511,15 +1634,27 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	iniparser_freedict(ini);
 
+	// Directory shall be available to all rank, so test for all..
+	parsed |= check_common(output, dir, rank);
 
 	// Now the ini file has been read, do the rest
 	if (rank == 0) {
-		parsed |= check_common(output, dir);
-		parsed |= check_param_sanePos(output, Pos_param);
-		parsed |= check_param_saneProc(output, Proc_param);
-		parsed |= check_param_saneInv(output, Inv_param);
-		// Should probably be somewhere else...
-		parsed |= check_param_sanePS(output, PS_param);
+		parsed |= check_param_saneProc(output, dir, Proc_param);
+
+	}
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	parsed |=  MPI_Bcast(&( Proc_param.remove_polynomia), 1, MPI_INT,  0, MPI_COMM_WORLD);
+	parsed |=  MPI_Bcast(&( Proc_param.highpass_filter), 1, MPI_INT,  0, MPI_COMM_WORLD);
+#endif
+
+	parsed |= check_param_sanePos(output, Pos_param);
+	parsed |= check_param_saneInv(output, dir, Inv_param);
+
+	if (rank==0){
+	// Should probably be somewhere else...
+	parsed |= check_param_sanePS(output, dir, PS_param);
 	}
 
 	parsed |= fill_samples_struct(output, samples_struct, dir, Inv_param, Proc_param, rank, size);
@@ -1533,56 +1668,22 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	parsed = mpi_parsed;
 #endif
 
-	// Store scan sizes so that we dont need to read it again and again in the loops !
-	if ( ! parsed )
-		readFrames(samples_struct.fitsvect, samples_struct.nsamples);
+	if (! parsed ){
+		// Open the dirfile to read temporary files
+		// Create it if it does not exist yet (case for saneFrameOrder and sanePre)
+		for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+			string dirfile_basename = dir.tmp_dir + "dirfile/" + samples_struct.basevect[iframe];
 
-	// Retrieve wisdom if asked / possible
-
-	if (rank == 0 && Proc_param.wisdom) {
-		string filename = dir.tmp_dir + "fftw.wisdom";
-		FILE * pFilename;
-
-		pFilename = fopen((const char*) filename.c_str(), "r");
-
-		if ( pFilename != NULL ){
-			fftw_import_wisdom_from_file( pFilename );
-			fclose(pFilename);
-		} else {
-#ifdef DEBUG
-			output += "WW - no FFTW wisdom imported from fftw.wisdom\n";
-#endif
+			if (! check_path(dummy, dirfile_basename , false, -1)) {
+				samples_struct.dirfile_pointers[iframe] = gd_open((char *) dirfile_basename.c_str(),
+						GD_RDWR | GD_CREAT | GD_VERBOSE | GD_UNENCODED);
+				if (gd_error(samples_struct.dirfile_pointers[iframe]) != 0) {
+					output += "error opening dirfile : " + dirfile_basename + "\n";
+					return TMP_PATH_PROBLEM;
+				}
+			}
 		}
 	}
-
-#ifdef USE_MPI
-	if ( Proc_param.wisdom ) {
-
-		char * wisdom = NULL;
-		int size_wisdom;
-
-		if (rank == 0){
-			wisdom = fftw_export_wisdom_to_string();
-			size_wisdom = strlen(wisdom);
-		}
-
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(&size_wisdom, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-		if (rank != 0){
-			wisdom = (char *)calloc(size_wisdom+1, sizeof(char));
-			fill(wisdom, wisdom + size_wisdom+1, '\0');
-		}
-
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Bcast(wisdom, size_wisdom, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-		if (rank != 0)
-			if ( fftw_import_wisdom_from_string(wisdom) != 0 )
-				output += "WW - Problem propagating FFTW wisdom\n";
-	}
-#endif
-
 
 	return parsed;
 }
@@ -1818,7 +1919,7 @@ void export_param_common(struct param_common dir, std::vector<string> &key, std:
 	value.push_back(dir.fits_filelist);
 	comment.push_back("file containing fits file names");
 
-	key.push_back("bolo");
+	key.push_back(".bolo");
 	value.push_back(dir.bolo);
 	comment.push_back("every scans have the same detector list");
 

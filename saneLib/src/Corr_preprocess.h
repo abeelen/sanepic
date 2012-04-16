@@ -38,8 +38,8 @@ extern "C" {
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samples samples_struct, struct param_sanePos pos_param,
-		std::string tmp_dir, std::vector<std::string> det, long ndet, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
-		long long npix,	long long npixsrc, long long addnpix, double fhp_pix, long ns, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname);
+		std::string tmp_dir, long long *indpix, long long *indpsrc, long NAXIS1, long NAXIS2,
+		long long npix,	long long npixsrc, long long addnpix, long iframe, int para_bolo_indice, int para_bolo_size, std::string fname);
 
 //! Computes Mp and hits arrays using write_ftrProcesdata or write_tfAS outputs
 /*!
@@ -64,7 +64,7 @@ int write_ftrProcesdata(double *S, struct param_saneProc proc_param, struct samp
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
 int do_PtNd(struct samples samples_struct, double *PNd, std::string prefixe,
-		std::vector<std::string> det, long ndet, double fhp_pix, double fsamp, long ns, int para_bolo_indice, int para_bolo_size,
+		int para_bolo_indice, int para_bolo_size,
 		long long *indpix, long NAXIS1, long NAXIS2, long long npix, long iframe,
 		double *Mp, long *hits,std::string fname);
 
@@ -85,7 +85,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, std::string prefixe,
  \param para_bolo_size In case para_bolo is used : processor size is given to computes channels indexes that has to be computed
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_tfAS(struct samples samples_struct, double *S, std::vector<std::string> det, long ndet, long long *indpix, long NAXIS1, long NAXIS2, long long npix,
-		bool flgdupl, long ns, std::string filename, int para_bolo_indice, int para_bolo_size);
+int write_tfAS(struct samples samples_struct, double *S,  long long *indpix, long NAXIS1, long NAXIS2, long long npix,
+		bool flgdupl, long iframe, int para_bolo_indice, int para_bolo_size);
 
 #endif /* CORR_PREPROCESS_H_ */

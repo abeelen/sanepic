@@ -62,7 +62,7 @@ using namespace std;
  *  - Save mapHeader to disk for the other programs
  *  - Compute pixels indice table and save it to disk
  *
- *  - Compute Naïve map including Image map, Coverage map, history table and METADATA header
+ *  - Compute Naive map including Image map, Coverage map, history table and METADATA header
  *
  */
 
@@ -209,26 +209,17 @@ int main(int argc, char *argv[])
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, struct_sanePic, saneInv_struct);
 
-		cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct);
 	}
+	// this should be done by subrank 0 only
+	cleanup_dirfile_sanePos(dir.tmp_dir, samples_struct, rank);
+
+	// Read file size once for all
+	readFramesFromFits(samples_struct, rank);
+
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
-
-
-	// Open the dirfile to read temporary files
-	string filedir = dir.tmp_dir + "dirfile";
-	samples_struct.dirfile_pointer = gd_open((char *) filedir.c_str(), GD_RDWR | GD_VERBOSE
-			| GD_UNENCODED);
-
-	if (gd_error(samples_struct.dirfile_pointer) != 0) {
-		cout << "error opening dirfile : " << filedir << endl;
-#ifdef PARA_FRAME
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return 1;
-	}
 
 	//	read pointing header
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
@@ -328,11 +319,11 @@ int main(int argc, char *argv[])
 				lat  = new double[ns];
 				flag = new int[ns];
 
-				if(read_LON_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], lon, ns))
+				if(read_LON_from_dirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], lon, ns))
 					return 1;
-				if(read_LAT_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], lat, ns))
+				if(read_LAT_from_dirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], lat, ns))
 					return 1;
-				if(read_flag_from_dirfile(samples_struct.dirfile_pointer, samples_struct.basevect[0], samples_struct.bolo_list[0][0], flag, ns))
+				if(read_flag_from_dirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], flag, ns))
 					return 1;
 
 				int ii = 0;
@@ -726,7 +717,7 @@ int main(int argc, char *argv[])
 
 
 	if(rank==0)
-		printf("\nComputing Naïve map...\n");
+		printf("\nComputing Naive map...\n");
 
 #ifdef PARA_FRAME
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -861,8 +852,20 @@ int main(int argc, char *argv[])
 
 	wcsvfree(&nwcs, &wcs);
 
-	if (gd_close(samples_struct.dirfile_pointer))
-		cout << "error closing dirfile : " << filedir << endl;
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously openened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile...";
+			} else {
+			samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
 
 
 #ifdef DEBUG

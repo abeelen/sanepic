@@ -110,7 +110,6 @@ std::string Basename(std::string path)
 	return filename;
 }
 
-
 std::string FitsBasename(std::string path)
 {
 	string filename="";
@@ -130,7 +129,6 @@ std::string FitsBasename(std::string path)
 
 std::string dirfile_Basename(std::string path)
 {
-
 	//	size_t found;
 	string filename="";
 
@@ -151,7 +149,6 @@ std::string dirfile_Basename(std::string path)
 
 	return filename;
 }
-
 
 long readFitsLength(string filename){
 
@@ -183,14 +180,56 @@ long readFitsLength(string filename){
 	return ns;
 }
 
-void readFrames(std::vector<string> &inputList, std::vector<long> &nsamples){
+void readFramesFromFits(struct samples &samples_struct, int rank){
 
-	long nScan  = inputList.size();
-	//	nsamples = new long[nScan];
-	for (long i=0; i<nScan; i++){
-		nsamples.push_back(readFitsLength(inputList[i]));
+	long * nsamples;
+#ifdef PARA_FRAME
+	long * nsamples_tot ;
+#endif
+
+	long nScan  = samples_struct.fitsvect.size();
+
+	// Create a simple array which will be filled by each rank
+	nsamples = new long[nScan];
+	fill(nsamples,nsamples+nScan,0);
+
+//TODO This should be made by subrank 0
+
+	// read the size of this particular frame ...
+	for (long iframe=0; iframe<samples_struct.ntotscan; iframe++){
+		nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
 	}
 
+//TODO : This will not work, as saneIO is compiled with PARA_FRAME or PARA_BOLO for the moment... i.e. USE_MPI in both cases.
+#ifdef PARA_FRAME
+
+	// read the size of this particular frame ...
+	for (long iframe=samples_struct.iframe_min; iframe<samples_struct.iframe_max; iframe++){
+		nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
+	}
+
+	// ... retrieve all the data...
+	if (rank == 0) {
+		nsamples_tot = new long[nScan];
+		fill(nsamples_tot,nsamples_tot+nScan,0);
+	}
+	MPI_Reduce(nsamples, nsamples_tot, nScan, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+	// .. copy it back
+	if (rank == 0){
+		for (long iframe=0; iframe < nScan; iframe++)
+			nsamples[iframe] = nsamples_tot[iframe];
+		delete [] nsamples_tot;
+	}
+	// .. BCast it...
+	MPI_Bcast(nsamples, nScan, MPI_LONG, 0, MPI_COMM_WORLD);
+#endif
+
+	// ... and put it into vector format ..
+	samples_struct.nsamples.resize(nScan);
+	for (long iframe = 0; iframe < nScan; iframe++)
+		samples_struct.nsamples[iframe] = nsamples[iframe];
+
+	delete [] nsamples;
 }
 
 int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames){
@@ -217,7 +256,6 @@ void skip_comment(ifstream &file, string &line){
 		if ( (! line.empty()) && (found != 0) ) break; 		// skip if empty or commented
 	}
 }
-
 
 
 uint16_t read_fits_list(std::string &output, string fname, struct samples &samples_struct ) {
@@ -318,4 +356,34 @@ uint16_t read_fits_list(std::string &output, string fname, struct samples &sampl
 	samples_struct.ntotscan = fitsvect.size();
 	return 0;
 }
+
+int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
+	FILE *fp;
+	int result;
+	long ncomp2;
+	double dummy1; // used to read mixing matrix
+
+	if ((fp = fopen(MixMatfile.c_str(), "r")) == NULL) {
+		cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
+		cout
+		<< "Advice : verify the file is in your noise directory and that his name is : "
+		<< MixMatfile << endl;
+		return 1;
+	}
+	result = fscanf(fp, "%ld", &ncomp2);
+
+	mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
+
+	for (long ii = 0; ii < ndet; ii++) {
+		for (long jj = 0; jj < ncomp2; jj++) {
+			result = fscanf(fp, "%lf", &dummy1);
+			if (jj < ncomp)
+				mixmat[ii][jj] = dummy1;
+		}
+	}
+	fclose(fp);
+	return 0;
+
+}
+
 

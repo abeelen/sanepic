@@ -91,6 +91,9 @@ int main(int argc, char *argv[]) {
 		return EX_CONFIG;
 	}
 
+	// Read file size once for all
+	readFramesFromFits(samples_struct, 0);
+
 	string fname = samples_struct.fitsvect[0]; /* first input fits file name */
 
 

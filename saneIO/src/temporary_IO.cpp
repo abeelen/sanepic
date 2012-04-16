@@ -30,7 +30,6 @@ extern "C" {
 
 using namespace std;
 
-//TODO: Absolutely inefficient.... Need to rewrite that, open the fits file ONCE !
 int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
@@ -54,16 +53,13 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 		string base_name = samples_struct.basevect[iframe];
 		string fits_name = samples_struct.fitsvect[iframe];
 
-		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/data";
-		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/flag";
+		string datadir = dir.tmp_dir + "dirfile/" + base_name + "/Data";
+		string flagdir = dir.tmp_dir + "dirfile/" + base_name + "/Flag";
 
 		D = gd_open((char *) datadir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED);
 		H = gd_open((char *) flagdir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED);
-
-
-		base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: needed ???
 
 
 		if (fits_open_file(&fptr, fits_name.c_str(), READONLY, &status)){
@@ -75,8 +71,8 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 
 
 			string field = det_vect[idet];
-			string data_outfile = "data_" + base_name + "_" + field;
-			string flag_outfile = "flag_" + base_name + "_" + field;
+			string data_outfile = "Data_" + base_name + "_" + field;
+			string flag_outfile = "Flag_" + base_name + "_" + field;
 
 			// Retrieve the row of the specified channel
 			rowIndex = find_channel_index(fptr, field.c_str());
@@ -215,7 +211,6 @@ int write_data_flag_to_dirfile(struct param_common dir, struct samples samples_s
 	return 0;
 }
 
-//TODO: What about the other format ???
 int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
@@ -237,11 +232,11 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 
 		det_vect=samples_struct.bolo_list[iframe];
 
-		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
+		string base_name = samples_struct.basevect[iframe]; //TODO: Fitsbase_name needed here ?
 		string fits_name = samples_struct.fitsvect[iframe];
 
-		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
-		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
+		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/Lon";
+		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/Lat";
 
 		D = gd_open((char *) LONdir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
@@ -257,8 +252,8 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
 			string field = det_vect[idet];
-			string lon_outfile = "LON_" + base_name + "_" + field;
-			string lat_outfile = "LAT_" + base_name + "_" + field;
+			string lon_outfile = "Lon_" + base_name + "_" + field;
+			string lat_outfile = "Lat_" + base_name + "_" + field;
 
 			// Retrieve the row of the specified channel
 			rowIndex = find_channel_index(fptr, field.c_str());
@@ -372,8 +367,8 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 			delete [] lon;
 			delete [] lat;
 
-			gd_flush(D, lon_outfile.c_str());
-			gd_flush(H, lat_outfile.c_str());
+			gd_flush(D, E.field);
+			gd_flush(H, F.field);
 		}
 
 
@@ -404,7 +399,6 @@ int write_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_str
 	return 0;
 }
 
-
 int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_struct)
 {
 
@@ -416,11 +410,11 @@ int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_st
 
 		det_vect=samples_struct.bolo_list[iframe];
 
-		string base_name = FitsBasename(samples_struct.basevect[iframe]); //TODO: Fitsbase_name needed here ?
+		string base_name = samples_struct.basevect[iframe]; //TODO: Fitsbase_name needed here ?
 		string fits_name = samples_struct.fitsvect[iframe];
 
-		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/LON";
-		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/LAT";
+		string LONdir = dir.tmp_dir + "dirfile/" + base_name + "/Lon";
+		string LATdir = dir.tmp_dir + "dirfile/" + base_name + "/Lat";
 
 		D = gd_open((char *) LONdir.c_str(), GD_RDWR | GD_CREAT |
 				GD_VERBOSE | GD_UNENCODED); // | GD_TRUNC |
@@ -478,8 +472,8 @@ int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_st
 		for(long idet=0; idet < (long)det_vect.size(); idet ++){
 
 			string field = det_vect[idet];
-			string lon_outfile = "LON_" + base_name + "_" + field;
-			string lat_outfile = "LAT_" + base_name + "_" + field;
+			string lon_outfile = "Lon_" + base_name + "_" + field;
+			string lat_outfile = "Lat_" + base_name + "_" + field;
 
 			double offxx, offyy, dummy1, dummy2, lon_deg, lat_deg;
 			int status;
@@ -578,12 +572,10 @@ int export_LON_LAT_to_dirfile(struct param_common dir, struct samples samples_st
 	return 0;
 }
 
-
-
-int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *data, long ns){
+int read_data_from_dirfile(DIRFILE* D, string scan_name, string field, double *data, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "data_" + filename + "_" + field;
+	string outfile = "Data_" + scan_name + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
@@ -600,10 +592,10 @@ int read_data_from_dirfile(DIRFILE* D, string filename, string field, double *da
 	return 0;
 }
 
-int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *mask, long ns){
+int read_flag_from_dirfile(DIRFILE* H, string scan_name, string field, int *mask, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "flag_" + filename + "_" + field;
+	string outfile = "Flag_" + scan_name + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
@@ -620,11 +612,10 @@ int read_flag_from_dirfile(DIRFILE* H, string filename, string field, int *mask,
 	return 0;
 }
 
-
-int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *lon, long ns){
+int read_LON_from_dirfile(DIRFILE* D, string scan_name, string field, double *lon, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "LON_" + filename + "_" + field;
+	string outfile = "Lon_" + scan_name + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
@@ -640,10 +631,10 @@ int read_LON_from_dirfile(DIRFILE* D, string filename, string field, double *lon
 	return 0;
 }
 
-int read_LAT_from_dirfile(DIRFILE* D, string filename, string field, double *lat, long ns){
+int read_LAT_from_dirfile(DIRFILE* D, string scan_name, string field, double *lat, long ns){
 
 	// set dirfile name and binary name
-	string outfile = "LAT_" + filename + "_" + field;
+	string outfile = "Lat_" + scan_name + "_" + field;
 	const char * field_code;
 	field_code = outfile.c_str();
 
@@ -659,12 +650,10 @@ int read_LAT_from_dirfile(DIRFILE* D, string filename, string field, double *lat
 	return 0;
 }
 
-
-int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
-		string filename, std::string boloname)
+int write_samptopix(DIRFILE *D, string scan_name, std::string boloname, long ns, long long *&samptopix)
 /*!  write a sample to pixel vector to disk  */
 {
-	string outfile = filename + "_" + boloname;
+	string outfile = "Indexes_" + scan_name + "_" + boloname;
 
 	// write binary file on disk
 	int n_write = gd_putdata(D, (char*) outfile.c_str(), 0, 0, 0, ns, GD_INT64,
@@ -680,11 +669,11 @@ int write_samptopix(DIRFILE *D, long ns, long long *&samptopix,
 	return 0;
 }
 
-int read_samptopix(DIRFILE* D, string filename, std::string boloname, long long *samptopix, long ns )
+int read_samptopix(DIRFILE* D, string scan_name, std::string boloname, long long *samptopix, long ns )
 /*!  read a sample to pixel vector from disk  */
 {
 	// set binary file name
-	string outfile = filename + "_" + boloname;
+	string outfile = "Indexes_" + scan_name + "_" + boloname;
 	const char * field_code;
 	field_code = outfile.c_str();
 
@@ -751,7 +740,7 @@ int write_indpix(long long ind_size, long long npix, long long *indpix,
 	FILE *fp;
 	string testfile2;
 
-	testfile2 = outdir + "Indpix_for_conj_grad.bi";
+	testfile2 = outdir + "Indpix_for_conj_grad.bin";
 
 	if ((fp = fopen(testfile2.c_str(), "w")) != NULL) {
 		fwrite(&flagon, sizeof(int), 1, fp); // mat 04/06
@@ -791,7 +780,7 @@ int read_indpix(long long &ind_size, long long &npix, long long *&indpix,
 	string testfile2;
 	size_t result;
 
-	testfile2 = outdir + "Indpix_for_conj_grad.bi";
+	testfile2 = outdir + "Indpix_for_conj_grad.bin";
 	if ((fp = fopen(testfile2.c_str(), "r")) != NULL) {
 		result = fread(&flagon, sizeof(int), 1, fp);
 		result = fread(&npix, sizeof(long long), 1, fp);
@@ -908,34 +897,5 @@ int read_fdata(DIRFILE* D, string filename, string boloname, string prefixe, fft
 	gd_flush(D,field_code);
 
 	return 0;
-}
-
-int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
-	FILE *fp;
-	int result;
-	long ncomp2;
-	double dummy1; // used to read mixing matrix
-
-	if ((fp = fopen(MixMatfile.c_str(), "r")) == NULL) {
-		cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
-		cout
-		<< "Advice : verify the file is in your noise directory and that his name is : "
-		<< MixMatfile << endl;
-		return 1;
-	}
-	result = fscanf(fp, "%ld", &ncomp2);
-
-	mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
-
-	for (long ii = 0; ii < ndet; ii++) {
-		for (long jj = 0; jj < ncomp2; jj++) {
-			result = fscanf(fp, "%lf", &dummy1);
-			if (jj < ncomp)
-				mixmat[ii][jj] = dummy1;
-		}
-	}
-	fclose(fp);
-	return 0;
-
 }
 
