@@ -205,6 +205,14 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 			return 1;
 		}
 
+		// ... add the subheader
+		hptr = subheader;
+		for (int keyrec = 0; keyrec < nsubkeys; keyrec++, hptr += 80) {
+			if (fits_write_record(fp, (const char*) hptr, &fits_status)) {
+				fits_report_error(stderr, fits_status); return 1;
+			}
+		}
+
 		// Add Comments to the header
 		std::vector<std::string> comments;
 		comments.push_back(" ");
