@@ -263,7 +263,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 {
 	//binary name
 	string outfile;
-
+	int nget;
 	outfile = "Ell_InvNoisePS_" + scan_name + "_" + boloName;
 
 	// temp 1D array
@@ -273,8 +273,8 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 	*ell=new double[nbins+1];
 
 	// fill ell with binary
-	int nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, *ell);
-	if(gd_error(D)!=0){
+	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, *ell);
+	if(gd_error(D)!=0 or nget != nbins*ndet){
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}

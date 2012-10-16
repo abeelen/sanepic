@@ -359,7 +359,6 @@ uint16_t read_fits_list(std::string &output, string fname, struct samples &sampl
 
 int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
 	FILE *fp;
-	int result;
 	long ncomp2;
 	double dummy1; // used to read mixing matrix
 
@@ -370,13 +369,16 @@ int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) 
 		<< MixMatfile << endl;
 		return 1;
 	}
-	result = fscanf(fp, "%ld", &ncomp2);
+	if (1 != fscanf(fp, "%ld", &ncomp2))
+			cerr << "EE - failed reading ncomp2 from file" << MixMatfile << endl;
+
 
 	mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
 
 	for (long ii = 0; ii < ndet; ii++) {
 		for (long jj = 0; jj < ncomp2; jj++) {
-			result = fscanf(fp, "%lf", &dummy1);
+			if (1 != fscanf(fp, "%lf", &dummy1))
+				cerr << "EE - failed reading element from file " << MixMatfile << endl;
 			if (jj < ncomp)
 				mixmat[ii][jj] = dummy1;
 		}

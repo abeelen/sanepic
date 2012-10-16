@@ -41,7 +41,7 @@ int do_PtNd_nocorr(double *PNd,string tmp_dir, struct param_saneProc proc_param,
 	long ns				         = samples_struct.nsamples[iframe];
 	double fsamp                 = samples_struct.fsamp[iframe];
 	double fhp_pix               = samples_struct.fhp[iframe] * double(ns)/fsamp; // knee freq of the filter in terms of samples in order to compute fft
-	double fcut_pix              = samples_struct.fcut[iframe]* double(ns)/fsamp; // noise PS threshold freq, in terms of samples
+	//double fcut_pix              = samples_struct.fcut[iframe]* double(ns)/fsamp; // noise PS threshold freq, in terms of samples
 
 	samptopix = new long long[ns];
 	bfilter   = new double[ns/2+1];

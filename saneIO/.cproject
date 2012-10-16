@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject>
+<?fileVersion 4.0.0?><cproject>
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.so.debug.312061880">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.so.debug.312061880" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -61,6 +59,8 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.469407524" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.libs.311269796" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="wcs"/>
@@ -564,6 +564,8 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.181419795" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.libs.1356347508" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="wcs"/>
@@ -1070,6 +1072,8 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.115803570" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.libs.811669904" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="wcs"/>
@@ -1577,6 +1581,8 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.1913556644" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.libs.1681555900" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="wcs"/>

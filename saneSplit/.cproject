@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject>
+<?fileVersion 4.0.0?><cproject>
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1829987244">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1829987244" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -44,11 +42,11 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.42018870" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1451428623" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.628039710" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="iniparser"/>
-									<listOptionValue builtIn="false" value="getdata"/>
-									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.198522948" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
@@ -525,11 +523,11 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.392482444" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1629705365" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.676143041" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="iniparser"/>
-									<listOptionValue builtIn="false" value="getdata"/>
-									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="gslcblas"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.992882979" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">

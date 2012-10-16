@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject>
+<?fileVersion 4.0.0?><cproject>
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.2121570035">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.2121570035" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -55,14 +53,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.859488601" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1235981317" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
-									<listOptionValue builtIn="false" value="gsl"/>
-									<listOptionValue builtIn="false" value="fftw3"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.265886019" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
@@ -1372,14 +1370,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.768142306" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.108681724" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
-									<listOptionValue builtIn="false" value="gsl"/>
-									<listOptionValue builtIn="false" value="fftw3"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1157975251" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>
@@ -2697,14 +2695,14 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.830200664" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1789447602" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
-									<listOptionValue builtIn="false" value="gsl"/>
-									<listOptionValue builtIn="false" value="fftw3"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1211651230" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/nr/Debug}&quot;"/>
@@ -3993,7 +3991,7 @@
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.204255644" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
 							<builder buildPath="${workspace_loc:/sanePre/Release}" id="cdt.managedbuild.target.gnu.builder.exe.release.2112226906" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.archiver.base.552701029" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
-							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.962504873" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
+							<tool command="mpicxx" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.962504873" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
 								<option id="gnu.cpp.compiler.exe.release.option.optimization.level.975559787" name="Optimization Level" superClass="gnu.cpp.compiler.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.release.option.debugging.level.847535299" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1986766164" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
@@ -4021,14 +4019,14 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.384751828" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1408924352" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="nr"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
+									<listOptionValue builtIn="false" value="gsl"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
-									<listOptionValue builtIn="false" value="gsl"/>
-									<listOptionValue builtIn="false" value="fftw3"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1757533719" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/iniparser/Release}&quot;"/>

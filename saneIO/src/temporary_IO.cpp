@@ -716,17 +716,22 @@ int read_indpsrc(long long &map_size, long long &npixsrc, long long *&indpsrc,
 {
 	FILE *fp;
 	string testfile;
-	size_t result;
 
 	testfile = outdir + "indpsrc.bin";
 	if ((fp = fopen(testfile.c_str(), "r")) != NULL) {
-		result = fread(&map_size, sizeof(long long), 1, fp);
-		result = fread(&npixsrc, sizeof(long long), 1, fp);
+		if (1 != fread(&map_size, sizeof(long long), 1, fp)){
+			cerr << "EE - failed reading map_size in indpsrc.bin file" << endl;
+		}
+		if (1 != fread(&npixsrc, sizeof(long long), 1, fp)){
+			cerr << "EE - failed reading npixsrc in indpsrc.bin file" << endl;
+		}
 		indpsrc = new long long[map_size];
-		result = fread(indpsrc, sizeof(long long), map_size, fp);
+		if ((unsigned int) map_size != fread(indpsrc, sizeof(long long), map_size, fp)){
+			cerr << "EE - failed reading indpsrc in indpsrc.bin file" << endl;
+		}
 		fclose(fp);
 	} else {
-		cerr << "Error : cannot find indpsrc.bin file at " << testfile << endl;
+		cerr << "EE - cannot find indpsrc.bin file at " << testfile << endl;
 		return 1;
 	}
 
@@ -778,15 +783,23 @@ int read_indpix(long long &ind_size, long long &npix, long long *&indpix,
 {
 	FILE *fp;
 	string testfile2;
-	size_t result;
+
 
 	testfile2 = outdir + "Indpix_for_conj_grad.bin";
 	if ((fp = fopen(testfile2.c_str(), "r")) != NULL) {
-		result = fread(&flagon, sizeof(int), 1, fp);
-		result = fread(&npix, sizeof(long long), 1, fp);
-		result = fread(&ind_size, sizeof(long long), 1, fp);
+		if (1 != fread(&flagon, sizeof(int), 1, fp))
+			cerr << "EE - failed reading flagon in Indpix file" << endl;
+
+		if (1 != fread(&npix, sizeof(long long), 1, fp))
+			cerr << "EE - failed reading npix in Indpix file" << endl;
+
+		if (1 != fread(&ind_size, sizeof(long long), 1, fp))
+			cerr << "EE - failed reading ind_size in Indpix file" << endl;
+
 		indpix = new long long[ind_size];
-		result = fread(indpix, sizeof(long long), ind_size, fp);
+		if ((unsigned int) ind_size != fread(indpix, sizeof(long long), ind_size, fp))
+			cerr	<< "EE - failed reading indpix in Indpix file" << endl;
+
 		fclose(fp);
 	} else {
 		cerr << "Error : cannot find Indpix file " << testfile2 << endl;
@@ -836,17 +849,18 @@ int read_PNd(double *&PNdtot, long long &npix, string outdir, std::string filena
 {
 	FILE *fp;
 	string testfile2;
-	size_t result;
 
 	testfile2 = outdir + filename;
 
 	if ((fp = fopen(testfile2.c_str(), "r")) != NULL) {
-		result = fread(&npix, sizeof(long long), 1, fp);
+		if (1 != fread(&npix, sizeof(long long), 1, fp))
+			cerr << "EE - failed reading npix in file " << testfile2 << endl;
 		PNdtot = new double[npix];
-		result = fread(PNdtot, sizeof(double), npix, fp);
+		if ((unsigned) npix != fread(PNdtot, sizeof(double), npix, fp))
+			cerr << "EE - failed reading PNdtot in file " << testfile2 << endl;
 		fclose(fp);
 	} else {
-		cerr << "Error. Unable to read file : " << testfile2 << endl;
+		cerr << "EE - Unable to read file : " << testfile2 << endl;
 		return 1;
 	}
 

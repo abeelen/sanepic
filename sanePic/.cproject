@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject>
+<?fileVersion 4.0.0?><cproject>
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.833534422">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.833534422" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -54,13 +52,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.2018537136" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2087296522" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1225933523" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -596,13 +595,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1158169561" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1763757598" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.613380140" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -1151,13 +1151,14 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.564815673" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2058687092" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1543612908" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -1700,13 +1701,14 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1646025187" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1924133422" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1979955706" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -2254,13 +2256,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.469572258" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1846406538" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1558226849" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
@@ -2803,13 +2806,14 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.622098862" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.12910625" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.177928994" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="wcs"/>
 									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
-									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
 								</option>
