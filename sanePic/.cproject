@@ -55,7 +55,9 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2087296522" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1225933523" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
 									<listOptionValue builtIn="false" value="fftw3"/>
+									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
 									<listOptionValue builtIn="false" value="nr"/>
@@ -595,6 +597,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1763757598" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.613380140" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
@@ -1148,6 +1152,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.2058687092" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1543612908" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
@@ -1695,6 +1701,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1924133422" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1979955706" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
@@ -2247,6 +2255,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1846406538" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1558226849" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>
@@ -2794,6 +2804,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.12910625" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.177928994" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="gsl"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="cfitsio"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="gslcblas"/>

@@ -151,8 +151,8 @@ int main(int argc, char *argv[]) {
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
 			std::vector <long> suppress_time_sample;
-			long init_num_delete =0;
-			long end_num_delete =0;
+			long init_num_delete = 0;
+			long end_num_delete  = 0;
 
 #ifdef DEBUG
 			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[iframe] << endl;
@@ -166,7 +166,6 @@ int main(int argc, char *argv[]) {
 				cout << "[ " << rank << " ] " << "Skipping file : " << samples_struct.fitsvect[iframe] << ". Please run saneCheck on this file before\n";
 				continue; // log file were not found for the 'iframe'th fits file
 			}
-
 
 			format_fits=test_format(samples_struct.fitsvect[iframe]); // get fits file format
 			if(format_fits==0){
@@ -228,7 +227,8 @@ int main(int argc, char *argv[]) {
 				fix_mask(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
 
 				// 5 time
-				fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
+				// This is broken....
+//				fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
 
 				// 6 channels
 				copy_channels(fptr, outfptr);

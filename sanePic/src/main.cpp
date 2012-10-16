@@ -430,11 +430,11 @@ int main(int argc, char *argv[]) {
 
 		printf("Mem. per process : %4.0f Mo\n", (indpix_size+npix*9)*8./1024/1024);
 		if (getAvailableSystemMemory() < (indpix_size+npix*9)*8.*size){
-			cerr << endl << "EE - Available physical memory too low" << endl;
-#ifdef USE_MPI
-			MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-			return (EX_IOERR);
+			cerr << endl << "WW - Available physical memory too low" << endl;
+// #ifdef USE_MPI
+// 			MPI_Abort(MPI_COMM_WORLD, 1);
+// #endif
+// 			return (EX_IOERR);
 
 		}
 	} // rank ==0

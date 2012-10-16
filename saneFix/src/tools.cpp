@@ -90,7 +90,6 @@ void refresh_indice(double &fsamp, long init_num_delete, long end_num_delete, st
 	}
 }
 
-
 long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  std::vector <long> &add_sample, std::vector <long> & suppress_time_sample)
 /*!  compute the number of sample that must be added to fill the gaps and have a continous timeline  */
 {
@@ -167,7 +166,6 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 	return total;
 
 }
-
 
 void fix_time(double *time, double *&time_fixed, std::vector <long> indice, std::vector <long> &add_sample, double fsamp, long nsamples_total, std::vector <long> suppress_time_sample, long init_num_delete)
 /*! fix time table : draw a continuous time table by filling gaps using the calculated sampling frequency */
@@ -326,7 +324,6 @@ void insert_time(fitsfile * fptr, fitsfile *outfptr, double *time, long ns_final
 
 }
 
-
 void insert_row_in_image(fitsfile *fptr, fitsfile *outfptr, string field, double *row_fixed, long ns_total)
 /*! Insert one fixed row in the output fits file */
 {
@@ -475,13 +472,14 @@ void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_tot
 	double *time_fixed;
 	time_fixed= new double[ns_total];
 	read_time_from_fits(name, time, ns_origin); // read input time table
+	cout << "before fix_time" << endl;
 	fix_time(time,time_fixed,indice, add_sample, fsamp, ns_total, suppress_time_sample, init_num_delete); // fill gaps in time table
+	cout << "after fix_time" << endl;
 	insert_time(fptr, outfptr, time_fixed, ns_total); // insert table in output fits file
 	delete [] time;
 	delete [] time_fixed;
 
 }
-
 
 void fix_ref_pos(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample,
 		std::vector <long> suppress_time_sample, long init_num_delete)

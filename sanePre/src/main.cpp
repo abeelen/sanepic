@@ -249,6 +249,15 @@ int main(int argc, char *argv[])
 #endif
 		}
 
+		// Updated wcs with value from the ini file if any.
+		if (Pos_param.equinox != 0.0)
+			wcs->equinox = Pos_param.equinox;
+		if (Pos_param.restwav != 0.0)
+			wcs->restwav = Pos_param.restwav;
+		if (Pos_param.radesys != "")
+			strcpy(wcs->radesys, Pos_param.radesys.c_str());
+
+
 		if(save_keyrec(dir.tmp_dir,wcs, 0, 0, subheader, nsubkeys)){
 #ifdef PARA_FRAME
 			MPI_Abort(MPI_COMM_WORLD, 1);

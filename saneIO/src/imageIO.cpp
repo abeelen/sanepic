@@ -86,19 +86,19 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	strcpy(wcs->dateobs, value);
 
 	if (fits_read_key_str(fp, (char *) "RADESYS", value, comment, &fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
+		if (fits_status == KEY_NO_EXIST) { strcpy(value,"ICRS"); fits_status = 0;
 		} else { fits_report_error(stderr, fits_status); return 1; }
 	}
 	strcpy(wcs->radesys, value);
 
 	if (fits_read_key_dbl(fp, (char *) "RESTWAV", &dvalue, comment,	&fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
+		if (fits_status == KEY_NO_EXIST) { dvalue = 0; fits_status = 0;
 		} else { fits_report_error(stderr, fits_status); return 1; }
 	}
 	wcs->restwav = dvalue;
 
 	if (fits_read_key_dbl(fp, (char *) "RESTFRQ", &dvalue, comment,	&fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { dvalue = -1; fits_status = 0;
+		if (fits_status == KEY_NO_EXIST) { dvalue = 0; fits_status = 0;
 		} else { fits_report_error(stderr, fits_status); return 1; 	}
 	}
 	wcs->restfrq = dvalue;
@@ -673,7 +673,7 @@ int read_mask_wcs(string fname, string extname, struct wcsprm *& wcs,
 		fprintf(stderr, "wcspih ERROR %d: %s.\n", status, wcshdr_errmsg[status]);
 	}
 
-	if ((status = wcsfix(7, 0, wcs, wcsstatus))) {
+	if ((status = wcsfix(7, (const int *) naxes, wcs, wcsstatus))) {
 		for (long ii = 0; ii < NWCSFIX; ii++) {
 			if (wcsstatus[ii] > 0) {
 				fprintf(stderr, "wcsfix ERROR %d: %s.\n", status,

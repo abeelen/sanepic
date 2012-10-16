@@ -465,6 +465,26 @@ void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &P
 	else
 		Pos_param.gal2eq = (bool) i;
 
+	s = iniparser_getstring(ini, "sanePos:radesys", (char *) NULL);
+	if (s == (char *) NULL || strlen(s) == 0)
+		output2 += "sanePos:radesys : default value [" + string(
+				Pos_param.radesys) + "]\n";
+	else
+		Pos_param.radesys = StringOf(s);
+
+	d = iniparser_getdouble(ini, (char*) "sanePos:equinox", -1.0);
+	if (d == -1.0)
+		output2 += "sanePos:equinox : default value [" + StringOf(
+				Pos_param.equinox) + "]\n";
+	else
+		Pos_param.equinox = d;
+
+	d = iniparser_getdouble(ini, (char*) "sanePos:restwav", -1.0);
+	if (d == -1.0)
+		output2 += "sanePos:restwav : default value [" + StringOf(
+				Pos_param.restwav) + "]\n";
+	else
+		Pos_param.restwav = d;
 
 #ifdef DEBUG
 	output += output2;
@@ -800,7 +820,7 @@ int init_dirfile(std::string tmp_dir, struct samples & samples_struct, int forma
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -855,7 +875,7 @@ int cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_struct
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -927,7 +947,7 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -1011,7 +1031,7 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct  samples & samples_struct,
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -1053,25 +1073,25 @@ int cleanup_dirfile_fdata(std::string tmp_dir, struct  samples & samples_struct,
 				}
 
 			gd_close(S);
-//			// check sizes in Indexes, data and flag format
-//			string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
-//			string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
-//			DIRFILE *I = gd_open((char *) indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-//			DIRFILE *D = gd_open((char *) data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
-//
-//			long nframeI = gd_nframes(I);
-//			long nframeD = gd_nframes(I);
-//
-//			//			long ns = samples_struct.nsamples[iframe];
-//			gd_close(I);
-//			gd_close(D);
-//
-//			if (nframeI != nframeD ) {
-//				cout << "Error... Dirfile data or Indexes has incorrect size !!" << endl;
-//				cout << indexes_path << " : " << nframeI << endl;
-//				cout << data_path    << " : " << nframeD << endl;
-//				return 1;
-//			}
+			//			// check sizes in Indexes, data and flag format
+			//			string indexes_path = tmp_dir + "dirfile/" + scan_name + "/Indexes";
+			//			string data_path = tmp_dir + "dirfile/" + scan_name + "/data";
+			//			DIRFILE *I = gd_open((char *) indexes_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+			//			DIRFILE *D = gd_open((char *) data_path.c_str(), GD_RDWR | GD_VERBOSE | GD_UNENCODED);
+			//
+			//			long nframeI = gd_nframes(I);
+			//			long nframeD = gd_nframes(I);
+			//
+			//			//			long ns = samples_struct.nsamples[iframe];
+			//			gd_close(I);
+			//			gd_close(D);
+			//
+			//			if (nframeI != nframeD ) {
+			//				cout << "Error... Dirfile data or Indexes has incorrect size !!" << endl;
+			//				cout << indexes_path << " : " << nframeI << endl;
+			//				cout << data_path    << " : " << nframeD << endl;
+			//				return 1;
+			//			}
 
 		}
 	}
@@ -1322,6 +1342,10 @@ void default_param_sanePos(struct param_sanePos &Pos_param) {
 	Pos_param.lat      = NAN;
 	Pos_param.projcode = "TAN";
 	Pos_param.axistype = "EQ";
+
+	Pos_param.radesys  = "";  /* will be defaulted later to ICRS */
+	Pos_param.equinox  = 0.0; /* will be defaulted later to J2000 */
+	Pos_param.restwav  = 0.0;
 
 	Pos_param.eq2gal   = false;
 	Pos_param.gal2eq   = false;
@@ -1653,8 +1677,8 @@ uint16_t parser_function(char * ini_name, std::string &output,
 	parsed |= check_param_saneInv(output, dir, Inv_param);
 
 	if (rank==0){
-	// Should probably be somewhere else...
-	parsed |= check_param_sanePS(output, dir, PS_param);
+		// Should probably be somewhere else...
+		parsed |= check_param_sanePS(output, dir, PS_param);
 	}
 
 	parsed |= fill_samples_struct(output, samples_struct, dir, Inv_param, Proc_param, rank, size);
@@ -1849,6 +1873,7 @@ void parser_printOut(char * prog_name, struct param_common dir,
 }
 
 
+
 void export_param_sanePos(struct param_sanePos Pos_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
 
 	key.push_back("pixsize");
@@ -1894,6 +1919,19 @@ void export_param_sanePos(struct param_sanePos Pos_param, std::vector<string> &k
 	key.push_back("gal2eq");
 	value.push_back(StringOf(Pos_param.gal2eq ? "True" : "False"));
 	comment.push_back("Convert GAL to J2000.0");
+
+	key.push_back("restwav");
+	value.push_back(StringOf(Pos_param.restwav));
+	comment.push_back("rest wavelength in vacuo [m]");
+
+	key.push_back("equinox");
+	value.push_back(StringOf(Pos_param.equinox));
+	comment.push_back("Equinox of celestial coordinate system");
+
+	key.push_back("radesys");
+	value.push_back(StringOf(Pos_param.radesys));
+	comment.push_back("Coordinate reference frame for the RA and DEC");
+
 
 }
 

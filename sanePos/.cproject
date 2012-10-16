@@ -60,6 +60,7 @@
 								<option id="gnu.cpp.link.option.libs.1154244894" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
 									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
@@ -816,6 +817,7 @@
 					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1903874583">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1903874583" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -860,6 +862,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1147976627" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1765213591" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
@@ -1612,6 +1616,7 @@
 					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1839803711.1371515874">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1839803711.1371515874" moduleId="org.eclipse.cdt.core.settings" name="Debug_PARA_FRAME">
@@ -1671,6 +1676,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1050211791" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.10790758" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
@@ -2431,6 +2438,7 @@
 					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1903874583.1480534927">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1903874583.1480534927" moduleId="org.eclipse.cdt.core.settings" name="Release_PARA_FRAME">
@@ -2479,6 +2487,8 @@
 							<tool command="mpicxx" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.689415319" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1971370312" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="iniparser"/>
+									<listOptionValue builtIn="false" value="getdata"/>
+									<listOptionValue builtIn="false" value="fftw3"/>
 									<listOptionValue builtIn="false" value="saneLib"/>
 									<listOptionValue builtIn="false" value="nr"/>
 									<listOptionValue builtIn="false" value="saneIO"/>
@@ -3231,6 +3241,7 @@
 					</profile>
 				</scannerConfigBuildInfo>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">

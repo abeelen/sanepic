@@ -34,6 +34,11 @@ struct param_sanePos
 	double pixdeg; /*! The pixel size */
 	double lon; /*! Ra nominal (optional) */
 	double lat;  /*! Dec nominal (optional) */
+
+	std::string radesys; /*! Coordinate reference frame for the RA and DEC */
+	double equinox; /*! Equinox of celestial coordinate system */
+	double restwav; /*! rest wavelength in vacuo [m]" */
+
 	std::string axistype;     /*! Axis type (EQ/Gal, default is EQ) */
 	std::string projcode; /*! Projection code (Default is TAN, optional) */
 
