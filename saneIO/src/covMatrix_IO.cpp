@@ -274,7 +274,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 
 	// fill ell with binary
 	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, *ell);
-	if(gd_error(D)!=0 or nget != nbins*ndet){
+	if(gd_error(D)!=0 or nget != (nbins+1)){
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
@@ -289,7 +289,7 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 
 	// read whole 1 D array
 	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins*ndet, GD_DOUBLE, Rellth_full);
-	if(gd_error(D)!=0){
+	if(gd_error(D)!=0 or nget != (nbins*ndet)){
 		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
 		return 1;
 	}
