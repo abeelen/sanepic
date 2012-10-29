@@ -212,56 +212,30 @@ int main(int argc, char *argv[]) {
 			// Copy primary Header
 			fits_copy_header(fptr, outfptr, &status);
 
-			if(format_fits==1){ // HIPE format
-#ifdef DEBUG
-				cout << "[ " << rank << " ] " << "HIPE format found\n";
-#endif
 
-				// 1 signal
-				fix_signal(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+			fix_signal(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+			fix_mask(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+			fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
+			copy_channels(fptr, outfptr);
 
-				// 2 LON 3 LAT
+			switch(format_fits) {
+			// 0 = Unknown format,
+			// 1 = RefPos & offsets format (sanepic),
+			// 2 = lon/lat format (HIPE),
+			// 3 = both sanepic & HIPE
+
+			case 1:
+				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+				copy_offsets(fptr, outfptr);
+				break;
+
+			case 3:
+				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+				copy_offsets(fptr, outfptr);
+				// and ...
+			case 2:
 				fix_LON_LAT(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-
-				// 4 mask
-				fix_mask(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-
-				// 5 time
-				// This is broken....
-//				fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
-
-				// 6 channels
-				copy_channels(fptr, outfptr);
-
-				// 7 reference positions
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
-
-				// 8 offsets
-				copy_offsets(fptr, outfptr);
-
-			}else{ // format =2
-#ifdef DEBUG
-				cout << "[ " << rank << " ] " << "SANEPIC format found\n";
-#endif
-
-				// 1 ref pos
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
-
-				// 2 offsets
-				copy_offsets(fptr, outfptr);
-
-				// 3 channels
-				copy_channels(fptr, outfptr);
-
-				// 4 time
-				fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp, suppress_time_sample, init_num_delete);
-
-				// 5 signal
-				fix_signal(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-
-				// 6 mask
-				fix_mask(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-
+				break;
 			}
 
 			// close both fits files

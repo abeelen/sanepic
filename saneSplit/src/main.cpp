@@ -15,7 +15,7 @@
 #include <cstdlib> // for exit()
 #include <cstdio>  // for printf()
 #include <sysexits.h>
-
+#include <unistd.h>
 
 extern "C" {
 #include "nrutil.h"
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	int format_fits=0; /* 0 = Hipe format, 1 = SanePic format */
 	double *time=NULL; /* input fits file time vector */
 	double time_min=0, time_max=0; /* input file min and max time */
-//	struct detectors det; /* A structure that contains everything about the detectors names and number */
+	//	struct detectors det; /* A structure that contains everything about the detectors names and number */
 	std::vector<string> det;
 	long ndet;
 
@@ -284,58 +284,36 @@ int main(int argc, char *argv[])
 		// Copy primary Header
 		fits_copy_header(fptr, outfptr, &status);
 
+		// 1 signal
+		copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
+		// 2 mask
+		copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 
+		// 3 time
+		copy_time(fptr, outfptr, time, min_sample, max_sample);
 
-		if(format_fits==1){ // HIPE format
-			cout << "HIPE format found\n";
+		// 4 channels
+		copy_channels(fptr, outfptr);
 
-			// 1 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+		switch (format_fits){
+		// 0 = Unknown format,
+		// 1 = RefPos & offsets format (sanepic),
+		// 2 = lon/lat format (HIPE),
+		// 3 = both sanepic & HIPE
 
-			// 2 LON 3 LAT
-			copy_LON_LAT(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
-
-			// 4 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
-
-			// 5 time
-			copy_time(fptr, outfptr, time, min_sample, max_sample);
-
-			// 6 channels
-			copy_channels(fptr, outfptr);
-
-			// 7 ref pos
+		case 1:
 			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
-
-			// 8 offsets
 			copy_offsets(fptr, outfptr);
+			break;
 
-
-
-
-
-		}else{ // sanepic format
-			cout << "SANEPIC format found\n";
-
-
-			// 1 ref pos
+		case 3:
 			copy_ref_pos(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
-
-			// 2 offsets
 			copy_offsets(fptr, outfptr);
-
-			// 3 channels
-			copy_channels(fptr, outfptr);
-
-			// 4 time
-			copy_time(fptr, outfptr, time, min_sample, max_sample);
-
-			// 5 signal
-			copy_signal(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
-
-			// 6 mask
-			copy_mask(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			// and continue to
+		case 2:
+			copy_LON_LAT(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
+			break;
 		}
 
 		// close both fits files
@@ -359,7 +337,7 @@ int main(int argc, char *argv[])
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -368,7 +346,7 @@ int main(int argc, char *argv[])
 	// clean up
 	delete [] time;
 
-	cout << "END OF SANESPLIT\n";
+	cout << "done." << endl;
 
 	return EXIT_SUCCESS;
 

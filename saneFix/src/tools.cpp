@@ -472,9 +472,7 @@ void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_tot
 	double *time_fixed;
 	time_fixed= new double[ns_total];
 	read_time_from_fits(name, time, ns_origin); // read input time table
-	cout << "before fix_time" << endl;
 	fix_time(time,time_fixed,indice, add_sample, fsamp, ns_total, suppress_time_sample, init_num_delete); // fill gaps in time table
-	cout << "after fix_time" << endl;
 	insert_time(fptr, outfptr, time_fixed, ns_total); // insert table in output fits file
 	delete [] time;
 	delete [] time_fixed;

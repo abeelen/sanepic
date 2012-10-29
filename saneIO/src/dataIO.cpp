@@ -471,12 +471,14 @@ int read_LON_LAT_from_fits(string filename, string field, double *&lon, double *
 
 int read_time_from_fits(string filename, double *& time, long ns){
 
-	// HIPE like format
-
 	fitsfile *fptr;
 	int status = 0;
 	int ns_test = 0;
 	char comment[80];
+	int anynul;
+
+	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
 		fits_report_error(stderr, status);
@@ -496,7 +498,7 @@ int read_time_from_fits(string filename, double *& time, long ns){
 	}
 
 	if(ns!=ns_test){
-		cout << "time image has a wrong size : " << ns_test << " != " << ns << endl;
+		cerr << "time image has a wrong size : " << ns_test << " != " << ns << endl;
 		return 1;
 	}
 
@@ -506,7 +508,7 @@ int read_time_from_fits(string filename, double *& time, long ns){
 
 	// ---------------------------------------------
 	// Retrieve the corresponding col
-	if(fits_read_col(fptr, TDOUBLE, 2, 1, 1, ns_test, NULL, time, 0, &status)){
+	if(fits_read_img(fptr, TDOUBLE, 1, ns, NULL, time, &anynul, &status)){
 		fits_report_error(stderr, status);
 		return 1;
 	}
@@ -526,27 +528,24 @@ int read_time_from_fits(string filename, double *& time, long ns){
 int test_format(string fitsname){
 
 	fitsfile *fptr;
-	int format=1; // 1 = HIPE, 2 = sanepic
+	int format= 0; // 0 = Unknown format, 1 = RefPos & offsets format (sanepic), 2 = lon/lat format (HIPE), 3 = both sanepic & HIPE
 	int status = 0;
 
 	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
 		fits_report_error(stderr, status);
 
-	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)>0) &&
-			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)>0)) // "lon" and "lat" tables were not found
-		format=2;
+	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status) != BAD_HDU_NUM ) &&
+			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status) != BAD_HDU_NUM ))
+		format += 1; // RefPos & offsets tables were found (sanepic Format)
 
-	status = 0;
+	status = 0; 	// Need to reset the status for next step
 
-	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status)>0) &&
-			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)>0)){ // both tables were not found
-		if(format==2)
-			format=0;
-		else
-			format=1;
-	}
+	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status) != BAD_HDU_NUM ) &&
+			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status) != BAD_HDU_NUM))
+		format += 2; // lon and lat tables were found (HIPE format)
 
-	status = 0;
+	status = 0; 	// Need to reset the status for next step
+
 
 	// close file
 	if(fits_close_file(fptr, &status))

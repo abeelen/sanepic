@@ -102,7 +102,12 @@ int main(int argc, char *argv[]) {
 	fitsfile *outfptr; /* output fits file pointer */
 
 	// generate output filename using input file names
-	int format_fits=0; // 1= HIPE, 2 = SANEPIC
+	int format_fits=0;
+	// 0 = Unknown format,
+	// 1 = RefPos & offsets format (sanepic),
+	// 2 = lon/lat format (HIPE),
+	// 3 = both sanepic & HIPE
+
 	for(long ii=0; ii<samples_struct.ntotscan-1;ii++){ // for each scan that has to be merged
 		format_fits+=test_format(samples_struct.fitsvect[ii]); // Check each scan fits format
 		outname += FitsBasename(samples_struct.fitsvect[ii]) + "_merged_with_"; // generate output filename !
@@ -117,12 +122,16 @@ int main(int argc, char *argv[]) {
 
 	switch(format_fits/samples_struct.ntotscan){ // check compatibility between each input files (same format)
 
-	case 1: cout << "HIPE format found\n\n";
+	case 1: cout << "RefPos/offsets format found" << endl;;
 	format_fits=1;
 	break;
 
-	case 2: cout << "SANEPIC format found\n\n";
+	case 2: cout << "lon/lat format found" << endl;;
 	format_fits=2;
+	break;
+
+	case 3: cout << "hybrid format found" << endl;;
+	format_fits=3;
 	break;
 
 	default : cout << "The files you are trying to merge have not the same format or format is unknown. Exiting...\n";
@@ -147,78 +156,50 @@ int main(int argc, char *argv[]) {
 	if (fits_create_file(&outfptr, outname.c_str(), &status))
 		fits_report_error(stderr, status);
 
-	if(format_fits==1){ // HIPE format
 
-		// 1 signal
-		copy_signal(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
+	// 1 signal
+	copy_signal(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
 
-		// 2 LON 3 LAT
+	// 4 mask
+	copy_mask(outfptr, dir.data_dir, samples_struct, det,  ndet, ns_total); // copy flag tables from each file to output file
+
+	// 4 time
+	copy_time(outfptr, dir.data_dir, samples_struct, ns_total); // copy time tables from each file to output file
+
+
+	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
+		fits_report_error(stderr, status);
+
+	// 6 channels
+	copy_channels(fptr, outfptr); // copy channels list from this file to output file
+
+	switch(format_fits) {
+	// 0 = Unknown format,
+	// 1 = RefPos & offsets format (sanepic),
+	// 2 = lon/lat format (HIPE),
+	// 3 = both sanepic & HIPE
+
+	case 1:
+		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
+		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
+		break;
+	case 3:
+		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
+		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
+		// and...
+	case 2:
 		copy_LON_LAT(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total);
-
-		// 4 mask
-		copy_mask(outfptr, dir.data_dir, samples_struct, det,  ndet, ns_total); // copy flag tables from each file to output file
-
-		// 5 time
-		copy_time(outfptr, dir.data_dir, samples_struct, ns_total); // copy time tables from each file to output file
-
-
-		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
-			fits_report_error(stderr, status);
-
-		// 6 channels
-		copy_channels(fptr, outfptr); // copy channels list from this file to output file
-
-		if (fits_close_file(fptr, &status)) // close first input file
-			fits_report_error(stderr, status);
-
-		// 7 ref pos
-		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
-
-		// 8 offsets
-		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
-			fits_report_error(stderr, status);
-
-		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
-
-		if (fits_close_file(fptr, &status)) // close first input file
-			fits_report_error(stderr, status);
-
-	}else{ // sanepic format
-
-		// 1 ref pos
-		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
-
-
-		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open first input file
-			fits_report_error(stderr, status);
-
-		// 2 offsets
-		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
-
-		// 3 channels
-		copy_channels(fptr, outfptr); // copy channels list from this file to output file
-
-		if (fits_close_file(fptr, &status)) // close first input file
-			fits_report_error(stderr, status);
-
-		// 4 time
-		copy_time(outfptr, dir.data_dir, samples_struct, ns_total); // copy time tables from each file to output file
-
-		// 5 signal
-		copy_signal(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy signal tables from each file to output file
-
-		// 6 mask
-		copy_mask(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total); // copy flag tables from each file to output file
+		break;
 	}
+
+	if (fits_close_file(fptr, &status)) // close first input file
+		fits_report_error(stderr, status);
 
 
 	if (fits_close_file(outfptr, &status)) // close output file
 		fits_report_error(stderr, status);
 
 	cout << "done.\n";
-
-
-	cout << "END OF SANEMERGE\n";
 
 	return EXIT_SUCCESS;
 

@@ -477,6 +477,7 @@ long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, lon
 	// check nans in time image
 	if(read_time_from_fits(fname, time, ns))
 		return 1;
+
 	for(long jj=0;jj<ns;jj++){
 		if(isnan(time[jj])&&(flag[jj]==0)){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
@@ -762,7 +763,6 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, std::vector
 	//---------------
 	fill(signal_tot,signal_tot+ns,0.0);
 
-	cout << " here " << endl;
 	// sum up all detectors signal
 	for(int jj=0;jj<ns;jj++){
 		fill(signal_samp,signal_samp+ndet,0.0);
@@ -778,8 +778,6 @@ int check_bolo_gain(string fname,long ns, string bolo_gain_filename, std::vector
 	}
 
 	fill(signal_samp,signal_samp+ndet,0.0);
-
-	cout << " here " << endl;
 
 	for(long jj=0;jj<10;jj++)
 		cout << signal_tot[jj] << " " ;
