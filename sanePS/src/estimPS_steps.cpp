@@ -437,6 +437,7 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 			for (long ii=0;ii<nbins;ii++)
 				Rellexp[idet1*ndet+idet2][ii] += Nell[ii]/factapod; // noise cross PS ?
 
+
 		}
 #ifdef DEBUG
 		for(int rk=0;rk<rank;rk++)
@@ -446,14 +447,15 @@ int estimate_CovMat_of_Rexp(struct samples samples_struct, struct param_common d
 	}
 
 	////// normalize to the first detector power spectrum in order to avoid numerical problems
-	for (long ii=0;ii<nbins;ii++)
+	for (long ii=0;ii<nbins;ii++){
 		SPref[ii] = Rellexp[0][ii]; // first detector PS
 
-	for (long ii=0;ii<nbins;ii++)
 		if ( isnan(SPref[ii]) || isinf(SPref[ii])){
-			cout << " Problem in the first detector power spectrum\n";
+			cerr << "EE - Problem in reference power spectrum : " << det[0] << " in " << samples_struct.basevect[iframe] << endl;
 			return 1;
 		}
+	}
+
 	for (long idet1=0;idet1<ndet;idet1++)
 		for (long idet2=0;idet2<ndet;idet2++)
 			for (long ii=0;ii<nbins;ii++)

@@ -108,13 +108,17 @@ int main(int argc, char *argv[])
 		return(EX_CONFIG);
 	}
 
-	// TODO : might be broken here....
+
+	samples_struct.fitsvect.clear();
+	samples_struct.ntotscan = 0;
+
 	int retval;
 	// read -f, -m and -M options
 	while ( (retval = getopt(argc, argv, "f:m:M:")) != -1) {
 		switch (retval) {
 		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
+			samples_struct.ntotscan++;
 			readFramesFromFits(samples_struct, 0);
 #ifdef DEBUG
 			cout << "Scan.            : " << samples_struct.fitsvect[0] << endl;
@@ -136,7 +140,6 @@ int main(int argc, char *argv[])
 		default:;
 		}
 	}
-
 
 	/************** wrong options  ***************/
 
@@ -172,7 +175,6 @@ int main(int argc, char *argv[])
 	time_min=time[0];
 	time_max=time[samples_struct.nsamples[0]-1];
 
-
 	int ii=0;
 	/* checking that user has given decent time limits according to original fits file time vector */
 	while(ii<m_count){
@@ -205,7 +207,6 @@ int main(int argc, char *argv[])
 	}
 
 
-
 	/* get input fits file format : Sanepic or HIPE */
 	format_fits=test_format(samples_struct.fitsvect[0]);
 	if(format_fits==0){
@@ -214,7 +215,6 @@ int main(int argc, char *argv[])
 
 	/* read the bolo list in the fits file */
 	read_bolo_list(samples_struct.fitsvect[0], det, ndet);
-
 
 	int status=0; /* fits error status number */
 	fitsfile *fptr; /* input fits file pointer */

@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <sysexits.h>
 
+#include <limits>
+
 #include "mpi_architecture_builder.h"
 #include "struct_definition.h"
 
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
 
 //	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
 
-	if (rank==12){
+	if (rank==0){
 		//		print_common(dir);
 		//		print_param_sanePos(pos_param);
 		//		print_param_saneProc(proc_param);
@@ -183,12 +185,16 @@ void print_struct(struct param_saneProc proc_param, struct samples samples_struc
 	cout << "\ndir : struct common\n";
 	print_common(dir);
 
+	cout.precision(std::numeric_limits< double >::digits10);
+
 	cout << "\npos_param : struct param_sanePos\n";
 	cout << "maskfile   = "  << pos_param.maskfile << endl;
 	cout << "pixdeg     = " << pos_param.pixdeg << endl;
 	cout << "flgdupl    = " << pos_param.flgdupl << endl;
 	cout << "projgaps   = " << pos_param.projgaps << endl;
 	cout << "fileFormat = " << pos_param.fileFormat << endl;
+	cout << "lon        = " << pos_param.lon << endl;
+	cout << "lat        = " << pos_param.lat << endl;
 
 	cout << "\nproc_param : struct param_saneProc\n";
 	cout << "CORRon           = " << proc_param.CORRon << endl;

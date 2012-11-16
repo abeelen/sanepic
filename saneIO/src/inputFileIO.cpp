@@ -193,36 +193,36 @@ void readFramesFromFits(struct samples &samples_struct, int rank){
 	nsamples = new long[nScan];
 	fill(nsamples,nsamples+nScan,0);
 
+
 //TODO This should be made by subrank 0
-
 	// read the size of this particular frame ...
-	for (long iframe=0; iframe<samples_struct.ntotscan; iframe++){
-		nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
+	for (long iframe=0; iframe< samples_struct.ntotscan; iframe++){
+	  nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
 	}
 
-//TODO : This will not work, as saneIO is compiled with PARA_FRAME or PARA_BOLO for the moment... i.e. USE_MPI in both cases.
-#ifdef PARA_FRAME
+// //TODO : This will not work, as saneIO is compiled with PARA_FRAME or PARA_BOLO for the moment... i.e. USE_MPI in both cases.
+// #ifdef PARA_FRAME
 
-	// read the size of this particular frame ...
-	for (long iframe=samples_struct.iframe_min; iframe<samples_struct.iframe_max; iframe++){
-		nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
-	}
+// 	// read the size of this particular frame ...
+// 	for (long iframe=samples_struct.iframe_min; iframe<samples_struct.iframe_max; iframe++){
+// 		nsamples[iframe] = readFitsLength(samples_struct.fitsvect[iframe]);
+// 	}
 
-	// ... retrieve all the data...
-	if (rank == 0) {
-		nsamples_tot = new long[nScan];
-		fill(nsamples_tot,nsamples_tot+nScan,0);
-	}
-	MPI_Reduce(nsamples, nsamples_tot, nScan, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-	// .. copy it back
-	if (rank == 0){
-		for (long iframe=0; iframe < nScan; iframe++)
-			nsamples[iframe] = nsamples_tot[iframe];
-		delete [] nsamples_tot;
-	}
-	// .. BCast it...
-	MPI_Bcast(nsamples, nScan, MPI_LONG, 0, MPI_COMM_WORLD);
-#endif
+// 	// ... retrieve all the data...
+// 	if (rank == 0) {
+// 		nsamples_tot = new long[nScan];
+// 		fill(nsamples_tot,nsamples_tot+nScan,0);
+// 	}
+// 	MPI_Reduce(nsamples, nsamples_tot, nScan, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+// 	// .. copy it back
+// 	if (rank == 0){
+// 		for (long iframe=0; iframe < nScan; iframe++)
+// 			nsamples[iframe] = nsamples_tot[iframe];
+// 		delete [] nsamples_tot;
+// 	}
+// 	// .. BCast it...
+// 	MPI_Bcast(nsamples, nScan, MPI_LONG, 0, MPI_COMM_WORLD);
+// #endif
 
 	// ... and put it into vector format ..
 	samples_struct.nsamples.resize(nScan);

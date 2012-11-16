@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <fstream>
 
+#include <limits>
 
 template<typename T, size_t N> T * end(T (&ra)[N]) {
     return ra + N;
@@ -31,6 +32,7 @@ template<typename T, size_t N> T * end(T (&ra)[N]) {
 template <typename T>
 std::string StringOf(const T& object){
 	std::ostringstream os;
+	os.precision(std::numeric_limits< double >::digits10);
 	os << object;
 	return os.str();
 }

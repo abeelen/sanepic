@@ -353,8 +353,8 @@ int verify_parallelization_scheme(struct samples &samples_struct, int rank, int 
 					num_frame++;
 
 			if(num_frame==0){
-				cout << "EE - Please modify " << origin_file << " to use at least processor 0 (master rank)" << endl;
-				cout << "EE - Exiting !" << endl;
+				cerr << "EE - Please modify " << origin_file << " to use at least processor 0 (master rank)" << endl;
+				cerr << "EE - Exiting !" << endl;
 				return 1;
 			}
 		}
@@ -422,7 +422,7 @@ int configure_PARA_FRAME_samples_struct(string outdir, struct samples & samples_
 	return 0;
 }
 
-void reorder_samples_struct( struct samples &samples_struct, int rank, int size){
+void reorder_samples_struct( struct samples & samples_struct, int rank, int size){
 	// TODO : This routine does not do what it is supposed to do...
 
 	// copy the whole vectors
