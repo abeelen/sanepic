@@ -50,7 +50,8 @@ int EstimPowerSpectra(struct param_saneProc proc_param, struct param_common dir,
 
 	// Read out the ells ...
 	std::vector<double> dummy;
-	if ( read_double(samples_struct.ell_names[iframe], dummy) )
+	std::string output;
+	if ( read_file(output, samples_struct.ell_names[iframe], dummy) )
 		return FILE_PROBLEM;
 	vDouble2carray(dummy, &ell, &nbins);
 	dummy.clear();
@@ -99,7 +100,7 @@ int EstimPowerSpectra(struct param_saneProc proc_param, struct param_common dir,
 	cout << "[ " << rank << " ] 1/6 - Reading Mixing Matrix" << endl;
 #endif
 
-	if(read_mixmat_txt(samples_struct.mix_names[iframe], ndet, structPS.ncomp, mixmat))
+	if(readMixmatTxt(samples_struct.mix_names[iframe], ndet, structPS.ncomp, mixmat))
 		return 1;
 
 	if(gotostep>=2){

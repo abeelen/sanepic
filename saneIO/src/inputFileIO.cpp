@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstring>
 
+#include <stdint.h>
+
 #include "imageIO.h"
 #include "inputFileIO.h"
 #include "covMatrix_IO.h"
@@ -16,71 +18,9 @@ extern "C"{
 }
 
 #define EscapeChar "!#;"
-#define DelimiterChar " ,;\t"
+//#define DelimiterChar " ,;\t"
 
 using namespace std;
-
-/*!
- * Reads a detector list in a .txt file
- * Returns a vector of string containing the name of the considered channels
- */
-int read_strings(string fname, std::vector<string> &bolos) {
-	string line;
-	size_t found;
-
-	ifstream inputFile(fname.c_str(), ios::in);
-	if (!inputFile.is_open()) {
-		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		return FILE_PROBLEM;
-	}
-
-	while (!inputFile.eof()) {
-		getline(inputFile, line);
-		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of(EscapeChar);          // Check for comment character at the beginning of the line
-
-		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
-
-		line = line.substr(0, line.find_first_of(EscapeChar)); // pick out line until Escape Character
-
-		line = line.substr(0, line.find_first_of(" \t")); // pick out first word
-
-		bolos.push_back(line);
-	}
-
-	inputFile.close();
-
-	return 0;
-}
-
-int read_double(string fname, std::vector<double> &array ){
-	string line;
-	size_t found;
-
-	ifstream inputFile(fname.c_str(), ios::in);
-	if (!inputFile.is_open()) {
-		cerr << "Error opening file '" << fname << "'. Exiting.\n";
-		return FILE_PROBLEM;
-	}
-
-	// Count the number of lines ;
-	while(! inputFile.eof()){
-
-		getline(inputFile,line);
-		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of(EscapeChar);			// Check for comment character at the beginning of the line
-
-		if (line.empty() || found == 0 ) continue; 		// skip if empty or commented
-
-		line = line.substr(0, line.find_first_of(EscapeChar)); // pick out line until Escape Character
-
-		array.push_back(atof(line.c_str()));
-	}
-
-	inputFile.close();
-
-	return 0;
-}
 
 std::string replace_all(std::string str, std::string tobe_replace, std::string with_this)
 {
@@ -148,6 +88,37 @@ std::string dirfile_Basename(std::string path)
 
 
 	return filename;
+}
+
+uint16_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content ) {
+  /*
+   * Read an ASCII file and return its content in vector of line stripped from comments
+   */
+
+  ifstream file;
+  file.open(fname.c_str(), ios::in);
+  if(!file.is_open()){
+    output += "EE - Could not open file [" + fname + "].\n";
+    return FILE_PROBLEM;
+  }
+
+  std::string line;
+  size_t found;
+  content.clear();
+
+  while(!file.eof()){
+    getline(file,line);
+    line.erase(0, line.find_first_not_of(" \t")); // remove leading white space in the first name
+    found = line.find_first_of(EscapeChar); 	  // Check for comment character at the beginning of the filename
+    if (found == 0) continue;                     // Skip commented line...
+    if (found != std::string::npos) line.erase(found); // remove comments in line if any
+    if (line.empty()) continue;                   // Skip empty line...
+
+    content.push_back(line);
+  }
+  file.close();
+
+  return 0;
 }
 
 long readFitsLength(string filename){
@@ -232,132 +203,94 @@ void readFramesFromFits(struct samples &samples_struct, int rank){
 	delete [] nsamples;
 }
 
-int read_channel_list(std::string &output, std::string fname, std::vector<string> &bolonames){
+int readChannelList(std::string &output, std::string fname, std::vector<string> &bolonames){
 
 	bolonames.clear();
 
-	if(read_strings(fname,bolonames)){
-		output += "You must create file specifying bolometer list named " + fname + "\n";
-		return 1;
+	if(read_file(output,fname,bolonames)){
+		output += "EE - You must create file specifying bolometer list named " + fname + "\n";
+		return FILE_PROBLEM;
 	}
 	return 0;
 }
 
-void skip_comment(ifstream &file, string &line){
-
-	size_t found;
-
-	// Skip any commented line at the beginning
-	while(! file.eof()){
-		getline(file,line);
-		line.erase(0, line.find_first_not_of(" \t"));	// remove leading white space
-		found = line.find_first_of(EscapeChar);			// Check for comment character at the beginning of the line
-
-		if ( (! line.empty()) && (found != 0) ) break; 		// skip if empty or commented
-	}
-}
-
-
-uint16_t read_fits_list(std::string &output, string fname, struct samples &samples_struct ) {
+uint16_t readFitsList(std::string &output, string fname, struct samples &samples_struct ) {
 
 	std::vector<string> &fitsvect = samples_struct.fitsvect;
 	std::vector<int> &scans_index = samples_struct.scans_index;
 	bool &framegiven = samples_struct.framegiven;
 
-	ifstream file;
-	file.open(fname.c_str(), ios::in);
-	if(!file.is_open()){
-		output += "File [" + fname + "] Invalid.\n";
-		return FILE_PROBLEM;
+	string i_string;
+	int    i_int;
+
+	// read file ...
+	std::vector<std::string> file_content;
+	if ( read_file_line(output, fname, file_content) )
+	  return FILE_PROBLEM;
+
+	// ... check for number of element in the first line  ...
+	// (as reference)
+	size_t nb_elem = min(word_count(file_content[0]), (size_t) 2);
+
+	if (nb_elem < 1){
+	  output += "EE - "+fname+" must contain at least one column\n";
+	  return FILE_PROBLEM;
 	}
 
-	framegiven=0;
-
-	string s, line, temp;
-	int d;
-	char *pch;
-	int nb_elem = 0;
-
-	size_t found;
-
-	// Skip any comments line at the beginning of the file
-	skip_comment(file, line);
-
-
-	// count number of elements on the first valid line !
-	line.erase(0, line.find_first_not_of(" \t")); // remove leading white space
-	pch = strtok ((char*) line.c_str(), DelimiterChar);
-
-	while (pch != NULL) {
-		pch = strtok (NULL, DelimiterChar);
-		nb_elem++;
+	if (nb_elem > 1){
+	  framegiven = true;
 	}
 
-	// set pointer back to the beginning of file in order to parse the first line too and...
-	file.seekg (0, ios::beg);
+	fitsvect.clear();
+	scans_index.clear();
 
-#ifdef DEBUG
-	cout << "case :  " << nb_elem << endl;
-#endif
+	// fill output vectors
 
-	switch(nb_elem) {
-	case 2:
-		framegiven=1;
-		while(!file.eof()){
-			getline(file,line);
-			line.erase(0, line.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = line.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
+	for (std::vector<string>::iterator it = file_content.begin(); it!=file_content.end(); ++it) {
 
-			if ( line.empty() || found == 0) continue;
-#ifdef DEBUG
-			cout << "frame_read : " << s << " " << d << endl;
-#endif
-			istringstream iline(line);
-			iline >> s >> d;
-			fitsvect.push_back(s);
-			scans_index.push_back(d);
-		}
-		break;
+	  // Check for the required number of column  ...
+	  if ( min(word_count(*it), (size_t) 2) < nb_elem ){
+	    output += "EE - "+fname+" must contain the same number of columns on each line\n";
+	    return FILE_PROBLEM;
+	  }
+	  // Warn for additionnal (unused column)
+	  if ( min(word_count(*it), (size_t) 2) > nb_elem ){
+	    output += "WW - "+fname+" contains additionnal unused column\n";
+	  }
 
-	case 1:
-		while(!file.eof()){
-			getline(file,line);
-			line.erase(0, line.find_first_not_of(" \t")); // remove leading white space in the first name
-			found = line.find_first_of(EscapeChar); 		// Check for comment character at the beginning of the filename
 
-			if ( line.empty() || found == 0) continue;
+	  // stream the columns...
+	  istringstream iline(*it);
 
-#ifdef DEBUG
-			cout << "frame_read : " << s << endl;
-#endif
-			fitsvect.push_back(line);
-			scans_index.push_back(0);
-		}
-		break;
-
-	default:
-		output += "File [" + fname + "] must have at least one row and at most 2 colums. Exiting\n";
-		return FILE_SIZE_PROBLEM;
-		break;
+	  switch(nb_elem) {
+	  case 2:
+	    iline >> i_string >> i_int;
+	    fitsvect.push_back(i_string);
+	    scans_index.push_back(i_int);
+	    break;
+	  case 1:
+	    iline >> i_string;
+	    fitsvect.push_back(i_string);
+	    scans_index.push_back(0);
+	    break;
+	  default: // for compleness, should never happens
+	    output += "EE - File [" + fname + "] must have at least one row and at most 2 colums. Exiting\n";
+	    return FILE_SIZE_PROBLEM;
+	    break;
+	  }
 	}
 
 	if(fitsvect.size()==0){
-		output += "File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
-		return FILE_SIZE_PROBLEM;
+	  output += "EE - File [" + fname + "] must have at least one row with the correct type : \"string\" \"int\" . Exiting\n";
+	  return FILE_SIZE_PROBLEM;
 	}
-
-	if (file>>s){
-		output += "File [" + fname + "]. Each line must have the same number of rows. Exiting\n";
-		return FILE_SIZE_PROBLEM;
-	}
-
-	file.close();
 
 	samples_struct.ntotscan = fitsvect.size();
+
 	return 0;
 }
 
-int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
+int readMixmatTxt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
 	FILE *fp;
 	long ncomp2;
 	double dummy1; // used to read mixing matrix
@@ -388,4 +321,23 @@ int read_mixmat_txt(string MixMatfile, long ndet, long ncomp, double **&mixmat) 
 
 }
 
+uint16_t readNodeWeight(std::string & output, std::string pathIn, map<std::string, float> & nodeWeight){
+  /**
+   * read node weight into an associative hash
+   */
 
+  std::string fname("node.weight");
+
+  vector<std::string> output_string;
+  vector<float>  output_float;
+
+  if( read_file_2col(output, pathIn+fname,  output_string, output_float) )
+    return FILE_PROBLEM;
+
+  nodeWeight.clear();
+  for (int ii=0; ii< output_string.size(); ii++)
+    nodeWeight[output_string[ii]] = output_float[ii];
+
+  return 0;
+
+}

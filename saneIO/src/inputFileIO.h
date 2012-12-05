@@ -4,25 +4,97 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <sstream>
 
+#include <stdint.h>
+
+#include "error_code.h"
 #include "struct_definition.h"
 
-//! Reads a detector list in an ascii file
-/*!
- \param fname The file which contains the channel list
- \param bolos A vector in which the channel list is stored
- \return An integer >0 if there were a problem, or 0 if everything went OK
- */
-int read_strings(std::string fname, std::vector<std::string>& bolos);
+// word_count from http://www.cplusplus.com/forum/general/30929/
+// general case, stream interface
+inline size_t word_count(std::istream& is)  // can pass an open std::ifstream() to this if required
+{
+	size_t c = 0;
+	for(std::string w; is >> w; ++c);
+	return c;
+}
+// simple string interface
+inline size_t word_count(const std::string& str)
+{
+	std::istringstream iss(str);
+	return word_count(iss);
+}
 
-//! Reads a double list in an ascii file
-/*!
- \param fname The file which contains the channel list
- \param array An array in which the double list is stored
- \param size "array" size
- \return An integer >0 if there were a problem, or 0 if everything went OK
- */
-int read_double(std::string fname, std::vector<double> & array );
+// Helper for ASCII file IO
+// Template function needs to be declared once as they are generated at compilation...
+uint16_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content );
+
+template <typename T> uint16_t read_file(std::string & output, std::string fname, std::vector<T> & output_T ) {
+  /*
+   * Read an ASCII file and return one column
+   */
+
+  std::vector<std::string> file_content;
+
+  T i_T;
+
+  if ( read_file_line(output, fname, file_content) )
+    return FILE_PROBLEM;
+
+  output_T.clear();
+
+  // Fill output_string & output_float
+  for (std::vector<std::string>::iterator it = file_content.begin(); it!=file_content.end(); ++it) {
+    // Check for a least two columns
+    if ( word_count(*it) < 1 ){
+      output += "EE - "+fname+" must contain at least one column on each line\n";
+      return FILE_PROBLEM;
+    }
+    // stream the columns...
+    std::istringstream iline(*it);
+    iline >> i_T;
+    output_T.push_back(i_T);
+  }
+
+  return 0;
+
+}
+
+template <typename T, typename U> uint16_t read_file_2col(std::string &output, std::string fname, std::vector<T> & output_T, std::vector<U> & output_U ) {
+  /**
+   * Read an ASCII file and return two columns depending on the desired type
+   */
+
+  std::vector<std::string> file_content;
+
+  T i_T;
+  U i_U;
+
+  if ( read_file_line(output, fname, file_content) )
+    return FILE_PROBLEM;
+
+  output_T.clear();
+  output_U.clear();
+
+  // Fill output_string & output_float
+  for (std::vector<std::string>::iterator it = file_content.begin(); it!=file_content.end(); ++it) {
+    // Check for a least two columns
+    if ( word_count(*it) < 2 ){
+      output += "EE - "+fname+" must contain at least 2 column on each line\n";
+      return FILE_PROBLEM;
+    }
+    // stream the columns...
+    std::istringstream iline(*it);
+    iline >> i_T >> i_U;
+    output_T.push_back(i_T);
+    output_U.push_back(i_U);
+  }
+
+  return 0;
+
+}
+
 
 //! Given a string str, replace a part of this string (tobe_replace) with another (with_this)
 /*!
@@ -70,7 +142,7 @@ long readFitsLength(std::string filename);
  \param output The parser error string
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_channel_list(std::string &output, std::string fname, std::vector<std::string> &bolonames);
+int readChannelList(std::string &output, std::string fname, std::vector<std::string> &bolonames);
 
 //! Given an input fitsfile list (fname), Reads the scan list (and processor order, if any)
 /*!
@@ -79,10 +151,7 @@ int read_channel_list(std::string &output, std::string fname, std::vector<std::s
  \param output The parser error string
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-uint16_t read_fits_list(std::string &output, std::string fname, struct samples &samples_struct);
-
-void skip_comment(std::ifstream &file, std::string &line);
-
+uint16_t readFitsList(std::string &output, std::string fname, struct samples &samples_struct);
 
 //! Reads a mixing matrix in a .txt file
 /*!
@@ -92,7 +161,7 @@ void skip_comment(std::ifstream &file, std::string &line);
  \param mixmat The mixing matrix data (read from the file)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_mixmat_txt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
+int readMixmatTxt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
 
 
 

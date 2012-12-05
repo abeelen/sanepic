@@ -110,14 +110,14 @@ uint16_t check_file(string strPath) {
 	}
 }
 
-uint16_t fillvect_double(double value, string file, string dir, long ntotscan, vector<double> &outputVector){
+uint16_t fillvect_double(string & output, double value, string file, string dir, long ntotscan, vector<double> &outputVector){
 
 	vector<double> dummy;
 	outputVector.resize(ntotscan);
 
 	if (file != "" && value <= 0.0){
 
-		if ( read_double(dir + file, dummy) )
+		if ( read_file(output, dir + file, dummy) )
 			return FILE_PROBLEM;
 		if ( dummy.size() != (long unsigned) ntotscan )
 			return FILE_SIZE_PROBLEM;
@@ -161,7 +161,7 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 	uint16_t returnCode = 0;
 
 	if (rank == 0)
-		returnCode |= read_fits_list(output, dir.input_dir + dir.fits_filelist, samples_struct);
+		returnCode |= readFitsList(output, dir.input_dir + dir.fits_filelist, samples_struct);
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
@@ -201,15 +201,15 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 	samples_struct.noisevect = dummy_string;
 	dummy_string.clear();
 
-	returnCode |= fillvect_double(Proc_param.fcut, Proc_param.fcut_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	returnCode |= fillvect_double(output, Proc_param.fcut, Proc_param.fcut_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
 	samples_struct.fcut = dummy_double;
 	dummy_double.clear();
 
-	returnCode |= fillvect_double(Proc_param.fsamp,Proc_param.fsamp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	returnCode |= fillvect_double(output, Proc_param.fsamp,Proc_param.fsamp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
 	samples_struct.fsamp = dummy_double;
 	dummy_double.clear();
 
-	returnCode |= fillvect_double(Proc_param.fhp, Proc_param.fhp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
+	returnCode |= fillvect_double(output, Proc_param.fhp, Proc_param.fhp_file, dir.input_dir, samples_struct.ntotscan, dummy_double);
 	samples_struct.fhp = dummy_double;
 	dummy_double.clear();
 
@@ -293,7 +293,7 @@ uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, 
 	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
 
 		if (rank == 0)
-			returnCode |= read_channel_list(output, samples_struct.bolovect[iframe], det_vect);
+			returnCode |= readChannelList(output, samples_struct.bolovect[iframe], det_vect);
 
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
