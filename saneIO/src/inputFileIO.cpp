@@ -320,24 +320,3 @@ int readMixmatTxt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
 	return 0;
 
 }
-
-uint16_t readNodeWeight(std::string & output, std::string pathIn, map<std::string, float> & nodeWeight){
-  /**
-   * read node weight into an associative hash
-   */
-
-  std::string fname("node.weight");
-
-  vector<std::string> output_string;
-  vector<float>  output_float;
-
-  if( read_file_2col(output, pathIn+fname,  output_string, output_float) )
-    return FILE_PROBLEM;
-
-  nodeWeight.clear();
-  for (int ii=0; ii< output_string.size(); ii++)
-    nodeWeight[output_string[ii]] = output_float[ii];
-
-  return 0;
-
-}
