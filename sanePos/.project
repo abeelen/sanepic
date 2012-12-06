@@ -6,6 +6,7 @@
 		<project>iniparser</project>
 		<project>nr</project>
 		<project>saneIO</project>
+		<project>saneLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
