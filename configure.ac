@@ -43,20 +43,14 @@ saneLib/Makefile
 saneLib/src/Makefile
 ])
 
-AC_ARG_ENABLE([paraframe],
-	[AS_HELP_STRING([--enable-paraframe],
-	[enable frame parallel processing output (default is no)])],
-	[paraframe=yes],[paraframe=no])
+AC_ARG_ENABLE([para],
+	[AS_HELP_STRING([--enable-para],
+	[enable parallel processing (default is no)])],
+	[para=yes],[para=no])
 
-AC_ARG_ENABLE([parabolo],
-	[AS_HELP_STRING([--enable-parabolo],
-	[enable channel parallel processing output (default is no)])],
-	[parabolo=yes],[parabolo=no])
+AM_CONDITIONAL([PARA],[test "x$para" = xyes])
 
-AM_CONDITIONAL([PARAFRAME],[test "x$paraframe" = xyes])
-AM_CONDITIONAL([PARABOLO],[test "x$parabolo" = xyes])
-
-if test "x$paraframe" = xyes || test "x$parabolo" = xyes; then
+if test "x$para" = xyes; then
    LX_FIND_MPI
    CXX="$MPICXX"
    LIBS="$MPI_CXXLDFLAGS $LIBS"
@@ -237,8 +231,7 @@ echo "
  ($PACKAGE_NAME) version $PACKAGE_VERSION
  Prefix............: $prefix
  Debug.............: $debug.
- Para Frame........: $paraframe;
- Para Bolo.........: $parabolo;
+ Para Schem. ......: $para;
  C++ Compiler......: $CXX $CXXFLAGS $CPPFLAGS $OPENMP_CXXFLAGS $GSL_CFLAGS
  Linker............: $LD $LDFLAGS $LIBS $GSL_LIBS
 "

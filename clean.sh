@@ -14,8 +14,8 @@ for dir in ${dirs}; do
 	(cd ${dir}/src; rm -Rf ${trash});
 	rm -Rf ${dir}/src/${dir};
     fi
-    # rm -Rf ${dir}/Release*
-    # rm -Rf ${dir}/Debug*
+    rm -Rf ${dir}/Release*
+    rm -Rf ${dir}/Debug*
 done
 
-# autoreconf -i
+#autoreconf -i
