@@ -4,32 +4,28 @@ libsaneIO_la_LDFLAGS = -version-info 0:3:0
 libsaneIO_la_LIBADD = $(NR_LIB) $(INIPARSER_LIB) $(GSL_LIBS)
 libsaneIO_la_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) $(GSL_CFLAGS)
 
-if PARAFRAME
-  libsaneIO_la_CPPFLAGS += -DUSE_MPI
-endif
-
-if PARABOLO
+if PARA
   libsaneIO_la_CPPFLAGS += -DUSE_MPI
 endif
 
 libsaneIO_la_SOURCES = \
-covMatrix_IO.cpp \
-crc.cpp \
-dataIO.cpp \
-imageIO.cpp \
-inputFileIO.cpp \
-mpi_architecture_builder.cpp \
-parser_functions.cpp \
-temporary_IO.cpp \
-utilities.cpp \
-covMatrix_IO.h \
-crc.h \
-dataIO.h \
-error_code.h \
-imageIO.h \
-inputFileIO.h \
-mpi_architecture_builder.h \
-parser_functions.h \
-struct_definition.h \
-temporary_IO.h \
-utilities.h
+CovMatrixIO.cpp \
+Crc.cpp \
+DataIO.cpp \
+ImageIO.cpp \
+InputFileIO.cpp \
+MPIConfiguration.cpp \
+ParserFunctions.cpp \
+TemporaryIO.cpp \
+Utilities.cpp \
+CovMatrixIO.h \
+Crc.h \
+DataIO.h \
+ErrorCode.h \
+ImageIO.h \
+InputFileIO.h \
+MPIConfiguration.h \
+ParserFunctions.h \
+StructDefinition.h \
+TemporaryIO.h \
+Utilities.h

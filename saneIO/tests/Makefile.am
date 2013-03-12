@@ -16,8 +16,8 @@ dirfileTest_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
         $(SANEIO_LIB)
 
 if PARA
-   parserTest_CPPFLAGS  += -DPARA -DUSE_MPI
-   dirfileTest_CPPFLAGS += -DPARA -DUSE_MPI
+   parserTest_CPPFLAGS  += -DUSE_MPI
+   dirfileTest_CPPFLAGS += -DUSE_MPI
    ext=_PARA
 endif
 
