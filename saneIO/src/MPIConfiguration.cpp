@@ -544,12 +544,11 @@ uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, 
 	vector<long> nodeSizes;
 	vector<string> nodeName;
 
-	uint16_t return_value;
+	uint16_t return_value = 0;
 
 	if(! samples_struct.framegiven){
 
 		if (rank == 0){
-
 			struct samples samples_struct_scheme;
 
 			// get scans order from parallel_scheme
@@ -561,6 +560,7 @@ uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, 
 				cerr << endl << output;
 				cerr << "EE - Please run saneFrameOrder first" << endl;
 				return_value = FILE_PROBLEM;
+
 			} else {
 
 				if(!samples_struct_scheme.framegiven){
@@ -582,6 +582,7 @@ uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, 
 						return_value = FILE_PROBLEM;
 					}
 				}
+
 			}
 
 			// IF validity was ok : copy the index in samples_struct.scans_index
@@ -599,10 +600,8 @@ uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, 
 
 	}
 
-
 	// reorder samples_struct
 	reorderSamplesStruct(samples_struct, rank, size);
-
 
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
 
