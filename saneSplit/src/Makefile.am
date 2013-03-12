@@ -7,7 +7,7 @@ saneSplit_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 
 saneSplit_SOURCES = \
 main.cpp \
-parse_saneSplit.cpp \
-parse_saneSplit.h \
-tools.cpp \
-tools.h
+SaneSplitParse.cpp \
+SaneSplitParse.h \
+SaneSplitTools.cpp \
+SaneSplitTools.h

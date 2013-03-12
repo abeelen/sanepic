@@ -5,9 +5,11 @@ saneFrameOrder_LDADD = $(NR_LIB) $(LIBS) \
 saneFrameOrder_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 	$(SANEIO_INCLUDE)
 
-saneFrameOrder_CPPFLAGS += -DPARA_FRAME
+saneFrameOrder_CPPFLAGS += -DUSE_MPI
 
-EXEEXT=_PARA_FRAME
+EXEEXT=_PARA
 
 saneFrameOrder_SOURCES = \
-main.cpp
+main.cpp \
+FrameOrder.cpp \
+FrameOrder.h

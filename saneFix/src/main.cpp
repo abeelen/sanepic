@@ -7,13 +7,13 @@
 #include <cstdio>  // for printf()
 #include <sysexits.h>
 
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "dataIO.h"
-#include "parser_functions.h"
-#include "tools.h"
-#include "struct_definition.h"
-#include "error_code.h"
+#include "InputFileIO.h"
+#include "MPIConfiguration.h"
+#include "DataIO.h"
+#include "ParserFunctions.h"
+#include "SaneFixTools.h"
+#include "StructDefinition.h"
+#include "ErrorCode.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -21,7 +21,7 @@ extern "C" {
 
 using namespace std;
 
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 #include "mpi.h"
 #endif
 
@@ -44,25 +44,35 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	int rank, size; /* MPI processor rank and MPI total number of used processors */
 
-#ifdef PARA_FRAME
+	int      rank,      size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank,  bolo_size; /* As for parallel scheme */
+	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
+
+#ifdef USE_MPI
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+	MPI_Comm MPI_COMM_NODE, MPI_COMM_MASTER_NODE;
 #else
 	size = 1;
 	rank = 0;
+	bolo_size  = 1;
+	bolo_rank  = 0;
+	node_size = 1;
+	node_rank = 0;
 #endif
 
+
 	if(rank==0)
-		cout << "\nBeginning of saneFix:\n\n";
+		cout << endl << "Beginning of saneFix: fixing fits files" << endl << endl;
 
 	struct samples samples_struct; /* fits file list + number of scans */
 	struct param_common dir; /* directories : temporary input and output */
+
 	struct param_sanePos pos_param;
 	struct param_saneProc proc_param;
 	struct param_sanePic sanePic_struct;
@@ -70,84 +80,101 @@ int main(int argc, char *argv[]) {
 	struct param_sanePS structPS;
 	struct param_saneCheck check_struct;
 
+	string parser_output = "";
+
 	std::vector<long> indice; /* gap indexes (sample index) */
 	std::vector <long> add_sample; /* number of samples to add per gap */
 	double fsamp; /* sampling frequency */
-	string output ="";
 
 	uint16_t mask_sanefix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x410f
-
-	//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
 
 	uint16_t parsed=0x0000; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
 
-	if (argc<2)/* not enough argument */
-		compare_to_mask=0x001;
-	else {
+	if (argc<2) { /* not enough argument */
+		if (rank == 0)
+			cerr << "EE - Please run  " << StringOf(argv[0]) << " with a .ini file" << endl;
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD );
+		MPI_Finalize();
+#endif
+		exit(EXIT_FAILURE);
+	} else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
 				structPS, saneInv_struct, sanePic_struct, size, rank);
 
 		compare_to_mask = parsed & mask_sanefix;
 
 		// print parser warning and/or errors
 		if (rank == 0)
-			cout << endl << output << endl;
-	}
+			cout << endl << parser_output << endl;
 
 
-	// in case there is a parsing error or the dirfile format file was not created correctly
-	if(compare_to_mask>0x0000){
+		// in case there is a parsing error or the dirfile format file was not created correctly
+		if(compare_to_mask>0x0000){
+			switch (compare_to_mask){/* error during parsing phase */
 
-		switch (compare_to_mask){/* error during parsing phase */
+			case 0x0001:
+				if (rank==0)
+					cerr << " EE - Please run " << StringOf(argv[0]) << " using a correct *.ini file" << endl;
+				break;
 
-		case 0x0001: cout << "Please run " << argv[0] << " using a correct *.ini file\n";
-		break;
+			default :
+				if (rank==0)
+					cerr << "EE - Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
+				break;
 
-		default : cout << "Wrong program options or argument. Exiting !\n";
-		break;
+			}
 
-
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return EX_CONFIG;
 		}
-
-#ifdef PARA_FRAME
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return EX_CONFIG;
-	}
-	//	}
-
-
-#ifdef PARA_FRAME
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
-		MPI_Abort(MPI_COMM_WORLD, 1);
-		return EX_IOERR;
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#endif
-
+	}	/* ------------------------------------------------------------------------------------*/
+	// Start...
 
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
 				structPS, sanePic_struct, saneInv_struct);
 
-		cout << "\nFixing Files..." << endl << endl;
+		cout << endl << "Fixing Files..." << endl << endl;
 	}
 
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(configureMPI(dir.output_dir, samples_struct, rank, size,
+			bolo_rank,  bolo_size, node_rank, node_size,
+			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		if (rank==0)
+			cerr << endl << endl << "Exiting..." << endl;
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		return EX_CONFIG;
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
+
+	/* ------------------------------------------------------------------------------------*/
+
 	// Read file size once for all
-	readFramesFromFits(samples_struct, rank);
+	if (rank == 0)
+		readFramesFromFits(samples_struct);
+#ifdef USE_MPI
+	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
+#endif
 
+	if (bolo_rank == 0) {
 
-	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
+		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
 			int format_fits; // 1 = HIPE, 2 = Sanepic
 			std::vector <long> suppress_time_sample;
@@ -186,8 +213,8 @@ int main(int argc, char *argv[]) {
 			long ns_total = samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete;
 
 			if(samples_to_add+init_num_delete+end_num_delete==0){
-				cout << "[ " << rank << " ]" << samples_to_add << " : " << init_num_delete << " : " << end_num_delete << endl;
-				cout << "[ " << rank << " ] " << "Nothing to do for : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
+//				cout << "WW - [ " << rank << " ] " << samples_to_add << " : " << init_num_delete << " : " << end_num_delete << endl;
+				cout << "WW - [ " << rank << " ] " << "Nothing to do for : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
 				continue;
 			}
 
@@ -248,6 +275,7 @@ int main(int argc, char *argv[]) {
 			indice.clear();
 			add_sample.clear();
 
+		}
 	}
 
 #ifdef USE_MPI
@@ -255,12 +283,12 @@ int main(int argc, char *argv[]) {
 #endif
 
 	// Close previously openened dirfile
-	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++){
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
 		if (samples_struct.dirfile_pointers[iframe]) {
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -268,13 +296,17 @@ int main(int argc, char *argv[]) {
 	if(rank==0)
 		cout << "done." << endl << endl;
 
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Comm_free(&MPI_COMM_NODE);
+	MPI_Comm_free(&MPI_COMM_MASTER_NODE);
+
 	MPI_Finalize();
 #endif
 
+
 	if(rank==0)
-		cout << "END OF SANEFIX\n";
+		cout << endl << "End of "<< StringOf(argv[0]) << endl;
 
 	return EXIT_SUCCESS;
 

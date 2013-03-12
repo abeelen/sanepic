@@ -10,13 +10,13 @@
 #include <sysexits.h>
 
 
-#include "imageIO.h"
-#include "temporary_IO.h"
-#include "mpi_architecture_builder.h"
-#include "parser_functions.h"
-#include "struct_definition.h"
-#include "inputFileIO.h"
-#include "error_code.h"
+#include "ImageIO.h"
+#include "TemporaryIO.h"
+#include "MPIConfiguration.h"
+#include "ParserFunctions.h"
+#include "StructDefinition.h"
+#include "InputFileIO.h"
+#include "ErrorCode.h"
 
 
 extern "C" {
@@ -43,7 +43,7 @@ using namespace std;
 //**********************************************************************************//
 
 
-/*! \mainpage Sanepic for SPIRE
+/*! \mainpage SanePre for SPIRE
  *
  * \section intro_sec Matthieu HUSSON & Alexandre Beelen
  *
@@ -67,12 +67,12 @@ using namespace std;
  *
  */
 
-int main(int argc, char *argv[])
-/* Sanepic preprocess main function */
-{
+int main(int argc, char *argv[]){
 
-	int size; /* number of processors */
-	int rank; /* rank = processor MPI rank*/
+
+	int      rank,      size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank,  bolo_size; /* As for parallel scheme */
+	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
 
 #ifdef USE_MPI
 
@@ -80,13 +80,20 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
+	MPI_Comm MPI_COMM_NODE, MPI_COMM_MASTER_NODE;
 #else
 	size = 1;
 	rank = 0;
+	bolo_size  = 1;
+	bolo_rank  = 0;
+	node_size = 1;
+	node_rank = 0;
 #endif
 
+
 	if(rank==0)
-		cout << endl << "sanePre :  pre processing of the data" << endl;
+		cout << endl << "sanePre :  data distribution" << endl;
 
 	struct param_saneProc Proc_param; /* contains user options about preprocessing properties */
 	struct samples samples_struct;  /*  everything about frames, noise files and frame processing order */
@@ -94,7 +101,7 @@ int main(int argc, char *argv[])
 	struct param_common dir; /* contains output input temp directories */
 
 	// those variables will not be used by sanePre but they are read in ini file (to check his conformity)
-	struct param_sanePS PS_param;
+	struct param_sanePS   PS_param;
 	struct param_saneInv Inv_param;
 	struct param_sanePic Pic_param;
 	string parser_output = "";
@@ -108,15 +115,19 @@ int main(int argc, char *argv[])
 	time_t t2, t3;
 #endif
 
-	//	if (rank==0){ // root parse ini file and fill the structures. Also print warnings or errors
-
 	uint16_t parsed=0x0000; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
+	if (argc<2) {/* not enough argument */
+		if (rank == 0)
+			cerr << "EE - Please run  " << argv[0] << " with a .ini file" << endl;
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD );
+		MPI_Finalize();
+#endif
+		exit(EXIT_FAILURE);
+	}  else {
 
-	if (argc<2)/* not enough argument */
-		compare_to_mask=0x001;
-	else {
 		/* parse ini file and fill structures */
 		parsed=parser_function(argv[1], parser_output, dir, samples_struct, Pos_param, Proc_param, PS_param, Inv_param, Pic_param, size, rank);
 
@@ -126,107 +137,141 @@ int main(int argc, char *argv[])
 		if (rank==0)
 			cout << endl << parser_output << endl;
 
-	}
+		if(compare_to_mask>0x0000){
 
+			switch (compare_to_mask){/* error during parsing phase */
 
-	if(compare_to_mask>0x0000){
+			case 0x0001:
+				if (rank==0)
+					cerr << " EE - Please run " << StringOf(argv[0]) << " using a correct *.ini file" << endl;
+				break;
 
-		switch (compare_to_mask){/* error during parsing phase */
+			default :
+				if (rank==0)
+					cerr << "EE - Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
+				break;
 
-		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-		break;
-
-		default : cout << "Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
-		break;
-
-
-		}
+			}
 
 #ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
+			MPI_Finalize();
 #endif
-		return EX_CONFIG;
+			return EX_CONFIG;
+		}
 	}
-	//	}
 
 #ifdef DEBUG
 	// processing begins here
 	t2=time(NULL);
 #endif
 
-
-#ifdef USE_MPI
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
-		MPI_Abort(MPI_COMM_WORLD, 1);
-		exit(EX_IOERR);
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#endif
-
-	/* ------------------------------------------------------------------------------------*/
+	// Start...
 
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
 				PS_param, Pic_param, Inv_param);
 	}
-	// this should be done by subrank 0 only
-	init_dirfile(dir.tmp_dir, samples_struct, Pos_param.fileFormat, rank);
-
-	// Read file size once for all
-	readFramesFromFits(samples_struct, rank);
-
 
 #ifdef USE_MPI
+
 	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(configureMPI(dir.output_dir, samples_struct, rank, size,
+			bolo_rank,  bolo_size, node_rank, node_size,
+			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		if (rank==0)
+			cerr << endl << endl << "Exiting..." << endl;
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		return EX_CONFIG;
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+
 #endif
 
-	if(rank==0)
-		cout << endl << "Exporting signal and flags... " << endl;
+	/* ------------------------------------------------------------------------------------*/
+	parser_output.clear();
 
-	if(write_data_flag_to_dirfile(dir, samples_struct)){
-		cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
+	if (rank==0){
+		cout << endl << "Initialization... " << endl;
+	}
+	// Create tmpDir if needed (bolo_rank_dummy here to prevent concurrence in the frame case on same node
+	if (init_tmpdir(parser_output, samples_struct, dir.tmp_dir, node_rank) ){
+		cerr << parser_output;
 #ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
 #endif
-		exit(EXIT_FAILURE);
+		return EX_CONFIG;
 	}
 
 #ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_NODE);
+#endif
+
+	// Create empty dirfile structure
+	if ( init_dirfile(dir.tmp_dir, samples_struct, bolo_rank)) {
+		cerr << "EE - Error in initializing dirfile" << endl;
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return EX_CONFIG;
+	}
+
+
+	// Read file size once for all
+	if (rank == 0)
+		readFramesFromFits(samples_struct);
+#ifdef USE_MPI
+	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
+#endif
+
+	if(rank==0)
+		cout << "Exporting signal and flags... " << endl;
+
+	if (bolo_rank == 0) {
+		if(writeDataFlagToDirfile(dir, samples_struct)){
+			cerr << "EE - write_data_flag_to_dirfile !! Exiting ..." << endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return EXIT_FAILURE;
+		}
+	}
+
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_NODE);
 #endif
 
 
 	if(rank==0)
 		cout << "Exporting positions... " << endl;
 
-
-	//TODO: What if Pos_param = 0 ?????
-	switch (Pos_param.fileFormat) {
-	case 0:
-		if(export_LON_LAT_to_dirfile(dir, samples_struct)){
-			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+	if (bolo_rank == 0 ) {
+		switch (Pos_param.fileFormat) {
+		case 0:
+			if(exportLonLatToDirfile(dir, samples_struct)){
+				cerr << "EE - exportLON_LAT_to_dirfile !! Exiting ..." << endl;
+#ifdef USE_MPI
+				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			exit(EXIT_FAILURE);
-		}
-		break;
-	case 1:
-		if(write_LON_LAT_to_dirfile(dir, samples_struct)){
-			cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+				return EXIT_FAILURE;
+			}
+			break;
+		case 1:
+			if(writeLonLatToDirfile(dir, samples_struct)){
+				cerr << "EE - write_LON_LAT_to_dirfile !! Exiting ..." << endl;
+#ifdef USE_MPI
+				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			exit(EXIT_FAILURE);
+				return EXIT_FAILURE;
+			}
+			break;
 		}
-		break;
 	}
 
 
@@ -242,12 +287,8 @@ int main(int argc, char *argv[])
 		int nsubkeys;                   //
 
 
-		if (get_fits_META(samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys)){
-			cout << "pb getting fits META\n";
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		}
+		if (get_fits_META(samples_struct.fitsvect[0], wcs, &subheader, &nsubkeys))
+			cerr << "WW - Problem getting fits META" << endl;
 
 		// Updated wcs with value from the ini file if any.
 		if (Pos_param.equinox != 0.0)
@@ -259,7 +300,7 @@ int main(int argc, char *argv[])
 
 
 		if(save_keyrec(dir.tmp_dir,wcs, 0, 0, subheader, nsubkeys)){
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return(EX_CANTCREAT);
@@ -269,15 +310,17 @@ int main(int argc, char *argv[])
 
 	}
 
-	if (rank == 0 && Proc_param.wisdom ){
+	if (rank == 0 && Proc_param.wisdom)
 		cout << "Building some wisdom..." << endl;
+
+	if (bolo_rank == 0 && Proc_param.wisdom ){
 
 		fftw_complex * fdata;
 		double *        data;
 		long ns;
 		fftw_plan plan;
 
-		for (long iframe=0 ;iframe<samples_struct.ntotscan;iframe++){
+		for (long iframe=samples_struct.iframe_min ;iframe<samples_struct.iframe_max;iframe++){
 
 			ns = samples_struct.nsamples[iframe];
 
@@ -311,10 +354,9 @@ int main(int argc, char *argv[])
 
 	}
 
-#ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_NODE);
 #endif
-
 
 	// Close previously openened dirfile
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
@@ -322,7 +364,7 @@ int main(int argc, char *argv[])
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
@@ -336,12 +378,18 @@ int main(int argc, char *argv[])
 
 #endif
 
-	if(rank==0)
-		cout << endl << "end of sanePre" << endl;
-
 #ifdef USE_MPI
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Comm_free(&MPI_COMM_NODE);
+	MPI_Comm_free(&MPI_COMM_MASTER_NODE);
+
 	MPI_Finalize();
+
 #endif
+
+	if(rank==0)
+		cout << endl << "End of "<< StringOf(argv[0]) << endl;
 
 	return EXIT_SUCCESS;
 

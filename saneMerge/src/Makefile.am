@@ -7,7 +7,7 @@ saneMerge_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 
 saneMerge_SOURCES = \
 main.cpp \
-parse_saneMerge.cpp \
-parse_saneMerge.h \
-tools.cpp \
-tools.h
+SaneMergeParse.cpp \
+SaneMergeParse.h \
+SaneMergeTools.cpp \
+SaneMergeTools.h

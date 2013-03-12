@@ -10,21 +10,19 @@
 #include <algorithm>
 #include <sysexits.h>
 
-#include "covMatrix_IO.h"
-#include "invMatrix.h"
-#include "temporary_IO.h"
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "parser_functions.h"
-#include "struct_definition.h"
-#include "error_code.h"
+#include "CovMatrixIO.h"
+#include "SaneInvTools.h"
+#include "TemporaryIO.h"
+#include "InputFileIO.h"
+#include "MPIConfiguration.h"
+#include "ParserFunctions.h"
+#include "StructDefinition.h"
+#include "ErrorCode.h"
 
 #include <gsl/gsl_matrix.h>
 
 
-
-
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 #include "mpi.h"
 #endif
 
@@ -51,34 +49,49 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-	int size; // MPI number of procs
-	int rank; // this proc number
+	int rank, size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank, bolo_size;  /* As for parallel scheme */
+	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
 
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
+	MPI_Comm MPI_COMM_NODE, MPI_COMM_MASTER_NODE;
 #else
 	size = 1;
 	rank = 0;
+	bolo_size  = 1;
+	bolo_rank  = 0;
+	node_size  = 1;
+	node_rank  = 0;
 #endif
 
 	if(rank==0)
-		cout << endl << "saneInv : inversion of the Noise-Noise PowerSpectra" << endl;
+		cout << endl << "saneInv : inversion of the noise power spectra" << endl;
+
+	struct param_common dir;
+	struct samples samples_struct;
+	struct param_saneInv Inv_Param;
+
+	struct param_sanePos Pos_param;
+	struct param_saneProc Proc_param;
+	struct param_sanePic Pic_param;
+	struct param_sanePS PS_param;
+	string parser_output = "";
+
 
 	// data parameters
 	/*
-	 * -ndet = number of detectors to output
+	 * -ndet = number of detectors to parser_output
 	 * -ndetOrig = number of detectors in the NoiseNoise matrix
 	 * -nbins = number of bins (Ell)
 	 */
 	long ndet, nbins;
 	double *ell; /* bins values */
-
-	struct param_common dir;
-	struct samples samples_struct;
 
 	/*
 	 * -Rellth : Reduced NoiseNoise matrix
@@ -89,15 +102,7 @@ int main(int argc, char *argv[]) {
 	 */
 	gsl_matrix *Rellth, *RellthOrig, *iRellth;
 
-	//	string noiseSp_dir_output;/* output directory */
 	string boloname;/* channels list file */
-	string output = "";
-
-	struct param_sanePos pos_param;
-	struct param_saneProc proc_param;
-	struct param_sanePS structPS;
-	struct param_saneInv saneInv_struct;
-	struct param_sanePic struct_sanePic;
 
 	std::vector<int> indexIn; /* bolometer index, used to determine which intput detector corresponds to which output detector*/
 
@@ -111,115 +116,134 @@ int main(int argc, char *argv[]) {
 
 	// Parse ini file
 	if (argc<2) {
-		compare_to_mask=0x001;
+		if (rank == 0)
+			cerr << "EE - Please run  " << StringOf(argv[0]) << " with a .ini file" << endl;
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD );
+		MPI_Finalize();
+#endif
+		exit(EXIT_FAILURE);
+
 	} else {
-		parsed=parser_function(argv[1], output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, struct_sanePic, size, rank);
+		parsed=parser_function(argv[1], parser_output, dir, samples_struct, Pos_param, Proc_param,
+				PS_param, Inv_Param, Pic_param, size, rank);
 
 		compare_to_mask = parsed & mask_saneInv;
 
 		// print parser warning and/or errors
 		if (rank == 0)
-			cout << endl << output << endl;
-	}
+			cout << endl << parser_output << endl;
 
-	if(compare_to_mask>0x0000){
+		if(compare_to_mask>0x0000){
 
-		switch (compare_to_mask){/* error during parsing phase */
+			switch (compare_to_mask){/* error during parsing phase */
 
-		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-		break;
+			case 0x0001:
+				if (rank==0)
+					cerr << " EE - Please run " << StringOf(argv[0]) << " using a correct *.ini file" << endl;
+				break;
 
-		default : printf("Wrong program options or argument. Exiting !\n");
-		break;
+			default :
+				if (rank==0)
+					cerr << "EE - Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
+				break;
+			}
 
-
+#ifdef USE_MPI
+			MPI_Finalize();
+#endif
+			return EX_CONFIG;
 		}
-
-#ifdef PARA_FRAME
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return EX_CONFIG;
 	}
-	//	}
-
-
-#ifdef PARA_FRAME
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
-		MPI_Abort(MPI_COMM_WORLD, 1);
-		return EX_IOERR;
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#endif
 
 	/* ------------------------------------------------------------------------------------*/
+	// Start...
 
 	if(rank==0) {
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, struct_sanePic, saneInv_struct);
+		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
+				PS_param, Pic_param, Inv_Param);
 
 	}
 
-	cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, rank);
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
 
-#ifdef PARA_FRAME
+	if(configureMPI(dir.output_dir, samples_struct, rank, size,
+			bolo_rank,  bolo_size, node_rank, node_size,
+			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		if (rank==0)
+			cerr << endl << endl << "Exiting..." << endl;
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		return EX_CONFIG;
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+
+	if ( cleanup_dirfile_saneInv(dir.tmp_dir, samples_struct, bolo_rank) ) {
+		cerr << "EE - Error in initializing dirfile - Did you run sanePre ?" << endl;
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+#endif
+		return EX_CONFIG;
+	}
+
+
+#ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
 #endif
 
 	if(rank==0)
 		cout << endl << "Inverting Covariance Matrices..." << endl;
 
-	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
+	if (bolo_rank == 0) {
+		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
 
-		std::vector<string> channelIn; /* Covariance matrix channel vector*/
+			std::vector<string> channelIn; /* Covariance matrix channel vector*/
 
-		// read covariance matrix in a fits file named fname
-		// returns : -the bins => Ell
-		// -the input channel list => channelIn
-		// -The number of bins (size of Ell) => nbins
-		// -The original NoiseNoise covariance matrix => RellthOrig
-		read_CovMatrix(samples_struct.noisevect[iframe], channelIn, nbins, ell, RellthOrig);
+			// read covariance matrix in a fits file named fname
+			// returns : -the bins => Ell
+			// -the input channel list => channelIn
+			// -The number of bins (size of Ell) => nbins
+			// -The original NoiseNoise covariance matrix => RellthOrig
+			read_CovMatrix(samples_struct.noisevect[iframe], channelIn, nbins, ell, RellthOrig);
 
-		std::vector<string> channelOut; /* bolometer reduction : Reduced vector of output channel */
+			std::vector<string> channelOut; /* bolometer reduction : Reduced vector of parser_output channel */
 
-		channelOut = samples_struct.bolo_list[iframe];
+			channelOut = samples_struct.bolo_list[iframe];
 
-		//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
-		ndet = channelOut.size();
+			//Total number of detectors to ouput (if ndet< ndetOrig : bolometer reduction)
+			ndet = channelOut.size();
 
-		//Deal with bolometer reduction and fill Rellth and mixmat
-		reorderMatrix(nbins, channelIn, RellthOrig, channelOut, Rellth);
+			//Deal with bolometer reduction and fill Rellth and mixmat
+			reorderMatrix(nbins, channelIn, RellthOrig, channelOut, Rellth);
 
-		// Inverse reduced covariance Matrix : Returns iRellth
-		inverseCovMatrixByMode(nbins, ndet, Rellth, iRellth);
+			// Inverse reduced covariance Matrix : Returns iRellth
+			inverseCovMatrixByMode(nbins, ndet, Rellth, iRellth);
 
-		// write inversed noisePS in a binary file for each detector
-		if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe], channelOut, samples_struct.basevect[iframe], nbins, ell, iRellth)){
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+			// write inversed noisePS in a binary file for each detector
+			if(write_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe], channelOut, samples_struct.basevect[iframe], nbins, ell, iRellth)){
+#ifdef USE_MPI
+				MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
-			return EX_CANTCREAT;
-		}
+				return EX_CANTCREAT;
+			}
 
-		// clean up
-		gsl_matrix_free(Rellth);
-		gsl_matrix_free(iRellth);
-		gsl_matrix_free(RellthOrig);
-		delete [] ell;
+			// clean up
+			gsl_matrix_free(Rellth);
+			gsl_matrix_free(iRellth);
+			gsl_matrix_free(RellthOrig);
+			delete [] ell;
 
 
-	} // iframe loop
+		} // iframe loop
+	}
 
-	if(rank==0)
-		printf("done. \n");
-
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -229,18 +253,21 @@ int main(int argc, char *argv[]) {
 			if (gd_close(samples_struct.dirfile_pointers[iframe])){
 				cerr << "EE - error closing dirfile...";
 			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
+				samples_struct.dirfile_pointers[iframe] = NULL;
 			}
 		}
 	}
 
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Comm_free(&MPI_COMM_NODE);
+	MPI_Comm_free(&MPI_COMM_MASTER_NODE);
 
-#ifdef PARA_FRAME
 	MPI_Finalize();
 #endif
 
 	if(rank==0)
-		printf("\nEnd of saneInv\n");
+		cout << endl << "End of "<< StringOf(argv[0]) << endl;
 
 	return EXIT_SUCCESS;
 }

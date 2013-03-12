@@ -1,11 +1,4 @@
 
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "dataIO.h"
-#include "parse_saneMerge.h"
-#include "tools.h"
-#include "struct_definition.h"
-
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -15,6 +8,13 @@
 #include <cstdio>  // for printf()
 #include <sysexits.h>
 
+
+#include "InputFileIO.h"
+#include "MPIConfiguration.h"
+#include "DataIO.h"
+#include "SaneMergeParse.h"
+#include "SaneMergeTools.h"
+#include "StructDefinition.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Read file size once for all
-	readFramesFromFits(samples_struct, 0);
+	readFramesFromFits(samples_struct);
 
 	string fname = samples_struct.fitsvect[0]; /* first input fits file name */
 

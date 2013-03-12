@@ -15,16 +15,10 @@ dirfileTest_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 dirfileTest_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
         $(SANEIO_LIB)
 
-if PARAFRAME
-   parserTest_CPPFLAGS  += -DPARA_FRAME -DUSE_MPI
-   dirfileTest_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
-endif
-
-if PARABOLO
-   parserTest_CPPFLAGS  += -DPARA_BOLO -DUSE_MPI
-   dirfileTest_CPPFLAGS += -DPARA_BOLO -DUSE_MPI
-   ext=_PARA_BOLO
+if PARA
+   parserTest_CPPFLAGS  += -DPARA -DUSE_MPI
+   dirfileTest_CPPFLAGS += -DPARA -DUSE_MPI
+   ext=_PARA
 endif
 
 EXEEXT=$(ext)

@@ -9,22 +9,16 @@ saneCheck_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 #   saneCheck_CPPFLAGS += -pg
 # endif	
 
-if PARAFRAME
-   saneCheck_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
-endif
-
-if PARABOLO
-   saneCheck_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
+if PARA
+   saneCheck_CPPFLAGS += -DUSE_MPI
+   ext=_PARA
 endif
 
 EXEEXT=$(ext)
 
-
 saneCheck_SOURCES = \
 main.cpp \
-parse_saneCheck.cpp \
-parse_saneCheck.h \
-tools.cpp \
-tools.h 
+SaneCheckParse.cpp \
+SaneCheckParse.h \
+SaneCheckTools.cpp \
+SaneCheckTools.h 

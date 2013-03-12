@@ -14,22 +14,22 @@
 #include <cstring>
 #include <gsl/gsl_math.h>
 #include <sysexits.h>
-#include <unistd.h>
+
+#include "ImageIO.h"
+#include "TemporaryIO.h"
+#include "CorrPreprocess.h"
+#include "NoCorrPreprocess.h"
+#include "ParserFunctions.h"
+#include "StructDefinition.h"
+#include "MPIConfiguration.h"
+#include "StructDefinition.h"
+#include "SanePicIO.h"
+#include "Crc.h"
+#include "InputFileIO.h"
+#include "ErrorCode.h"
+#include "Utilities.h"
+
 #include "getopt.h"
-
-#include "imageIO.h"
-#include "temporary_IO.h"
-#include "Corr_preprocess.h"
-#include "NoCorr_preprocess.h"
-#include "parser_functions.h"
-#include "struct_definition.h"
-#include "mpi_architecture_builder.h"
-#include "struct_definition.h"
-#include "write_maps_to_disk.h"
-#include "crc.h"
-#include "inputFileIO.h"
-#include "error_code.h"
-
 
 extern "C" {
 #include "wcslib/wcshdr.h"
@@ -45,21 +45,6 @@ extern "C" {
 #endif
 
 using namespace std;
-
-
-long getTotalSystemMemory()
-{
-	long pages = sysconf(_SC_PHYS_PAGES);
-	long page_size = sysconf(_SC_PAGE_SIZE);
-	return pages * page_size;
-}
-
-long getAvailableSystemMemory()
-{
-	long pages = sysconf(_SC_AVPHYS_PAGES);
-	long page_size = sysconf(_SC_PAGE_SIZE);
-	return pages * page_size;
-}
 
 
 /*!
@@ -93,23 +78,30 @@ long getAvailableSystemMemory()
 int main(int argc, char *argv[]) {
 
 
-	int size;
-	int rank;
+	int      rank,      size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank,  bolo_size; /* As for parallel scheme */
+	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
 
 #ifdef USE_MPI
+
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+	MPI_Comm MPI_COMM_NODE, MPI_COMM_MASTER_NODE;
 #else
 	size = 1;
 	rank = 0;
-
+	bolo_size  = 1;
+	bolo_rank  = 0;
+	node_size = 1;
+	node_rank = 0;
 #endif
 
+
 	if(rank == 0)
-		cout << endl << "Beginning of sanePic : conjugate gradient descent" << endl;
+		cout << endl << "sanePic : conjugate gradient descent" << endl;
 
 	//************************************************************************//
 	//************************************************************************//
@@ -117,10 +109,12 @@ int main(int argc, char *argv[]) {
 	//************************************************************************//
 	//************************************************************************//
 
-	struct param_saneProc Proc_param; /* A structure that contains user options about preprocessing properties */
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
+
+	struct param_saneProc Proc_param; /* A structure that contains user options about preprocessing properties */
 	struct param_sanePos Pos_param; /* A structure that contains user options about map projection and properties */
 	struct param_common dir; /* structure that contains output input temp directories */
+
 	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
 	struct param_sanePS PS_param;
 	struct param_sanePic Pic_param;
@@ -145,14 +139,11 @@ int main(int argc, char *argv[]) {
 	char * subheader;       // Additionnal header keywords
 	int nsubkeys=0;           //
 
-
 	double *PNdtot = NULL; /* to deal with mpi parallelization : Projected noised data */
 	double *PNd = NULL; // (At N-1 d)
 	long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
 
 	string field; /* actual boloname in the bolo loop */
-	//	std::vector<double> fcut; /* noise cutting frequency vector */
-
 
 	// main loop variables
 	double *S; /* Pure signal */
@@ -164,178 +155,89 @@ int main(int argc, char *argv[]) {
 			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_PROBLEM |
 			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc39f
 
-	std::vector<string> key;
-	std::vector<int> datatype;
-	std::vector<string> val;
-	std::vector<string> com;
-
-	int para_bolo_indice = 0;
-	int para_bolo_size = 1;
-
-#ifdef PARA_BOLO
-
-	para_bolo_indice = rank;
-	para_bolo_size = size;
-
-#endif
-
 	// parser variables
-	int indice_argv = 1;
 	uint16_t parsed=0x0000; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
-	//	int retval;
-	//	while ( (retval = getopt(argc, argv, "r")) != -1) {
-	//		switch (retval) {
-	//		case 'r': /* read the fits file name and the number of samples */
-	//			Pic_param.restore = 1;
-	//			cout << "restore!\n";
-	//			break;
-	//		default :
-	//			cout << "default!\n";
-	//			break;
-	//		}
-	//	}
+	// Default value
+	Pic_param.restore = 0;
 
-	//TODO: getopt or not ??
-	if ((argc < 2) || (argc > 3)) // no enough arguments
-		compare_to_mask = 0x0001;
-	else {
-		Pic_param.restore = 0; //default
+	// Using getopt to retrieve command line options
+	int c;
 
-		if (argc == 3) {
+	static struct option long_options[] = {
+			{"restore",     no_argument,       0, 'r'},
+			{0, 0, 0, 0}
+	};
 
-			//			int c;
-			//
-			//			static struct option long_options[] =
-			//			{
-			//					/* These options don't set a flag.
-			//			                  We distinguish them by their indices. */
-			//					{"restore",     no_argument,       0, 'r'},
-			//					{0, 0, 0, 0}
-			//			};
-			//			/* getopt_long stores the option index here. */
-			//			int option_index = 0;
-			//
-			//			c = getopt_long (argc, argv, "r",
-			//					long_options, &option_index);
-			//
-			//			if(c!=-1)
-			//				switch (c)
-			//				{
-			//				case 'r':
-			//					Pic_param.restore = 1;
-			//					break;
-			//				case '?':
-			//					/* getopt_long already printed an error message. */
-			//					break;
-			//
-			//				default:
-			//					break;
-			//				}
-			//
-			//
-			//			cout << "Pic_param.restore : " << Pic_param.restore << endl;
-			//			cout << "optind : " << optind << " vs argc : " << argc << endl;
-			//
-			//			while (optind < argc)
-			//				printf ("%s\n", argv[optind++]);
-			//
-			//			getchar();
+	/* getopt_long stores the option index here. */
+	int option_index = 0;
 
-			Pic_param.restore = 1;
-			if (strcmp(argv[1], (char*) "--restore") != 0) {
-				if (strcmp(argv[2], (char*) "--restore") != 0)
-					indice_argv = -1;
-				else
-					indice_argv = 1;
-			} else {
-				indice_argv = 2;
-			}
+	while ( (c = getopt_long (argc, argv, "r", long_options, &option_index) ) != -1) {
+		switch (c)
+		{
+		case 'r':
+			Pic_param.restore=1;
+			break;
+		case '?':
+			/* getopt_long already printed an error message. */
+			break;
+		default:
+			abort ();
+		}
+	}
+
+	if ( (argc - optind) != 1){ // less or more than 1 argument
+		if (rank == 0) {
+			cout << argc << " " << optind << " : " << argc-optind << endl;
+			cerr << "EE - Please run  " << argv[0] << " with a .ini file" << endl;
+			cerr << "     or with an optional --restore option" << endl;
 		}
 
-		//		if (rank == 0){ // root parse ini file and fill the structures. Also print warnings or errors
-		if (indice_argv > 0){
-			/* parse ini file and fill structures */
-			parsed = parser_function(argv[indice_argv], parser_output, dir,
-					samples_struct, Pos_param, Proc_param, PS_param, Inv_param,
-					Pic_param, size, rank);
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD );
+		MPI_Finalize();
+#endif
+		exit(EXIT_FAILURE);
+	} else {
 
-			compare_to_mask = parsed & mask_sanePic;
+		/* parse ini file and fill structures */
+		parsed = parser_function(argv[optind], parser_output, dir,
+				samples_struct, Pos_param, Proc_param, PS_param, Inv_param,
+				Pic_param, size, rank);
 
-			// print parser warning and/or errors
-			if (rank == 0)
-				cout << parser_output << endl;
+		compare_to_mask = parsed & mask_sanePic;
 
-		}else
-			compare_to_mask = 0x0001;
-
+		// print parser warning and/or errors
+		if (rank == 0)
+			cout << parser_output << endl;
 
 		if(compare_to_mask>0x0000){
 
 			switch (compare_to_mask){/* error during parsing phase */
 
-			case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-			break;
+			case 0x0001:
+				if (rank==0)
+					cerr << " EE - Please run " << StringOf(argv[0]) << " using a correct *.ini file" << endl;
+				break;
 
-			default : printf("Wrong program options or argument. Exiting !\n");
-			break;
-
+			default :
+				if (rank==0)
+					cerr << "EE - Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
+				break;
 
 			}
 
-#ifdef PARA_FRAME
-			MPI_Abort(MPI_COMM_WORLD, 1);
+#ifdef USE_MPI
+			MPI_Finalize();
 #endif
 			return EX_CONFIG;
 		}
-		//		}
-
 
 	}
 
 
-	string name_rank = dir.output_dir + "debug_sanePic.txt"; // log file name
-
-#ifdef DEBUG
-
-	std::ostringstream oss;
-	oss << dir.output_dir + "debug_sanePic_" << rank << ".txt";
-	name_rank = oss.str();
-
-	ofstream file_rank;
-	time_t rawtime;
-	struct tm * timeinfo;
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
-
-	file_rank.open(name_rank.c_str(), ios::out | ios::trunc); //& ios::trunc
-	if(!file_rank.is_open()) {
-		cerr << "File [" << file_rank << "] Invalid." << endl;
-		return EX_CANTCREAT;
-	}
-	file_rank << "Opening file for writing debug at " << asctime (timeinfo) << endl;
-	file_rank.close();
-
-#endif
-
-	/********************* Define parallelization scheme   *******/
-
-#ifdef PARA_FRAME
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		return EX_IOERR;
-	}
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-#endif
-
-
-	/* ------------------------------------------------------------------------------------*/
+	// Start...
 
 	if(rank == 0){
 		// parser print screen function
@@ -344,29 +246,106 @@ int main(int argc, char *argv[]) {
 
 	}
 
-	// this should be done by subrank 0 only
-	cleanup_dirfile_fdata(dir.tmp_dir, samples_struct, rank);
+	/* ------------------------------------------------------------------------------------*/
 
-	// Read file size once for all
-	readFramesFromFits(samples_struct, rank);
 
 #ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has created dirfile architecture.
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(configureMPI(dir.output_dir, samples_struct, rank, size,
+			bolo_rank,  bolo_size, node_rank, node_size,
+			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		if (rank==0)
+			cerr << endl << endl << "Exiting..." << endl;
+
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
+		return EX_CONFIG;
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+
 #endif
 
-	if(get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank)){
+	if ( cleanup_dirfile_sanePic(dir.tmp_dir, samples_struct, bolo_rank) ) {
+		cerr << "EE - Error in initializing dirfile - Did you run sanePre ?" << endl;
 #ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
 #endif
-		return (EX_IOERR);
+		return EX_CONFIG;
 	}
+
+	// Read file sizes once for all
+	if (bolo_rank == 0) {
+		if ( readFramesFromDirfile(dir.tmp_dir, samples_struct)) {
+			cerr << "EE - Error in frame size - Did you run sanePre ?" << endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+#endif
+			return EX_CONFIG;
+		}
+	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_NODE);
+	std::vector<long> nsamples_tot;
+	nsamples_tot.assign(samples_struct.ntotscan, 0);
+
+	MPI_Allreduce(&(samples_struct.nsamples[0]), &nsamples_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+
+	samples_struct.nsamples = nsamples_tot;
+	nsamples_tot.clear();
+
+	//	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_SUB);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
+
+	//	ostringstream t_stream; // fits files filename string stream
+	//	t_stream << rank << "\t ";
+	//	for (int ii=0; ii < samples_struct.ntotscan; ii++)
+	//		t_stream << " " << samples_struct.nsamples[ii];
+	//	t_stream << endl;
+	//	cout << t_stream.str();
+
+	if (bolo_rank == 0) {
+		if ( readNoiseBinSizeFromDirfile(dir.tmp_dir, samples_struct) ) {
+			cerr << "EE - Error in reading Noise sizes - Did you run saneInv ?" << endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+#endif
+			return EX_CONFIG;
+		}
+	}
+
+#ifdef USE_MPI
+	std::vector<long> ndet_tot, nbins_tot;
+	ndet_tot.assign(samples_struct.ntotscan,0);
+	nbins_tot.assign(samples_struct.ntotscan,0);
+
+	MPI_Barrier(MPI_COMM_NODE);
+
+	MPI_Allreduce(&(samples_struct.ndet[0]),   &ndet_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+	MPI_Allreduce(&(samples_struct.nbins[0]), &nbins_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+
+	samples_struct.ndet  =  ndet_tot;
+	samples_struct.nbins = nbins_tot;
+	ndet_tot.clear();
+	nbins_tot.clear();
+
+	//	MPI_Bcast_vector_long(samples_struct.ndet, 0, MPI_COMM_SUB);
+	//	MPI_Bcast_vector_long(samples_struct.nbins, 0, MPI_COMM_SUB);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+#endif
 
 	//	read pointing header
 	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
+		cerr << "EE - Error reading saved keyrec -- Did you run sanePre ?" << endl;
 #ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
 #endif
-		return (EX_IOERR);
+		return EX_IOERR;
 	}
 
 	//
@@ -383,23 +362,25 @@ int main(int argc, char *argv[]) {
 	//		}
 	//	}
 
-
 	if (Pos_param.flgdupl)
 		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
 
-	if (rank == 0){
-		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels" << endl; // print map size
+	// Read indpsrc and checks...
 
-		if (read_indpsrc(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
+	if (rank == 0){
+
+		if (readIndexCCR(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
+			cerr << "EE - Please run sanePos" << endl;
+
 #ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 			return (EX_IOERR);
 		}
+
 		if (indpsrc_size != NAXIS1 * NAXIS2) { // check size compatibility
 			if (rank == 0)
-				cout
-				<< "indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
+				cerr << "EE - indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
 				<< endl;
 #ifdef USE_MPI
 			MPI_Abort(MPI_COMM_WORLD, 1);
@@ -428,17 +409,7 @@ int main(int argc, char *argv[]) {
 			return (EX_IOERR);
 		}
 
-		printf("Mem. per process : %4.0f Mo\n", (indpix_size+npix*9)*8./1024/1024);
-		if (getAvailableSystemMemory() < (indpix_size+npix*9)*8.*size){
-			cerr << endl << "WW - Available physical memory too low" << endl;
-// #ifdef USE_MPI
-// 			MPI_Abort(MPI_COMM_WORLD, 1);
-// #endif
-// 			return (EX_IOERR);
-
-		}
 	} // rank ==0
-
 
 #ifdef USE_MPI
 	// Broadcast all position related values
@@ -459,9 +430,27 @@ int main(int argc, char *argv[]) {
 	MPI_Bcast(indpsrc, indpsrc_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 #endif
 
+	if (rank == 0) {
+		cout << endl;
+		cout << "Map Size         : " << NAXIS1 << " x " << NAXIS2 << " pixels" << endl; // print map size
+		cout << "Mem. per process : " << prettyPrintSize((indpix_size+npix*9)*8.) << endl;
+	}
+	if (bolo_rank == 0) {
+		if (getAvailableSystemMemory() < (indpix_size+npix*9)*8.*bolo_size){
+			cerr << endl;
+			cerr << "WW --------------------------------------------" << endl;
+			cerr << "WW - Available physical memory may be too low -" << endl;
+			cerr << "WW --------------------------------------------" << endl;
+
+			// #ifdef USE_MPI
+			// 			MPI_Abort(MPI_COMM_WORLD, 1);
+			// #endif
+			// 			return (EX_IOERR);
+
+		}
+	}
 
 	/*************************************************************/
-
 
 #ifdef USE_MPI
 	if(rank == 0){	// global (At N-1 D) malloc for mpi
@@ -471,9 +460,10 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	if (Pic_param.restore>0) { // restore incomplete work with previous saved data
+	if (Pic_param.restore) { // restore incomplete work with previous saved data
 		if (rank == 0){
-			cout << "Checking previous session\n";
+
+			cout << "II - Checking previous session" << endl;
 			struct checksum chk_t, chk_t2;
 			compute_checksum(dir, Pos_param, Proc_param, Inv_param, PS_param, Pic_param, samples_struct, npix,
 					indpix, indpsrc, indpsrc_size, chk_t);
@@ -487,14 +477,21 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		if(rank == 0)
+		if(rank == 0){
 			read_PNd(PNd, npix, dir.tmp_dir, "PNd.bi");
+#ifdef USE_MPI
+			for(long ii=0; ii<npix;ii++)
+				PNdtot[ii]=PNd[ii];
+#else
+			PNdtot=PNd;
+#endif
+		}
 		else{
 			PNd = new double[npix];
 			fill(PNd, PNd+npix, 0.0);
 		}
 
-	}else {
+	} else {
 
 		//************************************************************************//
 		//************************************************************************//
@@ -511,6 +508,7 @@ int main(int argc, char *argv[]) {
 
 		PNd = new double[npix];
 		fill(PNd, PNd+npix, 0.0);
+
 
 		// loop over the scans
 		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
@@ -532,32 +530,21 @@ int main(int argc, char *argv[]) {
 				// ns = number of sample for this scan
 				// iframe = scan number : 0=> ntotscan if non-MPI
 
-				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct,
-						Pos_param,dir.tmp_dir, indpix,indpsrc,
-						NAXIS1, NAXIS2,npix, npixsrc,addnpix,
-						iframe,para_bolo_indice, para_bolo_size, name_rank);
+				pb=write_ftrProcesdata(NULL,Proc_param,samples_struct, Pos_param,dir.tmp_dir, indpix,indpsrc,
+						NAXIS1, NAXIS2,npix, npixsrc,addnpix, iframe,
+						bolo_rank, bolo_size);
 
 				if(pb>0){
 					cout << "Problem in write_ftrProcesdata. Exiting ...\n";
 #ifdef USE_MPI
-					MPI_Abort(MPI_COMM_WORLD, 1);
+					MPI_Abort(MPI_COMM_WORLD, EX_SOFTWARE);
 #endif
 					return EX_SOFTWARE;
 				}
 
-#ifdef DEBUG
-				time ( &rawtime ); // print processing time for each proc in the log file
-				timeinfo = localtime ( &rawtime );
-				file_rank.open(name_rank.c_str(), ios::out | ios::app);
-				file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
-				file_rank.close();
-#endif
-
-				// flush dirfile
-				//				gd_flush(samples_struct.dirfile_pointer,NULL);
-
-#ifdef PARA_BOLO
-				MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
+				if ( samples_struct.parallel_scheme == 0) // bolo case
+					MPI_Barrier(MPI_COMM_NODE);
 #endif
 
 				/* do_PtNd parameters : */
@@ -575,9 +562,8 @@ int main(int argc, char *argv[]) {
 				// *Mp = Null :
 				// *Hits = Null (map hits)
 
-				pb+=do_PtNd(samples_struct, PNd, "fData_",
-						para_bolo_indice,para_bolo_size,indpix,
-						NAXIS1, NAXIS2,npix,iframe, NULL, NULL, name_rank);
+				pb+=do_PtNd(samples_struct, PNd, "fData_", bolo_rank,bolo_size,indpix,
+						NAXIS1, NAXIS2,npix,iframe, NULL, NULL);
 				// Returns Pnd = (At N-1 d), Mp and hits
 
 				if(pb>0){
@@ -591,7 +577,6 @@ int main(int argc, char *argv[]) {
 
 			} else { // No correlation case
 
-
 				do_PtNd_nocorr(PNd, dir.tmp_dir,Proc_param,Pos_param,
 						samples_struct, addnpix, indpix,indpsrc,
 						NAXIS1, NAXIS2,npix,npixsrc,
@@ -602,22 +587,17 @@ int main(int argc, char *argv[]) {
 
 		} // end of iframe loop
 
-	} // end of else (restore = 0)
-
 #ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-	if(Pic_param.restore>0){
-		if(rank == 0)
-			for(long ii=0; ii<npix;ii++)
-				PNdtot[ii]=PNd[ii];
-	}else
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
-	PNdtot=PNd;
+		PNdtot=PNd;
 #endif
 
+	} // end of else (restore = 0)
 
-	if (Pic_param.save_data > 0) {
+
+	if (Pic_param.save_data) {
 		if (rank == 0) {
 			struct checksum chk_t;
 			/* Compute Checsum for crash recovery ! */
@@ -641,7 +621,7 @@ int main(int argc, char *argv[]) {
 	/* END PARAMETER PROCESSING */
 
 	if (rank == 0)
-		printf("Starting Conjugate Gradient Descent... \n\n");
+		cout << "Starting Conjugate Gradient Descent... " << endl << endl;
 
 	//////////////////////////////////// Computing of sanePic starts here
 	string testfile; // log file to follow evolution of both criteria
@@ -657,9 +637,6 @@ int main(int argc, char *argv[]) {
 
 	double var0 = 0.0, var_n = 0.0, delta0 = 0.0, delta_n = 0.0, alpha = 0.0; // conjugate gradient convergence criteria
 	double delta_o, rtq, beta; // conjugate gradient needed parameters (see paper for a complete description)
-
-	long mi;
-	double *map1d = NULL; // buffer used to store maps before exporting to fits
 
 	int iter=0; // conjugate gradient loop counter
 	long long npixeff; // number of filled pixels
@@ -681,33 +658,33 @@ int main(int argc, char *argv[]) {
 		npixeff = npix - 1;
 	}
 
-	if ((Pic_param.restore > 0)) {
+	if (Pic_param.restore) {
 		if (rank == 0){
 			cout << "loading idupl\n";
 			load_idupl(dir.tmp_dir, idupl);
 
 			// idupl compatibility
 			if((idupl>0) && !Pos_param.flgdupl){
-				cout << "Error. idupl cannot be >0 if flgdupl is False ! Exiting...\n";
+				cerr << "EE - idupl cannot be >0 if flgdupl is False ! Exiting...\n";
 #ifdef USE_MPI
-				MPI_Finalize();
+				MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
 #endif
 				return EX_CONFIG;
 			}
 		}
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Bcast(&idupl,1,MPI_INT,0,MPI_COMM_WORLD);
+#endif
 	}
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
-	if ((Pic_param.restore > 0))
-		MPI_Bcast(&idupl,1,MPI_INT,0,MPI_COMM_WORLD);
-	if(rank == 0) { // malloc only for first processor that reduces the data
-		//		PtNPmatStot = new double[npix];
-		Mptot = new double[npix];
 
+	if(rank == 0) { // malloc only for first processor that reduces the data
+		Mptot = new double[npix];
 		qtot = new double[npix];
 		fill(qtot,qtot+npix,0.0);
-		//		fill(PtNPmatStot,PtNPmatStot+npix,0.0);
 		fill(Mptot,Mptot+npix,0.0);
 	}
 #endif
@@ -715,12 +692,36 @@ int main(int argc, char *argv[]) {
 	// in case flagged pixels are put in a duplicated map
 	while(idupl <= Pos_param.flgdupl){
 
-		if (Pic_param.save_data > 0)
+		if (Pic_param.save_data && rank == 0)
+			write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
+
+
+		if((Pic_param.restore)){ // Restore or ...
+
+			if (rank == 0){
+				cout << " EE - Loading session" << endl;
+
+				// fill S, d, r, indpix, npixeff, var_n, delta_n and iter with previously saved on disk values
+				load_from_disk(dir.tmp_dir, S, d, r, npixeff, var0, var_n, delta0,
+						delta_n, iter, Mp);
+			}
+#ifdef USE_MPI
+			MPI_Bcast(&iter,1,MPI_INT,0,MPI_COMM_WORLD);
+			MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+			//copy Mp to Mptot and PtNPmatS to PtNPmatStot
 			if(rank == 0)
-				write_PNd(PNdtot,npix,dir.tmp_dir, "PNd.bi");
+				for(long ii = 0; ii< npix; ii++){
+					Mptot[ii] = Mp[ii];
+				}
+#else
+			Mptot = Mp;
+#endif
+
+			Pic_param.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
 
 
-		if((Pic_param.restore == 0)){
+		} else { // Compute
 
 			PtNPmatS = new double[npix];
 
@@ -736,23 +737,15 @@ int main(int argc, char *argv[]) {
 				if (Proc_param.CORRon) {
 
 					write_tfAS(samples_struct, S, indpix, NAXIS1, NAXIS2, npix,
-							Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
+							Pos_param.flgdupl, iframe, bolo_rank, bolo_size);
 
-#ifdef DEBUG
-					time ( &rawtime );
-					timeinfo = localtime ( &rawtime );
-					file_rank.open(name_rank.c_str(), ios::out | ios::app);
-					file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
-					file_rank.close();
+#ifdef USE_MPI
+					if ( samples_struct.parallel_scheme == 0) // bolo case
+						MPI_Barrier(MPI_COMM_NODE);
 #endif
-
-#ifdef PARA_BOLO
-					MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
 					do_PtNd(samples_struct, PtNPmatS, "fPs_",
-							para_bolo_indice, para_bolo_size, indpix,
-							NAXIS1, NAXIS2, npix, iframe, Mp, NULL, name_rank);
+							bolo_rank, bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, Mp, NULL);
 
 				} else {
 
@@ -764,6 +757,7 @@ int main(int argc, char *argv[]) {
 			} // end of iframe loop
 
 #ifdef USE_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
 
 			if(rank == 0){
 				PtNPmatStot = new double[npix];
@@ -817,35 +811,6 @@ int main(int argc, char *argv[]) {
 				delete [] PtNPmatStot;
 #endif
 
-		}else{ //restore
-
-			if (rank == 0){
-				cout << "loading session\n";
-
-				// fill S, d, r, indpix, npixeff, var_n, delta_n and iter with previously saved on disk values
-				load_from_disk(dir.tmp_dir, S, d, r, npixeff, var0, var_n, delta0,
-						delta_n, iter, Mp);
-			}
-#ifdef USE_MPI
-			MPI_Bcast(&iter,1,MPI_INT,0,MPI_COMM_WORLD);
-			MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
-
-			//copy Mp to Mptot and PtNPmatS to PtNPmatStot
-			if(rank == 0)
-				for(long ii = 0; ii< npix; ii++){
-					Mptot[ii] = Mp[ii];
-				}
-#else
-			Mptot = Mp;
-#endif
-
-
-			//			cout << iter << " " << npixeff << " " << var0 << " " << var_n << " " << delta0 << " "
-			//					<< delta_n << endl;
-
-			Pic_param.restore=0; // set to 0 because we don't want to load again on idupl=1 loop !
-
-
 		}
 
 #ifdef USE_MPI
@@ -870,22 +835,15 @@ int main(int argc, char *argv[]) {
 				if (Proc_param.CORRon) {
 
 					write_tfAS(samples_struct, d, indpix, NAXIS1, NAXIS2, npix,
-							Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
+							Pos_param.flgdupl, iframe, bolo_rank, bolo_size);
 
-#ifdef DEBUG
-					time ( &rawtime );
-					timeinfo = localtime ( &rawtime );
-					file_rank.open(name_rank.c_str(), ios::out | ios::app);
-					file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
-					file_rank.close();
-#endif
-
-#ifdef PARA_BOLO
-					MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
+					if ( samples_struct.parallel_scheme == 0) // bolo case
+						MPI_Barrier(MPI_COMM_NODE);
 #endif
 					do_PtNd(samples_struct, q, "fPs_",
-							para_bolo_indice, para_bolo_size, indpix,
-							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
+							bolo_rank, bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, NULL, NULL);
 
 				} else {
 
@@ -931,22 +889,16 @@ int main(int argc, char *argv[]) {
 					if (Proc_param.CORRon) {
 
 						write_tfAS(samples_struct, S, indpix, NAXIS1, NAXIS2, npix,
-								Pos_param.flgdupl, iframe, para_bolo_indice, para_bolo_size);
+								Pos_param.flgdupl, iframe, bolo_rank, bolo_size);
 
-#ifdef DEBUG
-						time ( &rawtime );
-						timeinfo = localtime ( &rawtime );
-						file_rank.open(name_rank.c_str(), ios::out | ios::app);
-						file_rank << "rank " << rank << " a fini write_tfAS et attend a " << asctime (timeinfo) << " \n";
-						file_rank.close();
-#endif
-#ifdef PARA_BOLO
-						MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
+						if ( samples_struct.parallel_scheme == 0) // bolo case
+							MPI_Barrier(MPI_COMM_NODE);
 #endif
 
 						do_PtNd(samples_struct, PtNPmatS, "fPs_",
-								para_bolo_indice, para_bolo_size, indpix,
-								NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
+								bolo_rank, bolo_size, indpix,
+								NAXIS1, NAXIS2, npix, iframe, NULL, NULL);
 
 					} else {
 
@@ -1014,134 +966,32 @@ int main(int argc, char *argv[]) {
 						write_disk(dir.tmp_dir, d, r, S, npixeff, var0, var_n, delta0, delta_n, iter, idupl, Mptot);
 					}
 
-					// Every iterw iteration compute the map and save it
-					map1d = new double[NAXIS1 * NAXIS2];
-
-					for (long ii = 0; ii < NAXIS1; ii++) {
-						for (long jj = 0; jj < NAXIS2; jj++) {
-							mi = jj * NAXIS1 + ii;
-							if (indpix[mi] >= 0) {
-								map1d[mi] = S[indpix[mi]];
-							} else {
-								map1d[mi] = NAN;
-							}
-						}
-					}
 
 					temp_stream << dir.output_dir << Pic_param.map_prefix << "_" << (idupl>0 ? (std::string)"b" : (std::string)"a") << iter << ".fits";
 					fname = temp_stream.str();
 					temp_stream.str("");
 
-					if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d, (char *) "Image", 0, subheader, nsubkeys)) {
-						cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
-						MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-						return EX_CANTCREAT;
-					}
+					// Write the raw maps (without flag and without crossing constrains)
+					if (writeRawMapToFits(fname, S, NAXIS1, NAXIS2, indpix,	wcs, subheader, nsubkeys, false))
+						cerr << "EE - Error writing map... " << endl;
 
-					if (Pos_param.flgdupl) {
-						for (long ii = 0; ii < NAXIS1; ii++) {
-							for (long jj = 0; jj < NAXIS2; jj++) {
-								mi = jj * NAXIS1 + ii;
-								if (indpix[mi] >= 0) { // pixel observed in first map
-									if (indpix[mi + NAXIS1 * NAXIS2] >= 0)
-										map1d[mi] = S[indpix[mi + NAXIS1 * NAXIS2]]; //-finalmap[ii][jj];
-									else
-										map1d[mi] = INFINITY;
-								} else {
-									map1d[mi] = NAN;
-								}
-							}
-						}
+					// Write the flagged data map
+					if (Pos_param.flgdupl)
+						if ( writeFlagMapToFits(fname, S, NAXIS1, NAXIS2, indpix, wcs, subheader, nsubkeys, true))
+							cerr << "EE - Error Writing Flagged Data map... \n";
 
-						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "Flagged Data", 1, subheader, nsubkeys)) {
-							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
-							MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-							return EX_CANTCREAT;
-						}
-					}
-					if (addnpix) {
-						// initialize the container
-						for (long jj = 0; jj < NAXIS2; jj++) {
-							for (long ii = 0; ii < NAXIS1; ii++) {
-								mi = jj * NAXIS1 + ii;
-								map1d[mi] = 0.0;
-							}
-						}
-						// loop thru frame to coadd all pixels
-						for (long ii = 0; ii < NAXIS1; ii++) {
-							for (long jj = 0; jj < NAXIS2; jj++) {
-								mi = jj * NAXIS1 + ii;
-								double b = 0.;
-								for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
-									long long ll = factdupl * NAXIS1 * NAXIS2 + iframe * npixsrc + indpsrc[mi];
-									if ((indpsrc[mi] != -1) && (indpix[ll] != -1)) {
-										map1d[mi] += S[indpix[ll]] / gsl_pow_2(Mptot[indpix[ll]]);
-										b += 1. / gsl_pow_2(Mptot[indpix[ll]]);
-									}
-								}
-								if (b >= 1)
-									map1d[mi] /= b;
-							}
-						}
-						// replace the non observed pixels by NAN
-						for (long ii = 0; ii < NAXIS1; ii++) {
-							for (long jj = 0; jj < NAXIS2; jj++) {
-								mi = jj * NAXIS1 + ii;
-								if (map1d[mi] == 0.0)
-									map1d[mi] = NAN;
-							}
-						}
+					// Write the crossing constrains only maps
+					if (addnpix)
+						writeCCRMapToFits(fname, S, Mptot, NAXIS1, NAXIS2, indpix, indpsrc, npixsrc, factdupl, samples_struct.ntotscan,
+								wcs, subheader, nsubkeys, true);
 
-						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, "CCR Image", 1, subheader, nsubkeys)) {
-							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
-							MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-							return EX_CANTCREAT;
-						}
-
-						for (long ii = 0; ii < NAXIS1; ii++) {
-							for (long jj = 0; jj < NAXIS2; jj++) {
-								mi = jj * NAXIS1 + ii;
-								for (long iframe = 0; iframe
-								< samples_struct.ntotscan; iframe++) {
-
-									long long ll = factdupl * NAXIS1 * NAXIS2
-											+ iframe * npixsrc + indpsrc[mi];
-									if ((indpsrc[mi] != -1) && (indpix[ll]
-									                                   != -1))
-										map1d[mi] += 1. / gsl_pow_2(
-												Mptot[indpix[ll]]);
-								}
-								if (map1d[mi] != 0)
-									map1d[mi] = 1. / sqrt(map1d[mi]);
-							}
-						}
-						if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd',
-								(void *) map1d, (char *) "CCR Error", 1, subheader, nsubkeys)) {
-							cerr << "Error Writing map : EXITING ... \n";
-#ifdef USE_MPI
-							MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-							return EX_CANTCREAT;
-						}
-					}
-
-					//TODO: Do we really need to write the inifile in that case ?
-					if(write_fits_inifile(fname, dir, Proc_param, Pos_param,
-							PS_param, Pic_param, Inv_param)) // write saneProc parameters in naive Map fits file header
-						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
-					if( write_fits_inputfile(fname, samples_struct))
-						cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
+					//					if(write_fits_inifile(fname, dir, Proc_param, Pos_param,
+					//							PS_param, Pic_param, Inv_param)) // write saneProc parameters in naive Map fits file header
+					//						cerr << "WARNING ! No history will be included in the file : " << fname << endl;
+					//					if( write_fits_inputfile(fname, samples_struct))
+					//						cerr << "WARNING ! No input files will be included in the file : " << fname << endl;
 
 
-					delete[] map1d;
 				} // end of saving iterated maps
 
 				time_t rawtime;
@@ -1151,7 +1001,8 @@ int main(int argc, char *argv[]) {
 				char mytime[20];
 				strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
 
-				temp_stream <<  mytime << " -- " << "iter= "     << setw(4) << iter;
+				temp_stream <<  mytime << " -- " << "iter_" << (idupl>0 ? (std::string)"b" : (std::string)"a");
+				temp_stream << "= "     << setw(4) << iter;
 				temp_stream << " crit= "      << setiosflags(ios::scientific) << setprecision (2) << var_n / var0;
 				temp_stream << " crit2= "     << setiosflags(ios::scientific) << setprecision (2) << delta_n / delta0;
 
@@ -1161,7 +1012,7 @@ int main(int argc, char *argv[]) {
 
 				// ... and to a logfile
 				ofstream logfile;
-				string filename = dir.output_dir + "ConvFile.txt";
+				string filename = dir.output_dir + "ConvPic.txt";
 				logfile.open(filename.c_str(),  ios::out | ios::app);
 				logfile << temp_stream.str() << endl;
 				logfile.close();
@@ -1195,23 +1046,16 @@ int main(int argc, char *argv[]) {
 					write_ftrProcesdata(S, Proc_param, samples_struct,
 							Pos_param, dir.tmp_dir, indpix, indpsrc,
 							NAXIS1, NAXIS2, npix, npixsrc, addnpix,
-							iframe, para_bolo_indice, para_bolo_size, name_rank);
+							iframe, bolo_rank, bolo_size);
 
-#ifdef DEBUG
-					time ( &rawtime );
-					timeinfo = localtime ( &rawtime );
-					file_rank.open(name_rank.c_str(), ios::out | ios::app);
-					file_rank << "rank " << rank << " a fini et attend a " << asctime (timeinfo) << " \n";
-					file_rank.close();
-#endif
-
-#ifdef PARA_BOLO
-					MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
+					if ( samples_struct.parallel_scheme == 0) // bolo case
+						MPI_Barrier(MPI_COMM_NODE);
 #endif
 
 					do_PtNd(samples_struct, PNd, "fData_",
-							para_bolo_indice, para_bolo_size, indpix,
-							NAXIS1, NAXIS2, npix, iframe, NULL, NULL, name_rank);
+							bolo_rank, bolo_size, indpix,
+							NAXIS1, NAXIS2, npix, iframe, NULL, NULL);
 
 				} else {
 
@@ -1244,27 +1088,112 @@ int main(int argc, char *argv[]) {
 
 
 
-	//******************************  write final map in file ********************************
+	//******************************  Write final maps in file ********************************
 
-	if (rank == 0) {
-		cout << "\ndone.\n";
-		//		printf(" after CC INVERSION %lld\n", npix * (npix + 1) / 2);
+	if (rank == 0)
+		cout << endl << "done." << endl;
 
-#ifdef DEBUG
-		FILE * fp;
-		fp = fopen("output_signal.txt","w");
-		for (int i =0;i<npix;i++)
-			fprintf(fp,"%lf\n",S[i]);
-		fclose(fp);
+
+	// Finally compute hits map & find chart....
+
+	long *hits,      *hitstot=NULL;
+	long *findchart, *findcharttot=NULL;
+
+	long long *samptopix;
+
+	hits  = new long[npix];
+	fill(hits,hits+npix,0);
+
+	findchart  = new long[npix];
+	fill(findchart,findchart+npix,0);
+
+	std::vector<long>  byteID;
+	byteID.assign(samples_struct.ntotscan,1);
+	for (unsigned long ii=0; ii < byteID.size(); ii++)
+		byteID[ii] = (byteID[ii] << ii);
+
+	for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
+		long ns = samples_struct.nsamples[iframe];
+		samptopix=new long long [ns];
+
+		std::vector<string> det_vect = samples_struct.bolo_list[iframe];
+		long ndet = (long)det_vect.size();
+
+		for (long idet1 = floor(bolo_rank*ndet*1.0/bolo_size); idet1<floor((bolo_rank+1)*ndet*1.0/bolo_size); idet1++){
+
+			string field1 = det_vect[idet1];
+
+			if(readSampToPix(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, samptopix, ns))
+				return 1;
+			//compute hit counts
+			for (long ii=0;ii<ns;ii++){
+				hits[indpix[samptopix[ii]]] += 1;
+				findchart[indpix[samptopix[ii]]] |= byteID[iframe];
+			}
+		}
+		delete [] samptopix;
+	}
+#ifdef USE_MPI
+
+	if(rank==0){
+		hitstot = new long[npix];
+		fill(hitstot,hitstot+npix,0);
+		findcharttot = new long[npix];
+		fill(findcharttot,findcharttot+npix,0);
+	}
+
+	MPI_Reduce(hits,           hitstot, npix, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(findchart, findcharttot, npix, MPI_LONG,   MPI_BOR, 0, MPI_COMM_WORLD);
+
+#else
+	hitstot = hits;
+	findcharttot = findchart;
 #endif
 
-		if(write_maps_to_disk(S, NAXIS1, NAXIS2, npix, dir, indpix, indpsrc,
-				Mptot, addnpix, npixsrc, factdupl, samples_struct.ntotscan,
-				Proc_param, Pos_param, samples_struct, samples_struct.fcut, wcs,
-				Pos_param.maskfile, PS_param, Pic_param, Inv_param, subheader, nsubkeys))
-			cout << "Error in write_maps_to_disk. Exiting ...\n"; // don't return here ! let the code do the dealloc and return
+
+
+
+	if (rank == 0){
+		string fname = dir.output_dir + Pic_param.map_prefix + "_sanePic.fits";
+
+		cout << endl << "Output file      : " << fname << endl;
+
+		if(writeMapsToFits(fname, S, Mptot, addnpix, NAXIS1, NAXIS2,
+				indpix, indpsrc, npixsrc, factdupl, samples_struct.ntotscan,
+				wcs, subheader, nsubkeys, false)) {
+			cerr << "EE - Error in writing the maps into fits file." << endl;
+			cerr << "     Exiting ..." << endl;
+		}
+
+
+		if ( writeHitMapToFits(fname, hitstot, findcharttot, addnpix, NAXIS1, NAXIS2,
+				indpix, indpsrc, npixsrc, factdupl, samples_struct.ntotscan,
+				wcs, subheader, nsubkeys, true) ){
+			cerr << "WW - Error in writing the hits map into fits file." << endl;
+		}
+
+		if( exportExtraToFits(fname, dir,  samples_struct, Proc_param, Pos_param, PS_param, Pic_param, Inv_param)){
+			cerr << "EE - Error in writing extra information into fits file."<< endl;
+			cerr << "     Exiting... " << endl;
+		}
+
 
 	}// end of rank == 0
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	// Close previously opened dirfile
+	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
+		if (samples_struct.dirfile_pointers[iframe]) {
+			if (gd_close(samples_struct.dirfile_pointers[iframe])){
+				cerr << "EE - error closing dirfile..." << endl;
+			} else {
+				samples_struct.dirfile_pointers[iframe] = NULL;
+			}
+		}
+	}
 
 
 	// clean up of conjugate gradient variables
@@ -1275,68 +1204,35 @@ int main(int argc, char *argv[]) {
 	delete[] s;
 	delete[] PNd;
 
+	// clean up map variable
+	delete[] S;
+	delete[] hits;
+	delete[] indpsrc;
+	delete[] indpix;
+
+
+	wcsvfree(&nwcs, &wcs);
+
+
 #ifdef USE_MPI
 	if (rank == 0 && size > 1){
 		delete [] qtot;
 		delete [] Mptot;
 		delete [] PNdtot;
-	}
-#endif
-
-	//******************************************************************//
-	//******************************************************************//
-	//*********************** End of sanePic ***************************//
-	//******************************************************************//
-	//******************************************************************//
-
-
-#ifdef DEBUG
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
-
-	file_rank.open(name_rank.c_str(), ios::out | ios::app);
-	if(!file_rank.is_open()) {
-		cerr << "File [" << file_rank << "] Invalid." << endl;
-		return EX_CANTCREAT;
+		delete [] hitstot;
 	}
 
-	file_rank << "[ " << rank << " ] Finish Time : " << asctime (timeinfo) << endl;
-	file_rank.close();
-#endif
-
-	// clean up
-	delete[] S;
-	delete[] indpsrc;
-	delete[] indpix;
-
-	wcsvfree(&nwcs, &wcs);
-
-	//TODO: Should it be here ?
-	fftw_cleanup();
-
-#ifdef USE_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-	// Close previously openened dirfile
-	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
-		if (samples_struct.dirfile_pointers[iframe]) {
-			if (gd_close(samples_struct.dirfile_pointers[iframe])){
-				cerr << "EE - error closing dirfile...";
-			} else {
-			samples_struct.dirfile_pointers[iframe] = NULL;
-			}
-		}
-	}
-
-
-#ifdef USE_MPI
+	MPI_Comm_free(&MPI_COMM_NODE);
+	MPI_Comm_free(&MPI_COMM_MASTER_NODE);
 	MPI_Finalize();
+
 #endif
 
-	if(rank == 0)
-		cout << endl << "End of sanePic" << endl;
+
+	if(rank==0)
+		cout << endl << "End of "<< StringOf(argv[0]) << endl;
 
 	return EXIT_SUCCESS;
+
 }
 

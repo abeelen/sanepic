@@ -5,14 +5,9 @@ sanePre_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 sanePre_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS)  \
 	$(SANEIO_LIB)
 
-if PARAFRAME
-   sanePre_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
-endif
-
-if PARABOLO
-   sanePre_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
+if PARA
+   sanePre_CPPFLAGS += -DUSE_MPI
+   ext =_PARA
 endif
 
 EXEEXT=$(ext)

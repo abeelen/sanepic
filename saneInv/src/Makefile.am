@@ -5,20 +5,14 @@ saneInv_CPPFLAGS =  $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 saneInv_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 	$(SANEIO_LIB) $(SANELIB_LIB) $(GSL_LIBS)
 
-if PARAFRAME
-   saneInv_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
-endif
-
-if PARABOLO
-   saneInv_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
+if PARA
+   saneInv_CPPFLAGS += -DUSE_MPI
+   ext=_PARA
 endif
 
 EXEEXT=$(ext)
 
-
 saneInv_SOURCES = \
-invMatrix.cpp \
-invMatrix.h \
+SaneInvTools.cpp \
+SaneInvTools.h \
 main.cpp

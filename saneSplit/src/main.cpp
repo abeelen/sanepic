@@ -1,11 +1,4 @@
 
-#include "inputFileIO.h"
-#include "mpi_architecture_builder.h"
-#include "dataIO.h"
-#include "parse_saneSplit.h"
-#include "tools.h"
-#include "struct_definition.h"
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -16,6 +9,13 @@
 #include <cstdio>  // for printf()
 #include <sysexits.h>
 #include <unistd.h>
+
+#include "InputFileIO.h"
+#include "MPIConfiguration.h"
+#include "DataIO.h"
+#include "SaneSplitParse.h"
+#include "SaneSplitTools.h"
+#include "StructDefinition.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 		case 'f': /* read the fits file name and the number of samples */
 			samples_struct.fitsvect.push_back(optarg);
 			samples_struct.ntotscan++;
-			readFramesFromFits(samples_struct, 0);
+			readFramesFromFits(samples_struct);
 #ifdef DEBUG
 			cout << "Scan.            : " << samples_struct.fitsvect[0] << endl;
 			cout << "Containing.      : " << samples_struct.nsamples[0] << " samples. " << endl;

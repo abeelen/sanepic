@@ -11,77 +11,94 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "mpi_architecture_builder.h"
-#include "struct_definition.h"
-#include "parser_functions.h"
-#include "error_code.h"
+#include "MPIConfiguration.h"
+#include "StructDefinition.h"
+#include "ParserFunctions.h"
+#include "ErrorCode.h"
+#include "FrameOrder.h"
 
-#ifdef PARA_BOLO
-#define PARA_FRAME
-#endif
-
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 #include "mpi.h"
 #endif
 
 using namespace std;
 
+int main(int argc, char *argv[]) {
 
-int main(int argc, char *argv[])
-{
+	int size = 1;
+	int rank = 0;
 
-	int size=1;
-	int rank=0;
-
-#ifdef PARA_FRAME
+#ifdef USE_MPI
 	// setup MPI
 	MPI_Init(&argc, &argv);
-	MPI_Comm_size(MPI_COMM_WORLD,&size);
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	if (rank == 0)
+		cout << endl << "saneFrameOrder : distributing the frames over nodes" << endl << endl;
 
-	if(rank==0)
-		cout << endl << "saneFrameOrder :  distributing the data frames" << endl;
+//	if (size == 1) {
+//		cerr << "EE - using saneFrameOrder with only 1 CPU is meaningless" << endl;
+//		cerr << "EE - Please run mpirun -n# with # > 1" << endl << endl;
+//		MPI_Barrier(MPI_COMM_WORLD );
+//		MPI_Finalize();
+//		exit(EXIT_FAILURE);
+//	}
 
-	if(size==1) {cerr << "Please run mpirun -n# with # > 1\n"; MPI_Barrier(MPI_COMM_WORLD); MPI_Finalize(); exit(1);}
+	// To determine node ID based on processor names
+	char *proc_names = NULL;
+	int *nodeID = NULL;
+	vector<long> nodeSizes;
+	vector<string> nodeName;
 
+	// struct needed
+	string parser_output = "";
+	struct param_common dir; /* structure that contains output input temp directories */
+	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 
-	struct samples samples_struct;
-	struct param_common dir;
+	// those variables will not be used by sanePic but they are read in ini file (to check his conformity)
+	struct param_saneProc Proc_param; /* A structure that contains user options about preprocessing properties */
+	struct param_sanePos Pos_param; /* A structure that contains user options about map projection and properties */
+	struct param_sanePS PS_param;
+	struct param_sanePic Pic_param;
+	struct param_saneInv Inv_param;
 
-	// struct used in the parser
 	struct param_sanePS structPS;
 	struct param_saneInv saneInv_struct;
 	struct param_sanePic struct_sanePic;
 	struct param_saneProc proc_param;
 	struct param_sanePos pos_param;
 
-	long *ruleorder ;
-	long *frnum ;
+	vector<long> order;
 
-	string parser_output = "";
 
-	uint16_t parsed=0x0000; // parser error status
+	uint16_t parsed = 0; // parser error status
 	uint16_t compare_to_mask; // parser error status
 
 	//	uint16_t mask_sanePre = 0x405f;
-	uint16_t mask_saneFrameOrder = INI_NOT_FOUND | ARG_INPUT_PROBLEM | DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x405f
+	uint16_t mask_saneFrameOrder = INI_NOT_FOUND | ARG_INPUT_PROBLEM
+			| DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM
+			| FITS_FILELIST_NOT_FOUND; // 0x405f
 
-	if (argc<2)/* not enough argument */
-		compare_to_mask=0x001;
-	else {
+	if (argc < 2){
+		if (rank == 0)
+			cerr << "EE - Please run  " << argv[0] << " with a .ini file" << endl;
+		MPI_Barrier(MPI_COMM_WORLD );
+		MPI_Finalize();
+		exit(EXIT_FAILURE);
+	} else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param, structPS, saneInv_struct, struct_sanePic, size, rank);
+		parsed = parser_function(argv[1], parser_output, dir,
+				samples_struct, Pos_param, Proc_param, PS_param, Inv_param,
+				Pic_param, size, rank);
 
-		if (rank == 0) {
-			if(samples_struct.ntotscan<size){
-				cerr << "WW - You are using more processors ("<< size << ") than avaible scans (" << samples_struct.ntotscan << ")" << endl;
-				cerr << "WW - This will return non-optimal use of your processors" << endl;
-			}
+		if (rank == 0)
+			cout << parser_output << endl;
 
-
-			if(samples_struct.framegiven){
-				parser_output += "EE - You have already given processors order in the fits file list.\n";
+		if (rank == 0 && parsed == 0) {
+			if (samples_struct.framegiven) {
+				parser_output +=
+						"EE - You have already given processors order in the fits file list.\n";
 				parser_output += "EE - Exiting\n";
 				parsed |= ARG_INPUT_PROBLEM;
 			}
@@ -89,81 +106,152 @@ int main(int argc, char *argv[])
 		}
 		compare_to_mask = parsed & mask_saneFrameOrder;
 
-		// print parser warning and/or errors
-		if (rank==0)
-			cout << endl << parser_output << endl;
+		if (compare_to_mask > OK) {
 
-	}
+			switch (compare_to_mask) {/* error during parsing phase */
 
-	if (rank == 0) {
+			case 0x0001:
+				if (rank == 0 )
+					cerr << "Please run with a correct ini file" << endl;
+				break;
 
-	if(compare_to_mask>OK){
+			default:
+				if (rank == 0)
+					cout << "Wrong program options or argument. Exiting ! " << "("
+					<< hex << compare_to_mask << ")" << endl;
+				break;
+			}
 
-		switch (compare_to_mask){/* error during parsing phase */
-
-		case 0x0001: printf("Please run %s using a correct *.ini file\n",argv[0]);
-		break;
-
-		default : cout << "Wrong program options or argument. Exiting ! " <<  "("<< hex << compare_to_mask << ")" << endl;
-		break;
+			MPI_Finalize();
+			return EX_CONFIG;
 		}
-
-#ifdef USE_MPI
-		MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-		return EX_CONFIG;
 	}
 
-	}
+	// Start...
 
 	if (rank == 0){
+		// parser print screen function
+		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
+				PS_param, Pic_param, Inv_param);
 
-		ruleorder     = new long[samples_struct.ntotscan];
-		frnum         = new long[size+1];
+		removeProcName(dir.output_dir);
 
-		if(samples_struct.ntotscan==size){ // special case : number of proc = number of scan
-
-			for(long hh=0; hh<samples_struct.ntotscan;hh++){ // one scan per proc ...
-				ruleorder[hh]=hh;
-			}
-			for(long hh=0; hh<size+1; hh++){
-				frnum[hh] = hh;
-			}
-
-			frnum[samples_struct.ntotscan]=frnum[samples_struct.ntotscan-1]+1;
-
-			//write parallel schema in a file
-			parsed=write_ParallelizationScheme(dir.tmp_dir, ruleorder, frnum, size,samples_struct);
-
-
-		}else{ // less procs than number of scans
-
-			/********************* Define parallelization scheme   *******/
-			find_best_order_frames(ruleorder, frnum, samples_struct.nsamples, samples_struct.ntotscan, size);
-
-			//write parallel schema in a file
-			parsed=write_ParallelizationScheme(dir.tmp_dir, ruleorder, frnum, size,samples_struct);
-		}
-
-		if(parsed==-1)
-			cerr << "Write parallelization Error !" << endl;
-
-		delete [] frnum;
-		delete [] ruleorder;
-
-		cout << endl << "End of saneFrameOrder" << endl;
 	}
+	if (rank == 0){
+		cout << endl << "II - Reading file sizes" << endl;
+		readFramesFromFits(samples_struct);
+	}
+
+
+	if ( checkProcName( rank, size, dir.output_dir) )
+		MPI_Abort(MPI_COMM_WORLD, -1);
+
+	if (rank == 0)
+		proc_names = new char[size*MPI_MAX_PROCESSOR_NAME];
+
+	gatherProcName(rank, size, proc_names);
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
+	if (rank == 0){
+		cout << "II - Distributing files" << endl;
+
+		string output;
+
+		vector<float> nodeWeight;
+		map<string, float> map_nodeWeight;
+
+		if (readNodeWeight(output, dir.input_dir, map_nodeWeight))
+			cout << output << endl;
+
+		// Find all computers
+		nodeID = new int[size];
+		AssignNodeByProcname(proc_names, size, nodeID, nodeName, nodeSizes);
+		delete [] nodeID;
+
+		switch(samples_struct.parallel_scheme){
+
+		case 0:{
+					// ... in the bolo/mixed case, each computer become a node with a nodeSizes cpus ...
+
+					// ... assign the previously read weights to the nodeName....
+					AssignNodeFloatWeight(nodeName, map_nodeWeight, nodeWeight);
+
+					// ... and distribute the nsamples !
+					distributeFrames(samples_struct.nsamples, nodeSizes, nodeWeight, order);
+					break;
+				}
+
+//		case 0: {
+//			// if parallel_scheme is bolo, when need to insure a few things...
+//
+//			// ... assign the previously read weights to the nodeName....
+//			AssignNodeFloatWeight(nodeName, map_nodeWeight, nodeWeight);
+//
+//			// ... find the maximum weight ...
+//			vector<float>::iterator it = find( nodeWeight.begin(), nodeWeight.end(), *( max_element(nodeWeight.begin(), nodeWeight.end()) ) );
+//
+//			size_t idNode = distance(nodeWeight.begin(), it);
+//
+//			order.clear();
+//			order.assign(samples_struct.nsamples.size(), idNode);
+//			break;
+//		}
+		case 1: {
+			//  .. in the para case, each proc become a node of size 1 (1 proc) ...
+			nodeName.clear();
+			nodeName.resize(size);
+			for (int ii=0; ii< size; ii++)
+				nodeName[ii] = proc_names+(ii*MPI_MAX_PROCESSOR_NAME);
+
+			nodeSizes.clear();
+			nodeSizes.assign(size, 1);
+
+			// ... assign the previously read weights to the nodeName....
+			AssignNodeFloatWeight(nodeName, map_nodeWeight, nodeWeight);
+
+			// ... and distribute the nsamples !
+			distributeFrames(samples_struct.nsamples, nodeSizes, nodeWeight, order);
+			break;
+		}
+
+		}
+
+		delete [] proc_names;
+
+		printNodeUsage(nodeName, nodeSizes, order);
+
+		// used_nodeSizes will contains the given nodeSize or 0 if one node is not used...
+		vector<long> used_nodeSizes;
+		used_nodeSizes.assign(nodeSizes.size(), 0);
+		for (size_t ii=0; ii < order.size(); ii++)
+			used_nodeSizes[order[ii]] = nodeSizes[order[ii]];
+
+
+		if ( *min_element(used_nodeSizes.begin(), used_nodeSizes.end()) == 0 ){
+			cerr << "EE - Exiting..." << endl;
+			MPI_Abort(MPI_COMM_WORLD, -1);
+		}
+
+
+		if ( writeParallelScheme(dir.output_dir, order, samples_struct) )
+			MPI_Abort(MPI_COMM_WORLD, -1);
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD );
+
 	// Close MPI process
 	MPI_Finalize();
+
+	if(rank==0)
+		cout << endl << "End of "<< StringOf(argv[0]) << endl;
+
 	return EXIT_SUCCESS;
 
 #else
-	cout << "Mpi is not used for this step. Exiting" << endl;
+	cerr << "WW -saneFrameOrder is only useful when used with mpi" << endl;
+	cerr << "WW - Exiting" << endl;
 	return EXIT_SUCCESS;
 #endif
-
 
 }

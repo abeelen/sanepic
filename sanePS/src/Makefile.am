@@ -5,22 +5,17 @@ sanePS_CPPFLAGS = $(NR_INCLUDE) $(INIPARSER_INCLUDE) $(DEBUG) \
 sanePS_LDADD    = $(NR_LIB) $(INIPARSER_LIB)  $(LIBS) \
 	$(SANEIO_LIB) $(SANELIB_LIB) $(GSL_LIBS)
 
-if PARAFRAME
-   sanePS_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
-endif
-
-if PARABOLO
-   sanePS_CPPFLAGS += -DPARA_FRAME -DUSE_MPI
-   ext=_PARA_FRAME
+if PARA
+   sanePS_CPPFLAGS += -DUSE_MPI
+   ext=_PARA
 endif
 
 EXEEXT=$(ext)
 
 
 sanePS_SOURCES = \
-estimPS.cpp \
-estimPS.h \
-estimPS_steps.cpp \
-estimPS_steps.h \
+sanePSIO.cpp \
+sanePSIO.h \
+EstimPSSteps.cpp \
+EstimPSSteps.h \
 main.cpp
