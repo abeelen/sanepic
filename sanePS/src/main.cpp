@@ -491,7 +491,7 @@ int main(int argc, char *argv[]){
 		double *SPref;
 		double **commonMode; // ?
 		double **P, **N;
-		double **Rellth, **Rellexp;	// Rellth = theorical covariance matrix, Rellexp = experimental cov mat
+		double **Rellth = NULL, **Rellexp = NULL;	// Rellth = theorical covariance matrix, Rellexp = experimental cov mat
 		//	Nk = Noise power spectrum , Nell = binned noise PS
 		double *ell, *km;						// bins values
 		double **mixmat; 						// mixing matrix
@@ -526,6 +526,7 @@ int main(int argc, char *argv[]){
 		}
 
 
+		//TODO: Only bolo_rank 0 to read the file....
 		// Read out the ells ...
 		std::vector<double> dummy;
 		std::string output;
@@ -534,6 +535,11 @@ int main(int argc, char *argv[]){
 		vDouble2carray(dummy, &ell, &nbins);
 		dummy.clear();
 		nbins   = nbins-1;
+
+		long nbins2=0;
+		while ((ell[nbins2] < fcut) && (nbins2 < nbins)){
+			nbins2++;
+		}
 
 		// .. transform them into km once for all
 		km = new double[nbins];
@@ -554,7 +560,6 @@ int main(int argc, char *argv[]){
 		flag   = new int[ns];
 
 
-		Rellexp = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance estimated from signal (measured)
 		Rellth  = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance matrix (Theory) = pattern : invertible but not Rellexp
 		N       = dmatrix(0,ndet-1,0,nbins-1);				// uncorrelated part of the noise
 		P       = dmatrix(0,ncomp-1,0,nbins-1);	            // component power spectra
@@ -607,8 +612,12 @@ int main(int argc, char *argv[]){
 
 			if (bolo_rank == 0) {
 				rndInitMixmat(ndet, ncomp, mixmat);
-				if(readMixmatTxt(samples_struct.mix_names[iframe], ndet, ncomp, mixmat))
+
+				if ( assignMixMat(samples_struct.mix_names[iframe], det, ncomp, mixmat) )
 					return FILE_PROBLEM;
+
+				//				if(readMixmatTxt(samples_struct.mix_names[iframe], ndet, ncomp, mixmat))
+				//					return FILE_PROBLEM;
 			}
 
 #ifdef USE_MPI
@@ -808,7 +817,6 @@ int main(int argc, char *argv[]){
 			//----------------------------------- ESTIMATE NOISE PS -------------------------------//
 
 			{
-
 				for (long idet = floor(bolo_rank*ndet*1.0/bolo_size); idet < floor((bolo_rank+1)*ndet*1.0/bolo_size); idet++){
 
 					field = det[idet];
@@ -909,10 +917,11 @@ int main(int argc, char *argv[]){
 							data1d[iComp*nbins+iBin] = P[iComp][iBin];
 
 					// get filename
-					temp_stream << "!" + dir.output_dir + "Pinit_" << FitsBasename(samples_struct.fitsvect[iframe]) << ".fits";
+					temp_stream << dir.output_dir + "Pinit_" << FitsBasename(samples_struct.fitsvect[iframe]) << ".fits";
 					filename= temp_stream.str();
 					temp_stream.str("");
-					write_psd_tofits(filename.c_str(),ncomp,nbins,'d', data1d);
+					write_psd_tofits(filename.c_str(),ncomp,   nbins,'d', data1d, (char *) "CorrelatedNoise", false);
+					write_psd_tofits(filename.c_str(),    1, nbins+1,'d',    ell, (char *) "Frequency", true);
 					delete [] data1d;
 
 
@@ -936,11 +945,13 @@ int main(int argc, char *argv[]){
 
 			}
 
-
 			goto_step++;
 
-			if(PS_param.save_data)
+			if(PS_param.save_data && bolo_rank == 0)
 				save_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), goto_step, commonMode, N, P, Rellexp, Rellth, SPref, ndet, ncomp, nbins, ns);
+
+			free_dmatrix(Rellth,0,(ndet)*(ndet)-1,0,nbins-1);
+
 		}
 		/* no break */
 
@@ -948,6 +959,7 @@ int main(int argc, char *argv[]){
 			//----------------------------------- ESTIMATE COVMAT of the DATA R_exp -------------------------------//
 
 			{
+				Rellexp = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance estimated from signal (measured)
 				init2D_double(Rellexp,0,0, (ndet)*(ndet),nbins ,0.0); // big
 
 				/////////////////////////////////////// loop again over detectors
@@ -1047,12 +1059,11 @@ int main(int argc, char *argv[]){
 							data1d[idet*nbins+iBin] = N[idet][iBin];
 
 					// get filename
-					temp_stream << "!" + dir.output_dir + "Ninit_" << FitsBasename(samples_struct.fitsvect[iframe]) << ".fits";
+					temp_stream << dir.output_dir + "Ninit_" << FitsBasename(samples_struct.fitsvect[iframe]) << ".fits";
 					filename= temp_stream.str();
 					temp_stream.str("");
-
-					write_psd_tofits(filename.c_str(),ndet,nbins,'d', data1d); //resized uncorrelated part
-
+					write_psd_tofits(filename.c_str(),ndet,nbins,'d', data1d, (char *) "Noise", false); //resized uncorrelated part
+					write_psd_tofits(filename.c_str(),    1, nbins+1,'d',    ell, (char *) "Frequency", true);
 					delete [] data1d;
 				}
 				//	temp_stream << dir.output_dir + "Pinit_" << basename << ".txt";
@@ -1098,6 +1109,7 @@ int main(int argc, char *argv[]){
 			//********* Using Expectation/Maximization algorithm
 
 			{
+
 				double tottest=0.0;
 
 				double f;
@@ -1107,10 +1119,6 @@ int main(int argc, char *argv[]){
 				double **Pr2, **AiNA, **Mattmp, **ImDR, **ACq, **Cq, **Wq;
 				double **new_P, **new_mixmat, **new_N; // Variable for MPI
 
-				long nbins2=0;
-				while ((ell[nbins2] < fcut) && (nbins2 < nbins)){
-					nbins2++;
-				}
 
 				iN = new double[ndet];
 				Pr = new double[ncomp];
@@ -1429,52 +1437,28 @@ int main(int argc, char *argv[]){
 						}
 
 						//#ifdef DEBUG
-//						if ((iter % 10) ==  0) {
-							time_t rawtime;
-							time ( &rawtime );
-							char mytime[20];
-							strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
-							temp_stream <<  mytime << " -- " << "iframe" << iframe << " iter " << setw(4) << iter;
-							temp_stream << " f= "      << setiosflags(ios::scientific) << setprecision (12) << f;
-							// Output to screen ...
-							cout << temp_stream.str() << "\r" << flush;
-							ofstream logfile;
-							string filename = dir.output_dir + "ConvPS.txt";
-							logfile.open(filename.c_str(),  ios::out | ios::app);
-							logfile << temp_stream.str() << endl;
-							logfile.close();
-							temp_stream.str("");
-//						}
+						//						if ((iter % 10) ==  0) {
+						time_t rawtime;
+						time ( &rawtime );
+						char mytime[20];
+						strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
+						temp_stream <<  mytime << " -- " << "iframe" << iframe << " iter " << setw(4) << iter;
+						temp_stream << " f= "      << setiosflags(ios::scientific) << setprecision (12) << f;
+						// Output to screen ...
+						cout << temp_stream.str() << "\r" << flush;
+						ofstream logfile;
+						string filename = dir.output_dir + "ConvPS.txt";
+						logfile.open(filename.c_str(),  ios::out | ios::app);
+						logfile << temp_stream.str() << endl;
+						logfile.close();
+						temp_stream.str("");
+						//						}
 						//#endif
 					}
 
 				}
 
-				if (bolo_rank == 0) {
 
-					// Fixing the indeterminacies.  Is it useful here?
-					rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
-
-					//****************************** Compute covariance matrix from the fitted model
-
-					init2D_double(Rellth,0,0,ndet*ndet,nbins,0.0);
-
-					for (long iBin=0;iBin<nbins2;iBin++){
-						for (long idet=0;idet<ndet;idet++){
-							Rellth[idet*ndet+idet][iBin] += N[idet][iBin]*SPref[iBin];
-							for (long idet2=0;idet2<ndet;idet2++)
-								for (long iComp=0;iComp<ncomp;iComp++)
-									Rellth[idet*ndet+idet2][iBin] += mixmat[idet][iComp] * mixmat[idet2][iComp] * P[iComp][iBin]*SPref[iBin];
-						}
-					}
-
-
-					if (nbins2 < nbins)
-						for (long idet=0;idet<ndet;idet++)
-							for (long iBin=nbins2;iBin<nbins;iBin++)
-								Rellth[idet*ndet+idet][iBin] = Rellexp[idet*ndet+idet][iBin]*SPref[iBin];
-
-				}
 
 				//cleaning up
 
@@ -1519,10 +1503,40 @@ int main(int argc, char *argv[]){
 			//----------------------------------- WRITE TO DISK -------------------------------//
 
 			if (bolo_rank == 0){
+
+				// Fixing the indeterminacies.  Is it useful here?
+				rescaleAP(mixmat, P, ndet, ncomp, nbins2) ;
+
+				//****************************** Compute covariance matrix from the fitted model
+
+				Rellth  = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance matrix (Theory) = pattern : invertible but not Rellexp
+				init2D_double(Rellth,0,0,ndet*ndet,nbins,0.0);
+
+				for (long iBin=0;iBin<nbins2;iBin++){
+					for (long idet=0;idet<ndet;idet++){
+						Rellth[idet*ndet+idet][iBin] += N[idet][iBin]*SPref[iBin];
+						for (long idet2=0;idet2<ndet;idet2++)
+							for (long iComp=0;iComp<ncomp;iComp++)
+								Rellth[idet*ndet+idet2][iBin] += mixmat[idet][iComp] * mixmat[idet2][iComp] * P[iComp][iBin]*SPref[iBin];
+					}
+				}
+
+
+				if (nbins2 < nbins)
+					for (long idet=0;idet<ndet;idet++)
+						for (long iBin=nbins2;iBin<nbins;iBin++)
+							Rellth[idet*ndet+idet][iBin] = Rellexp[idet*ndet+idet][iBin]*SPref[iBin];
+
+
 				if(write_to_disk(dir.output_dir, samples_struct.fitsvect[iframe], PS_param, det, nbins, ell, mixmat, Rellth,
 						Rellexp, N, SPref,P))
 					return 1;
+
+				free_dmatrix(Rellth,0,(ndet)*(ndet)-1,0,nbins-1);
+
 			}
+
+
 			goto_step++;
 
 		}
@@ -1536,7 +1550,6 @@ int main(int argc, char *argv[]){
 		delete [] km;
 
 		free_dmatrix(Rellexp,0,(ndet)*(ndet)-1,0,nbins-1);
-		free_dmatrix(Rellth,0,(ndet)*(ndet)-1,0,nbins-1);
 		free_dmatrix(mixmat,0,ndet-1,0,ncomp-1);
 
 		free_dmatrix(commonMode,0,ncomp,0,ns-1);

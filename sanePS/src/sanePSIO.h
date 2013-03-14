@@ -57,6 +57,12 @@ int save_session(std::string tmp_dir, std::string filename, int completed_step, 
 int write_to_disk(std::string outdirSpN, std::string fits_filename, struct param_sanePS structPS, std::vector<std::string> det, long nbins, double *ell, double **mixmat,
 		double **Rellth, double **Rellexp, double **N, double *SPref, double **P);
 
+int write_MixMatrix(std::string fname, std::vector<std::string> bolos, long ncomp, double **mixmat);
+
+int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, double **& mixmat);
+
+uint16_t assignMixMat(std::string fname, std::vector<std::string> det, long ncomp, double **& mixmat);
+
 //! Used in sanePS to write DEBUG channels psd
 /*!
  \param fname output fits filename
@@ -66,7 +72,8 @@ int write_to_disk(std::string outdirSpN, std::string fits_filename, struct param
  \param psd1d The array to write in the fits image
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int write_psd_tofits(std::string fname, long nx, long ny, char dtype, void * psd1d);
+
+int write_psd_tofits(std::string fname, long nx, long ny, char dtype, void * psd1d, std::string ext_name, bool extend);
 
 
 //! Reads a mixing matrix in a .txt file
@@ -77,7 +84,7 @@ int write_psd_tofits(std::string fname, long nx, long ny, char dtype, void * psd
  \param mixmat The mixing matrix data (read from the file)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int readMixmatTxt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
+//int readMixmatTxt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
 
 
 #endif /* SANEPSIO_H_ */
