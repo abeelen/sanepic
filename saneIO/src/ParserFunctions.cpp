@@ -940,7 +940,7 @@ uint16_t check_param_sanePS(string &output, struct param_common dir, struct para
 	}
 
 	if ((PS_param.mix == "") && (PS_param.mix_suffix == "")) {
-		output += "EE - You must mention one of those parameters :\n";
+		output += "WW - You should mention one of those parameters :\n";
 		output += "     sanePS:mix or sanePS:mix_suffix\n";
 		returnCode |= MIX_FILE_NOT_FOUND;
 	}
@@ -1092,7 +1092,7 @@ void default_param_saneProc(struct param_saneProc &Proc_param) {
 void default_param_sanePS(struct param_sanePS &PS_param) {
 
 	PS_param.ell_suffix = ".ell";
-	PS_param.mix_suffix = ".mix";
+	PS_param.mix_suffix = "_mix.fits";
 	PS_param.ell = "";
 	PS_param.mix = "";
 	PS_param.signame = "";

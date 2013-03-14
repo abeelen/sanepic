@@ -33,7 +33,7 @@ int reorderMatrix(long nbins, std::vector<string> listIn, gsl_matrix *MatrixIn, 
 	}
 
 	// find indexes of input bolo file corresponding to the output bolo file
-	indexIn.resize(listOut.size(), -1);
+	indexIn.resize(ndetOut, -1);
 	for (int idetOut = 0; idetOut < ndetOut; idetOut++) {
 		for (int idetIn = 0; idetIn < ndetIn; idetIn++) {
 			if (listOut[idetOut] == listIn[idetIn]){

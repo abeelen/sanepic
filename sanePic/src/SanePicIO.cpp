@@ -55,7 +55,7 @@ int writeMapsToFits(string fname, double *S, double *Mptot, long long addnpix,
 	}
 
 
-	if(write_fits_wcs(( extend==false ? (std::string) "!": (std::string) "" ) + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", extend, subheader, nsubkeys)){
+	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", extend, subheader, nsubkeys)){
 		cerr << "EE - Error Writing Image map... \n";
 		return EXIT_FAILURE;
 	}

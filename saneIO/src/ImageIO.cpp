@@ -180,6 +180,7 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 
 	fitsfile *fp;
 	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+
 	int naxis = 2; // number of dimensions
 	long naxes[] = { NAXIS1, NAXIS2 }; // size of dimensions
 	long fpixel[] = { 1, 1 }; // index for write_pix
@@ -187,6 +188,8 @@ int write_fits_wcs(string fname, struct wcsprm * wcs, long NAXIS1, long NAXIS2,
 
 	char *header, *hptr;
 	int nkeyrec;
+
+	fname = ( extend==false ? (std::string) "!": (std::string) "" ) + fname;
 
 	if (extend) {
 		if (fits_open_file(&fp, fname.c_str(), READWRITE, &fits_status)) {
@@ -1041,7 +1044,7 @@ int writeRawMapToFits(string fname, double *S, long NAXIS1, long NAXIS2, long lo
 		}
 	}
 
-	if(write_fits_wcs(( extend==false ? (std::string) "!": (std::string) "" ) + fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", extend, subheader, nsubkeys)){
+	if(write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *)map1d_d, (char *)"Image", extend, subheader, nsubkeys)){
 		return EXIT_FAILURE;
 	}
 
@@ -1129,7 +1132,7 @@ int writeCCRMapToFits(string fname, double *S, double *Mp, long NAXIS1, long NAX
 		}
 	}
 
-	if (write_fits_wcs(( extend==false ? (std::string) "!": (std::string) "" ) + fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d_d, "CCR Image", extend, subheader, nsubkeys))
+	if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d_d, "CCR Image", extend, subheader, nsubkeys))
 		cerr << "Error Writing map ... \n";
 
 
@@ -1146,7 +1149,7 @@ int writeCCRMapToFits(string fname, double *S, double *Mp, long NAXIS1, long NAX
 		}
 	}
 
-	if (write_fits_wcs("!" + fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d_d, (char *) "CCR Error", true, subheader, nsubkeys))
+	if (write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'd', (void *) map1d_d, (char *) "CCR Error", true, subheader, nsubkeys))
 		cerr << "Error Writing map... \n";
 
 	delete [] map1d_d;
@@ -1192,7 +1195,7 @@ int writeHitMapToFits(string fname, long * hits, long * findchart, long long add
 			}
 		}
 
-		if(	write_fits_wcs( ( extend==false ? (std::string) "!": (std::string) "" ) + fname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",extend, subheader, nsubkeys))
+		if(	write_fits_wcs(fname, wcs, NAXIS1, NAXIS2, 'l', (void *)map1d_l,"Coverage",extend, subheader, nsubkeys))
 			cerr << "Error Writing coverage map  ... " << endl;
 
 
