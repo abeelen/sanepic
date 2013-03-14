@@ -597,7 +597,6 @@ uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, 
 		MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
 
 		returnCode |=  MPI_Bcast_vector_long(samples_struct.scans_index,  0, MPI_COMM_WORLD);
-
 	}
 
 	// reorder samples_struct

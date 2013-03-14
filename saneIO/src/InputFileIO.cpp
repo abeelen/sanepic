@@ -252,33 +252,3 @@ uint16_t readFitsList(std::string &output, string fname, struct samples &samples
 	return 0;
 }
 
-int readMixmatTxt(string MixMatfile, long ndet, long ncomp, double **&mixmat) {
-	FILE *fp;
-	long ncomp2;
-	double dummy1; // used to read mixing matrix
-
-	if ((fp = fopen(MixMatfile.c_str(), "r")) == NULL) {
-		cerr << "ERROR: Can't find Mixing Matrix file. Exiting. \n";
-		cout
-		<< "Advice : verify the file is in your noise directory and that his name is : "
-		<< MixMatfile << endl;
-		return FILE_PROBLEM;
-	}
-	if (1 != fscanf(fp, "%ld", &ncomp2))
-		cerr << "EE - failed reading ncomp2 from file" << MixMatfile << endl;
-
-
-	mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
-
-	for (long ii = 0; ii < ndet; ii++) {
-		for (long jj = 0; jj < ncomp2; jj++) {
-			if (1 != fscanf(fp, "%lf", &dummy1))
-				cerr << "EE - failed reading element from file " << MixMatfile << endl;
-			if (jj < ncomp)
-				mixmat[ii][jj] = dummy1;
-		}
-	}
-	fclose(fp);
-	return 0;
-
-}

@@ -153,16 +153,5 @@ int readChannelList(std::string &output, std::string fname, std::vector<std::str
  */
 uint16_t readFitsList(std::string &output, std::string fname, struct samples &samples_struct);
 
-//! Reads a mixing matrix in a .txt file
-/*!
- \param MixMatfile This file name contains the mixing matrix values
- \param ndet The number of detectors contained in the mixing matrix (determines mixing matrix size)
- \param ncomp The number of noise component to estimate by sanePS (determines mixing matrix size)
- \param mixmat The mixing matrix data (read from the file)
- \return An integer >0 if there were a problem, or 0 if everything went OK
- */
-int readMixmatTxt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
-
-
 
 #endif /* INPUTFILEIO_H_ */
