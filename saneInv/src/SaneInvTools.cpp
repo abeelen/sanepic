@@ -88,7 +88,7 @@ void inverseCovMatrixByMode(long nbins, long ndet, gsl_matrix * MatrixIn, gsl_ma
 	uvec = gsl_vector_alloc(ndet);
 	ivec = gsl_vector_alloc(ndet);
 
-
+	//TODO: Parallelize this loop... -> Means we need to MPI_Reduce gsl_matrix
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
 		//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;

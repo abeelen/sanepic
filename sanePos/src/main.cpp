@@ -69,9 +69,9 @@ using namespace std;
 int main(int argc, char *argv[]) {
 
 
-	int      rank,      size; /* MPI processor rank and MPI total number of used processors */
-	int  bolo_rank,  bolo_size; /* As for parallel scheme */
-	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
+	int      rank,       size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank, bolo_size; /* As for parallel scheme */
+	int  node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
 
 #ifdef USE_MPI
 
