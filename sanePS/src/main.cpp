@@ -456,7 +456,7 @@ int main(int argc, char *argv[]){
 #endif
 
 	if(rank==0)
-		cout << "Noise Power Spectra Estimation started : " << endl;
+		cout << endl << "Noise Power Spectra Estimation started : " << endl;
 
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
 
@@ -570,9 +570,17 @@ int main(int argc, char *argv[]){
 		Nk   = new double[ns/2+1]; // noise PS
 
 		// sign = sigma of the noise
+
+
+		// Working Matrices and vectors, set once for all loops....
 		// Cov = AtN-1A
 		// iCov = inverted AtN-1A
-
+		gsl_matrix *iCov, *Cov;
+		gsl_vector *ivec, *uvec;
+		Cov  = gsl_matrix_alloc(ncomp, ncomp);
+		iCov = gsl_matrix_alloc(ncomp, ncomp);
+		uvec = gsl_vector_alloc(ncomp);
+		ivec = gsl_vector_alloc(ncomp);
 
 		// One has to initialize the two matrices for each iteration...
 		init2D_double(Rellth,0,0, (ndet)*(ndet),nbins ,0.0);  // big
@@ -595,13 +603,12 @@ int main(int argc, char *argv[]){
 		case 0: {
 			//----------------------------------- READ MIXMAT PART -------------------------------//
 
-			if (bolo_rank == 0) {
+			mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
 
+			if (bolo_rank == 0) {
+				rndInitMixmat(ndet, ncomp, mixmat);
 				if(readMixmatTxt(samples_struct.mix_names[iframe], ndet, ncomp, mixmat))
 					return FILE_PROBLEM;
-
-			} else {
-				mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
 			}
 
 #ifdef USE_MPI
@@ -743,18 +750,7 @@ int main(int argc, char *argv[]){
 
 					//***************************************************************************
 
-					gsl_matrix *iCov, *Cov;
-					gsl_vector *ivec, *uvec;
-
-					Cov  = gsl_matrix_alloc(ncomp, ncomp);
-					iCov = gsl_matrix_alloc(ncomp, ncomp);
-
-					uvec = gsl_vector_alloc(ncomp);
-					ivec = gsl_vector_alloc(ncomp);
-
 					gsl_matrix_set_zero(Cov);
-					gsl_matrix_set_zero(iCov);
-
 
 					/////////// AtN-1A
 					for (long jComp=0;jComp<ncomp;jComp++){
@@ -769,15 +765,10 @@ int main(int argc, char *argv[]){
 
 					// invert AtN-1A
 					gsl_linalg_cholesky_decomp (Cov);
-
-
 					for (long iComp=0;iComp<ncomp;iComp++){
-
 						gsl_vector_set_basis(uvec,iComp);
 						gsl_linalg_cholesky_solve(Cov, uvec, ivec);
-
-						for (long jComp=0;jComp<ncomp;jComp++)
-							gsl_matrix_set(iCov,iComp,jComp, gsl_vector_get(ivec,jComp));
+						gsl_matrix_set_row(iCov, iComp, ivec);
 					}
 
 					//	printf("noise var det 0 =  %10.15g\n",sign0*sign0);
@@ -789,11 +780,6 @@ int main(int argc, char *argv[]){
 
 
 					// clean up
-
-					gsl_vector_free(uvec);
-					gsl_vector_free(ivec);
-					gsl_matrix_free(Cov);
-					gsl_matrix_free(iCov);
 
 				}
 
@@ -1126,22 +1112,6 @@ int main(int argc, char *argv[]){
 					nbins2++;
 				}
 
-				double ** iCov;
-				gsl_matrix *Cov;
-				gsl_vector *uvec, *ivec;
-
-				Cov  = gsl_matrix_alloc(ncomp, ncomp);
-
-				uvec = gsl_vector_alloc(ncomp);
-				ivec = gsl_vector_alloc(ncomp);
-
-				gsl_matrix_set_zero(Cov);
-
-
-				iCov = dmatrix(0, ncomp-1, 0, ncomp-1);
-				init2D_double(iCov,0,0,ncomp,ncomp,0.0);
-
-
 				iN = new double[ndet];
 				Pr = new double[ncomp];
 				w  = new double[nbins2];
@@ -1182,7 +1152,7 @@ int main(int argc, char *argv[]){
 				cout << "ncomp  " << ncomp << endl << endl;
 #endif
 
-				for (long iter=1;iter<=PS_param.niter;iter++){
+				for (long iter=1;iter <= PS_param.niter;iter++){
 
 					fill(iN,iN+ndet,0.0);
 					fill(Pr,Pr+ncomp,0.0);
@@ -1239,18 +1209,15 @@ int main(int argc, char *argv[]){
 
 						// invert matrix (ncomp x ncomp)
 						gsl_linalg_cholesky_decomp (Cov);
-
 						for (long iComp=0;iComp<ncomp;iComp++){
 							gsl_vector_set_basis(uvec,iComp);
 							gsl_linalg_cholesky_solve(Cov, uvec, ivec);
-
-							for (long jComp=0;jComp<ncomp;jComp++)
-								iCov[iComp][jComp]  = gsl_vector_get(ivec,jComp);
+							gsl_matrix_set_row(iCov, iComp, ivec);
 						}
 
 						for (long iComp=0;iComp<ncomp;iComp++)
 							for (long jComp=0;jComp<ncomp;jComp++)
-								Cq[iComp][jComp] = Pr2[iComp][jComp] * iCov[iComp][jComp];
+								Cq[iComp][jComp] = Pr2[iComp][jComp] * gsl_matrix_get(iCov,iComp,jComp);
 
 						for (long idet=0;idet<ndet;idet++)
 							for (long iComp=0;iComp<ncomp;iComp++){
@@ -1377,14 +1344,14 @@ int main(int argc, char *argv[]){
 						for (long iComp=0;iComp<ncomp;iComp++){
 							gsl_vector_set_basis(uvec,iComp);
 							gsl_linalg_cholesky_solve(Cov, uvec, ivec);
-
-							for (long jj=0;jj<ncomp;jj++)
-								iCov[iComp][jj] = gsl_vector_get(ivec, jj);
+							gsl_matrix_set_row(iCov, iComp, ivec);
+							//							for (long jj=0;jj<ncomp;jj++)
+							//								iCov[iComp][jj] = gsl_vector_get(ivec, jj);
 						}
 
 						for (long iComp=0;iComp<ncomp;iComp++)
 							for (long jComp=0;jComp<ncomp;jComp++)
-								Cq[iComp][jComp] = Pr2[iComp][jComp] * iCov[iComp][jComp];
+								Cq[iComp][jComp] = Pr2[iComp][jComp] * gsl_matrix_get(iCov,iComp,jComp);
 
 						for (long idet=0;idet<ndet;idet++)
 							for (long iComp=0;iComp<ncomp;iComp++){
@@ -1461,22 +1428,24 @@ int main(int argc, char *argv[]){
 							return EX_SOFTWARE;
 						}
 
-#ifdef DEBUG
-						time_t rawtime;
-						time ( &rawtime );
-						char mytime[20];
-						strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
-						temp_stream <<  mytime << " -- " << "iframe" << iframe << " iter " << setw(4) << iter;
-						temp_stream << " f= "      << setiosflags(ios::scientific) << setprecision (12) << f;
-						// Output to screen ...
-						cout << temp_stream.str() << "\r" << flush;
-						ofstream logfile;
-						string filename = dir.output_dir + "ConvPS.txt";
-						logfile.open(filename.c_str(),  ios::out | ios::app);
-						logfile << temp_stream.str() << endl;
-						logfile.close();
-						temp_stream.str("");
-#endif
+						//#ifdef DEBUG
+//						if ((iter % 10) ==  0) {
+							time_t rawtime;
+							time ( &rawtime );
+							char mytime[20];
+							strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
+							temp_stream <<  mytime << " -- " << "iframe" << iframe << " iter " << setw(4) << iter;
+							temp_stream << " f= "      << setiosflags(ios::scientific) << setprecision (12) << f;
+							// Output to screen ...
+							cout << temp_stream.str() << "\r" << flush;
+							ofstream logfile;
+							string filename = dir.output_dir + "ConvPS.txt";
+							logfile.open(filename.c_str(),  ios::out | ios::app);
+							logfile << temp_stream.str() << endl;
+							logfile.close();
+							temp_stream.str("");
+//						}
+						//#endif
 					}
 
 				}
@@ -1513,10 +1482,9 @@ int main(int argc, char *argv[]){
 				delete [] w;
 
 				gsl_matrix_free(Cov);
+				gsl_matrix_free(iCov);
 				gsl_vector_free(ivec);
 				gsl_vector_free(uvec);
-
-				free_dmatrix(iCov, 0, ncomp-1, 0, ncomp-1);
 
 
 				delete [] iN;

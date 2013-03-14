@@ -27,6 +27,7 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
 
 extern "C" {
 #include <fitsio.h>
@@ -50,17 +51,17 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	double triRhR, logdetiR;
 
 	gsl_vector *uvec, *ivec;
-	gsl_matrix *R;
+	gsl_matrix *R, *iR;
 
-	double **hR, **eR, **iR;
+	double **hR, **eR;
 
 	hR = dmatrix(0,ndet-1,0,ndet-1);
 	eR = dmatrix(0,ndet-1,0,ndet-1);
-	iR = dmatrix(0,ndet-1,0,ndet-1);
 
 	uvec = gsl_vector_alloc(ndet);
 	ivec = gsl_vector_alloc(ndet);
 	R    = gsl_matrix_alloc(ndet, ndet);
+	iR   = gsl_matrix_alloc(ndet, ndet);
 
 	// init
 	f   = 0.0 ;
@@ -86,18 +87,15 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 		gsl_linalg_cholesky_decomp(R);
 
 		for (idet1=0;idet1<ndet;idet1++){
-
 			gsl_vector_set_basis(uvec,idet1);
 			gsl_linalg_cholesky_solve(R, uvec, ivec);
-
-			for (idet2=0;idet2<ndet;idet2++)
-				iR[idet1][idet2] = gsl_vector_get(ivec,idet2);
+			gsl_matrix_set_row(iR, idet1, ivec);
 		}
 
 		triRhR = 0.0;
 		for (idet1=0;idet1<ndet;idet1++)
 			for (idet2=0;idet2<ndet;idet2++)
-				triRhR += iR[idet1][idet2]*hR[idet2][idet1] ;
+				triRhR += gsl_matrix_get(iR,idet1,idet2)*hR[idet2][idet1] ;
 
 		logdetiR = 0;
 		for (idet1=0;idet1<ndet;idet1++)
@@ -110,10 +108,10 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 	gsl_vector_free(uvec);
 	gsl_vector_free(ivec);
 	gsl_matrix_free(R);
+	gsl_matrix_free(iR);
 
 	free_dmatrix(hR,0,ndet-1,0,ndet-1);
 	free_dmatrix(eR,0,ndet-1,0,ndet-1);
-	free_dmatrix(iR,0,ndet-1,0,ndet-1);
 
 	return f;
 
@@ -128,17 +126,17 @@ double fdsf_MPI(double **Rellexp, double *w, double **A, double **P, double **N,
 	double triRhR, logdetiR;
 
 	gsl_vector *uvec, *ivec;
-	gsl_matrix *R;
+	gsl_matrix *R, *iR;
 
-	double **hR, **eR, **iR;
+	double **hR, **eR;
 
 	hR = dmatrix(0,ndet-1,0,ndet-1);
 	eR = dmatrix(0,ndet-1,0,ndet-1);
-	iR = dmatrix(0,ndet-1,0,ndet-1);
 
 	uvec = gsl_vector_alloc(ndet);
 	ivec = gsl_vector_alloc(ndet);
 	R    = gsl_matrix_alloc(ndet, ndet);
+	iR   = gsl_matrix_alloc(ndet, ndet);
 
 	// init
 	f   = 0.0;
@@ -167,15 +165,13 @@ double fdsf_MPI(double **Rellexp, double *w, double **A, double **P, double **N,
 
 			gsl_vector_set_basis(uvec,idet1);
 			gsl_linalg_cholesky_solve(R, uvec, ivec);
-
-			for (idet2=0;idet2<ndet;idet2++)
-				iR[idet1][idet2] = gsl_vector_get(ivec,idet2);
+			gsl_matrix_set_row(iR, idet1, ivec);
 		}
 
 		triRhR = 0.0;
 		for (idet1=0;idet1<ndet;idet1++)
 			for (idet2=0;idet2<ndet;idet2++)
-				triRhR += iR[idet1][idet2]*hR[idet2][idet1] ;
+				triRhR += gsl_matrix_get(iR,idet1,idet2)*hR[idet2][idet1] ;
 
 		logdetiR = 0;
 		for (idet1=0;idet1<ndet;idet1++)
@@ -191,10 +187,10 @@ double fdsf_MPI(double **Rellexp, double *w, double **A, double **P, double **N,
 	gsl_vector_free(uvec);
 	gsl_vector_free(ivec);
 	gsl_matrix_free(R);
+	gsl_matrix_free(iR);
 
 	free_dmatrix(hR,0,ndet-1,0,ndet-1);
 	free_dmatrix(eR,0,ndet-1,0,ndet-1);
-	free_dmatrix(iR,0,ndet-1,0,ndet-1);
 
 	return f;
 
@@ -202,6 +198,22 @@ double fdsf_MPI(double **Rellexp, double *w, double **A, double **P, double **N,
 
 #endif
 
+void rndInitMixmat(long ndet, long ncomp, double ** &mixmat){
+
+	const gsl_rng_type * T;
+	gsl_rng * r;
+	gsl_rng_env_setup();
+	T = gsl_rng_default;
+	r = gsl_rng_alloc (T);
+
+	for (long idet = 0; idet < ndet; idet++)
+		for (long iComp = 0; iComp < ncomp; iComp++)
+			mixmat[idet][iComp] = gsl_rng_get(r);
+
+
+	gsl_rng_free (r);
+
+}
 
 
 void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){

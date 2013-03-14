@@ -11,6 +11,8 @@ double fdsf(double **Rellexp, double *w, double **A, double **P, double **N, lon
 double fdsf_MPI(double **Rellexp, double *w, double **A, double **P, double **N, long ndet, long ncomp, long nbins, int bolo_rank, int bolo_size, MPI_Comm Comm);
 #endif
 
+void rndInitMixmat(long ndet, long ncomp, double ** &mixmat);
+
 void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins);
 
 double crudeSigma(double * data, long ns);

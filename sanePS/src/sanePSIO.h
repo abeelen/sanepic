@@ -68,4 +68,16 @@ int write_to_disk(std::string outdirSpN, std::string fits_filename, struct param
  */
 int write_psd_tofits(std::string fname, long nx, long ny, char dtype, void * psd1d);
 
+
+//! Reads a mixing matrix in a .txt file
+/*!
+ \param MixMatfile This file name contains the mixing matrix values
+ \param ndet The number of detectors contained in the mixing matrix (determines mixing matrix size)
+ \param ncomp The number of noise component to estimate by sanePS (determines mixing matrix size)
+ \param mixmat The mixing matrix data (read from the file)
+ \return An integer >0 if there were a problem, or 0 if everything went OK
+ */
+int readMixmatTxt(std::string MixMatfile, long ndet, long ncomp, double **&mixmat);
+
+
 #endif /* SANEPSIO_H_ */
