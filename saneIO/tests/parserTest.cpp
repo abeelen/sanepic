@@ -16,14 +16,14 @@
 
 #include <limits>
 
-#include "mpi_architecture_builder.h"
-#include "struct_definition.h"
+#include "MPIConfiguration.h"
+#include "StructDefinition.h"
 
-#include "dataIO.h"
-#include "imageIO.h"
-#include "temporary_IO.h"
-#include "inputFileIO.h"
-#include "parser_functions.h"
+#include "DataIO.h"
+#include "ImageIO.h"
+#include "TemporaryIO.h"
+#include "InputFileIO.h"
+#include "ParserFunctions.h"
 
 extern "C" {
 #include "nrutil.h"
@@ -43,18 +43,25 @@ void print_struct(struct param_saneProc proc_param, struct samples samples_struc
 int main(int argc, char *argv[])
 {
 
+	int      rank,      size; /* MPI processor rank and MPI total number of used processors */
+	int  bolo_rank,  bolo_size; /* As for parallel scheme */
+	int node_rank, node_size; /* On a node basis, same as *sub* but for frame scheme */
 
-	int size;
-	int rank;
 #ifdef USE_MPI
+
 	// setup MPI
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+	MPI_Comm MPI_COMM_NODE, MPI_COMM_MASTER_NODE;
 #else
 	size = 1;
 	rank = 0;
+	bolo_size  = 1;
+	bolo_rank  = 0;
+	node_size = 1;
+	node_rank = 0;
 #endif
 
 
@@ -137,22 +144,33 @@ int main(int argc, char *argv[])
 	cout << rank << " parser done." << endl;
 
 
-#ifdef PARA_FRAME
-	//	MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI
 
-	if(configure_PARA_FRAME_samples_struct(dir.tmp_dir, samples_struct, rank, size)){
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(configureMPI(dir.output_dir, samples_struct, rank, size,
+			bolo_rank,  bolo_size, node_rank, node_size,
+			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		if (rank==0)
+			cerr << endl << endl << "Exiting..." << endl;
+
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Finalize();
-		return EX_IOERR;
+		return EX_CONFIG;
 	}
-
 	MPI_Barrier(MPI_COMM_WORLD);
 
 #endif
 
-	readFramesFromFits(samples_struct, rank);
 
-//	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
+	if (rank == 0)
+		readFramesFromFits(samples_struct);
+#ifdef USE_MPI
+	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
+#endif
+
+
+	//	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
 
 	if (rank==0){
 		//		print_common(dir);
