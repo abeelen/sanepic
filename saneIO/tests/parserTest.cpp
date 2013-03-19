@@ -152,11 +152,8 @@ int main(int argc, char *argv[])
 			bolo_rank,  bolo_size, node_rank, node_size,
 			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
 		if (rank==0)
-			cerr << endl << endl << "Exiting..." << endl;
+			cerr << endl << endl << "Exiting... (not)" << endl;
 
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Finalize();
-		return EX_CONFIG;
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
 

@@ -17,40 +17,6 @@ struct sortclass_double {
  */
 void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vector<std::string> bolo_fits, std::string filename);
 
-//! Checks whether reference and offsets HDUs are present and have the correct size, and fills checkHDU structure in case of non-attendance
-/*!
- * Prints a WARNING message to screen in case a table is missing. Return error code -1 in case tables are present but not conform (wrong column numbers for Reference positions for example)
- \param fname The considered scan file name
- \param ns This scans's number of samples
- \param ndet number of detectors in fits channels table (is used as a dimension for some tables)
- \param format An integer specifying "fname" file format : HIPE (1) or SANEPIC (2)
- \param check_it A checkHDU structure that determines which tables are missing
- \return error code -1 or 0 (everything OK)
- */
-int check_positionHDU(std::string fname, long ns, long ndet, int format, struct checkHDU &check_it);
-
-//! Determines whether channels, time, signal and mask HDUs are present and have the correct sizes, and fills checkHDU structure in case of non-attendance
-/*!
- * Prints a WARNING message to screen in case a table is missing. Return error code -1 in case tables are present but not conform (wrong number of elements for time table for example)
- \param fname The considered scan file name
- \param ns This scans's number of samples
- \param ndet number of detectors in fits channels table (is used as a dimension for some tables)
- \param check_it A checkHDU structure that determines which tables are missing
- \return error code -1 or 0 (everything OK)
- */
-int check_commonHDU(std::string fname, long ns, long ndet, struct checkHDU &check_it);
-
-//! check LON/LAT table presence : only for HIPE format, and fills checkHDU structure in case of non-attendance
-/*!
- * Prints a WARNING message to screen in case a table is missing. Return error code -1 in case tables are present but not conform (wrong number of elements for time table for example)
- \param fname The considered scan file name
- \param ns This scans's number of samples
- \param ndet number of detectors in fits channels table (is used as a dimension for some tables)
- \param check_it A checkHDU structure that determines which tables are missing
- \return error code -1 or 0 (everything OK)
- */
-int check_altpositionHDU(std::string fname, long ns, long ndet, struct checkHDU &check_it);
-
 //! Check presence of non-flagged NANs in position tables
 /*!
  * Prints a WARNING message to screen in case a NAN has been found : Prints table name, and index in this table
@@ -113,8 +79,11 @@ bool check_bolos(std::vector<std::string> bolo_fits_vect, std::vector<std::strin
  \param check_it A checkHDU structure that determines which tables has to be checked according to check_*HDU routines
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int check_flag(string fname, std::vector<std::string> det, long ndet, long ns,
+int check_Flag(string fname, std::vector<std::string> det, long ndet, long ns,
 		double *percent_tab, long &init_flag_num, long &end_flag_num);
+
+long check_Speed(param_saneCheck saneCheck_struct, std::string fname , int testExt, long ns,
+			string field, double &meanSpeed, double &belowSpeed, double & aboveSpeed, int *& speedFlag, long & initSpeedFlag, long & endSpeedFlag);
 
 //! Check for time gaps in fits time table
 /*!
@@ -151,7 +120,8 @@ double median(std::vector<double> vec);
  \param indice Time gaps indices : to be found and filled by saneFix
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, std::vector<long> indice);
+int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, long ns, int * speedFlag, std::vector<long> indice);
+int exportCheckToFits(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, long ns, int * speedFlag, std::vector<long> indice);
 
 //! generating log file (for user information), containing bad channels and their flagged percentage
 /*!

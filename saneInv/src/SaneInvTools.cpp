@@ -73,7 +73,7 @@ int reorderMatrix(long nbins, std::vector<string> listIn, gsl_matrix *MatrixIn, 
 
 
 
-
+//TODO : Can be parallelized by Mode easilly if MatrixOut become a dmatrix....
 void inverseCovMatrixByMode(long nbins, long ndet, gsl_matrix * MatrixIn, gsl_matrix *& MatrixOut)
 /* Inverses the Covariance PowerSpectrum by mode */
 {

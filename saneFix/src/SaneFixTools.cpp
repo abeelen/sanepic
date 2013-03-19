@@ -28,8 +28,109 @@ extern "C" {
 
 using namespace std;
 
+int importCheckFits(std::string tmp_dir, std::string filename, long & init_flag, long & end_flag, double & Populated_freq, long & ns, int * & speedFlags, std::vector<long> & indice){
 
-int read_indices_file(string fname, struct param_common dir, std::vector<long> &indice, double &fsamp, long &init_num_delete, long &end_num_delete)
+	string fname = tmp_dir + FitsBasename(filename) + "_saneFix_indices.fits"; // output saneFix logfile filename
+
+	fitsfile *fp;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+	int anynul;
+
+	long naxes[] = { ns }; // size of dimensions
+	long fpixel[] = { 1 }; // index for write_pix
+
+	long dummy_size;
+	long * dummy;
+	char * dummy_comment=NULL;
+
+	long nSpeedFlags;
+
+	if ( fits_open_file(&fp, fname.c_str(), READONLY, &fits_status) ) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	// Add init_flag, end_flag, populated_freq
+	if (fits_read_key(fp, TLONG, (const char*) "initFlag", (long *) & init_flag,  dummy_comment, &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+	if (fits_read_key(fp, TLONG, (const char*) "enFlag", (long *) & end_flag,  dummy_comment, &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+	if (fits_read_key(fp, TDOUBLE, (const char*) "fsamp", (double *) & Populated_freq,  dummy_comment, &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+
+
+	// ----------------------------------------------------------------
+
+	if (fits_movnam_hdu(fp, IMAGE_HDU, (char*) "speedFlag", 0, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	// Retrieve the image size
+	if (fits_get_img_size(fp, 1, naxes, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	ns = naxes[0];
+
+	speedFlags = new int[ns];
+
+	if (fits_read_pix(fp, TINT, fpixel, ns , 0, speedFlags, &anynul, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	for (long ii=0; ii<ns; ii++)
+		if ( speedFlags[ii] != 0 )
+			nSpeedFlags++;
+
+	// ----------------------------------------------------------------
+
+
+	if (fits_movnam_hdu(fp, IMAGE_HDU, (char*) "gapsIndices", 0, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+
+	// Retrieve the image size
+	if (fits_get_img_size(fp, 1, naxes, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	dummy_size = naxes[0];
+	dummy = new long[dummy_size];
+
+	if (fits_read_pix(fp, TLONG, fpixel, dummy_size , 0, dummy, &anynul, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	indice.clear();
+	indice.resize(dummy_size);
+	for (long ii=0; ii < dummy_size; ii++)
+		indice[ii] = dummy[ii];
+
+	delete [] dummy;
+
+	// close file
+	if (fits_close_file(fp, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	if ( nSpeedFlags == 0 && indice.size() == 0)
+		return 1;
+
+	return 0;
+}
+
+int read_indices_file(string fname, struct param_common dir, std::vector<long> &indice, double &fsamp, long & ns, int * & speedFlag, long &init_num_delete, long &end_num_delete)
 /*! read saneCheck log files : get sample indices => where the gaps are */
 {
 
@@ -51,7 +152,15 @@ int read_indices_file(string fname, struct param_common dir, std::vector<long> &
 	// getting final number of flagged data to remove
 	file >> end_num_delete;
 
-	file >> fsamp; // read sampling frequency computed by sanecheck
+	file >> fsamp; // read sampling frequency computed by saneCheck
+
+	file >> ns; // read the number of sample
+
+	speedFlag = new int[ns];
+
+	for (long ii=0; ii< ns; ii++)
+		file >> speedFlag[ii];
+
 	while(file >> readed)
 		indice.push_back(readed); // read the whole list of gaps indexes
 
@@ -94,14 +203,18 @@ void refresh_indice(double &fsamp, long init_num_delete, long end_num_delete, st
 long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  std::vector <long> &add_sample, std::vector <long> & suppress_time_sample)
 /*!  compute the number of sample that must be added to fill the gaps and have a continous timeline  */
 {
-
+	long ns_dummy;
 	long total=0; // total number of sample that will be added to input file
 	long gap=0, sum=0, gap2=0; // if a gap has been found : gap > 0, if gap = 0 => one sample must be added
 	int continue_neg=0;
 	double *time;
 	std::vector <long> indice_valid;
 
-	read_time_from_fits(fname, time, ns); // read time table from input fits
+	if ( read_time_from_fits(fname, time, ns_dummy) )
+		return -1; // read time table from input fits
+
+	if (ns != ns_dummy)
+		return -1;
 
 	if((long)indice.size()>0){
 		for(long ii=0; ii < (long)indice.size(); ii++){ // for each gap
@@ -126,13 +239,13 @@ long how_many(string fname, long ns, std::vector <long> &indice, double fsamp,  
 					indice_valid.push_back(indice[ii]);
 					suppress_time_sample.push_back(0);
 				}else{
-//					cout << "negativ gap : " << gap << endl;
+					//					cout << "negativ gap : " << gap << endl;
 					continue_neg++;
 					long jj=1;
 					while((time[indice[ii]+jj]-time[indice[ii]])<0.0)
 						jj++;
 					gap2=round((time[indice[ii]+jj]-time[indice[ii]])*fsamp)-1;
-//					cout << "gap2 : " << gap2 << endl;
+					//					cout << "gap2 : " << gap2 << endl;
 					if(gap==0){
 						sum++;
 						add_sample.push_back(-1); // store -1 means 1 sample must be added => it's a convention
@@ -438,7 +551,7 @@ void fix_LON_LAT(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total,
 }
 
 void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet,
-		std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete)
+		std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete, int *speedMask)
 /*! Copy input mask header to output and fill the gaps with ones */
 {
 
@@ -454,10 +567,14 @@ void fix_mask(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, st
 	for(long ii=0;ii<ns_total;ii++)
 		mask_fixed[ii]=-1.0;
 
-	for(long jj=0;jj<ndet;jj++){ // for each detector (column)
-		read_flag_from_fits(name, det[jj], mask, ns_temp); // read input mask row
+	for(long iChan=0;iChan<ndet;iChan++){ // for each detector (column)
+		read_flag_from_fits(name, det[iChan], mask, ns_temp); // read input mask row
+		for (long ii=0; ii< ns_temp; ii++){
+			if (speedMask[ii] != 0 )
+				mask[ii] += 1;
+		}
 		fix_mask(mask, mask_fixed, indice, add_sample, ns_total, suppress_time_sample, init_num_delete); // fill gaps in mask row
-		insert_mask_in_image(fptr, outfptr, det[jj], mask_fixed, ns_total); // insert the filled mask row in ouput table
+		insert_mask_in_image(fptr, outfptr, det[iChan], mask_fixed, ns_total); // insert the filled mask row in ouput table
 		delete [] mask;
 	}
 	delete [] mask_fixed;
@@ -468,11 +585,11 @@ void fix_time_table(fitsfile * fptr, fitsfile *outfptr, string name, long ns_tot
 		double fsamp, std::vector <long> suppress_time_sample, long init_num_delete)
 /*! Copy input time header to output and fill the gaps with computed values using sampling frequency */
 {
-
+	long ns_dummy;
 	double *time;
 	double *time_fixed;
 	time_fixed= new double[ns_total];
-	read_time_from_fits(name, time, ns_origin); // read input time table
+	read_time_from_fits(name, time, ns_dummy); // read input time table
 	fix_time(time,time_fixed,indice, add_sample, fsamp, ns_total, suppress_time_sample, init_num_delete); // fill gaps in time table
 	insert_time(fptr, outfptr, time_fixed, ns_total); // insert table in output fits file
 	delete [] time;

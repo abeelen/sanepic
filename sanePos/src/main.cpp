@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 	string parser_output="";
 
 
-	uint16_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	uint32_t mask_sanePos = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | PIXDEG_WRONG_VALUE | FILEFORMAT_NOT_FOUND | NAPOD_WRONG_VALUE |
 			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc2ff
 
@@ -145,8 +145,8 @@ int main(int argc, char *argv[]) {
 
 	// -----------------------------------------------------------------------------//
 
-	uint16_t parsed=0x0000; // parser error status
-	uint16_t compare_to_mask; // parser error status
+	uint32_t parsed=0x0000; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
 	if (argc<2) {/* not enough argument */
 		if (rank == 0)

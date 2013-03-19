@@ -180,9 +180,21 @@ struct param_saneCheck
 	struct checkHDU Check_it; /*! A structure that determines which tables saneCheck has to check */
 	std::vector<double>  bolo_gain_check;  /*! A vector that contains bolometers gains */
 	bool checkNAN; /*! True if saneCheck has to check NANs in each table */
-	bool checktime; /*! True if saneCheck has to check time gaps in time table */
+	bool checkTime; /*! True if saneCheck has to check time gaps in time table */
 	bool checkGain;  /*! True if saneCheck has to recompute bolometers gains */
-	bool checkflag; /*! True if saneCheck has to check time for fully flagged detectors */
+	bool checkFlag; /*! True if saneCheck has to check time for fully flagged detectors */
+	bool checkSpeed; /*! True if saneCheck has to check speed outlier */
+
+	double kappaSpeed;
+	double belowSpeed;
+	double aboveSpeed;
+	double thresholdSpeed;
+
+};
+
+struct param_saneFix
+{
+	bool fixSpeed;
 };
 
 #endif /* STRUCT_DEFINITION_H_ */

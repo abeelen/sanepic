@@ -63,7 +63,7 @@ string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
 
-uint16_t check_path(string &output, string strPath, bool create, int rank) {
+uint32_t check_path(string &output, string strPath, bool create, int rank) {
 
 	if (access(strPath.c_str(), 0) == 0) {
 		struct stat status;
@@ -96,9 +96,9 @@ uint16_t check_path(string &output, string strPath, bool create, int rank) {
 }
 
 
-uint16_t init_tmpdir(string &output, struct samples &samples_struct, std::string dir, int rank) {
+uint32_t init_tmpdir(string &output, struct samples &samples_struct, std::string dir, int rank) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (check_path(output, dir, true, rank))
 		returnCode |= TMP_PATH_PROBLEM;
@@ -110,7 +110,7 @@ uint16_t init_tmpdir(string &output, struct samples &samples_struct, std::string
 }
 
 
-uint16_t check_file(string strPath) {
+uint32_t check_file(string strPath) {
 
 	if (access(strPath.c_str(), 0) == 0) {
 		struct stat status;
@@ -126,7 +126,7 @@ uint16_t check_file(string strPath) {
 	}
 }
 
-uint16_t fillvect_double(string & output, double value, string file, string dir, long ntotscan, vector<double> &outputVector){
+uint32_t fillvect_double(string & output, double value, string file, string dir, long ntotscan, vector<double> &outputVector){
 
 	vector<double> dummy;
 	outputVector.resize(ntotscan);
@@ -170,11 +170,11 @@ void fillvect_strings(string commonFile, vector<string> FitsFilename, string suf
 
 }
 
-uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
+uint32_t fill_samples_struct(string &output, struct samples &samples_struct,
 		struct param_common &dir, struct param_saneInv &Inv_param,
 		struct param_saneProc &Proc_param, int rank, int size) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (rank == 0)
 		returnCode |= readFitsList(output, dir.input_dir + dir.fits_filelist, samples_struct);
@@ -257,8 +257,8 @@ uint16_t fill_samples_struct(string &output, struct samples &samples_struct,
 
 }
 
-uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size){
-	uint16_t returnCode = 0;
+uint32_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size){
+	uint32_t returnCode = 0;
 
 	std::vector<string> det_vect;
 
@@ -746,6 +746,103 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 
 }
 
+void read_param_saneCheck(std::string &output, dictionary *ini , struct param_saneCheck &Check_param){
+
+	int i;
+	double d;
+	string output2 = "";
+
+	i = iniparser_getboolean(ini, "saneCheck:NAN", -1);
+	if (i == -1)
+		output2 += "saneCheck:NAN : default value [" + StringOf(
+				Check_param.checkNAN) + "]\n";
+	else
+		Check_param.checkNAN= (bool) i;
+
+	i = iniparser_getboolean(ini, "saneCheck:Gaps", -1);
+	if (i == -1)
+		output2 += "saneCheck:Gaps : default value [" + StringOf(
+				Check_param.checkTime) + "]\n";
+	else
+		Check_param.checkTime= (bool) i;
+
+	i = iniparser_getboolean(ini, "saneCheck:Gain", -1);
+	if (i == -1)
+		output2 += "saneCheck:Gain : default value [" + StringOf(
+				Check_param.checkGain) + "]\n";
+	else
+		Check_param.checkGain= (bool) i;
+
+	i = iniparser_getboolean(ini, "saneCheck:Flags", -1);
+	if (i == -1)
+		output2 += "saneCheck:Flag : default value [" + StringOf(
+				Check_param.checkFlag) + "]\n";
+	else
+		Check_param.checkFlag= (bool) i;
+
+	i = iniparser_getboolean(ini, "saneCheck:Speed", -1);
+	if (i == -1)
+		output2 += "saneCheck:Speed : default value [" + StringOf(
+				Check_param.checkSpeed) + "]\n";
+	else
+		Check_param.checkSpeed= (bool) i;
+
+
+	d = iniparser_getdouble(ini, (char*) "saneCheck:Speed_kappa", -1.0);
+	if (d == -1.0)
+		output2 += "saneCheck:Speed_kappa : default value [" + StringOf(
+				Check_param.kappaSpeed) + "]\n";
+	else
+		Check_param.kappaSpeed = d;
+
+	d = iniparser_getdouble(ini, (char*) "saneCheck:belowSpeed", -1.0);
+	if (d == -1.0)
+		output2 += "saneCheck:belowSpeed : default value [" + StringOf(
+				Check_param.belowSpeed) + "]\n";
+	else
+		Check_param.belowSpeed = d;
+
+	d = iniparser_getdouble(ini, (char*) "saneCheck:aboveSpeed", -1.0);
+	if (d == -1.0)
+		output2 += "saneCheck:aboveSpeed : default value [" + StringOf(
+				Check_param.aboveSpeed) + "]\n";
+	else
+		Check_param.aboveSpeed = d;
+
+	d = iniparser_getdouble(ini, (char*) "saneCheck:thresholdSpeed", -1.0);
+	if (d == -1.0)
+		output2 += "saneCheck:thresholdSpeed : default value [" + StringOf(
+				Check_param.thresholdSpeed) + "]\n";
+	else
+		Check_param.thresholdSpeed = d;
+
+
+
+#ifdef DEBUG
+	output += output2;
+#endif
+
+}
+
+void read_param_saneFix(std::string &output, dictionary *ini , struct param_saneFix &Fix_param){
+
+	int i;
+	string output2 = "";
+
+	i = iniparser_getboolean(ini, "saneFix:Speed", -1);
+	if (i == -1)
+		output2 += "saneFix:Speed : default value [" + StringOf(
+				Fix_param.fixSpeed) + "]\n";
+	else
+		Fix_param.fixSpeed = (bool) i;
+
+#ifdef DEBUG
+	output += output2;
+#endif
+
+
+}
+
 void read_wisdom(std::string &output, struct param_common &dir, struct param_saneProc Proc_param, int rank){
 	// Retrieve wisdom if asked / possible
 
@@ -798,9 +895,9 @@ void read_wisdom(std::string &output, struct param_common &dir, struct param_san
 
 // Structure checks
 
-uint16_t check_common(string &output, struct param_common &dir, int rank) {
+uint32_t check_common(string &output, struct param_common &dir, int rank) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (check_path(output, dir.data_dir, false, rank))
 		returnCode |= DATA_INPUT_PATHS_PROBLEM;
@@ -839,9 +936,9 @@ uint16_t check_common(string &output, struct param_common &dir, int rank) {
 	return returnCode;
 }
 
-uint16_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
+uint32_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (Pos_param.pixdeg <= 0 && Pos_param.maskfile == "") {
 		output += "EE - Pixsize cannot be negative ! \n";
@@ -864,9 +961,9 @@ uint16_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 	return returnCode;
 }
 
-uint16_t check_param_saneProc(string &output, struct param_common dir, struct param_saneProc &Proc_param) {
+uint32_t check_param_saneProc(string &output, struct param_common dir, struct param_saneProc &Proc_param) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (Proc_param.napod < 0) {
 		output
@@ -920,9 +1017,9 @@ uint16_t check_param_saneProc(string &output, struct param_common dir, struct pa
 	return returnCode;
 }
 
-uint16_t check_param_sanePS(string &output, struct param_common dir, struct param_sanePS &PS_param) {
+uint32_t check_param_sanePS(string &output, struct param_common dir, struct param_sanePS &PS_param) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (PS_param.ncomp <= 0) {
 		output += "EE - Number of component ncomp cannot be negative or zero ! \n";
@@ -954,9 +1051,9 @@ uint16_t check_param_sanePS(string &output, struct param_common dir, struct para
 	return returnCode;
 }
 
-uint16_t check_param_saneInv(string &output, struct param_common dir, struct param_saneInv &Inv_param) {
+uint32_t check_param_saneInv(string &output, struct param_common dir, struct param_saneInv &Inv_param) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	if (check_path(output, Inv_param.noise_dir, false, -1))
 		returnCode |= SANEINV_INPUT_ERROR;
@@ -976,9 +1073,9 @@ uint16_t check_param_saneInv(string &output, struct param_common dir, struct par
 	return returnCode;
 }
 
-uint16_t check_param_samples(string &output, struct samples &samples_struct){
+uint32_t check_param_samples(string &output, struct samples &samples_struct){
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	for (long iframe=0; iframe < samples_struct.ntotscan; iframe++) {
 		if ( (check_file(samples_struct.fitsvect[iframe])  & check_file(samples_struct.fitsvect[iframe] +".gz")) != 0 ){
@@ -1121,9 +1218,30 @@ void default_param_sanePic(struct param_sanePic &Pic_param) {
 	Pic_param.tolerance =  1e-10;
 	Pic_param.subtolerance =  1e-5;
 	Pic_param.save_data = 0;
-//	Pic_param.restore = 0; should not be defaulted here...
+	//	Pic_param.restore = 0; should not be defaulted here...
 	Pic_param.map_prefix = "optimMap";
 }
+
+void default_param_saneCheck(struct param_saneCheck &Check_param) {
+
+	Check_param.checkNAN  = 1;
+	Check_param.checkTime = 1;
+	Check_param.checkGain = 1;
+	Check_param.checkFlag = 1;
+
+	Check_param.kappaSpeed = 30.;
+	Check_param.belowSpeed = -1.;
+	Check_param.aboveSpeed = -1.;
+	Check_param.thresholdSpeed = -1.;
+
+}
+
+void default_param_saneFix(struct param_saneFix &Fix_param) {
+
+	Fix_param.fixSpeed = 1;
+
+}
+
 
 void fill_sanePS_struct(struct param_sanePS &PS_param,
 		struct samples &samples_struct, struct param_common &dir) {
@@ -1239,7 +1357,7 @@ int commit_dictionary(int rank, dictionary *dict) {
 
 //TODO: sanePS is not in the default distribution, so should not be in the master parser_function....
 // Main driver
-uint16_t parser_function(char * ini_name, std::string &output,
+uint32_t parser_function(char * ini_name, std::string &output,
 		struct param_common &dir, struct samples &samples_struct,
 		struct param_sanePos &Pos_param, struct param_saneProc &Proc_param,
 		struct param_sanePS &PS_param, struct param_saneInv &Inv_param,
@@ -1247,10 +1365,10 @@ uint16_t parser_function(char * ini_name, std::string &output,
 
 	dictionary * ini = NULL;
 	string dummy;
-	uint16_t parsed = 0;
+	uint32_t parsed = 0;
 
 #ifdef USE_MPI
-	uint16_t mpi_parsed = 0;
+	uint32_t mpi_parsed = 0;
 #endif
 
 	if (rank == 0) {
@@ -1468,6 +1586,65 @@ void print_param_saneInv(struct param_saneInv Inv_param) {
 
 	cout << endl;
 }
+
+void print_param_saneCheck(struct param_saneCheck Check_param){
+
+	cout << endl << "Checks : ..." << endl;
+
+	cout <<  "NaNs in data     : ";
+	if(!Check_param.checkNAN)
+		cout <<  "no" << endl;
+	else
+		cout <<  "yes" << endl;
+
+	cout << "Time gaps        : ";
+	if(!Check_param.checkTime)
+		cout <<  "no" << endl;
+	else
+		cout <<  "yes" << endl;
+
+//	cout << "Gains            : ";
+//	if(!Check_param.checkGain)
+//		cout <<  "no" << endl;
+//	else
+//		cout <<  "yes" << endl;
+
+	cout << "Flags            : ";
+	if(!Check_param.checkFlag)
+		cout <<  "no" << endl;
+	else
+		cout <<  "yes" << endl;
+
+	cout << "Speed            : ";
+	if(!Check_param.checkSpeed){
+		cout <<  "no" << endl;
+	} else {
+		cout << "yes";
+		if ( Check_param.belowSpeed != -1.0 && Check_param.aboveSpeed != -1.0 ) {
+			cout << " " << Check_param.belowSpeed << " ]  [" << Check_param.aboveSpeed;
+		} else{
+			cout <<  " with kappa = " << Check_param.kappaSpeed;
+			if (Check_param.thresholdSpeed != -1.0 )
+					cout << " ignoring speed below " << Check_param.thresholdSpeed << " arcsec/s";
+		}
+		cout << endl;
+	}
+
+}
+
+void print_param_saneFix(struct param_saneFix Fix_param){
+
+	cout << endl << "Fixing : ..."  << endl;
+
+	cout << "Time Gaps        " << endl;
+	cout << "Speed Flagging   : ";
+	if(!Fix_param.fixSpeed)
+		cout <<  "no" << endl;
+	else
+		cout <<  "yes" << endl;
+
+}
+
 
 void parser_printOut(char * prog_name, struct param_common dir,
 		struct samples samples_struct, struct param_sanePos Pos_param,
@@ -1698,8 +1875,7 @@ void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key,
 
 	key.push_back("niter");
 	value.push_back(StringOf(PS_param.niter));
-	comment.push_back("number of iteration in the expectation minimization loop (default : 500"
-			")");
+	comment.push_back("number of iteration in the expectation minimization loop (default : 500" ")");
 
 	key.push_back("map_file");
 	value.push_back(PS_param.signame);
@@ -1745,21 +1921,51 @@ void export_param_sanePic(struct param_sanePic Pic_param, std::vector<string> &k
 
 void export_param_saneCheck(struct param_saneCheck Check_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
 
-	key.push_back("check_NAN");
+	key.push_back("NAN");
 	value.push_back(StringOf(Check_param.checkNAN ? "True" : "False"));
 	comment.push_back("check whether there are NANs in every tables and flag them if needed");
 
-	key.push_back("check_time_gaps");
-	value.push_back(StringOf(Check_param.checktime ? "True" : "False"));
+	key.push_back("Gaps");
+	value.push_back(StringOf(Check_param.checkTime ? "True" : "False"));
 	comment.push_back("check whether there are gaps in time table and fill those gaps with flagged data to ensure continuity");
 
-	key.push_back("check_flag");
-	value.push_back(StringOf(Check_param.checkflag ? "True" : "False"));
+	key.push_back("Flags");
+	value.push_back(StringOf(Check_param.checkFlag ? "True" : "False"));
 	comment.push_back("check whether there are detectors that are fully or more than 80% flagged");
 
-	key.push_back("check_bolo_gain");
-	value.push_back(StringOf(Check_param.checkGain ? "True" : "False"));
-	comment.push_back("Compute detector gain and print to screen");
+//	key.push_back("Gain");
+//	value.push_back(StringOf(Check_param.checkGain ? "True" : "False"));
+//	comment.push_back("compute detector gain and print to screen");
+
+	key.push_back("Speed");
+	value.push_back(StringOf(Check_param.checkSpeed ? "True" : "False"));
+	comment.push_back("compute the most frequent speed on the sky and check whether there are data outside a defined range");
+
+	key.push_back("kappaSpeed");
+	value.push_back(StringOf(Check_param.kappaSpeed));
+	comment.push_back("either with robust statistic and a kappa value ...");
+
+	key.push_back("thresholdSpeed");
+	value.push_back(StringOf(Check_param.thresholdSpeed));
+	comment.push_back("... ignoring speed below this thresholdSpeed");
+
+	key.push_back("belowSpeed");
+	value.push_back(StringOf(Check_param.belowSpeed));
+	comment.push_back("OR limits to flag data below this speed");
+
+	key.push_back("aboveSpeed");
+	value.push_back(StringOf(Check_param.aboveSpeed));
+	comment.push_back("and above this speed");
+
+
+
+}
+
+void export_param_saneFix(struct param_saneFix Fix_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
+
+	key.push_back("Speed");
+	value.push_back(StringOf(Fix_param.fixSpeed ? "True" : "False"));
+	comment.push_back("Add additional Flag due to speed deviation");
 
 }
 
@@ -1811,6 +2017,43 @@ string rebuild_ini(struct param_common dir, struct param_saneProc proc_param, st
 
 	text += "\n[sanePS]\n";
 	export_param_sanePS(PS_param,     key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	return text;
+
+}
+
+string rebuild_ini_saneCheck(struct param_saneCheck Check_param) {
+
+	string text;
+
+	std::vector<string> key_vect;
+	std::vector<string> val_vect;
+	std::vector<string> com_vect;
+
+	text += "\n[saneCheck]\n";
+	export_param_saneCheck(Check_param,   key_vect, val_vect, com_vect);
+	for (unsigned long ii=0; ii < key_vect.size(); ii++)
+		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
+	key_vect.clear(); val_vect.clear(); com_vect.clear();
+
+	return text;
+
+}
+
+
+string rebuild_ini_saneFix(struct param_saneFix Fix_param) {
+
+	string text;
+
+	std::vector<string> key_vect;
+	std::vector<string> val_vect;
+	std::vector<string> com_vect;
+
+	text += "\n[saneFix]\n";
+	export_param_saneFix(Fix_param,   key_vect, val_vect, com_vect);
 	for (unsigned long ii=0; ii < key_vect.size(); ii++)
 		text += key_vect[ii] + " = " + val_vect[ii] + " ; " + com_vect[ii] + "\n";
 	key_vect.clear(); val_vect.clear(); com_vect.clear();

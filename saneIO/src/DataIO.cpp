@@ -470,15 +470,14 @@ int read_LON_LAT_from_fits(string filename, string field, double *&lon, double *
 	return 0;
 }
 
-int read_time_from_fits(string filename, double *& time, long ns){
+int read_time_from_fits(string filename, double *& time, long &ns){
 
 	fitsfile *fptr;
 	int status = 0;
-	int ns_test = 0;
 	char comment[80];
 	int anynul;
 
-//	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
+	//	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
@@ -493,13 +492,8 @@ int read_time_from_fits(string filename, double *& time, long ns){
 		return 1;
 	}
 
-	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns_test, (char *) &comment, &status)){
+	if (fits_read_key(fptr,TLONG, (char *) "NAXIS1", &ns, (char *) &comment, &status)){
 		fits_report_error(stderr, status);
-		return 1;
-	}
-
-	if(ns!=ns_test){
-		cerr << "time image has a wrong size : " << ns_test << " != " << ns << endl;
 		return 1;
 	}
 
@@ -526,34 +520,119 @@ int read_time_from_fits(string filename, double *& time, long ns){
 }
 
 
-int test_format(string fitsname){
+int getImageExtensionSize(fitsfile *fptr, string extname, long &nx, long &ny){
+
+	int fits_status = 0;
+	int	naxis = 0;
+	long naxes[2] = { 1, 1 };
+	int return_status = BAD_HDU_NUM;
+
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), 0, &fits_status) != BAD_HDU_NUM ){
+		// Retrieve the size of the extension
+		if (! fits_get_img_dim(fptr, &naxis, &fits_status)){
+			if (naxis == 2){
+				if (! fits_get_img_size(fptr, 2, naxes, &fits_status)){
+					nx = naxes[0];
+					ny = naxes[1];
+					return_status = 0;
+				}
+			}
+		}
+	}
+	return return_status;
+
+}
+
+int checkImageExtension(fitsfile *fptr, string extname, long nx, long ny){
+
+
+	int fits_status = 0;
+	int	naxis = 0;
+	long naxes[2] = { 1, 1 };
+	int return_status = BAD_HDU_NUM;
+
+	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) extname.c_str(), 0, &fits_status) != BAD_HDU_NUM ){
+		// Check the size of the extension
+		if (! fits_get_img_dim(fptr, &naxis, &fits_status))
+			switch(naxis){
+			case 1:
+				if (! fits_get_img_size(fptr, 1, naxes, &fits_status) )
+					if (naxes[0] == nx)
+						return_status = 0;
+				break;
+
+			case 2:
+				if (! fits_get_img_size(fptr, 2, naxes, &fits_status))
+					if (naxes[0] == nx && naxes[1] == ny)
+						return_status = 0;
+				break;
+			}
+
+	}
+	return return_status;
+}
+
+int checkBintableExtension(fitsfile *fptr, string extname, long nx){
+
+
+	int fits_status = 0;
+	long size;
+	int return_status = BAD_HDU_NUM;
+
+	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) extname.c_str(), 0, &fits_status) != BAD_HDU_NUM )
+		// Check the size of the extension
+		if (! fits_get_num_rows(fptr, &size, &fits_status) )
+			if (size == nx || nx == -1)
+				return_status = 0;
+
+
+	return return_status;
+}
+
+
+int testExtensions(string fitsname){
 
 	fitsfile *fptr;
-	int format= 0; // 0 = Unknown format, 1 = RefPos & offsets format (sanepic), 2 = lon/lat format (HIPE), 3 = both sanepic & HIPE
-	int status = 0;
+	int fits_status = 0;
+	long ns = -1, nchan = -1;
 
-	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &status))
-		fits_report_error(stderr, status);
+	int format = 0;
 
-	if((fits_movnam_hdu(fptr, BINARY_TBL, (char*) "refPos", 0, &status) != BAD_HDU_NUM ) &&
-			(fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status) != BAD_HDU_NUM ))
-		format += 1; // RefPos & offsets tables were found (sanepic Format)
+	if (fits_open_file(&fptr, fitsname.c_str(), READONLY, &fits_status))
+		fits_report_error(stderr, fits_status);
 
-	status = 0; 	// Need to reset the status for next step
+	if ( getImageExtensionSize(fptr, "signal", ns, nchan) != BAD_HDU_NUM )
+		format |= EXT_SIGNAL;
 
-	if ((fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status) != BAD_HDU_NUM ) &&
-			(fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status) != BAD_HDU_NUM))
-		format += 2; // lon and lat tables were found (HIPE format)
+	if ( checkImageExtension(fptr, "mask", ns, nchan ) != BAD_HDU_NUM )
+		format |= EXT_MASK;
 
-	status = 0; 	// Need to reset the status for next step
+	if ( checkBintableExtension(fptr, "channels", nchan) != BAD_HDU_NUM)
+		format |= EXT_CHAN;
 
+	if ( checkImageExtension(fptr, "time", ns, -1) != BAD_HDU_NUM)
+		format |= EXT_TIME;
+
+	if ( checkImageExtension(fptr, "lon", ns, nchan) != BAD_HDU_NUM)
+		format |= EXT_LON;
+
+	if ( checkImageExtension(fptr, "lat", ns, nchan) != BAD_HDU_NUM)
+		format |= EXT_LAT;
+
+	if ( checkBintableExtension(fptr, "refPos", ns) != BAD_HDU_NUM)
+		format |= EXT_REFPOS;
+
+	if ( checkBintableExtension(fptr, "offsets", -1) != BAD_HDU_NUM)
+		format |= EXT_OFFSET;
 
 	// close file
-	if(fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
+	if(fits_close_file(fptr, &fits_status))
+		fits_report_error(stderr, fits_status);
 
 	return format;
 }
+
+
 
 void copy_offsets(fitsfile * fptr, fitsfile *outfptr)
 /*! copy offsets table from this file to output file */

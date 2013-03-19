@@ -151,13 +151,13 @@ int main(int argc, char *argv[]) {
 	// parallel scheme file
 	string fname; /* parallel scheme filename */
 
-	uint16_t mask_sanePic = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	uint32_t mask_sanePic = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | NAPOD_WRONG_VALUE | FSAMP_PROBLEM |
 			FHP_PROBLEM | FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xc39f
 
 	// parser variables
-	uint16_t parsed=0x0000; // parser error status
-	uint16_t compare_to_mask; // parser error status
+	uint32_t parsed=0x0000; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
 	// Default value
 	Pic_param.restore = 0;

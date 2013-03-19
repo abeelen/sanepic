@@ -920,9 +920,9 @@ int readFdata(DIRFILE* D, string filename, string boloname, string prefixe,
 	return 0;
 }
 
-uint16_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_struct) {
+uint32_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_struct) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	DIRFILE* H;
 	string scan_name, filedir;
@@ -957,9 +957,9 @@ uint16_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_stru
 	return returnCode;
 }
 
-uint16_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &samples_struct) {
+uint32_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &samples_struct) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	DIRFILE* H;
 	string scan_name, filedir;
@@ -1012,10 +1012,10 @@ uint16_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &sample
 }
 
 
-uint16_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
+uint32_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
 		int sub_rank) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	// Close previously openened dirfile
 	for (long iframe = 0; iframe < samples_struct.ntotscan; iframe++) {
@@ -1084,10 +1084,10 @@ uint16_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
 	return returnCode;
 }
 
-uint16_t cleanup_dirfile_sanePos(std::string tmp_dir,
+uint32_t cleanup_dirfile_sanePos(std::string tmp_dir,
 		struct samples & samples_struct, int sub_rank) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 	std::vector<string> det_vect;
 
 	// Close previously opened dirfile
@@ -1164,7 +1164,7 @@ uint16_t cleanup_dirfile_sanePos(std::string tmp_dir,
 
 int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int sub_rank) {
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	// Close previously opened dirfile
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {
@@ -1254,8 +1254,8 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct
 	return returnCode;
 }
 
-uint16_t cleanup_dirfile_sanePic(std::string tmp_dir, struct samples & samples_struct, int sub_rank) {
-	uint16_t returnCode = 0;
+uint32_t cleanup_dirfile_sanePic(std::string tmp_dir, struct samples & samples_struct, int sub_rank) {
+	uint32_t returnCode = 0;
 
 	// Close previously opened dirfile
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) {

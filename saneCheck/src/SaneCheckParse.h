@@ -24,22 +24,9 @@ extern "C"{
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return A flag corresponding to an error code, or 0
  */
-uint16_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
+uint32_t parse_saneCheck_ini_file(char * ini_name, string &output, struct param_common &dir,
 		struct samples &samples_struct, struct param_sanePos &pos_param, struct param_saneProc &proc_param,
 		struct param_sanePS &structPS, struct param_saneInv &saneInv_struct, struct param_sanePic &sanePic_struct, struct param_saneCheck &check_struct, int size, int rank);
-
-//! Reads saneCheck structure informations in ini file
-/*!
- \param check_struct The saneCheck structure
- \param ini A pointer to a dictionnary opened using iniparser library
- */
-void read_saneCheck_ini(dictionary	*ini , struct param_saneCheck &check_struct);
-
-//! Print saneCheck structure informations to screen
-/*!
- \param check_struct The saneCheck structure
- */
-void print_saneCheck_ini(struct param_saneCheck check_struct);
 
 #define PARSE_SANECHECK_H_
 

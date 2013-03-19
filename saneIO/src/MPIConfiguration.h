@@ -78,7 +78,7 @@ int verifyParallelScheme(struct samples &samples_struct, int rank, int size);
  */
 void reorderSamplesStruct(struct samples & samples_struct, int rank, int size);
 
-uint16_t printNodeUsage(std::vector<std::string> nodeName, std::vector<long> nodeSizes, std::vector<long> order);
+uint32_t printNodeUsage(std::vector<std::string> nodeName, std::vector<long> nodeSizes, std::vector<long> order);
 
 
 #ifdef USE_MPI
@@ -86,11 +86,11 @@ uint16_t printNodeUsage(std::vector<std::string> nodeName, std::vector<long> nod
 void AssignNodeByProcname(char * proc_names, int size, int *nodeID, std::vector<std::string> & nodeName, std::vector<long> & nodeSizes);
 
 void gatherProcName(int rank, int size, char *proc_names);
-uint16_t checkProcName(int rank, int size, std::string outdir);
+uint32_t checkProcName(int rank, int size, std::string outdir);
 
 //! Test and fill and reorganize samples_struct structure
 /*! Reads parallel_scheme.txt first, then calls check_filelist_validity(...), verify_parallelization_scheme(...) and reorder_samples_struct(...) */
-uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, int size,
+uint32_t configureMPI(string outdir, struct samples & samples_struct, int rank, int size,
 		int  &bolo_rank, int  &bolo_size, int &node_rank, int &node_size,
 		MPI_Comm & MPI_COMM_NODE, MPI_Comm & MPI_COMM_MASTER_NODE);
 

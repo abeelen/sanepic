@@ -55,12 +55,14 @@ void file_compatibility_verification(string dirfile, struct samples samples_stru
 			fits_report_error(stderr, status);
 
 
+
 		long ns1, ns2; // get each number of samples
-		ns1=samples_struct.nsamples[ii-1];
-		ns2=samples_struct.nsamples[ii];
 
 		read_time_from_fits(file1, time_one, ns1); // read both time tables
 		read_time_from_fits(file2, time_two, ns2);
+
+		if (ns1 != samples_struct.nsamples[ii-1] && ns2 != samples_struct.nsamples[ii])
+			exit(EXIT_FAILURE);
 
 		if(time_one[ns1-1]>=time_two[0]){ // check time is crescent between 1st and 2nd file
 			cout << "There is a problem between " << file1 << " and " << file2 << " time tables.\n";
@@ -193,7 +195,7 @@ void copy_time(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 
 	for(long iframe=0; iframe<samples_struct.ntotscan;iframe++){ // for each scan
 
-		long ns_temp=samples_struct.nsamples[iframe]; // get number of samples
+		long ns_temp;
 
 		string fname=samples_struct.fitsvect[iframe]; // get filename
 
@@ -210,6 +212,8 @@ void copy_time(fitsfile *outfptr, string dirfile, struct samples samples_struct,
 
 		double *time;
 		read_time_from_fits(fname, time, ns_temp); // read time from input file
+		if ( ns_temp != samples_struct.nsamples[iframe] )
+			status = BAD_HDU_NUM;
 
 		for(long ii = 0; ii< ns_temp; ii++){ // add in the output time table
 			time_bis[indice_debut + ii]=time[ii];

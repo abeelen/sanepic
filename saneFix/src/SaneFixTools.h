@@ -2,8 +2,10 @@
 #define TOOLS_H_
 
 
+int importCheckFits(std::string tmp_dir, std::string filename, long & init_flag, long & end_flag, double & Populated_freq, long & ns, int * & speedFlag, std::vector<long> & indice);
+
 /*! read saneCheck log files : get sample indices => where the gaps are */
-int read_indices_file(std::string fname, struct param_common dir, std::vector<long> &indice, double &fsamp, long &init_num_delete, long &end_num_delete);
+int read_indices_file(std::string fname, struct param_common dir, std::vector<long> &indice, double &fsamp, long & ns, int * & speedFlag, long &init_num_delete, long &end_num_delete);
 
 void refresh_indice(double &fsamp, long init_num_delete, long end_num_delete, std::vector <long> &indice, long ns);
 
@@ -38,7 +40,7 @@ void fix_signal(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_to
 void fix_LON_LAT(fitsfile * fptr, fitsfile *outfptr, string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);
 
 /*! Copy input mask header to output and fill the gaps with ones */
-void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete);
+void fix_mask(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector<std::string> det, long ndet, std::vector <long> indice, std::vector<long> add_sample, std::vector <long> suppress_time_sample, long init_num_delete, int * speedMask);
 
 /*! Copy input time header to output and fill the gaps with computed values using sampling frequency */
 void fix_time_table(fitsfile * fptr, fitsfile *outfptr, std::string name, long ns_total, std::vector <long> indice, std::vector<long> add_sample, long ns_origin, double fsamp, std::vector <long> suppress_time_sample, long init_num_delete);

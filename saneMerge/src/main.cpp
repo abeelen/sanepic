@@ -109,10 +109,10 @@ int main(int argc, char *argv[]) {
 	// 3 = both sanepic & HIPE
 
 	for(long ii=0; ii<samples_struct.ntotscan-1;ii++){ // for each scan that has to be merged
-		format_fits+=test_format(samples_struct.fitsvect[ii]); // Check each scan fits format
+		format_fits+=testExtensions(samples_struct.fitsvect[ii]); // Check each scan fits format
 		outname += FitsBasename(samples_struct.fitsvect[ii]) + "_merged_with_"; // generate output filename !
 	}
-	format_fits+=test_format(samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
+	format_fits+=testExtensions(samples_struct.fitsvect[samples_struct.ntotscan-1]); // add last file informations
 	outname += FitsBasename(samples_struct.fitsvect[samples_struct.ntotscan-1]) + ".fits";
 	outname = "!" + dir.output_dir + outname; // complete output path + file name
 
@@ -120,18 +120,17 @@ int main(int argc, char *argv[]) {
 	cout << "Creating : \n" << outname << endl << endl;
 #endif
 
-	switch(format_fits/samples_struct.ntotscan){ // check compatibility between each input files (same format)
+	format_fits /= samples_struct.ntotscan;
 
-	case 1: cout << "RefPos/offsets format found" << endl;;
-	format_fits=1;
+	switch(format_fits){ // check compatibility between each input files (same format)
+
+	case SANEPIC_FORMAT: cout << "RefPos/offsets format found" << endl;;
 	break;
 
-	case 2: cout << "lon/lat format found" << endl;;
-	format_fits=2;
+	case HIPE_FORMAT: cout << "lon/lat format found" << endl;;
 	break;
 
-	case 3: cout << "hybrid format found" << endl;;
-	format_fits=3;
+	case BOTH_FORMAT: cout << "hybrid format found" << endl;;
 	break;
 
 	default : cout << "The files you are trying to merge have not the same format or format is unknown. Exiting...\n";
@@ -179,15 +178,15 @@ int main(int argc, char *argv[]) {
 	// 2 = lon/lat format (HIPE),
 	// 3 = both sanepic & HIPE
 
-	case 1:
+	case SANEPIC_FORMAT:
 		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
 		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
 		break;
-	case 3:
+	case BOTH_FORMAT:
 		copy_ref_pos(outfptr, dir.data_dir, samples_struct, ns_total); // copy reference position tables from each file to output file
 		copy_offsets(fptr, outfptr); // copy offsets table from this file to output file
 		// and...
-	case 2:
+	case HIPE_FORMAT:
 		copy_LON_LAT(outfptr, dir.data_dir, samples_struct, det, ndet, ns_total);
 		break;
 	}

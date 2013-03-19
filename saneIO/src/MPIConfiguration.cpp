@@ -368,7 +368,7 @@ void reorderSamplesStruct( struct samples & samples_struct, int rank, int size){
 
 }
 
-uint16_t printNodeUsage(vector<string> nodeName, vector<long> nodeSizes, vector<long> order){
+uint32_t printNodeUsage(vector<string> nodeName, vector<long> nodeSizes, vector<long> order){
 
 	assert(nodeName.size() == nodeSizes.size());
 
@@ -472,7 +472,7 @@ void gatherProcName(int rank, int size, char *proc_names){
 
 }
 
-uint16_t checkProcName(int rank, int size, std::string outdir){
+uint32_t checkProcName(int rank, int size, std::string outdir){
 	/** check or store the processor names
 	 * \param rank, size : MPI rank & size
 	 * \param outdir : output dir for check file
@@ -482,6 +482,7 @@ uint16_t checkProcName(int rank, int size, std::string outdir){
 	if (rank == 0){
 		proc_names = new char[size*MPI_MAX_PROCESSOR_NAME];
 	}
+	uint32_t return_value = EXIT_SUCCESS;
 
 	gatherProcName(rank, size, proc_names);
 
@@ -494,7 +495,7 @@ uint16_t checkProcName(int rank, int size, std::string outdir){
 		struct stat buf;
 
 		if (stat(filename.c_str(), &buf) != -1){
-			// check consistancy
+			// check consistency
 			string line;
 			vector<string> buffer;
 			ifstream checkFile(filename.c_str());
@@ -505,7 +506,7 @@ uint16_t checkProcName(int rank, int size, std::string outdir){
 			if (size != (int) buffer.size() ) {
 				cerr << "EE - Saved file differ in number of processor used (" << buffer.size() << " vs " <<size << " used)" << endl;
 				cerr << "EE - Please check " << filename << endl;
-				return EXIT_FAILURE;
+				return_value = EXIT_FAILURE;
 			}
 			bool check = true;
 			for (int ii=0; ii< size; ii++){
@@ -514,7 +515,7 @@ uint16_t checkProcName(int rank, int size, std::string outdir){
 			if (! check){
 				cerr << "EE - Saved file differ in processor order or processor name" << endl;
 				cerr << "EE - Please check " << filename << endl;
-				return EXIT_FAILURE;
+				return_value =  EXIT_FAILURE;
 			}
 
 		} else {
@@ -527,24 +528,27 @@ uint16_t checkProcName(int rank, int size, std::string outdir){
 		delete [] proc_names;
 
 	}
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&return_value, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	return EXIT_SUCCESS;
+	return return_value;
+
 }
 
-uint16_t configureMPI(string outdir, struct samples & samples_struct, int rank, int size,
+uint32_t configureMPI(string outdir, struct samples & samples_struct, int rank, int size,
 		int &bolo_rank, int &bolo_size, int &node_rank, int &node_size,
 		MPI_Comm & MPI_COMM_NODE, MPI_Comm & MPI_COMM_MASTER_NODE){
 
 	if (rank==0)
 		cout << endl << "MPI initialization... " << endl;
 
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 	char * proc_names = NULL;
 	int * nodeID;
 	vector<long> nodeSizes;
 	vector<string> nodeName;
 
-	uint16_t return_value = 0;
+	uint32_t return_value = 0;
 
 	if(! samples_struct.framegiven){
 

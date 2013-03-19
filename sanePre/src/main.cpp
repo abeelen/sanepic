@@ -106,8 +106,8 @@ int main(int argc, char *argv[]){
 	struct param_sanePic Pic_param;
 	string parser_output = "";
 
-	//	uint16_t mask_sanePre = 0x405f;
-	uint16_t mask_sanePre = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	//	uint32_t mask_sanePre = 0x405f;
+	uint32_t mask_sanePre = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FILEFORMAT_NOT_FOUND | FITS_FILELIST_NOT_FOUND; // 0x405f
 
 #ifdef DEBUG
@@ -115,8 +115,8 @@ int main(int argc, char *argv[]){
 	time_t t2, t3;
 #endif
 
-	uint16_t parsed=0x0000; // parser error status
-	uint16_t compare_to_mask; // parser error status
+	uint32_t parsed=0x0000; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
 	if (argc<2) {/* not enough argument */
 		if (rank == 0)

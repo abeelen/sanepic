@@ -77,23 +77,22 @@ int main(int argc, char *argv[]) {
 	struct samples samples_struct; /* A structure that contains everything about frames, noise files and frame processing order */
 	struct param_common dir;  // structure that contains output input temp directories
 
-	struct param_sanePos pos_param;
-	struct param_saneProc proc_param;
-	struct param_sanePic sanePic_struct;
-	struct param_saneInv saneInv_struct;
-	struct param_sanePS structPS;
-	struct param_saneCheck check_struct;
+	struct param_sanePos Pos_param;
+	struct param_saneProc Proc_param;
+	struct param_sanePic Pic_param;
+	struct param_saneInv Inv_param;
+	struct param_sanePS PS_param;
+	struct param_saneCheck Check_param;
 
 	string outname; // Ouput log files name
 	string parser_output = "";
 	string bolo_gain_filename="";
 
-	uint16_t parsed=0x0000; // parser error status
+	uint32_t parsed=0x0000; // parser error status
 
-	uint16_t mask_saneCheck = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
-			BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x411f
+	uint32_t mask_saneCheck = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM | BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x411f
 
-	uint16_t compare_to_mask; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
 	if (argc<2) {/* not enough argument */
 		if (rank == 0)
@@ -105,8 +104,8 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	} else {
 		/* parse ini file and fill structures */
-		parsed=parse_saneCheck_ini_file(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, sanePic_struct, check_struct, size, rank);
+		parsed=parse_saneCheck_ini_file(argv[1], parser_output, dir, samples_struct, Pos_param, Proc_param,
+				PS_param, Inv_param, Pic_param, Check_param, size, rank);
 
 		compare_to_mask = parsed & mask_saneCheck;
 
@@ -144,24 +143,25 @@ int main(int argc, char *argv[]) {
 
 	if(rank==0){
 		// parser print screen function
-		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, sanePic_struct, saneInv_struct);
-		print_saneCheck_ini(check_struct);
+		parser_printOut(argv[0], dir, samples_struct, Pos_param,  Proc_param,
+				PS_param, Pic_param, Inv_param);
+		print_param_saneCheck(Check_param);
 	}
 
 #ifdef USE_MPI
 
 	// Extra BCast for saneCheck structure...
-	MPI_Bcast(&check_struct.checkNAN,  1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&check_struct.checktime, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&check_struct.checkGain, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&check_struct.checkflag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&Check_param.checkNAN,  1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&Check_param.checkTime, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&Check_param.checkGain, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&Check_param.checkFlag, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(configureMPI(dir.output_dir, samples_struct, rank, size,
 			bolo_rank,  bolo_size, node_rank, node_size,
 			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
+		cout << rank << "was here" << endl;
 		if (rank==0)
 			cerr << endl << endl << "Exiting..." << endl;
 
@@ -199,327 +199,380 @@ int main(int argc, char *argv[]) {
 
 	// for user report at the end of the program
 	int *return_value, *return_value_tot=NULL;
-	int *format, *format_tot=NULL;
+	int *testExt, *testExt_tot=NULL;
 
 	long *nFullyFlagged, *nFullyFlagged_tot =NULL;
 	long *nMostlyFlagged, *nMostlyFlagged_tot=NULL;
-	long *nNan, *nNan_tot=NULL;
+	long *nNan,     *nNan_tot=NULL;
 	long *nTimeGaps, *nTimeGaps_tot = NULL;
+
+	long nFrames = samples_struct.iframe_max-samples_struct.iframe_min;
 
 	double *sampFreqs , *sampFreqs_tot=NULL;
 
-	return_value    = new  int[samples_struct.ntotscan];
 
-	format    = new  int[samples_struct.ntotscan];
-	sampFreqs = new double[samples_struct.ntotscan];
+	long *nSpeed,             *nSpeed_tot=NULL;
+	double *meanSpeeds,   *meanSpeeds_tot=NULL;
+	double *aboveSpeeds, *aboveSpeeds_tot=NULL;
+	double *belowSpeeds, *belowSpeeds_tot=NULL;
+	int *speedIndices;
 
-	nTimeGaps      = new long[samples_struct.ntotscan];
-	nFullyFlagged  = new long[samples_struct.ntotscan];
-	nMostlyFlagged = new long[samples_struct.ntotscan];
-	nNan           = new long[samples_struct.ntotscan];
+	int ntotscan = samples_struct.ntotscan;
 
-	fill(return_value,   return_value + samples_struct.ntotscan, 0);
-	fill(nTimeGaps,      nTimeGaps      + samples_struct.ntotscan, 0);
-	fill(format,         format         + samples_struct.ntotscan, 0);
-	fill(nFullyFlagged,  nFullyFlagged  + samples_struct.ntotscan, 0);
-	fill(nMostlyFlagged, nMostlyFlagged + samples_struct.ntotscan, 0);
-	fill(nNan,           nNan           + samples_struct.ntotscan, 0);
-
-	fill(sampFreqs ,     sampFreqs      + samples_struct.ntotscan, 0.0);
+	return_value   = new    int[ntotscan];
+	testExt        = new    int[ntotscan];
+	sampFreqs      = new double[ntotscan];
+	meanSpeeds     = new double[ntotscan];
+	aboveSpeeds    = new double[ntotscan];
+	belowSpeeds    = new double[ntotscan];
+	nSpeed         = new   long[ntotscan];
 
 
-	if (bolo_rank == 0) {
+	nTimeGaps      = new long[ntotscan];
+	nFullyFlagged  = new long[ntotscan];
+	nMostlyFlagged = new long[ntotscan];
+	nNan           = new long[ntotscan];
 
-		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
-			std::vector<string> bolo_fits;
-			long ndet_fits;
+	fill(return_value,   return_value   + ntotscan, 0);
+	fill(nTimeGaps,      nTimeGaps      + ntotscan, 0);
+	fill(nFullyFlagged,  nFullyFlagged  + ntotscan, 0);
+	fill(nMostlyFlagged, nMostlyFlagged + ntotscan, 0);
+	fill(nNan,           nNan           + ntotscan, 0);
 
-			long *bolo_flag;
-
-			double *percent_tab;
-			std::vector<long> indice;
-			double Populated_freq=0.0;
-
-			long init_flag_num=0;
-			long end_flag_num=0;
-
-			// initialize default values
-			check_struct.Check_it.checkLAT=1;
-			check_struct.Check_it.checkLON=1;
-			check_struct.Check_it.checkREFERENCEPOSITION=1;
-			check_struct.Check_it.checkOFFSETS=1;
-
-#ifdef DEBUG
-			cout << endl << endl << "[" << rank <<  "] Checking : " << samples_struct.fitsvect[iframe] << endl << endl;
-#endif
-
-			format[iframe]=test_format(samples_struct.fitsvect[iframe]);
-			// 0 = Unknown format,
-			// 1 = RefPos & offsets format (sanepic),
-			// 2 = lon/lat format (HIPE),
-			// 3 = both sanepic & HIPE
-
-			if(format[iframe]==0){
-				cerr << "input fits file format is undefined : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
-				continue;
-			}
-
-			read_bolo_list(samples_struct.fitsvect[iframe], bolo_fits, ndet_fits); // read fits file detector list
-
-			std::vector<string> det_vect=samples_struct.bolo_list[iframe];
-			long ndet_vect = (long)det_vect.size();
-
-			check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, samples_struct.fitsvect[iframe]); // check wether used detector user list is correct
+	fill(testExt,        testExt        + ntotscan, 0);
+	fill(sampFreqs ,     sampFreqs      + ntotscan, 0.0);
+	fill(meanSpeeds,     meanSpeeds     + ntotscan, 0.0);
+	fill(aboveSpeeds,   aboveSpeeds     + ntotscan, 0.0);
+	fill(belowSpeeds,   belowSpeeds     + ntotscan, 0.0);
+	fill(nSpeed,         nSpeed         + ntotscan, 0);
 
 
+	for (long iframe = samples_struct.iframe_min +  floor(bolo_rank*nFrames*1.0/bolo_size); iframe < samples_struct.iframe_min + floor((bolo_rank+1)*nFrames*1.0/bolo_size); iframe++){
+
+		long ns = samples_struct.nsamples[iframe];
+		string fits_filename = samples_struct.fitsvect[iframe];
+
+		std::vector<string> bolo_fits;
+		long ndet_fits;
+
+		long *bolo_flag;
+		double *percent_tab;
+
+
+		std::vector<long> gapIndices;
+
+		double computedFsamp=0.0;
+		double meanSpeed=0.0, aboveSpeed = -1., belowSpeed = -1.;
+
+		long init_flag_num=0;
+		long end_flag_num=0;
+
+		// initialize default values
+		Check_param.Check_it.checkLAT=1;
+		Check_param.Check_it.checkLON=1;
+		Check_param.Check_it.checkREFERENCEPOSITION=1;
+		Check_param.Check_it.checkOFFSETS=1;
 
 #ifdef DEBUG
-			cout << "\n[" << rank <<  "] Checking presence of common HDU and position HDU\n";
+		cout << endl << endl << "[" << rank <<  "] Checking : " << fits_filename << endl << endl;
 #endif
 
-			return_value[iframe]+=check_commonHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it); // check presence of channels, time, signal and mask HDUs
+		testExt[iframe]=testExtensions(fits_filename);
 
+		if ( ( (testExt[iframe] & EXT_NECESSARY )   != EXT_NECESSARY) || \
+				( ( (testExt[iframe] & HIPE_FORMAT)    != HIPE_FORMAT)  && \
+						( (testExt[iframe] & SANEPIC_FORMAT) != SANEPIC_FORMAT) )  ){
+			// They are missing extensions that are necessary so skip this file...
+			continue;
+		}
 
-			switch(format[iframe]){
-			case 1: // Check RefPos/offsets tables only
-				return_value[iframe]+=check_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits, format[iframe],check_struct.Check_it); // check presence of reference positions and offsets HDUs
+		read_bolo_list(fits_filename, bolo_fits, ndet_fits); // read fits file detector list
+
+		std::vector<string> det_vect=samples_struct.bolo_list[iframe];
+		long ndet_vect = (long)det_vect.size();
+
+		check_detector_is_in_fits(det_vect, ndet_vect, bolo_fits, fits_filename); // check whether used detector user list is correct
+
+		if(Check_param.checkNAN){
+
+			nNan[iframe] += check_NAN_commonHDU(fits_filename,ns,bolo_fits, ndet_fits,Check_param.Check_it);
+
+			switch(testExt[iframe] & EXT_POS) {
+			case SANEPIC_FORMAT: // Check RefPos/offsets tables only
+				nNan[iframe] += check_NAN_positionHDU(fits_filename,ns,bolo_fits, ndet_fits,Check_param.Check_it);
 				break;
-			case 3: // Check RefPos/offsets tables
-				return_value[iframe]+=check_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits, format[iframe],check_struct.Check_it); // check presence of reference positions and offsets HDUs
+			case BOTH_FORMAT: // Check RefPos/offsets tables
+				nNan[iframe] += check_NAN_positionHDU(fits_filename,ns,bolo_fits, ndet_fits,Check_param.Check_it);
 				// and also ...
-			case 2: // Check lon/lat tables
-				return_value[iframe]+=check_altpositionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],ndet_fits,check_struct.Check_it);
+				/* no break */
+			case HIPE_FORMAT: // Check lon/lat tables
+				nNan[iframe] += check_NAN_altpositionHDU(fits_filename,ns,bolo_fits, ndet_fits,Check_param.Check_it);
 				break;
 			}
-
-
-			if(return_value[iframe]<0){
-				cerr << "EE - Some Mandatory HDUs are missing in : " << samples_struct.fitsvect[iframe] << " . Skipping...\n";
-				continue;
-			}
-
-
-			if(((format[iframe]==1 || format[iframe] == 3)&&((!check_struct.Check_it.checkREFERENCEPOSITION)||(!check_struct.Check_it.checkOFFSETS))) ||
-					((format[iframe]==2 || format[iframe] == 3)&&((!check_struct.Check_it.checkLON)||(!check_struct.Check_it.checkLAT)))){
-				cerr << "EE - NO POSITION TABLES in : " << samples_struct.fitsvect[iframe] << " ... Skipping...\n";
-			}
-
-
-			if(check_struct.checkNAN){
-#ifdef DEBUG
-				cout << "\n[" << rank <<  "] Checking NANs in common HDU and position HDU\n"; // check non-flag NANs presence in whole tables
-#endif
-				nNan[iframe] += check_NAN_commonHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
-
-				switch(format[iframe]){
-				case 1:{ // Check RefPos/offsets tables only
-					nNan[iframe] += check_NAN_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
-					break;
-				}
-				case 3: // Check RefPos/offsets tables
-					nNan[iframe] += check_NAN_positionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
-					// and also ...
-				case 2: // Check lon/lat tables
-					nNan[iframe] += check_NAN_altpositionHDU(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe],bolo_fits, ndet_fits,check_struct.Check_it);
-					break;
-				}
-
-			}
-
-			if(check_struct.checktime){
-#ifdef DEBUG
-				cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
-#endif
-				check_time_gaps(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], samples_struct.fsamp[iframe], indice, Populated_freq, check_struct.Check_it);
-				nTimeGaps[iframe] = (long)indice.size();
-			}else{
-				Populated_freq=samples_struct.fsamp[iframe];
-			}
-
-			sampFreqs [iframe]=Populated_freq;
-
-			if(check_struct.checkGain){
-				//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
-				//				check_bolo_gain(samples_struct.fitsvect[iframe],samples_struct.nsamples[iframe], bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
-				//				getchar();
-			}
-
-			if(check_struct.checkflag){
-				percent_tab = new double[ndet_fits];
-				fill(percent_tab,percent_tab+ndet_fits,0.0);
-
-				// Look for fully or more than 80% flagged detectors, also flag singletons
-
-				check_flag(samples_struct.fitsvect[iframe],bolo_fits,ndet_fits, samples_struct.nsamples[iframe], percent_tab, init_flag_num, end_flag_num);
-
-				if((init_flag_num>0) && (init_flag_num<samples_struct.nsamples[iframe])){
-#ifdef DEBUG
-					cout << "\nInitial Flagged samples will be removed from " << samples_struct.fitsvect[iframe] << ".\n Considering " << init_flag_num << " samples...\n\n";
-#endif
-				}else
-					init_flag_num=0;
-
-				if((end_flag_num>0) && (end_flag_num<samples_struct.nsamples[iframe])){
-#ifdef DEBUG
-					cout << "Final Flagged samples will be removed from " << samples_struct.fitsvect[iframe] << ".\n Considering " << end_flag_num << " samples...\n\n";
-#endif
-				}else
-					end_flag_num=0;
-
-				// generating log files...
-				bolo_flag   = new long[ndet_fits]; // flag for goodness
-				fill(bolo_flag,bolo_flag+ndet_fits,0);
-
-				// ... first for very wrong channels... (more than 99 % flagged)
-				for (long ii=0; ii< ndet_fits; ii++)
-					if (percent_tab[ii] >= 99){
-						nFullyFlagged[iframe] +=1 ;
-						bolo_flag[ii] = 1;
-					} else {
-						bolo_flag[ii] = 0;
-					}
-				outname = dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) +"_fully_flagged.bolo";
-				log_gen(bolo_flag,outname, bolo_fits, ndet_fits, percent_tab);
-
-				// ... next for mostly wrong channels... (more than 80% flagged)
-				for (long ii=0; ii< ndet_fits; ii++)
-					if (percent_tab[ii] >= 80 && percent_tab[ii] < 99){
-						nMostlyFlagged[iframe] += 1;
-						bolo_flag[ii] = 1;
-					} else {
-						bolo_flag[ii] = 0;
-					}
-
-				outname = dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) +"_mostly_flagged.bolo";
-				log_gen(bolo_flag, outname, bolo_fits, ndet_fits, percent_tab);
-
-				// ... next for good channels ... (less than 80% flagged)
-				for (long ii=0; ii< ndet_fits; ii++)
-					if (percent_tab[ii] >= 80)
-						bolo_flag[ii] = 0;
-					else
-						bolo_flag[ii] = 1;
-				outname = dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) +"_good.bolo";
-				log_gen(bolo_flag, outname, bolo_fits, ndet_fits);
-
-
-				// ... next for all channels ...
-				for (long ii=0; ii< ndet_fits; ii++)
-					bolo_flag[ii] = 1;
-				outname = dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) +"_all.bolo";
-				log_gen(bolo_flag,outname, bolo_fits, ndet_fits, percent_tab);
-
-
-				delete [] bolo_flag;
-				delete [] percent_tab;
-
-
-			}
-
-			if(print_to_bin_file(dir.tmp_dir, samples_struct.fitsvect[iframe], init_flag_num, end_flag_num, Populated_freq, indice))
-				return 1;
 
 		}
-	}
 
+		if(Check_param.checkTime && ( (testExt[iframe] & EXT_TIME) == EXT_TIME) ){
+#ifdef DEBUG
+			cout << "\n[" << rank <<  "] Checking time gaps in time table\n"; // check for time gaps in time table
+#endif
+			check_time_gaps(fits_filename,ns, samples_struct.fsamp[iframe], gapIndices, computedFsamp, Check_param.Check_it);
+			nTimeGaps[iframe] = (long)gapIndices.size();
+		}else{
+			computedFsamp     = samples_struct.fsamp[iframe];
+			nTimeGaps[iframe] = -1;
+		}
+
+		sampFreqs [iframe]=computedFsamp;
+
+		if(Check_param.checkGain){
+			//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
+			//				check_bolo_gain(fits_filename,ns, bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
+			//				getchar();
+		}
+
+		if(Check_param.checkFlag && ( (testExt[iframe] & EXT_MASK) == EXT_MASK) ){
+			percent_tab = new double[ndet_fits];
+			fill(percent_tab,percent_tab+ndet_fits,0.0);
+
+			// Look for fully or more than 80% flagged detectors, also flag singletons
+
+			check_Flag(fits_filename,bolo_fits,ndet_fits, ns, percent_tab, init_flag_num, end_flag_num);
+
+#ifdef DEBUG
+			if((init_flag_num>0) && (init_flag_num<ns)){
+				cout << "\nInitial Flagged samples will be removed from " << fits_filename << ".\n Considering " << init_flag_num << " samples...\n\n";
+			} else
+				init_flag_num=0;
+
+			if((end_flag_num>0) && (end_flag_num<ns)){
+				cout << "Final Flagged samples will be removed from " << fits_filename << ".\n Considering " << end_flag_num << " samples...\n\n";
+			}else
+				end_flag_num=0;
+#endif
+
+			// generating log files...
+			bolo_flag   = new long[ndet_fits]; // flag for goodness
+			fill(bolo_flag,bolo_flag+ndet_fits,0);
+
+			// ... first for very wrong channels... (more than 99 % flagged)
+			for (long ii=0; ii< ndet_fits; ii++)
+				if (percent_tab[ii] >= 99){
+					nFullyFlagged[iframe] +=1 ;
+					bolo_flag[ii] = 1;
+				} else {
+					bolo_flag[ii] = 0;
+				}
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_fully_flagged.bolo";
+			log_gen(bolo_flag,outname, bolo_fits, ndet_fits, percent_tab);
+
+			// ... next for mostly wrong channels... (more than 80% flagged)
+			for (long ii=0; ii< ndet_fits; ii++)
+				if (percent_tab[ii] >= 80 && percent_tab[ii] < 99){
+					nMostlyFlagged[iframe] += 1;
+					bolo_flag[ii] = 1;
+				} else {
+					bolo_flag[ii] = 0;
+				}
+
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_mostly_flagged.bolo";
+			log_gen(bolo_flag, outname, bolo_fits, ndet_fits, percent_tab);
+
+			// ... next for good channels ... (less than 80% flagged)
+			for (long ii=0; ii< ndet_fits; ii++)
+				if (percent_tab[ii] >= 80)
+					bolo_flag[ii] = 0;
+				else
+					bolo_flag[ii] = 1;
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_good.bolo";
+			log_gen(bolo_flag, outname, bolo_fits, ndet_fits);
+
+
+			// ... next for all channels ...
+			for (long ii=0; ii< ndet_fits; ii++)
+				bolo_flag[ii] = 1;
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_all.bolo";
+			log_gen(bolo_flag,outname, bolo_fits, ndet_fits, percent_tab);
+
+
+			delete [] bolo_flag;
+			delete [] percent_tab;
+
+
+		}
+
+		speedIndices = new int[ns];
+		fill(speedIndices, speedIndices+ns, 0);
+
+		if(Check_param.checkSpeed && ( (testExt[iframe] & EXT_TIME) == EXT_TIME ) && ( ((testExt[iframe] & HIPE_FORMAT) == HIPE_FORMAT) || ((testExt[iframe] & SANEPIC_FORMAT) == SANEPIC_FORMAT) ) ) {
+
+			long initFlagSpeed = 0, endFlagSpeed = 0;
+			nSpeed[iframe] = check_Speed(Check_param, fits_filename, testExt[iframe] , ns, bolo_fits[0], meanSpeed, belowSpeed, aboveSpeed, speedIndices, initFlagSpeed, endFlagSpeed);
+
+			meanSpeeds[iframe]  =  meanSpeed;
+			aboveSpeeds[iframe] = aboveSpeed;
+			belowSpeeds[iframe] = belowSpeed;
+
+			if (initFlagSpeed > init_flag_num)
+				init_flag_num = initFlagSpeed;
+			if (endFlagSpeed > end_flag_num)
+				end_flag_num = endFlagSpeed;
+
+		}
+
+		if( print_to_bin_file(dir.tmp_dir, fits_filename, init_flag_num, end_flag_num, computedFsamp, ns, speedIndices, gapIndices) )
+			return 1;
+
+		if ( exportCheckToFits(dir.tmp_dir, fits_filename, init_flag_num, end_flag_num, computedFsamp, ns, speedIndices, gapIndices) )
+			return 1;
+
+		delete [] speedIndices;
+
+	}
 
 #ifdef USE_MPI
 
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(rank==0){ // only for MPI_reduce
 
-		format_tot         = new int[samples_struct.ntotscan];
-		return_value_tot   = new int[samples_struct.ntotscan];
+		testExt_tot        = new int[ntotscan];
+		return_value_tot   = new int[ntotscan];
 
-		nTimeGaps_tot      = new long[samples_struct.ntotscan];
-		nFullyFlagged_tot  = new long[samples_struct.ntotscan];
-		nMostlyFlagged_tot = new long[samples_struct.ntotscan];
-		nNan_tot           = new long[samples_struct.ntotscan];
+		nTimeGaps_tot      = new long[ntotscan];
+		nFullyFlagged_tot  = new long[ntotscan];
+		nMostlyFlagged_tot = new long[ntotscan];
+		nNan_tot           = new long[ntotscan];
 
-		sampFreqs_tot      = new double[samples_struct.ntotscan];
+		nSpeed_tot         = new long[ntotscan];
+		meanSpeeds_tot     = new double[ntotscan];
+		aboveSpeeds_tot    = new double[ntotscan];
+		belowSpeeds_tot    = new double[ntotscan];
 
-		fill(format_tot,         format_tot         + samples_struct.ntotscan, 0);
-		fill(return_value_tot,   return_value_tot   + samples_struct.ntotscan, 0);
-		fill(nTimeGaps_tot,      nTimeGaps_tot      + samples_struct.ntotscan, 0);
-		fill(nFullyFlagged_tot , nFullyFlagged_tot  + samples_struct.ntotscan, 0);
-		fill(nMostlyFlagged_tot, nMostlyFlagged_tot + samples_struct.ntotscan, 0);
-		fill(nNan_tot,           nNan_tot           + samples_struct.ntotscan, 0);
+		sampFreqs_tot      = new double[ntotscan];
 
-		fill(sampFreqs_tot,      sampFreqs_tot      + samples_struct.ntotscan, 0.0);
+		fill(testExt_tot,        testExt_tot        + ntotscan, 0);
+		fill(return_value_tot,   return_value_tot   + ntotscan, 0);
+		fill(nTimeGaps_tot,      nTimeGaps_tot      + ntotscan, 0);
+		fill(nFullyFlagged_tot , nFullyFlagged_tot  + ntotscan, 0);
+		fill(nMostlyFlagged_tot, nMostlyFlagged_tot + ntotscan, 0);
+		fill(nNan_tot,           nNan_tot           + ntotscan, 0);
+
+		fill(nSpeed_tot,		nSpeed_tot		+ ntotscan, 0);
+		fill(meanSpeeds_tot,	meanSpeeds_tot	+ ntotscan, 0.0);
+		fill(aboveSpeeds_tot,	aboveSpeeds_tot	+ ntotscan, 0.0);
+		fill(belowSpeeds_tot,	belowSpeeds_tot	+ ntotscan, 0.0);
+
+		fill(sampFreqs_tot,      sampFreqs_tot      + ntotscan, 0.0);
 	}
 
 	// Eventually use the custom MPI_Node_Reduce...
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	MPI_Reduce(format,         format_tot,         samples_struct.ntotscan, MPI_INT,    MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(return_value,   return_value_tot,   samples_struct.ntotscan, MPI_INT,    MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(testExt,             testExt_tot,   ntotscan, MPI_INT,    MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(return_value,   return_value_tot,   ntotscan, MPI_INT,    MPI_SUM, 0, MPI_COMM_WORLD);
 
-	MPI_Reduce(nTimeGaps,      nTimeGaps_tot,      samples_struct.ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(nFullyFlagged,  nFullyFlagged_tot,  samples_struct.ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(nMostlyFlagged, nMostlyFlagged_tot, samples_struct.ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(nNan,           nNan_tot,           samples_struct.ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(nTimeGaps,      nTimeGaps_tot,      ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(nFullyFlagged,  nFullyFlagged_tot,  ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(nMostlyFlagged, nMostlyFlagged_tot, ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(nNan,           nNan_tot,           ntotscan, MPI_LONG,   MPI_SUM, 0, MPI_COMM_WORLD);
 
-	MPI_Reduce(sampFreqs,      sampFreqs_tot,      samples_struct.ntotscan, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(nSpeed,			 nSpeed_tot,	ntotscan, MPI_LONG,		MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(meanSpeeds,	 meanSpeeds_tot,	ntotscan, MPI_DOUBLE,	MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(aboveSpeeds,	aboveSpeeds_tot,	ntotscan, MPI_DOUBLE,	MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(belowSpeeds,	belowSpeeds_tot,	ntotscan, MPI_DOUBLE,	MPI_SUM, 0, MPI_COMM_WORLD);
+
+
+	MPI_Reduce(sampFreqs,      sampFreqs_tot,      ntotscan, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 #else
-	format_tot         = format;
-	return_value_tot   = return_value;
+	testExt_tot			= testExt;
+	return_value_tot	= return_value;
 
-	nTimeGaps_tot      = nTimeGaps;
-	nFullyFlagged_tot  = nFullyFlagged;
-	nMostlyFlagged_tot = nMostlyFlagged;
-	nNan_tot           = nNan;
+	nTimeGaps_tot		= nTimeGaps;
+	nFullyFlagged_tot	= nFullyFlagged;
+	nMostlyFlagged_tot	= nMostlyFlagged;
+	nNan_tot			= nNan;
 
-	sampFreqs_tot      = sampFreqs;
+	nSpeed_tot			= nSpeed;
+	meanSpeeds_tot		= meanSpeeds;
+	aboveSpeeds_tot		= aboveSpeeds;
+	belowSpeeds_tot		= belowSpeeds;
+
+	sampFreqs_tot		= sampFreqs;
 #endif
+
 
 	if(rank==0){
 
 		cout << endl;
 		/* -------------------------- Screen parser_output report ------------------------------ */
 
-		cout << "Report :" << endl << endl;
+		cout << "Report :" << endl;
 
-		for(int ii=0;ii<samples_struct.ntotscan;ii++){
+		for(int iframe=0;iframe<ntotscan;iframe++){
 
-			cout << samples_struct.fitsvect[ii] << " : " << endl ;
+			cout << endl << samples_struct.fitsvect[iframe] << " : " << endl ;
 
-			if (return_value_tot[ii] == 0 ) {
-				switch(format_tot[ii]){
-				case 1:
-					cout << "- RefPos/offset Format" << endl;
-					break;
-				case 2:
-					cout << "- Lon/Lat Format" << endl;
-					break;
-				case 3:
-					cout << "- Hybrid Format" << endl;
-					break;
-				default:
-					cout << "- Unknown Format" << endl;
-					break;
-				}
-
-
-				cout << "- " << (nNan_tot[ii]>0 ? StringOf(nNan_tot[ii]) : "No") << " unflagged NaNs" << endl;
-				cout << "- Sampling Freq. : " << sampFreqs_tot[ii] << " Hz" << endl;
-				cout << "- " << nTimeGaps_tot[ii] << " time gaps" << endl;
-				cout << "- " << nFullyFlagged_tot[ii] << " fully flagged bolometers" << endl;
-				cout << "- " << nMostlyFlagged_tot[ii] << " mostly flagged bolometers" << endl;
-
-			} else {
-				cout << "- Bad file format (missing HDUs)" << endl;
+			if ( ( (testExt_tot[iframe] & EXT_NECESSARY ) != EXT_NECESSARY) || ( ( (testExt_tot[iframe] & HIPE_FORMAT) != HIPE_FORMAT)  &&  ( (testExt_tot[iframe] & SANEPIC_FORMAT) !=  SANEPIC_FORMAT) ) ){
+				// They are missing extensions that are necessary so report...
+				cout << "EE - missing necessary fits extensions (";
+				if ((testExt_tot[iframe] & EXT_SIGNAL) == 0)
+					cout << " signals";
+				if ((testExt_tot[iframe] & EXT_MASK) == 0)
+					cout << " masks";
+				if ((testExt_tot[iframe] & EXT_CHAN) == 0)
+					cout << " channels";
+				if ((testExt_tot[iframe] & EXT_POS) == 0)
+					cout << " positions (either RefPos/offset or Lon/lat)";
+				cout << ")" << endl;
 			}
 
-			cout << endl;
+			cout << "\t- ";
+			switch(testExt_tot[iframe] & EXT_POS){
+			case SANEPIC_FORMAT:
+				cout << "RefPos/offset";
+				break;
+			case HIPE_FORMAT:
+				cout << "Lon/Lat";
+				break;
+			case BOTH_FORMAT:
+				cout << "Hybrid";
+				break;
+			default:
+				cout << "Unknown";
+				break;
+			}
+			cout << " Format" << endl;
 
-			/* -------------------------------------------------------------------------- */
+			if	(Check_param.checkNAN) {
+				cout << "\t- " << (nNan_tot[iframe]>0 ? StringOf(nNan_tot[iframe]) : "No") << " unflagged NaNs" << endl;
+			}
+
+			if (Check_param.checkTime) {
+				cout << "\t- Sampling Freq. : " << sampFreqs_tot[iframe] << " Hz" << endl;
+				cout << "\t- " << nTimeGaps_tot[iframe] << " time gaps" << endl;
+			}
+
+			if (Check_param.checkFlag){
+				cout << "\t- " << nFullyFlagged_tot[iframe] << " fully flagged bolometers" << endl;
+				cout << "\t- " << nMostlyFlagged_tot[iframe] << " mostly flagged bolometers" << endl;
+			}
+
+			if (Check_param.checkSpeed){
+				cout << "\t- meanSpeed :" << meanSpeeds_tot[iframe] << " arcsec/sec" << endl;
+				cout << "\t- " << nSpeed_tot[iframe] << " flags below " << belowSpeeds_tot[iframe] << " arcsec/sec or above "<< aboveSpeeds_tot[iframe] << " arcsec/sec ("<< nSpeed_tot[iframe]*100./samples_struct.nsamples[iframe] << " %)" << endl;
+			}
 		}
 
-		cout << "\nPlease run saneFix\n";
+		cout << endl;
 
+		/* -------------------------------------------------------------------------- */
+
+		cout << "\nPlease run saneFix\n";
 	}
+
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -539,23 +592,30 @@ int main(int argc, char *argv[]) {
 	//clean up
 
 	delete [] nTimeGaps;
-	delete [] format;
+	delete [] testExt;
 	delete [] nFullyFlagged;
 	delete [] nMostlyFlagged;
 	delete [] nNan;
 	delete [] sampFreqs ;
-
+	delete [] nSpeed;
+	delete [] meanSpeeds;
+	delete [] aboveSpeeds;
+	delete [] belowSpeeds;
 
 #ifdef USE_MPI
 
 	if(rank==0){
 
 		delete [] nTimeGaps_tot;
-		delete [] format_tot;
+		delete [] testExt_tot;
 		delete [] nFullyFlagged_tot ;
 		delete [] nMostlyFlagged_tot;
 		delete [] nNan_tot;
 		delete [] sampFreqs_tot;
+		delete [] nSpeed_tot;
+		delete [] meanSpeeds_tot;
+		delete [] aboveSpeeds_tot;
+		delete [] belowSpeeds_tot;
 	}
 
 	MPI_Barrier(MPI_COMM_WORLD);

@@ -141,10 +141,10 @@ std::string prettyPrintAngle(float angle){
 
 #ifdef USE_MPI
 
-uint16_t MPI_Bcast_vector_string(std::vector<std::string> & strvect, int root, MPI_Comm Comm){
+uint32_t MPI_Bcast_vector_string(std::vector<std::string> & strvect, int root, MPI_Comm Comm){
 
 	int irank;
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	MPI_Comm_rank(Comm,&irank);
 
@@ -183,10 +183,10 @@ uint16_t MPI_Bcast_vector_string(std::vector<std::string> & strvect, int root, M
 	return returnCode;
 }
 
-uint16_t MPI_Bcast_vector_int(std::vector<int> & intvect, int root, MPI_Comm Comm){
+uint32_t MPI_Bcast_vector_int(std::vector<int> & intvect, int root, MPI_Comm Comm){
 
 	int irank;
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	MPI_Comm_rank(Comm,&irank);
 
@@ -217,10 +217,10 @@ uint16_t MPI_Bcast_vector_int(std::vector<int> & intvect, int root, MPI_Comm Com
 	return returnCode;
 }
 
-uint16_t MPI_Bcast_vector_long(std::vector<long> & longvect, int root, MPI_Comm Comm){
+uint32_t MPI_Bcast_vector_long(std::vector<long> & longvect, int root, MPI_Comm Comm){
 
 	int irank;
-	uint16_t returnCode = 0;
+	uint32_t returnCode = 0;
 
 	MPI_Comm_rank(Comm,&irank);
 
@@ -251,9 +251,9 @@ uint16_t MPI_Bcast_vector_long(std::vector<long> & longvect, int root, MPI_Comm 
 	return returnCode;
 }
 
-uint16_t MPI_Bcast_dmatrix(double ** buffer, long nrow, long ncol, int root, MPI_Comm Comm){
+uint32_t MPI_Bcast_dmatrix(double ** buffer, long nrow, long ncol, int root, MPI_Comm Comm){
 
-  uint16_t returnCode = 0;
+  uint32_t returnCode = 0;
 
   for (long iRow=0; iRow < nrow; iRow++)
     returnCode |= MPI_Bcast(buffer[iRow], (int) ncol, MPI_DOUBLE, root, Comm);
@@ -263,9 +263,9 @@ uint16_t MPI_Bcast_dmatrix(double ** buffer, long nrow, long ncol, int root, MPI
 }
 
 
-uint16_t MPI_Reduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, int root, MPI_Comm Comm){
+uint32_t MPI_Reduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, int root, MPI_Comm Comm){
 
-  uint16_t returnCode = 0;
+  uint32_t returnCode = 0;
 
   int irank;
   MPI_Comm_rank(Comm,&irank);
@@ -281,9 +281,9 @@ uint16_t MPI_Reduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op o
 
 }
 
-uint16_t MPI_Allreduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, MPI_Comm Comm){
+uint32_t MPI_Allreduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, MPI_Comm Comm){
 
-  uint16_t returnCode = 0;
+  uint32_t returnCode = 0;
 
   for (long iRow=0; iRow < nrow; iRow++)
       returnCode |= MPI_Allreduce(MPI_IN_PLACE, sendrecvbuf[iRow], (int) ncol, MPI_DOUBLE, op, Comm);

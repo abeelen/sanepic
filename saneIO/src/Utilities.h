@@ -112,7 +112,7 @@ template <typename T> void reorder( std::vector<T> & data, std::vector<std::size
 }
 
 
-uint16_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size);
+uint32_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size);
 
 //! Computes the size of each string contained in "str_vect"
 /*!
@@ -130,12 +130,12 @@ std::string prettyPrintAngle(float angle);
 
 #ifdef USE_MPI
 
-uint16_t MPI_Bcast_vector_string(std::vector<std::string> &fitsvect, int rank, MPI_Comm Comm);
-uint16_t MPI_Bcast_vector_int(std::vector<int> & intvect, int rank, MPI_Comm Comm);
-uint16_t MPI_Bcast_vector_long(std::vector<long> & longvect, int rank, MPI_Comm Comm);
-uint16_t MPI_Bcast_dmatrix(double ** dmatrix, long nrow, long ncol, int root, MPI_Comm Comm);
-uint16_t MPI_Reduce_dmatrix(   double **sendrecvbuf, long nrow, long ncol, MPI_Op op, int root, MPI_Comm Comm);
-uint16_t MPI_Allreduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, MPI_Comm Comm);
+uint32_t MPI_Bcast_vector_string(std::vector<std::string> &fitsvect, int rank, MPI_Comm Comm);
+uint32_t MPI_Bcast_vector_int(std::vector<int> & intvect, int rank, MPI_Comm Comm);
+uint32_t MPI_Bcast_vector_long(std::vector<long> & longvect, int rank, MPI_Comm Comm);
+uint32_t MPI_Bcast_dmatrix(double ** dmatrix, long nrow, long ncol, int root, MPI_Comm Comm);
+uint32_t MPI_Reduce_dmatrix(   double **sendrecvbuf, long nrow, long ncol, MPI_Op op, int root, MPI_Comm Comm);
+uint32_t MPI_Allreduce_dmatrix(double **sendrecvbuf, long nrow, long ncol, MPI_Op op, MPI_Comm Comm);
 
 #endif
 

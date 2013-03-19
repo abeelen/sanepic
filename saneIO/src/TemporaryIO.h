@@ -185,7 +185,7 @@ int writeFdata(DIRFILE *D, long ns, fftw_complex *fdata, std::string prefixe, lo
 int readFdata(DIRFILE* D, std::string filename, std::string boloname, std::string prefixe, fftw_complex *fdata, long ns );
 
 //! Read the size of the dirfile, store it in the samples_struct.nframes vector
-uint16_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_struct);
+uint32_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_struct);
 
 //! Open a dirfile to get nbins (Noise_data/ell) and ndet (Noise_data) values
 /*!
@@ -194,7 +194,7 @@ uint16_t readFramesFromDirfile(std::string tmp_dir, struct samples &samples_stru
  \param rank The processor rank given by MPI_Comm_rank, in case paraframe or parabolo is defined
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-uint16_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &samples_struct);
+uint32_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &samples_struct);
 
 //! Creates dirfile architecture and format files considering fits file format (SANEPIC or HIPE)
 /*!
@@ -204,7 +204,7 @@ uint16_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &sample
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-uint16_t init_dirfile(std::string tmp_dir, struct samples & samples_struct, int rank);
+uint32_t init_dirfile(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Clean up Indexes dirfiles and format files or Creates it if needed
 /*!
@@ -214,7 +214,7 @@ uint16_t init_dirfile(std::string tmp_dir, struct samples & samples_struct, int 
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-uint16_t cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_struct, int rank);
+uint32_t cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Clean up Noise_data and Noise_data/ell dirfiles and format files or Creates it if needed
 /*!
@@ -236,6 +236,6 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-uint16_t cleanup_dirfile_sanePic(std::string tmp_dir, struct samples & samples_struct, int rank);
+uint32_t cleanup_dirfile_sanePic(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 #endif

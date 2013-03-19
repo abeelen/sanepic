@@ -441,7 +441,7 @@ int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, dou
 	return 0;
 }
 
-uint16_t assignMixMat(string fname, std::vector<string> det, long ncomp, double **& mixmat){
+uint32_t assignMixMat(string fname, std::vector<string> det, long ncomp, double **& mixmat){
 
 	double ** mixmatIn;
 	long ndetOut, ndetIn, nCompIn;

@@ -17,8 +17,17 @@
 #include <cstdio>  // for printf()
 
 
+#include "gsl/gsl_math.h"
+#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_histogram.h>
+#include <gsl/gsl_sort.h>
+
+
 extern "C" {
-#include "nrutil.h"
+//#include "nrutil.h"
+#include <wcslib/prj.h>
+#include <wcslib/cel.h>
+#include <wcslib/sph.h>
 #include <fitsio.h>
 }
 
@@ -41,363 +50,13 @@ void check_detector_is_in_fits(std::vector<std::string> det, long ndet, std::vec
 
 }
 
-int check_positionHDU(string fname,long ns, long ndet, int format, struct checkHDU &check_it)
-/* this function determines whether reference and offsets HDUs are present and have the correct size */
-{
-
-	fitsfile *fptr; // fits file pointer
-	int status = 0; // fits error status
-	int colnum; // fits binary table column index
-	long ns_test=0; // used only to read tables
-	long ndet_test=0; // used to read detector list size
-
-
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits file
-		fits_report_error(stderr, status);
-
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "RefPos", 0, &status)){ // go to reference table
-		fits_report_error(stderr, status); // reference position table was not found ?
-		check_it.checkREFERENCEPOSITION=0;
-		cout << "\"RefPos\" was not found, or his Type should be Binary table" << endl;
-	}else{
-
-		fits_get_num_rows(fptr, &ns_test, &status);
-		if(ns!=ns_test){ // check reference position table's size
-			cout << "\"RefPos\" has a wrong number of rows (must be equal to ns : " << ns << " )" << endl;
-			return -1;
-		}
-
-		fits_get_num_cols(fptr, &colnum, &status);
-		if(colnum!=3){ // check reference position table's size
-			cout << "\"RefPos\" has a wrong number of cols (must be equal to 3 : LON, LAT, PHI )" << endl;
-			return -1;
-		}else{
-
-
-			fits_get_colnum(fptr, CASEINSEN, (char*) "lon", &colnum, &status);
-			if(colnum!=1){
-				cout << "\"lon\" was not found in \"RefPos\"" << endl;
-				return -1;
-			}
-
-			colnum=0;
-			fits_get_colnum(fptr, CASEINSEN, (char*) "lat", &colnum, &status);
-			if(colnum!=2){
-				cout << "\"lat\" table was not found in \"RefPos\"" << endl;
-				return -1;
-			}
-
-			colnum=0;
-			fits_get_colnum(fptr, CASEINSEN, (char*) "PHI", &colnum, &status);
-			if(colnum!=3){ // check PHI table's size
-				cout << "\"PHI\" table was not found in \"RefPos\"" << endl;
-				return -1;
-			}
-		}
-	}
-
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "offsets", 0, &status)){ // go to offsets table
-		fits_report_error(stderr, status); // offsets table was not found ?
-		check_it.checkOFFSETS=0;
-		cout << "\"offsets\" was not found, or his Type should be Binary table" << endl;
-	}else{
-
-		fits_get_num_rows(fptr, &ndet_test, &status);
-		if(ndet>ndet_test){ // check offsets table's size
-			cout << "\"offsets\" has a wrong number of rows (must be greater or equal to ndet : " << ndet << " )" << endl;
-			return -1;
-		}
-
-		colnum=0;
-		fits_get_num_cols(fptr, &colnum, &status);
-		if(colnum!=3){ // check offsets table's size
-			cout << "\"offsets\" has a wrong number of cols (must be equal to 3 : NAME, DX, DY )" << endl;
-			return -1;
-		}else{
-			string name_table,dx_table,dy_table;
-
-			if(format==1){ // check presence of dx and dy tables in offsets table : name depends on format
-				name_table="name";
-				dx_table="dX";
-				dy_table="dY";
-			}else{
-				name_table="NAME";
-				dx_table="DX";
-				dy_table="DY";
-			}
-
-
-			colnum=0; // check offsets table's size
-			fits_get_colnum(fptr, CASEINSEN, (char*) name_table.c_str(), &colnum, &status);
-			if(colnum!=1){
-				cout << "\"NAME\" table was not found in \"offsets\"" << endl;
-				return -1;
-			}
-
-			colnum=0; // check dx table's presence
-			fits_get_colnum(fptr, CASEINSEN, (char*) dx_table.c_str(), &colnum, &status);
-			if(colnum!=2){
-				cout << "\"DX\" table was not found in \"offsets\"" << endl;
-				return -1;
-			}
-
-			colnum=0; // check dy table's presence
-			fits_get_colnum(fptr, CASEINSEN, (char*) dy_table.c_str(), &colnum, &status);
-			if(colnum!=3){
-				cout << "\"DY\" table was not found in \"offsets\"" << endl;
-				return -1;
-			}
-		}
-	}
-
-	// close file
-	if(fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
-
-	return 0;
-
-}
-
-int check_commonHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
-/* this function determines whether channels, time, signal and mask HDUs are present and have the correct size */
-{
-
-	fitsfile *fptr;
-	int status = 0;
-	int colnum;
-	long ndet_test=0;
-	int naxis=0;
-	long naxes[2] = { 1, 1 };
-
-
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)){
-		fits_report_error(stderr, status);
-		return -1;
-	}
-
-	if (fits_movnam_hdu(fptr, BINARY_TBL, (char*) "channels", 0, &status)){ // go to channels table
-		fits_report_error(stderr, status); // is the table present ?
-		cout << "\"channels\" was not found, or his Type should be Binary table" << endl;
-		return -1;
-	}else{
-
-		ndet_test=0;
-		fits_get_num_rows(fptr, &ndet_test, &status);
-		if(ndet_test!=ndet){ // Is the size correct ?
-			cout << "\"channels\" has a wrong number of rows (must be equal to ndet : " << ndet << " )" << endl;
-			return -1;
-		}
-
-		colnum=0;
-		fits_get_num_cols(fptr, &colnum, &status);
-		if(colnum!=1){  // Is the size correct ?
-			cout << "\"channels\" has a wrong number of cols (must be equal to 1 : NAME )" << endl;
-			return -1;
-		}else{
-
-			colnum=0;
-			fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
-			if(colnum!=1){ // Table NAME is present ?
-				fits_get_colnum(fptr, CASEINSEN, (char*) "NAME", &colnum, &status);
-				if(colnum!=1){ // Table NAME is present ?
-					cout << "\"NAME\" table was not found in \"channels\"" << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "time", 0, &status)){
-		fits_report_error(stderr, status); // time table is present ?
-		cout << "\"time\" was not found, or his Type should be image" << endl;
-		return -1;
-	}else{
-		if(fits_get_img_dim(fptr, &naxis, &status)){ // check size
-			fits_report_error(stderr, status);
-			return -1;
-		}else{
-
-			if(naxis!=1){
-				cout << "\"time\" has a wrong number of columns, should be equal to 1 " << endl;
-				return -1;
-			}else{
-				if (fits_get_img_size(fptr, 2, naxes, &status)){
-					fits_report_error(stderr, status);
-					return -1;
-				}
-				if(naxes[0]!=ns){
-					cout << "\"time\" has a wrong number of elements, should be equal to ns : " << ns << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-	status = 0;
-	naxes[0]=1;
-	naxes[1]=1;
-
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "signal", 0, &status)){
-		fits_report_error(stderr, status); // signal image is present ?dr
-		cout << "\"signal\" was not found, or his Type should be image" << endl;
-		return -1;
-	}else{
-
-		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
-			fits_report_error(stderr, status);
-			return -1;
-		}
-		if(naxis != 2){
-			fits_report_error(stderr,BAD_NAXIS);
-			cout << "\"signal\" must have 2 dimensions" << endl;
-			return -1;
-		}else{
-			if (fits_get_img_size(fptr, 2, naxes, &status)){
-				fits_report_error(stderr, status);
-				return -1;
-			}else{
-
-				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){
-					cout << "\"signal\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-	status = 0;
-	naxes[0]=1;
-	naxes[1]=1;
-
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "mask", 0, &status)){
-		fits_report_error(stderr, status); // mask image is present ?
-		cout << "\"mask\" was not found, or his Type should be image" << endl;
-		return -1;
-	}else{
-
-		if (fits_get_img_dim(fptr, &naxis, &status)){ // check size
-			fits_report_error(stderr, status);
-			return -1;
-		}else{
-			if(naxis != 2){
-				fits_report_error(stderr,BAD_NAXIS);
-				cout << "\"mask\" must have 2 dimensions" << endl;
-				return -1;
-			}else{
-
-				if (fits_get_img_size(fptr, 2, naxes, &status)){
-					fits_report_error(stderr, status);
-					cout << "\"mask\" must have 2 dimensions" << endl;
-					return -1;
-				}
-
-				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){
-					cout << "\"mask\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-	// close file
-	if(fits_close_file(fptr, &status)){
-		fits_report_error(stderr, status);
-		return -1;
-	}
-
-
-	return 0;
-}
-
-
-int check_altpositionHDU(string fname,long ns, long ndet, struct checkHDU &check_it)
-/* check LON/LAT table presence : only for HIPE format */
-{
-
-	fitsfile *fptr; // fits pointer
-	int status = 0; // fits error status
-	int naxis=0;
-	long naxes[2] = { 1, 1 };
-
-	if (fits_open_file(&fptr, fname.c_str(), READONLY, &status)) // open fits
-		fits_report_error(stderr, status);
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lon", 0, &status)){ // move to ra table
-		fits_report_error(stderr, status); // Does it exists ?
-		check_it.checkLON=0;
-		cout << "\"lon\" was not found, or his Type should be image" << endl;
-	}else{
-
-		if (fits_get_img_dim(fptr, &naxis, &status)){ // get size
-			fits_report_error(stderr, status);
-			return -1;
-		}else{
-			if(naxis != 2){
-				fits_report_error(stderr,BAD_NAXIS);
-				cout << "\"lon\" must have 2 dimensions" << endl;
-				return -1;
-			}
-			if (fits_get_img_size(fptr, 2, naxes, &status)){
-				fits_report_error(stderr, status);
-				return -1;
-			}else{
-
-				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
-					cout << "\"lon\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-	status = 0;
-
-
-	if (fits_movnam_hdu(fptr, IMAGE_HDU, (char*) "lat", 0, &status)){
-		fits_report_error(stderr, status);
-		check_it.checkLAT=0;
-		cout << "\"lat\" was not found, or his Type should be image" << endl;
-	}else{
-
-		if (fits_get_img_dim(fptr, &naxis, &status)){ // get table size
-			fits_report_error(stderr, status);
-			return -1;
-		}else{
-			if(naxis != 2){
-				fits_report_error(stderr,BAD_NAXIS);
-				cout << "\"lat\" must have 2 dimensions" << endl;
-				return -1;
-			}
-			if (fits_get_img_size(fptr, 2, naxes, &status)){
-				fits_report_error(stderr, status);
-				return -1;
-			}else{
-
-				if((naxes[0]!=ns)&&(naxes[1]!=ndet)){ // check size
-					cout << "\"lat\" has a wrong size, it must be ns*ndet : " << ns << " x " << ndet << endl;
-					return -1;
-				}
-			}
-		}
-	}
-
-	// close file
-	if(fits_close_file(fptr, &status))
-		fits_report_error(stderr, status);
-
-	return 0;
-}
-
 long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, long ndet, struct checkHDU check_it)
 /* Check presence of non-flagged NANs in position tables */
 {
 
 	long ns_test=0;
 	double *lon, *lat, *phi;
-//	double **offsets = NULL;
+	//	double **offsets = NULL;
 	long nan_found=0;
 
 	int *flag; // to read mask table
@@ -434,18 +93,18 @@ long check_NAN_positionHDU(string fname,long ns, std::vector<std::string> det, l
 	if(check_it.checkOFFSETS){
 		//TODO: This fails on read.... Check...
 		// flag indepedent
-//		if(read_all_bolo_offsets_from_fits(fname, det, offsets)) // read offsets table
-//			return 1;
-//
-//		for(int ii=0;ii<ndet;ii++)
-//			if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){ // check NANs
-//				cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
-//				cout << "You should not take this detector for the computation of Sanepic\n";
-//				nan_found++;
-//			}
+		//		if(read_all_bolo_offsets_from_fits(fname, det, offsets)) // read offsets table
+		//			return 1;
+		//
+		//		for(int ii=0;ii<ndet;ii++)
+		//			if(isnan(offsets[ii][0])||isnan(offsets[ii][1])){ // check NANs
+		//				cout << "Warning ! a NAN has been found in \"offsets\" table for bolometer n° " << ii << endl;
+		//				cout << "You should not take this detector for the computation of Sanepic\n";
+		//				nan_found++;
+		//			}
 
 		// clean up
-//		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
+		//		free_dmatrix(offsets,(long)0,ndet-1,(long)0,2-1);
 	}
 	return nan_found;
 
@@ -475,10 +134,10 @@ long check_NAN_commonHDU(string fname,long ns, std::vector<std::string> det, lon
 	}
 
 	// check nans in time image
-	if(read_time_from_fits(fname, time, ns))
+	if(read_time_from_fits(fname, time, ns_test))
 		return 1;
 
-	for(long jj=0;jj<ns;jj++){
+	for(long jj=0;jj<ns_test;jj++){
 		if(isnan(time[jj])&&(flag[jj]==0)){
 			cout << "Warning ! a NAN has been found in \"time\" table for sample n° " << jj << endl;
 			nan_found++;
@@ -565,14 +224,12 @@ bool check_bolos(std::vector<string> bolo_fits_vect, std::vector<string> bolo_fi
 	return 0;
 }
 
-int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, double *percent_tab, long &init_flag_num, long &end_flag_num)
+int check_Flag(string fname, std::vector<std::string> det, long ndet, long ns, double *percent_tab, long &init_flag_num, long &end_flag_num)
 /*  Lookfor fully or more than 80% flagged detectors, also flag singletons */
 {
 
 	int *flag; // mask table
-	long sum=0; // used to compute the percentage of flagged data
-	long start=0;
-	long revert_start=ns-1;
+	long sum, remove_start, revert_start;
 
 	std::vector<long> init_tab;
 	std::vector<long> end_tab;
@@ -580,14 +237,14 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, d
 	for(int jj=0;jj<ndet;jj++){
 
 		sum=0;
-		start=0;
+		remove_start=0;
 		revert_start=ns;
 
 		if(read_flag_from_fits(fname, det[jj], flag, ns))
 			return 1;
 
-		while((flag[start]!=0) && (start<ns)){
-			start++;
+		while((flag[remove_start]!=0) && (remove_start<ns)){
+			remove_start++;
 			sum++;
 		}
 
@@ -596,15 +253,14 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, d
 		}
 
 
-		for(long ii = start; ii<ns; ii++)
+		for(long ii = remove_start; ii<ns; ii++)
 			if(flag[ii]!=0)
 				sum++;
 
-		init_tab.push_back(start);
+		init_tab.push_back(remove_start);
 		end_tab.push_back((ns-revert_start));
 
-		double percent = sum/(double)ns*100;
-		percent_tab[jj]=percent;
+		percent_tab[jj]= ((double) sum*100.) / ns;
 
 		delete [] flag;
 	}
@@ -622,18 +278,193 @@ int check_flag(string fname, std::vector<std::string> det, long ndet, long ns, d
 
 }
 
+int computeSpeed(std::string fname , unsigned int testExt, long ns, string field, double *& speed){
+
+	double *time, *lon, *lat, *phi;
+	long ns_dummy;
+
+	double *x, *y, *dummy1, *dummy2;
+	int *stat;
+
+	// We know that we should have a time table... but let check again...
+	if (( testExt & EXT_TIME) == EXT_TIME){
+		read_time_from_fits(fname, time, ns_dummy);
+		if (ns_dummy != ns)
+			return BAD_HDU_NUM;
+	} else {
+		return BAD_HDU_NUM;
+	}
+
+	// read the position
+	switch(testExt & EXT_POS){
+	case SANEPIC_FORMAT:
+		read_ReferencePosition_from_fits(fname, lon, lat, phi, ns_dummy);
+		if (ns_dummy != ns)
+			return BAD_HDU_NUM;
+		break;
+	case BOTH_FORMAT:
+		// default to the LON/LAT case if both extensions are present
+		/*no_break*/
+	case HIPE_FORMAT:
+		read_LON_LAT_from_fits(fname, field, lon, lat, ns_dummy);
+		if (ns_dummy != ns)
+			return BAD_HDU_NUM;
+		break;
+	default:
+		return BAD_HDU_NUM;
+	}
+
+	// Compute the projected speed of the lon/lat vectors detector...
+	// ... first define a projection...
+	struct celprm celestialProj;
+	celini(&celestialProj);
+
+	// Default projection ton TAN...
+	tanset(&celestialProj.prj);
+
+	// Dummy reference
+	celestialProj.ref[0] = lon[ns/2];
+	celestialProj.ref[1] = lat[ns/2];
+
+	if (celset(&celestialProj)) {
+		cerr << "problem celset\n";
+		return 1;
+	}
+
+	// ... Project lon/lat onto x/y (flat sky)
+	stat = new int[ns];
+	x = new double[ns];
+	y = new double[ns];
+	dummy1 = new double[ns];
+	dummy2 = new double[ns];
+	cels2x(&celestialProj, ns, 0, 1, 1,lon, lat, dummy1, dummy2, x, y, stat);
+	delete [] lon;
+	delete [] lat;
+	delete [] dummy1;
+	delete [] dummy2;
+	delete [] stat;
+	celfree(&celestialProj);
+
+	speed   = new double[ns-1];
+	// ... Compute the speed on flat sky
+	for (long ii=0; ii< ns-1; ii++)
+		speed[ii] = sqrt( gsl_pow_2(x[ii+1]-x[ii]) + gsl_pow_2(y[ii+1]-y[ii]) ) / (time[ii+1]-time[ii]) * 3600; // in arcsec/s
+
+	return 0;
+}
+
+long check_Speed(param_saneCheck saneCheck_struct, std::string fname , int testExt, long ns, string field, double &meanSpeed, double &belowSpeed, double & aboveSpeed, int *& speedFlag, long & initSpeedFlag, long & endSpeedFlag){
+
+	long nFlagSpeed = 0;
+
+	double * speed=NULL;
+
+	long nGoodSpeed=0;
+	double * dev_speed;
+	double mad_speed;
+
+
+	if (computeSpeed(fname, testExt, ns, field, speed))
+		return 1;
+
+	// ... Determine the mean value of the speed
+	// ... Computing the histogram of the speed is more robust than median...
+
+	double histo_min,   histo_max, binsize = 0.01; // arcsec/sec
+	double histo_lower, histo_upper;
+
+	gsl_stats_minmax(&histo_min, &histo_max, speed, 1, ns-1);
+	size_t nbins = (histo_max-histo_min)/binsize;
+
+	gsl_histogram * histo;
+	histo = gsl_histogram_alloc (nbins);
+	gsl_histogram_set_ranges_uniform (histo, histo_min, histo_max);
+	for (long ii=0; ii<ns-1; ii++){
+		if (speed[ii] > saneCheck_struct.thresholdSpeed){
+			gsl_histogram_increment(histo, speed[ii]);
+			nGoodSpeed++;
+		}
+	}
+
+	// ... the mean spead being the most probable speed...
+	gsl_histogram_get_range (histo, gsl_histogram_max_bin (histo), &histo_lower, &histo_upper);
+	meanSpeed = (histo_lower+histo_upper)/2;
+
+
+	//	string outfilename = fname+".histo";
+	//	FILE *fp;
+	//	fp = fopen(outfilename.c_str(),"w");
+	//	gsl_histogram_fprintf (fp, histo, "%g", "%g");
+	//	fclose(fp);
+
+	gsl_histogram_free (histo);
+
+
+	// Using MAD to get the deviation
+	// http://en.wikipedia.org/wiki/Median_absolute_deviation
+	dev_speed = new double[nGoodSpeed];
+	long iGoodSpeed = 0;
+	for (long ii=0; ii < ns-1; ii++){
+		if (speed[ii] > saneCheck_struct.thresholdSpeed ){
+			dev_speed[iGoodSpeed++] = abs(speed[ii]-meanSpeed);
+		}
+	}
+
+	gsl_sort(dev_speed, 1, nGoodSpeed);
+	mad_speed = gsl_stats_median_from_sorted_data (dev_speed, 1, nGoodSpeed);
+	delete [] dev_speed;
+
+	belowSpeed = meanSpeed - saneCheck_struct.kappaSpeed * mad_speed;
+	aboveSpeed = meanSpeed + saneCheck_struct.kappaSpeed * mad_speed;
+
+	// Default to the provided values, if any...
+	if (saneCheck_struct.belowSpeed != -1)
+		belowSpeed = saneCheck_struct.belowSpeed;
+
+	if (saneCheck_struct.aboveSpeed != -1)
+		aboveSpeed = saneCheck_struct.aboveSpeed;
+
+	// Build the flag based on the belowSpeed and aboveSpeed
+
+
+	for (long ii=0; ii < ns-1; ii++){
+		speedFlag[ii] = (int) ( speed[ii] < belowSpeed || speed[ii] > aboveSpeed );
+		if (speedFlag[ii] != 0)
+			nFlagSpeed++;
+	}
+
+	if ( nFlagSpeed > 0)
+		// By default flag the last element
+		speedFlag[ns-1] = 1;
+
+
+	// Count the number of flagged element at the beginning and end of the data...
+	initSpeedFlag = 0;
+	endSpeedFlag = 0;
+	while(speedFlag[++initSpeedFlag] != 0);
+	while(speedFlag[ns-1-(++endSpeedFlag)] != 0);
+
+
+
+	delete [] speed;
+	return nFlagSpeed;
+
+}
+
 
 int check_time_gaps(string fname,long ns, double fsamp, std::vector<long> &indice, double &Populated_freq, struct checkHDU check_it)
 /* check for time gaps in time table */
 {
 
-
-
+	long ns_dummy;
 	double *time,*diff;
 	double sum=0.0;
 	std::vector<double> freq; // The whole frequency that can be extracted from the time vector
 
-	if(read_time_from_fits(fname, time, ns))
+	if(read_time_from_fits(fname, time, ns_dummy))
+		return 1;
+
+	if (ns_dummy != ns)
 		return 1;
 
 	diff = new double [ns-1]; // differential time vector
@@ -796,24 +627,30 @@ double median(std::vector<double> vec){
 	return size % 2 == 0 ? (vec[mid] + vec[mid-1]) / 2.0 : vec[mid];
 }
 
-int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, std::vector<long> indice){
+//TODO: Put all that into a fits file
 
-	string fname2 = tmp_dir + FitsBasename(filename) + "_saneFix_indices.bin"; // output saneFix logfile filename
+int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, long ns, int * speedFlag, std::vector<long> indice){
+
+	string fname = tmp_dir + FitsBasename(filename) + "_saneFix_indices.bin"; // output saneFix logfile filename
 
 	std::ofstream file; // saneFix indice log file
-	file.open(fname2.c_str(), ios::out | ios::trunc);
+	file.open(fname.c_str(), ios::out | ios::trunc);
 	if(!file.is_open()){
-		cerr << "File [" << fname2 << "] Invalid." << endl;
+		cerr << "File [" << fname << "] Invalid." << endl;
 		return 1;
 	}else{
 		// store init num of flag to remove for saneFix
-		file << init_flag << " ";
+		file << init_flag << endl;
 
 		// store last num of flag to remove for saneFix
-		file << end_flag << " ";
+		file << end_flag << endl;
 
 		// store real_freq for saneFix
-		file << Populated_freq << " ";
+		file << Populated_freq << endl;
+
+		file << ns << endl;
+		for (long ii=0; ii < ns; ii++)
+			file << speedFlag[ii] << " ";
 
 		for(long ii = 0; ii<(long)indice.size();ii++)// store indices for saneFix
 			file << indice[ii] << " ";
@@ -823,6 +660,103 @@ int print_to_bin_file(std::string tmp_dir, std::string filename, long init_flag,
 
 	return 0;
 }
+
+
+int exportCheckToFits(std::string tmp_dir, std::string filename, long init_flag, long end_flag, double Populated_freq, long ns, int * speedFlag, std::vector<long> indice){
+
+	string fname = "!" + tmp_dir + FitsBasename(filename) + "_saneFix_indices.fits"; // output saneFix logfile filename
+
+	fitsfile *fp;
+	int fits_status = 0; // MUST BE initialized... otherwise it fails on the call to the function...
+
+
+	long naxes[] = { 0 }; // size of dimensions
+	long fpixel[] = { 1 }; // index for write_pix
+
+
+	// create fits file
+	if (fits_create_file(&fp, fname.c_str(), &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	// Dummy image
+	naxes[0] = 0;
+	if (fits_create_img(fp, DOUBLE_IMG, 0, naxes, &fits_status)) {
+		fits_report_error(stderr, fits_status);
+		return 1;
+	}
+
+	// Add init_flag, end_flag, populated_freq
+	if (fits_write_key(fp, TLONG, (const char*) "initFlag", (long *) & init_flag, (char *) "Number of sample to flag at the beginning", &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+	if (fits_write_key(fp, TLONG, (const char*) "enFlag", (long *) & end_flag, (char *) "Number of sample to flag at the end", &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+	if (fits_write_key(fp, TDOUBLE, (const char*) "fsamp", (double *) & Populated_freq, (char *) "[Hz] Sampling frequency", &fits_status)) {
+		fits_report_error(stderr, fits_status); return 1;
+	}
+	// ----------------------------------------------------------------
+
+		naxes[0] = ns;
+		if (fits_create_img(fp, SHORT_IMG, 1, naxes, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+
+
+		if (fits_update_key(fp, TSTRING, (char *) "EXTNAME", (char *) "speedFlag", (char *) "table name", &fits_status))
+			return 1;
+
+		if (fits_write_pix(fp, TINT, fpixel, ns, (int *) speedFlag, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+		// write date to file
+		if (fits_write_date(fp, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+		if (fits_write_chksum(fp, &fits_status)) {
+			cout << "error checksum !\n";
+			return 1;
+		}
+
+		// ----------------------------------------------------------------
+
+		naxes[0] = (long) indice.size();
+		if (fits_create_img(fp, LONG_IMG, 1, naxes, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+
+
+		if (fits_update_key(fp, TSTRING, (char *) "EXTNAME", (char *) "gapsIndices", (char *) "table name", &fits_status))
+			return 1;
+
+		if (fits_write_pix(fp, TLONG, fpixel, naxes[0], (long *) &(indice)[0], &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+		// write date to file
+		if (fits_write_date(fp, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+		if (fits_write_chksum(fp, &fits_status)) {
+			cout << "error checksum !\n";
+			return 1;
+		}
+
+		// close file
+		if (fits_close_file(fp, &fits_status)) {
+			fits_report_error(stderr, fits_status);
+			return 1;
+		}
+
+		return 0;
+	}
 
 
 void log_gen(long  *bolo_, string outname, std::vector<std::string> det, long ndet, double *percent_tab)
@@ -861,7 +795,7 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 	fitsfile *fptr;
 	int status = 0;
 	int naxis = 0, anynul;
-//	long ns;
+	//	long ns;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
 
 	if (fits_open_file(&fptr, filename.c_str(), READONLY, &status)){
@@ -893,7 +827,7 @@ int read_sample_signal_from_fits(string filename, int sample, double *& signal_s
 
 	// ---------------------------------------------
 	// Allocate Memory
-//	ns = naxes[0];
+	//	ns = naxes[0];
 	double temp;
 
 	for(int idet=1;idet<=(int)ndet;idet++){

@@ -28,9 +28,9 @@ inline size_t word_count(const std::string& str)
 
 // Helper for ASCII file IO
 // Template function needs to be declared once as they are generated at compilation...
-uint16_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content );
+uint32_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content );
 
-template <typename T> uint16_t read_file(std::string & output, std::string fname, std::vector<T> & output_T ) {
+template <typename T> uint32_t read_file(std::string & output, std::string fname, std::vector<T> & output_T ) {
   /*
    * Read an ASCII file and return one column
    */
@@ -61,7 +61,7 @@ template <typename T> uint16_t read_file(std::string & output, std::string fname
 
 }
 
-template <typename T, typename U> uint16_t read_file_2col(std::string &output, std::string fname, std::vector<T> & output_T, std::vector<U> & output_U ) {
+template <typename T, typename U> uint32_t read_file_2col(std::string &output, std::string fname, std::vector<T> & output_T, std::vector<U> & output_U ) {
   /**
    * Read an ASCII file and return two columns depending on the desired type
    */
@@ -151,7 +151,7 @@ int readChannelList(std::string &output, std::string fname, std::vector<std::str
  \param output The parser error string
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-uint16_t readFitsList(std::string &output, std::string fname, struct samples &samples_struct);
+uint32_t readFitsList(std::string &output, std::string fname, struct samples &samples_struct);
 
 
 #endif /* INPUTFILEIO_H_ */

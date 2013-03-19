@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 			max_time.push_back(atof(optarg));
 			mM_count--;
 			break;
-
-		default:;
+		default:
+			break;
 		}
 	}
 
@@ -170,8 +170,11 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	cout << setprecision(20) << "bot time limit.  : " << min_time[0] << "\ntop time limit.  : " << max_time[0] << endl;
 #endif
+	long ns;
+	read_time_from_fits(samples_struct.fitsvect[0], time, ns);
+	if (ns != samples_struct.nsamples[0])
+		return (FILE_PROBLEM);
 
-	read_time_from_fits(samples_struct.fitsvect[0], time, samples_struct.nsamples[0]);
 	time_min=time[0];
 	time_max=time[samples_struct.nsamples[0]-1];
 
@@ -208,8 +211,8 @@ int main(int argc, char *argv[])
 
 
 	/* get input fits file format : Sanepic or HIPE */
-	format_fits=test_format(samples_struct.fitsvect[0]);
-	if(format_fits==0){
+	format_fits=testExtensions(samples_struct.fitsvect[0]);
+	if( ((format_fits & HIPE_FORMAT) != HIPE_FORMAT) && ((format_fits & SANEPIC_FORMAT) != SANEPIC_FORMAT) ){
 		cerr << "input fits file format is undefined : " << samples_struct.fitsvect[ii] << " . Exiting...\n";
 	}
 
@@ -302,16 +305,17 @@ int main(int argc, char *argv[])
 		// 2 = lon/lat format (HIPE),
 		// 3 = both sanepic & HIPE
 
-		case 1:
+		case SANEPIC_FORMAT:
 			copy_ref_pos(fptr, outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
 			copy_offsets(fptr, outfptr);
 			break;
 
-		case 3:
+		case BOTH_FORMAT:
 			copy_ref_pos(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample);
 			copy_offsets(fptr, outfptr);
 			// and continue to
-		case 2:
+			/* no break */
+		case HIPE_FORMAT:
 			copy_LON_LAT(fptr,outfptr, samples_struct.fitsvect[0], min_sample, max_sample, det, ndet);
 			break;
 		}

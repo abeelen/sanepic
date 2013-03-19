@@ -90,7 +90,7 @@ std::string dirfile_Basename(std::string path)
 	return filename;
 }
 
-uint16_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content ) {
+uint32_t read_file_line(std::string &output, std::string fname, std::vector<std::string> & content ) {
 	/*
 	 * Read an ASCII file and return its content in vector of line stripped from comments
 	 */
@@ -175,7 +175,7 @@ int readChannelList(std::string &output, std::string fname, std::vector<string> 
 	return 0;
 }
 
-uint16_t readFitsList(std::string &output, string fname, struct samples &samples_struct ) {
+uint32_t readFitsList(std::string &output, string fname, struct samples &samples_struct ) {
 
 	std::vector<string> &fitsvect = samples_struct.fitsvect;
 	std::vector<long> &scans_index = samples_struct.scans_index;

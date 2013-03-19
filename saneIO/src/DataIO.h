@@ -9,6 +9,23 @@ extern "C" {
 #include <fitsio.h>
 }
 
+#define EXT_SIGNAL 0x01
+#define EXT_MASK   0x02
+#define EXT_CHAN   0x04
+#define EXT_TIME   0x08
+
+#define EXT_LON    0x10
+#define EXT_LAT    0x20
+#define EXT_REFPOS 0x40
+#define EXT_OFFSET 0x80
+
+#define EXT_NECESSARY  (EXT_SIGNAL | EXT_MASK | EXT_CHAN)
+#define EXT_POS        (EXT_LON | EXT_LAT | EXT_REFPOS | EXT_OFFSET)
+#define HIPE_FORMAT    (EXT_LON | EXT_LAT)
+#define SANEPIC_FORMAT (EXT_REFPOS | EXT_OFFSET)
+#define BOTH_FORMAT    (HIPE_FORMAT | SANEPIC_FORMAT)
+
+
 using namespace std;
 
 //! Read the channels offsets in regards to reference position, for a given fits file
@@ -95,14 +112,18 @@ long find_channel_index(fitsfile *fptr, const char * field);
  * \param ns The number of sample in this scan
  * \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_time_from_fits(string filename, double *& time, long ns);
+int read_time_from_fits(string filename, double *& time, long &ns);
+
+int getImageExtensionSize(fitsfile *fptr,  string extname, long &nx, long &ny);
+int checkImageExtension(fitsfile *fptr,    string extname, long nx, long ny);
+int checkBintableExtension(fitsfile *fptr, string extname, long nx);
 
 //! Check whether the fits files have HIPE or SANEPIC format
 /*!
  * \param fitsname The input fits filename
  * \return An integer : 1 if HIPE format has been found. 2 if SANEPIC. 0 if NONE of them
  */
-int test_format(string fitsname);
+int testExtensions(string fitsname);
 
 //! copy offsets table from this file to output file
 /*!

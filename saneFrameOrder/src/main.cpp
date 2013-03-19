@@ -72,11 +72,11 @@ int main(int argc, char *argv[]) {
 	vector<long> order;
 
 
-	uint16_t parsed = 0; // parser error status
-	uint16_t compare_to_mask; // parser error status
+	uint32_t parsed = 0; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
-	//	uint16_t mask_sanePre = 0x405f;
-	uint16_t mask_saneFrameOrder = INI_NOT_FOUND | ARG_INPUT_PROBLEM
+	//	uint32_t mask_sanePre = 0x405f;
+	uint32_t mask_saneFrameOrder = INI_NOT_FOUND | ARG_INPUT_PROBLEM
 			| DATA_INPUT_PATHS_PROBLEM | TMP_PATH_PROBLEM
 			| FITS_FILELIST_NOT_FOUND; // 0x405f
 

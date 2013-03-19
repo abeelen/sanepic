@@ -24,7 +24,7 @@ using namespace std;
 #include "Utilities.h"
 #include "MPIConfiguration.h"
 
-uint16_t writeParallelScheme(string outdir, vector<long> order, struct samples samples_struct)
+uint32_t writeParallelScheme(string outdir, vector<long> order, struct samples samples_struct)
 // Write the Parallelization Scheme for further use.
 {
 
@@ -125,14 +125,14 @@ void  AssignNodeFloatWeight(vector<string> nodeName, map<string, float> map_node
 
 }
 
-uint16_t removeProcName(std::string outdir){
+uint32_t removeProcName(std::string outdir){
 	string filename;
 	filename = outdir+processorName_filename;
 	return remove(filename.c_str());
 
 }
 
-uint16_t readNodeWeight(string & output, string pathIn, map<string, float> & nodeWeight){
+uint32_t readNodeWeight(string & output, string pathIn, map<string, float> & nodeWeight){
   /**
    * read node weight into an associative hash
    */

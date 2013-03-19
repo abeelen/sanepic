@@ -10,6 +10,7 @@
 #include "InputFileIO.h"
 #include "MPIConfiguration.h"
 #include "DataIO.h"
+#include "SaneFixParse.h"
 #include "ParserFunctions.h"
 #include "SaneFixTools.h"
 #include "StructDefinition.h"
@@ -75,10 +76,10 @@ int main(int argc, char *argv[]) {
 
 	struct param_sanePos pos_param;
 	struct param_saneProc proc_param;
-	struct param_sanePic sanePic_struct;
-	struct param_saneInv saneInv_struct;
-	struct param_sanePS structPS;
-	struct param_saneCheck check_struct;
+	struct param_sanePic Pic_param;
+	struct param_saneInv Inv_param;
+	struct param_sanePS PS_param;
+	struct param_saneFix Fix_param;
 
 	string parser_output = "";
 
@@ -86,14 +87,13 @@ int main(int argc, char *argv[]) {
 	std::vector <long> add_sample; /* number of samples to add per gap */
 	double fsamp; /* sampling frequency */
 
-	uint16_t mask_sanefix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	uint32_t mask_saneFix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x410f
 
-	uint16_t parsed=0x0000; // parser error status
-	uint16_t compare_to_mask; // parser error status
+	uint32_t parsed=0x0000; // parser error status
+	uint32_t compare_to_mask; // parser error status
 
-
-	if (argc<2) { /* not enough argument */
+	if (argc<2) {/* not enough argument */
 		if (rank == 0)
 			cerr << "EE - Please run  " << StringOf(argv[0]) << " with a .ini file" << endl;
 #ifdef USE_MPI
@@ -103,18 +103,19 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	} else {
 		/* parse ini file and fill structures */
-		parsed=parser_function(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
-				structPS, saneInv_struct, sanePic_struct, size, rank);
+		parsed=parse_saneFix_ini_file(argv[1], parser_output, dir, samples_struct, pos_param, proc_param,
+				PS_param, Inv_param, Pic_param, Fix_param, size, rank);
 
-		compare_to_mask = parsed & mask_sanefix;
+		compare_to_mask = parsed & mask_saneFix;
 
 		// print parser warning and/or errors
 		if (rank == 0)
 			cout << endl << parser_output << endl;
 
-
 		// in case there is a parsing error or the dirfile format file was not created correctly
 		if(compare_to_mask>0x0000){
+
+
 			switch (compare_to_mask){/* error during parsing phase */
 
 			case 0x0001:
@@ -130,19 +131,22 @@ int main(int argc, char *argv[]) {
 			}
 
 #ifdef USE_MPI
-			MPI_Abort(MPI_COMM_WORLD, 1);
+			MPI_Finalize();
 #endif
 			return EX_CONFIG;
 		}
-	}	/* ------------------------------------------------------------------------------------*/
+	}
+
+
+	/* ------------------------------------------------------------------------------------*/
 	// Start...
 
 	if(rank==0){
 		// parser print screen function
 		parser_printOut(argv[0], dir, samples_struct, pos_param,  proc_param,
-				structPS, sanePic_struct, saneInv_struct);
+				PS_param, Pic_param, Inv_param);
+		print_param_saneFix(Fix_param);
 
-		cout << endl << "Fixing Files..." << endl << endl;
 	}
 
 
@@ -172,111 +176,111 @@ int main(int argc, char *argv[]) {
 	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
 #endif
 
-	if (bolo_rank == 0) {
+	long nFrames = samples_struct.iframe_max-samples_struct.iframe_min;
 
-		for (long iframe=samples_struct.iframe_min;iframe<samples_struct.iframe_max;iframe++){
+	for (long iframe = samples_struct.iframe_min +  floor(bolo_rank*nFrames*1.0/bolo_size); iframe < samples_struct.iframe_min + floor((bolo_rank+1)*nFrames*1.0/bolo_size); iframe++){
 
-			int format_fits; // 1 = HIPE, 2 = Sanepic
-			std::vector <long> suppress_time_sample;
-			long init_num_delete = 0;
-			long end_num_delete  = 0;
+		int format_fits;
+		std::vector <long> suppress_time_sample;
+		long init_num_delete = 0;
+		long end_num_delete  = 0;
 
 #ifdef DEBUG
-			cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[iframe] << endl;
+		cout  << "[ " << rank << " ] " << "Fixing file : " << samples_struct.fitsvect[iframe] << endl;
 #endif
-			// fits files pointer
-			fitsfile * fptr;
-			fitsfile *outfptr;
+		// fits files pointer
+		fitsfile * fptr;
+		fitsfile *outfptr;
 
-			// lookfor saneCheck log files
-			if((read_indices_file(samples_struct.fitsvect[iframe],dir,  indice, fsamp, init_num_delete, end_num_delete))){
-				cout << "[ " << rank << " ] " << "Skipping file : " << samples_struct.fitsvect[iframe] << ". Please run saneCheck on this file before\n";
-				continue; // log file were not found for the 'iframe'th fits file
-			}
+		// lookfor saneCheck log files
+		long ns_dummy;
+		int * speedFlag;
 
-			format_fits=test_format(samples_struct.fitsvect[iframe]); // get fits file format
-			if(format_fits==0){
-				cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
-				continue;
-			}
-
-			refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[iframe]);
-
-			// compute the number of sample that must be added to fill the gaps and have a continous timeline
-			long samples_to_add=how_many(samples_struct.fitsvect[iframe], samples_struct.nsamples[iframe] ,indice, fsamp, add_sample,suppress_time_sample);
-#ifdef DEBUG
-			cout << "[ " << rank << " ] " << "samptoadd : " << samples_to_add << endl;
-			cout << "[ " << rank << " ] " << "samples to delete (begin/end) : (" << init_num_delete << "/" <<  end_num_delete << ")" << endl;
-			cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete << endl;
-#endif
-			// total number of samples in the fixed fits file
-			long ns_total = samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete;
-
-			if(samples_to_add+init_num_delete+end_num_delete==0){
-//				cout << "WW - [ " << rank << " ] " << samples_to_add << " : " << init_num_delete << " : " << end_num_delete << endl;
-				cout << "WW - [ " << rank << " ] " << "Nothing to do for : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
-				continue;
-			}
-
-			string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) + ".fits"; // output fits filename
-			string fname=samples_struct.fitsvect[iframe]; // input fits filename
-
-			int status=0; // fits error status
-			std::vector<string> det;
-			long ndet;
-
-			// open original fits file
-			if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
-				fits_report_error(stderr, status);
-
-			// create ouput fixed fits file
-			if (fits_create_file(&outfptr, fname2.c_str(), &status))
-				fits_report_error(stderr, status);
-
-			// read channels list
-			read_bolo_list(samples_struct.fitsvect[iframe], det, ndet);
-
-			// Copy primary Header
-			fits_copy_header(fptr, outfptr, &status);
-
-
-			fix_signal(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-			fix_mask(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-			fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
-			copy_channels(fptr, outfptr);
-
-			switch(format_fits) {
-			// 0 = Unknown format,
-			// 1 = RefPos & offsets format (sanepic),
-			// 2 = lon/lat format (HIPE),
-			// 3 = both sanepic & HIPE
-
-			case 1:
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
-				copy_offsets(fptr, outfptr);
-				break;
-
-			case 3:
-				fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
-				copy_offsets(fptr, outfptr);
-				// and ...
-			case 2:
-				fix_LON_LAT(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
-				break;
-			}
-
-			// close both fits files
-			if (fits_close_file(fptr, &status))
-				fits_report_error(stderr, status);
-
-			if (fits_close_file(outfptr, &status))
-				fits_report_error(stderr, status);
-
-			indice.clear();
-			add_sample.clear();
-
+		if ( importCheckFits(dir.tmp_dir, samples_struct.fitsvect[iframe], init_num_delete, end_num_delete, fsamp, ns_dummy, speedFlag, indice) ){
+			cout <<  "WW - Skipping file : " << samples_struct.fitsvect[iframe] << ". Please run saneCheck on this file before\n";
+			continue;
 		}
+
+
+		format_fits=testExtensions(samples_struct.fitsvect[iframe]); // get fits file format
+		if( ((format_fits & HIPE_FORMAT) != HIPE_FORMAT) && ((format_fits & SANEPIC_FORMAT) != SANEPIC_FORMAT) ){
+			cerr << "[ " << rank << " ] " << "input fits file format is undefined : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
+			continue;
+		}
+
+		refresh_indice(fsamp, init_num_delete, end_num_delete, indice, samples_struct.nsamples[iframe]);
+
+		// compute the number of sample that must be added to fill the gaps and have a continuous timeline
+		long samples_to_add=how_many(samples_struct.fitsvect[iframe], samples_struct.nsamples[iframe] ,indice, fsamp, add_sample,suppress_time_sample);
+#ifdef DEBUG
+		cout << "[ " << rank << " ] " << "samptoadd : " << samples_to_add << endl;
+		cout << "[ " << rank << " ] " << "samples to delete (begin/end) : (" << init_num_delete << "/" <<  end_num_delete << ")" << endl;
+		cout << "[ " << rank << " ] " << "total : " << samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete << endl;
+#endif
+		// total number of samples in the fixed fits file
+		long ns_total = samples_struct.nsamples[iframe] + samples_to_add - init_num_delete - end_num_delete;
+
+		if(samples_to_add== 0 && init_num_delete == 0 && end_num_delete==0){
+			//				cout << "WW - [ " << rank << " ] " << samples_to_add << " : " << init_num_delete << " : " << end_num_delete << endl;
+			cout << "WW - [ " << rank << " ] " << "Nothing to do for : " << samples_struct.fitsvect[iframe] << " . Skipping file...\n";
+			continue;
+		}
+
+		string fname2 = "!" + dir.output_dir + FitsBasename(samples_struct.fitsvect[iframe]) + ".fits"; // output fits filename
+		string fname=samples_struct.fitsvect[iframe]; // input fits filename
+
+		int status=0; // fits error status
+		std::vector<string> det;
+		long ndet;
+
+		// open original fits file
+		if (fits_open_file(&fptr, fname.c_str(), READONLY, &status))
+			fits_report_error(stderr, status);
+
+		// create ouput fixed fits file
+		if (fits_create_file(&outfptr, fname2.c_str(), &status))
+			fits_report_error(stderr, status);
+
+		// read channels list
+		read_bolo_list(samples_struct.fitsvect[iframe], det, ndet);
+
+		// Copy primary Header
+		fits_copy_header(fptr, outfptr, &status);
+
+
+		fix_signal(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+		fix_mask(  fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete, speedFlag);
+		fix_time_table(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, samples_struct.nsamples[iframe], fsamp,suppress_time_sample, init_num_delete);
+		copy_channels(fptr, outfptr);
+
+		switch(format_fits & EXT_POS) {
+		case SANEPIC_FORMAT:
+			fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+			copy_offsets(fptr, outfptr);
+			break;
+		case BOTH_FORMAT:
+			fix_ref_pos(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, indice, add_sample, suppress_time_sample, init_num_delete);
+			copy_offsets(fptr, outfptr);
+			// and ...
+			/* no break */
+		case HIPE_FORMAT:
+			fix_LON_LAT(fptr, outfptr, samples_struct.fitsvect[iframe], ns_total, det, ndet, indice, add_sample, suppress_time_sample, init_num_delete);
+			break;
+		}
+
+		// close both fits files
+		if (fits_close_file(fptr, &status))
+			fits_report_error(stderr, status);
+
+		if (fits_close_file(outfptr, &status))
+			fits_report_error(stderr, status);
+
+		indice.clear();
+		add_sample.clear();
+
 	}
+
+
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);

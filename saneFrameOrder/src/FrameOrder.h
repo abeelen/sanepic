@@ -28,10 +28,10 @@ void  AssignNodeFloatWeight(vector<string> nodeName, map<string, float> map_node
   \param samples_struct A samples structure that contains everything about frames, noise files and frame processing order
   \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-uint16_t writeParallelScheme(std::string outdir, vector<long> order, struct samples samples_struct);
+uint32_t writeParallelScheme(std::string outdir, vector<long> order, struct samples samples_struct);
 
-uint16_t removeProcName(std::string outdir);
+uint32_t removeProcName(std::string outdir);
 
-uint16_t readNodeWeight(string & output, string pathIn, map<string, float> & nodeWeight);
+uint32_t readNodeWeight(string & output, string pathIn, map<string, float> & nodeWeight);
 
 #endif /* FRAMEORDER_H_ */

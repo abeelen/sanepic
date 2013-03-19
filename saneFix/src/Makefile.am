@@ -15,4 +15,6 @@ EXEEXT=$(ext)
 saneFix_SOURCES = \
 main.cpp \
 SaneFixTools.cpp \
-SaneFixTools.h
+SaneFixTools.h \
+SaneFixParse.cpp \
+SaneFixParse.h

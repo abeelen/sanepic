@@ -61,7 +61,7 @@ int write_MixMatrix(std::string fname, std::vector<std::string> bolos, long ncom
 
 int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, double **& mixmat);
 
-uint16_t assignMixMat(std::string fname, std::vector<std::string> det, long ncomp, double **& mixmat);
+uint32_t assignMixMat(std::string fname, std::vector<std::string> det, long ncomp, double **& mixmat);
 
 //! Used in sanePS to write DEBUG channels psd
 /*!
