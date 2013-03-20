@@ -338,7 +338,7 @@ int write_MixMatrix(string fname, std::vector<string> bolos, long ncomp, double 
 		return 1;
 	if (fits_write_comment(
 			fptr,
-			(char *) "Each line contains a detector (NAXIS1) vs mode (NAXIS2)",
+			(char *) "Each line contains a mode (NAXIS1) vs detectors (NAXIS2)",
 			&status))
 		return 1;
 
@@ -371,7 +371,7 @@ int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, dou
 	fitsfile *fptr;
 	int status = 0;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-	long nBolos, repeat, width;
+	long ndet, repeat, width;
 	int colnum, typecode;
 
 	//	cout << fname << endl;
@@ -388,26 +388,26 @@ int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, dou
 		return 1;
 	}
 
-	fits_get_num_rows(fptr, &nBolos, &status);
+	fits_get_num_rows(fptr, &ndet, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "name", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 
 	// Initialize the data container
 	char ** data;
-	data = new char*[nBolos];
-	for (int i = 0; i < nBolos; i++) {
+	data = new char*[ndet];
+	for (int i = 0; i < ndet; i++) {
 		data[i] = new char[repeat];
 	}
 
-	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
+	fits_read_col(fptr, TSTRING, colnum, 1, 1, ndet, NULL, data, 0, &status);
 
 	// convert to string vector and free the container
-	det_vect.resize(nBolos);
-	for (int i = 0; i < nBolos; i++)
+	det_vect.resize(ndet);
+	for (int i = 0; i < ndet; i++)
 		det_vect[i] = data[i];
 	//		free(data[i]);
 
-	for (int i = 0; i < nBolos; i++)
+	for (int i = 0; i < ndet; i++)
 		delete [] data[i];
 	//	free(data);
 	delete [] data;
@@ -421,14 +421,14 @@ int read_MixMatrix(string fname, std::vector<string> &det_vect, long &ncomp, dou
 
 	fits_get_img_size(fptr, 2, naxes, &status);
 	ncomp = naxes[0];
-	if (naxes[1] != nBolos ){
+	if (naxes[1] != ndet ){
 		fits_report_error(stderr,213);
 		return 1;
 	}
 
-	mixmat = dmatrix(0, nBolos - 1, 0, ncomp - 1);
+	mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
 
-	for (int idet = 0; idet < nBolos; idet++) {
+	for (int idet = 0; idet < ndet; idet++) {
 		fpixel[1] = idet + 1;
 		fits_read_pix(fptr, TDOUBLE, fpixel, ncomp, NULL, mixmat[idet], NULL, &status);
 	}
