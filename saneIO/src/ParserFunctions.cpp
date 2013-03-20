@@ -1549,6 +1549,7 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 	else
 		cout << "[from file]" << endl;
 
+	cout << endl;
 }
 
 void print_param_sanePic(struct param_sanePic Pic_param) {
@@ -1567,15 +1568,18 @@ void print_param_sanePic(struct param_sanePic Pic_param) {
 
 void print_param_sanePS(struct param_sanePS PS_param) {
 
+
 	if (PS_param.save_data)
-		cout << "Save data.       : ON\n";
+		cout << "Save data.       : On\n";
 	else
-		cout << "Save data.       : OFF\n";
+		cout << "Save data.       : Off\n";
 
 	if (PS_param.signame != "")
 		cout << "Removed map.     : " << PS_param.signame << endl;
 
 	cout << "Noise comp.      : " << PS_param.ncomp << endl;
+
+	cout << "n. iterations    : " << PS_param.niter << endl;
 
 	cout << endl;
 }
@@ -1665,16 +1669,10 @@ void parser_printOut(char * prog_name, struct param_common dir,
 
 	i = basename.find("sanePS");
 	if ((i >= 0) && (i < (int) basename.size())) {
-		print_param_sanePos(Pos_param);
+//		print_param_sanePos(Pos_param);
 		print_param_saneProc(Proc_param);
 		print_param_sanePS(PS_param);
 	}
-
-	//	i=basename.find("saneProc");
-	//	if((i>=0) && (i<(int)basename.size())){
-	//		print_param_positions(Pos_param);
-	//		print_param_process(Proc_param);
-	//	}
 
 	i = basename.find("sanePic");
 	if ((i >= 0) && (i < (int) basename.size())) {
