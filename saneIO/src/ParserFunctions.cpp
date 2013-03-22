@@ -606,15 +606,23 @@ void read_param_saneInv(std::string &output, dictionary *ini, struct param_saneI
 void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS &PS_param) {
 
 	int i;
+	double d;
 	char *s;
 	string output2 = "";
 
-	i = iniparser_getint(ini, "sanePS:niter", -1);
+	i = iniparser_getint(ini, "sanePS:iterMAX", -1);
 	if (i == -1)
-		output2 += "sanePS:niter: default value [" + StringOf(
-				PS_param.niter) + "]\n";
+		output2 += "sanePS:iterMAX: default value [" + StringOf(
+				PS_param.itermax) + "]\n";
 	else
-		PS_param.niter= i;
+		PS_param.itermax= i;
+
+	d = iniparser_getdouble(ini, (char *) "sanePS:tolerance", -1.0);
+	if (d == -1)
+		output2 += "sanePS:tolerance : default value [" + StringOf(
+				PS_param.tolerance) + "]\n";
+	else
+		PS_param.tolerance = d;
 
 
 	i = iniparser_getint(ini, "sanePS:ncomp", -1);
@@ -1194,8 +1202,10 @@ void default_param_sanePS(struct param_sanePS &PS_param) {
 	PS_param.mix = "";
 	PS_param.signame = "";
 	PS_param.ncomp = 1;
-	PS_param.niter = 500;
 	PS_param.save_data = 1;
+
+	PS_param.itermax = 500;
+	PS_param.tolerance = 1e-11;
 
 	//TODO: Ugly turnaround until sanePS is released;
 
@@ -1579,7 +1589,8 @@ void print_param_sanePS(struct param_sanePS PS_param) {
 
 	cout << "Noise comp.      : " << PS_param.ncomp << endl;
 
-	cout << "n. iterations    : " << PS_param.niter << endl;
+	cout << "Max Iter.        : " << PS_param.itermax << endl;
+	cout << "Tolerance        : " << PS_param.tolerance << endl;
 
 	cout << endl;
 }
@@ -1871,9 +1882,13 @@ void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key,
 	value.push_back(StringOf(PS_param.ncomp));
 	comment.push_back("number of component(s) to estimate (default : 1)");
 
-	key.push_back("niter");
-	value.push_back(StringOf(PS_param.niter));
-	comment.push_back("number of iteration in the expectation minimization loop (default : 500" ")");
+	key.push_back("iterMAX");
+	value.push_back(StringOf(PS_param.itermax));
+	comment.push_back("maximum number of iterations in the expectation minimization loop (default : 500 )");
+
+	key.push_back("tolerance");
+	value.push_back(StringOf(PS_param.tolerance));
+	comment.push_back("tolerance to reach to stop the expectation minimization abs(D_i-D_(i-1)) ");
 
 	key.push_back("map_file");
 	value.push_back(PS_param.signame);

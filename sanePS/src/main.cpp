@@ -772,8 +772,13 @@ int main(int argc, char *argv[]){
 					}
 
 
+//					FILE *fp;
+//					fp = fopen("test.txt", "w");
+//					 gsl_matrix_fprintf(fp, Cov, "%e");
+
 					// invert AtN-1A
 					gsl_linalg_cholesky_decomp (Cov);
+
 					for (long iComp=0;iComp<ncomp;iComp++){
 						gsl_vector_set_basis(uvec,iComp);
 						gsl_linalg_cholesky_solve(Cov, uvec, ivec);
@@ -1112,7 +1117,8 @@ int main(int argc, char *argv[]){
 
 				double tottest=0.0;
 
-				double f;
+				double f, f0;
+				long iter;
 
 				double *iN, *Pr, *w;
 				double **Rxs, **Rxsq, **RnRxsb, **Rxx, **Rxxq, **Rss, **Rssq, **RnRssb;
@@ -1151,16 +1157,11 @@ int main(int argc, char *argv[]){
 				f = fdsf(Rellexp,w,mixmat,P,N,ndet,ncomp,nbins2) ;
 #endif
 
-#ifdef DEBUG
-				printf("Pre em:   obj: %10.15g\n", f) ;
-
-				cout << "nbins  " << nbins  << endl;
-				cout << "nbins2 " << nbins2 << endl;
-				cout << "ndet   " << ndet << endl;
-				cout << "ncomp  " << ncomp << endl << endl;
-#endif
-
-				for (long iter=1;iter <= PS_param.niter;iter++){
+				f0 = 0;
+				iter = 0;
+				while( (iter++ < PS_param.itermax) && ( abs(f-f0) > PS_param.tolerance) ) {
+					f0 = f;
+//				for (long iter=0;iter < PS_param.itermax;iter++){
 
 					fill(iN,iN+ndet,0.0);
 					fill(Pr,Pr+ncomp,0.0);
@@ -1384,6 +1385,7 @@ int main(int argc, char *argv[]){
 									Mattmp[idet1][idet2] += Rellexp[idet1+jj*ndet][iBin] * ImDR[idet2][jj];
 							}
 
+						/// TODO: Use only one N and initialize N[*][iBin] here...
 						for (long idet1=0;idet1<ndet;idet1++){
 							for (long idet2=0;idet2<ndet;idet2++)
 								new_N[idet1][iBin] += ImDR[idet1][idet2] * Mattmp[idet2][idet1];
@@ -1442,8 +1444,8 @@ int main(int argc, char *argv[]){
 						time ( &rawtime );
 						char mytime[20];
 						strftime(mytime,20, "%Y-%m-%dT%X", localtime(&rawtime));
-						temp_stream <<  mytime << " -- " << "iframe" << iframe << " iter " << setw(4) << iter;
-						temp_stream << " f= "      << setiosflags(ios::scientific) << setprecision (12) << f;
+						temp_stream <<  mytime << " -- " << "iframe" << iframe << " -- iter= " << setw(4) << iter;
+						temp_stream << " df= "      << setiosflags(ios::scientific) << setprecision (12) << abs(f-f0);
 						// Output to screen ...
 						cout << temp_stream.str() << "\r" << flush;
 						ofstream logfile;

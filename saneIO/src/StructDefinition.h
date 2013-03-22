@@ -100,7 +100,8 @@ struct param_sanePS
 
 
 	std::string signame; /*! fits file containing the map that should be substracted to the data for a better Noise estimation */
-	int niter; /*! number of iteration for the expectation minimization step */
+	int itermax; /*! number of iteration for the expectation minimization step */
+	double tolerance; /*! Tolerance to reach to stop iterations */
 	int ncomp; /*! number of component(s) to estimate */
 	bool restore; /*! If true, restore a previous session for sanePS */
 	bool save_data; /*! If true, save the actual session for sanePS after each step */
