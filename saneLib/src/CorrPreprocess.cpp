@@ -221,6 +221,9 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 	double fsamp                 = samples_struct.fsamp[iframe];
 	double fhp_pix               = samples_struct.fcut[iframe] * double(ns) / fsamp;
 
+	long ndet2 = samples_struct.ndet[iframe];
+	long nbins = samples_struct.nbins[iframe];
+
 	samptopix = new long long[ns];
 	bfilter_InvSquared = new double[ns/2+1];
 	Nk = new double[ns/2+1];
@@ -237,6 +240,23 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	fftplan = fftw_plan_dft_c2r_1d(ns, Ndf, Nd, FFTW_ESTIMATE);
 
+	SpN = new double[nbins];
+
+	// read ell and compute km once for all...
+	// TODO: Save it for all loop if done outside PtNd
+	ell=new double[nbins+1];
+	km = new double[nbins];
+
+	if(read_Ell(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], nbins, ell) )
+		return 1;
+	for (long ii=0;ii<nbins;ii++)
+		km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
+	delete[] ell;
+
+
+	// alloc spectra 2D array
+	SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);
+
 	for (long idet1 = floor(sub_rank*ndet*1.0/sub_size); idet1<floor((sub_rank+1)*ndet*1.0/sub_size); idet1++){
 
 		field1 = det[idet1];
@@ -248,22 +268,9 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		//**************************************** Noise power spectrum
 
 		//read noise PS file for idet1
-		long ndet2 = samples_struct.ndet[iframe];
-		long nbins = samples_struct.nbins[iframe];
 
-		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe], field1,  samples_struct.basevect[iframe], nbins, ndet2, &ell, &SpN_all))
+		if(read_InvNoisePowerSpectra(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], field1, nbins, ndet2, SpN_all))
 			return 1;
-
-		km = new double[nbins];
-		//	logSpN = new double[nbins];
-
-		for (long ii=0;ii<nbins;ii++)
-			km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
-
-		delete[] ell;
-
-		SpN = new double[nbins];
-		fill(SpN,SpN+nbins,0.0);
 
 		//Init N-1d
 		for (long ii=0;ii<ns/2+1;ii++){
@@ -271,20 +278,20 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 			Ndf[ii][1] = 0.0;
 		}
 
-
 		for (long idet2=0;idet2<ndet;idet2++){
 			field2 = det[idet2];
 
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
+			for (int ii=0;ii<nbins;ii++)
+				SpN[ii] = SpN_all[idet2][ii] / (double) ns;
 
 			//read Fourier transform of the data
 			if(readFdata(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], det[idet2], prefixe, fdata, ns))
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//
-			for (int ii=0;ii<nbins;ii++)
-				SpN[ii] = SpN_all[idet2][ii] / (double) ns;
+
 
 
 			// interpolate logarithmically the inversed noise power spectrum
@@ -310,9 +317,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 		}// end of idet2 loop
 
-		delete [] km;
-		delete[] SpN;
-		free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
 
 		fftw_execute_dft_c2r(fftplan, Ndf, Nd);
 
@@ -332,7 +336,11 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 
 	}// end of idet1 loop
 
+	free_dmatrix(SpN_all,0,ndet-1,0,nbins-1);
+	delete [] km;
+
 	fftw_destroy_plan(fftplan);
+	delete[] SpN;
 
 	delete[] Nk;
 	delete[] bfilter_InvSquared;

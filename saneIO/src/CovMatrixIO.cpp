@@ -196,9 +196,9 @@ int read_CovMatrix(string fname, std::vector<string> &det_vect, long &nbins, dou
 	Rellth = gsl_matrix_alloc(nBolos*nBolos, nbins);
 
 	for (int i = 0; i < nBolos * nBolos; i++) {
-	  double * matrix_ptr = gsl_matrix_ptr(Rellth, i, 0);
-	  fpixel[1] = i + 1;
-	  fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, matrix_ptr, NULL, &status);
+		double * matrix_ptr = gsl_matrix_ptr(Rellth, i, 0);
+		fpixel[1] = i + 1;
+		fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, matrix_ptr, NULL, &status);
 	}
 
 	if (fits_close_file(fptr, &status)){
@@ -220,22 +220,22 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> det_vect, string 
 	double * vector_ptr;
 	string outfile;
 
+	// ell binary filename
+	outfile = "Ell_" + scan_name;
+
+	// write binary file on disk
+	int n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
+	//		cout << "n_write : " << n_write << endl;
+	if(gd_error(D)!=0){
+		cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins+1 << " for " << outfile <<  endl;
+		return 1;
+	}
+
+	// flush dirfile
+	gd_flush(D,(char*)outfile.c_str());
+
+
 	for (int idet = 0; idet < ndet; idet++) {
-
-		// ell binary filename
-		outfile = "Ell_InvNoisePS_" + scan_name + "_" + det_vect[idet];
-
-		// write binary file on disk
-		int n_write = gd_putdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
-		//		cout << "n_write : " << n_write << endl;
-		if(gd_error(D)!=0){
-			cout << "error gd_putdata : wrote " << n_write << " and expected " << nbins+1 << " for " << outfile <<  endl;
-			return 1;
-		}
-
-		// flush dirfile
-		gd_flush(D,(char*)outfile.c_str());
-
 
 		// spectra filename
 		outfile = "InvNoisePS_" + scan_name + "_" + det_vect[idet];
@@ -258,7 +258,27 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<string> det_vect, string 
 	return 0;
 }
 
-int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, long nbins, long ndet, double ** ell, double *** SpN_all)
+uint32_t read_Ell(DIRFILE* D, string scan_name, long nbins, double * ell){
+
+	//binary name
+	string outfile;
+	int nget;
+	outfile = "Ell_" + scan_name;
+
+	// fill ell with binary
+	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, ell);
+	if(gd_error(D)!=0 or nget != (nbins+1)){
+		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
+		return 1;
+	}
+
+	return 0;
+
+}
+
+
+//TODO: Separate into Read ONE Ell and SpN_all
+uint32_t read_InvNoisePowerSpectra(DIRFILE* D, string scan_name, string boloName, long nbins, long ndet, double ** SpN_all)
 /*
  * This function reads the Inverse Covariance Matrices in binary format
  */
@@ -266,22 +286,9 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 	//binary name
 	string outfile;
 	int nget;
-	outfile = "Ell_InvNoisePS_" + scan_name + "_" + boloName;
 
 	// temp 1D array
 	double *Rellth_full;
-
-	// alloc ell
-	*ell=new double[nbins+1];
-
-	// fill ell with binary
-	nget = gd_getdata(D, (char*)outfile.c_str(), 0, 0, 0, nbins+1, GD_DOUBLE, *ell);
-	if(gd_error(D)!=0 or nget != (nbins+1)){
-		cout << "error getdata in read_InvNoisePowerSpectra : reading " << outfile << endl;
-		return 1;
-	}
-
-	gd_flush(D, (char *) outfile.c_str());
 
 	// Power spectra binary file name
 	outfile = "InvNoisePS_" + scan_name + "_" + boloName;
@@ -298,13 +305,10 @@ int read_InvNoisePowerSpectra(DIRFILE* D, string boloName, string scan_name, lon
 
 	gd_flush(D, (char *) outfile.c_str());
 
-	// alloc spectra 2D array
-	*SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);
-
 	// reorganize as a 2D array
-	for (long i=0; i<(ndet); i++)
+	for (long idet=0; idet<(ndet); idet++)
 		for (long ibin=0; ibin<(nbins); ibin++)
-			(*SpN_all)[i][ibin] = Rellth_full[i*(nbins) + ibin];
+			SpN_all[idet][ibin] = Rellth_full[idet*(nbins) + ibin];
 
 	// clear temp 1D array
 	delete [] Rellth_full;

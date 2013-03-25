@@ -469,14 +469,13 @@ uint32_t assignMixMat(string fname, std::vector<string> det, long ncomp, double 
 
 	// Check for missing data
 	if ( *std::min_element( indexIn.begin(), indexIn.end()) == -1 ) {
-		cerr << "EE - Input MixingMatrix must include all requested channels (missing : ";
+		cerr << "WW - Input MixingMatrix does not include some requested channels (missing : ";
 		for (int idetOut = 0; idetOut < ndetOut; idetOut++) {
 			if (indexIn[idetOut] == -1) {
 				cerr << det[idetOut] << ", ";
 			}
 		}
 		cerr << " )" << endl;
-		return 1;
 	}
 
 	for (int idet = 0; idet < ndetOut; idet ++) {

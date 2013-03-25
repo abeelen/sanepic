@@ -460,8 +460,6 @@ int main(int argc, char *argv[]){
 
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
 
-		//TODO : in progress
-
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels
 		// iframe = scan number
@@ -526,15 +524,24 @@ int main(int argc, char *argv[]){
 		}
 
 
-		//TODO: Only bolo_rank 0 to read the file....
 		// Read out the ells ...
-		std::vector<double> dummy;
-		std::string output;
-		if ( read_file(output, samples_struct.ell_names[iframe], dummy) )
-			return FILE_PROBLEM;
-		vDouble2carray(dummy, &ell, &nbins);
-		dummy.clear();
-		nbins   = nbins-1;
+		if (bolo_rank == 0){
+			std::vector<double> dummy;
+			std::string output;
+			if ( read_file(output, samples_struct.ell_names[iframe], dummy) )
+				return FILE_PROBLEM;
+			vDouble2carray(dummy, &ell, &nbins);
+			dummy.clear();
+			nbins   = nbins-1;
+		}
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_NODE);
+		MPI_Bcast(&nbins, 1, MPI_LONG, 0, MPI_COMM_NODE);
+		if (bolo_rank != 0 )
+				ell =  new double[nbins+1];
+		MPI_Bcast(ell, nbins+1, MPI_DOUBLE, 0, MPI_COMM_NODE);
+#endif
+
 
 		long nbins2=0;
 		while ((ell[nbins2] < fcut) && (nbins2 < nbins)){
@@ -772,9 +779,9 @@ int main(int argc, char *argv[]){
 					}
 
 
-//					FILE *fp;
-//					fp = fopen("test.txt", "w");
-//					 gsl_matrix_fprintf(fp, Cov, "%e");
+					//					FILE *fp;
+					//					fp = fopen("test.txt", "w");
+					//					 gsl_matrix_fprintf(fp, Cov, "%e");
 
 					// invert AtN-1A
 					gsl_linalg_cholesky_decomp (Cov);
@@ -1161,7 +1168,7 @@ int main(int argc, char *argv[]){
 				iter = 0;
 				while( (iter++ < PS_param.itermax) && ( abs(f-f0) > PS_param.tolerance) ) {
 					f0 = f;
-//				for (long iter=0;iter < PS_param.itermax;iter++){
+					//				for (long iter=0;iter < PS_param.itermax;iter++){
 
 					fill(iN,iN+ndet,0.0);
 					fill(Pr,Pr+ncomp,0.0);
@@ -1386,6 +1393,7 @@ int main(int argc, char *argv[]){
 							}
 
 						/// TODO: Use only one N and initialize N[*][iBin] here...
+						//        .... Needs to  initialize N[*][<iBinMin] and N[*][>iBinMax] too.... or use a gather function below...
 						for (long idet1=0;idet1<ndet;idet1++){
 							for (long idet2=0;idet2<ndet;idet2++)
 								new_N[idet1][iBin] += ImDR[idet1][idet2] * Mattmp[idet2][idet1];

@@ -1,8 +1,8 @@
 # In order to compile sanepic for valgrind testing use
 
-LDFLAGS="-pg" CXXFLAGS="-O0" CPPFLAGS="-pg" ./configure --disable-shared
+LDFLAGS="-pg" CXXFLAGS="-pg -fno-inline-functions -fno-omit-frame-pointer -O0 -fno-inline-functions-called-once -fno-optimize-sibling-calls" ./configure --disable-shared
 
 # Then launch the standard executable normally 
 
-valgrind --leak-check ${executable} arguments
+valgrind --tool=memcheck --leak-check=full --show-reachable=yes ${executable} arguments
 

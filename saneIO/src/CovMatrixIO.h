@@ -23,6 +23,7 @@ extern "C" {
  */
 int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<std::string> bolos, std::string scan_name, long nbins, double * ell, gsl_matrix *Rellth);
 
+
 //!  Reads the Inverse Covariance Matrices (and bins : ell) from disk, using a binary format
 /*!
  \param D A pointer to an opened dirfile
@@ -34,7 +35,8 @@ int write_InvNoisePowerSpectra(DIRFILE* D, std::vector<std::string> bolos, std::
  \param suffix A file suffix to add to fits file name (_InvNoisePS : arbitrary chosen by us)
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int read_InvNoisePowerSpectra(DIRFILE* D, std::string boloName, std::string scan_name, long nbins, long ndet, double ** ell, double *** SpN_all);
+uint32_t read_Ell(DIRFILE* D, std::string scan_name, long nbins, double * ell);
+uint32_t read_InvNoisePowerSpectra(DIRFILE* D, std::string scan_name, std::string boloName, long nbins, long ndet, double ** SpN_all);
 
 //! This function writes the NoiseNoise Matrices in a fits file (also Writes ell)
 /*!

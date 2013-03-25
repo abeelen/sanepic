@@ -1239,6 +1239,8 @@ void default_param_saneCheck(struct param_saneCheck &Check_param) {
 	Check_param.checkGain = 1;
 	Check_param.checkFlag = 1;
 
+	Check_param.checkSpeed = 0;
+
 	Check_param.kappaSpeed = 30.;
 	Check_param.belowSpeed = -1.;
 	Check_param.aboveSpeed = -1.;
@@ -1365,7 +1367,6 @@ int commit_dictionary(int rank, dictionary *dict) {
 
 #endif
 
-//TODO: sanePS is not in the default distribution, so should not be in the master parser_function....
 // Main driver
 uint32_t parser_function(char * ini_name, std::string &output,
 		struct param_common &dir, struct samples &samples_struct,

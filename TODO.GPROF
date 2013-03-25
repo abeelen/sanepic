@@ -1,6 +1,7 @@
 # In order to compile sanepic for gprof profiling use
 
 LDFLAGS="-pg" CPPFLAGS="-pg" ./configure --disable-shared
+CPPFLAGS="-pg -fno-inline-functions -fno-omit-frame-pointer -O2 -fno-inline-functions-called-once -fno-optimize-sibling-calls"
 
 # Then launch the standard executable il will create a gmon.out file
 

@@ -226,7 +226,7 @@ uint32_t cleanup_dirfile_sanePos(std::string tmp_dir, struct samples & samples_s
  \param tmp_dir A string containing the temporary files pathname
  \return An integer specifying if there were an error (>0) or not (=0)
  */
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int rank);
+uint32_t cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int rank);
 
 //! Clean up fData dirfiles and format files or Creates it if needed
 /*!

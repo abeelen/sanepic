@@ -242,7 +242,7 @@ void rescaleAP(double **A, double **P, long ndet, long ncomp, long nbins){
 }
 
 // TODO: on 500 samples only in the middle of the timeline... is there a better/simpler/faster way...
-// TODO: Stupid way of computing sigma of the noise
+//       Stupid way of computing sigma of the noise
 double crudeSigma(double * data, long ns){
 
 	double mm      = 0.0;

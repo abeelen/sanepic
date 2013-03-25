@@ -908,8 +908,7 @@ int readFdata(DIRFILE* D, string filename, string boloname, string prefixe,
 	field_code = outfile.c_str();
 
 	// fill fdata with binary
-	int nget = gd_getdata(D, field_code, 0, 0, 0, ns / 2 + 1, GD_COMPLEX128,
-			fdata);
+	int nget = gd_getdata(D, field_code, 0, 0, 0, ns / 2 + 1, GD_COMPLEX128, fdata);
 	if (gd_error(D) != 0) {
 		cout << "error getdata in read_fdata : read " << nget << endl;
 		return 1;
@@ -1011,7 +1010,6 @@ uint32_t readNoiseBinSizeFromDirfile(std::string tmp_dir, struct samples &sample
 	return returnCode;
 }
 
-
 uint32_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
 		int sub_rank) {
 
@@ -1033,7 +1031,6 @@ uint32_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
 	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-	//TODO This should be done on iframe_min iframe_max in case of subranks and by subrank 0
 	if (sub_rank == 0) {
 
 		DIRFILE *temp;
@@ -1052,8 +1049,7 @@ uint32_t init_dirfile(std::string tmp_dir, struct samples & samples_struct,
 			for (unsigned long ii = 0; ii < Elements_in(subdirs); ii++) {
 				string dirfile_name = dirfile_basename + "/" + subdirs[ii];
 				temp = gd_open((char *) dirfile_name.c_str(),
-						GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE
-						| GD_UNENCODED);
+						GD_RDWR | GD_CREAT | GD_TRUNC | GD_VERBOSE | GD_UNENCODED);
 				returnCode |= gd_close(temp);
 				string dirfile_format = string(subdirs[ii]) + "/format";
 				gd_include(samples_struct.dirfile_pointers[iframe],
@@ -1162,7 +1158,7 @@ uint32_t cleanup_dirfile_sanePos(std::string tmp_dir,
 	return returnCode;
 }
 
-int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int sub_rank) {
+uint32_t cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct, int sub_rank) {
 
 	uint32_t returnCode = 0;
 
@@ -1201,22 +1197,25 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct
 			std::vector<string> det_vect = samples_struct.bolo_list[iframe];
 
 			string outfile;
+
+			// ell binary filename
+			outfile = "Ell_" + scan_name;
+
+			// configure dirfile field for ell
+			gd_entry_t E;
+			E.field = (char*) outfile.c_str();
+			E.field_type = GD_RAW_ENTRY;
+			E.fragment_index = 0;
+			E.spf = 1;
+			E.data_type = GD_DOUBLE;
+			E.scalar[0] = NULL;
+
+			// add to the dirfile
+			returnCode |= gd_add(D, &E);
+			returnCode |= gd_flush(D, NULL);
+
+
 			for (long idet = 0; idet < (long) det_vect.size(); idet++) {
-
-				// ell binary filename
-				outfile = "Ell_InvNoisePS_" + scan_name + "_" + det_vect[idet];
-
-				// configure dirfile field for ell
-				gd_entry_t E;
-				E.field = (char*) outfile.c_str();
-				E.field_type = GD_RAW_ENTRY;
-				E.fragment_index = 0;
-				E.spf = 1;
-				E.data_type = GD_DOUBLE;
-				E.scalar[0] = NULL;
-
-				// add to the dirfile
-				returnCode |= gd_add(D, &E);
 
 				// spectra filename
 				outfile = "InvNoisePS_" + scan_name + "_" + det_vect[idet];
@@ -1229,7 +1228,6 @@ int cleanup_dirfile_saneInv(std::string tmp_dir, struct samples & samples_struct
 			}
 
 			// flush all detector at once..
-			returnCode |= gd_flush(D, NULL);
 			returnCode |= gd_flush(S, NULL);
 
 			if (gd_close(S))

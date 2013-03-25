@@ -1,7 +1,7 @@
 Source: sanepic
 Section: science
 Priority: extra
-Maintainer: Alexandre Beelen <abeelen@glx-cluster.ias.u-psud.fr>
+Maintainer: Alexandre Beelen <alexandre.beelen@ias.u-psud.fr>
 Build-Depends: debhelper (>= 8.0.0), autotools-dev, libgetdata-dev, wcslib-dev, libgsl0-dev, libfftw3-dev, libcfitsio3-dev
 Standards-Version: 3.9.2
 Homepage: <insert the upstream URL, if relevant>

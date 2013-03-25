@@ -378,7 +378,7 @@ void InvbinnedSpectrum2log_interpol(double* km, double* SpN, double* bfilter_Inv
 
 }
 
-void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
+void fillgaps2(double data[], long ns, double* yout,  int* flag, int size){
 
 	int indic=0;
 	std::vector<long> buf_0, buf_1;
@@ -390,8 +390,8 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	a[0]=0.0;
 	a[1]=0.0;
 
-	sx= new double[taille];
-	sy= new double[taille];
+	sx= new double[size];
+	sy= new double[size];
 
 	for(long ff=0;ff<ns;ff++)
 		if(flag[ff]==0)
@@ -446,14 +446,14 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 
 	while(i<n-1){
 
-		fill(sx,sx+taille,0.0);
-		fill(sy,sy+taille,0.0);
+		fill(sx,sx+size,0.0);
+		fill(sy,sy+size,0.0);
 
 		miss=0;
 
-		if(buf_0[i]>=taille/2){ // enough samples before gap
-			p_beg=buf_0[i]-taille/2+flag_precedent; // get first indice in data array (we don't take flagged samples)
-			for(int gg=0;gg<taille/2;gg++){ // fill x and y arrays for fitpoly with the good samples found
+		if(buf_0[i]>=size/2){ // enough samples before gap
+			p_beg=buf_0[i]-size/2+flag_precedent; // get first indice in data array (we don't take flagged samples)
+			for(int gg=0;gg<size/2;gg++){ // fill x and y arrays for fitpoly with the good samples found
 				sx[gg]=gg;
 				sy[gg]=data[p_beg+gg];
 			}
@@ -462,7 +462,7 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		}else{ // not enough samples before gap
 
 			p_beg=flag_precedent+init; // get first indice in data array (we don't take flagged samples)
-			reste=taille/2-buf_0[i]; // reste = number of samples to take after gap because there were not enough before
+			reste=size/2-buf_0[i]; // reste = number of samples to take after gap because there were not enough before
 			for(int gg=0;gg<buf_0[i];gg++){ // fill x and y arrays for fitpoly with the good samples found
 				sx[gg]=gg;
 				sy[gg]=data[p_beg+gg];
@@ -470,14 +470,14 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 		}
 		long old_i=i;
 		long sum_0=0;
-		if(buf_0[i+1]>=(taille/2+reste)){ // enough samples just after the gap
-			p_end=taille+buf_1[i]+p_beg-init-1;
-			for(int gg=taille/2-reste;gg<taille;gg++){
+		if(buf_0[i+1]>=(size/2+reste)){ // enough samples just after the gap
+			p_end=size+buf_1[i]+p_beg-init-1;
+			for(int gg=size/2-reste;gg<size;gg++){
 				sx[gg]=buf_1[i]+gg;
 				sy[gg]=data[p_beg+buf_1[i]-init+gg];
 			}
 		}else{ // not enough samples just after the gap, consider a new gap AND the good samples after it to have enough good samples
-			while(sum_0<taille/2+reste){ // check how many gap we need to "over-fill"
+			while(sum_0<size/2+reste){ // check how many gap we need to "over-fill"
 				i++;
 				if(i>n-1){
 					i--;
@@ -485,14 +485,14 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 				}
 				sum_0 += buf_0[i];
 			}
-			if(sum_0>taille/2+reste){ // we have found enough good samples
-				p_end=taille+p_beg-1;
+			if(sum_0>size/2+reste){ // we have found enough good samples
+				p_end=size+p_beg-1;
 				for(long ff=old_i;ff<i;ff++)
 					p_end+=buf_1[ff];
 
 			}else{ // end of flag array and we have not enough (<taille) good samples for fitpoly
 
-				p_end=taille/2-reste+sum_0+p_beg-1; // case last buf_0 < taille/2+reste
+				p_end=size/2-reste+sum_0+p_beg-1; // case last buf_0 < taille/2+reste
 				for(long ff=old_i;ff<i;ff++)
 					p_end+=buf_1[ff];
 			}
@@ -506,11 +506,11 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 				sy[indice]=data[gg];
 				indice++;
 			}
-			miss = taille-indice;
+			miss = size-indice;
 		}
 
 
-		fitpoly(1, taille-miss, sx, sy, a);
+		fitpoly(1, size-miss, sx, sy, a);
 
 		for (long j=p_beg;j<=p_end;j++){
 			if(flag[j]!=0)
@@ -534,15 +534,15 @@ void fillgaps2(double data[], long ns, double* yout,  int* flag, int taille){
 	}
 
 	if(n==(long)buf_1.size()){
-		if(buf_0[n]>=taille){
-			p_beg=ns-buf_1[n]-taille;
-			p_end=p_beg+taille-1;
-			for(int gg=0;gg<taille;gg++){ // fill x and y arrays for fitpoly with the good samples found
+		if(buf_0[n]>=size){
+			p_beg=ns-buf_1[n]-size;
+			p_end=p_beg+size-1;
+			for(int gg=0;gg<size;gg++){ // fill x and y arrays for fitpoly with the good samples found
 				sx[gg]=gg;
 				sy[gg]=data[p_beg+gg];
 			}
 
-			fitpoly(1, taille, sx, sy, a);
+			fitpoly(1, size, sx, sy, a);
 			for (long j=p_beg;j<=ns-1;j++){
 				if(flag[j]>0)
 					yout[j] = a[0]+a[1]*(j-p_beg);

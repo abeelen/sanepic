@@ -161,7 +161,6 @@ int main(int argc, char *argv[]) {
 	if(configureMPI(dir.output_dir, samples_struct, rank, size,
 			bolo_rank,  bolo_size, node_rank, node_size,
 			MPI_COMM_NODE, MPI_COMM_MASTER_NODE)){
-		cout << rank << "was here" << endl;
 		if (rank==0)
 			cerr << endl << endl << "Exiting..." << endl;
 

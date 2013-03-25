@@ -152,42 +152,6 @@ double range (double angle)
 	return (fabs (tmp) < M_PI) ? tmp : tmp - dsign (D2PI, angle);
 }
 
-
-
-//using namespace std;
-//int main(int argc, char *argv[])
-//{
-//
-//  double *ra, *dec;
-//  double *glon, *glat;
-//  int nx = 2;
-//
-//
-//  ra  = new double[nx];
-//  dec = new double[nx];
-//
-//  glon = new double[nx];
-//  glat = new double[nx];
-//
-//  ra[0]  = 24.5;
-//  dec[0] = 29.4;
-//
-//  ra[1]  = 12;
-//  dec[1] = -2.4;
-//
-//
-//  cout << "Hello World" << endl;
-//
-//  equatorial2galactic(nx, ra,dec, &glon, &glat);
-//
-//  for (long ii=0; ii< nx; ii++){
-//    cout << "(ra, dec)    = "  << setprecision(12) << ra[ii]   << " " << dec[ii]  << endl;
-//    cout << "(glon, glat) = "  << setprecision(12) << glon[ii] << " " << glat[ii] << endl;
-//  }
-//
-//}
-
-
 // TODO : test this...
 int convert_Dirfile_LON_LAT(struct samples samples_struct, struct param_sanePos pos_param)
 {

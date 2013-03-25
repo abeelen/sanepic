@@ -73,7 +73,6 @@ int reorderMatrix(long nbins, std::vector<string> listIn, gsl_matrix *MatrixIn, 
 
 
 
-//TODO : Can be parallelized by Mode easilly if MatrixOut become a dmatrix....
 void inverseCovMatrixByMode(long nbins, long ndet, gsl_matrix * MatrixIn, gsl_matrix *& MatrixOut)
 /* Inverses the Covariance PowerSpectrum by mode */
 {
@@ -89,6 +88,8 @@ void inverseCovMatrixByMode(long nbins, long ndet, gsl_matrix * MatrixIn, gsl_ma
 	ivec = gsl_vector_alloc(ndet);
 
 	//TODO: Parallelize this loop... -> Means we need to MPI_Reduce gsl_matrix
+	//      or MatrixOut become a dmatrix....
+
 	for (int ibin = 0; ibin < nbins; ibin++) {
 
 		//		cout << "Progress : " << ibin * 100. / nbins << "% \r" << flush;
