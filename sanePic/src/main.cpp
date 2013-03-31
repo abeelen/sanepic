@@ -436,10 +436,21 @@ int main(int argc, char *argv[]) {
 		cout << "Mem. per process : " << prettyPrintSize((indpix_size+npix*9)*8.) << endl;
 	}
 	if (bolo_rank == 0) {
-		if (getAvailableSystemMemory() < (indpix_size+npix*9)*8.*bolo_size){
+		if (getTotalSystemMemory()*Pic_param.fracMem < (indpix_size+npix*9)*8.*bolo_size){
 			cerr << endl;
-			cerr << "WW --------------------------------------------" << endl;
-			cerr << "WW - Available physical memory may be too low -" << endl;
+			cerr << "WW -----------------------------------------------" << endl;
+			cerr << "WW - Available physical memory will be too low   -" << endl;
+
+#ifdef USE_MPI
+			char *proc_name;
+			int procname_length;
+			proc_name = new char[MPI_MAX_PROCESSOR_NAME];
+			MPI_Get_processor_name(proc_name, &procname_length);
+			cerr << "WW - on ";
+			cerr.fill(' ');
+			cerr.width(40);
+			cerr << left << proc_name << " - " << endl;
+#endif
 			cerr << "WW --------------------------------------------" << endl;
 
 			// #ifdef USE_MPI
@@ -588,6 +599,7 @@ int main(int argc, char *argv[]) {
 		} // end of iframe loop
 
 #ifdef USE_MPI
+		//TODO: Could be changed by an IN_PLACE operation... avoid one additional npix array for rank 0
 		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Reduce(PNd,PNdtot,npix,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 #else
@@ -709,7 +721,7 @@ int main(int argc, char *argv[]) {
 			MPI_Bcast(&iter,1,MPI_INT,0,MPI_COMM_WORLD);
 			MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
-			//copy Mp to Mptot and PtNPmatS to PtNPmatStot
+			//copy Mp to Mptot
 			if(rank == 0)
 				for(long ii = 0; ii< npix; ii++){
 					Mptot[ii] = Mp[ii];

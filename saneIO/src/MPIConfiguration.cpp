@@ -330,7 +330,6 @@ int verifyParallelScheme(struct samples &samples_struct, int rank, int size){
 
 }
 
-
 void reorderSamplesStruct( struct samples & samples_struct, int rank, int size){
 
 	long nFrames = samples_struct.nsamples.size();

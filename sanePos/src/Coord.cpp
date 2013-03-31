@@ -84,7 +84,6 @@ void galactic2equatorial (long nx, double *glon, double *glat, double **RA, doub
 
 }
 
-
 void Spherical2Cartesian (double RA, double DEC, double Cart[3])
 // Spherical to cartesian
 {
@@ -104,7 +103,6 @@ void Spherical2Cartesian (double RA, double DEC, double Cart[3])
 	Cart[1] = sin (RA) * cosDEC;
 	Cart[2] = sin (DEC);
 }
-
 
 void RotVect (double Mat[3][3], double IN[3], double OUT[3])
 // Apply 3D rotation

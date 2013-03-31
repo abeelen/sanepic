@@ -205,7 +205,7 @@ void compute_diagPtNPCorr(double *Nk, long long *samptopix, long ndata,
 	N_  = (double *) fftw_malloc(sizeof(double)*ndata);
 
 	data_compare = new long long[ndata];
-	pixtosamp = new long long[ndata];
+	pixtosamp    = new long long[ndata];
 
 	//fill(N_,N_+ndata,0.0);
 	//fill(pixpos,pixpos+ndata,0);

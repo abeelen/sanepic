@@ -281,7 +281,20 @@ uint32_t fill_channel_list(std::string &output, struct samples &samples_struct, 
 	return returnCode;
 }
 
+void fill_sanePS_struct(struct param_sanePS &PS_param,
+		struct samples &samples_struct, struct param_common &dir) {
 
+	vector<string> dummy_string;
+
+	fillvect_strings(PS_param.mix, samples_struct.fitsvect, PS_param.mix_suffix, dir.input_dir, dummy_string);
+	samples_struct.mix_names = dummy_string;
+	dummy_string.clear();
+
+	fillvect_strings(PS_param.ell, samples_struct.fitsvect, PS_param.ell_suffix, dir.input_dir, dummy_string);
+	samples_struct.ell_names = dummy_string;
+	dummy_string.clear();
+
+}
 
 // Structure reading
 
@@ -354,7 +367,6 @@ void read_common(string &output, dictionary *ini, struct param_common &common) {
 #endif
 
 }
-
 void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &Pos_param) {
 
 	char *s;
@@ -466,7 +478,6 @@ void read_param_sanePos(string &output, dictionary *ini, struct param_sanePos &P
 #endif
 
 }
-
 void read_param_saneProc(string &output, dictionary *ini, struct param_saneProc &Proc_param) {
 
 	int i;
@@ -570,7 +581,6 @@ void read_param_saneProc(string &output, dictionary *ini, struct param_saneProc 
 	output += output2;
 #endif
 }
-
 void read_param_saneInv(std::string &output, dictionary *ini, struct param_saneInv &Inv_param) {
 
 	char *s;
@@ -602,7 +612,6 @@ void read_param_saneInv(std::string &output, dictionary *ini, struct param_saneI
 #endif
 
 }
-
 void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS &PS_param) {
 
 	int i;
@@ -695,7 +704,6 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 #endif
 
 }
-
 void read_param_sanePic(std::string &output, dictionary *ini, struct param_sanePic &Pic_param){
 
 	int i;
@@ -748,12 +756,20 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 	else
 		Pic_param.map_prefix = StringOf(s);
 
+
+	d = iniparser_getdouble(ini, (char *) "sanePic:fracMem", -1.0);
+	if (d == -1)
+		output2 += "sanePic:fracMem : default value [" + StringOf(
+				Pic_param.fracMem) + "]\n";
+	else
+		Pic_param.fracMem = d;
+
+
 #ifdef DEBUG
 	output += output2;
 #endif
 
 }
-
 void read_param_saneCheck(std::string &output, dictionary *ini , struct param_saneCheck &Check_param){
 
 	int i;
@@ -831,7 +847,6 @@ void read_param_saneCheck(std::string &output, dictionary *ini , struct param_sa
 #endif
 
 }
-
 void read_param_saneFix(std::string &output, dictionary *ini , struct param_saneFix &Fix_param){
 
 	int i;
@@ -850,7 +865,6 @@ void read_param_saneFix(std::string &output, dictionary *ini , struct param_sane
 
 
 }
-
 void read_wisdom(std::string &output, struct param_common &dir, struct param_saneProc Proc_param, int rank){
 	// Retrieve wisdom if asked / possible
 
@@ -943,7 +957,6 @@ uint32_t check_common(string &output, struct param_common &dir, int rank) {
 
 	return returnCode;
 }
-
 uint32_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 
 	uint32_t returnCode = 0;
@@ -968,7 +981,6 @@ uint32_t check_param_sanePos(string &output, struct param_sanePos &Pos_param) {
 
 	return returnCode;
 }
-
 uint32_t check_param_saneProc(string &output, struct param_common dir, struct param_saneProc &Proc_param) {
 
 	uint32_t returnCode = 0;
@@ -1024,7 +1036,6 @@ uint32_t check_param_saneProc(string &output, struct param_common dir, struct pa
 
 	return returnCode;
 }
-
 uint32_t check_param_sanePS(string &output, struct param_common dir, struct param_sanePS &PS_param) {
 
 	uint32_t returnCode = 0;
@@ -1058,7 +1069,6 @@ uint32_t check_param_sanePS(string &output, struct param_common dir, struct para
 
 	return returnCode;
 }
-
 uint32_t check_param_saneInv(string &output, struct param_common dir, struct param_saneInv &Inv_param) {
 
 	uint32_t returnCode = 0;
@@ -1080,7 +1090,6 @@ uint32_t check_param_saneInv(string &output, struct param_common dir, struct par
 
 	return returnCode;
 }
-
 uint32_t check_param_samples(string &output, struct samples &samples_struct){
 
 	uint32_t returnCode = 0;
@@ -1116,7 +1125,6 @@ void default_param(struct param_common &dir,
 	default_param_sanePic(Pic_param);
 
 }
-
 void default_param_common(struct param_common &dir) {
 
 	// param_common
@@ -1133,7 +1141,6 @@ void default_param_common(struct param_common &dir) {
 
 	dir.parallel_scheme = "frame" ;
 }
-
 void default_param_sanePos(struct param_sanePos &Pos_param) {
 	//	Pos_param.flgdupl = 0; // map duplication factor
 	//	Pos_param.flgdupl = 0; // map duplication factor
@@ -1162,7 +1169,6 @@ void default_param_sanePos(struct param_sanePos &Pos_param) {
 	// 1: 'hipe' like format with LON/LAT for each time/bolo
 
 }
-
 void default_param_saneProc(struct param_saneProc &Proc_param) {
 
 	//	Proc_param.napod  = 0; /*! number of samples to apodize, =0 -> no apodisation */
@@ -1193,7 +1199,6 @@ void default_param_saneProc(struct param_saneProc &Proc_param) {
 	Proc_param.wisdom = false;
 
 }
-
 void default_param_sanePS(struct param_sanePS &PS_param) {
 
 	PS_param.ell_suffix = ".ell";
@@ -1213,14 +1218,12 @@ void default_param_sanePS(struct param_sanePS &PS_param) {
 	PS_param.cov_matrix_suffix = "_psd.fits";
 
 }
-
 void default_param_saneInv(struct param_saneInv &Inv_param) {
 
 	Inv_param.cov_matrix = "";
 	Inv_param.cov_matrix_suffix = "_psd.fits";
 	Inv_param.noise_dir = "./";
 }
-
 void default_param_sanePic(struct param_sanePic &Pic_param) {
 
 	Pic_param.iterw = 0;
@@ -1230,6 +1233,9 @@ void default_param_sanePic(struct param_sanePic &Pic_param) {
 	Pic_param.save_data = 0;
 	//	Pic_param.restore = 0; should not be defaulted here...
 	Pic_param.map_prefix = "optimMap";
+
+	Pic_param.fracMem = 0.7; // By default use 70% of the physical memory for sanePic, leaving the rest for caching...
+
 }
 
 void default_param_saneCheck(struct param_saneCheck &Check_param) {
@@ -1255,20 +1261,8 @@ void default_param_saneFix(struct param_saneFix &Fix_param) {
 }
 
 
-void fill_sanePS_struct(struct param_sanePS &PS_param,
-		struct samples &samples_struct, struct param_common &dir) {
 
-	vector<string> dummy_string;
 
-	fillvect_strings(PS_param.mix, samples_struct.fitsvect, PS_param.mix_suffix, dir.input_dir, dummy_string);
-	samples_struct.mix_names = dummy_string;
-	dummy_string.clear();
-
-	fillvect_strings(PS_param.ell, samples_struct.fitsvect, PS_param.ell_suffix, dir.input_dir, dummy_string);
-	samples_struct.ell_names = dummy_string;
-	dummy_string.clear();
-
-}
 
 #ifdef USE_MPI
 
@@ -1703,6 +1697,7 @@ void parser_printOut(char * prog_name, struct param_common dir,
 }
 
 
+
 void export_param_sanePos(struct param_sanePos Pos_param, std::vector<string> &key, std::vector<string> &value, std::vector<string> &comment) {
 
 	key.push_back("pixsize");
@@ -1929,7 +1924,11 @@ void export_param_sanePic(struct param_sanePic Pic_param, std::vector<string> &k
 
 	key.push_back("map_prefix");
 	value.push_back(Pic_param.map_prefix);
-	comment.push_back("prefix for the fits file (default : optimMap");
+	comment.push_back("Prefix for the fits file (default : optimMap");
+
+	key.push_back("fracMem");
+	value.push_back(StringOf(Pic_param.fracMem));
+	comment.push_back("Maximal fraction of the Physical memory used by sanePic (default : 0.7)");
 
 }
 
@@ -1982,6 +1981,7 @@ void export_param_saneFix(struct param_saneFix Fix_param, std::vector<string> &k
 	comment.push_back("Add additional Flag due to speed deviation");
 
 }
+
 
 string rebuild_ini(struct param_common dir, struct param_saneProc proc_param, struct param_sanePos pos_param,
 		struct samples samples_struct, struct param_sanePS PS_param,

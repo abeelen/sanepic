@@ -99,6 +99,7 @@ long getTotalSystemMemory()
 
 long getAvailableSystemMemory()
 {
+	// This does not work as expected as Linux will use most of the RAM for IO caching, thus leaving very little available memory
 	long pages = sysconf(_SC_AVPHYS_PAGES);
 	long page_size = sysconf(_SC_PAGE_SIZE);
 	return pages * page_size;

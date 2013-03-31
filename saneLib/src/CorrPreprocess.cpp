@@ -253,7 +253,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 		km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
 	delete[] ell;
 
-
 	// alloc spectra 2D array
 	SpN_all = dmatrix(0, (ndet) - 1, 0, (nbins) - 1);
 
@@ -291,8 +290,6 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 				return 1;
 
 			//****************** Cross power spectrum of the noise  ***************//
-
-
 
 			// interpolate logarithmically the inversed noise power spectrum
 			InvbinnedSpectrum2log_interpol(km,SpN,bfilter_InvSquared,nbins,ns,Nk, NULL);
