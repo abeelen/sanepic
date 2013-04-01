@@ -124,6 +124,9 @@ unsigned long max_size_str_vect(std::vector<std::string> str_vect);
 long getTotalSystemMemory();
 long getAvailableSystemMemory();
 
+void computeMemoryRequirement_sanePic(struct samples samples_struct, long npix, long indpix_size);
+
+
 // Helper function for screen print
 std::string prettyPrintSize(double size);
 std::string prettyPrintAngle(float angle);

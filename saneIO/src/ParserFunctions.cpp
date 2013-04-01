@@ -41,7 +41,6 @@ string checkTrailingDir(string str) {
 
 	return str;
 }
-
 string expandDir(string str){
 	string output;
 
@@ -58,11 +57,9 @@ string expandDir(string str){
 	return output;
 
 }
-
 string checkDir(string str){
 	return checkTrailingDir(expandDir(str));
 }
-
 uint32_t check_path(string &output, string strPath, bool create, int rank) {
 
 	if (access(strPath.c_str(), 0) == 0) {
@@ -94,8 +91,6 @@ uint32_t check_path(string &output, string strPath, bool create, int rank) {
 	}
 	return OK;
 }
-
-
 uint32_t init_tmpdir(string &output, struct samples &samples_struct, std::string dir, int rank) {
 
 	uint32_t returnCode = 0;
@@ -108,8 +103,6 @@ uint32_t init_tmpdir(string &output, struct samples &samples_struct, std::string
 	return returnCode;
 
 }
-
-
 uint32_t check_file(string strPath) {
 
 	if (access(strPath.c_str(), 0) == 0) {
@@ -148,7 +141,6 @@ uint32_t fillvect_double(string & output, double value, string file, string dir,
 
 	return OK;
 }
-
 void fillvect_strings(string commonFile, vector<string> FitsFilename, string suffix, string dir, vector<string> & outputVector){
 
 	unsigned long size;
@@ -169,7 +161,6 @@ void fillvect_strings(string commonFile, vector<string> FitsFilename, string suf
 	}
 
 }
-
 uint32_t fill_samples_struct(string &output, struct samples &samples_struct,
 		struct param_common &dir, struct param_saneInv &Inv_param,
 		struct param_saneProc &Proc_param, int rank, int size) {
@@ -178,7 +169,6 @@ uint32_t fill_samples_struct(string &output, struct samples &samples_struct,
 
 	if (rank == 0)
 		returnCode |= readFitsList(output, dir.input_dir + dir.fits_filelist, samples_struct);
-
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD); // other procs wait untill rank 0 has read the fits_list
@@ -207,12 +197,14 @@ uint32_t fill_samples_struct(string &output, struct samples &samples_struct,
 	samples_struct.nsamples.clear();
 	samples_struct.nsamples.assign(samples_struct.ntotscan, 0);
 
+	samples_struct.memory.clear();
+	samples_struct.memory.assign(samples_struct.ntotscan, 0);
+
 	samples_struct.nbins.clear();
 	samples_struct.nbins.assign(samples_struct.ntotscan, 0);
 
 	samples_struct.ndet.clear();
 	samples_struct.ndet.assign(samples_struct.ntotscan, 0);
-
 
 	samples_struct.dirfile_pointers.clear();
 	samples_struct.dirfile_pointers.resize(samples_struct.ntotscan, NULL);
@@ -256,7 +248,6 @@ uint32_t fill_samples_struct(string &output, struct samples &samples_struct,
 	return returnCode;
 
 }
-
 uint32_t fill_channel_list(std::string &output, struct samples &samples_struct, int rank, int size){
 	uint32_t returnCode = 0;
 
@@ -926,7 +917,7 @@ uint32_t check_common(string &output, struct param_common &dir, int rank) {
 	if (check_path(output, dir.input_dir, false, rank))
 		returnCode |= DATA_INPUT_PATHS_PROBLEM;
 	if (check_path(output, dir.output_dir, true, rank))
-		returnCode |= OUPUT_PATH_PROBLEM;
+		returnCode |= OUTPUT_PATH_PROBLEM;
 
 
 	if ((dir.bolo == "") && (dir.bolo_suffix == "")) {
@@ -1486,7 +1477,6 @@ void print_common(struct param_common dir) {
 	cout << "Para. Mode       : " << dir.parallel_scheme << endl;
 #endif
 }
-
 void print_param_sanePos(struct param_sanePos Pos_param) {
 
 	if (Pos_param.pixdeg > 0)
@@ -1508,7 +1498,6 @@ void print_param_sanePos(struct param_sanePos Pos_param) {
 
 	cout << endl;
 }
-
 void print_param_saneProc(struct param_saneProc Proc_param) {
 
 	if (Proc_param.fill_gap)
@@ -1556,7 +1545,6 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 
 	cout << endl;
 }
-
 void print_param_sanePic(struct param_sanePic Pic_param) {
 
 	if (Pic_param.save_data)
@@ -1570,7 +1558,6 @@ void print_param_sanePic(struct param_sanePic Pic_param) {
 
 	cout << endl;
 }
-
 void print_param_sanePS(struct param_sanePS PS_param) {
 
 
@@ -1589,14 +1576,12 @@ void print_param_sanePS(struct param_sanePS PS_param) {
 
 	cout << endl;
 }
-
 void print_param_saneInv(struct param_saneInv Inv_param) {
 
 	cout << "Noise Dir.       : " << Inv_param.noise_dir << endl;
 
 	cout << endl;
 }
-
 void print_param_saneCheck(struct param_saneCheck Check_param){
 
 	cout << endl << "Checks : ..." << endl;
@@ -1641,7 +1626,6 @@ void print_param_saneCheck(struct param_saneCheck Check_param){
 	}
 
 }
-
 void print_param_saneFix(struct param_saneFix Fix_param){
 
 	cout << endl << "Fixing : ..."  << endl;
@@ -1654,7 +1638,6 @@ void print_param_saneFix(struct param_saneFix Fix_param){
 		cout <<  "yes" << endl;
 
 }
-
 
 void parser_printOut(char * prog_name, struct param_common dir,
 		struct samples samples_struct, struct param_sanePos Pos_param,

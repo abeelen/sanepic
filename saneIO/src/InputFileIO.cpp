@@ -179,7 +179,7 @@ uint32_t readFitsList(std::string &output, string fname, struct samples &samples
 
 	std::vector<string> &fitsvect = samples_struct.fitsvect;
 	std::vector<long> &scans_index = samples_struct.scans_index;
-	bool &framegiven = samples_struct.framegiven;
+	int &framegiven = samples_struct.framegiven;
 
 	string i_string;
 	int    i_int;

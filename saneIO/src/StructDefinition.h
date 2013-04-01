@@ -125,7 +125,7 @@ struct param_sanePic
 struct samples
 /*! A structure that contains everything about frames, noise files and frame processing order */
 {
-	bool framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
+	int framegiven;                    /*!  True if the processor/scan index is given in fitsfilelist */
 
 	long iframe_min, iframe_max;        /*! indexes  to process in the following vector */
 
@@ -144,6 +144,7 @@ struct samples
 	std::vector<double> fhp;            /*! a vector containing data high pass filter frequency for each scan */
 
 	std::vector<long> nsamples;         /*! a vector containing the number of samples for each input fits filenames */
+	std::vector<unsigned long> memory;  /*! a vector containing the memory needed for each frame */
 	long ntotscan;                      /*! the total number of scans, should be the size of all vector in this struct */
 
 	// for sanePS only

@@ -25,7 +25,7 @@
 #define DATA_INPUT_PATHS_PROBLEM 0x000020
 
 /*! output path is incorrect or was not correctly filled in ini file */
-#define OUPUT_PATH_PROBLEM 0x000040
+#define OUTPUT_PATH_PROBLEM 0x000040
 
 /*! temporary files path is incorrect or was not correctly filled in ini file */
 #define TMP_PATH_PROBLEM 0x000080
