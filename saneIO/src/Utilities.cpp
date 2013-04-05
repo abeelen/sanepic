@@ -106,15 +106,13 @@ long getAvailableSystemMemory()
 	return pages * page_size;
 }
 
-
-void computeMemoryRequirement_sanePic(struct samples samples_struct, long npix, long indpix_size){
+void computeMemoryRequirement_sanePic(struct samples & samples_struct, long npix, long indpix_size){
   for (long iframe  = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++){
     samples_struct.memory[iframe] = indpix_size + npix * 7 + samples_struct.nsamples[iframe] * 9;
     // poly_order = 5 to be safe
     samples_struct.memory[iframe] += max( npix + (samples_struct.ndet[iframe]+2)*samples_struct.nbins[iframe], samples_struct.nsamples[iframe] * (1+5) );
   }
 }
-
 
 
 std::string prettyPrintSize(double size){
@@ -132,7 +130,6 @@ std::string prettyPrintSize(double size){
   return returnString.str();
 
 }
-
 
 std::string prettyPrintAngle(float angle){
   /*

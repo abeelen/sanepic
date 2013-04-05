@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 	std::ostringstream temp_stream; // used to remove sprintf horror
 
 
-	uint32_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	uint32_t mask_sanePS = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUTPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | NCOMP_WRONG_VALUE | ELL_FILE_NOT_FOUND | MIX_FILE_NOT_FOUND |
 			FITS_FILELIST_NOT_FOUND | FCUT_PROBLEM; // 0xdd1f
 

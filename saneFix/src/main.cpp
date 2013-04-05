@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 	std::vector <long> add_sample; /* number of samples to add per gap */
 	double fsamp; /* sampling frequency */
 
-	uint32_t mask_saneFix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
+	uint32_t mask_saneFix = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUTPUT_PATH_PROBLEM | TMP_PATH_PROBLEM |
 			FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x410f
 
 	uint32_t parsed=0x0000; // parser error status

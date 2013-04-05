@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
 	uint32_t parsed=0x0000; // parser error status
 
-	uint32_t mask_saneCheck = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUPUT_PATH_PROBLEM | TMP_PATH_PROBLEM | BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x411f
+	uint32_t mask_saneCheck = INI_NOT_FOUND | DATA_INPUT_PATHS_PROBLEM | OUTPUT_PATH_PROBLEM | TMP_PATH_PROBLEM | BOLOFILE_NOT_FOUND | FSAMP_PROBLEM | FITS_FILELIST_NOT_FOUND; // 0x411f
 
 	uint32_t compare_to_mask; // parser error status
 
