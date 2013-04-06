@@ -221,7 +221,7 @@ uint32_t check_param_sanePos(std::string &output, struct param_sanePos &pos_para
  \param output The parser error string
  \return A flag corresponding to an error code, or 0
  */
-uint32_t check_param_saneProc(std::string &output, struct param_common dir, struct param_saneProc &proc_param);
+uint32_t check_param_saneProc(std::string &output, struct param_common dir, struct samples &samples_struct, struct param_saneProc &proc_param);
 
 //! Check the struct param_sanePS is correct
 /*!

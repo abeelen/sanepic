@@ -523,7 +523,6 @@ int main(int argc, char *argv[]){
 			Ps = new double[ns];
 		}
 
-
 		// Read out the ells ...
 		if (bolo_rank == 0){
 			std::vector<double> dummy;
@@ -553,6 +552,10 @@ int main(int argc, char *argv[]){
 		for (int ii=0;ii<nbins;ii++)
 			km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
 
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
 
 		// data buffer allocated only once...
 		//	fdata*    = fourier transform
@@ -565,7 +568,6 @@ int main(int argc, char *argv[]){
 		fdata2 = (fftw_complex *) fftw_malloc(sizeof(fftw_complex)*(ns/2+1));
 		data   = (double *) fftw_malloc(sizeof(double)*ns);
 		flag   = new int[ns];
-
 
 		Rellth  = dmatrix(0,(ndet)*(ndet)-1,0,nbins-1);		// covariance matrix (Theory) = pattern : invertible but not Rellexp
 		N       = dmatrix(0,ndet-1,0,nbins-1);				// uncorrelated part of the noise
@@ -598,23 +600,21 @@ int main(int argc, char *argv[]){
 		init2D_double(Rellth,0,0, (ndet)*(ndet),nbins ,0.0);  // big
 		init2D_double(N,0,0,ndet,nbins,0.0);
 		init2D_double(P,0,0,ncomp,nbins,0.0);
+
 		init2D_double(commonMode,0,0,ncomp,ns,0.0);
 
 		// Restore variables...
 		int goto_step=0;
-
 		if(PS_param.restore)
 			if(restore_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), goto_step, commonMode, N, P, Rellexp, Rellth, SPref, ndet, ncomp, nbins, ns)){
 				cout << "ERROR restoring data... Exiting ...\n";
 				return 1;
 			}
 
-
 		switch(goto_step){
 
 		case 0: {
 			//----------------------------------- READ MIXMAT PART -------------------------------//
-
 			mixmat = dmatrix(0, ndet - 1, 0, ncomp - 1);
 
 			if (bolo_rank == 0) {

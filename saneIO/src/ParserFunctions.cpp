@@ -639,9 +639,9 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 	else
 		PS_param.signame = StringOf(s);
 
-	s = iniparser_getstring(ini, "sanePS:MixingMatrix_Suffix", (char *) NULL);
+	s = iniparser_getstring(ini, "sanePS:MixingMatrix_suffix", (char *) NULL);
 	if (s == (char *) NULL || strlen(s) == 0)
-		output2 += "sanePS:MixingMatrix_Suffix : default value [" + StringOf(
+		output2 += "sanePS:MixingMatrix_suffix : default value [" + StringOf(
 				PS_param.mix_suffix) + "]\n";
 	else
 		PS_param.mix_suffix = StringOf(s);
@@ -1027,7 +1027,7 @@ uint32_t check_param_saneProc(string &output, struct param_common dir, struct pa
 
 	return returnCode;
 }
-uint32_t check_param_sanePS(string &output, struct param_common dir, struct param_sanePS &PS_param) {
+uint32_t check_param_sanePS(string &output, struct param_common dir, struct samples &samples_struct, struct param_sanePS &PS_param) {
 
 	uint32_t returnCode = 0;
 
@@ -1057,6 +1057,16 @@ uint32_t check_param_sanePS(string &output, struct param_common dir, struct para
 		returnCode |= MIX_FILE_NOT_FOUND;
 	}
 
+	// for (long iframe=0; iframe < samples_struct.ntotscan; iframe++) {
+
+	// 	if ( check_file(samples_struct.ell_names[iframe]) != 0 ){
+	// 		output += "EE - " + samples_struct.ell_names[iframe] + " not found\n";
+	// 		returnCode |= FILE_PROBLEM;
+	// 	}
+	// 	if ( check_file(samples_struct.mix_names[iframe]) != 0 ){
+	// 		output += "WW - " + samples_struct.mix_names[iframe] + " not found\n";
+	// 	}
+	// }
 
 	return returnCode;
 }
@@ -1128,7 +1138,7 @@ void default_param_common(struct param_common &dir) {
 	dir.fits_filelist = "file.list";
 
 	dir.bolo          = "";
-	dir.bolo_suffix   = ".bolo";
+	dir.bolo_suffix   = "";
 
 	dir.parallel_scheme = "frame" ;
 }
@@ -1429,7 +1439,7 @@ uint32_t parser_function(char * ini_name, std::string &output,
 
 	if (rank==0){
 		// Should probably be somewhere else...
-		parsed |= check_param_sanePS(output, dir, PS_param);
+		parsed |= check_param_sanePS(output, dir, samples_struct, PS_param);
 	}
 
 	parsed |= fill_samples_struct(output, samples_struct, dir, Inv_param, Proc_param, rank, size);
@@ -1569,6 +1579,19 @@ void print_param_sanePS(struct param_sanePS PS_param) {
 	if (PS_param.signame != "")
 		cout << "Removed map.     : " << PS_param.signame << endl;
 
+	if (PS_param.ell != "") {
+		cout <<	"Ell file         : " << PS_param.ell << endl;
+	} else {
+		cout << "Ell suffix       : " << PS_param.ell_suffix << endl;
+	}
+
+	if (PS_param.mix != "") {
+		cout <<	"MixMatrix file   : " << PS_param.mix << endl;
+	} else {
+		cout << "MixMatrix suffix : " << PS_param.mix_suffix << endl;
+	}
+
+
 	cout << "Noise comp.      : " << PS_param.ncomp << endl;
 
 	cout << "Max Iter.        : " << PS_param.itermax << endl;
@@ -1598,11 +1621,11 @@ void print_param_saneCheck(struct param_saneCheck Check_param){
 	else
 		cout <<  "yes" << endl;
 
-//	cout << "Gains            : ";
-//	if(!Check_param.checkGain)
-//		cout <<  "no" << endl;
-//	else
-//		cout <<  "yes" << endl;
+	//	cout << "Gains            : ";
+	//	if(!Check_param.checkGain)
+	//		cout <<  "no" << endl;
+	//	else
+	//		cout <<  "yes" << endl;
 
 	cout << "Flags            : ";
 	if(!Check_param.checkFlag)
@@ -1620,7 +1643,7 @@ void print_param_saneCheck(struct param_saneCheck Check_param){
 		} else{
 			cout <<  " with kappa = " << Check_param.kappaSpeed;
 			if (Check_param.thresholdSpeed != -1.0 )
-					cout << " ignoring speed below " << Check_param.thresholdSpeed << " arcsec/s";
+				cout << " ignoring speed below " << Check_param.thresholdSpeed << " arcsec/s";
 		}
 		cout << endl;
 	}
@@ -1658,7 +1681,7 @@ void parser_printOut(char * prog_name, struct param_common dir,
 
 	i = basename.find("sanePS");
 	if ((i >= 0) && (i < (int) basename.size())) {
-//		print_param_sanePos(Pos_param);
+		//		print_param_sanePos(Pos_param);
 		print_param_saneProc(Proc_param);
 		print_param_sanePS(PS_param);
 	}
@@ -1929,9 +1952,9 @@ void export_param_saneCheck(struct param_saneCheck Check_param, std::vector<stri
 	value.push_back(StringOf(Check_param.checkFlag ? "True" : "False"));
 	comment.push_back("check whether there are detectors that are fully or more than 80% flagged");
 
-//	key.push_back("Gain");
-//	value.push_back(StringOf(Check_param.checkGain ? "True" : "False"));
-//	comment.push_back("compute detector gain and print to screen");
+	//	key.push_back("Gain");
+	//	value.push_back(StringOf(Check_param.checkGain ? "True" : "False"));
+	//	comment.push_back("compute detector gain and print to screen");
 
 	key.push_back("Speed");
 	value.push_back(StringOf(Check_param.checkSpeed ? "True" : "False"));
