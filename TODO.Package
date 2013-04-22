@@ -3,20 +3,20 @@
 #
 # Update the counter release in configure.ac, for e.g.
 
-AC_INIT([sanepic],[0.2.svnversion],[sanepic@ias.u-psud.fr])
+AC_INIT([sanepic],[0.3.svnversion],[sanepic@ias.u-psud.fr])
 
 # First update NEWS and Changelog files.
 
 # In order to create a distribution package, one has to commit all
 # pending changes first: 
 
-svn commit -m "commit before packaging 0.2"
+svn commit -m "commit before packaging 0.3"
 
 # create a release tag (matched with the counter release)
 
 svn copy https://svn.ias.u-psud.fr/sanepic/trunk \
-    https://svn.ias.u-psud.fr/sanepic/tags/release-0.2 \
-    -m "Tagging the 0.2 release of the 'sanepic' project"
+    https://svn.ias.u-psud.fr/sanepic/tags/release-0.3 \
+    -m "Tagging the 0.3 release of the 'sanepic' project"
 
 # Use your local workspace ...
 
@@ -45,6 +45,6 @@ make dist
 tar zxvf sanepic-*
 cd sanepic-*
 
-svn import --username=abeelen . svn+ssh://abeelen@svn.code.sf.net/p/sanepic/code/tags/0.2
+svn import --username=abeelen . svn+ssh://abeelen@svn.code.sf.net/p/sanepic/code/tags/0.3
 
 # Update sanepic.rss (use date --rfc-2822 )
