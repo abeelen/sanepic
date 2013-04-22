@@ -68,7 +68,7 @@ using namespace std;
  *	- Compute Checksum for crash recovery (if save_data is ON)
  *
  *	- Compute conjugate gradient until convergence or max iteration is reached
- *		- Compute and save temporary maps (and data if save_data is ON) every iterW iterations
+ *		- Compute and save temporary maps (and data if save_data is ON) every  iterations
  *		- Print convergence criterias to screen every loop
  *
  *	- Write final map to disk

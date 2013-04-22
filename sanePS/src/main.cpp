@@ -1168,7 +1168,6 @@ int main(int argc, char *argv[]){
 				iter = 0;
 				while( (iter++ < PS_param.itermax) && ( abs(f-f0) > PS_param.tolerance) ) {
 					f0 = f;
-					//				for (long iter=0;iter < PS_param.itermax;iter++){
 
 					fill(iN,iN+ndet,0.0);
 					fill(Pr,Pr+ncomp,0.0);

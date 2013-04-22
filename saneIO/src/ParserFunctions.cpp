@@ -668,9 +668,9 @@ void read_param_sanePS(std::string &output, dictionary *ini, struct param_sanePS
 	else
 		PS_param.mix = StringOf(s);
 
-	i = iniparser_getboolean(ini, "sanePS:save_data", -1);
+	i = iniparser_getboolean(ini, "sanePS:recovery", -1);
 	if (i == -1)
-		output2 += "sanePS:save_data: default value [" + StringOf(
+		output2 += "sanePS:recovery: default value [" + StringOf(
 				PS_param.save_data) + "]\n";
 	else
 		PS_param.save_data = (bool) i;
@@ -723,16 +723,6 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 	else
 		Pic_param.subtolerance = d;
 
-	if (Pic_param.iterw == 0) {
-		Pic_param.save_data = 0;
-		Pic_param.iterw = 10;
-	} else {
-		if (Pic_param.iterw < 0)
-			Pic_param.save_data = 0;
-		else
-			Pic_param.save_data = 1;
-	}
-
 	i = iniparser_getint(ini, "sanePic:iterMAX", -1);
 	if (i <= 0)
 		output2 += "sanePic:iterMAX : default value [" + StringOf(
@@ -754,6 +744,13 @@ void read_param_sanePic(std::string &output, dictionary *ini, struct param_saneP
 				Pic_param.fracMem) + "]\n";
 	else
 		Pic_param.fracMem = d;
+
+	i = iniparser_getboolean(ini, "sanePic:recovery", -1);
+	if (i == -1)
+		output2 += "sanePic:recovery: default value [" + StringOf(
+				Pic_param.save_data) + "]\n";
+	else
+		Pic_param.save_data = (bool) i;
 
 
 #ifdef DEBUG
@@ -1557,12 +1554,21 @@ void print_param_saneProc(struct param_saneProc Proc_param) {
 }
 void print_param_sanePic(struct param_sanePic Pic_param) {
 
+	cout << "Recovery data    : ";
 	if (Pic_param.save_data)
-		cout << "Write Iter. Maps : " << Pic_param.iterw << endl;
+		cout << "On";
 	else
-		cout << "Write Iter. Maps : OFF \n";
+		cout << "Off";
+	cout << endl;
 
-	cout << "Max Iter.        : " << Pic_param.itermax << endl;
+	cout << "Write Iter. Maps : ";
+	if (Pic_param.iterw != 0 )
+		 cout << Pic_param.iterw;
+	else
+		cout << "Off";
+	cout << endl;
+
+	cout << "Max Iter.        : " << Pic_param.itermax    << endl;
 
 	cout << "Maps prefix      : " << Pic_param.map_prefix << endl;
 
@@ -1570,11 +1576,12 @@ void print_param_sanePic(struct param_sanePic Pic_param) {
 }
 void print_param_sanePS(struct param_sanePS PS_param) {
 
-
+	cout << "Recovery data    : ";
 	if (PS_param.save_data)
-		cout << "Save data.       : On\n";
+		cout << "On";
 	else
-		cout << "Save data.       : Off\n";
+		cout << "Off";
+	cout << endl;
 
 	if (PS_param.signame != "")
 		cout << "Removed map.     : " << PS_param.signame << endl;
@@ -1904,7 +1911,7 @@ void export_param_sanePS(struct param_sanePS PS_param, std::vector<string> &key,
 	value.push_back(PS_param.ell_suffix);
 	comment.push_back("ell files suffix");
 
-	key.push_back("save_data");
+	key.push_back("recovery");
 	value.push_back(StringOf(PS_param.save_data));
 	comment.push_back("set save_data to 1 if you wish to save the processing session after each sanePS step");
 
@@ -1935,6 +1942,10 @@ void export_param_sanePic(struct param_sanePic Pic_param, std::vector<string> &k
 	key.push_back("fracMem");
 	value.push_back(StringOf(Pic_param.fracMem));
 	comment.push_back("Maximal fraction of the Physical memory used by sanePic (default : 0.7)");
+
+	key.push_back("recovery");
+	value.push_back(StringOf(Pic_param.save_data));
+	comment.push_back("set save_data to 1 if you wish to save the processing session");
 
 }
 
