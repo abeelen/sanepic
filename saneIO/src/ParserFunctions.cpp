@@ -828,7 +828,12 @@ void read_param_saneCheck(std::string &output, dictionary *ini , struct param_sa
 	else
 		Check_param.thresholdSpeed = d;
 
-
+	i = iniparser_getint(ini, "saneCheck:nEll", -1);
+	if (i == -1)
+		output2 += "saneCheck:nEll : default value [" + StringOf(
+				Check_param.nEll) + "]\n";
+	else
+		Check_param.nEll= (long) i;
 
 #ifdef DEBUG
 	output += output2;
@@ -1250,8 +1255,9 @@ void default_param_saneCheck(struct param_saneCheck &Check_param) {
 	Check_param.aboveSpeed = -1.;
 	Check_param.thresholdSpeed = -1.;
 
-}
+	Check_param.nEll = 0; /* none by default */
 
+}
 void default_param_saneFix(struct param_saneFix &Fix_param) {
 
 	Fix_param.fixSpeed = 1;
@@ -1418,6 +1424,16 @@ uint32_t parser_function(char * ini_name, std::string &output,
 
 	// Directory shall be available to all rank, so test for all..
 	parsed |= check_common(output, dir, rank);
+
+	// To avoid further problems if file/dir are not available
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Allreduce(&parsed, &mpi_parsed, 1, MPI_UNSIGNED_SHORT, MPI_BOR, MPI_COMM_WORLD);
+	parsed = mpi_parsed;
+#endif
+
+	if (parsed != 0)
+		return parsed;
 
 	// Now the ini file has been read, do the rest
 	if (rank == 0) {
@@ -1987,7 +2003,9 @@ void export_param_saneCheck(struct param_saneCheck Check_param, std::vector<stri
 	value.push_back(StringOf(Check_param.aboveSpeed));
 	comment.push_back("and above this speed");
 
-
+	key.push_back("nEll");
+	value.push_back(StringOf(Check_param.nEll));
+	comment.push_back("number of ell bins to be generated");
 
 }
 

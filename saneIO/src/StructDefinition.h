@@ -194,6 +194,8 @@ struct param_saneCheck
 	double aboveSpeed;
 	double thresholdSpeed;
 
+	long nEll; /*! The number of ell bins to be produced */
+
 };
 
 struct param_saneFix

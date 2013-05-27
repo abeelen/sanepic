@@ -324,6 +324,49 @@ int main(int argc, char *argv[]) {
 
 		sampFreqs [iframe]=computedFsamp;
 
+		/* Generate default Ell if needed */
+		if ( Check_param.nEll > 0 ){
+
+
+			double minFreq, maxFreq, freqStep;
+
+			// linear ell
+			minFreq = 0;
+			maxFreq = ns/2 * 1.0 * computedFsamp / ns;
+			freqStep = (maxFreq-minFreq)/(Check_param.nEll-1);
+
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_lin.ell";
+			FILE * fp=fopen(outname.c_str(),"w");
+			for (long iEll = 0; iEll < Check_param.nEll; iEll++){
+				fprintf(fp, "%g\n", minFreq+iEll*freqStep);
+			}
+			fclose(fp);
+
+			// log ell
+			minFreq = log10(computedFsamp/ns);
+			maxFreq = log10(maxFreq);
+			freqStep = (maxFreq-minFreq)/(Check_param.nEll-1);
+
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_log.ell";
+			fp=fopen(outname.c_str(),"w");
+			for (long iEll = 0; iEll < Check_param.nEll; iEll++){
+				fprintf(fp, "%g\n", pow(10.,minFreq+iEll*freqStep ) );
+			}
+			fclose(fp);
+
+
+			// log ell in loglinspace
+			freqStep = (maxFreq-minFreq)/log10(Check_param.nEll);
+
+			outname = dir.output_dir + FitsBasename(fits_filename) +"_linlog.ell";
+			fp=fopen(outname.c_str(),"w");
+			for (long iEll = 0; iEll < Check_param.nEll; iEll++){
+				fprintf(fp, "%g\n", pow(10.,minFreq+log10(iEll+1)*freqStep ) );
+			}
+			fclose(fp);
+		}
+
+
 		if(Check_param.checkGain){
 			//				cout << "\n[" << rank <<  "] Computing and Checking bolometer gain correction in signal table\n"; // check for time gaps in time table
 			//				check_bolo_gain(fits_filename,ns, bolo_gain_filename, det, check_struct.Check_it); // TODO : uncomment if needed
