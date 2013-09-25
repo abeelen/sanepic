@@ -303,6 +303,9 @@ int main(int argc, char *argv[]) {
 
 	}
 
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 	if (Pos_param.maskfile == ""){
 
@@ -341,7 +344,6 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-
 		// Define a projection center ...
 		// ... From the ini file ...
 		if ( ! isnan(Pos_param.lon) && ! isnan(Pos_param.lat) ) {
@@ -355,17 +357,17 @@ int main(int argc, char *argv[]) {
 
 				double *lon, *lat;
 				int *flag;
-				long ns = samples_struct.nsamples[0];
+				long index = samples_struct.iframe_min;
+				long ns = samples_struct.nsamples[index];
 
 				lon  = new double[ns];
 				lat  = new double[ns];
 				flag = new int[ns];
-
-				if(readLonFromDirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], lon, ns))
+				if(readLonFromDirfile(samples_struct.dirfile_pointers[index], samples_struct.basevect[index], samples_struct.bolo_list[index][0], lon, ns))
 					return 1;
-				if(readLatFromDirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], lat, ns))
+				if(readLatFromDirfile(samples_struct.dirfile_pointers[index], samples_struct.basevect[index], samples_struct.bolo_list[index][0], lat, ns))
 					return 1;
-				if(readFlagFromDirfile(samples_struct.dirfile_pointers[0], samples_struct.basevect[0], samples_struct.bolo_list[0][0], flag, ns))
+				if(readFlagFromDirfile(samples_struct.dirfile_pointers[index], samples_struct.basevect[index], samples_struct.bolo_list[index][0], flag, ns))
 					return 1;
 
 				int ii = 0;
@@ -378,6 +380,8 @@ int main(int argc, char *argv[]) {
 				delete [] flag;
 
 			}
+
+			// cout << rank << " there2 " << lon_center << " " << lat_center << endl;
 
 #ifdef USE_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -581,6 +585,9 @@ int main(int argc, char *argv[]) {
 		//#endif
 
 	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 	// TODO : test and run with real data !!!
 	//	if(modify_mask_flag_in_dirfile(dir.tmp_dir, samples_struct, bolo_list, indpsrc,
