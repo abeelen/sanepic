@@ -33,7 +33,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	fitsfile *fptr;
 	int status = 0;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-	long nBolos = bolos.size();
+	long ndet = bolos.size();
 
 	if (fits_create_file(&fptr, fname.c_str(), &status)){
 		fits_report_error(stderr, status);
@@ -50,10 +50,10 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	data = vString2carray(bolos);
 
 
-	if (fits_create_tbl(fptr, BINARY_TBL, nBolos, 1, ttype, tform, tunit,
+	if (fits_create_tbl(fptr, BINARY_TBL, ndet, 1, ttype, tform, tunit,
 			(char*)"channels", &status))
 		return 1;
-	if (fits_write_col(fptr, TSTRING, 1, 1, 1, nBolos, data, &status))
+	if (fits_write_col(fptr, TSTRING, 1, 1, 1, ndet, data, &status))
 		return 1;
 	if (fits_write_key(fptr, TSTRING, (char *) "TUNIT1", (char *) "NONE",
 			(char *) "physical unit of the field", &status))
@@ -81,12 +81,12 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	// ---------------------------------------------
 	// write the spectras
 	naxes[0] = nbins;
-	naxes[1] = nBolos * nBolos;
+	naxes[1] = ndet * ndet;
 	if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
 		return 1;
 
 	// since Rellth is a NR matrix, one has to write it line by line :
-	for (long i = 0; i < nBolos * nBolos; i++) {
+	for (long i = 0; i < ndet * ndet; i++) {
 		fpixel[1] = i + 1;
 		if (fits_write_pix(fptr, TDOUBLE, fpixel, nbins, Rellth[i], &status))
 			return 1;
@@ -112,7 +112,7 @@ int write_CovMatrix(string fname, std::vector<string> bolos, long nbins, double 
 	}
 
 
-	for(long ii=0;ii<nBolos;ii++)
+	for(long ii=0;ii<ndet;ii++)
 		delete [] data[ii];
 	delete [] data;
 	delete [] *tform;
@@ -129,7 +129,7 @@ int read_CovMatrix(string fname, std::vector<string> &det_vect, long &nbins, dou
 	fitsfile *fptr;
 	int status = 0;
 	long naxes[2] = { 1, 1 }, fpixel[2] = { 1, 1 };
-	long nBolos, repeat, width;
+	long ndet, repeat, width;
 	int colnum, typecode;
 
 	//	cout << fname << endl;
@@ -146,26 +146,26 @@ int read_CovMatrix(string fname, std::vector<string> &det_vect, long &nbins, dou
 		return 1;
 	}
 
-	fits_get_num_rows(fptr, &nBolos, &status);
+	fits_get_num_rows(fptr, &ndet, &status);
 	fits_get_colnum(fptr, CASEINSEN, (char*) "name", &colnum, &status);
 	fits_get_coltype(fptr, colnum, &typecode, &repeat, &width, &status);
 
 	// Initialize the data container
 	char ** data;
-	data = new char*[nBolos];
-	for (int i = 0; i < nBolos; i++) {
+	data = new char*[ndet];
+	for (int i = 0; i < ndet; i++) {
 		data[i] = new char[repeat];
 	}
 
-	fits_read_col(fptr, TSTRING, colnum, 1, 1, nBolos, NULL, data, 0, &status);
+	fits_read_col(fptr, TSTRING, colnum, 1, 1, ndet, NULL, data, 0, &status);
 
 	// convert to string vector and free the container
-	det_vect.resize(nBolos);
-	for (int i = 0; i < nBolos; i++)
+	det_vect.resize(ndet);
+	for (int i = 0; i < ndet; i++)
 		det_vect[i] = data[i];
 	//		free(data[i]);
 
-	for (int i = 0; i < nBolos; i++)
+	for (int i = 0; i < ndet; i++)
 		delete [] data[i];
 	//	free(data);
 	delete [] data;
@@ -188,14 +188,14 @@ int read_CovMatrix(string fname, std::vector<string> &det_vect, long &nbins, dou
 	}
 
 	fits_get_img_size(fptr, 2, naxes, &status);
-	if (naxes[1] != nBolos*nBolos || naxes[0] != nbins){
+	if (naxes[1] != ndet*ndet || naxes[0] != nbins){
 		fits_report_error(stderr,213);
 		return 1;
 	}
 
-	Rellth = gsl_matrix_alloc(nBolos*nBolos, nbins);
+	Rellth = gsl_matrix_alloc(ndet*ndet, nbins);
 
-	for (int i = 0; i < nBolos * nBolos; i++) {
+	for (int i = 0; i < ndet * ndet; i++) {
 		double * matrix_ptr = gsl_matrix_ptr(Rellth, i, 0);
 		fpixel[1] = i + 1;
 		fits_read_pix(fptr, TDOUBLE, fpixel, nbins, NULL, matrix_ptr, NULL, &status);
