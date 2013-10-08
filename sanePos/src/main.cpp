@@ -752,7 +752,7 @@ int main(int argc, char *argv[]) {
 		long ndet = (long)det_vect.size();
 
 		int pb=0;
-		pb+=do_PtNd_Naiv(samples_struct, PNdNaiv, dir.tmp_dir, det_vect, ndet,
+		pb+=do_PtNd_Naiv(samples_struct, Proc_param ,PNdNaiv, dir.tmp_dir, det_vect, ndet,
 				Proc_param.poly_order, Proc_param.napod, fhp_pix, ns, indpix, iframe, hitsNaiv,
 				bolo_rank, bolo_size);
 		if(pb>0){

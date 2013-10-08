@@ -312,7 +312,7 @@ int computeMapMinima_HIPE(struct samples samples_struct, struct wcsprm * & wcs,
 
 }
 
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
+int do_PtNd_Naiv(struct samples samples_struct, struct param_saneProc proc_param, double *PNd, std::string outdir,
 		std::vector<std::string> det, long ndet, int orderpoly, int napod,
 		double fhp_pix, long ns, long long *indpix, long iframe, long *hits, int sub_rank, int sub_size) {
 
@@ -345,38 +345,52 @@ int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir,
 		if(readFlagFromDirfile(samples_struct.dirfile_pointers[iframe], samples_struct.basevect[iframe], field1, flag, ns))
 			return 1;
 
-		fill(data_out,data_out+ns,0.0);
 
-		//fill gaps with straight line
-		fillgaps2(data,ns,data_out,flag,40);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
-
-		//remove polynomia to correct from time varying calibration
-		remove_poly(data,ns,orderpoly,data_out,flag);
-		for (long ii=0;ii<ns;ii++)
-			data[ii] = data_out[ii];
-
-		//linear prediction
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] = data[ii];
-
-		/// remove a baseline
-		aa = (data_lp[ns-1]-data[0])/double(ns);
-		bb = data_lp[0];
-		for (long ii=0;ii<ns;ii++)
-			data_lp[ii] -= aa*(double)ii+bb;
-
-		if (fhp_pix > 0.0)
-			butterworth(data_lp,ns, data_out,bfilter,1,napod,0);
-
-		fill(data,data+ns,0.0);
-		//******************* process gaps
-		fillgaps2(data_out,ns,data,flag,40);
-
-		for (long ii=0;ii<ns;ii++) {
-			PNd[indpix[samptopix[ii]]] += data[ii];
+		//*********************************************************************
+		if (proc_param.fill_gap) {
+			fillgaps2(data,ns,data_out,flag,40);
+		} else {
+			for (long ii=0; ii<ns; ii++)
+				data_out[ii] = data[ii];
 		}
+
+
+		if(proc_param.remove_polynomia) {
+			//remove polynomia to correct from time varying calibration
+			remove_poly(data_out,ns,proc_param.poly_order,data,flag);
+		} else {
+			for (long ii=0; ii<ns; ii++)
+				data[ii] = data_out[ii];
+		}
+
+		if (proc_param.remove_linear){
+			/// remove a baseline
+			aa = (data[ns-1]-data[0])/double(ns);
+			bb = data[0];
+			for (long ii=0;ii<ns;ii++)
+				data[ii] -= aa*(double)ii+bb;
+		}
+
+		//Butterworth filter (if necessary)
+		if (proc_param.highpass_filter){
+			butterworth(data,ns,data_out,bfilter,1,proc_param.napod,0);
+		} else {
+			for (long ii=0; ii<ns; ii++)
+				data_out[ii] = data[ii];
+		}
+
+		//******************* process gaps
+		if (proc_param.fill_gap) {
+			fillgaps2(data_out,ns,data,flag,40);
+		} else {
+			for (long ii=0; ii<ns; ii++)
+				data[ii] = data_out[ii];
+		}
+
+		//*************** Finally add data to map
+        for (long ii=0;ii<ns;ii++) {
+                PNd[indpix[samptopix[ii]]] += data[ii];
+        }
 
 		//compute hit counts
 		for (long ii=0;ii<ns;ii++) {

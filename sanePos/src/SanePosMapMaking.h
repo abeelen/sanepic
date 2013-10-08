@@ -92,7 +92,7 @@ void computeMapHeader(double pixdeg, char *ctype, char* prjcode, double * coords
  \param hits This array corresponds to map's coverage. Stored in naïve map has a fits image
  \return An integer >0 if there were a problem, or 0 if everything went OK
  */
-int do_PtNd_Naiv(struct samples samples_struct, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double fhp_pix, long ns,
+int do_PtNd_Naiv(struct samples samples_struct, struct param_saneProc proc_param, double *PNd, std::string outdir, std::vector<std::string> det, long ndet, int orderpoly, int napod, double fhp_pix, long ns,
 		long long *indpix, long iframe, long *hits, int sub_rank, int sub_size);
 
 #endif /* MAP_MAKING_H_ */
