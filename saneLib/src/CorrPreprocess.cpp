@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cmath>
+#include <ctime>
 
 #include "CorrPreprocess.h"
 #include "DataIO.h"
@@ -18,7 +19,6 @@
 #include "StructDefinition.h"
 #include "CovMatrixIO.h"
 
-#include <time.h>
 
 #include <gsl/gsl_math.h>
 
@@ -283,7 +283,7 @@ int do_PtNd(struct samples samples_struct, double *PNd, string prefixe,
 			fill(Nd,Nd+ns,0.0);
 			fill(Nk,Nk+(ns/2+1),0.0);
 			for (int ii=0;ii<nbins;ii++)
-				SpN[ii] = SpN_all[idet2][ii] / (double) ns;
+				SpN[ii] = SpN_all[idet2][ii] / (double) ns; //TODO Changed here for test
 
 			//read Fourier transform of the data
 			if(readFdata(samples_struct.dirfile_pointers[iframe],  samples_struct.basevect[iframe], det[idet2], prefixe, fdata, ns))

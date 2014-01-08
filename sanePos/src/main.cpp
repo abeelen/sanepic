@@ -7,11 +7,11 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
+#include <cstdio>
+#include <ctime>
 
-#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sysexits.h>
 
 #include "MPIConfiguration.h"

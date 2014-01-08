@@ -1,14 +1,14 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <time.h>
+#include <ctime>
 #include <cstdlib>
+#include <cstdio>
 
 #include <fcntl.h>
 #include <unistd.h>
 #include <sysexits.h>
 #include <vector>
-#include <stdio.h>
 #include <algorithm>
 
 #include "MPIConfiguration.h"

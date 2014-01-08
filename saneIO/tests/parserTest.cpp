@@ -7,11 +7,11 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
+#include <cstdio>
+#include <ctime>
 
-#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sysexits.h>
 
 #include <limits>
@@ -78,24 +78,24 @@ int main(int argc, char *argv[])
 	struct param_saneInv inv_param;
 	string parser_output = "";
 
-        int flagon = 0; /*  if at least one sample is rejected, flagon=1 */
+	int flagon = 0; /*  if at least one sample is rejected, flagon=1 */
 	int factdupl = 1; /* map duplication factor */
-        long long addnpix = 0; /* number of pix to add to compute the final maps in case of duplication + box constraint */
-        long long npixsrc = 0; /* number of pix in box constraint */
+	long long addnpix = 0; /* number of pix to add to compute the final maps in case of duplication + box constraint */
+	long long npixsrc = 0; /* number of pix in box constraint */
 
-        // map making parameters
-        long long indpix_size; /* indpix read size */
-        long long indpsrc_size; /* indpsrc read size */
-        long long npix; /* nn = side of the map, npix = number of filled pixels */
+	// map making parameters
+	long long indpix_size; /* indpix read size */
+	long long indpsrc_size; /* indpsrc read size */
+	long long npix; /* nn = side of the map, npix = number of filled pixels */
 
-        int nwcs=1;             // We will only deal with one wcs....
-        struct wcsprm * wcs;    // wcs structure of the image
-        long NAXIS1, NAXIS2;  // size of the image
+	int nwcs=1;             // We will only deal with one wcs....
+	struct wcsprm * wcs;    // wcs structure of the image
+	long NAXIS1, NAXIS2;  // size of the image
 
-        char * subheader;       // Additionnal header keywords
-        int nsubkeys=0;           //
+	char * subheader;       // Additionnal header keywords
+	int nsubkeys=0;           //
 
-        long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
+	long long *indpix, *indpsrc; /* pixels indices, mask pixels indices */
 
 
 
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
 
 	// this should be done by subrank 0 only
-//	init_dirfile(dir.tmp_dir, samples_struct, Pos_param.fileFormat, rank);
+	//	init_dirfile(dir.tmp_dir, samples_struct, Pos_param.fileFormat, rank);
 	//	fill_sanePS_struct(PS_param, samples_struct, dir);
 
 	//	cout << rank << " parser done." << endl;
@@ -181,158 +181,181 @@ int main(int argc, char *argv[])
 #endif
 
 
-        if (bolo_rank == 0) {
-	  if ( readNoiseBinSizeFromDirfile(dir.tmp_dir, samples_struct) ) {
-	    cerr << "EE - Error in reading Noise sizes - Did you run saneInv ?" << endl;
+	if (bolo_rank == 0) {
+		if ( readNoiseBinSizeFromDirfile(dir.tmp_dir, samples_struct) ) {
+			cerr << "EE - Error in reading Noise sizes - Did you run saneInv ?" << endl;
 #ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+			MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
 #endif
-	    return EX_CONFIG;
-	  }
-        }
+			return EX_CONFIG;
+		}
+	}
 
 #ifdef USE_MPI
 	std::vector<long> ndet_tot, nbins_tot;
-        ndet_tot.assign(samples_struct.ntotscan,0);
-        nbins_tot.assign(samples_struct.ntotscan,0);
+	ndet_tot.assign(samples_struct.ntotscan,0);
+	nbins_tot.assign(samples_struct.ntotscan,0);
 
-        MPI_Barrier(MPI_COMM_NODE);
+	MPI_Barrier(MPI_COMM_NODE);
 
-        MPI_Allreduce(&(samples_struct.ndet[0]),   &ndet_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
-        MPI_Allreduce(&(samples_struct.nbins[0]), &nbins_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+	MPI_Allreduce(&(samples_struct.ndet[0]),   &ndet_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+	MPI_Allreduce(&(samples_struct.nbins[0]), &nbins_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
 
-        samples_struct.ndet  =  ndet_tot;
-        samples_struct.nbins = nbins_tot;
-        ndet_tot.clear();
-        nbins_tot.clear();
+	samples_struct.ndet  =  ndet_tot;
+	samples_struct.nbins = nbins_tot;
+	ndet_tot.clear();
+	nbins_tot.clear();
 
-        //      MPI_Bcast_vector_long(samples_struct.ndet, 0, MPI_COMM_SUB);
-        //      MPI_Bcast_vector_long(samples_struct.nbins, 0, MPI_COMM_SUB);
-        MPI_Barrier(MPI_COMM_WORLD);
+	//      MPI_Bcast_vector_long(samples_struct.ndet, 0, MPI_COMM_SUB);
+	//      MPI_Bcast_vector_long(samples_struct.nbins, 0, MPI_COMM_SUB);
+	MPI_Barrier(MPI_COMM_WORLD);
 
 #endif
 
-// 	if (rank == 0)
-// 		readFramesFromFits(samples_struct);
-// #ifdef USE_MPI
-// 	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
-// #endif
-
-        // Read file sizes once for all
-        if (bolo_rank == 0) {
-	  if ( readFramesFromDirfile(dir.tmp_dir, samples_struct)) {
-	    cerr << "EE - Error in frame size - Did you run sanePre ?" << endl;
+	// 	if (rank == 0)
+	// 		readFramesFromFits(samples_struct);
+	// #ifdef USE_MPI
+	// 	MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_WORLD);
+	// #endif
 #ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
 #endif
-	    return EX_CONFIG;
-	  }
-        }
+
+	// Read file sizes once for all
+	if (bolo_rank == 0) {
+		if ( readFramesFromDirfile(dir.tmp_dir, samples_struct)) {
+			cerr << "EE - Error in frame size - Did you run sanePre ?" << endl;
 #ifdef USE_MPI
-        MPI_Barrier(MPI_COMM_NODE);
+			MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+#endif
+			return EX_CONFIG;
+		}
+	}
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_NODE);
 	std::vector<long> nsamples_tot;
-        nsamples_tot.assign(samples_struct.ntotscan, 0);
+	nsamples_tot.assign(samples_struct.ntotscan, 0);
 
-        MPI_Allreduce(&(samples_struct.nsamples[0]), &nsamples_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
+	MPI_Allreduce(&(samples_struct.nsamples[0]), &nsamples_tot[0], samples_struct.ntotscan, MPI_LONG, MPI_SUM, MPI_COMM_NODE);
 
-        samples_struct.nsamples = nsamples_tot;
-        nsamples_tot.clear();
+	samples_struct.nsamples = nsamples_tot;
+	nsamples_tot.clear();
 
-        //      MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_SUB);
-        MPI_Barrier(MPI_COMM_WORLD);
+	//      MPI_Bcast_vector_long(samples_struct.nsamples, 0, MPI_COMM_SUB);
+	MPI_Barrier(MPI_COMM_WORLD);
 
 #endif
-
-        if (Pos_param.flgdupl)
-	  factdupl = 2; // default 0 : if flagged data are put in a duplicated map
-
-        // Read indpsrc and checks...
-
-        //      read pointing header
-        if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
-	  cerr << "EE - Error reading saved keyrec -- Did you run sanePre ?" << endl;
-#ifdef USE_MPI
-	  MPI_Barrier(MPI_COMM_WORLD);
-	  MPI_Finalize();
-#endif
-	  return EX_IOERR;
-        }
-
-
-        if (rank == 0){
-
-	  if (readIndexCCR(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
-	    cerr << "EE - Please run sanePos" << endl;
 
 #ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, 1);
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
 #endif
-	    return (EX_IOERR);
-	  }
 
-	  if (indpsrc_size != NAXIS1 * NAXIS2) { // check size compatibility
-	    if (rank == 0)
-	      cerr << "EE - indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
-		   << endl;
+	if (Pos_param.flgdupl)
+		factdupl = 2; // default 0 : if flagged data are put in a duplicated map
+
+	// Read indpsrc and checks...
+
+	//      read pointing header
+	if(read_keyrec(dir.tmp_dir, wcs, &NAXIS1, &NAXIS2, &subheader, &nsubkeys, rank)){ // read keyrec file
+		cerr << "EE - Error reading saved keyrec -- Did you run sanePre ?" << endl;
 #ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, 1);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Finalize();
 #endif
-	    return (EX_IOERR);
-	  }
-
-	  addnpix = samples_struct.ntotscan * npixsrc;
-
-	  // read indpix
-	  if (read_indpix(indpix_size, npix, indpix, dir.tmp_dir, flagon)) { // read map index
-#ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-	    return (EX_IOERR);
-	  }
-
-	  if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix + 1)) { // check size compatibility
-	    if (rank == 0)
-                                cout
-				  << "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
-				  << endl;
-#ifdef USE_MPI
-	    MPI_Abort(MPI_COMM_WORLD, 1);
-#endif
-	    return (EX_IOERR);
-	  }
-
-        } // rank ==0
-
+		return EX_IOERR;
+	}
 
 #ifdef USE_MPI
-        // Broadcast all position related values
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Bcast(&npix,         1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&npixsrc,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&addnpix,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&indpix_size,  1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&indpsrc_size, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Barrier(MPI_COMM_WORLD);
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
-        if(rank!=0){
-	  indpix  = new long long[indpix_size];
-	  indpsrc = new long long[indpsrc_size];
-        }
+	if (rank == 0){
 
-        MPI_Bcast(indpix,  indpix_size,  MPI_LONG_LONG, 0, MPI_COMM_WORLD);
-        MPI_Bcast(indpsrc, indpsrc_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+		if (readIndexCCR(indpsrc_size, npixsrc, indpsrc, dir.tmp_dir)) { // read mask index
+			cerr << "EE - Please run sanePos" << endl;
+
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return (EX_IOERR);
+		}
+
+		if (indpsrc_size != NAXIS1 * NAXIS2) { // check size compatibility
+			if (rank == 0)
+				cerr << "EE - indpsrc size is not the right size : Check indpsrc.bin file or run sanePos"
+				<< endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return (EX_IOERR);
+		}
+
+		addnpix = samples_struct.ntotscan * npixsrc;
+
+		// read indpix
+		if (read_indpix(indpix_size, npix, indpix, dir.tmp_dir, flagon)) { // read map index
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return (EX_IOERR);
+		}
+
+		if (indpix_size != (factdupl * NAXIS1 * NAXIS2 + 2 + addnpix + 1)) { // check size compatibility
+			if (rank == 0)
+				cout
+				<< "indpix size is not the right size : Check Indpix_*.bi file or run sanePos"
+				<< endl;
+#ifdef USE_MPI
+			MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
+			return (EX_IOERR);
+		}
+
+	} // rank ==0
+
+
+#ifdef USE_MPI
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Bcast(&npix,         1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&npixsrc,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&addnpix,      1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&indpix_size,  1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&indpsrc_size, 1, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	if(rank!=0){
+		indpix  = new long long[indpix_size];
+		indpsrc = new long long[indpsrc_size];
+	}
+
+	MPI_Bcast(indpix,  indpix_size,  MPI_LONG_LONG, 0, MPI_COMM_WORLD);
+	MPI_Bcast(indpsrc, indpsrc_size, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 #endif
 
 
+#ifdef USE_MPI
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
-	if (bolo_rank == 0)
-	  computeMemoryRequirement_sanePic(samples_struct, npix, indpix_size);
+	if (rank == 0) {
+		computeMemoryRequirement_sanePic(samples_struct, npix, indpix_size);
 
-	if (bolo_rank == 0)
-	  for (int ii=0; ii< samples_struct.ntotscan; ii++)
-	    cout << ii << " " << prettyPrintSize(samples_struct.memory[ii]*8.) << endl;
+		for (int ii=0; ii< samples_struct.ntotscan; ii++)
+			cout << ii << " " << samples_struct.memory[ii]*8. << endl;
+	//	cout << ii << " " << prettyPrintSize(samples_struct.memory[ii]*8.) << endl;
+	}
 
 	//	get_noise_bin_sizes(dir.tmp_dir, samples_struct, rank);
+
+#ifdef USE_MPI
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 	if (rank==0){
 		//		print_common(dir);
@@ -346,6 +369,24 @@ int main(int argc, char *argv[])
 		print_struct(proc_param, samples_struct, Pos_param, dir, inv_param, Pic_param,PS_param);
 
 	}
+
+#ifdef USE_MPI
+	// Broadcast all position related values
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+	if (rank == 0)
+		cout << endl << "iframe_min/max per node :" << endl;
+
+	if (bolo_rank == 0){
+		ostringstream line;
+		line << rank << " " << bolo_rank << " : " << "iframe from " << samples_struct.iframe_min << " to " << samples_struct.iframe_max;
+		cout << line.str() << endl;
+	}
+
+#ifdef USE_MPI
+	MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 #ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);

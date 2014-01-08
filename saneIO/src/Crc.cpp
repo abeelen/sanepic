@@ -19,17 +19,38 @@ extern "C" {
 
 using namespace std;
 
-uint32_t checksum(void *buffer, size_t len, uint32_t seed){
+// Too simplistic...
+//uint32_t checksum(void *buffer, size_t len, uint32_t seed){
+//
+//	// transform the buffer pointer to a char* pointer
+//	char *buf = (char *)buffer;
+//
+//	for (size_t ii = 0; ii < len; ++ii)
+//		seed += (uint32_t)(*buf++);
+//
+//	return seed;
+//}
 
-	// transform the buffer pointer to a char* pointer
-	char *buf = (char *)buffer;
+// From http://en.wikipedia.org/wiki/Adler32#Example_implementation
+const int MOD_ADLER = 65521;
 
-	for (size_t ii = 0; ii < len; ++ii)
-		seed += (uint32_t)(*buf++);
+uint32_t checksum(void *buffer, uint32_t len) /* where data is the location of the data in physical memory and
+                                                       len is the length of the data in bytes */
+{
+    uint32_t a = 1, b = 0;
+    int32_t index;
 
-	return seed;
+	char *data = (char *)buffer;
+
+    /* Process each byte of the data in order */
+    for (index = 0; index < len; ++index)
+    {
+        a = (a + data[index]) % MOD_ADLER;
+        b = (b + a) % MOD_ADLER;
+    }
+
+    return (b << 16) | a;
 }
-
 
 void compute_checksum(struct param_common dir, struct param_sanePos pos_param, struct param_saneProc proc_param,
 		struct param_saneInv inv_param, struct param_sanePS ps_param, struct param_sanePic pic_param, struct samples samples_struct, long long npix,
@@ -58,7 +79,7 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 
 	buf_ini = (char*)buffer_crc.c_str();
 
-	chk.chk_ini_file=checksum(buf_ini, (long)buffer_crc.size(), 0);
+	chk.chk_ini_file=checksum(buf_ini, (long)buffer_crc.size());
 //	cout << "ini chk : " << chk.chk_ini_file<< endl;
 	/*------------------------------------------------------------------*/
 
@@ -74,15 +95,15 @@ void compute_checksum(struct param_common dir, struct param_sanePos pos_param, s
 	len = fread(buf, sizeof(char), sizeof(buf), fp);
 	fclose(fp);
 
-	chk.chk_wcs_file=checksum(buf, len, 0);
+	chk.chk_wcs_file=checksum(buf, len);
 	//	printf("The checksum of %s is %u\n", file.c_str(), chk.chk_wcs_file);
 
 	/*------------------------------------------------------------------*/
 
-	chk.chk_indpix=checksum(indpix, (size_t) npix, 0);
+	chk.chk_indpix=checksum(indpix, (size_t) npix);
 	//	printf("The checksum of Indpix is %u\n", chk.chk_indpix);
 
-	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size, 0);
+	chk.chk_indpsrc=checksum(indpsrc, (size_t) indpsrc_size);
 	//	printf("The checksum of Indpsrc is %u\n", chk.chk_indpsrc);
 
 }

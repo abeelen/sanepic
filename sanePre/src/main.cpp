@@ -2,7 +2,7 @@
 #include <fstream>
 #include <ostream>
 #include <sstream>
-#include <time.h>
+#include <ctime>
 #include <cmath>
 #include <vector>
 #include <string>

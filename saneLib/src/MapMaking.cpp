@@ -326,7 +326,7 @@ void MapMakePreProcessData(double *data,  int *flag, long ns, struct param_saneP
 	//Butterworth filter (if necessary)
 	if (proc_param.highpass_filter){
 		butterworth(data,ns,data_out,bfilter,1,proc_param.napod,0);
-	} else{
+	} else {
 		for (long ii=0; ii<ns; ii++)
 			data_out[ii] = data[ii];
 	}

@@ -5,7 +5,7 @@
 #endif
 
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <string>
@@ -82,7 +82,7 @@ int get_fits_META(string fname, struct wcsprm * &wcs, char ** subheader, int *ns
 	wcs->equinox = dvalue ;
 
 	if (fits_read_key_str(fp, (char *) "DATE-OBS", value, comment, &fits_status)) {
-		if (fits_status == KEY_NO_EXIST) { strcpy(value,"Unknown"); fits_status = 0;
+		if (fits_status == KEY_NO_EXIST) { strcpy(value,"0000-00-00T00:00:00"); fits_status = 0;
 		} else { fits_report_error(stderr, fits_status); return 1; }
 	}
 	strcpy(wcs->dateobs, value);

@@ -1047,6 +1047,15 @@ uint32_t check_param_sanePS(string &output, struct param_common dir, struct samp
 		output += "EE - " + PS_param.ell + " not found\n";
 		returnCode |= ELL_FILE_NOT_FOUND;
 	}
+	
+	if (PS_param.ell_suffix != "") {
+	  for (long iframe=0; iframe < samples_struct.ntotscan; iframe++) {
+	    if ( check_file(samples_struct.ell_names[iframe]) != 0 ){
+	      output += "EE - " + samples_struct.ell_names[iframe] + " not found\n";
+	      returnCode |= ELL_FILE_NOT_FOUND;
+	    }
+	  }
+	}
 
 	if ((PS_param.mix == "") && (PS_param.mix_suffix == "")) {
 		output += "WW - You should mention one of those parameters :\n";
@@ -1059,17 +1068,13 @@ uint32_t check_param_sanePS(string &output, struct param_common dir, struct samp
 		returnCode |= MIX_FILE_NOT_FOUND;
 	}
 
-	// for (long iframe=0; iframe < samples_struct.ntotscan; iframe++) {
-
-	// 	if ( check_file(samples_struct.ell_names[iframe]) != 0 ){
-	// 		output += "EE - " + samples_struct.ell_names[iframe] + " not found\n";
-	// 		returnCode |= FILE_PROBLEM;
-	// 	}
-	// 	if ( check_file(samples_struct.mix_names[iframe]) != 0 ){
-	// 		output += "WW - " + samples_struct.mix_names[iframe] + " not found\n";
-	// 	}
-	// }
-
+	if (PS_param.mix_suffix != "") {
+	  for (long iframe=0; iframe < samples_struct.ntotscan; iframe++) {
+	    if ( check_file(samples_struct.mix_names[iframe]) != 0 ){
+	      output += "WW - " + samples_struct.mix_names[iframe] + " not found\n";
+	    }
+	  }
+	}
 	return returnCode;
 }
 uint32_t check_param_saneInv(string &output, struct param_common dir, struct param_saneInv &Inv_param) {
@@ -1450,10 +1455,6 @@ uint32_t parser_function(char * ini_name, std::string &output,
 	parsed |= check_param_sanePos(output, Pos_param);
 	parsed |= check_param_saneInv(output, dir, Inv_param);
 
-	if (rank==0){
-		// Should probably be somewhere else...
-		parsed |= check_param_sanePS(output, dir, samples_struct, PS_param);
-	}
 
 	parsed |= fill_samples_struct(output, samples_struct, dir, Inv_param, Proc_param, rank, size);
 

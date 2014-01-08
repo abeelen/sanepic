@@ -276,6 +276,21 @@ int main(int argc, char *argv[]){
 
 
 	fill_sanePS_struct(PS_param, samples_struct, dir); // all ranks can do it !
+	if (rank==0){
+	  // Should probably be somewhere else...
+	  parser_output = "";
+	  if (check_param_sanePS(parser_output, dir, samples_struct, PS_param)) {
+	    cerr << parser_output << endl << "Exiting..." << endl;
+#ifdef USE_MPI
+	    MPI_Abort(MPI_COMM_WORLD, EX_CONFIG);
+	    MPI_Finalize();
+#endif
+	    return EX_CONFIG;
+	    
+	  };
+	  
+	}
+
 
 	long long addnpix = 0;
 	int factdupl = 1;
@@ -399,6 +414,8 @@ int main(int argc, char *argv[]){
 					cout << "WW - Some observed pixels fall outside the given map... set to 0" << endl;
 			}
 
+			wcsvfree(&nwcs, &wcs);
+
 		} //rank ==0
 
 #ifdef USE_MPI
@@ -407,7 +424,7 @@ int main(int argc, char *argv[]){
 
 		if(rank!=0){
 			indpix = new long long[indpix_size];
-			S = new double[npix];
+			S      = new double[npix];
 			//			fill(S,S+npix,0.0);
 		}
 
@@ -415,7 +432,6 @@ int main(int argc, char *argv[]){
 		MPI_Bcast(S,npix,MPI_DOUBLE,0,MPI_COMM_WORLD); // broadcast it to the other procs
 
 #endif
-		wcsvfree(&nwcs, &wcs);
 
 	} // PS_param.signame != ""
 
@@ -459,6 +475,10 @@ int main(int argc, char *argv[]){
 		cout << endl << "Noise Power Spectra Estimation started : " << endl;
 
 	for (long iframe = samples_struct.iframe_min; iframe < samples_struct.iframe_max; iframe++) { // proceed scan by scan
+
+#ifdef USE_MPI
+		MPI_Barrier(MPI_COMM_NODE);
+#endif
 
 		// ns = number of samples in the "iframe" scan
 		// npix = total number of filled pixels
@@ -527,20 +547,26 @@ int main(int argc, char *argv[]){
 		if (bolo_rank == 0){
 			std::vector<double> dummy;
 			std::string output;
-			if ( read_file(output, samples_struct.ell_names[iframe], dummy) )
-				return FILE_PROBLEM;
+			if ( read_file(output, samples_struct.ell_names[iframe], dummy) ){
+			  cerr << "EE - Can not read " << samples_struct.ell_names[iframe] << endl;
+#ifdef USE_MPI
+			  MPI_Abort(MPI_COMM_WORLD, FILE_PROBLEM);
+#endif
+			  return FILE_PROBLEM;
+
+			}
 			vDouble2carray(dummy, &ell, &nbins);
 			dummy.clear();
 			nbins   = nbins-1;
 		}
+
 #ifdef USE_MPI
 		MPI_Barrier(MPI_COMM_NODE);
 		MPI_Bcast(&nbins, 1, MPI_LONG, 0, MPI_COMM_NODE);
 		if (bolo_rank != 0 )
-				ell =  new double[nbins+1];
+			ell =  new double[nbins+1];
 		MPI_Bcast(ell, nbins+1, MPI_DOUBLE, 0, MPI_COMM_NODE);
 #endif
-
 
 		long nbins2=0;
 		while ((ell[nbins2] < fcut) && (nbins2 < nbins)){
@@ -553,7 +579,7 @@ int main(int argc, char *argv[]){
 			km[ii] = exp((log(ell[ii+1])+log(ell[ii]))/2.0)*ns/fsamp;
 
 #ifdef USE_MPI
-		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_NODE);
 #endif
 
 
@@ -822,6 +848,7 @@ int main(int argc, char *argv[]){
 			if(PS_param.save_data && bolo_rank == 0){
 				save_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), goto_step, commonMode, N, P, Rellexp, Rellth, SPref, ndet, ncomp, nbins, ns);
 			}
+
 		}
 		/* no break */
 
@@ -1112,6 +1139,7 @@ int main(int argc, char *argv[]){
 
 			if(PS_param.save_data && bolo_rank == 0 )
 				save_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), goto_step, commonMode, N, P, Rellexp, Rellth, SPref, ndet, ncomp, nbins, ns);
+
 		}
 		/* no break */
 
@@ -1506,6 +1534,7 @@ int main(int argc, char *argv[]){
 
 			if(PS_param.save_data && bolo_rank == 0)
 				save_session(dir.tmp_dir, FitsBasename(samples_struct.fitsvect[iframe]), goto_step, commonMode, N, P, Rellexp, Rellth, SPref, ndet, ncomp, nbins, ns);
+
 		}
 		/* no break */
 		case 5: {
@@ -1545,8 +1574,8 @@ int main(int argc, char *argv[]){
 
 			}
 
-
 			goto_step++;
+
 
 		}
 		break;

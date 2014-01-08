@@ -12,7 +12,7 @@
   \param seed A seed that can be add to the checksum (not used)
   \return The checksum value (as an unsigned int)
  */
-uint32_t checksum(void *buffer, size_t len, uint32_t seed);
+uint32_t checksum(void *buffer, uint32_t len);
 
 //! Computes the checksum of whole structure, indpix and indpsrc table, stacking them into a buffer
 /*!

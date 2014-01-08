@@ -426,7 +426,7 @@ void AssignNodeByProcname(char * proc_names, int size, int *nodeID, vector<strin
 	// ... transforming the processor name to checksums ...
 	proc_ids = new uint32_t[size];
 	for (int ii=0; ii < size ; ii++)
-		proc_ids[ii] = checksum(proc_names+(ii*MPI_MAX_PROCESSOR_NAME), strlen(proc_names+(ii*MPI_MAX_PROCESSOR_NAME)), 0);
+		proc_ids[ii] = checksum(proc_names+(ii*MPI_MAX_PROCESSOR_NAME), strlen(proc_names+(ii*MPI_MAX_PROCESSOR_NAME)));
 
 	// ... finding unique machines name ...
 	list<uint32_t> myList (proc_ids,proc_ids+size);
